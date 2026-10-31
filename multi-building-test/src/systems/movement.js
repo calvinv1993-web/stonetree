@@ -59,12 +59,17 @@ function route(tx,ty){
 function stepMovement(){
  if(!path.length)return false;
  const [x,y]=path.shift();
+ const previous={x:player.x,y:player.y,z:player.z};
  if(!walkable(x,y)||!connected(player.x,player.y,x,y)){path=[];return false;}
  const direction=stairAction(x,y);
  if(direction){
   const z=player.z+(direction==='up'?1:-1),landingY=y+(direction==='up'?-1:1),b=buildingAt(x,y);
   if(buildingAt(x,landingY)!==b||!walkable(x,landingY,z)||stairAction(x,landingY,z)){path=[];return false;}
-  Object.assign(player,{x,y:landingY,z});path=[];
- }else Object.assign(player,{x,y});
+  Object.assign(player,{x,y:landingY,z});movementVisual=null;path=[];
+ }else{
+  Object.assign(player,{x,y});
+  const now=typeof performance!=='undefined'&&performance.now?performance.now():Date.now();
+  movementVisual={x:previous.x,y:previous.y,started:now};
+ }
  return true;
 }
