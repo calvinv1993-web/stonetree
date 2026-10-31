@@ -491,11 +491,19 @@ function drawStorey(b,x,y,level,occupied){
   if(!floorVoids(b,level).has(col+','+(row-1)))rect(x+col*TILE,y+row*TILE,TILE,4,'#d4bc91');
   if(!floorVoids(b,level).has((col-1)+','+row))rect(x+col*TILE,y+row*TILE,4,TILE,'#665b4b');
  }
+ // Clip furnishings to solid floor tiles: never paint across stairwell openings.
+ ctx.save();ctx.beginPath();
+ const voids=floorVoids(b,level);
+ for(let row=0;row<b.height;row++)for(let col=0;col<b.width;col++){
+  if(!voids.has(col+','+row))ctx.rect(x+col*TILE,y+row*TILE,TILE,TILE);
+ }
+ ctx.clip();
  rootheartInnFurniture(b,x,y,level);
  rootheartSmithyFurniture(b,x,y,level);
  rootheartShopFurniture(b,x,y,level);
  rootheartTempleFurniture(b,x,y,level);
  rootheartHomeFurniture(b,x,y,level);
+ ctx.restore();
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
