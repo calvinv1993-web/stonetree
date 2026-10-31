@@ -179,6 +179,7 @@ function renderFloor(b,x,y,level,holes){
   if(holes&&floorVoids(b,level).has(col+','+row))continue;
   floorTile(b,x,y,col,row,level);
  }
+ rootheartTempleMosaic(b,x,y,level);
  staircase(b,x,y,level);
 }
 function cutawayFront(b,x,base,level){
@@ -310,6 +311,18 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,10,depth+8,'#625e51');
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
+}
+function rootheartTempleMosaic(b,x,y,level){
+ if(b.id!=='rootheart-temple'||level!==0)return;
+ // A continuous ceremonial aisle, kept clear of the stairs and furnishings.
+ for(let row=1;row<b.height;row++){
+  const px=x+3*TILE,py=y+row*TILE;
+  rect(px+5,py+3,TILE-10,TILE-6,'#aca795');
+  rect(px+8,py+6,TILE-16,TILE-12,'#777e76');
+  const mx=px+TILE/2,my=py+TILE/2;
+  poly([[mx,my-11],[mx+10,my],[mx,my+11],[mx-10,my]],'#d2c5a5');
+  poly([[mx,my-6],[mx+5,my],[mx,my+6],[mx-5,my]],'#8b9a8b');
+ }
 }
 function rootheartHomeFurniture(b,x,y,level){
  if(b.id!=='rootheart-home')return;
