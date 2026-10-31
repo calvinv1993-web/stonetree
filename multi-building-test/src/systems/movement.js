@@ -1,94 +1,70 @@
-// Stonetree: src/systems/movement.js
 function stairAction(x,y,z=player.z){
  const b=buildingAt(x,y);if(!b)return null;
- const lx=x-b.position.x,ly=y-b.position.y;
- if(b.stairLevels){
-  const level=b.stairLevels[z];if(!level)return null;
-  for(const direction of ['down','up']){
-   const stair=level[direction];
-   if(stair&&stair.x===lx&&stair.y===ly)return direction;
-  }
-  return null;
- }
- return lx===b.stairs.x&&ly===b.stairs.y?(z===0?'up':z===1?'down':null):null;
+ const tile=localTile(b,x,y);
+ return Object.entries(stairsAt(b,z)).find(([,s])=>sameTile(s,tile))?.[0]||null;
 }
-function isStair(x,y){return stairAction(x,y)!==null;}
-function walkable(x,y){
+function walkable(x,y,z=player.z){
+ if(![x,y,z].every(Number.isSafeInteger))return false;
  const b=buildingAt(x,y);
- if(b){
-  const lx=x-b.position.x,ly=y-b.position.y;
-  // South wall occupies the front row except for the actual doorway.
-  // Never let the player stand in the facade to either side of the door.
-  // Every storey has solid exterior walls. Only the ground-floor door
-  // is a traversable opening; upper floors have no exterior doorway.
-  if(ly===b.height-1&&(player.z!==0||lx!==b.door.col))return false;
-  return player.z===0||(buildingAt(player.x,player.y)===b&&(!(b.stairLevels?Boolean(b.stairLevels[player.z]?.down&&lx===b.stairLevels[player.z].down.x&&ly===b.stairLevels[player.z].down.y):(!b.terrace&&VOID_TILES.has(lx+','+ly)))||isStair(x,y)));
- }
- return player.z===0&&x>=-7&&x<=30&&y>=-7&&y<=10;
+ if(!b){const area=WORLD_CONFIG.bounds;return z===0&&x>=area.left&&x<=area.right&&y>=area.top&&y<=area.bottom;}
+ if(!b.floors[z])return false;
+ const t=localTile(b,x,y),terrace=terraceAt(b,z);
+ if(t.y===b.height-1&&!(z===0&&t.x===b.door.col)&&!(terrace&&t.x>=terrace.startCol))return false;
+ return !floorVoids(b,z).has(t.x+','+t.y)||Boolean(stairAction(x,y,z));
 }
-function connected(cx,cy,nx,ny){
+function connected(cx,cy,nx,ny,z=player.z){
+ if(Math.abs(nx-cx)+Math.abs(ny-cy)!==1)return false;
  const a=buildingAt(cx,cy),b=buildingAt(nx,ny);
  if(a===b){
-  if(a&&a.terrace&&player.z===a.terrace.level){
-   const boundary=a.position.x+a.terrace.startCol;
-   if((cx===boundary-1&&nx===boundary)||(cx===boundary&&nx===boundary-1)){
-    const row=cy-a.position.y;
-    return row===3&&ny===cy&&Boolean(terraceDoorStates[a.id]);
+  const terrace=a&&terraceAt(a,z);
+  if(terrace){
+   const edge=a.position.x+terrace.startCol;
+   if(Math.min(cx,nx)===edge-1&&Math.max(cx,nx)===edge){
+    const door=doorFor(a,'terrace');
+    return cy===door.a.y&&ny===cy&&Boolean(doorStates[door.id]);
    }
   }
-  return player.z===0||Boolean(a);
+  return z===0||Boolean(a?.floors[z]);
  }
- const building=a||b;
- if(!building||!doorStates[building.id]||player.z!==0)return false;
- const dx=building.position.x+building.door.col,front=building.position.y+building.height-1;
- return cx===dx&&nx===dx&&((cy===front&&ny===front+1)||(cy===front+1&&ny===front));
+ if(a&&b)return false;
+ const building=a||b;if(!building||z!==0)return false;
+ const door=doorFor(building);
+ return Boolean(doorStates[door.id])&&((sameTile({x:cx,y:cy},door.a)&&sameTile({x:nx,y:ny},door.b))||(sameTile({x:cx,y:cy},door.b)&&sameTile({x:nx,y:ny},door.a)));
 }
-function doorBuilding(){
- return BUILDINGS.find(b=>player.z===0&&player.x===b.position.x+b.door.col&&
- (player.y===b.position.y+b.height-1||player.y===b.position.y+b.height));
-}
-function terraceDoorBuilding(){
- return BUILDINGS.find(b=>b.terrace&&player.z===b.terrace.level&&
-  Math.abs(player.y-(b.position.y+3))<=1&&
-  (player.x===b.position.x+b.terrace.startCol-1||player.x===b.position.x+b.terrace.startCol));
-}
-function adjacentToDoor(){return !!doorBuilding()||!!terraceDoorBuilding();}
-function toggleDoor(){
- const terrace=terraceDoorBuilding();
- if(terrace){
-  terraceDoorStates[terrace.id]=!terraceDoorStates[terrace.id];
-  path=[];paint();return true;
- }
- const b=doorBuilding();if(!b)return false;
- selectBuilding(b);
- // Closing the door while standing in its tile moves the player
- // onto the free exterior tile before the door becomes solid.
- if(doorStates[b.id]&&player.x===b.position.x+b.door.col&&player.y===b.position.y+b.height-1){
-  player.y=b.position.y+b.height;
- }
- doorStates[b.id]=!doorStates[b.id];
- doorOpen=doorStates[b.id];
- path=[];paint();return true;
+function adjacentDoor(){return DOORS.find(d=>d.z===player.z&&(sameTile(player,d.a)||sameTile(player,d.b)));}
+function toggleDoor(door=adjacentDoor()){
+ if(!door||door!==adjacentDoor())return false;
+ // Preserve the existing safe exterior landing when closing the entrance.
+ if(door.kind==='front'&&doorStates[door.id]&&sameTile(player,door.a))Object.assign(player,door.b);
+ doorStates[door.id]=!doorStates[door.id];path=[];paint();return true;
 }
 function route(tx,ty){
- if(!walkable(tx,ty))return;
+ path=[]; // A blocked/new destination cancels the old walk order.
+ if(!walkable(tx,ty))return false;
  const queue=[[player.x,player.y]],seen=new Set([player.x+','+player.y]),prev=new Map();
- while(queue.length){
-  const [cx,cy]=queue.shift();if(cx===tx&&cy===ty)break;
+ for(let head=0;head<queue.length;head++){
+  const [cx,cy]=queue[head];if(cx===tx&&cy===ty)break;
   for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
    const nx=cx+dx,ny=cy+dy,k=nx+','+ny;
-   if(!walkable(nx,ny)||seen.has(k))continue;
-   if(!connected(cx,cy,nx,ny))continue;
-   // Do not change floor while routing to an unrelated destination.
-   if(isStair(nx,ny)&&!isStair(tx,ty))continue;
+   if(seen.has(k)||!walkable(nx,ny)||!connected(cx,cy,nx,ny))continue;
+   if(stairAction(nx,ny)&&(nx!==tx||ny!==ty))continue;
    seen.add(k);prev.set(k,[cx,cy]);queue.push([nx,ny]);
   }
  }
- let k=tx+','+ty;if(!seen.has(k))return;
+ let key=tx+','+ty;if(!seen.has(key))return false;
  const steps=[];
- while(k!==player.x+','+player.y){
-  const [cx,cy]=k.split(',').map(Number);steps.unshift([cx,cy]);
-  const p=prev.get(k);k=p[0]+','+p[1];
- }
- path=steps;
+ while(key!==player.x+','+player.y){steps.push(key.split(',').map(Number));key=prev.get(key).join(',');}
+ path=steps.reverse();return true;
+}
+function stepMovement(){
+ if(!path.length)return false;
+ const [x,y]=path.shift();
+ if(!walkable(x,y)||!connected(player.x,player.y,x,y)){path=[];return false;}
+ const direction=stairAction(x,y);
+ if(direction){
+  const z=player.z+(direction==='up'?1:-1),landingY=y+(direction==='up'?-1:1),b=buildingAt(x,y);
+  if(buildingAt(x,landingY)!==b||!walkable(x,landingY,z)||stairAction(x,landingY,z)){path=[];return false;}
+  Object.assign(player,{x,y:landingY,z});path=[];
+ }else Object.assign(player,{x,y});
+ return true;
 }
