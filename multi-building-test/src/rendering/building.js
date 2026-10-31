@@ -140,6 +140,11 @@ function terracePartition(x,y){
   }
  }
 }
+function roofTile(x,y,col,row){
+ rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#756052':'#806b58');
+ for(let stripe=8;stripe<TILE;stripe+=16)
+  line(x+col*TILE,y+row*TILE+stripe,x+(col+1)*TILE,y+row*TILE+stripe,'#594c44');
+}
 function terraceFloor(x,y,level){
  const edge=BUILDING.terrace.startCol*TILE;
  // Only the enclosed part has tall walls.
@@ -147,8 +152,7 @@ function terraceFloor(x,y,level){
  renderFloor(x,y,level,false);
  ctx.restore();
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
-  rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#756052':'#806b58');
-  for(let stripe=8;stripe<TILE;stripe+=16)line(x+col*TILE,y+row*TILE+stripe,x+(col+1)*TILE,y+row*TILE+stripe,'#594c44');
+  roofTile(x,y,col,row);
   ctx.strokeStyle='#8c8b80';ctx.lineWidth=1;
   ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
@@ -173,8 +177,7 @@ function terraceExterior(x,y){
  rect(x-SIDE,roofY,edge+2*SIDE,5,'#b5a48b');
  // Terrace is at the true z=1 elevation, not on the roof.
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
-  rect(x+col*TILE,y-HEIGHT+row*TILE,TILE,TILE,(row+col)%2?'#756052':'#806b58');
-  for(let stripe=8;stripe<TILE;stripe+=16)line(x+col*TILE,y-HEIGHT+row*TILE+stripe,x+(col+1)*TILE,y-HEIGHT+row*TILE+stripe,'#594c44');
+  roofTile(x,y-HEIGHT,col,row);
  }
  rect(x+edge,y-HEIGHT-10,(N-BUILDING.terrace.startCol)*TILE,10,'#c5bfaf');
  rect(x+size-9,y-HEIGHT,9,size,'#999586');
