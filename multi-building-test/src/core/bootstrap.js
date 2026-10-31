@@ -2,6 +2,7 @@
 setInterval(()=>{
  if(!path.length)return;
  const [x,y]=path.shift();player.x=x;player.y=y;
+ const stairBuilding=buildingAt(x,y);if(stairBuilding)selectBuilding(stairBuilding);
  if(isStair(x,y)){
   // Stair landings are offset one tile: north when ascending,
   // south when descending. Never leave the player inside the stairs.
@@ -17,6 +18,6 @@ setInterval(()=>{
   }
   path=[];
  }
- paint();
+ syncBuilding();paint();
 },160);
 addEventListener('resize',paint);paint();
