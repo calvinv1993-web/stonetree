@@ -115,6 +115,16 @@ function rootheartPlazaDetails(){
  const area=ROOTHEART,cx=area.centerX,cy=area.centerY;
  // Decorative paving and vegetation only; keep the tree's 3x3 collision footprint.
  const p=(x,y)=>({x:camera.x+x*TILE,y:camera.y+y*TILE});
+ // The visible 3x3 foundation matches the trunk's blocked movement tiles.
+ for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx+1;x++){
+  const q=p(x,y),edge=x===cx-1||x===cx+1||y===cy-1||y===cy+1;
+  rect(q.x,q.y,TILE,TILE,edge?'#77756d':'#68665f');
+  rect(q.x+3,q.y+3,TILE-6,TILE-6,edge?'#989182':'#827b70');
+  if(y===cy-1)rect(q.x+3,q.y+3,TILE-6,4,'#c5bba5');
+  if(y===cy+1)rect(q.x+3,q.y+TILE-7,TILE-6,4,'#514f4a');
+  if(x===cx-1)rect(q.x+3,q.y+3,4,TILE-6,'#b2aa98');
+  if(x===cx+1)rect(q.x+TILE-7,q.y+3,4,TILE-6,'#5c5b55');
+ }
  // A broken stone curb marks the four corners of the central square.
  for(const [x,y] of [[cx-6,cy-6],[cx+6,cy-6],[cx-6,cy+6],[cx+6,cy+6]]){
   const q=p(x,y);
