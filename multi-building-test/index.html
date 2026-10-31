@@ -8,7 +8,7 @@ const canvas=document.querySelector('#map'),ctx=canvas.getContext('2d'),status=d
 function cachedTile(t,x,y){const key=[x,y,t.z??p.z,t.type,t.material??'',t.open??'',t.mask??'',t.below?.type??''].join(':');let image=tileCache.get(key);if(!image){image=document.createElement('canvas');image.width=S;image.height=S;drawTile(image.getContext('2d'),t,0,0,S,x,y);if(tileCache.size>=480)tileCache.clear();tileCache.set(key,image)}return image}
 function blocked(x,y){const b=world.find(x,y);if(b){const t=world.tile(x,y,p.z);if(t?.type==='hole')return world.blocked(x,y,p.z+1);return world.blocked(x,y,p.z)}return p.z!==7||terrainAt(x,y).blocked}
 // 2.5D exterior: roof raised above its footprint, with a height-dependent front facade.
-function exterior(b){return p.z===b.groundZ&&!b.base.contains(p.x,p.y)&&Math.max(b.base.x-p.x,0,p.x-(b.base.x+b.base.width-1),b.base.y-p.y,p.y-(b.base.y+b.base.height-1))>2}
+function exterior(b){return p.z===b.groundZ&&!b.base.contains(p.x,p.y)}
 function facade(b,w,h){
  const a=b.base,left=w/2+(a.x-p.x)*S-S/2,top=h/2+(a.y-p.y)*S-S/2;
  const width=a.width*S,height=a.height*S,levelHeight=30,lift=b.floors*levelHeight;
