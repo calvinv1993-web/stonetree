@@ -55,6 +55,13 @@ function facade(b,x,baseY,level,door){
   const floorY=baseY-b.height*TILE;
   for(let row=Math.max(0,b.height-2);row<b.height;row++)
    floorTile(b,x,floorY,col,row,level);
+  // Render existing room geometry in the aperture, not a painted window.
+  staircase(b,x,floorY,level);
+  if(buildingAt(player.x,player.y)===b&&player.z===level){
+   const visual=visualPlayer();
+   playerSprite(x+(visual.x-b.position.x+.5)*TILE,
+                floorY+(visual.y-b.position.y+.5)*TILE);
+  }
   ctx.restore();
   // Thick stone reveal and sill, without glass or crossbars.
   rect(wx-3,wy-3,4,34,'#bcb6a3');
