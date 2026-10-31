@@ -92,6 +92,9 @@ function renderFloor(x,y,level,holes){
 function cutawayFront(x,base,level){
  // Fade the foreground facade near the player; retain its physical height.
  ctx.save();ctx.globalAlpha=localY(player.y)>=N-2?.25:1;
+ if(BUILDING.terrace&&level===BUILDING.terrace.level){
+  ctx.beginPath();ctx.rect(x,base-HEIGHT,BUILDING.terrace.startCol*TILE,HEIGHT);ctx.clip();
+ }
  facade(x,base,level,level===0);ctx.restore();
 }
 // Reveal the selected physical storey from outside without drawing a player.
@@ -106,37 +109,61 @@ function exteriorStorey(x,y,level){
  if(BUILDING.terrace&&level===BUILDING.terrace.level)terraceFloor(x,upperY,level);
  else renderFloor(x,upperY,level,level>0);
  ctx.save();ctx.globalAlpha=.18;
+ if(BUILDING.terrace&&level===BUILDING.terrace.level){
+  ctx.beginPath();ctx.rect(x,upperY+size-HEIGHT,BUILDING.terrace.startCol*TILE,HEIGHT);ctx.clip();
+ }
  facade(x,upperY+size,level,level===0);
  ctx.restore();
 }
+// Half-width enclosed room, doorway at row 2, open stone terrace.
+function terracePartition(x,y){
+ const edge=x+BUILDING.terrace.startCol*TILE;
+ for(let row=0;row<N;row++){
+  if(row===2)continue;
+  rect(edge-7,y+row*TILE,14,TILE,'#b0aea2');
+  rect(edge-7,y+row*TILE,4,TILE,'#77786e');
+ }
+ // Doorframe; passage is deliberately open for click-to-walk movement.
+ rect(edge-7,y+2*TILE,14,7,'#77654c');
+ rect(edge-7,y+3*TILE-7,14,7,'#77654c');
+}
 function terraceFloor(x,y,level){
  const edge=BUILDING.terrace.startCol*TILE;
- // Left-hand room retains the upper floor; the right is open stone.
+ // Only the enclosed part has tall walls.
+ ctx.save();ctx.beginPath();ctx.rect(x-SIDE-THICK,y-HEIGHT-THICK,edge+SIDE+THICK,N*TILE+HEIGHT+THICK);ctx.clip();
  renderFloor(x,y,level,true);
+ ctx.restore();
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
   rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#a9a697':'#bcb8a7');
   ctx.strokeStyle='#8c8b80';ctx.lineWidth=1;
   ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
- // Low parapet on the outer edges; an open passage connects room and terrace.
- rect(x+edge,y,5,TILE,'#b4ac9a');
- rect(x+edge,y+3*TILE,5,TILE,'#b4ac9a');
- rect(x+edge,y+4*TILE,5,TILE,'#b4ac9a');
- rect(x+edge,y-12,(N-BUILDING.terrace.startCol)*TILE,12,'#b7b09e');
- rect(x+N*TILE-10,y,10,N*TILE,'#999586');
- rect(x+edge,y+(N-1)*TILE-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
+ terracePartition(x,y);
+ // Parapets are low and sit on the outside edge of the terrace.
+ rect(x+edge,y-10,(N-BUILDING.terrace.startCol)*TILE,10,'#c5bfaf');
+ rect(x+N*TILE-9,y,9,N*TILE,'#999586');
+ rect(x+edge,y+N*TILE-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
 }
 function terraceExterior(x,y){
- const roofY=y-2*HEIGHT,edge=BUILDING.terrace.startCol*TILE;
- // The roof only covers the enclosed left section.
- exteriorShell(x,y);
- rect(x+edge-SIDE,roofY,(N-BUILDING.terrace.startCol)*TILE+2*SIDE,N*TILE+8,'#8c8170');
+ const size=N*TILE,roofY=y-2*HEIGHT,edge=BUILDING.terrace.startCol*TILE;
+ // Ground-floor facade remains intact, including its original entrance.
+ facade(x,y+size,0,true);
+ rect(x-SIDE,y-HEIGHT,SIDE,size+HEIGHT,'#656e65');
+ rect(x+size,y-HEIGHT,SIDE,size+HEIGHT,'#6f786c');
+ // Upper-storey facade exists only beneath the enclosed half.
+ ctx.save();ctx.beginPath();ctx.rect(x,y+size-2*HEIGHT,edge,size+HEIGHT);ctx.clip();
+ facade(x,y+size-HEIGHT,1,false);ctx.restore();
+ // Roof is restricted to the enclosed room.
+ rect(x-SIDE,roofY,edge+2*SIDE,size,'#756052');
+ for(let row=0;row<size;row+=16)line(x-SIDE,roofY+row,x+edge+SIDE,roofY+row,'#594c44');
+ rect(x-SIDE,roofY,edge+2*SIDE,5,'#b5a48b');
+ // Terrace is at the true z=1 elevation, not on the roof.
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
   rect(x+col*TILE,y-HEIGHT+row*TILE,TILE,TILE,(row+col)%2?'#a9a697':'#bcb8a7');
  }
- rect(x+edge,y-HEIGHT-12,(N-BUILDING.terrace.startCol)*TILE,12,'#b7b09e');
- rect(x+N*TILE-10,y-HEIGHT,10,N*TILE,'#999586');
- rect(x+edge,y-HEIGHT+(N-1)*TILE-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
+ rect(x+edge,y-HEIGHT-10,(N-BUILDING.terrace.startCol)*TILE,10,'#c5bfaf');
+ rect(x+size-9,y-HEIGHT,9,size,'#999586');
+ rect(x+edge,y-HEIGHT+size-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
 }
 function towerInterior(x,upperY,level){
  const size=N*TILE;
