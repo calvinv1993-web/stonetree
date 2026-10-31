@@ -4,15 +4,15 @@ const TILE=40,HEIGHT=64,THICK=6,SIDE=12;
 let BUILDING=BUILDING_CONFIG;
 const BUILDINGS=BUILDING_CONFIGS;
 const doorStates=Object.fromEntries(BUILDINGS.map(b=>[b.id,false]));
-if(!Number.isInteger(BUILDING.width)||BUILDING.width<3||
-   BUILDING.width!==BUILDING.height||
-   !Number.isInteger(BUILDING.position.x)||!Number.isInteger(BUILDING.position.y)||
-   BUILDING.position.z!==0||
-   BUILDING.door.side!=='south'||
-   BUILDING.door.col<0||BUILDING.door.col>=BUILDING.width||
-   BUILDING.stairs.x<0||BUILDING.stairs.x>=BUILDING.width||
-   BUILDING.stairs.y<0||BUILDING.stairs.y>=BUILDING.height){
- throw new Error('Unsupported building configuration');
+for(const b of BUILDINGS){
+ if(!Number.isInteger(b.width)||b.width!==5||b.height!==5||
+    !Number.isInteger(b.position.x)||!Number.isInteger(b.position.y)||b.position.z!==0||
+    b.door.side!=='south'||!Number.isInteger(b.door.col)||b.door.col<0||b.door.col>=b.width||
+    !Number.isInteger(b.stairs.x)||!Number.isInteger(b.stairs.y)||
+    b.stairs.x<0||b.stairs.x>=b.width||b.stairs.y<1||b.stairs.y>=b.height-2||
+    (b.stairs.x===b.door.col&&b.stairs.y===b.height-1)){
+  throw new Error('Unsupported building configuration: '+b.id);
+ }
 }
 const N=BUILDING.width;
 const player={x:2,y:2,z:0};let path=[],originX=0,originY=0,screenY=0;
