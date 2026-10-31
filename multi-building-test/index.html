@@ -128,17 +128,6 @@ function paint(){
   line(x,yy,doorLeft,yy,'#86877c');
   line(doorLeft+TILE,yy,x+size,yy,'#86877c');
  }
- // Windows are wall openings, so draw them on the foreground wall layer.
- if(player.z===1){
-  for(const col of UPPER_WINDOWS){
-   const wx=x+col*TILE+6,wy=y+size-WALL+17;
-   ctx.fillStyle='#514d43';ctx.fillRect(wx-3,wy-3,34,37);
-   ctx.fillStyle='#37677b';ctx.fillRect(wx,wy,28,28);
-   ctx.fillStyle='#8fb2b8';ctx.fillRect(wx+12,wy,3,28);
-   ctx.fillStyle='#8fb2b8';ctx.fillRect(wx,wy+12,28,3);
-   ctx.fillStyle='#d6c8a8';ctx.fillRect(wx-4,wy+29,36,5);
-  }
- }
  ctx.fillStyle='#d8d3c3';
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
  ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
