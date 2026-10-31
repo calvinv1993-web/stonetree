@@ -181,6 +181,20 @@ function drawStairwell(b,x,y,level){
  for(let row=0;row<b.height;row++)for(let col=0;col<b.width;col++)floorTile(b,x,y+HEIGHT,col,row,level-1);
  ctx.restore();
 }
+// Project the upper floor as a solid slab with a visible front and side edge.
+// This is visual-only: world coordinates, stairs and collision remain unchanged.
+function elevatedFloorEdge(b,x,y,level){
+ if(level===0)return;
+ const width=b.width*TILE,depth=b.height*TILE;
+ ctx.save();
+ ctx.fillStyle='rgba(0,0,0,0.22)';
+ ctx.fillRect(x+SIDE,y+depth+8,width,12);
+ rect(x,y+depth-3,width,11,'#5d584c');
+ rect(x,y+depth-3,width,3,'#d3c19d');
+ rect(x+width-4,y,10,depth+8,'#625e51');
+ rect(x+width-4,y,3,depth,'#b3a48b');
+ ctx.restore();
+}
 function drawStorey(b,x,y,level,occupied){
  drawSupports(b,x,y,level);
  if(terraceAt(b,level))terraceFloor(b,x,y,level);
@@ -190,6 +204,7 @@ function drawStorey(b,x,y,level,occupied){
   if(!floorVoids(b,level).has(col+','+(row-1)))rect(x+col*TILE,y+row*TILE,TILE,4,'#d4bc91');
   if(!floorVoids(b,level).has((col-1)+','+row))rect(x+col*TILE,y+row*TILE,4,TILE,'#665b4b');
  }
+ elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
   ctx.save();ctx.globalAlpha=.18;
