@@ -26,6 +26,7 @@ function ratPath(tx,ty){
  return key.split(',').map(Number);
 }
 function ratTick(now){
+ if(ratHP===0)return false;
  if(now<ratNextMove)return false;
  const distance=player.z===0?ratDistance(player.x,player.y):Infinity;
  const homeDistance=Math.abs(rat.x-RAT_SPAWN.x)+Math.abs(rat.y-RAT_SPAWN.y);
@@ -52,7 +53,7 @@ function ratTick(now){
  return true;
 }
 function drawRat(now){
- if(player.z!==0)return;
+ if(player.z!==0||ratHP===0)return;
  const t=Math.max(0,Math.min(1,(now-rat.movedAt)/220));
  const x=rat.fromX+(rat.x-rat.fromX)*t,y=rat.fromY+(rat.y-rat.fromY)*t;
  const p=worldToScreen(x+.5,y+.5,0);
@@ -68,6 +69,7 @@ function drawRat(now){
 const playerHealth={current:100,max:100};
 let ratNextAttack=0;
 function ratAttackTick(now){
+ if(ratHP===0)return false;
  const adjacent=player.z===0&&ratDistance(player.x,player.y)===1;
  if(!adjacent||ratMode!=='chase'||playerHealth.current===0){ratNextAttack=0;return false;}
  if(!ratNextAttack){ratNextAttack=now+2000;return false;}
