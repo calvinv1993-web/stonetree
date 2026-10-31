@@ -2,18 +2,26 @@
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
 const TILE=48,THICK=10,HEIGHT=32;
 function wallSprite(){
- const c=document.createElement('canvas');c.width=TILE;c.height=TILE+HEIGHT;
+ const c=document.createElement('canvas');
+ // One wall occupies a 48px tile horizontally, with its height above the tile.
+ c.width=TILE;c.height=TILE+HEIGHT;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- g.fillStyle='#8b9794';g.fillRect(0,HEIGHT,TILE,THICK);
- g.fillStyle='#c0c9c3';g.fillRect(1,HEIGHT+1,TILE-2,3);
- g.fillStyle='#5b6967';g.fillRect(0,HEIGHT+THICK-2,TILE,2);
- g.fillStyle='#57635f';g.fillRect(0,0,TILE,HEIGHT);
- g.fillStyle='#74817c';g.fillRect(1,2,TILE-2,HEIGHT-5);
- g.fillStyle='#a6b1a8';g.fillRect(2,2,TILE-4,3);
- g.fillStyle='#43504d';g.fillRect(0,HEIGHT-4,TILE,4);
- g.fillStyle='#505d59';g.fillRect(0,14,TILE,2);
- g.fillStyle='#8d9a93';g.fillRect(0,16,TILE,1);
- g.fillStyle='#505d59';g.fillRect(0,27,TILE,2);
+ const top=HEIGHT-9,depth=9;
+ // Front plane, normal stone shade.
+ g.fillStyle='#78847e';g.fillRect(0,top+depth,TILE,HEIGHT-depth);
+ g.fillStyle='#67736d';g.fillRect(0,top+depth+11,TILE,2);
+ g.fillStyle='#a0aaa3';g.fillRect(1,top+depth+2,TILE-2,2);
+ g.fillStyle='#59655f';g.fillRect(0,top+HEIGHT-3,TILE,3);
+ // Bright top plane: clearly separate from the vertical front.
+ g.fillStyle='#c5cec5';g.fillRect(0,top,TILE,depth);
+ g.fillStyle='#e0e6da';g.fillRect(1,top+1,TILE-2,2);
+ g.fillStyle='#a0aba2';g.fillRect(0,top+depth-2,TILE,2);
+ // Right-side plane, darker to create 2.5D volume.
+ g.fillStyle='#45514e';g.fillRect(TILE-7,top+depth,7,HEIGHT-depth);
+ g.fillStyle='#64716b';g.fillRect(TILE-7,top+depth,2,HEIGHT-depth-2);
+ // End grain on the top-right.
+ g.fillStyle='#87938b';g.fillRect(TILE-7,top,7,depth);
+ g.fillStyle='#5b6861';g.fillRect(TILE-2,top,2,depth);
  return c;
 }
 const sprite=wallSprite();
