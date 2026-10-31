@@ -1,39 +1,38 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie oblieke muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=82,OFFSET=22;
-function polygon(g,pts,color){
- g.fillStyle=color;g.beginPath();g.moveTo(...pts[0]);
- for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);
+const TILE=48,HEIGHT=82,THICK=12;
+function shape(g,points,color){
+ g.fillStyle=color;g.beginPath();g.moveTo(points[0][0],points[0][1]);
+ for(let i=1;i<points.length;i++)g.lineTo(points[i][0],points[i][1]);
  g.closePath();g.fill();
 }
-// One sprite per 48px grid position; the visible top is projected
-// 22px up and left, while the front stays orthographic.
-function wallSprite(){
- const c=document.createElement('canvas');
- c.width=TILE+OFFSET;c.height=HEIGHT+OFFSET;
+// Sprite anchor: front face starts at (THICK,THICK).
+// Only the thin wall thickness projects 45 degrees toward top-left.
+function makeWall(){
+ const c=document.createElement('canvas');c.width=TILE+THICK;c.height=HEIGHT+THICK;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- const frontX=OFFSET,frontY=OFFSET;
- g.fillStyle='#7c8a81';g.fillRect(frontX,frontY,TILE,HEIGHT);
- g.fillStyle='#93a198';g.fillRect(frontX+1,frontY+2,TILE-2,HEIGHT-5);
- g.fillStyle='#526259';g.fillRect(frontX,frontY+HEIGHT-3,TILE,3);
- // A 45-degree oblique top plane: back edge up-left.
- polygon(g,[[0,0],[TILE,0],[TILE+OFFSET,OFFSET],[OFFSET,OFFSET]],'#bac9bd');
- polygon(g,[[1,1],[TILE-1,1],[TILE+OFFSET-3,OFFSET-3],[OFFSET+2,OFFSET-3]],'#d1dcd0');
- g.fillStyle='#687b70';g.fillRect(OFFSET,OFFSET-2,TILE,2);
+ // Thin top face, NOT an entire tile projected backward.
+ shape(g,[[0,0],[TILE,0],[TILE+THICK,THICK],[THICK,THICK]],'#c2cfc4');
+ shape(g,[[1,1],[TILE-2,1],[TILE+THICK-3,THICK-3],[THICK+2,THICK-3]],'#d6e0d4');
+ // Front face.
+ g.fillStyle='#89988d';g.fillRect(THICK,THICK,TILE,HEIGHT);
+ g.fillStyle='#a0aea2';g.fillRect(THICK+1,THICK+2,TILE-2,HEIGHT-5);
+ g.fillStyle='#64756b';g.fillRect(THICK,THICK+HEIGHT-3,TILE,3);
  return c;
 }
-const wall=wallSprite();
+const wall=makeWall();
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*3-OFFSET)/2),y=Math.round((h-HEIGHT-OFFSET)/2);
- // Three distinct, adjoining wall sprites, not a single stretched image.
+ const x=Math.round((w-TILE*3-THICK)/2),y=Math.round((h-HEIGHT-THICK)/2);
+ // Three tile-width wall sprites. Their front faces touch exactly.
  for(let i=0;i<3;i++)ctx.drawImage(wall,x+i*TILE,y);
- // One exposed end cap; internal edges do not have side faces.
- polygon(ctx,[[x+TILE*3+OFFSET,y+OFFSET],[x+TILE*3,y],[x+TILE*3,y+HEIGHT],[x+TILE*3+OFFSET,y+HEIGHT+OFFSET]],'#43534b');
- polygon(ctx,[[x+TILE*3,y],[x+TILE*3+OFFSET,y+OFFSET],[x+TILE*3+OFFSET-3,y+OFFSET],[x+TILE*3-3,y]],'#6e8074');
+ // The exposed end has only a THICK-pixel side, not a tile-wide block.
+ shape(ctx,[[x+TILE*3+THICK,y+THICK],[x+TILE*3,y],[x+TILE*3,y+HEIGHT],[x+TILE*3+THICK,y+HEIGHT+THICK]],'#53645b');
+ // Cover the projecting lower triangle so the wall remains vertically anchored.
+ shape(ctx,[[x+TILE*3,y+HEIGHT],[x+TILE*3+THICK,y+HEIGHT+THICK],[x+TILE*3+THICK,y+HEIGHT]],'#171a1b');
 }
 addEventListener('resize',paint);paint();
 </script>
