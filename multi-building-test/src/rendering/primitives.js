@@ -46,6 +46,29 @@ function rootheartGround(){
  }
 }
 
+function rootheartApproaches(){
+ const a=ROOTHEART;
+ const left=Math.max(a.left,Math.floor(-camera.x/TILE)-1);
+ const right=Math.min(a.left+a.size-1,Math.ceil((camera.width-camera.x)/TILE)+1);
+ const top=Math.max(a.top,Math.floor(-camera.y/TILE)-1);
+ const bottom=Math.min(a.top+a.size-1,Math.ceil((camera.height-camera.y)/TILE)+1);
+ // Branch paths connect the existing north/south roads to building entrances.
+ // Paths are purely visual: existing doors and collision remain authoritative.
+ const branches=[
+  {x0:57,x1:57,y0:-6,y1:-6},{x0:75,x1:75,y0:-7,y1:-6},
+  {x0:57,x1:57,y0:7,y1:10},{x0:75,x1:75,y0:7,y1:9},
+  {x0:65,x1:85,y0:5,y1:5}
+ ];
+ for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
+  if(!branches.some(b=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1))continue;
+  const px=camera.x+x*TILE,py=camera.y+y*TILE;
+  const n=((x*73856093)^(y*19349663))>>>0;
+  rect(px,py,TILE,TILE,n%2?'#8f897a':'#999182');
+  rect(px,py+TILE-2,TILE,2,'#66665d');
+  rect(px+TILE-2,py,2,TILE,'#777166');
+  if(n%4===0)line(px+8,py+11,px+22,py+11,'#b3a998');
+ }
+}
 function rootheartPlazaDetails(){
  const area=ROOTHEART,cx=area.centerX,cy=area.centerY;
  // Decorative paving and vegetation only; keep the tree's 3x3 collision footprint.
