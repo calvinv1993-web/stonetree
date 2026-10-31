@@ -45,10 +45,23 @@ export function drawTile(ctx,t,x,y,s,wx,wy){
   if(edges.includes('south'))wallRect(x,y+s-thick,s,thick,true);
   if(edges.includes('west'))wallRect(x,y,thick,s,false);
   if(edges.includes('east'))wallRect(x+s-thick,y,thick,s,false);
- }else if(t.type==='door'){
-  ctx.fillStyle=t.open?'#aa8b60':colors[0];ctx.fillRect(x+6,y+3,s-12,s-6);ctx.strokeStyle=colors[2];ctx.strokeRect(x+9,y+6,s-18,s-12);ctx.fillStyle='#d4ba70';ctx.fillRect(x+s-13,y+s/2,3,3);
- }else if(t.type==='window'){
-  ctx.fillStyle=colors[0];ctx.fillRect(x+5,y+5,s-10,s-10);ctx.fillStyle=colors[2];ctx.fillRect(x+8,y+8,s-16,s-16);ctx.fillStyle='#d0e6db';ctx.fillRect(x+s/2-2,y+8,4,s-16);ctx.fillRect(x+8,y+s/2-2,s-16,4);
+ }else if(t.type==='door'||t.type==='window'){
+  const wood=t.material==='wood',edge=(t.edges??[])[0]??'west',thick=8;
+  ctx.fillStyle=wood?'#8d7153':'#b4b3a7';ctx.fillRect(x,y,s,s);
+  ctx.fillStyle=wood?'#aa8a65':'#c7c4b6';ctx.fillRect(x+2,y+2,s-4,s-4);
+  const horizontal=edge==='north'||edge==='south';
+  const px=edge==='east'?x+s-thick:x,py=edge==='south'?y+s-thick:y;
+  const w=horizontal?s:thick,h=horizontal?thick:s;
+  if(t.type==='door'&&t.open){
+   ctx.fillStyle='#a88450';
+   if(horizontal){ctx.fillRect(px,py,4,h);ctx.fillRect(px+s-4,py,4,h)}
+   else{ctx.fillRect(px,py,w,4);ctx.fillRect(px,py+s-4,w,4)}
+  }else{
+   ctx.fillStyle=t.type==='door'?'#503525':'#315f74';ctx.fillRect(px,py,w,h);
+   ctx.fillStyle=t.type==='door'?'#a17b4d':'#a6d6dc';
+   if(horizontal)ctx.fillRect(px+3,py+2,s-6,h-4);
+   else ctx.fillRect(px+2,py+3,w-4,s-6);
+  }
  }else if(t.type==='stairs'){
   ctx.fillStyle='#3a3023';ctx.fillRect(x+4,y+3,s-8,s-6);for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#b99b62':'#e0c78d';ctx.fillRect(x+7,y+5+i*7,s-14,6);ctx.fillStyle='#66512f';ctx.fillRect(x+7,y+10+i*7,s-14,2)}ctx.fillStyle='#e9d39c';ctx.fillRect(x+7,y+5,s-14,2);
  }else if(t.type==='hole'){
