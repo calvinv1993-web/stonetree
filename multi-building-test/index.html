@@ -36,13 +36,22 @@ function facade(x,baseY,level,door){
  if(door){
   const dx=x+BUILDING.door.col*TILE;
   // The doorway occupies one tile and has one shared interactive state.
-  rect(dx,top,TILE,HEIGHT,'#62513e');
   if(doorOpen){
-   // Clear opening; open door leaf is folded against the left jamb.
-   rect(dx+4,top+4,TILE-8,HEIGHT-9,'#353b32');
-   rect(dx+4,top+4,7,HEIGHT-9,'#8c6843');
+   // Cut out the wall visually: show the actual floor tiles behind the
+   // opening, rather than filling it with an opaque dark rectangle.
+   ctx.save();
+   ctx.beginPath();
+   ctx.rect(dx+4,top+4,TILE-8,HEIGHT-9);
+   ctx.clip();
+   const floorY=baseY-N*TILE;
+   for(let row=N-2;row<N;row++)floorTile(x,floorY,BUILDING.door.col,row,0);
+   ctx.restore();
+   rect(dx,top,4,HEIGHT,'#62513e');
+   rect(dx+TILE-4,top,4,HEIGHT,'#62513e');
+   rect(dx+4,top,7,HEIGHT-5,'#8c6843');
    rect(dx+10,top+HEIGHT/2,3,3,'#d9c48a');
   }else{
+   rect(dx,top,TILE,HEIGHT,'#62513e');
    rect(dx+5,top+4,TILE-10,HEIGHT-9,'#4b382c');
    rect(dx+8,top+8,TILE-16,HEIGHT-15,'#6d5035');
    rect(dx+28,top+32,4,4,'#e1c77d');
