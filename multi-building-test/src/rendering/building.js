@@ -599,9 +599,12 @@ function drawStorey(b,x,y,level,occupied){
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
-  ctx.save();ctx.globalAlpha=.18;
+  // Exterior reveal: keep the roof removed, but retain an opaque front wall.
+  // The interior is visible above the wall, not through translucent masonry.
+  ctx.save();
   if(terraceAt(b,level)){ctx.beginPath();ctx.rect(x,y+b.height*TILE-HEIGHT,b.terrace.startCol*TILE,HEIGHT);ctx.clip();}
-  facade(b,x,y+b.height*TILE,level,level===0);ctx.restore();
+  facade(b,x,y+b.height*TILE,level,level===0);
+  ctx.restore();
  }
  if(occupied){
   const tile=localTile(b,player.x,player.y);
