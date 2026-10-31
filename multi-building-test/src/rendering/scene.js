@@ -27,6 +27,7 @@ function paint(){
   else{const level=visibleExteriorStorey(b);if(level===null)exterior(b,p.x,p.y);else exteriorStorey(b,p.x,p.y,level);}
  }
  if(!drawn)drawPlayer();
+ rootheartPetrifiedTree();
  drawRatCorpses();
  drawRat(typeof performance!=='undefined'&&performance.now?performance.now():Date.now());
  if(typeof playerHealth!=='undefined'){
