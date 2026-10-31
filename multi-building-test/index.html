@@ -1,6 +1,7 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — 2.5D rastertest</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#171a1b}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
 const TILE=40,N=5,WALL=64,THICK=6;
+const player={x:2,y:2};let path=[];let originX=0,originY=0;
 function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);ctx.closePath();ctx.fill();}
 function line(x1,y1,x2,y2,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
 function paint(){
@@ -9,6 +10,16 @@ function paint(){
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
  const size=N*TILE,x=Math.round((w-size)/2),y=Math.round((h-size-WALL)/2);
+ originX=x;originY=y;
+ // Grass on the surrounding world grid.
+ for(let gy=-6;gy<N+7;gy++)for(let gx=-8;gx<N+9;gx++){
+  if(gx>=0&&gx<N&&gy>=0&&gy<N)continue;
+  const xx=x+gx*TILE,yy=y+gy*TILE;
+  const n=((gx*73856093)^(gy*19349663))>>>0;
+  ctx.fillStyle=n%3===0?'#4f7b42':n%3===1?'#578548':'#608b4d';
+  ctx.fillRect(xx,yy,TILE,TILE);
+  ctx.fillStyle='#719b58';ctx.fillRect(xx+8+n%18,yy+9+(n>>>5)%19,4,3);
+ }
  // A 5x5 orthogonal ground grid. All wall bases sit on its four edges.
  // The wall height is projected vertically UP, never down onto the floor.
  // North wall: full height visible behind the floor.
@@ -44,6 +55,13 @@ function paint(){
   line(x-SIDE,yy,x,yy,'#626a60');
   line(x+size,yy,x+size+SIDE,yy,'#626a60');
  }
+ // Player: simple top-down sprite, one grid tile at a time.
+ const px=x+player.x*TILE+TILE/2,py=y+player.y*TILE+TILE/2;
+ ctx.fillStyle='#30352e';ctx.fillRect(px-9,py+11,18,5);
+ ctx.fillStyle='#384f76';ctx.fillRect(px-9,py-2,18,15);
+ ctx.fillStyle='#d8b38c';ctx.fillRect(px-7,py-13,14,13);
+ ctx.fillStyle='#493a2c';ctx.fillRect(px-8,py-15,16,5);
+ ctx.fillStyle='#292c32';ctx.fillRect(px-8,py+11,6,6);ctx.fillRect(px+2,py+11,6,6);
  // Horizontal south wall is always the final foreground layer.
  // South wall rises from the southern grid edge, rather than hanging below it.
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
@@ -54,6 +72,32 @@ function paint(){
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
  ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
 }
+// Tap-to-walk with orthogonal shortest path; only the interior is walkable.
+function route(tx,ty){
+ if(tx<0||tx>=N||ty<0||ty>=N)return;
+ const queue=[[player.x,player.y]],seen=new Set([player.x+','+player.y]),prev=new Map();
+ while(queue.length){
+  const [cx,cy]=queue.shift();if(cx===tx&&cy===ty)break;
+  for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
+   const nx=cx+dx,ny=cy+dy,k=nx+','+ny;
+   if(nx<0||nx>=N||ny<0||ny>=N||seen.has(k))continue;
+   seen.add(k);prev.set(k,[cx,cy]);queue.push([nx,ny]);
+  }
+ }
+ const steps=[];let k=tx+','+ty;
+ if(!seen.has(k))return;
+ while(k!==player.x+','+player.y){const [cx,cy]=k.split(',').map(Number);steps.unshift([cx,cy]);const p=prev.get(k);k=p[0]+','+p[1];}
+ path=steps;
+}
+canvas.addEventListener('pointerdown',e=>{
+ const box=canvas.getBoundingClientRect(),tx=Math.floor((e.clientX-box.left-originX)/TILE),ty=Math.floor((e.clientY-box.top-originY)/TILE);
+ route(tx,ty);
+});
+addEventListener('keydown',e=>{
+ const delta={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];
+ if(delta){e.preventDefault();route(player.x+delta[0],player.y+delta[1]);}
+});
+setInterval(()=>{if(path.length){const [x,y]=path.shift();player.x=x;player.y=y;paint();}},160);
 addEventListener('resize',paint);paint();
 
 </script>
