@@ -44,7 +44,7 @@ function exteriorShell(b,x,y){
  rect(x+size,roofY,SIDE,depth+b.floors.length*HEIGHT,'#6f786c');
  for(let level=0;level<b.floors.length;level++)facade(b,x,base-level*HEIGHT,level,level===0);
  rect(x-SIDE,roofY,size+2*SIDE,depth,'#756052');
- for(let row=0;row<depth;row+=16)line(x-SIDE,roofY+row,x+size+SIDE,roofY+row,'#594c44');
+ for(let row=0;row<b.height;row++)for(let col=0;col<b.width;col++)roofTile(b,x,roofY,col,row);
  rect(x-SIDE,roofY,size+2*SIDE,5,'#b5a48b');
  rect(x-SIDE,base-b.floors.length*HEIGHT-3,size+2*SIDE,5,'#b5a48b');
 }
@@ -121,9 +121,20 @@ function terracePartition(b,x,y){
  }
 }
 function roofTile(b,x,y,col,row){
- rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#756052':'#806b58');
- for(let stripe=8;stripe<TILE;stripe+=16)
-  line(x+col*TILE,y+row*TILE+stripe,x+(col+1)*TILE,y+row*TILE+stripe,'#594c44');
+ const px=x+col*TILE,py=y+row*TILE;
+ rect(px,py,TILE,TILE,(row+col)%2?'#77604e':'#846c55');
+ // Small staggered shingles with restrained highlights and worn edges.
+ for(let band=0;band<2;band++){
+  const sy=py+band*20,offset=(row+band)%2?10:0;
+  line(px,sy+19,px+TILE,sy+19,'#514439');
+  for(let i=-1;i<3;i++){
+   const sx=px+i*20+offset;
+   const left=Math.max(px,sx),right=Math.min(px+TILE,sx+20);
+   if(right<=left)continue;
+   line(left,sy+2,right,sy+2,'#a18a70');
+   if(sx>px&&sx<px+TILE)line(sx,sy+3,sx,sy+18,'#5c4b3e');
+  }
+ }
 }
 function terraceFloor(b,x,y,level){
  const edge=b.terrace.startCol*TILE;
@@ -153,7 +164,7 @@ function terraceExterior(b,x,y){
  facade(b,x,y+depth-HEIGHT,1,false);ctx.restore();
  // Roof is restricted to the enclosed room.
  rect(x-SIDE,roofY,edge+SIDE,depth,'#756052');
- for(let row=0;row<depth;row+=16)line(x-SIDE,roofY+row,x+edge,roofY+row,'#594c44');
+ for(let row=0;row<b.height;row++)for(let col=0;col<b.terrace.startCol;col++)roofTile(b,x,roofY,col,row);
  rect(x-SIDE,roofY,edge+SIDE,5,'#b5a48b');
  // Terrace is at the true z=1 elevation, not on the roof.
  for(let row=0;row<b.height;row++)for(let col=b.terrace.startCol;col<b.width;col++){
