@@ -1,5 +1,18 @@
 // Stonetree: src/systems/movement.js
-function isStair(x,y){const b=buildingAt(x,y);return !!b&&x-b.position.x===b.stairs.x&&y-b.position.y===b.stairs.y;}
+function stairAction(x,y,z=player.z){
+ const b=buildingAt(x,y);if(!b)return null;
+ const lx=x-b.position.x,ly=y-b.position.y;
+ if(b.stairLevels){
+  const level=b.stairLevels[z];if(!level)return null;
+  for(const direction of ['down','up']){
+   const stair=level[direction];
+   if(stair&&stair.x===lx&&stair.y===ly)return direction;
+  }
+  return null;
+ }
+ return lx===b.stairs.x&&ly===b.stairs.y?(z===0?'up':z===1?'down':null):null;
+}
+function isStair(x,y){return stairAction(x,y)!==null;}
 function walkable(x,y){
  const b=buildingAt(x,y);
  if(b){
