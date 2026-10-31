@@ -18,6 +18,7 @@ function paint(){
  grass(camera.x,camera.y,w,h);
  rootheartGround();
  rootheartApproaches();
+ rootheartNature();
  rootheartPlazaDetails();
  const current=buildingAt(player.x,player.y);
  const drawPlayer=()=>{const p=worldToScreen(visual.x+.5,visual.y+.5,player.z);playerSprite(p.x,p.y);};
