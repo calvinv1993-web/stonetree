@@ -9,7 +9,7 @@ function walkable(x,y){
   // Every storey has solid exterior walls. Only the ground-floor door
   // is a traversable opening; upper floors have no exterior doorway.
   if(ly===b.height-1&&(player.z!==0||lx!==b.door.col))return false;
-  return player.z===0||!VOID_TILES.has(lx+','+ly)||isStair(x,y);
+  return player.z===0||(buildingAt(player.x,player.y)===b&&(!VOID_TILES.has(lx+','+ly)||isStair(x,y)));
  }
  return player.z===0&&x>=-7&&x<=21&&y>=-7&&y<=10;
 }
