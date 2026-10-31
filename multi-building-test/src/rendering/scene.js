@@ -27,6 +27,11 @@ function paint(){
  }
  if(!drawn)drawPlayer();
  drawRat(typeof performance!=='undefined'&&performance.now?performance.now():Date.now());
+ if(typeof playerHealth!=='undefined'){
+  ctx.fillStyle='#252525';ctx.fillRect(12,48,124,20);
+  ctx.fillStyle='#a63232';ctx.fillRect(14,50,120*playerHealth.current/playerHealth.max,16);
+  ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.fillText('HP '+playerHealth.current+'/'+playerHealth.max,19,62);
+ }
  const door=adjacentDoor(),control=document.getElementById('doorControl');
  const place=current?current.name+' · '+(player.z?'Verdieping '+player.z:'Begane grond'):'Buiten';
  const doorText=door?' · '+(door.kind==='terrace'?'terrasdeur':'deur')+' '+(doorStates[door.id]?'open':'dicht'):'';
