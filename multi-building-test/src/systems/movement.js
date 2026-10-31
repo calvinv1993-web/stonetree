@@ -22,7 +22,7 @@ function walkable(x,y){
   // Every storey has solid exterior walls. Only the ground-floor door
   // is a traversable opening; upper floors have no exterior doorway.
   if(ly===b.height-1&&(player.z!==0||lx!==b.door.col))return false;
-  return player.z===0||(buildingAt(player.x,player.y)===b&&(!(b.stairLevels?Boolean(b.stairLevels[player.z]?.down&&lx===b.stairLevels[player.z].down.x&&ly===b.stairLevels[player.z].down.y):VOID_TILES.has(lx+','+ly))||isStair(x,y)));
+  return player.z===0||(buildingAt(player.x,player.y)===b&&(!(b.stairLevels?Boolean(b.stairLevels[player.z]?.down&&lx===b.stairLevels[player.z].down.x&&ly===b.stairLevels[player.z].down.y):(!b.terrace&&VOID_TILES.has(lx+','+ly)))||isStair(x,y)));
  }
  return player.z===0&&x>=-7&&x<=30&&y>=-7&&y<=10;
 }
