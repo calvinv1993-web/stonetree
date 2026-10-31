@@ -19,27 +19,41 @@ function exteriorCutaway(x,y){
  playerSprite(x+(localX(player.x)+.5)*TILE,y+(localY(player.y)+.5)*TILE);
 }
 function paint(){
+ syncBuilding();
+ const active=BUILDING;
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
- const x=Math.round(w/2-(localX(player.x)+.5)*TILE)+BUILDING.position.x*TILE;
- const y=Math.round(h/2-(localY(player.y)+.5)*TILE+player.z*HEIGHT)+BUILDING.position.y*TILE;
- originX=x;originY=y-player.z*HEIGHT;
- grass(x,y,w,h);
- if(outside()){
-  if(nearExteriorWall())exteriorCutaway(x,y);
-  else{
-   const drawPlayer=()=>playerSprite(x+(localX(player.x)+.5)*TILE,y+(localY(player.y)+.5)*TILE);
-   if(localY(player.y)<N)drawPlayer();
+ const worldX=Math.round(w/2-(player.x+.5)*TILE);
+ const worldY=Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT);
+ originX=worldX;originY=worldY-player.z*HEIGHT;
+ grass(worldX+active.position.x*TILE,worldY+active.position.y*TILE,w,h);
+ const current=buildingAt(player.x,player.y);
+ for(const b of BUILDINGS){
+  selectBuilding(b);
+  const x=worldX+b.position.x*TILE,y=worldY+b.position.y*TILE;
+  if(current?.id===b.id){
+   interior(x,y-player.z*HEIGHT,player.z);
+  }else if(nearExteriorWall()){
+   exteriorCutaway(x,y);
+  }else{
    exterior(x,y);
-   if(localY(player.y)>=N)drawPlayer();
   }
  }
- else interior(x,y-player.z*HEIGHT,player.z);
- const place=outside()?'Buiten':player.z===0?'Begane grond':'Bovenverdieping';
+ selectBuilding(active);
+ if(!current){
+  const spriteX=worldX+(player.x+.5)*TILE,spriteY=worldY+(player.y+.5)*TILE;
+  // Draw the player after buildings only when standing south of them.
+  if(player.y>=active.position.y+active.height)playerSprite(spriteX,spriteY);
+  else {
+   // For north/side approaches, keep the player visible above the scene.
+   playerSprite(spriteX,spriteY);
+  }
+ }
+ const place=!current?'Buiten':player.z===0?'Begane grond':'Bovenverdieping';
  document.getElementById('status').textContent=`${place} · z=${player.z} · deur ${doorOpen?'open':'dicht'} · (${player.x}, ${player.y})`;
  const control=document.getElementById('doorControl');
  control.hidden=!adjacentToDoor();
- control.textContent=doorOpen?'Sluit deur':'Open deur';
+ if(adjacentToDoor())control.textContent=doorStates[doorBuilding().id]?'Sluit deur':'Open deur';
  canvas.dataset.x=player.x;canvas.dataset.y=player.y;canvas.dataset.z=player.z;
 }
