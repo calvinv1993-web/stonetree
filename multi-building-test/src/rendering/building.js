@@ -220,17 +220,24 @@ function terracePartition(b,x,y){
 }
 function roofTile(b,x,y,col,row){
  const px=x+col*TILE,py=y+row*TILE;
- rect(px,py,TILE,TILE,(row+col)%2?'#77604e':'#846c55');
+ const palette={
+  'rootheart-inn':['#735143','#86604b','#b18c69','#4d392f'],
+  'rootheart-smithy':['#525b5a','#646c67','#89918a','#343d3c'],
+  'rootheart-shop':['#897246','#9b8253','#c1a36a','#5e5036'],
+  'rootheart-temple':['#7c8684','#929b95','#c4c9b8','#555f5d'],
+  'rootheart-home':['#75574c','#88675a','#b3977f','#503e37']
+ }[b.id]||['#77604e','#846c55','#a18a70','#514439'];
+ rect(px,py,TILE,TILE,(row+col)%2?palette[0]:palette[1]);
  // Small staggered shingles with restrained highlights and worn edges.
  for(let band=0;band<2;band++){
   const sy=py+band*20,offset=(row+band)%2?10:0;
-  line(px,sy+19,px+TILE,sy+19,'#514439');
+  line(px,sy+19,px+TILE,sy+19,palette[3]);
   for(let i=-1;i<3;i++){
    const sx=px+i*20+offset;
    const left=Math.max(px,sx),right=Math.min(px+TILE,sx+20);
    if(right<=left)continue;
-   line(left,sy+2,right,sy+2,'#a18a70');
-   if(sx>px&&sx<px+TILE)line(sx,sy+3,sx,sy+18,'#5c4b3e');
+   line(left,sy+2,right,sy+2,palette[2]);
+   if(sx>px&&sx<px+TILE)line(sx,sy+3,sx,sy+18,palette[3]);
   }
  }
 }
