@@ -1,12 +1,12 @@
 // Stonetree: src/rendering/scene.js
 // Tibia-style exterior cutaway: proximity to ANY outside wall reveals the
 // real ground-floor geometry. No separate room or duplicate building is made.
-function nearExteriorWall(){
- if(!outside()||player.z!==0)return false;
- const x=localX(player.x),y=localY(player.y);
- return (x>=-1&&x<=N&&y>=-1&&y<=N) &&
-  ((x===-1||x===N)&&y>=0&&y<N ||
-   (y===-1||y===N)&&x>=0&&x<N);
+function nearExteriorWall(building){
+ if(player.z!==0||buildingAt(player.x,player.y))return false;
+ const x=player.x-building.position.x,y=player.y-building.position.y;
+ const width=building.width,height=building.height;
+ return ((x===-1||x===width)&&y>=0&&y<height)||
+        ((y===-1||y===height)&&x>=0&&x<width);
 }
 function exteriorCutaway(x,y){
  // Use exactly the same ground floor and objects as the interior.
@@ -16,7 +16,6 @@ function exteriorCutaway(x,y){
  ctx.save();ctx.globalAlpha=.18;
  facade(x,y+N*TILE,0,true);
  ctx.restore();
- playerSprite(x+(localX(player.x)+.5)*TILE,y+(localY(player.y)+.5)*TILE);
 }
 function paint(){
  syncBuilding();
@@ -34,7 +33,7 @@ function paint(){
   const x=worldX+b.position.x*TILE,y=worldY+b.position.y*TILE;
   if(current?.id===b.id){
    interior(x,y-player.z*HEIGHT,player.z);
-  }else if(nearExteriorWall()){
+  }else if(nearExteriorWall(b)){
    exteriorCutaway(x,y);
   }else{
    exterior(x,y);
@@ -42,13 +41,8 @@ function paint(){
  }
  selectBuilding(active);
  if(!current){
-  const spriteX=worldX+(player.x+.5)*TILE,spriteY=worldY+(player.y+.5)*TILE;
-  // Draw the player after buildings only when standing south of them.
-  if(player.y>=active.position.y+active.height)playerSprite(spriteX,spriteY);
-  else {
-   // For north/side approaches, keep the player visible above the scene.
-   playerSprite(spriteX,spriteY);
-  }
+  // Outside player is drawn exactly once, independent of nearby houses.
+  playerSprite(worldX+(player.x+.5)*TILE,worldY+(player.y+.5)*TILE);
  }
  const place=!current?'Buiten':player.z===0?'Begane grond':'Bovenverdieping';
  document.getElementById('status').textContent=`${place} · z=${player.z} · deur ${doorOpen?'open':'dicht'} · (${player.x}, ${player.y})`;
