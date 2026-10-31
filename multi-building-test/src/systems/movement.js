@@ -15,7 +15,7 @@ function walkable(x,y){
 }
 function connected(cx,cy,nx,ny){
  const a=buildingAt(cx,cy),b=buildingAt(nx,ny);
- if(a===b)return true;
+ if(a===b)return player.z===0||a!==undefined&&a!==null;
  const building=a||b;
  if(!building||!doorStates[building.id]||player.z!==0)return false;
  const dx=building.position.x+building.door.col,front=building.position.y+building.height-1;
