@@ -1,29 +1,34 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — brick wall</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=68,DEPTH=7;
+const TILE=48,HEIGHT=56,DEPTH=13;
 function poly(g,p,color){g.fillStyle=color;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
 function makeWall(){
  const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- // One front-facing brick-wall section with an oblique narrow top edge.
- g.fillStyle='#41382f';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
- const colors=['#9b7b60','#ac8a69','#886b56','#b49472','#97755a','#a18164'];
- const brickH=10,brickW=22;
+ // Tibia-style oblique projection: front at x=0..48; wall depth recedes
+ // up and to the RIGHT. The front is not shifted down/right by its depth.
+ const y=DEPTH;
+ g.fillStyle='#4a372c';g.fillRect(0,y,TILE,HEIGHT);
+ const colors=['#9c7759','#b18b69','#8e6b51','#a78162','#967156'];
  for(let row=0;row<7;row++){
-   const yy=DEPTH+row*brickH,offset=(row%2)*11;
-   for(let bx=-brickW;bx<TILE+brickW;bx+=brickW){
-     const left=Math.max(0,bx+offset),right=Math.min(TILE,bx+offset+brickW-2);
-     if(right<=left)continue;
-     const color=colors[(row*3+Math.floor((bx+brickW)/brickW)*5+24)%colors.length];
-     g.fillStyle=color;g.fillRect(DEPTH+left,yy+1,right-left,brickH-2);
-     g.fillStyle='#c3a184';g.fillRect(DEPTH+left+1,yy+2,Math.max(0,right-left-3),1);
-     g.fillStyle='#6d5444';g.fillRect(DEPTH+left,yy+brickH-2,right-left,1);
-   }
+  const yy=y+row*8,shift=(row%2)*12;
+  for(let bx=-24;bx<TILE+24;bx+=24){
+   const l=Math.max(0,bx+shift),rr=Math.min(TILE,bx+shift+22);
+   if(rr<=l)continue;
+   g.fillStyle=colors[((row*3+Math.floor((bx+24)/24)*2)%colors.length+colors.length)%colors.length];
+   g.fillRect(l,yy+1,rr-l,6);
+   g.fillStyle='#c5a080';g.fillRect(l+1,yy+1,Math.max(0,rr-l-2),1);
+  }
  }
- // Thin dark end and a slim top, no diagonal extension at the base.
- poly(g,[[TILE,0],[TILE+DEPTH,DEPTH],[TILE+DEPTH,DEPTH+HEIGHT],[TILE,HEIGHT]],'#655244');
- poly(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#c2a58a');
- g.fillStyle='#e0c4a6';g.fillRect(1,1,TILE-2,2);
+ // Narrow visible depth at the RIGHT, drawn behind the front.
+ // Bottom stays horizontal, avoiding the previous protruding triangle.
+ poly(g,[[TILE,DEPTH],[TILE+DEPTH,0],[TILE+DEPTH,HEIGHT],[TILE,HEIGHT+DEPTH]],'#655043');
+ // Repaint the face so the side never overlaps the brick pattern.
+ g.fillStyle='#4a372c';g.fillRect(0,DEPTH,TILE,0);
+ // The cap slopes up-right, consistent with Tibia's 2.5D wall projection.
+ poly(g,[[0,DEPTH],[DEPTH,0],[TILE+DEPTH,0],[TILE,DEPTH]],'#bfa186');
+ g.fillStyle='#e1c3a0';g.fillRect(DEPTH+1,1,TILE-2,2);
+ g.fillStyle='#765c48';g.fillRect(0,DEPTH,TILE,2);
  return c;
 }
 const wall=makeWall();
