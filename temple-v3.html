@@ -7,12 +7,12 @@ let doorOpen=false;const things=[];function put(kind,x,y,opts={}){things.push({k
 for(let x=3;x<=12;x++){put('northWall',x,3);if(x!==7)put('southWall',x,12)}
 for(let y=4;y<12;y++){put('westWall',3,y);put('eastWall',12,y)}
 put('door',7,12,{blocks:true});put('altar',7,4);put('pillar',5,6);put('pillar',10,6);put('pillar',5,9);put('pillar',10,9);put('carpet',7,9,{blocks:false});put('priest',npc.x,npc.y);
-const roof=[];for(let y=2;y<=11;y++)for(let x=3;x<=12;x++)roof.push({kind:'roof',x,y,blocks:false});
+const roof=[];for(let y=2;y<=10;y++)for(let x=3;x<=12;x++)roof.push({kind:'roof',x,y,blocks:false});
 function box(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function hash(x,y,s=0){let n=Math.imul(x+37,73856093)^Math.imul(y+91,19349663)^Math.imul(s+19,83492791);n^=n>>>15;return n>>>0}
 function drawGround(x,y){let a=x*T,b=y*T,g=ground[y][x].kind;
  if(g==='grass'){box(a,b,32,32,hash(x,y)%4?'#496d43':'#54734b');for(let i=0;i<9;i++){let h=hash(x,y,i);box(a+2+h%28,b+2+(h>>>9)%27,2+h%3,1+h%2,['#719257','#31593c','#62814e','#8b9860'][h%4])}return}
- box(a,b,32,32,g==='path'?'#8e8266':'#77796d');box(a+1,b+1,30,29,g==='path'?'#aa9977':'#a49f8c');box(a+2,b+2,27,3,'#c6bba0');box(a,b+29,32,3,'#6d6b60');box(a+15,b+4,2,12,'#79776b');box(a+1,b+16,30,2,'#777469');box(a+5,b+22,7,2,'#bcb39a')}
+ if(g==='flagstone'){box(a,b,32,32,'#775e40');for(let j=0;j<4;j++){let yy=b+j*8;box(a,yy,32,7,(x+j)%2?'#ba9767':'#caa875');box(a,yy,32,2,'#e4c18d');box(a,yy+6,32,2,'#76583b');box(a+((x+j)%2?12:23),yy+2,2,4,'#8d6b46')}return}\n box(a,b,32,32,g==='path'?'#8e8266':'#77796d');box(a+1,b+1,30,29,g==='path'?'#aa9977':'#a49f8c');box(a+2,b+2,27,3,'#c6bba0');box(a,b+29,32,3,'#6d6b60');box(a+15,b+4,2,12,'#79776b');box(a+1,b+16,30,2,'#777469');box(a+5,b+22,7,2,'#bcb39a')}
 function masonry(x,y,height=48,front=false){let top=y-height+32;box(x,top,32,height,'#514e47');box(x+2,top+2,28,height-5,'#9f9887');
  for(let i=0;i<Math.ceil(height/11);i++){let yy=top+i*11;if(yy>=y+31)break;box(x+2,yy,28,2,'#c6baa2');box(x+2,yy+9,28,2,'#5e5c54');box(x+(i%2?10:22),yy+2,2,7,'#706d61');if(hash(x,y,i)%3===0)box(x+5+hash(x,y,i)%15,yy+5,5,2,'#878272')}
  box(x+2,top+2,3,height-5,'#d0c4a8');box(x+29,top+2,2,height-5,'#69675d');
@@ -50,7 +50,7 @@ function occupied(x,y){return x<0||y<0||x>=N||y>=N||things.some(o=>o.blocks&&o.x
 function findPath(tx,ty){if(occupied(tx,ty))return null;const q=[[player.x,player.y]],prev=new Map(),seen=new Set([player.x+','+player.y]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let path=[],key=x+','+y;while(prev.has(key)){path.unshift(key.split(',').map(Number));key=prev.get(key)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!occupied(a,b)){seen.add(k);prev.set(k,x+','+y);q.push([a,b])}}}return null}
 let timer=null;function walk(path){clearTimeout(timer);let i=0;function step(){if(i>=path.length){timer=null;return}if(occupied(path[i][0],path[i][1])){timer=null;return}[player.x,player.y]=path[i++];render();timer=setTimeout(step,105)}step()}
 cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);
-if(x===bounds.door&&(y===bounds.b||y===bounds.b-1)&&!inside()){
+if(x===bounds.door&&(y===bounds.b||(y===bounds.b-1&&!inside()))){
  const distance=Math.abs(player.x-x)+Math.abs(player.y-y);
  if(distance>2){note.textContent='Walk closer to the door to use it.';return}
  if(doorOpen&&player.x===x&&player.y===y){note.textContent='You cannot close the door while standing in its doorway.';return}
