@@ -9,13 +9,14 @@ function renderBackpack(){
  const grid=document.getElementById('bagGrid');
  if(!grid||typeof document.createElement!=='function')return;
  grid.replaceChildren();
- const contents=inventory.gold>0?[{id:'gold-coin',name:'Gold coin',quantity:inventory.gold},...inventory.items]:inventory.items;
+ const contents=bagItems();
  for(let i=0;i<BACKPACK_CAPACITY;i++){
   const slot=document.createElement('div');slot.className='bag-slot';
   const item=contents[i];
   if(item){slot.title=item.name;slot.setAttribute('aria-label',item.name+' x'+item.quantity);
    const symbol=document.createElement('span');symbol.className='coin-symbol';symbol.textContent=item.id==='gold-coin'?'●':'◆';slot.appendChild(symbol);
    const count=document.createElement('span');count.className='stack-count';count.textContent=String(item.quantity);slot.appendChild(count);
+   if(item.slot){slot.className+=' is-equippable';slot.addEventListener('click',()=>equipItem(i));}
   }else slot.setAttribute('aria-label','Empty slot '+(i+1));
   grid.appendChild(slot);
  }
@@ -27,6 +28,7 @@ function refreshInventory(){
  const legacy=document.getElementById('inventoryContents');
  if(!document.getElementById('bagGrid')&&legacy)legacy.textContent='Gold coins: '+inventory.gold;
  renderBackpack();
+ refreshEquipment();
 }
 function takeCorpseLoot(){
  const corpse=ratCorpses.find(c=>c.id===openedCorpseId);
