@@ -1,7 +1,11 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — 2.5D rastertest</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#171a1b}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
 const TILE=40,N=5,WALL=64,THICK=6;
-const player={x:2,y:2};let path=[];let originX=0,originY=0;
+const player={x:2,y:2,z:0};let path=[];let originX=0,originY=0;
+const STAIRS={x:1,y:1},DOOR_X=2;
+function inside(x,y){return x>=0&&x<N&&y>=0&&y<N;}
+function walkable(x,y){return inside(x,y)||(player.z===0&&x===DOOR_X&&y>=N&&y<=N+5)||(player.z===0&&y>=N+1&&y<=N+5&&x>=-7&&x<N+8);}
+function stairsAt(x,y){return x===STAIRS.x&&y===STAIRS.y;}
 function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);ctx.closePath();ctx.fill();}
 function line(x1,y1,x2,y2,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
 function paint(){
@@ -28,7 +32,7 @@ function paint(){
  for(let i=1;i<4;i++)line(x,y-WALL+i*WALL/4,x+size,y-WALL+i*WALL/4,'#8b8b80');
  // Floor rendered after the north wall, so every floor tile remains visible.
  for(let row=0;row<N;row++)for(let col=0;col<N;col++){
-  ctx.fillStyle=(row+col)%2?'#888f7d':'#979e8c';
+  ctx.fillStyle=player.z===1?((row+col)%2?'#947959':'#a48966'):((row+col)%2?'#888f7d':'#979e8c');
   ctx.fillRect(x+col*TILE,y+row*TILE,TILE,TILE);
   ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
   ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
@@ -55,6 +59,12 @@ function paint(){
   line(x-SIDE,yy,x,yy,'#626a60');
   line(x+size,yy,x+size+SIDE,yy,'#626a60');
  }
+ // Stairs are at the same grid location on both floors.
+ const sx=x+STAIRS.x*TILE,sy=y+STAIRS.y*TILE;
+ ctx.fillStyle=player.z===0?'#715b37':'#635443';ctx.fillRect(sx+4,sy+5,TILE-8,TILE-9);
+ for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#c7a467':'#ddbf83';ctx.fillRect(sx+6,sy+7+i*7,TILE-12,5);}
+ // Floor indicator (upper floor has a distinct wooden floor).
+ if(player.z===1){ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';ctx.fillText('Verdieping 2',x,y-WALL-18);}
  // Player: simple top-down sprite, one grid tile at a time.
  const px=x+player.x*TILE+TILE/2,py=y+player.y*TILE+TILE/2;
  ctx.fillStyle='#30352e';ctx.fillRect(px-9,py+11,18,5);
@@ -67,37 +77,67 @@ function paint(){
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
  polygon([[x,y+size-WALL],[x+size,y+size-WALL],[x+size,y+size],[x,y+size]],'#9c9b8f');
  polygon([[x,y+size-WALL],[x+THICK,y+size-WALL-THICK],[x+size+THICK,y+size-WALL-THICK],[x+size,y+size-WALL]],'#ded9c8');
- for(let i=1;i<4;i++)line(x,y+size-WALL+i*WALL/4,x+size,y+size-WALL+i*WALL/4,'#86877c');
+ // Door opening in the south wall: one full grid tile, at column 2.
+ // Erase only the wall face in the opening, restoring the floor/grass behind it.
+ const doorLeft=x+DOOR_X*TILE,doorTop=y+size-WALL;
+ ctx.fillStyle=player.z===0?'#979e8c':'#a48966';
+ ctx.fillRect(doorLeft,doorTop,TILE,WALL);
+ // Threshold and dark door jambs.
+ ctx.fillStyle='#5c4631';ctx.fillRect(doorLeft,doorTop,4,WALL);
+ ctx.fillRect(doorLeft+TILE-4,doorTop,4,WALL);
+ ctx.fillStyle='#d6bd85';ctx.fillRect(doorLeft+4,y+size-5,TILE-8,5);
+ // Keep the upper wall visible on the second floor; doorway only on ground.
+ if(player.z===1){
+  ctx.fillStyle='#9c9b8f';ctx.fillRect(doorLeft,doorTop,TILE,WALL);
+  ctx.fillStyle='#ded9c8';ctx.fillRect(doorLeft,doorTop,TILE,THICK);
+ }
+ for(let i=1;i<4;i++){
+  const yy=y+size-WALL+i*WALL/4;
+  line(x,yy,doorLeft,yy,'#86877c');
+  line(doorLeft+TILE,yy,x+size,yy,'#86877c');
+ }
  ctx.fillStyle='#d8d3c3';
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
  ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
 }
-// Tap-to-walk with orthogonal shortest path; only the interior is walkable.
+// Grid movement, including the doorway and grass outside.
 function route(tx,ty){
- if(tx<0||tx>=N||ty<0||ty>=N)return;
+ if(!walkable(tx,ty))return;
  const queue=[[player.x,player.y]],seen=new Set([player.x+','+player.y]),prev=new Map();
  while(queue.length){
   const [cx,cy]=queue.shift();if(cx===tx&&cy===ty)break;
   for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
    const nx=cx+dx,ny=cy+dy,k=nx+','+ny;
-   if(nx<0||nx>=N||ny<0||ny>=N||seen.has(k))continue;
+   if(!walkable(nx,ny)||seen.has(k))continue;
+   // All crossings of the southern wall must pass through the doorway.
+   if((cy===N-1&&ny===N)||(cy===N&&ny===N-1))
+    if(cx!==DOOR_X||nx!==DOOR_X)continue;
    seen.add(k);prev.set(k,[cx,cy]);queue.push([nx,ny]);
   }
  }
  const steps=[];let k=tx+','+ty;
  if(!seen.has(k))return;
- while(k!==player.x+','+player.y){const [cx,cy]=k.split(',').map(Number);steps.unshift([cx,cy]);const p=prev.get(k);k=p[0]+','+p[1];}
+ while(k!==player.x+','+player.y){
+  const [cx,cy]=k.split(',').map(Number);steps.unshift([cx,cy]);
+  const p=prev.get(k);k=p[0]+','+p[1];
+ }
  path=steps;
 }
 canvas.addEventListener('pointerdown',e=>{
- const box=canvas.getBoundingClientRect(),tx=Math.floor((e.clientX-box.left-originX)/TILE),ty=Math.floor((e.clientY-box.top-originY)/TILE);
+ const box=canvas.getBoundingClientRect();
+ const tx=Math.floor((e.clientX-box.left-originX)/TILE),ty=Math.floor((e.clientY-box.top-originY)/TILE);
  route(tx,ty);
 });
 addEventListener('keydown',e=>{
  const delta={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];
  if(delta){e.preventDefault();route(player.x+delta[0],player.y+delta[1]);}
 });
-setInterval(()=>{if(path.length){const [x,y]=path.shift();player.x=x;player.y=y;paint();}},160);
+setInterval(()=>{
+ if(!path.length)return;
+ const [x,y]=path.shift();player.x=x;player.y=y;
+ if(stairsAt(x,y)){player.z=1-player.z;path=[];}
+ paint();
+},160);
 addEventListener('resize',paint);paint();
 
 </script>
