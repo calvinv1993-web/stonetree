@@ -520,20 +520,22 @@ function drawHeightTerrain(){
 }
 function drawLowerFloorDepth(){
  if(p.floor<=0)return;
- // Tint only the lower scene, then draw the upper architecture at full contrast.
+ if(buildings.some(b=>p.floor===b.upper)){
+  // Upper interiors have their own opaque scene. The lower world must not
+  // leak through gaps around or beneath an elevated room.
+  const x=Math.floor(camera.x/24)*24,y=Math.floor(camera.y/24)*24;
+  rect(camera.x-24,camera.y-24,canvas.width+48,canvas.height+48,'#202a27');
+  for(let yy=y-24;yy<camera.y+canvas.height+24;yy+=24)
+   for(let xx=x-24;xx<camera.x+canvas.width+24;xx+=24){
+    rect(xx,yy,23,23,(Math.floor(xx/24)+Math.floor(yy/24))%2?'#28322d':'#25302b');
+    rect(xx,yy,23,2,'#303b33');
+   }
+  return;
+ }
  rect(camera.x,camera.y,canvas.width,canvas.height,'rgba(12,25,30,.56)');
 }
 function drawRoofForeground(){
  if(p.floor===-1)return;
- if(p.floor===lodge.upper){
-  // Front parapet overlays the hero's feet, not their head.
-  const b=lodge,corner=ground.center({c:b.left,r:b.top});
-  const left=corner.x-12,right=ground.center({c:b.right,r:b.top}).x+12;
-  const front=ground.center({c:b.left,r:b.bottom}).y+12-32;
-  rect(left-3,front-3,right-left+6,5,'#b5ad91');
-  rect(left-3,front+2,right-left+6,4,'#4e5a4d');
-  for(let px=left;px<right;px+=24)rect(px,front-4,2,7,'#777e69');
- }
 
  // Foreground coping is drawn after occupants. The stair landing is left open.
  for(let x=377;x<470;x+=15){rect(x,458,14,7,'#5a6654');rect(x,455,14,3,'#c8c0a1');rect(x+1,458,12,2,'#9fa88b')}
@@ -570,7 +572,7 @@ rect(237,562,161,151,'#3d4d3b');
 for(let row=0;row<10;row++)for(let col=0;col<9;col++){const x=240+col*17,y=565+row*14;rect(x,y,16,13,(row+col)%3?'#8b8b70':'#999479');rect(x+1,y,14,2,'#bbb092');rect(x+15,y+2,1,11,'#636f55');rect(x+2,y+12,13,1,'#4c5f46');if((row*3+col)%7===0)rect(x+2,y+10,4,2,'#627b45')}
 drawVillage();
 for(const t of trees)tree(t.x,t.y,t.s)
-if(p.floor!==-1)drawMonsters(0);ctx.restore();drawLowerFloorDepth();drawHeightTerrain();for(const b of buildings)if(p.floor===b.upper){drawBuildingFloorOcclusion(b);buildingArt(b)}if(p.floor!==-1){ctx.save();ctx.translate(0,-32);drawMonsters(1);ctx.restore()}else drawMonsters(-1);ctx.translate(0,-floorOffset());
+if(p.floor!==-1)drawMonsters(0);ctx.restore();drawLowerFloorDepth();drawHeightTerrain();for(const b of buildings)if(p.floor===b.upper){drawBuildingFloorOcclusion(b);buildingArt(b)}if(p.floor===1){ctx.save();ctx.translate(0,-32);drawMonsters(1);ctx.restore()}else if(p.floor===-1)drawMonsters(-1);ctx.translate(0,-floorOffset());
 for(const b of bags){if((b.floor??0)!==p.floor)continue;rect(b.x-5,b.y-5,10,9,'#b58a54');rect(b.x-3,b.y-8,6,4,'#88603a')}
 if(dest){ctx.strokeStyle='#d5d29c';ctx.strokeRect(dest.x-12,dest.y-12,24,24)}
 
