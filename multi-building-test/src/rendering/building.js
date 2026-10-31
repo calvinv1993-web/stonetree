@@ -79,7 +79,7 @@ function renderFloor(x,y,level,holes){
 }
 function cutawayFront(x,base,level){
  // Fade the foreground facade near the player; retain its physical height.
- ctx.save();ctx.globalAlpha=player.y>=N-2?.25:1;
+ ctx.save();ctx.globalAlpha=localY(player.y)>=N-2?.25:1;
  facade(x,base,level,level===0);ctx.restore();
 }
 function interior(x,upperY,level){
@@ -87,7 +87,7 @@ function interior(x,upperY,level){
  if(level===0){
   renderFloor(x,upperY,0,false);
   cutawayFront(x,upperY+size,0);
-  playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
+  playerSprite(x+(localX(player.x)+.5)*TILE,upperY+(localY(player.y)+.5)*TILE);
   return;
  }
  // The downstairs room remains at its own world elevation.
@@ -121,7 +121,7 @@ function interior(x,upperY,level){
  // Never draw the downstairs EXTERIOR facade inside the upstairs room.
  // The same level-1 window definitions are used by the outside facade.
  cutawayFront(x,upperY+size,1);
- playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
+ playerSprite(x+(localX(player.x)+.5)*TILE,upperY+(localY(player.y)+.5)*TILE);
  ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
  ctx.fillText('Bovenverdieping · z=1',x,upperY-HEIGHT-18);
 }
