@@ -6,7 +6,14 @@ function stairAction(x,y,z=player.z){
 function walkable(x,y,z=player.z){
  if(![x,y,z].every(Number.isSafeInteger))return false;
  const b=buildingAt(x,y);
- if(!b){const area=WORLD_CONFIG.bounds;return z===0&&x>=area.left&&x<=area.right&&y>=area.top&&y<=area.bottom;}
+ if(!b){
+  const area=WORLD_CONFIG.bounds;
+  if(z!==0||x<area.left||x>area.right||y<area.top||y>area.bottom)return false;
+  // The petrified trunk occupies a 3x3 footprint; paths route around it.
+  if(x>=ROOTHEART.centerX-1&&x<=ROOTHEART.centerX+1&&
+     y>=ROOTHEART.centerY-1&&y<=ROOTHEART.centerY+1)return false;
+  return true;
+ }
  if(!b.floors[z])return false;
  const t=localTile(b,x,y),terrace=terraceAt(b,z);
  if(t.y===b.height-1&&!(z===0&&t.x===b.door.col)&&!(terrace&&t.x>=terrace.startCol))return false;
