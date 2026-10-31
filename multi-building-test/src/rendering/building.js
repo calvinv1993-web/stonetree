@@ -16,6 +16,30 @@ function stoneCourses(x,y,width,height){
  }
  ctx.restore();
 }
+function rootheartFacadeDetail(b,x,top,baseY,level,door){
+ if(!b.id.startsWith('rootheart-'))return;
+ const width=b.width*TILE;
+ // Building-specific stone and timber accents; all doors and windows remain interactive.
+ if(b.id==='rootheart-inn'){
+  rect(x+5,top+7,width-10,5,'#674b37');
+  for(let col=0;col<b.width;col+=2)rect(x+col*TILE+7,top+12,5,HEIGHT-19,'#76553d');
+  if(door){rect(x+TILE*2,top-12,TILE*3,11,'#5c4938');rect(x+TILE*2+5,top-9,TILE*3-10,5,'#c5a77a');}
+ }else if(b.id==='rootheart-smithy'){
+  rect(x+5,top+8,width-10,8,'#555b58');
+  for(let col=0;col<b.width;col++)rect(x+col*TILE+9,top+20,12,3,'#747c78');
+  if(door){rect(x+TILE*4,top+17,18,27,'#353633');rect(x+TILE*4+4,top+22,10,17,'#b35e32');}
+ }else if(b.id==='rootheart-shop'){
+  rect(x+4,top+7,width-8,7,'#876f47');
+  if(door){rect(x+TILE,top+10,TILE*4,8,'#a67b45');rect(x+TILE+7,top+11,TILE*4-14,4,'#e2c68b');}
+ }else if(b.id==='rootheart-temple'){
+  for(let col=0;col<b.width;col+=2)rect(x+col*TILE+5,top+8,9,HEIGHT-16,'#d0c8b4');
+  rect(x+5,top+6,width-10,5,'#c8bd9e');
+  if(door){rect(x+TILE*3+14,top-18,12,12,'#8e988e');rect(x+TILE*3+17,top-15,6,6,'#c9c4a8');}
+ }else if(b.id==='rootheart-home'){
+  rect(x+4,top+8,width-8,5,'#71563e');
+  for(let col=0;col<b.width;col+=2)rect(x+col*TILE+7,top+13,5,HEIGHT-20,'#816347');
+ }
+}
 function facade(b,x,baseY,level,door){
  // One authoritative facade per physical storey, shared by interior and exterior views.
  const top=baseY-HEIGHT;
@@ -67,6 +91,7 @@ function facade(b,x,baseY,level,door){
   rect(wx-5,wy+27,38,6,'#c7bda5');
   rect(wx-5,wy+32,38,3,'#777366');
  }
+ rootheartFacadeDetail(b,x,top,baseY,level,door);
  rect(x,baseY-5,b.width*TILE,5,'#77786e');
 }
 function exterior(b,x,y){
