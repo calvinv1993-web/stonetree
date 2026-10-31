@@ -494,8 +494,10 @@ function drawStorey(b,x,y,level,occupied){
  // Clip furnishings to solid floor tiles: never paint across stairwell openings.
  ctx.save();ctx.beginPath();
  const voids=floorVoids(b,level);
+ const stairTiles=new Set(Object.values(stairsAt(b,level)).map(stair=>stair.x+','+stair.y));
  for(let row=0;row<b.height;row++)for(let col=0;col<b.width;col++){
-  if(!voids.has(col+','+row))ctx.rect(x+col*TILE,y+row*TILE,TILE,TILE);
+  const key=col+','+row;
+  if(!voids.has(key)&&!stairTiles.has(key))ctx.rect(x+col*TILE,y+row*TILE,TILE,TILE);
  }
  ctx.clip();
  rootheartInnFurniture(b,x,y,level);
