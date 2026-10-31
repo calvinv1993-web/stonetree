@@ -1,24 +1,30 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=72,DEPTH=12;
-function polygon(g,points,color){
- g.fillStyle=color;g.beginPath();g.moveTo(...points[0]);
- for(let i=1;i<points.length;i++)g.lineTo(...points[i]);
- g.closePath();g.fill();
-}
-// One wall sprite, anchored to one grid edge.
-// Its cap is shifted UP-LEFT, with a flat front and a dark right edge.
+const TILE=48,HEIGHT=62,DEPTH=8;
+function polygon(g,p,color){g.fillStyle=color;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
+// One original brick wall sprite, built on a 48px grid edge.
+// Front is TILE wide; depth is an 8px upper-left oblique projection.
 function makeWall(){
- const c=document.createElement('canvas');
- c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
+ const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- // The front occupies exactly one tile width, no oversized block.
- g.fillStyle='#849188';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
- g.fillStyle='#9aa79d';g.fillRect(DEPTH+2,DEPTH+2,TILE-4,HEIGHT-5);
- // Exposed right edge: dark, narrow, and vertically aligned.
- polygon(g,[[TILE,0],[TILE+DEPTH,DEPTH],[TILE+DEPTH,DEPTH+HEIGHT],[TILE,HEIGHT]],'#526259');
- // Top cap: a 45-degree oblique projection toward upper-left.
- polygon(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#c5d1c5');
+ // Brick front: a single flat wall plane, not a solid cube.
+ g.fillStyle='#514038';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
+ g.fillStyle='#9e6d58';g.fillRect(DEPTH+1,DEPTH+1,TILE-2,HEIGHT-2);
+ const brickH=12;
+ for(let row=0;row<5;row++){
+  const yy=DEPTH+2+row*brickH,shift=row%2?12:0;
+  g.fillStyle='#4e3832';g.fillRect(DEPTH+1,yy+brickH-2,TILE-2,2);
+  for(let xx=DEPTH+1-shift;xx<DEPTH+TILE;xx+=24){
+   const sx=Math.max(DEPTH+1,xx),ex=Math.min(DEPTH+TILE-1,xx+24);
+   if(ex>sx){g.fillStyle='#b78368';g.fillRect(sx,yy,ex-sx,2);}
+   if(xx>DEPTH+1){g.fillStyle='#64483d';g.fillRect(xx,yy,2,brickH-2);}
+  }
+ }
+ // Small right end plane.
+ polygon(g,[[DEPTH+TILE-DEPTH,0],[DEPTH+TILE,DEPTH],[DEPTH+TILE,DEPTH+HEIGHT],[TILE,HEIGHT]],'#644a40');
+ // Narrow upper cap slopes to the upper left at 45 degrees.
+ polygon(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#c6a18b');
+ g.fillStyle='#e0c1a9';g.fillRect(1,1,TILE-2,2);
  return c;
 }
 const wall=makeWall();
