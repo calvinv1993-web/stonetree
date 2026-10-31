@@ -1,5 +1,6 @@
 document.getElementById('doorControl').addEventListener('click',()=>toggleDoor());
-document.getElementById('closeLoot').addEventListener('click',()=>{document.getElementById('lootPanel').hidden=true;});
+document.getElementById('takeLoot').addEventListener('click',takeCorpseLoot);
+document.getElementById('closeLoot').addEventListener('click',()=>{document.getElementById('lootPanel').hidden=true;openedCorpseId=null;});
 canvas.addEventListener('pointerdown',e=>{
  if(e.isPrimary===false||(e.button!==undefined&&e.button!==0))return;
  canvas.focus({preventScroll:true});
