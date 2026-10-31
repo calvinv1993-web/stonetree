@@ -122,7 +122,7 @@ function terracePartition(x,y){
  // Vertical dividing wall occupies the boundary, not the roof tiles.
  for(let row=0;row<N;row++){
   const top=y+row*TILE;
-  if(row===2){
+  if(row===3){
    rect(edge-8,top,16,6,'#6c5b48');
    rect(edge-8,top+TILE-6,16,6,'#6c5b48');
    rect(edge-8,top,4,TILE,'#786956');
