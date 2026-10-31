@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree Object Engine</title><style>
+*{box-sizing:border-box}body{margin:0;background:#171d19;color:#e4dcc6;font:14px system-ui}header{padding:12px 16px;background:#273229;font-weight:bold}canvas{display:block;width:min(100vw,640px);height:auto;image-rendering:pixelated;touch-action:none;margin:12px auto;border:2px solid #566550}p{max-width:640px;margin:12px auto;padding:0 12px}button{background:#445746;border:1px solid #9a987d;color:#fff;padding:12px;border-radius:5px}nav{text-align:center}
+</style></head><body><header>STONETREE / OBJECT-LAYER ENGINE</header><canvas width="512" height="512" id="view"></canvas><nav><button id="reset">Reset position</button></nav><p id="message">Tap a free tile to walk. The stone walls are objects above ground tiles. Enter through the south doorway; the roof hides while inside.</p>
+<script>
+'use strict';
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),T=32,N=16,room={l:3,t:3,r:12,b:12,door:7},hero={x:7,y:14},message=document.getElementById('message');
+ctx.imageSmoothingEnabled=false;
+const ground=Array.from({length:N},(_,y)=>Array.from({length:N},(_,x)=>({type:(x>=4&&x<=11&&y>=4&&y<=11)?'stone':'grass'})));
+const objects=[],actors=[{id:'player',x:hero.x,y:hero.y}];
+function add(id,x,y,layer,blocks=true,extra={}){objects.push({id,x,y,layer,blocks,...extra})}
+for(let x=room.l;x<=room.r;x++){add('wallTop',x,room.t,20);if(x!==room.door)add('wallSouth',x,room.b,20)}
+for(let y=room.t+1;y<room.b;y++){add('wallSide',room.l,y,20);add('wallSide',room.r,y,20)}
+add('door',room.door,room.b,21,false);add('altar',7,5,22);add('column',5,7,22);add('column',10,7,22);add('priest',7,7,30);
+for(let x=room.l;x<=room.r;x++)for(let y=room.t;y<=room.b;y++)add('roof',x,y,50,false,{roof:true});
+const P={grass:'#466449',grass2:'#527451',stone:'#9a9884',mortar:'#494d48',wall:'#a5a08e',highlight:'#d4c7a8',shadow:'#625f55',roof:'#ad6246',roofDark:'#754534',wood:'#815b3b'};
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function tile(x,y){const a=x*T,b=y*T;rect(a,b,T,T,ground[y][x].type==='grass'?((x*17+y*31)%5?'#466449':'#50704c'):'#a7a18c');if(ground[y][x].type==='stone'){rect(a+1,b+1,30,2,'#c4bba0');rect(a+4,b+26,25,2,'#888574');rect(a+14,b+9,2,5,'#888473')}else{rect(a+4+(x*7)%15,b+7+(y*11)%13,3,2,'#789263')}}
+function sprite(o){const x=o.x*T,y=o.y*T;switch(o.id){
+case 'wallTop':rect(x,y-16,32,48,P.mortar);rect(x+2,y-14,28,42,P.wall);rect(x,y-16,32,7,P.highlight);rect(x+13,y+3,2,21,P.shadow);rect(x+1,y+24,30,5,P.shadow);break;
+case 'wallSide':rect(x,y-17,32,49,P.mortar);rect(x+2,y-15,28,44,P.wall);rect(x+2,y-15,4,44,P.highlight);rect(x+4,y+9,25,3,P.shadow);rect(x+14,y+12,2,16,P.shadow);break;
+case 'wallSouth':rect(x,y-20,32,52,P.mortar);rect(x+2,y-18,28,46,P.wall);rect(x+2,y-18,28,4,P.highlight);rect(x+15,y+5,2,22,P.shadow);rect(x,y+26,32,6,P.shadow);break;
+case 'door':rect(x,y-20,32,52,P.mortar);rect(x+3,y-18,26,48,P.highlight);rect(x+7,y-12,18,44,'#4d3a2c');rect(x+9,y-10,14,39,P.wood);rect(x+20,y+8,3,3,'#e5ca83');break;
+case 'altar':rect(x+2,y+7,28,23,P.shadow);rect(x+1,y+2,30,12,P.highlight);rect(x+3,y+3,26,3,'#f1dfb9');rect(x+7,y-7,5,10,'#d3b47a');rect(x+20,y-7,5,10,'#d3b47a');break;
+case 'column':rect(x+10,y-22,12,52,P.shadow);rect(x+12,y-21,7,45,P.wall);rect(x+6,y-23,20,8,P.highlight);rect(x+5,y+22,22,8,P.highlight);break;
+case 'priest':rect(x+9,y-20,14,11,'#e1bb8b');rect(x+7,y-23,18,5,'#e0d9bb');rect(x+6,y-8,20,29,'#ded8c5');rect(x+13,y-7,6,24,'#aeb5a6');rect(x+10,y+21,5,8,'#564a3d');rect(x+20,y+21,5,8,'#564a3d');break;
+case 'roof':rect(x,y-22,32,43,(o.y%2)?P.roof:P.roofDark);for(let k=0;k<4;k++){rect(x,y-22+k*11,32,3,'#d78e62');rect(x+((o.x+k)%2)*15+8,y-17+k*11,2,7,P.roofDark)}break;
+}}
+function interior(){return hero.x>room.l&&hero.x<room.r&&hero.y>room.t&&hero.y<room.b}
+function paint(){ctx.clearRect(0,0,512,512);for(let y=0;y<N;y++)for(let x=0;x<N;x++)tile(x,y);
+const hideRoof=interior();
+const scene=objects.filter(o=>!o.roof||!hideRoof).concat([{id:'hero',x:hero.x,y:hero.y,layer:30,blocks:false}]).sort((a,b)=>a.layer-b.layer||a.y-b.y||a.x-b.x);
+for(const o of scene){if(o.id==='hero'){const x=o.x*T,y=o.y*T;rect(x+10,y+2,12,10,'#d7af7f');rect(x+8,y,16,4,'#574632');rect(x+7,y+12,18,14,'#587a4d');rect(x+10,y+26,5,6,'#554332');rect(x+19,y+26,5,6,'#554332')}else sprite(o)}
+rect(0,0,512,25,'#17221dcc');ctx.fillStyle='#eee2c9';ctx.font='bold 12px monospace';ctx.fillText(hideRoof?'INTERIOR · ROOF HIDDEN':'EXTERIOR · ROOF SHOWN',10,17)}
+function blocked(x,y){return x<0||y<0||x>=N||y>=N||objects.some(o=>o.x===x&&o.y===y&&o.blocks)}
+function path(tx,ty){if(blocked(tx,ty))return null;const queue=[[hero.x,hero.y]],visited=new Set([hero.x+','+hero.y]),parents=new Map();for(let i=0;i<queue.length;i++){const [x,y]=queue[i];if(x===tx&&y===ty){const steps=[];let k=x+','+y;while(parents.has(k)){const [a,b]=k.split(',').map(Number);steps.unshift([a,b]);k=parents.get(k)}return steps}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=a+','+b;if(!visited.has(k)&&!blocked(a,b)){visited.add(k);parents.set(k,x+','+y);queue.push([a,b])}}}return null}
+let animation=0;function move(steps){cancelAnimationFrame(animation);let i=0;function next(){if(i>=steps.length)return;[hero.x,hero.y]=steps[i++];paint();animation=setTimeout(next,95)}next()}
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);if(x===7&&y===7){message.textContent='Cipfried: Welcome to the temple. (Original placeholder dialogue.)';return}const steps=path(x,y);if(!steps){message.textContent='Blocked: a wall or object occupies that tile.';return}message.textContent='Walking on ground tiles beneath the objects.';move(steps)});
+document.getElementById('reset').onclick=()=>{clearTimeout(animation);hero.x=7;hero.y=14;paint()};paint();
+</script></body></html>
