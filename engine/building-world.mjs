@@ -18,7 +18,12 @@ export class BuildingWorld {
  find(x,y){return this.buildings.find(b=>b.base.contains(x,y))??null}
  tile(x,y,z){
   const b=this.find(x,y);if(!b)return null;
-  if(z===b.roofZ)return {type:'roof',z,material:b.base.material};
+  if(z===b.roofZ){
+   // The upper wall ring occupies the boundary tiles; roof tiles fill
+   // only the interior. Both belong to the same real Z layer.
+   if(b.base.boundary(x,y))return {type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y)};
+   return {type:'roof',z,material:b.base.material};
+  }
   if(z>b.groundZ||z<b.roofZ)return null;
   const level=b.groundZ-z;
   if(b.holes.some(h=>h.x===x&&h.y===y&&h.z===z))return {type:'hole',z};
