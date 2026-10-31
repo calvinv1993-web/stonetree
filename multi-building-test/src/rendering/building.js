@@ -311,6 +311,34 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
 }
+function rootheartSmithyFurniture(b,x,y,level){
+ if(b.id!=='rootheart-smithy'||level!==0)return;
+ const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
+ // Furnace against the back wall, away from the entrance.
+ let p=at(4,0);
+ rect(p.x+2,p.y+3,36,34,'#565954');
+ rect(p.x+6,p.y+7,28,26,'#85877c');
+ rect(p.x+10,p.y+16,20,15,'#302e2b');
+ rect(p.x+13,p.y+19,14,11,'#c56a32');
+ rect(p.x+17,p.y+22,7,7,'#e8ad55');
+ // Anvil and sturdy base.
+ p=at(2,1);
+ rect(p.x+12,p.y+23,17,13,'#65513c');
+ rect(p.x+7,p.y+12,27,12,'#454e50');
+ rect(p.x+3,p.y+13,10,5,'#60696b');
+ rect(p.x+15,p.y+10,16,4,'#929995');
+ // Wooden workbench and simple tools.
+ p=at(4,2);
+ rect(p.x+5,p.y+12,30,8,'#a07b50');
+ rect(p.x+8,p.y+20,5,15,'#5d4430');
+ rect(p.x+28,p.y+20,5,15,'#5d4430');
+ rect(p.x+12,p.y+9,4,12,'#626967');
+ line(p.x+23,p.y+10,p.x+30,p.y+18,'#b3b5a9');
+ // Material storage.
+ p=at(0,1);
+ rect(p.x+5,p.y+7,30,27,'#64503b');
+ for(let i=0;i<3;i++)rect(p.x+8,p.y+10+i*8,24,4,'#8b7252');
+}
 function rootheartInnFurniture(b,x,y,level){
  if(b.id!=='rootheart-inn')return;
  const tile=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
@@ -359,6 +387,7 @@ function drawStorey(b,x,y,level,occupied){
   if(!floorVoids(b,level).has((col-1)+','+row))rect(x+col*TILE,y+row*TILE,4,TILE,'#665b4b');
  }
  rootheartInnFurniture(b,x,y,level);
+ rootheartSmithyFurniture(b,x,y,level);
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
