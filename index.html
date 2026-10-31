@@ -201,49 +201,128 @@ function buildingStairPortals(b){
  return [0,b.upper].map(f=>({x:b.stairs.x,y:b.stairs.y,floor:f,to:f===0?b.upper:0,tx:b.stairs.x,ty:b.stairs.y,label:f===0?'Upstairs':'Downstairs'}));
 }
 const lodge=registerBuilding({left:2,right:6,top:20,bottom:24,door:4,upper:4});
+
+// Original Stonetree architecture tiles: 24px orthogonal grid, visible wall faces,
+// connected corner caps, a pitched roof, and a roofless interior cutaway.
+const ARCH_TILE=24;
+const ARCH={
+ mortar:'#363b34',stone:'#898777',stoneLight:'#b9b29a',stoneDark:'#62695d',
+ wood:'#765036',woodLight:'#b78956',roof:'#875944',roofLight:'#ba7b59',
+ roofDark:'#503d36',floor:'#b29a74',floorLight:'#d0b78b'
+};
+function architectureWallTile(x,y,mask,seed){
+ const A=ARCH;
+ // A thick wall: a top cap and 28px of vertical masonry face.
+ rect(x-1,y-16,26,40,A.mortar);
+ rect(x,y-17,24,5,A.stoneLight);
+ rect(x+1,y-12,22,36,A.stoneDark);
+ for(let row=0;row<4;row++){
+  const off=(row+seed)%2?7:0;
+  rect(x+1,y-11+row*9,22,8,row%2?A.stone:A.stoneDark);
+  rect(x+off+2,y-10+row*9,Math.max(2,19-off),2,row%2?A.stoneLight:A.stone);
+  rect(x+off,y-3+row*9,2,1,A.mortar);
+ }
+ // Neighbour-aware joints: no black gap between connected wall sections.
+ if(mask&1){rect(x,y-17,24,4,A.stoneLight)}
+ if(mask&2){rect(x+21,y-13,3,36,A.stoneDark)}
+ if(mask&4){rect(x,y+19,24,4,A.stoneDark)}
+ if(mask&8){rect(x,y-13,3,36,A.stoneLight)}
+ if((mask&5)===0)rect(x,y-17,24,5,'#c8bfa6');
+}
+function architectureFloorTile(x,y,c,r){
+ const A=ARCH;
+ rect(x,y,24,24,(c+r)%2?A.floor:'#a9916f');
+ rect(x+1,y+1,22,2,A.floorLight);
+ rect(x+1,y+22,22,2,'#77664f');
+ rect(x+3,y+5,8,1,'#927d60');
+ rect(x+14,y+15,6,1,'#d2b88d');
+}
+function architectureRoofTile(x,y,c,r){
+ const A=ARCH,alternating=(c+r)%2;
+ rect(x,y,24,24,alternating?A.roof:A.roofDark);
+ rect(x+1,y+1,22,3,A.roofLight);
+ for(let j=0;j<3;j++){
+  const off=(r+j)%2?0:9;
+  rect(x+off,y+5+j*6,24-off,5,j%2?A.roof:A.roofDark);
+  rect(x+off+2,y+5+j*6,Math.max(2,19-off),2,j%2?A.roofLight:'#a56a4e');
+ }
+ rect(x,y+22,24,2,'#392f2a');
+}
+function architectureFurniture(b,shift){
+ const origin=ground.center({c:b.left,r:b.top}),x=origin.x-12,y=origin.y-12-shift;
+ // The furnishings are drawn after floors but before front-wall occlusion.
+ rect(x+27,y+55,20,16,'#3c2e25');
+ rect(x+29,y+56,16,12,ARCH.wood);
+ rect(x+31,y+58,12,3,ARCH.woodLight);
+ rect(x+35,y+62,4,4,'#d6b679');
+ rect(x+51,y+51,28,38,'#59443b');
+ rect(x+54,y+54,22,32,'#9d5c4a');
+ rect(x+57,y+57,16,26,'#c38a5c');
+ rect(x+62,y+63,6,14,'#795340');
+}
 function buildingArt(b){
- const t=24,corner=ground.center({c:b.left,r:b.top}),x0=corner.x-12,y0=corner.y-12;
- const inside=buildingInside(b);
- const upper=p.floor===b.upper,dy=upper?32:0;
- const width=(b.right-b.left+1)*t,height=(b.bottom-b.top+1)*t;
- const stone=['#716d62','#898476','#77776d','#9c9380'];
- const brick=(x,y,n)=>{rect(x,y,24,24,'#343932');for(let k=0;k<3;k++){const off=(k%2)*5;rect(x+1+off,y+k*8,22-off,7,stone[(n+k)%4]);rect(x+3+off,y+k*8+1,14,2,'#b5aa93');rect(x+1,y+k*8+7,22,1,'#494a40')}};
- const floor=(x,y,c,r)=>{rect(x,y,24,24,(c+r)%2?'#b49b72':'#c0a780');rect(x+1,y+1,22,2,'#d5bd92');rect(x+1,y+22,22,2,'#79694f');rect(x+5,y+9,8,1,'#9b805d')};
- // Solid tile footprint, with a recessed doorway in the southern wall.
- rect(x0+5,y0+height-1,width,15,'rgba(12,20,17,.42)');
- if(!inside){
-  // The roof is a collection of tiles, not a stretched illustration.
-  for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
-   const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t;
-   const edge=c===b.left||c===b.right||r===b.top||r===b.bottom;
-   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#4e4434');rect(x+3,y-9,18,29,'#272b27');rect(x+5,y-7,14,26,'#946b43');rect(x+8,y-5,8,22,'#b88d55');rect(x+17,y+7,2,2,'#e6c98e');continue}brick(x,y-12,c+r)}
-   else{rect(x,y-21,24,24,(c+r)%2?'#6f4e3b':'#815b43');rect(x,y-21,24,3,'#c08b60');rect(x+2,y-17,20,2,'#9c6d4c');rect(x+1,y-4,22,3,'#483a32');rect(x+11,y-20,2,18,'#554037')}
+ const t=ARCH_TILE,base=ground.center({c:b.left,r:b.top});
+ const left=base.x-12,top=base.y-12;
+ const cols=b.right-b.left+1,rows=b.bottom-b.top+1,w=cols*t,h=rows*t;
+ const open=buildingInside(b),upper=p.floor===b.upper,shift=upper?32:0;
+ // Building footprint and ground contact remain in world coordinates.
+ if(!upper)rect(left+4,top+h-1,w,12,'rgba(12,22,17,.45)');
+ if(!open){
+  // Exterior: solid connected perimeter, visible front wall and roof above.
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+   const x=left+c*t,y=top+r*t;
+   const perimeter=c===0||c===cols-1||r===0||r===rows-1;
+   if(perimeter){
+    const door=r===rows-1&&c===b.door-b.left;
+    if(door){
+     rect(x-2,y-17,28,41,ARCH.mortar);
+     rect(x,y-15,24,38,ARCH.stone);
+     rect(x+3,y-10,18,33,'#322b25');
+     rect(x+5,y-8,14,31,ARCH.wood);
+     rect(x+7,y-6,10,27,ARCH.woodLight);
+     rect(x+17,y+7,2,3,'#ead397');
+     rect(x-2,y-17,28,4,ARCH.stoneLight);
+    }else architectureWallTile(x,y,(r===0?1:0)|(c===cols-1?2:0)|(r===rows-1?4:0)|(c===0?8:0),c+r);
+   }
   }
-  rect(x0-2,y0-24,width+4,4,'#c5b393');
-  rect(x0-2,y0-20,4,height+20,'#555e50');
-  rect(x0+width-2,y0-20,4,height+20,'#3d483f');
+  // Pitched roof: raised ridge and overlapping roof tiles. The eaves overhang
+  // the wall face and do not flatten the doorway into a square carpet.
+  const roofTop=top-31,roofBottom=top+(rows-2)*t-10;
+  for(let r=0;r<rows-2;r++)for(let c=0;c<cols;c++){
+   const x=left+c*t,y=roofTop+r*t;
+   architectureRoofTile(x,y,c,r);
+  }
+  rect(left-6,roofTop-5,w+12,6,'#d0b697');
+  rect(left-6,roofTop+1,w+12,3,'#5e4939');
+  rect(left-6,roofBottom,w+12,7,ARCH.roofDark);
+  rect(left-6,roofBottom,w+12,3,ARCH.roofLight);
+  rect(left-7,roofTop-5,5,roofBottom-roofTop+12,'#514339');
+  rect(left+w+2,roofTop-5,5,roofBottom-roofTop+12,'#4d3c32');
   return;
  }
- // Roof removed: draw the actual tile floor, connected back and side walls.
- for(let r=b.top+1;r<b.bottom;r++)for(let c=b.left+1;c<b.right;c++)floor(x0+(c-b.left)*t,y0+(r-b.top)*t-dy,c,r);
- // Rear wall and side walls are upright, with separate top and front faces.
- for(let c=b.left;c<=b.right;c++){
-  const x=x0+(c-b.left)*t,y=y0-dy;
-  brick(x,y-15,c);rect(x,y-18,24,4,'#d0bea0');
+ // Interior: the roof is entirely absent; actual tile cells define the room.
+ for(let r=1;r<rows-1;r++)for(let c=1;c<cols-1;c++)
+  architectureFloorTile(left+c*t,top+r*t-shift,c,r);
+ // Wall connections and top caps are rendered independently of floor tiles.
+ for(let c=0;c<cols;c++)
+  architectureWallTile(left+c*t,top-shift,1|(c===0?8:0)|(c===cols-1?2:0),c);
+ for(let r=1;r<rows-1;r++){
+  architectureWallTile(left,top+r*t-shift,8,r);
+  architectureWallTile(left+(cols-1)*t,top+r*t-shift,2,r);
  }
- for(let r=b.top+1;r<b.bottom;r++)for(const c of [b.left,b.right]){
-  const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t-dy;
-  brick(x,y-14,c+r);rect(x,y-16,24,3,'#c1b49b');
- }
- // Interior decor, kept within the room's walkable tile footprint.
- const chestX=x0+29,chestY=y0+58-dy;
- rect(chestX,chestY,19,15,'#4b3224');rect(chestX+2,chestY+2,15,10,'#976c42');rect(chestX+4,chestY+3,11,2,'#c89b61');rect(chestX+9,chestY+6,3,5,'#e0c37d');
- const rugX=x0+51,rugY=y0+51-dy;
- rect(rugX,rugY,28,38,'#544139');rect(rugX+3,rugY+3,22,32,'#a35f4a');rect(rugX+6,rugY+6,16,26,'#cb9163');rect(rugX+11,rugY+10,6,18,'#7d5444');
+ architectureFurniture(b,shift);
  const stair=b.stairs;
- for(let i=0;i<5;i++){rect(stair.x-10,stair.y-11-dy+i*4,20,4,'#614b32');rect(stair.x-10,stair.y-11-dy+i*4,20,2,'#e1c493')}
- // Exposed storey edge: masonry thickness below the walkable surface.
- if(upper){const front=y0+height-dy;rect(x0-3,front-2,width+6,19,'#404a41');rect(x0-3,front-2,width+6,4,'#c0b197');for(let i=0;i<width;i+=24){rect(x0+i,front+3,23,11,stone[(i/24)%4]);rect(x0+i+2,front+5,15,2,'#b3a58c')}rect(x0-3,front+14,width+6,4,'#303a34')}
+ for(let i=0;i<5;i++){
+  rect(stair.x-10,stair.y-11-shift+i*4,20,4,'#634b34');
+  rect(stair.x-10,stair.y-11-shift+i*4,20,2,'#e0c596');
+ }
+ if(upper){
+  const front=top+h-shift;
+  rect(left-3,front-2,w+6,18,'#424c42');
+  rect(left-3,front-2,w+6,4,ARCH.stoneLight);
+  for(let c=0;c<cols;c++)rect(left+c*t,front+3,23,11,c%2?ARCH.stone:ARCH.stoneDark);
+  rect(left-3,front+14,w+6,4,'#30382f');
+ }
 }
 
 for(const m of monsters)m.floor=0;
