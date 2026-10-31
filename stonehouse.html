@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree · Stonehouse reference build</title><style>*{box-sizing:border-box}body{margin:0;background:#111915;color:#e5dbc2;font:14px system-ui}header{padding:13px;background:#273329;display:flex;justify-content:space-between;gap:12px}header small{color:#b7baa3}canvas{display:block;width:min(100vw,720px);height:auto;margin:10px auto;image-rendering:pixelated;touch-action:none;border:2px solid #566251}p{max-width:720px;margin:12px auto;padding:0 12px;line-height:1.5}button{background:#455945;border:1px solid #92977a;border-radius:5px;color:#fff;padding:10px 18px}nav{text-align:center}</style></head><body><header><strong>STONETREE · STONEHOUSE</strong><small>2.5D · reference reconstruction</small></header><canvas id="scene" width="640" height="576"></canvas><nav><button id="reset">Reset</button></nav><p id="message">Tap a doorway to open it, then tap a floor tile to walk through. The walls are raised objects with their own side faces and collision.</p><script>
+'use strict';
+const c=document.getElementById('scene'),g=c.getContext('2d'),message=document.getElementById('message');g.imageSmoothingEnabled=false;
+const T=32,W=20,H=18,player={x:10,y:17},doors=[{x:10,y:15,open:false},{x:7,y:9,open:false}],items=[],solid=new Set(),floors=new Map();
+const key=(x,y)=>x+','+y,rand=(x,y,s=0)=>{let n=Math.imul(x+79,73856093)^Math.imul(y+113,19349663)^Math.imul(s+17,83492791);return(n^(n>>>13))>>>0};
+const fill=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),w,h)};
+const add=(kind,x,y,blocking=true)=>{items.push({kind,x,y});if(blocking)solid.add(key(x,y))};
+function floorRect(l,t,r,b,type){for(let y=t;y<=b;y++)for(let x=l;x<=r;x++)floors.set(key(x,y),type)}
+floorRect(1,1,5,4,'wood');floorRect(1,6,5,9,'wood');floorRect(1,11,5,14,'wood');floorRect(8,9,17,14,'wood');
+floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
+function wallLine(x1,y1,x2,y2){const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1);let x=x1,y=y1;while(true){add('wall',x,y);if(x===x2&&y===y2)break;x+=dx;y+=dy}}
+wallLine(0,0,6,0);wallLine(0,0,0,15);wallLine(6,0,6,7);wallLine(0,5,6,5);wallLine(0,10,6,10);wallLine(0,15,7,15);
+wallLine(7,8,18,8);wallLine(7,8,7,15);wallLine(18,8,18,15);wallLine(7,15,18,15);
+for(const d of doors){solid.delete(key(d.x,d.y));items=items.filter(o=>!(o.kind==='wall'&&o.x===d.x&&o.y===d.y));add('door',d.x,d.y,true)}
+// Deliberate connected entrance at south and inner corridor. Walls never disappear on entry.
+for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,9],['desk',4,1],['books',5,0],['chest',9,8],['chest',10,8],['chest',11,8],['barrel',16,14],['barrel',17,14],['barrel',18,14],['fire',14,4],['pot',8,5],['table',4,12],['crate',1,16],['crate',2,16],['water',7,16]])add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
+function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(a,b,32,32,'#775837');for(let j=0;j<4;j++){const yy=b+j*8;fill(a,yy,32,7,(j+x)%3?'#c8a46b':'#d4b77d');fill(a,yy,32,2,'#e5c68f');fill(a,yy+7,32,1,'#76563b');fill(a+((x+j)%2?14:25),yy+2,1,5,'#8d714e');if(rand(x,y,j)%4===0)fill(a+5,yy+4,6,1,'#ad8856')}return}
+if(t==='stone'){fill(a,b,32,32,'#676d6b');fill(a+1,b+1,30,29,'#a4a8a4');fill(a+2,b+2,28,3,'#c7c9c2');fill(a,b+29,32,3,'#5c625f');fill(a+15,b+4,2,12,'#777e7a');fill(a,b+16,32,2,'#717873');return}
+fill(a,b,32,32,rand(x,y)%4?'#49783e':'#568249');for(let j=0;j<15;j++){const n=rand(x,y,j);fill(a+2+n%28,b+2+(n>>>8)%28,1+n%3,1+n%2,['#2e6034','#77a456','#a3a66b','#386f3a'][n%4])}
+}
+function wall(o){const a=o.x*T,b=o.y*T;const h=40;fill(a,b-14,32,h,'#414744');fill(a+2,b-14,28,33,'#686e69');for(let j=0;j<7;j++){let n=rand(o.x,o.y,j),xx=a+2+n%23,yy=b-13+Math.floor(j/2)*9;fill(xx,yy,7+n%5,6+n%3,['#9fa29a','#bcc0b7','#737d77','#858c86'][n%4]);fill(xx,yy,7+n%5,2,'#cdd0c5');fill(xx+3,yy+6,5,2,'#515954')}fill(a,b+18,32,8,'#4b514e');fill(a,b+18,32,2,'#959b94');fill(a+28,b-13,4,36,'#464f4a')}
+function drawItem(o){const a=o.x*T,b=o.y*T;switch(o.kind){
+case 'wall':wall(o);return;
+case 'door':{const d=doors.find(v=>v.x===o.x&&v.y===o.y);fill(a,b-17,32,47,'#424740');fill(a+2,b-17,28,6,'#bfc2b5');fill(a+3,b-11,5,40,'#777d72');fill(a+25,b-11,5,40,'#646c64');fill(a+8,b-10,17,39,'#362d22');if(d.open){fill(a+8,b-10,4,38,'#a66c3e');fill(a+8,b-10,2,38,'#d69b62')}else{fill(a+9,b-10,15,38,'#9a6235');fill(a+11,b-8,11,34,'#c0874d');fill(a+19,b+8,3,3,'#eed293')}return}
+case 'bed':fill(a+4,b+1,24,31,'#5e412c');fill(a+6,b+3,20,27,'#b18b53');fill(a+7,b+4,18,8,'#e5e4d5');fill(a+7,b+13,18,15,'#5b7390');fill(a+7,b+13,18,3,'#9eafc1');return;
+case 'barrel':fill(a+5,b+7,22,25,'#493729');fill(a+7,b+5,18,25,'#ad7546');fill(a+7,b+8,18,4,'#d4b082');fill(a+7,b+21,18,3,'#5a4434');fill(a+12,b+7,2,20,'#775035');return;
+case 'chest':fill(a+2,b+10,28,20,'#603b25');fill(a+3,b+6,26,13,'#a96a34');fill(a+3,b+6,26,3,'#e5b46c');fill(a+6,b+19,20,3,'#e0ac59');fill(a+14,b+17,4,7,'#f0d080');return;
+case 'fire':fill(a+9,b+16,18,13,'#684d31');fill(a+13,b+4,10,18,'#f2a728');fill(a+15,b+10,7,12,'#f5df63');fill(a+17,b+1,4,12,'#e95b24');return;
+case 'pot':fill(a+6,b+11,20,19,'#51483c');fill(a+9,b+9,14,6,'#a89e8b');fill(a+10,b+12,12,14,'#635449');return;
+case 'desk':fill(a+1,b+11,30,16,'#6b452b');fill(a+2,b+8,28,8,'#c89b61');fill(a+5,b+4,14,5,'#d6c7a0');return;
+case 'books':fill(a+2,b+9,28,21,'#614832');fill(a+6,b+10,4,17,'#8b573e');fill(a+12,b+8,4,19,'#d0ac6a');fill(a+18,b+12,5,15,'#53745a');return;
+case 'table':fill(a+3,b+12,26,18,'#63472e');fill(a+1,b+7,30,12,'#ba8750');fill(a+3,b+7,26,3,'#e0ac6b');return;
+case 'crate':fill(a+2,b+5,28,25,'#775034');fill(a+4,b+7,24,21,'#b7834a');fill(a+5,b+7,22,3,'#d5a36b');fill(a+6,b+12,20,3,'#795333');return;
+case 'water':fill(a+4,b+9,24,20,'#6e4333');fill(a+6,b+7,20,18,'#347a91');fill(a+9,b+9,15,9,'#53a3bc');return;
+}}
+function hero(){const a=player.x*T,b=player.y*T;fill(a+9,b+3,14,11,'#e2bd8b');fill(a+8,b,16,5,'#5c4931');fill(a+6,b+14,20,12,'#487b43');fill(a+10,b+14,12,10,'#a0b16a');fill(a+9,b+26,6,6,'#574a36');fill(a+19,b+26,6,6,'#574a36')}
+function render(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)ground(x,y);const actors=items.map(o=>({...o,order:o.y*100+o.x}));actors.push({kind:'hero',x:player.x,y:player.y,order:player.y*100+player.x+0.5});actors.sort((a,b)=>a.order-b.order);for(const o of actors)o.kind==='hero'?hero():drawItem(o);fill(0,0,640,24,'#16251dcc');g.font='bold 13px monospace';g.fillStyle='#f0e7d1';g.fillText('STONEHOUSE · OBJECT LAYERS · NO ROOF',12,17)}
+function blocked(x,y){return x<0||y<0||x>=W||y>=H||solid.has(key(x,y))||doors.some(d=>d.x===x&&d.y===y&&!d.open)}
+function route(tx,ty){if(blocked(tx,ty))return null;const q=[[player.x,player.y]],seen=new Set([key(player.x,player.y)]),parent=new Map();for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let k=key(x,y),path=[];while(parent.has(k)){path.unshift(k.split(',').map(Number));k=parent.get(k)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let xx=x+dx,yy=y+dy,k=key(xx,yy);if(!seen.has(k)&&!blocked(xx,yy)){seen.add(k);parent.set(k,key(x,y));q.push([xx,yy])}}}return null}
+let timer=null;function walk(path){clearTimeout(timer);let i=0;const step=()=>{if(i>=path.length)return;if(blocked(...path[i]))return;[player.x,player.y]=path[i++];render();timer=setTimeout(step,90)};step()}
+c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*640/r.width/T),y=Math.floor((e.clientY-r.top)*576/r.height/T);const d=doors.find(d=>d.x===x&&Math.abs(d.y-y)<=1);if(d){if(Math.abs(player.x-d.x)+Math.abs(player.y-d.y)>2){message.textContent='Move closer to use this door.';return}if(d.open&&player.x===d.x&&player.y===d.y){message.textContent='Cannot close an occupied doorway.';return}clearTimeout(timer);d.open=!d.open;message.textContent=d.open?'Door opened. Walk through on the same map.':'Door closed.';render();return}const p=route(x,y);if(!p){message.textContent='That tile is blocked.';return}walk(p)});
+document.getElementById('reset').onclick=()=>{clearTimeout(timer);player.x=10;player.y=17;doors.forEach(d=>d.open=false);render()};render();
+</script></body></html>
