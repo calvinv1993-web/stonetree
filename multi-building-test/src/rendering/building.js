@@ -118,26 +118,27 @@ function exteriorStorey(x,y,level){
 // Half-width enclosed room, doorway at row 2, open stone terrace.
 function terracePartition(x,y){
  const edge=x+BUILDING.terrace.startCol*TILE;
- // Full-height partition on the room side, with a one-tile doorway at row 2.
+ const open=terraceDoorStates[BUILDING.id];
+ // Vertical dividing wall occupies the boundary, not the roof tiles.
  for(let row=0;row<N;row++){
   const top=y+row*TILE;
   if(row===2){
-   // A visible framed opening, without blocking the walking tile.
-   rect(edge-9,top,18,7,'#6c5b48');
-   rect(edge-9,top+TILE-7,18,7,'#6c5b48');
-   rect(edge-9,top,5,TILE,'#786956');
-   rect(edge+4,top,5,TILE,'#786956');
+   rect(edge-8,top,16,6,'#6c5b48');
+   rect(edge-8,top+TILE-6,16,6,'#6c5b48');
+   rect(edge-8,top,4,TILE,'#786956');
+   rect(edge+4,top,4,TILE,'#786956');
+   if(!open){
+    rect(edge-4,top+6,8,TILE-12,'#795b3d');
+    rect(edge-3,top+10,6,TILE-20,'#98754d');
+    rect(edge-2,top+TILE/2,3,3,'#e4ca83');
+   }
   }else{
-   rect(edge-10,top,20,TILE,'#a7a497');
-   rect(edge-10,top,5,TILE,'#77786e');
+   rect(edge-8,top,16,TILE,'#a7a497');
+   rect(edge-8,top,4,TILE,'#77786e');
    for(let stripe=12;stripe<TILE;stripe+=16)
-    line(edge-5,top+stripe,edge+10,top+stripe,'#858478');
+    line(edge-4,top+stripe,edge+8,top+stripe,'#858478');
   }
  }
- // Upright masonry makes the partition read as a wall, not floor edging.
- rect(edge-10,y-HEIGHT,20,HEIGHT,'#aaa89a');
- rect(edge-10,y-HEIGHT,5,HEIGHT,'#77786e');
- rect(edge-10,y-HEIGHT,20,5,'#ded9c6');
 }
 function terraceFloor(x,y,level){
  const edge=BUILDING.terrace.startCol*TILE;
@@ -167,8 +168,8 @@ function terraceExterior(x,y){
  ctx.save();ctx.beginPath();ctx.rect(x,y+size-2*HEIGHT,edge,size+HEIGHT);ctx.clip();
  facade(x,y+size-HEIGHT,1,false);ctx.restore();
  // Roof is restricted to the enclosed room.
- rect(x-SIDE,roofY,edge+2*SIDE,size,'#756052');
- for(let row=0;row<size;row+=16)line(x-SIDE,roofY+row,x+edge+SIDE,roofY+row,'#594c44');
+ rect(x-SIDE,roofY,edge+SIDE,size,'#756052');
+ for(let row=0;row<size;row+=16)line(x-SIDE,roofY+row,x+edge,roofY+row,'#594c44');
  rect(x-SIDE,roofY,edge+2*SIDE,5,'#b5a48b');
  // Terrace is at the true z=1 elevation, not on the roof.
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
