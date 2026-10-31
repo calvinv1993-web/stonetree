@@ -30,11 +30,12 @@ function paint(){
   const x=worldX+b.position.x*TILE,y=worldY+b.position.y*TILE;
   if(current?.id===b.id){
    interior(x,y-player.z*HEIGHT,player.z);
-  }else if(visibleExteriorStorey(b)!==null){
-   exteriorStorey(x,y,visibleExteriorStorey(b));
   }else{
-   exterior(x,y);
+   const visibleLevel=visibleExteriorStorey(b);
+   if(visibleLevel!==null)exteriorStorey(x,y,visibleLevel);
+   else exterior(x,y);
   }
+
  }
  selectBuilding(active);
  if(!current){
