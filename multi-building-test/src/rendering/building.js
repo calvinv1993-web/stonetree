@@ -311,6 +311,44 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
 }
+function rootheartInnFurniture(b,x,y,level){
+ if(b.id!=='rootheart-inn')return;
+ const tile=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
+ function table(col,row){
+  const p=tile(col,row);
+  rect(p.x+6,p.y+27,5,8,'#493528');rect(p.x+29,p.y+27,5,8,'#493528');
+  rect(p.x+4,p.y+12,32,17,'#6e4a31');
+  rect(p.x+6,p.y+12,28,4,'#b18a5e');
+  rect(p.x+13,p.y+18,6,5,'#c5b78b');
+ }
+ function bench(col,row){
+  const p=tile(col,row);
+  rect(p.x+6,p.y+13,28,8,'#775338');
+  rect(p.x+8,p.y+21,5,11,'#473526');
+  rect(p.x+27,p.y+21,5,11,'#473526');
+ }
+ function bed(col,row){
+  const p=tile(col,row);
+  rect(p.x+3,p.y+7,34,28,'#674833');
+  rect(p.x+6,p.y+9,28,23,'#a59b80');
+  rect(p.x+7,p.y+10,26,8,'#ddd3b7');
+  rect(p.x+7,p.y+20,26,10,'#6b795d');
+ }
+ if(level===0){
+  // Leave the entrance aisle (col 3) and stair tile (1,2) clear.
+  table(2,1);table(4,2);bench(2,2);bench(4,3);
+  const p=tile(5,1);
+  rect(p.x+5,p.y+5,30,29,'#654b36');
+  rect(p.x+7,p.y+7,26,5,'#b08b5c');
+  rect(p.x+11,p.y+17,7,12,'#8d6a42');
+  rect(p.x+22,p.y+17,7,12,'#8d6a42');
+ }else if(level===1){
+  bed(2,1);bed(4,1);bed(5,3);
+  const p=tile(3,3);
+  rect(p.x+8,p.y+10,24,24,'#73563d');
+  rect(p.x+10,p.y+10,20,5,'#bd9b6e');
+ }
+}
 function drawStorey(b,x,y,level,occupied){
  drawSupports(b,x,y,level);
  if(terraceAt(b,level))terraceFloor(b,x,y,level);
@@ -320,6 +358,7 @@ function drawStorey(b,x,y,level,occupied){
   if(!floorVoids(b,level).has(col+','+(row-1)))rect(x+col*TILE,y+row*TILE,TILE,4,'#d4bc91');
   if(!floorVoids(b,level).has((col-1)+','+row))rect(x+col*TILE,y+row*TILE,4,TILE,'#665b4b');
  }
+ rootheartInnFurniture(b,x,y,level);
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
