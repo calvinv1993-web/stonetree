@@ -11,30 +11,40 @@ function blocked(x,y){const b=world.find(x,y);if(b){const t=world.tile(x,y,p.z);
 function exterior(b){return p.z===b.groundZ&&!b.base.contains(p.x,p.y)&&Math.max(b.base.x-p.x,0,p.x-(b.base.x+b.base.width-1),b.base.y-p.y,p.y-(b.base.y+b.base.height-1))>2}
 function facade(b,w,h){
  const a=b.base,left=w/2+(a.x-p.x)*S-S/2,top=h/2+(a.y-p.y)*S-S/2;
- const width=a.width*S,height=a.height*S,lift=b.floors*18;
- const timber=a.material==='wood';
- // The footprint remains on the ground; vertical faces connect to the raised roof.
- ctx.fillStyle='rgba(0,0,0,.23)';ctx.fillRect(left+9,top+height+5,width,10);
- ctx.fillStyle=timber?'#6d4b34':'#69716c';ctx.fillRect(left,top+height-lift,width,lift);
- ctx.fillStyle=timber?'#3b2c24':'#414a48';ctx.fillRect(left,top+height-lift,5,lift);
+ const width=a.width*S,height=a.height*S,levelHeight=30,lift=b.floors*levelHeight;
+ const timber=a.material==='wood',front=top+height;
+ const wall=timber?'#876245':'#88938d',dark=timber?'#453224':'#434e4c',trim=timber?'#c09a66':'#bfc6b6';
+ // South-facing facade is anchored to the real footprint, not pasted on top of the roof.
+ ctx.fillStyle='rgba(0,0,0,.22)';ctx.fillRect(left+10,front+4,width+8,10);
+ ctx.fillStyle=wall;ctx.fillRect(left,front-lift,width,lift);
+ ctx.fillStyle=dark;ctx.fillRect(left,front-lift,5,lift);
+ ctx.fillStyle=trim;ctx.fillRect(left+5,front-lift,width-10,4);
  for(let level=0;level<b.floors;level++){
-  const yy=top+height-lift+level*18;
-  ctx.fillStyle=timber?'#a17c50':'#9da49b';ctx.fillRect(left+5,yy+2,width-10,3);
-  ctx.fillStyle=timber?'#493426':'#48514f';ctx.fillRect(left+5,yy+15,width-10,3);
+  const yy=front-lift+level*levelHeight;
+  ctx.fillStyle=dark;ctx.fillRect(left+4,yy+levelHeight-5,width-4,5);
+  ctx.fillStyle=trim;ctx.fillRect(left+5,yy+levelHeight-7,width-10,2);
   for(let col=1;col<a.width-1;col+=2){
-   const xx=left+col*S+S/2-8;
-   ctx.fillStyle='#273c43';ctx.fillRect(xx,yy+5,16,9);
-   ctx.fillStyle='#8eb4b4';ctx.fillRect(xx+2,yy+6,12,3);
-   ctx.fillStyle=timber?'#c49a62':'#b5b9ab';ctx.fillRect(xx+7,yy+5,2,9);
+   const xx=left+col*S+S/2-10;
+   ctx.fillStyle=dark;ctx.fillRect(xx-3,yy+7,26,18);
+   ctx.fillStyle='#254958';ctx.fillRect(xx,yy+9,20,12);
+   ctx.fillStyle='#9fc4c3';ctx.fillRect(xx+2,yy+10,16,4);
+   ctx.fillStyle=trim;ctx.fillRect(xx+9,yy+9,3,12);
+   ctx.fillRect(xx-4,yy+23,28,3);
   }
  }
- // Draw a raised roof using the existing tile art, preserving the roof palette.
+ // Side wall: a darker return face gives the building a consistent 2.5D silhouette.
+ ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(left+width,front-lift);ctx.lineTo(left+width+9,front-lift-8);ctx.lineTo(left+width+9,front-8);ctx.lineTo(left+width,front);ctx.closePath();ctx.fill();
+ // Roof stays aligned to the top of the facade; the sloped front eave covers the join.
+ const roofTop=top-lift;
  for(let row=0;row<a.height;row++)for(let col=0;col<a.width;col++){
   const x=a.x+col,y=a.y+row,t=world.tile(x,y,b.roofZ);
-  ctx.drawImage(cachedTile(t,x,y),left+col*S,top+row*S-lift);
+  ctx.drawImage(cachedTile(t,x,y),left+col*S,roofTop+row*S);
  }
- ctx.fillStyle=timber?'#473327':'#53433d';ctx.fillRect(left,top+height-lift-3,width,5);
+ ctx.fillStyle=dark;ctx.fillRect(left,front-lift-5,width,7);
+ ctx.fillStyle=trim;ctx.fillRect(left+3,front-lift-5,width-6,2);
+ ctx.fillStyle='rgba(0,0,0,.17)';ctx.fillRect(left+7,front-lift+2,width-14,5);
 }
+
 function paint(){const w=innerWidth,h=innerHeight-62,d=Math.min(devicePixelRatio||1,2);if(w!==lastW||h!==lastH||d!==lastD){canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);canvas.style.width=w+'px';canvas.style.height=h+'px';lastW=w;lastH=h;lastD=d}ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#151515';ctx.fillRect(0,0,w,h);for(let dy=-Math.ceil(h/S/2)-1;dy<=Math.ceil(h/S/2)+1;dy++)for(let dx=-Math.ceil(w/S/2)-1;dx<=Math.ceil(w/S/2)+1;dx++){const x=p.x+dx,y=p.y+dy,sx=w/2+dx*S-S/2,sy=h/2+dy*S-S/2;const buildingAt=world.find(x,y),raised=buildingAt&&exterior(buildingAt);const t=raised?null:world.visibleTile(x,y,p);if(t){ctx.drawImage(cachedTile(t,x,y),sx,sy);if(p.z<7){const building=world.find(x,y),edge=building?.base.boundary(x,y);if(edge){const south=y===building.base.y+building.base.height-1,east=x===building.base.x+building.base.width-1;ctx.fillStyle='rgba(5,9,12,.30)';ctx.fillRect(sx+3,sy+S-7,S-6,7);if(south){ctx.fillStyle=building.base.material==='wood'?'#46382d':'#454e4c';ctx.fillRect(sx+3,sy+S-5,S-3,5);ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(sx+5,sy+S,S-5,Math.min(10,(7-p.z)*4))}if(east){ctx.fillStyle='rgba(12,18,19,.48)';ctx.fillRect(sx+S-6,sy+3,6,S-3)}}}}else{const ground=terrainAt(x,y);ctx.drawImage(cachedTile(ground,x,y),sx,sy);if(p.z<7){ctx.fillStyle='rgba(8,14,20,.70)';ctx.fillRect(sx,sy,S,S);ctx.fillStyle='rgba(155,185,185,.13)';ctx.fillRect(sx,sy,S,1)}}}for(const b of world.buildings)if(exterior(b))facade(b,w,h);drawPlayer(ctx,w/2-S/2,h/2-S/2,S);status.textContent=(p.z===7?'Begane grond':'Verdieping '+(7-p.z))+' · Z'+p.z}
 // Adapter: use the shared weighted A* movement engine without changing building collision.
 const navigation={
