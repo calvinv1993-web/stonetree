@@ -117,16 +117,10 @@ function interior(x,upperY,level){
   if(!VOID_TILES.has((col-1)+','+row))rect(x+col*TILE,upperY+row*TILE,5,TILE,'#665b4b');
  }
  playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
- // Ground-floor entrance remains physically BELOW the upper floor.
- // It is drawn before the upper south wall, never substituted for it.
- // The downstairs entrance remains visible BELOW the upstairs slab.
- // Do not paint the lower facade over the upstairs room or windows.
+ // Only the current storey's south wall is visible in cutaway mode.
+ // Never draw the downstairs EXTERIOR facade inside the upstairs room.
+ // The same level-1 window definitions are used by the outside facade.
  facade(x,upperY+size,1,false);
- // Ground-floor south facade is occluded by the upper wall except for
- // the portion physically beneath the upper floor's lower edge.
- ctx.save();ctx.beginPath();ctx.rect(x,upperY+size+HEIGHT,size,HEIGHT);ctx.clip();
- facade(x,lowerY+size,0,true);
- ctx.restore();
  ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
  ctx.fillText('Verdieping 2',x,upperY-HEIGHT-18);
 }
