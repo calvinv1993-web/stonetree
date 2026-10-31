@@ -1,54 +1,39 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie oblieke muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=82,DEPTH=14,SIDE=9;
-// Each sprite has a 48px tile anchor and projects upward by HEIGHT.
-// The end cap belongs only to the exposed right end of the wall.
-function wallSprite(endCap=false){
- const c=document.createElement('canvas');c.width=TILE+(endCap?SIDE:0);c.height=HEIGHT+DEPTH;
+const TILE=48,HEIGHT=82,OFFSET=22;
+function polygon(g,pts,color){
+ g.fillStyle=color;g.beginPath();g.moveTo(...pts[0]);
+ for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);
+ g.closePath();g.fill();
+}
+// One sprite per 48px grid position; the visible top is projected
+// 22px up and left, while the front stays orthographic.
+function wallSprite(){
+ const c=document.createElement('canvas');
+ c.width=TILE+OFFSET;c.height=HEIGHT+OFFSET;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- const faceY=DEPTH,faceH=HEIGHT;
- // Vertical front face: full wall height, without fake side faces at joins.
- g.fillStyle='#6f7d76';g.fillRect(0,faceY,TILE,faceH);
- g.fillStyle='#85938a';g.fillRect(1,faceY+2,TILE-2,faceH-5);
- g.fillStyle='#a2afa5';g.fillRect(1,faceY+3,TILE-2,3);
- g.fillStyle='#5c6b64';g.fillRect(0,faceY+faceH-4,TILE,4);
- // Subtle stone courses continue seamlessly through adjacent segments.
- for(const yy of [27,52,76]){
-  g.fillStyle='#617069';g.fillRect(0,faceY+yy,TILE,2);
-  g.fillStyle='#99a69c';g.fillRect(0,faceY+yy+2,TILE,1);
- }
- // Top plane: lighter, visibly deeper than the previous version.
- g.fillStyle='#bac8bd';g.fillRect(0,0,TILE,DEPTH);
- g.fillStyle='#e0e8dc';g.fillRect(0,1,TILE,3);
- g.fillStyle='#99a89c';g.fillRect(0,DEPTH-3,TILE,3);
- // Only the last segment has a visible right side.
- if(endCap){
-  g.fillStyle='#3f4d48';g.fillRect(TILE,DEPTH,SIDE,HEIGHT);
-  g.fillStyle='#56665e';g.fillRect(TILE,DEPTH,2,HEIGHT);
-  g.fillStyle='#87978b';g.fillRect(TILE,0,SIDE,DEPTH);
-  g.fillStyle='#65756b';g.fillRect(TILE+SIDE-2,0,2,DEPTH);
-  g.fillStyle='#35433e';g.fillRect(TILE+SIDE-2,DEPTH,2,HEIGHT);
- }
+ const frontX=OFFSET,frontY=OFFSET;
+ g.fillStyle='#7c8a81';g.fillRect(frontX,frontY,TILE,HEIGHT);
+ g.fillStyle='#93a198';g.fillRect(frontX+1,frontY+2,TILE-2,HEIGHT-5);
+ g.fillStyle='#526259';g.fillRect(frontX,frontY+HEIGHT-3,TILE,3);
+ // A 45-degree oblique top plane: back edge up-left.
+ polygon(g,[[0,0],[TILE,0],[TILE+OFFSET,OFFSET],[OFFSET,OFFSET]],'#bac9bd');
+ polygon(g,[[1,1],[TILE-1,1],[TILE+OFFSET-3,OFFSET-3],[OFFSET+2,OFFSET-3]],'#d1dcd0');
+ g.fillStyle='#687b70';g.fillRect(OFFSET,OFFSET-2,TILE,2);
  return c;
 }
-// Three identical wall tiles; a continuous angled top plane creates depth.
-const middle=wallSprite(false);
+const wall=wallSprite();
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*3-SIDE)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
- for(let i=0;i<3;i++)ctx.drawImage(middle,x+i*TILE,y);
- // A single receding, slanted cap across all three wall sprites.
- const skew=12;
- ctx.fillStyle='#b9c8bb';
- ctx.beginPath();ctx.moveTo(x,y+DEPTH);ctx.lineTo(x+TILE*3,y+DEPTH);
- ctx.lineTo(x+TILE*3+skew,y);ctx.lineTo(x+skew,y);ctx.closePath();ctx.fill();
- ctx.strokeStyle='#e0e8dc';ctx.lineWidth=3;
- ctx.beginPath();ctx.moveTo(x+skew,y+2);ctx.lineTo(x+TILE*3+skew,y+2);ctx.stroke();
- ctx.fillStyle='#45544c';ctx.fillRect(x+TILE*3,y+DEPTH,SIDE,HEIGHT);
- ctx.fillStyle='#68796d';ctx.fillRect(x+TILE*3,y+DEPTH,2,HEIGHT);
+ const x=Math.round((w-TILE*3-OFFSET)/2),y=Math.round((h-HEIGHT-OFFSET)/2);
+ // Three distinct, adjoining wall sprites, not a single stretched image.
+ for(let i=0;i<3;i++)ctx.drawImage(wall,x+i*TILE,y);
+ // One exposed end cap; internal edges do not have side faces.
+ polygon(ctx,[[x+TILE*3+OFFSET,y+OFFSET],[x+TILE*3,y],[x+TILE*3,y+HEIGHT],[x+TILE*3+OFFSET,y+HEIGHT+OFFSET]],'#43534b');
+ polygon(ctx,[[x+TILE*3,y],[x+TILE*3+OFFSET,y+OFFSET],[x+TILE*3+OFFSET-3,y+OFFSET],[x+TILE*3-3,y]],'#6e8074');
 }
 addEventListener('resize',paint);paint();
 </script>
