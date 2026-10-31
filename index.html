@@ -205,22 +205,29 @@ function buildingArt(b){
  const t=24,corner=ground.center({c:b.left,r:b.top}),x0=corner.x-12,y0=corner.y-12;
  const cell=ground.cell(p),inside=p.floor===b.upper||(p.floor===0&&cell.c>b.left&&cell.c<b.right&&cell.r>b.top&&cell.r<b.bottom);
  const lift=p.floor===b.upper?32:0;
- const stones=['#7a8071','#636e61','#8b8e79','#687365'];
+ const stones=['#817b68','#706d5c','#938b75','#777563'];
  for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
   const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t-lift;
   const edge=c===b.left||c===b.right||r===b.top||r===b.bottom;
   if(!inside){
-   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#655c46');continue}
-    rect(x,y-12,24,36,'#3e4b42');
-    for(let k=0;k<3;k++){rect(x+1,y-10+k*10,22,9,stones[(c+r+k)%4]);rect(x+2,y-8+k*10,19,2,'#a0a48d')}
-   }else{rect(x,y-22,24,24,(c+r)%2?'#586353':'#626d5b');rect(x+1,y-21,22,3,'#9ba28c')}
+   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#493c2d');rect(x+2,y-12,20,31,'#342b24');rect(x+4,y-10,16,26,'#8c6842');rect(x+7,y-8,10,22,'#b68c55');rect(x+17,y+2,2,2,'#ead39c');continue}
+    rect(x-2,y-17,28,42,'#302f2a');rect(x,y-15,24,38,'#55594d');rect(x,y-16,24,3,'#c2b396');
+    for(let k=0;k<3;k++){rect(x+1+(k%2)*2,y-12+k*10,21-(k%2)*2,8,stones[(c+r+k)%4]);rect(x+3,y-11+k*10,15,2,'#aca18a');rect(x+1,y-4+k*10,22,2,'#44473d')}
+   }else{rect(x-1,y-25,26,28,(c+r)%2?'#665a49':'#71634e');rect(x,y-24,24,3,'#c1a77b');rect(x+2,y-19,20,2,'#89755c');rect(x+2,y-6,20,2,'#443e34');rect(x+11,y-24,2,23,'#514638')}
   }else if(!edge){
-   rect(x,y,24,24,(c+r)%2?'#a99b7c':'#b5a688');rect(x+1,y+1,22,2,'#cbb999');rect(x+2,y+22,20,2,'#81775e');
+   rect(x,y,24,24,(c+r)%2?'#9e8563':'#ad9571');rect(x+1,y+1,22,2,'#c8af88');rect(x+2,y+22,20,2,'#675c49');rect(x+4,y+5,3,2,'#806c55');rect(x+15,y+15,4,2,'#d1b88d');
   }else if(r===b.top||c===b.left||c===b.right){
-   rect(x,y-17,24,41,'#48594d');rect(x+1,y-15,22,12,stones[(c+r)%4]);rect(x+1,y-1,22,3,'#9ca28b');
+   rect(x-1,y-19,26,44,'#3c4038');rect(x+1,y-17,22,13,stones[(c+r)%4]);rect(x+2,y-15,18,3,'#b4a68d');rect(x+1,y-2,22,4,'#5c5b4e');rect(x+2,y+8,20,12,stones[(c+r+1)%4]);
   }
  }
  if(inside){
+  // Furnish the room with original, low-resolution woodwork.
+  const chestX=x0+28,chestY=y0+60-lift;
+  rect(chestX,chestY,20,14,'#493322');rect(chestX+2,chestY+2,16,9,'#94683f');
+  rect(chestX+3,chestY+3,14,2,'#c39760');rect(chestX+9,chestY+5,3,5,'#dfbf75');
+  const rugX=x0+49,rugY=y0+52-lift;
+  rect(rugX,rugY,30,39,'#473c37');rect(rugX+3,rugY+3,24,33,'#8e5343');
+  rect(rugX+6,rugY+6,18,27,'#b47a54');rect(rugX+12,rugY+11,6,17,'#765340');
   const stair=b.stairs;
   for(let i=0;i<5;i++){rect(stair.x-10,stair.y-10-lift+i*4,20,4,'#614c34');rect(stair.x-10,stair.y-10-lift+i*4,20,2,'#d1b88d')}
   if(lift){const front=y0+(b.bottom-b.top+1)*24-lift;rect(x0-3,front-3,(b.right-b.left+1)*24+6,23,'#48574a');rect(x0-3,front-3,(b.right-b.left+1)*24+6,5,'#b7af93')}
