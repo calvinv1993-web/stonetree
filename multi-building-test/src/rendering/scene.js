@@ -33,7 +33,7 @@ function paint(){
   ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.fillText('HP '+playerHealth.current+'/'+playerHealth.max,19,62);
   if(typeof playerProgress!=='undefined'){
    ctx.fillStyle='#252525';ctx.fillRect(12,72,124,20);
-   ctx.fillStyle='#fff';ctx.fillText('XP '+playerProgress.xp,19,86);
+   ctx.fillStyle='#fff';ctx.fillText('Lv '+playerLevel+' · XP '+playerProgress.xp+'/'+experienceForLevel(playerLevel+1),19,86);
   }
  }
  const door=adjacentDoor(),control=document.getElementById('doorControl');
