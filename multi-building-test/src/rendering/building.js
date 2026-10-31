@@ -34,7 +34,10 @@ function facade(x,baseY,level,door){
  rect(x,baseY-5,N*TILE,5,'#77786e');
 }
 function exterior(x,y){
- if(BUILDING.terrace){terraceExterior(x,y);return;}
+ if(BUILDING.terrace)return terraceExterior(x,y);
+ return exteriorShell(x,y);
+}
+function exteriorShell(x,y){
  const size=N*TILE,base=y+size,roofY=y-BUILDING.floors.length*HEIGHT;
  // The roof covers the same complete footprint as both storeys.
  rect(x-SIDE,roofY,SIDE,size+BUILDING.floors.length*HEIGHT,'#656e65');
@@ -126,9 +129,7 @@ function terraceFloor(x,y,level){
 function terraceExterior(x,y){
  const roofY=y-2*HEIGHT,edge=BUILDING.terrace.startCol*TILE;
  // The roof only covers the enclosed left section.
- BUILDING.terrace=null;
- exterior(x,y);
- BUILDING.terrace={level:1,startCol:edge/TILE};
+ exteriorShell(x,y);
  rect(x+edge-SIDE,roofY,(N-BUILDING.terrace.startCol)*TILE+2*SIDE,N*TILE+8,'#8c8170');
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
   rect(x+col*TILE,y-HEIGHT+row*TILE,TILE,TILE,(row+col)%2?'#a9a697':'#bcb8a7');
