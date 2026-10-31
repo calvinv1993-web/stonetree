@@ -69,6 +69,37 @@ function rootheartApproaches(){
   if(n%4===0)line(px+8,py+11,px+22,py+11,'#b3a998');
  }
 }
+function rootheartNature(){
+ const a=ROOTHEART;
+ const left=Math.max(a.left,Math.floor(-camera.x/TILE)-2);
+ const right=Math.min(a.left+a.size-1,Math.ceil((camera.width-camera.x)/TILE)+2);
+ const top=Math.max(a.top,Math.floor(-camera.y/TILE)-2);
+ const bottom=Math.min(a.top+a.size-1,Math.ceil((camera.height-camera.y)/TILE)+2);
+ for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
+  const dx=Math.abs(x-a.centerX),dy=Math.abs(y-a.centerY);
+  if(dx<=7&&dy<=7||dx<=2||dy<=2||BUILDINGS.some(b=>contains(b,x,y)))continue;
+  // Leave a clear border around building entrances and approach paths.
+  if(BUILDINGS.some(b=>x>=b.position.x-1&&x<=b.position.x+b.width&&
+                         y>=b.position.y-1&&y<=b.position.y+b.height))continue;
+  const n=((x*73856093)^(y*19349663))>>>0;
+  if(n%29!==0&&n%37!==0&&n%43!==0)continue;
+  const px=camera.x+x*TILE,py=camera.y+y*TILE;
+  if(n%29===0){
+   rect(px+8,py+23,25,7,'#365b36');
+   rect(px+12,py+13,18,15,'#527d43');
+   rect(px+17,py+8,12,11,'#6b9252');
+   rect(px+10,py+18,7,5,'#789d5c');
+  }else if(n%37===0){
+   poly([[px+7,py+29],[px+14,py+14],[px+30,py+17],[px+35,py+29]],'#777a71');
+   line(px+14,py+16,px+28,py+18,'#b2b2a0');
+  }else{
+   rect(px+17,py+22,7,11,'#655344');
+   rect(px+9,py+12,23,15,'#3c6540');
+   rect(px+14,py+5,15,14,'#58804a');
+   rect(px+18,py+8,6,4,'#83a264');
+  }
+ }
+}
 function rootheartPlazaDetails(){
  const area=ROOTHEART,cx=area.centerX,cy=area.centerY;
  // Decorative paving and vegetation only; keep the tree's 3x3 collision footprint.
