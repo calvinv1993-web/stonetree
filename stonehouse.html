@@ -18,45 +18,82 @@ function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(
 if(t==='stone'){fill(a,b,32,32,'#676d6b');fill(a+1,b+1,30,29,'#a4a8a4');fill(a+2,b+2,28,3,'#c7c9c2');fill(a,b+29,32,3,'#5c625f');fill(a+15,b+4,2,12,'#777e7a');fill(a,b+16,32,2,'#717873');return}
 fill(a,b,32,32,rand(x,y)%4?'#49783e':'#568249');for(let j=0;j<15;j++){const n=rand(x,y,j);fill(a+2+n%28,b+2+(n>>>8)%28,1+n%3,1+n%2,['#2e6034','#77a456','#a3a66b','#386f3a'][n%4])}
 }
+// Original Stonetree masonry tiles: separate north/south facades, east/west
+// profiles and connected corner caps. All pieces share one 32px anchor grid.
+const masonry=(x,y,w,h,seed)=>{
+ fill(x,y,w,h,'#7c847e');
+ for(let j=0;j<Math.ceil(h/9);j++){
+   const yy=y+j*9,off=(j%2)*11;
+   fill(x,yy,w,2,'#424c46');
+   for(let k=-1;k<4;k++){
+     const xx=x+off+k*21;
+     if(xx>x&&xx<x+w)fill(xx,yy+2,2,7,'#535e55');
+   }
+   for(let k=0;k<4;k++){
+     const n=rand(seed+j,k,seed),px=x+3+n%Math.max(1,w-6),py=yy+3+(n>>>7)%4;
+     fill(px,py,Math.min(4,x+w-px),1,(n&1)?'#b2b9ae':'#606c62');
+   }
+ }
+};
 function wall(o){
- const a=o.x*T,b=o.y*T;
- const neighbor=(x,y)=>items.some(v=>(v.kind==='wall'||v.kind==='door')&&v.x===x&&v.y===y);
- const n=neighbor(o.x,o.y-1),south=neighbor(o.x,o.y+1),west=neighbor(o.x-1,o.y),east=neighbor(o.x+1,o.y);
- const side=(n||south)&&!(west||east);
- const top=b-13,depth=45;
- // Solid anchor: stone occupies exactly one map tile, but the visible face
- // rises above that tile. A narrow bright top and shaded vertical side
- // communicate orthographic height without distorting the floor grid.
- fill(a,top,32,depth,'#38413c');
- fill(a+1,top+1,30,10,'#aeb5aa');
- fill(a+2,top+1,28,3,'#d4d9cc');
- fill(a+2,top+8,28,3,'#636d64');
- if(side){
-   fill(a+3,top+11,21,30,'#929c90');
-   fill(a+24,top+7,8,37,'#46564c');
-   fill(a+25,top+10,2,29,'#728075');
+ const x=o.x*T,y=o.y*T,near=(dx,dy)=>items.some(v=>(v.kind==='wall'||v.kind==='door')&&v.x===o.x+dx&&v.y===o.y+dy);
+ const N=near(0,-1),S=near(0,1),E=near(1,0),W=near(-1,0);
+ const vertical=(N||S)&&!(E||W);
+ const top=y-16;
+ // Shadows under masonry, behind the cap.
+ fill(x+3,y+25,30,7,'#2b342f');
+ if(vertical){
+   // A continuous narrow visible edge and a long, deep east-facing side.
+   fill(x+3,top,14,45,'#a8afa3');
+   fill(x+4,top+2,12,5,'#d1d2c3');
+   fill(x+16,top+3,15,42,'#424d45');
+   masonry(x+17,top+10,12,31,o.x*31+o.y);
+   fill(x+16,top+7,2,36,'#293a32');
+   fill(x+29,top+6,2,38,'#28352e');
+   if(!N){fill(x+2,top,29,7,'#bfc5b7');fill(x+3,top+1,26,2,'#e1e0ce')}
+   if(!S)fill(x+2,y+27,29,4,'#333e37');
  }else{
-   fill(a+2,top+11,28,30,'#919a90');
-   fill(a+29,top+11,3,30,'#525e55');
+   // Front walls show the broad stone facade and horizontal coping.
+   fill(x,top+3,32,42,'#4d5750');
+   masonry(x+1,top+12,30,30,o.x*31+o.y);
+   fill(x,top,32,10,'#aab2a6');
+   fill(x+1,top,30,3,'#deded0');
+   fill(x+2,top+5,28,2,'#c4cabc');
+   fill(x,top+9,32,3,'#46534a');
+   if(!W)fill(x,top+1,3,42,'#c1c5b7');
+   if(!E)fill(x+29,top+1,3,42,'#39483f');
  }
- const width=side?19:26;
- for(let j=0;j<3;j++){
-   let yy=top+13+j*9;
-   fill(a+3,yy,width,2,'#4f5b51');
-   fill(a+3+(j%2?9:width-5),yy+2,2,7,'#657166');
-   const h=rand(o.x,o.y,j);
-   fill(a+5+h%Math.max(5,width-8),yy+4,5,2,'#c0c5b9');
+ // Join top stones through elbows; never leave disconnected corners.
+ if((N||S)&&(E||W)){
+   fill(x+1,top,30,10,'#b2b9ac');
+   fill(x+2,top+1,27,3,'#d9dbcc');
+   fill(x+2,top+8,29,3,'#5b675d');
+   fill(x+25,top+10,6,31,'#4b5a50');
  }
- // Connected wall tops: caps bridge adjacent tiles and corners.
- if(west)fill(a,top+1,4,9,'#b4baae');
- if(east)fill(a+28,top+1,4,9,'#a4ada2');
- if(n)fill(a+1,top,7,4,'#d0d5c7');
- if(south)fill(a+1,top+8,7,3,'#6b776b');
- fill(a,b+28,32,4,'#414c44');
 }
 function drawItem(o){const a=o.x*T,b=o.y*T;switch(o.kind){
 case 'wall':wall(o);return;
-case 'door':{const d=doors.find(v=>v.x===o.x&&v.y===o.y);fill(a,b-17,32,47,'#424740');fill(a+2,b-17,28,6,'#bfc2b5');fill(a+3,b-11,5,40,'#777d72');fill(a+25,b-11,5,40,'#646c64');fill(a+8,b-10,17,39,'#362d22');if(d.open){fill(a+8,b-10,4,38,'#a66c3e');fill(a+8,b-10,2,38,'#d69b62')}else{fill(a+9,b-10,15,38,'#9a6235');fill(a+11,b-8,11,34,'#c0874d');fill(a+19,b+8,3,3,'#eed293')}return}
+case 'door':{
+ const d=doors.find(v=>v.x===o.x&&v.y===o.y);
+ const vertical=items.some(v=>v.kind==='wall'&&v.x===o.x&&Math.abs(v.y-o.y)===1);
+ const x=a,y=b-16;
+ fill(x,y+4,32,42,'#455148');
+ fill(x+1,y,30,9,'#b5bbaf');fill(x+2,y+1,28,3,'#e0ddc9');
+ fill(x+1,y+9,5,34,'#8b9689');fill(x+26,y+9,5,34,'#626f63');
+ fill(x+6,y+9,20,34,'#2a2924');
+ if(d.open){
+   fill(x+6,y+10,5,32,'#8c5835');fill(x+7,y+11,3,28,'#c68c50');
+   fill(x+12,y+13,12,27,'#333c34');
+ }else{
+   fill(x+7,y+10,18,32,'#85502e');
+   fill(x+9,y+12,14,28,'#b77d45');
+   fill(x+11,y+14,10,12,'#d19b5b');
+   fill(x+11,y+29,10,9,'#8a5733');
+   fill(x+21,y+26,3,3,'#f0d28d');
+ }
+ if(vertical){fill(x+1,y+3,6,9,'#d0d0c1');fill(x+26,y+3,5,9,'#646f65')}
+ return;
+}
 case 'bed':fill(a+4,b+1,24,31,'#5e412c');fill(a+6,b+3,20,27,'#b18b53');fill(a+7,b+4,18,8,'#e5e4d5');fill(a+7,b+13,18,15,'#5b7390');fill(a+7,b+13,18,3,'#9eafc1');return;
 case 'barrel':fill(a+5,b+7,22,25,'#493729');fill(a+7,b+5,18,25,'#ad7546');fill(a+7,b+8,18,4,'#d4b082');fill(a+7,b+21,18,3,'#5a4434');fill(a+12,b+7,2,20,'#775035');return;
 case 'chest':fill(a+2,b+10,28,20,'#603b25');fill(a+3,b+6,26,13,'#a96a34');fill(a+3,b+6,26,3,'#e5b46c');fill(a+6,b+19,20,3,'#e0ac59');fill(a+14,b+17,4,7,'#f0d080');return;
