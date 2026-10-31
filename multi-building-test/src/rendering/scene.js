@@ -8,15 +8,16 @@ function visibleExteriorStorey(b){
 }
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
+ const visual=visualPlayer();
  if(canvas.width!==Math.round(w*d)||canvas.height!==Math.round(h*d)){
   canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  }
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
- Object.assign(camera,{x:Math.round(w/2-(player.x+.5)*TILE),y:Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT),width:w,height:h,dpr:d});
+ Object.assign(camera,{x:Math.round(w/2-(visual.x+.5)*TILE),y:Math.round(h/2-(visual.y+.5)*TILE+player.z*HEIGHT),width:w,height:h,dpr:d});
  originX=camera.x;originY=camera.y-player.z*HEIGHT;
  grass(camera.x,camera.y,w,h);
  const current=buildingAt(player.x,player.y);
- const drawPlayer=()=>{const p=worldToScreen(player.x+.5,player.y+.5,player.z);playerSprite(p.x,p.y);};
+ const drawPlayer=()=>{const p=worldToScreen(visual.x+.5,visual.y+.5,player.z);playerSprite(p.x,p.y);};
  let drawn=Boolean(current);
  for(const b of [...BUILDINGS].sort((a,b)=>(a.position.y+a.height)-(b.position.y+b.height))){
   if(!drawn&&player.y<b.position.y+b.height){drawPlayer();drawn=true;}
