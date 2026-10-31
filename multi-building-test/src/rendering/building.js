@@ -34,16 +34,15 @@ function facade(x,baseY,level,door){
  rect(x,baseY-5,N*TILE,5,'#77786e');
 }
 function exterior(x,y){
- const size=N*TILE,base=y+size,roofY=y-2*HEIGHT;
+ const size=N*TILE,base=y+size,roofY=y-BUILDING.floors.length*HEIGHT;
  // The roof covers the same complete footprint as both storeys.
- rect(x-SIDE,roofY,SIDE,size+2*HEIGHT,'#656e65');
+ rect(x-SIDE,roofY,SIDE,size+BUILDING.floors.length*HEIGHT,'#656e65');
  rect(x+size,roofY,SIDE,size+2*HEIGHT,'#6f786c');
- facade(x,base,0,true);
- facade(x,base-HEIGHT,1,false);
+ for(let level=0;level<BUILDING.floors.length;level++)facade(x,base-level*HEIGHT,level,level===0);
  rect(x-SIDE,roofY,size+2*SIDE,size,'#756052');
  for(let row=0;row<size;row+=16)line(x-SIDE,roofY+row,x+size+SIDE,roofY+row,'#594c44');
  rect(x-SIDE,roofY,size+2*SIDE,5,'#b5a48b');
- rect(x-SIDE,base-2*HEIGHT-3,size+2*SIDE,5,'#b5a48b');
+ rect(x-SIDE,base-BUILDING.floors.length*HEIGHT-3,size+2*SIDE,5,'#b5a48b');
 }
 // One physical building: each storey has a fixed world elevation.
 // Camera follows the player's z. The geometry does not change between views.
@@ -55,9 +54,12 @@ function floorTile(x,y,col,row,level){
  ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
 }
 function staircase(x,y,level){
- const sx=x+BUILDING.stairs.x*TILE,sy=y+BUILDING.stairs.y*TILE;
- rect(sx+4,sy+5,TILE-8,TILE-9,level===0?'#715b37':'#635443');
- for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
+ const stairs=BUILDING.stairLevels?Object.values(BUILDING.stairLevels[level]||{}):[BUILDING.stairs];
+ for(const stair of stairs){
+  const sx=x+stair.x*TILE,sy=y+stair.y*TILE;
+  rect(sx+4,sy+5,TILE-8,TILE-9,level===0?'#715b37':'#635443');
+  for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
+ }
 }
 function walls(x,y){
  const size=N*TILE;
@@ -69,10 +71,16 @@ function walls(x,y){
  rect(x-SIDE,y-HEIGHT,SIDE+THICK,THICK,'#d9d7c6');
  rect(x+size,y-HEIGHT,SIDE+THICK,THICK,'#d9d7c6');
 }
+function floorVoids(level){
+ if(!BUILDING.stairLevels)return VOID_TILES;
+ const stair=BUILDING.stairLevels[level]?.down;
+ if(!stair)return new Set();
+ return new Set([stair.x+','+stair.y]);
+}
 function renderFloor(x,y,level,holes){
  walls(x,y);
  for(let row=0;row<N;row++)for(let col=0;col<N;col++){
-  if(holes&&VOID_TILES.has(col+','+row))continue;
+  if(holes&&floorVoids(level).has(col+','+row))continue;
   floorTile(x,y,col,row,level);
  }
  staircase(x,y,level);
@@ -82,7 +90,22 @@ function cutawayFront(x,base,level){
  ctx.save();ctx.globalAlpha=localY(player.y)>=N-2?.25:1;
  facade(x,base,level,level===0);ctx.restore();
 }
+function towerInterior(x,upperY,level){
+ const size=N*TILE;
+ for(let lower=0;lower<level;lower++){
+  const lowerY=upperY+(level-lower)*HEIGHT;
+  facade(x,lowerY+size,lower,lower===0);
+  rect(x-SIDE,lowerY+size-HEIGHT,SIDE,HEIGHT,'#656e65');
+  rect(x+size,lowerY+size-HEIGHT,SIDE,HEIGHT,'#6f786c');
+ }
+ renderFloor(x,upperY,level,level>0);
+ cutawayFront(x,upperY+size,level);
+ playerSprite(x+(localX(player.x)+.5)*TILE,upperY+(localY(player.y)+.5)*TILE);
+ ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
+ ctx.fillText('Verdieping '+level+' · z='+level,x,upperY-HEIGHT-18);
+}
 function interior(x,upperY,level){
+ if(BUILDING.stairLevels){towerInterior(x,upperY,level);return;}
  const size=N*TILE;
  if(level===0){
   renderFloor(x,upperY,0,false);
