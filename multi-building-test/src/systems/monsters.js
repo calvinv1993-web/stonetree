@@ -61,3 +61,15 @@ function drawRat(now){
  rect(p.x+6,p.y,3,3,'#171615');
  rect(p.x-15,p.y+4,6,3,'#9c8075');
 }
+
+const playerHealth={current:100,max:100};
+let ratNextAttack=0;
+function ratAttackTick(now){
+ const adjacent=player.z===0&&ratDistance(player.x,player.y)===1;
+ if(!adjacent||ratMode!=='chase'||playerHealth.current===0){ratNextAttack=0;return false;}
+ if(!ratNextAttack){ratNextAttack=now+2000;return false;}
+ if(now<ratNextAttack)return false;
+ ratNextAttack=now+2000;
+ playerHealth.current=Math.max(0,playerHealth.current-5);
+ return true;
+}
