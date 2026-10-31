@@ -29,8 +29,22 @@ export function drawTile(ctx,t,x,y,s,wx,wy){
   for(let row=0;row<5;row++){const yy=y+row*8,shift=(row%2)*9;ctx.fillStyle=wood?'#805e40':'#985c50';ctx.fillRect(x,yy,s,7);ctx.fillStyle=wood?'#b18a59':'#c3836b';ctx.fillRect(x,yy,s,2);ctx.fillStyle=wood?'#503c2b':'#613f3b';ctx.fillRect(x,yy+6,s,2);for(let col=-1;col<4;col++){const xx=x+col*17+shift;if(xx>=x&&xx<x+s){ctx.fillStyle=wood?'#644b34':'#754a43';ctx.fillRect(xx,yy+2,2,4)}}}
   ctx.fillStyle='#e0b49a';ctx.fillRect(x+5,y+4,11,2);ctx.fillStyle='#3b2928';ctx.fillRect(x+2,y+s-4,s-4,4);
  }else if(t.type==='wall'){
-  ctx.fillStyle=t.material==='wood'?'#513b2c':'#353d3c';ctx.fillRect(x+2,y+2,s-4,s-4);ctx.fillStyle=t.material==='wood'?'#9b7650':'#8e9890';ctx.fillRect(x+5,y+5,s-10,s-13);ctx.fillStyle='#b8b8a6';ctx.fillRect(x+7,y+6,s-14,3);ctx.fillStyle='#333b3a';ctx.fillRect(x+6,y+s-11,s-12,6);ctx.fillStyle='#606b67';ctx.fillRect(x+7,y+s-10,s-14,2);
-  ctx.strokeStyle=colors[1];ctx.lineWidth=3;const m=t.mask??0;for(const [bit,ax,ay,bx,by] of [[1,.5,0,.5,.5],[2,.5,.5,1,.5],[4,.5,.5,.5,1],[8,0,.5,.5,.5]])if(m&bit){ctx.beginPath();ctx.moveTo(x+ax*s,y+ay*s);ctx.lineTo(x+bx*s,y+by*s);ctx.stroke()}ctx.lineWidth=1;
+  // Wall is a narrow static object drawn over a floor, not a solid tile.
+  const wood=t.material==='wood',edges=t.edges??[];
+  ctx.fillStyle=wood?'#8d7153':'#b4b3a7';ctx.fillRect(x,y,s,s);
+  ctx.fillStyle=wood?'#aa8a65':'#c7c4b6';ctx.fillRect(x+2,y+2,s-4,s-4);
+  const thick=8,base=wood?'#634833':'#596561',light=wood?'#b08a5e':'#a5aaa0',shadow=wood?'#382c22':'#343f3e';
+  function wallRect(px,py,w,h,horizontal){
+   ctx.fillStyle=shadow;ctx.fillRect(px,py,w,h);
+   ctx.fillStyle=base;ctx.fillRect(px+1,py+1,w-2,h-2);
+   ctx.fillStyle=light;
+   if(horizontal)ctx.fillRect(px+1,py+1,w-2,2);
+   else ctx.fillRect(px+1,py+1,2,h-2);
+  }
+  if(edges.includes('north'))wallRect(x,y,s,thick,true);
+  if(edges.includes('south'))wallRect(x,y+s-thick,s,thick,true);
+  if(edges.includes('west'))wallRect(x,y,thick,s,false);
+  if(edges.includes('east'))wallRect(x+s-thick,y,thick,s,false);
  }else if(t.type==='door'){
   ctx.fillStyle=t.open?'#aa8b60':colors[0];ctx.fillRect(x+6,y+3,s-12,s-6);ctx.strokeStyle=colors[2];ctx.strokeRect(x+9,y+6,s-18,s-12);ctx.fillStyle='#d4ba70';ctx.fillRect(x+s-13,y+s/2,3,3);
  }else if(t.type==='window'){
