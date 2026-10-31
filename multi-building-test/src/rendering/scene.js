@@ -1,21 +1,18 @@
 // Stonetree: src/rendering/scene.js
 // Tibia-style exterior cutaway: proximity to ANY outside wall reveals the
 // real ground-floor geometry. No separate room or duplicate building is made.
-function nearExteriorWall(building){
- if(player.z!==0||buildingAt(player.x,player.y))return false;
- const x=player.x-building.position.x,y=player.y-building.position.y;
- const width=building.width,height=building.height;
- return ((x===-1||x===width)&&y>=0&&y<height)||
-        ((y===-1||y===height)&&x>=0&&x<width);
+// Distance in tiles to the building footprint (0 means inside).
+function exteriorDistance(building){
+ const left=building.position.x,right=left+building.width-1;
+ const top=building.position.y,bottom=top+building.height-1;
+ const dx=Math.max(left-player.x,0,player.x-right);
+ const dy=Math.max(top-player.y,0,player.y-bottom);
+ return Math.max(dx,dy);
 }
-function exteriorCutaway(x,y){
- // Use exactly the same ground floor and objects as the interior.
- renderFloor(x,y,0,false);
- // Foreground wall becomes translucent; roof and upper facade are hidden
- // only while standing directly beside an exterior wall.
- ctx.save();ctx.globalAlpha=.18;
- facade(x,y+N*TILE,0,true);
- ctx.restore();
+function visibleExteriorStorey(building){
+ if(player.z!==0||buildingAt(player.x,player.y))return null;
+ const distance=exteriorDistance(building);
+ return distance>=1&&distance<=building.floors.length?distance-1:null;
 }
 function paint(){
  syncBuilding();
@@ -33,8 +30,8 @@ function paint(){
   const x=worldX+b.position.x*TILE,y=worldY+b.position.y*TILE;
   if(current?.id===b.id){
    interior(x,y-player.z*HEIGHT,player.z);
-  }else if(nearExteriorWall(b)){
-   exteriorCutaway(x,y);
+  }else if(visibleExteriorStorey(b)!==null){
+   exteriorStorey(x,y,visibleExteriorStorey(b));
   }else{
    exterior(x,y);
   }
