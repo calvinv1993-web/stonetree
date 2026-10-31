@@ -57,11 +57,8 @@ function facade(b,x,baseY,level,door){
    floorTile(b,x,floorY,col,row,level);
   // Render existing room geometry in the aperture, not a painted window.
   staircase(b,x,floorY,level);
-  if(buildingAt(player.x,player.y)===b&&player.z===level){
-   const visual=visualPlayer();
-   playerSprite(x+(visual.x-b.position.x+.5)*TILE,
-                floorY+(visual.y-b.position.y+.5)*TILE);
-  }
+  // The occupied storey already draws the player in drawStorey.
+  // Do not draw a second sprite inside the window aperture.
   ctx.restore();
   // Thick stone reveal and sill, without glass or crossbars.
   rect(wx-3,wy-3,4,34,'#bcb6a3');
