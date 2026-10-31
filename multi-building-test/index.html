@@ -239,7 +239,12 @@ canvas.addEventListener('pointerdown',e=>{
  const doorTop=originY+N*TILE-HEIGHT;
  if(player.z===0&&px>=doorLeft&&px<doorLeft+TILE&&
     py>=doorTop&&py<doorTop+HEIGHT){
-  toggleDoor();return;
+  // From a distance, tapping the doorway walks to the reachable tile
+  // immediately in front of it; only an adjacent player operates it.
+  if(adjacentToDoor())toggleDoor();
+  else if(inside(player.x,player.y))route(BUILDING.door.col,N-1);
+  else route(BUILDING.door.col,N);
+  return;
  }
  route(Math.floor((px-originX)/TILE),Math.floor((py-originY)/TILE));
 });
