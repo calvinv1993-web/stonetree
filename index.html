@@ -204,34 +204,46 @@ const lodge=registerBuilding({left:2,right:6,top:20,bottom:24,door:4,upper:4});
 function buildingArt(b){
  const t=24,corner=ground.center({c:b.left,r:b.top}),x0=corner.x-12,y0=corner.y-12;
  const cell=ground.cell(p),inside=p.floor===b.upper||(p.floor===0&&cell.c>b.left&&cell.c<b.right&&cell.r>b.top&&cell.r<b.bottom);
- const lift=p.floor===b.upper?32:0;
- const stones=['#817b68','#706d5c','#938b75','#777563'];
- for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
-  const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t-lift;
-  const edge=c===b.left||c===b.right||r===b.top||r===b.bottom;
-  if(!inside){
-   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#493c2d');rect(x+2,y-12,20,31,'#342b24');rect(x+4,y-10,16,26,'#8c6842');rect(x+7,y-8,10,22,'#b68c55');rect(x+17,y+2,2,2,'#ead39c');continue}
-    rect(x-2,y-17,28,42,'#302f2a');rect(x,y-15,24,38,'#55594d');rect(x,y-16,24,3,'#c2b396');
-    for(let k=0;k<3;k++){rect(x+1+(k%2)*2,y-12+k*10,21-(k%2)*2,8,stones[(c+r+k)%4]);rect(x+3,y-11+k*10,15,2,'#aca18a');rect(x+1,y-4+k*10,22,2,'#44473d')}
-   }else{rect(x-1,y-25,26,28,(c+r)%2?'#665a49':'#71634e');rect(x,y-24,24,3,'#c1a77b');rect(x+2,y-19,20,2,'#89755c');rect(x+2,y-6,20,2,'#443e34');rect(x+11,y-24,2,23,'#514638')}
-  }else if(!edge){
-   rect(x,y,24,24,(c+r)%2?'#9e8563':'#ad9571');rect(x+1,y+1,22,2,'#c8af88');rect(x+2,y+22,20,2,'#675c49');rect(x+4,y+5,3,2,'#806c55');rect(x+15,y+15,4,2,'#d1b88d');
-  }else if(r===b.top||c===b.left||c===b.right){
-   rect(x-1,y-19,26,44,'#3c4038');rect(x+1,y-17,22,13,stones[(c+r)%4]);rect(x+2,y-15,18,3,'#b4a68d');rect(x+1,y-2,22,4,'#5c5b4e');rect(x+2,y+8,20,12,stones[(c+r+1)%4]);
+ const upper=p.floor===b.upper,dy=upper?32:0;
+ const width=(b.right-b.left+1)*t,height=(b.bottom-b.top+1)*t;
+ const stone=['#716d62','#898476','#77776d','#9c9380'];
+ const brick=(x,y,n)=>{rect(x,y,24,24,'#343932');for(let k=0;k<3;k++){const off=(k%2)*5;rect(x+1+off,y+k*8,22-off,7,stone[(n+k)%4]);rect(x+3+off,y+k*8+1,14,2,'#b5aa93');rect(x+1,y+k*8+7,22,1,'#494a40')}};
+ const floor=(x,y,c,r)=>{rect(x,y,24,24,(c+r)%2?'#b49b72':'#c0a780');rect(x+1,y+1,22,2,'#d5bd92');rect(x+1,y+22,22,2,'#79694f');rect(x+5,y+9,8,1,'#9b805d')};
+ // Solid tile footprint, with a recessed doorway in the southern wall.
+ rect(x0+5,y0+height-1,width,15,'rgba(12,20,17,.42)');
+ if(!inside){
+  // The roof is a collection of tiles, not a stretched illustration.
+  for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
+   const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t;
+   const edge=c===b.left||c===b.right||r===b.top||r===b.bottom;
+   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#4e4434');rect(x+3,y-9,18,29,'#272b27');rect(x+5,y-7,14,26,'#946b43');rect(x+8,y-5,8,22,'#b88d55');rect(x+17,y+7,2,2,'#e6c98e');continue}brick(x,y-12,c+r)}
+   else{rect(x,y-21,24,24,(c+r)%2?'#6f4e3b':'#815b43');rect(x,y-21,24,3,'#c08b60');rect(x+2,y-17,20,2,'#9c6d4c');rect(x+1,y-4,22,3,'#483a32');rect(x+11,y-20,2,18,'#554037')}
   }
+  rect(x0-2,y0-24,width+4,4,'#c5b393');
+  rect(x0-2,y0-20,4,height+20,'#555e50');
+  rect(x0+width-2,y0-20,4,height+20,'#3d483f');
+  return;
  }
- if(inside){
-  // Furnish the room with original, low-resolution woodwork.
-  const chestX=x0+28,chestY=y0+60-lift;
-  rect(chestX,chestY,20,14,'#493322');rect(chestX+2,chestY+2,16,9,'#94683f');
-  rect(chestX+3,chestY+3,14,2,'#c39760');rect(chestX+9,chestY+5,3,5,'#dfbf75');
-  const rugX=x0+49,rugY=y0+52-lift;
-  rect(rugX,rugY,30,39,'#473c37');rect(rugX+3,rugY+3,24,33,'#8e5343');
-  rect(rugX+6,rugY+6,18,27,'#b47a54');rect(rugX+12,rugY+11,6,17,'#765340');
-  const stair=b.stairs;
-  for(let i=0;i<5;i++){rect(stair.x-10,stair.y-10-lift+i*4,20,4,'#614c34');rect(stair.x-10,stair.y-10-lift+i*4,20,2,'#d1b88d')}
-  if(lift){const front=y0+(b.bottom-b.top+1)*24-lift;rect(x0-3,front-3,(b.right-b.left+1)*24+6,23,'#48574a');rect(x0-3,front-3,(b.right-b.left+1)*24+6,5,'#b7af93')}
+ // Open roof: actual floor cells are rendered independently from walls.
+ for(let r=b.top+1;r<b.bottom;r++)for(let c=b.left+1;c<b.right;c++)floor(x0+(c-b.left)*t,y0+(r-b.top)*t-dy,c,r);
+ // Rear wall and side walls are upright, with separate top and front faces.
+ for(let c=b.left;c<=b.right;c++){
+  const x=x0+(c-b.left)*t,y=y0-dy;
+  brick(x,y-15,c);rect(x,y-18,24,4,'#d0bea0');
  }
+ for(let r=b.top+1;r<b.bottom;r++)for(const c of [b.left,b.right]){
+  const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t-dy;
+  brick(x,y-14,c+r);rect(x,y-16,24,3,'#c1b49b');
+ }
+ // Interior decor, kept within the room's walkable tile footprint.
+ const chestX=x0+29,chestY=y0+58-dy;
+ rect(chestX,chestY,19,15,'#4b3224');rect(chestX+2,chestY+2,15,10,'#976c42');rect(chestX+4,chestY+3,11,2,'#c89b61');rect(chestX+9,chestY+6,3,5,'#e0c37d');
+ const rugX=x0+51,rugY=y0+51-dy;
+ rect(rugX,rugY,28,38,'#544139');rect(rugX+3,rugY+3,22,32,'#a35f4a');rect(rugX+6,rugY+6,16,26,'#cb9163');rect(rugX+11,rugY+10,6,18,'#7d5444');
+ const stair=b.stairs;
+ for(let i=0;i<5;i++){rect(stair.x-10,stair.y-11-dy+i*4,20,4,'#614b32');rect(stair.x-10,stair.y-11-dy+i*4,20,2,'#e1c493')}
+ // Exposed storey edge: masonry thickness below the walkable surface.
+ if(upper){const front=y0+height-dy;rect(x0-3,front-2,width+6,19,'#404a41');rect(x0-3,front-2,width+6,4,'#c0b197');for(let i=0;i<width;i+=24){rect(x0+i,front+3,23,11,stone[(i/24)%4]);rect(x0+i+2,front+5,15,2,'#b3a58c')}rect(x0-3,front+14,width+6,4,'#303a34')}
 }
 
 for(const m of monsters)m.floor=0;
