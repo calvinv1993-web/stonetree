@@ -90,6 +90,20 @@ function cutawayFront(x,base,level){
  ctx.save();ctx.globalAlpha=localY(player.y)>=N-2?.25:1;
  facade(x,base,level,level===0);ctx.restore();
 }
+// Reveal the selected physical storey from outside without drawing a player.
+function exteriorStorey(x,y,level){
+ const size=N*TILE,upperY=y-level*HEIGHT;
+ for(let lower=0;lower<level;lower++){
+  const base=y+size-lower*HEIGHT;
+  facade(x,base,lower,lower===0);
+  rect(x-SIDE,base-HEIGHT,SIDE,HEIGHT,'#656e65');
+  rect(x+size,base-HEIGHT,SIDE,HEIGHT,'#6f786c');
+ }
+ renderFloor(x,upperY,level,level>0);
+ ctx.save();ctx.globalAlpha=.18;
+ facade(x,upperY+size,level,level===0);
+ ctx.restore();
+}
 function towerInterior(x,upperY,level){
  const size=N*TILE;
  for(let lower=0;lower<level;lower++){
