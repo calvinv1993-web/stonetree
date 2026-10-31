@@ -183,6 +183,7 @@ function renderFloor(b,x,y,level,holes){
  rootheartSmithyFloorDetail(b,x,y,level);
  rootheartShopFloorDetail(b,x,y,level);
  rootheartInnFloorDetail(b,x,y,level);
+ rootheartHomeFloorDetail(b,x,y,level);
  staircase(b,x,y,level);
 }
 function cutawayFront(b,x,base,level){
@@ -314,6 +315,29 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,10,depth+8,'#625e51');
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
+}
+function rootheartHomeFloorDetail(b,x,y,level){
+ if(b.id!=='rootheart-home')return;
+ if(level===0){
+  // Hearthside flagstones and a small dining rug, kept away from the stairs.
+  for(const [col,row] of [[3,0],[4,0],[3,1]]){
+   const px=x+col*TILE,py=y+row*TILE;
+   rect(px+3,py+3,TILE-6,TILE-6,'rgba(90,75,62,0.22)');
+   line(px+7,py+TILE-8,px+TILE-8,py+TILE-8,'#b3a58e');
+  }
+  const px=x+2*TILE,py=y+1*TILE;
+  rect(px+3,py+3,TILE-6,TILE-6,'rgba(126,82,54,0.18)');
+  rect(px+7,py+6,TILE-14,4,'#9c775b');
+  rect(px+7,py+TILE-10,TILE-14,4,'#9c775b');
+ }else if(level===1){
+  // Muted bedside rug and worn wooden plank highlights.
+  for(const [col,row] of [[2,1],[3,2],[2,3]]){
+   const px=x+col*TILE,py=y+row*TILE;
+   rect(px+5,py+5,TILE-10,TILE-10,'rgba(111,78,65,0.27)');
+   rect(px+8,py+8,TILE-16,TILE-16,'rgba(169,131,100,0.28)');
+   line(px+11,py+TILE-11,px+TILE-11,py+TILE-11,'#b08a6b');
+  }
+ }
 }
 function rootheartInnFloorDetail(b,x,y,level){
  if(b.id!=='rootheart-inn')return;
