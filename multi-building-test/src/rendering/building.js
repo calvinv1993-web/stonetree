@@ -311,6 +311,45 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
 }
+function rootheartTempleFurniture(b,x,y,level){
+ if(b.id!=='rootheart-temple')return;
+ const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
+ if(level===0){
+  // Stone altar at the north wall; central aisle and entrance stay open.
+  let p=at(3,0);
+  rect(p.x+3,p.y+17,34,18,'#a9a697');
+  rect(p.x+1,p.y+12,38,8,'#d2cbbb');
+  rect(p.x+15,p.y+4,10,9,'#8c998c');
+  rect(p.x+18,p.y+1,4,8,'#d8cba4');
+  for(const [col,row] of [[1,2],[5,2],[1,3],[5,3]]){
+   p=at(col,row);
+   rect(p.x+4,p.y+14,32,8,'#806a52');
+   rect(p.x+7,p.y+22,5,12,'#554838');
+   rect(p.x+28,p.y+22,5,12,'#554838');
+   rect(p.x+5,p.y+10,30,5,'#a28b6a');
+  }
+  for(const col of [1,5]){
+   p=at(col,0);
+   rect(p.x+15,p.y+15,10,20,'#858579');
+   rect(p.x+12,p.y+10,16,7,'#c1b59c');
+   rect(p.x+17,p.y+5,6,8,'#e0b66c');
+  }
+ }else if(level===1){
+  // Upstairs reliquary and wall inscriptions; avoid the stair opening at (1,2).
+  let p=at(3,1);
+  rect(p.x+5,p.y+8,30,27,'#777b73');
+  rect(p.x+9,p.y+11,22,20,'#c0b9a5');
+  rect(p.x+17,p.y+14,6,14,'#879789');
+  rect(p.x+13,p.y+18,14,5,'#879789');
+  for(const col of [2,4]){
+   p=at(col,3);
+   rect(p.x+7,p.y+11,26,23,'#6c6457');
+   rect(p.x+10,p.y+13,20,17,'#aba38f');
+   line(p.x+14,p.y+18,p.x+26,p.y+18,'#6e7b71');
+   line(p.x+14,p.y+24,p.x+24,p.y+24,'#6e7b71');
+  }
+ }
+}
 function rootheartShopFurniture(b,x,y,level){
  if(b.id!=='rootheart-shop'||level!==0)return;
  const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
@@ -416,6 +455,7 @@ function drawStorey(b,x,y,level,occupied){
  rootheartInnFurniture(b,x,y,level);
  rootheartSmithyFurniture(b,x,y,level);
  rootheartShopFurniture(b,x,y,level);
+ rootheartTempleFurniture(b,x,y,level);
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
