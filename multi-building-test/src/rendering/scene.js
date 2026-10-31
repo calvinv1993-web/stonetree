@@ -31,6 +31,10 @@ function paint(){
   ctx.fillStyle='#252525';ctx.fillRect(12,48,124,20);
   ctx.fillStyle='#a63232';ctx.fillRect(14,50,120*playerHealth.current/playerHealth.max,16);
   ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.fillText('HP '+playerHealth.current+'/'+playerHealth.max,19,62);
+  if(typeof playerProgress!=='undefined'){
+   ctx.fillStyle='#252525';ctx.fillRect(12,72,124,20);
+   ctx.fillStyle='#fff';ctx.fillText('XP '+playerProgress.xp,19,86);
+  }
  }
  const door=adjacentDoor(),control=document.getElementById('doorControl');
  const place=current?current.name+' · '+(player.z?'Verdieping '+player.z:'Begane grond'):'Buiten';
