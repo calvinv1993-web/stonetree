@@ -144,7 +144,7 @@ function terraceFloor(x,y,level){
  const edge=BUILDING.terrace.startCol*TILE;
  // Only the enclosed part has tall walls.
  ctx.save();ctx.beginPath();ctx.rect(x-SIDE-THICK,y-HEIGHT-THICK,edge+SIDE+THICK,N*TILE+HEIGHT+THICK);ctx.clip();
- renderFloor(x,y,level,true);
+ renderFloor(x,y,level,false);
  ctx.restore();
  for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
   rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#756052':'#806b58');
