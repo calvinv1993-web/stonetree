@@ -32,37 +32,56 @@ function makeWall(){
  return c;
 }
 const wall=makeWall();
-function sideSegment(g,x,y,flip){
- // Perpendicular grid edge: 9px diagonal ground displacement per tile.
- // Each segment is the SAME HEIGHT, not a rising staircase.
- const sx=flip?-9:9;
- const face=flip?'#81634d':'#765a46';
- poly(g,[[x,y],[x+sx,y-9],[x+sx,y-9+HEIGHT],[x,y+HEIGHT]],face);
- // Brick courses follow the diagonal segment, with consistent vertical joints.
+// Side walls are single continuous polygons, not five overlapping sprites.
+// The 5-tile run recedes upward in screen space while keeping the same height.
+function drawSide(g,x,y,dx){
+ const run=5*TILE,top=y-DEPTH;
+ // Visible side face: constant vertical height across its full run.
+ poly(g,[[x,y],[x+dx,y-run],[x+dx,y-run+HEIGHT],[x,y+HEIGHT]],'#755945');
+ // Brick courses are horizontal in world height, not diagonal stripes.
+ g.save();
+ g.beginPath();g.moveTo(x,y);g.lineTo(x+dx,y-run);g.lineTo(x+dx,y-run+HEIGHT);g.lineTo(x,y+HEIGHT);g.closePath();g.clip();
  for(let row=0;row<12;row++){
-  const yy=y+row*8;
-  poly(g,[[x,yy+1],[x+sx,yy-8],[x+sx,yy-3],[x,yy+6]],
-   ['#a47e60','#bb9673','#957054'][(row+Math.abs(x))%3]);
+  const z=row*8;
+  // Each course follows the receding ground edge; joints follow vertical height.
+  const startX=Math.min(x,x+dx),endX=Math.max(x,x+dx);
+  for(let sx=startX-2;sx<endX+4;sx+=12){
+   const t=dx===0?0:(sx-x)/dx;
+   const baseY=y-run*t+z;
+   g.strokeStyle='#49372d';g.lineWidth=2;
+   g.beginPath();g.moveTo(sx,baseY);g.lineTo(sx+12,baseY-12*run/Math.abs(dx));g.stroke();
+  }
  }
- poly(g,[[x,y],[x+sx,y-9],[x+sx,y-9-DEPTH],[x,y-DEPTH]],'#c6a68a');
+ g.restore();
+ poly(g,[[x,y],[x+dx,y-run],[x+dx,y-run-DEPTH],[x,y-DEPTH]],'#bfa186');
 }
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*5)/2),y=Math.round((h-HEIGHT)/2)+24;
- // Draw the two side walls behind the front wall.
- // Each consists of five edge-to-edge diagonal segments, all equally tall.
- for(let side of [-1,1]){
-  const start=side<0?x:x+TILE*5;
-  for(let i=4;i>=0;i--){
-   const px=start+side*i*9,py=y-i*9;
-   sideSegment(ctx,px,py,side);
+ const x=Math.round((w-TILE*5)/2),y=Math.round((h-HEIGHT)/2)+65;
+ // A top-down Tibia grid has parallel side edges. Both recede straight UP,
+ // rather than splaying outward into a V.
+ const run=5*TILE;
+ function side(x0,shade){
+  const top=y-run/2;
+  // continuous wall face, height fixed at 94px, five tiles long
+  poly(ctx,[[x0,y],[x0,y-run/2],[x0+DEPTH,y-run/2-DEPTH],[x0+DEPTH,y-DEPTH]],'#bfa186');
+  ctx.fillStyle=shade;ctx.fillRect(x0,top+DEPTH,DEPTH+5,HEIGHT+run/2-DEPTH);
+  // Brick rows are vertical along wall height; no staircase silhouettes.
+  ctx.fillStyle='#9c7759';
+  for(let k=0;k<5;k++){
+   const yy=y-k*TILE/2;
+   ctx.fillRect(x0+1,yy-HEIGHT,DEPTH+3,TILE/2-2);
+   ctx.fillStyle='#4a372c';ctx.fillRect(x0+1,yy-HEIGHT+TILE/2-3,DEPTH+3,2);
+   ctx.fillStyle='#9c7759';
   }
+  // Repaint narrow top cap above wall front.
+  poly(ctx,[[x0,y-HEIGHT],[x0,y-HEIGHT-run/2],[x0+DEPTH,y-HEIGHT-run/2-DEPTH],[x0+DEPTH,y-HEIGHT-DEPTH]],'#c4a589');
  }
- // The front wall covers the near ends, giving two clean corners.
- for(let i=0;i<5;i++)ctx.drawImage(wall,x+i*TILE,y-DEPTH);
+ side(x,'#8e6b51');side(x+TILE*5-DEPTH,'#745844');
+ for(let i=0;i<5;i++)ctx.drawImage(wall,x+i*TILE,y-HEIGHT-DEPTH);
 }
 addEventListener('resize',paint);paint();
 </script>
