@@ -311,6 +311,33 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
 }
+function rootheartShopFurniture(b,x,y,level){
+ if(b.id!=='rootheart-shop'||level!==0)return;
+ const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
+ // Shelves along the back and side walls, leaving the entrance aisle open.
+ for(const [col,row] of [[1,0],[2,0],[4,0],[0,2]]){
+  const p=at(col,row);
+  rect(p.x+4,p.y+5,32,30,'#594432');
+  for(let i=0;i<3;i++)rect(p.x+6,p.y+11+i*9,28,4,'#a07b4f');
+  rect(p.x+9,p.y+7,7,7,'#9a7950');
+  rect(p.x+22,p.y+7,8,7,'#71816c');
+  rect(p.x+13,p.y+17,8,7,'#b3a06d');
+ }
+ // Merchant's counter.
+ let p=at(3,2);
+ rect(p.x+3,p.y+15,34,20,'#694b33');
+ rect(p.x+1,p.y+12,38,7,'#b08b5c');
+ rect(p.x+9,p.y+22,8,7,'#806444');
+ // Crates and a small display of wares.
+ p=at(5,1);
+ rect(p.x+5,p.y+14,29,21,'#80613e');
+ rect(p.x+8,p.y+17,23,15,'#a48455');
+ line(p.x+8,p.y+17,p.x+31,p.y+32,'#6b5238');
+ p=at(1,3);
+ rect(p.x+7,p.y+17,26,15,'#8d6e48');
+ rect(p.x+10,p.y+12,7,9,'#b6a36b');
+ rect(p.x+22,p.y+13,6,8,'#75896e');
+}
 function rootheartSmithyFurniture(b,x,y,level){
  if(b.id!=='rootheart-smithy'||level!==0)return;
  const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
@@ -388,6 +415,7 @@ function drawStorey(b,x,y,level,occupied){
  }
  rootheartInnFurniture(b,x,y,level);
  rootheartSmithyFurniture(b,x,y,level);
+ rootheartShopFurniture(b,x,y,level);
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
