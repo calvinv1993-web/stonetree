@@ -57,6 +57,8 @@ function drawRat(now){
  const t=Math.max(0,Math.min(1,(now-rat.movedAt)/220));
  const x=rat.fromX+(rat.x-rat.fromX)*t,y=rat.fromY+(rat.y-rat.fromY)*t;
  const p=worldToScreen(x+.5,y+.5,0);
+ if(ratSelected){ctx.strokeStyle='#dc3030';ctx.lineWidth=2;ctx.strokeRect(p.x-17,p.y-19,34,38);}
+ rect(p.x-15,p.y-24,30,5,'#262626');rect(p.x-14,p.y-23,28*ratHP/20,3,'#bf3030');
  // Temporary recognizable silhouette until dedicated monster textures are supplied.
  rect(p.x-12,p.y+9,24,4,'#29251f');
  rect(p.x-10,p.y-3,20,13,'#655c51');
