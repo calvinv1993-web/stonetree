@@ -4,6 +4,13 @@ canvas.addEventListener('pointerdown',e=>{
  canvas.focus();
  const box=canvas.getBoundingClientRect();
  const px=e.clientX-box.left,py=e.clientY-box.top;
+ // Tap the upper terrace door itself to open or close it.
+ const terrace=terraceDoorBuilding();
+ if(terrace){
+  const edge=originX+(terrace.position.x+terrace.terrace.startCol)*TILE;
+  const top=originY+(terrace.position.y+2)*TILE;
+  if(px>=edge-14&&px<=edge+14&&py>=top-10&&py<=top+TILE+10){toggleDoor();return;}
+ }
  // A tap on the visible door operates it only from an adjacent tile.
  for(const building of BUILDINGS){
   const doorLeft=originX+(building.position.x+building.door.col)*TILE;
