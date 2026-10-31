@@ -2,9 +2,9 @@ function exteriorDistance(b){
  return Math.max(b.position.x-player.x,player.x-(b.position.x+b.width-1),b.position.y-player.y,player.y-(b.position.y+b.height-1),0);
 }
 function visibleExteriorStorey(b){
- // Nearby buildings keep their roofs: proximity must never expose interiors.
- // Only the building occupied by the player is rendered as a cutaway.
- return null;
+ if(player.z!==0||buildingAt(player.x,player.y))return null;
+ const distance=exteriorDistance(b);
+ return distance>=1&&distance<=b.floors.length?distance-1:null;
 }
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
