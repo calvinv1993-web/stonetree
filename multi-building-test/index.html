@@ -1,33 +1,29 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — brick wall</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=64,DEPTH=8;
-function poly(g,p,c){g.fillStyle=c;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
+const TILE=48,HEIGHT=68,DEPTH=7;
+function poly(g,p,color){g.fillStyle=color;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
 function makeWall(){
  const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- // Original brick-wall pixel sprite inspired by classic top-down RPG wall tiles.
- // A single vertical wall segment: visible south face, narrow cap, narrow east edge.
- g.fillStyle='#352e2b';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
- const brick=['#987d6b','#a78b77','#806959','#b39880','#8d7464'];
- for(let row=0;row<8;row++){
-   const yy=DEPTH+row*8,offset=(row%2)*12;
-   for(let xx=DEPTH-24+offset;xx<DEPTH+TILE;xx+=24){
-     const left=Math.max(DEPTH,xx),right=Math.min(DEPTH+TILE,xx+23);
+ // One front-facing brick-wall section with an oblique narrow top edge.
+ g.fillStyle='#41382f';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
+ const colors=['#9b7b60','#ac8a69','#886b56','#b49472','#97755a','#a18164'];
+ const brickH=10,brickW=22;
+ for(let row=0;row<7;row++){
+   const yy=DEPTH+row*brickH,offset=(row%2)*11;
+   for(let bx=-brickW;bx<TILE+brickW;bx+=brickW){
+     const left=Math.max(0,bx+offset),right=Math.min(TILE,bx+offset+brickW-2);
      if(right<=left)continue;
-     const col=brick[(row*3+Math.floor((xx+24)/24)+20)%brick.length];
-     g.fillStyle=col;g.fillRect(left,yy+1,right-left,6);
-     g.fillStyle='#c2a28b';g.fillRect(left,yy+1,right-left,1);
-     g.fillStyle='#665348';g.fillRect(left,yy+6,right-left,1);
-     g.fillStyle='#7a6253';g.fillRect(left+2,yy+3,Math.max(0,right-left-5),1);
+     const color=colors[(row*3+Math.floor((bx+brickW)/brickW)*5+24)%colors.length];
+     g.fillStyle=color;g.fillRect(DEPTH+left,yy+1,right-left,brickH-2);
+     g.fillStyle='#c3a184';g.fillRect(DEPTH+left+1,yy+2,Math.max(0,right-left-3),1);
+     g.fillStyle='#6d5444';g.fillRect(DEPTH+left,yy+brickH-2,right-left,1);
    }
  }
- // Thin end face: not a second wall or a full tile.
- poly(g,[[TILE,0],[TILE+DEPTH,DEPTH],[TILE+DEPTH,DEPTH+HEIGHT],[TILE,HEIGHT]],'#59493e');
- for(let y=DEPTH+7;y<HEIGHT;y+=8){g.fillStyle='#302a26';g.fillRect(TILE+2,y,DEPTH-2,1);}
- // Shallow cap receding to the north-west.
- poly(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#b49a84');
- g.strokeStyle='#dbc1a6';g.beginPath();g.moveTo(1,1);g.lineTo(TILE-1,1);g.stroke();
- g.strokeStyle='#786254';g.beginPath();g.moveTo(DEPTH,DEPTH-1);g.lineTo(TILE+DEPTH-1,DEPTH-1);g.stroke();
+ // Thin dark end and a slim top, no diagonal extension at the base.
+ poly(g,[[TILE,0],[TILE+DEPTH,DEPTH],[TILE+DEPTH,DEPTH+HEIGHT],[TILE,HEIGHT]],'#655244');
+ poly(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#c2a58a');
+ g.fillStyle='#e0c4a6';g.fillRect(1,1,TILE-2,2);
  return c;
 }
 const wall=makeWall();
