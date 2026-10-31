@@ -33,7 +33,7 @@ function connected(cx,cy,nx,ny){
    const boundary=a.position.x+a.terrace.startCol;
    if((cx===boundary-1&&nx===boundary)||(cx===boundary&&nx===boundary-1)){
     const row=cy-a.position.y;
-    return row===2&&ny===cy&&Boolean(terraceDoorStates[a.id]);
+    return row===3&&ny===cy&&Boolean(terraceDoorStates[a.id]);
    }
   }
   return player.z===0||Boolean(a);
@@ -49,7 +49,7 @@ function doorBuilding(){
 }
 function terraceDoorBuilding(){
  return BUILDINGS.find(b=>b.terrace&&player.z===b.terrace.level&&
-  Math.abs(player.y-(b.position.y+2))<=1&&
+  Math.abs(player.y-(b.position.y+3))<=1&&
   (player.x===b.position.x+b.terrace.startCol-1||player.x===b.position.x+b.terrace.startCol));
 }
 function adjacentToDoor(){return !!doorBuilding()||!!terraceDoorBuilding();}
