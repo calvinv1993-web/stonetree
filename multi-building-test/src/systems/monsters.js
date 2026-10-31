@@ -2,18 +2,50 @@
 const RAT_SPAWN={x:6,y:7,z:0,radius:2};
 const rat={x:RAT_SPAWN.x,y:RAT_SPAWN.y,z:0,fromX:RAT_SPAWN.x,fromY:RAT_SPAWN.y,movedAt:0};
 let ratNextMove=0;
+let ratMode='wander';
+const RAT_SIGHT=5,RAT_LEASH=8;
+const ratDistance=(x,y)=>Math.abs(rat.x-x)+Math.abs(rat.y-y);
+function ratValid(x,y){
+ return !buildingAt(x,y)&&walkable(x,y,0)&&!(player.z===0&&player.x===x&&player.y===y);
+}
+function ratPath(tx,ty){
+ const start=rat.x+','+rat.y,queue=[[rat.x,rat.y]],seen=new Set([start]),prev=new Map();
+ for(let head=0;head<queue.length;head++){
+  const [x,y]=queue[head];if(x===tx&&y===ty)break;
+  for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
+   const nx=x+dx,ny=y+dy,k=nx+','+ny;
+   if(seen.has(k)||!ratValid(nx,ny)||Math.abs(nx-RAT_SPAWN.x)>RAT_LEASH||Math.abs(ny-RAT_SPAWN.y)>RAT_LEASH)continue;
+   seen.add(k);prev.set(k,[x,y]);queue.push([nx,ny]);
+  }
+ }
+ let key=tx+','+ty;if(!seen.has(key)||key===start)return null;
+ while(prev.get(key)?.join(',')!==start)key=prev.get(key).join(',');
+ return key.split(',').map(Number);
+}
 function ratTick(now){
  if(now<ratNextMove)return false;
- ratNextMove=now+500;
- const options=[[0,1],[1,0],[0,-1],[-1,0],[0,0]].filter(([dx,dy])=>{
-  const x=rat.x+dx,y=rat.y+dy;
-  return Math.abs(x-RAT_SPAWN.x)<=RAT_SPAWN.radius&&Math.abs(y-RAT_SPAWN.y)<=RAT_SPAWN.radius&&
-   !buildingAt(x,y)&&walkable(x,y,0)&&!(player.z===0&&player.x===x&&player.y===y);
- });
- if(!options.length)return false;
- const [dx,dy]=options[Math.floor(Math.random()*options.length)];
- if(!dx&&!dy)return false;
- rat.fromX=rat.x;rat.fromY=rat.y;rat.x+=dx;rat.y+=dy;rat.movedAt=now;
+ const distance=player.z===0?ratDistance(player.x,player.y):Infinity;
+ const homeDistance=Math.abs(rat.x-RAT_SPAWN.x)+Math.abs(rat.y-RAT_SPAWN.y);
+ if(ratMode==='chase'&&(distance>RAT_SIGHT+2||player.z!==0||homeDistance>RAT_LEASH))ratMode='return';
+ if(ratMode==='wander'&&distance<=RAT_SIGHT)ratMode='chase';
+ if(ratMode==='return'&&rat.x===RAT_SPAWN.x&&rat.y===RAT_SPAWN.y)ratMode='wander';
+ if(ratMode==='return'&&distance<=RAT_SIGHT&&homeDistance<RAT_LEASH)ratMode='chase';
+ ratNextMove=now+(ratMode==='chase'?430:650);
+ let next=null;
+ if(ratMode==='chase'){
+  if(distance===1)return false; // Adjacent: combat will be added separately.
+  const candidates=[[0,1],[1,0],[0,-1],[-1,0]].map(([dx,dy])=>[player.x+dx,player.y+dy])
+   .filter(([x,y])=>ratValid(x,y)&&Math.abs(x-RAT_SPAWN.x)<=RAT_LEASH&&Math.abs(y-RAT_SPAWN.y)<=RAT_LEASH)
+   .sort((a,b)=>Math.abs(a[0]-rat.x)+Math.abs(a[1]-rat.y)-Math.abs(b[0]-rat.x)-Math.abs(b[1]-rat.y));
+  for(const [x,y] of candidates){next=ratPath(x,y);if(next)break;}
+ }else if(ratMode==='return')next=ratPath(RAT_SPAWN.x,RAT_SPAWN.y);
+ else{
+  const choices=[[0,1],[1,0],[0,-1],[-1,0],[0,0]].map(([dx,dy])=>[rat.x+dx,rat.y+dy])
+   .filter(([x,y])=>Math.abs(x-RAT_SPAWN.x)<=RAT_SPAWN.radius&&Math.abs(y-RAT_SPAWN.y)<=RAT_SPAWN.radius&&ratValid(x,y));
+  if(choices.length)next=choices[Math.floor(Math.random()*choices.length)];
+ }
+ if(!next||next[0]===rat.x&&next[1]===rat.y)return false;
+ rat.fromX=rat.x;rat.fromY=rat.y;rat.x=next[0];rat.y=next[1];rat.movedAt=now;
  return true;
 }
 function drawRat(now){
