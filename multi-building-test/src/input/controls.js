@@ -5,15 +5,15 @@ canvas.addEventListener('pointerdown',e=>{
  const box=canvas.getBoundingClientRect();
  const px=e.clientX-box.left,py=e.clientY-box.top;
  // A tap on the visible door operates it only from an adjacent tile.
- const doorLeft=originX+BUILDING.door.col*TILE;
- const doorTop=originY+N*TILE-HEIGHT;
+ const doorLeft=originX+(BUILDING.position.x+BUILDING.door.col)*TILE;
+ const doorTop=originY+(BUILDING.position.y+N)*TILE-HEIGHT;
  if(player.z===0&&px>=doorLeft&&px<doorLeft+TILE&&
     py>=doorTop&&py<doorTop+HEIGHT){
   // From a distance, tapping the doorway walks to the reachable tile
   // immediately in front of it; only an adjacent player operates it.
   if(adjacentToDoor())toggleDoor();
-  else if(inside(player.x,player.y))route(BUILDING.door.col,N-1);
-  else route(BUILDING.door.col,N);
+  else if(inside(player.x,player.y))route(BUILDING.position.x+BUILDING.door.col,BUILDING.position.y+N-1);
+  else route(BUILDING.position.x+BUILDING.door.col,BUILDING.position.y+N);
   return;
  }
  route(Math.floor((px-originX)/TILE),Math.floor((py-originY)/TILE));
