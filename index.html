@@ -212,7 +212,37 @@ function buildingArt(b){
  for(let j=0;j<h/12;j++)for(let i=0;i<w/24;i++)rect(x-11+i*24,y-10-lift+j*12,23,10,j%2?'#a79979':'#90866a');
  rect(x-12,y-12-lift,w,9,'#b3ab8c');rect(x-12,y-5-lift,6,h-7,'#797d66');rect(x+w-18,y-5-lift,6,h-7,'#50594c');
  const stair=ground.center({c:b.right-1,r:b.top+1});for(let i=0;i<6;i++){rect(stair.x-10,stair.y-10-lift+i*4,20,4,'#634e35');rect(stair.x-10,stair.y-10-lift+i*4,20,2,'#d1b88d')}
- if(lift)rect(x-12,y+h-16-lift,w,4,'#cebd96');
+ if(lift){
+  // Exposed storey edge: a deep masonry face, shadow and bright coping
+  // make the upper floor read as elevated rather than a flat recolour.
+  const edgeY=y+h-12-lift;
+  rect(x-12,edgeY,w,25,'#27362f');
+  rect(x-12,edgeY+3,w,16,'#505b50');
+  rect(x-12,edgeY+3,w,3,'#818b78');
+  for(let i=0;i<w;i+=24){
+   rect(x-12+i,edgeY+7,1,12,'#35453b');
+   rect(x-9+i,edgeY+9,13,2,'#647064');
+   rect(x-8+i,edgeY+15,8,1,'#3d4d42');
+  }
+  rect(x-14,edgeY-3,w+4,5,'#bcb69a');
+  rect(x-14,edgeY+2,w+4,2,'#777e6c');
+  rect(x-14,edgeY+20,w+4,4,'rgba(12,24,22,.6)');
+  // Side-wall thickness and small inset windows reinforce the height.
+  rect(x-17,y-13-lift,5,h+22,'#303e35');
+  rect(x-17,y-13-lift,2,h+22,'#9a9e84');
+  rect(x+w-12,y-13-lift,7,h+22,'#303d35');
+  rect(x+w-12,y-13-lift,2,h+22,'#838d76');
+  for(const wx of [x+13,x+w-41]){
+   rect(wx,edgeY+8,15,10,'#2b3836');
+   rect(wx+2,edgeY+9,11,7,'#56736e');
+   rect(wx+7,edgeY+9,2,7,'#c0b997');
+   rect(wx+1,edgeY+17,13,2,'#a7a188');
+  }
+  // Stairs remain visible and unobstructed for touch navigation.
+  rect(stair.x-12,stair.y-13-lift,24,3,'#e1cda2');
+  rect(stair.x-12,stair.y-10-lift,3,23,'#7d674a');
+  rect(stair.x+9,stair.y-10-lift,3,23,'#7d674a');
+ }
 }
 for(const m of monsters)m.floor=0;
 for(const [floor,x,y,name] of [[1,432,384,'Highland Slime'],[-1,312,336,'Cave Slime'],[-1,408,456,'Cave Slime']])monsters.push({floor,x,y,hp:55,max:55,name,kind:'slime',spawn:0,root:0,last:0,boss:false});
@@ -399,6 +429,16 @@ function drawLowerFloorDepth(){
 }
 function drawRoofForeground(){
  if(p.floor===-1)return;
+ if(p.floor===lodge.upper){
+  // Front parapet overlays the hero's feet, not their head.
+  const b=lodge,corner=ground.center({c:b.left,r:b.top});
+  const left=corner.x-12,right=ground.center({c:b.right,r:b.top}).x+12;
+  const front=ground.center({c:b.left,r:b.bottom}).y+12-32;
+  rect(left-3,front-3,right-left+6,5,'#b5ad91');
+  rect(left-3,front+2,right-left+6,4,'#4e5a4d');
+  for(let px=left;px<right;px+=24)rect(px,front-4,2,7,'#777e69');
+ }
+
  // Foreground coping is drawn after occupants. The stair landing is left open.
  for(let x=377;x<470;x+=15){rect(x,458,14,7,'#5a6654');rect(x,455,14,3,'#c8c0a1');rect(x+1,458,12,2,'#9fa88b')}
  for(const x of [342,465]){rect(x,304,9,14,'#6f7d61');rect(x-1,302,11,3,'#d0c6a5');rect(x+2,306,4,8,'#a0aa88')}
