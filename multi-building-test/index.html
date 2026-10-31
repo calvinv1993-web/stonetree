@@ -31,13 +31,46 @@ function makeWall(){
  g.fillStyle='#765c48';g.fillRect(0,DEPTH,TILE,2);
  return c;
 }
+function makeSideWall(){
+ const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+TILE+DEPTH;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ // A perpendicular wall runs away from the viewer on the ground grid.
+ // Five sections share the same narrow top and brick face.
+ const colors=['#9c7759','#b18b69','#8e6b51','#a78162','#967156'];
+ for(let i=4;i>=0;i--){
+  const sx=i*9,sy=i*9;
+  const x=sx,y=sy;
+  g.fillStyle='#4a372c';g.fillRect(x,y+DEPTH,DEPTH+4,HEIGHT);
+  for(let row=0;row<12;row++){
+   const yy=y+DEPTH+row*8;
+   g.fillStyle=colors[(row+i)%colors.length];g.fillRect(x+1,yy+1,DEPTH+2,6);
+   g.fillStyle='#c5a080';g.fillRect(x+1,yy+1,DEPTH+1,1);
+  }
+  poly(g,[[x,y+DEPTH],[x+DEPTH,y],[x+DEPTH+4,y],[x+4,y+DEPTH]],'#bfa186');
+ }
+ return c;
+}
+const sideWall=makeSideWall();
 const wall=makeWall();
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-(TILE*5+DEPTH))/2),y=Math.round((h-wall.height)/2);
+ const x=Math.round((w-TILE*5-DEPTH)/2),y=Math.round((h-HEIGHT-TILE*2)/2);
+ // Perpendicular walls: five connected segments on both ends.
+ for(let side of [0,1]){
+  const base=side===0?x:x+TILE*5;
+  for(let i=5;i>=1;i--){
+   const ox=base+i*9,oy=y-i*9;
+   ctx.fillStyle='#584437';ctx.fillRect(ox,oy+DEPTH,9,HEIGHT);
+   for(let row=0;row<12;row++){
+    ctx.fillStyle=['#9c7759','#b18b69','#8e6b51'][(row+i)%3];
+    ctx.fillRect(ox+1,oy+DEPTH+row*8+1,7,6);
+   }
+   poly(ctx,[[ox,oy+DEPTH],[ox+DEPTH,oy],[ox+DEPTH+9,oy],[ox+9,oy+DEPTH]],'#bfa186');
+  }
+ }
  for(let i=0;i<5;i++)ctx.drawImage(wall,x+i*TILE,y);
 }
 addEventListener('resize',paint);paint();
