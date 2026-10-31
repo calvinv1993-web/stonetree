@@ -182,16 +182,25 @@ function makeFloor(id,walkable){const walls=new Set();for(let r=0;r<29;r++)for(l
 makeFloor(1,(c,r)=>c>=9&&c<=13&&r>=13&&r<=18);
 makeFloor(-1,(c,r)=>(c>=7&&c<=12&&r>=15&&r<=21)||(c>=5&&c<=9&&r>=10&&r<=16));
 // Bounds are inclusive tile coordinates, shared by collision and artwork.
-const lodge={left:2,right:6,top:20,bottom:24,door:4,upper:4};
-function configureBuilding(b){
+// Reusable multi-level buildings: bounds, collisions and stairs share one definition.
+const buildings=[];
+function registerBuilding(b){
+ if(!Number.isInteger(b.upper)||b.upper<=1||floors[b.upper])throw Error('Upper floor must be unique');
+ if(b.right-b.left<2||b.bottom-b.top<2||b.door<=b.left||b.door>=b.right)throw Error('Invalid building bounds');
  const inside=(c,r)=>c>b.left&&c<b.right&&r>b.top&&r<b.bottom;
  for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
   const key=ground.key({c,r});ground.blocked.delete(key);
   if(!inside(c,r)&&!(r===b.bottom&&c===b.door))ground.blocked.add(key);
  }
  makeFloor(b.upper,inside);
+ b.stairs=ground.center({c:b.right-1,r:b.top+1});
+ buildings.push(b);
+ return b;
 }
-configureBuilding(lodge);
+function buildingStairPortals(b){
+ return [0,b.upper].map(f=>({x:b.stairs.x,y:b.stairs.y,floor:f,to:f===0?b.upper:0,tx:b.stairs.x,ty:b.stairs.y,label:f===0?'Upstairs':'Downstairs'}));
+}
+const lodge=registerBuilding({left:2,right:6,top:20,bottom:24,door:4,upper:4});
 function buildingArt(b){
  const {x,y}=ground.center({c:b.left,r:b.top}),w=(b.right-b.left+1)*24,h=(b.bottom-b.top+1)*24;
  const door=ground.center({c:b.door,r:b.bottom});
@@ -215,7 +224,7 @@ const portals=[
  {floor:1,x:360,y:480,to:0,tx:336,ty:480,label:'Descend stairs'},
  {floor:0,x:408,y:528,to:-1,tx:408,ty:528,label:'Enter cave'},
  {floor:-1,x:408,y:528,to:0,tx:408,ty:528,label:'Leave cave'},
- ...[0,lodge.upper].map(f=>({...ground.center({c:lodge.right-1,r:lodge.top+1}),floor:f,to:f?0:lodge.upper,tx:ground.center({c:lodge.right-1,r:lodge.top+1}).x,ty:ground.center({c:lodge.right-1,r:lodge.top+1}).y,label:f?'Downstairs':'Upstairs'}))
+ ...buildings.flatMap(buildingStairPortals)
 ];
 const floorNames={4:'Wayfarer Lodge · Upper floor',0:'Woodland · Ground floor',1:'Moss Terrace · Upper floor',[-1]:'Underground cave · Lower floor'};
 const floorOffset=()=>p.floor>0?32:0;
