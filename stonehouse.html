@@ -11,7 +11,7 @@ floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
 function wallLine(x1,y1,x2,y2){const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1);let x=x1,y=y1;while(true){add('wall',x,y);if(x===x2&&y===y2)break;x+=dx;y+=dy}}
 wallLine(0,0,6,0);wallLine(0,0,0,15);wallLine(6,0,6,7);wallLine(0,5,6,5);wallLine(0,10,6,10);wallLine(0,15,7,15);
 wallLine(7,8,18,8);wallLine(7,8,7,15);wallLine(18,8,18,15);wallLine(7,15,18,15);
-for(const d of doors){solid.delete(key(d.x,d.y));items=items.filter(o=>!(o.kind==='wall'&&o.x===d.x&&o.y===d.y));add('door',d.x,d.y,true)}
+for(const d of doors){solid.delete(key(d.x,d.y));for(let i=items.length-1;i>=0;i--)if(items[i].kind==='wall'&&items[i].x===d.x&&items[i].y===d.y)items.splice(i,1);add('door',d.x,d.y,true)}
 // Deliberate connected entrance at south and inner corridor. Walls never disappear on entry.
 for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,9],['desk',4,1],['books',5,0],['chest',9,8],['chest',10,8],['chest',11,8],['barrel',16,14],['barrel',17,14],['barrel',18,14],['fire',14,4],['pot',8,5],['table',4,12],['crate',1,16],['crate',2,16],['water',7,16]])add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
 function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(a,b,32,32,'#775837');for(let j=0;j<4;j++){const yy=b+j*8;fill(a,yy,32,7,(j+x)%3?'#c8a46b':'#d4b77d');fill(a,yy,32,2,'#e5c68f');fill(a,yy+7,32,1,'#76563b');fill(a+((x+j)%2?14:25),yy+2,1,5,'#8d714e');if(rand(x,y,j)%4===0)fill(a+5,yy+4,6,1,'#ad8856')}return}
