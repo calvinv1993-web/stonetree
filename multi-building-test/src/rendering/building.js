@@ -212,7 +212,7 @@ function interior(x,upperY,level){
  rect(x-SIDE,upperY+size,SIDE,HEIGHT,'#656e65');
  rect(x+size,upperY+size,SIDE,HEIGHT,'#6f786c');
  facade(x,lowerY+size,0,true);
- ctx.save();ctx.beginPath();
+ if(!BUILDING.terrace){ctx.save();ctx.beginPath();
  for(const key of VOID_TILES){
   const [col,row]=key.split(',').map(Number);
   ctx.rect(x+col*TILE,upperY+row*TILE,TILE,TILE);
@@ -221,12 +221,12 @@ function interior(x,upperY,level){
  // Show the actual lower storey at its projected depth through the void.
  // Its walls, stairs and floor are drawn from the same geometry functions.
  renderFloor(x,lowerY,0,false);
- ctx.restore();
+ ctx.restore();}
  // The upper floor is a real slab with an open stairwell.
  if(BUILDING.terrace)terraceFloor(x,upperY,1);
  else renderFloor(x,upperY,1,true);
  // Show slab thickness at the edges of the void.
- for(const key of VOID_TILES){
+ if(!BUILDING.terrace)for(const key of VOID_TILES){
   const [col,row]=key.split(',').map(Number);
   if(!VOID_TILES.has(col+','+(row-1)))rect(x+col*TILE,upperY+row*TILE,TILE,5,'#d4bc91');
   if(!VOID_TILES.has((col-1)+','+row))rect(x+col*TILE,upperY+row*TILE,5,TILE,'#665b4b');
