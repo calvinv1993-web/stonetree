@@ -45,3 +45,37 @@ function rootheartGround(){
   }
  }
 }
+
+function rootheartPetrifiedTree(){
+ const cx=camera.x+(ROOTHEART.centerX+.5)*TILE;
+ const cy=camera.y+(ROOTHEART.centerY+.5)*TILE;
+ // Static world landmark: a petrified trunk, exposed roots and branching crown.
+ // Keep the ground and existing movement systems untouched.
+ ctx.save();
+ ctx.fillStyle='rgba(25,28,25,0.32)';
+ ctx.beginPath();ctx.ellipse(cx+10,cy+20,122,46,0,0,Math.PI*2);ctx.fill();
+ const roots=[
+  [[cx-17,cy+8],[cx-110,cy+34],[cx-78,cy+17],[cx-20,cy-9]],
+  [[cx+16,cy+7],[cx+108,cy+28],[cx+75,cy+6],[cx+15,cy-14]],
+  [[cx-13,cy+9],[cx-54,cy+88],[cx-27,cy+54],[cx+4,cy+9]],
+  [[cx+13,cy+8],[cx+56,cy+83],[cx+26,cy+50],[cx-3,cy+6]]
+ ];
+ for(const points of roots){
+  poly(points,'#625e59');
+  line(points[0][0],points[0][1],points[1][0],points[1][1],'#9e998b');
+ }
+ poly([[cx-37,cy+10],[cx-29,cy-85],[cx-21,cy-151],[cx-40,cy-197],[cx-16,cy-179],[cx-7,cy-132],[cx+8,cy-145],[cx+31,cy-203],[cx+48,cy-208],[cx+23,cy-129],[cx+35,cy-75],[cx+30,cy+10]],'#625f5a');
+ poly([[cx-26,cy+6],[cx-20,cy-91],[cx-10,cy-145],[cx-2,cy-124],[cx-7,cy-60],[cx-4,cy+8]],'#a19b8c');
+ poly([[cx+16,cy-12],[cx+18,cy-91],[cx+36,cy-181],[cx+29,cy-120],[cx+28,cy-21]],'#444745');
+ for(let i=0;i<8;i++){
+  const yy=cy-17-i*19;
+  line(cx-14+(i%3)*3,yy,cx-6+(i%3)*3,yy-13,'#77786f');
+  line(cx+10,yy+4,cx+16,yy-9,'#b0a999');
+ }
+ // The split crown is deliberately leafless: this is fossilized wood.
+ poly([[cx-15,cy-150],[cx-59,cy-218],[cx-84,cy-230],[cx-48,cy-205],[cx-3,cy-159]],'#706b63');
+ poly([[cx+11,cy-157],[cx+57,cy-229],[cx+83,cy-236],[cx+48,cy-208],[cx+3,cy-145]],'#777269');
+ line(cx-59,cy-218,cx-84,cy-230,'#aaa395');
+ line(cx+57,cy-229,cx+83,cy-236,'#aaa395');
+ ctx.restore();
+}
