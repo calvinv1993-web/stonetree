@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {BuildingWorld} from './building-world.mjs';
+const world=()=>new BuildingWorld([{x:0,y:0,width:7,height:7,z:7,floors:2,material:'stone',doors:[{x:0,y:3}],stairs:{x:3,y:3},holes:[{x:2,y:2,z:6}]},{x:15,y:0,width:5,height:5,z:7,floors:3,material:'wood',stairs:{x:17,y:2}}]);
+test('roof is a real tile above highest floor',()=>{const w=world();assert.equal(w.tile(3,3,5).type,'roof');assert.equal(w.tile(17,2,4).type,'roof');assert.equal(w.tile(3,3,7).type,'stairs');assert.equal(w.tile(3,3,6).type,'stairs')});
+test('roof and upper floors are not ground overlays',()=>{const w=world();assert.equal(w.tile(3,4,7).z,7);assert.equal(w.tile(3,4,6).z,6);assert.equal(w.tile(3,4,5).z,5)});
+test('distant exterior sees roof and near exterior sees ground',()=>{const w=world();assert.equal(w.visibleTile(3,3,{x:-5,y:3,z:7}).type,'roof');assert.equal(w.visibleTile(3,3,{x:-1,y:3,z:7}).type,'stairs')});
+test('player inside sees their floor, not roof',()=>{const w=world();assert.equal(w.visibleTile(3,4,{x:3,y:4,z:7}).type,'floor');assert.equal(w.visibleTile(3,4,{x:3,y:4,z:6}).type,'floor')});
+test('holes reveal lower floor without removing it',()=>{const w=world();const t=w.visibleTile(2,2,{x:3,y:2,z:6});assert.equal(t.type,'hole');assert.equal(t.below.z,7);assert.equal(w.blocked(2,2,6),true)});
+test('collision is floor-specific and doors keep state',()=>{const w=world();assert.equal(w.blocked(0,3,7),true);assert.equal(w.buildings[0].base.toggleDoor(0,3,{x:-1,y:3,z:7}),true);assert.equal(w.blocked(0,3,7),false);assert.equal(w.blocked(0,3,6),true)});
+test('two buildings have different roof heights',()=>{const w=world();assert.equal(w.find(17,2).roofZ,4);assert.equal(w.find(3,3).roofZ,5)});
+test('overlapping buildings rejected',()=>assert.throws(()=>new BuildingWorld([{x:0,y:0,width:5,height:5},{x:2,y:2,width:5,height:5}])));
