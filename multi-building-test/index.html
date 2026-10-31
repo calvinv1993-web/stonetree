@@ -12,10 +12,13 @@ function blocked(x,y){const b=world.find(x,y);if(b){const t=world.tile(x,y,p.z);
 function displayedTile(x,y){
  const b=world.find(x,y);
  if(!b)return null;
- // A roof is a normal ground tile on roofZ, visible only while outside.
- // Inside a building, show the player's actual Z layer.
+ // Reveal the actual floor and its door when approaching a building.
+ // Roof tiles remain real Z-layer tiles, not a synthetic facade.
  const inside=world.find(p.x,p.y)===b;
- const z=inside?p.z:b.roofZ;
+ const dx=Math.max(b.base.x-p.x,0,p.x-(b.base.x+b.base.width-1));
+ const dy=Math.max(b.base.y-p.y,0,p.y-(b.base.y+b.base.height-1));
+ const near=Math.max(dx,dy)<=2;
+ const z=inside||near?p.z:b.roofZ;
  return world.tile(x,y,z);
 }
 function paint(){
