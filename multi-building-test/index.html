@@ -1,6 +1,6 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — brick wall</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie hoge dunne muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=56,DEPTH=13;
+const TILE=48,HEIGHT=94,DEPTH=6;
 function poly(g,p,color){g.fillStyle=color;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
 function makeWall(){
  const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
@@ -10,7 +10,7 @@ function makeWall(){
  const y=DEPTH;
  g.fillStyle='#4a372c';g.fillRect(0,y,TILE,HEIGHT);
  const colors=['#9c7759','#b18b69','#8e6b51','#a78162','#967156'];
- for(let row=0;row<7;row++){
+ for(let row=0;row<12;row++){
   const yy=y+row*8,shift=(row%2)*12;
   for(let bx=-24;bx<TILE+24;bx+=24){
    const l=Math.max(0,bx+shift),rr=Math.min(TILE,bx+shift+22);
@@ -37,7 +37,8 @@ function paint(){
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- ctx.drawImage(wall,Math.round((w-wall.width)/2),Math.round((h-wall.height)/2));
+ const x=Math.round((w-(TILE*3+DEPTH))/2),y=Math.round((h-wall.height)/2);
+ for(let i=0;i<3;i++)ctx.drawImage(wall,x+i*TILE,y);
 }
 addEventListener('resize',paint);paint();
 </script>
