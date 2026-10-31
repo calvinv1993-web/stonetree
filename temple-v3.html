@@ -40,17 +40,17 @@ function hero(){let x=player.x*T,y=player.y*T;box(x+9,y+2,14,10,'#dcb589');box(x
 function render(){ctx.clearRect(0,0,512,512);for(let y=0;y<N;y++)for(let x=0;x<N;x++)drawGround(x,y);
  const interior=inside()||(player.x===bounds.door&&player.y===bounds.b);
  // Object sprites are depth-sorted by their anchor tile. This preserves occlusion.
- const all=things.filter(o=>!(interior&&o.kind==='southWall')).map(o=>({...o,order:o.y*100+o.x}));all.push({kind:'player',x:player.x,y:player.y,order:player.y*100+player.x+0.5});
+ const all=things.map(o=>({...o,order:o.y*100+o.x}));all.push({kind:'player',x:player.x,y:player.y,order:player.y*100+player.x+0.5});
  all.sort((a,b)=>a.order-b.order);for(const o of all)o.kind==='player'?hero():drawThing(o);
  // The roof is a distinct overlay and never replaces ground or wall objects.
  if(!interior){for(const o of roof)drawThing(o)}
- // Inside, the front wall is deliberately hidden to reveal the room.
+ // Keep the complete south wall as a structural object on both sides of the entrance.
  box(0,0,512,25,'#17241ee8');ctx.fillStyle='#f1e4c7';ctx.font='bold 12px monospace';ctx.fillText(interior?'TEMPLE INTERIOR · CUTAWAY':'TEMPLE EXTERIOR · ROOF',10,17)}
 function occupied(x,y){return x<0||y<0||x>=N||y>=N||things.some(o=>o.blocks&&o.x===x&&o.y===y&&!(o.kind==='door'&&doorOpen))}
 function findPath(tx,ty){if(occupied(tx,ty))return null;const q=[[player.x,player.y]],prev=new Map(),seen=new Set([player.x+','+player.y]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let path=[],key=x+','+y;while(prev.has(key)){path.unshift(key.split(',').map(Number));key=prev.get(key)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!occupied(a,b)){seen.add(k);prev.set(k,x+','+y);q.push([a,b])}}}return null}
 let timer=null;function walk(path){clearTimeout(timer);let i=0;function step(){if(i>=path.length){timer=null;return}if(occupied(path[i][0],path[i][1])){timer=null;return}[player.x,player.y]=path[i++];render();timer=setTimeout(step,105)}step()}
 cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);
-if(x===bounds.door&&y===bounds.b){
+if(x===bounds.door&&(y===bounds.b||y===bounds.b-1)&&!inside()){
  const distance=Math.abs(player.x-x)+Math.abs(player.y-y);
  if(distance>2){note.textContent='Walk closer to the door to use it.';return}
  if(doorOpen&&player.x===x&&player.y===y){note.textContent='You cannot close the door while standing in its doorway.';return}
