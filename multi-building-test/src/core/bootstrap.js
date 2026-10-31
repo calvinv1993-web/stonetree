@@ -9,9 +9,10 @@ setInterval(()=>{
   const ascending=player.z===0;
   const landingY=y+(ascending?-1:1);
   const landingZ=ascending?1:0;
-  const validLanding=inside(x,landingY)&&
-   (landingZ===0||!VOID_TILES.has(localX(x)+','+localY(landingY)))&&
-   !(localY(landingY)===N-1&&(landingZ!==0||localX(x)!==BUILDING.door.col));
+  const lx=x-stairBuilding.position.x,ly=landingY-stairBuilding.position.y;
+  const validLanding=buildingAt(x,landingY)===stairBuilding&&
+   (landingZ===0||!VOID_TILES.has(lx+','+ly))&&
+   !(ly===stairBuilding.height-1&&(landingZ!==0||lx!==stairBuilding.door.col));
   if(validLanding){
    player.z=landingZ;
    player.y=landingY;
