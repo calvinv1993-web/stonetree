@@ -11,7 +11,7 @@ test('loads without uncaught errors and draws the game', async ({ page }) => {
  expect(errors).toEqual([]);
 });
 test('player state survives reload', async ({ page }) => {
- await page.evaluate(()=>{localStorage.setItem('elderwild-v1',JSON.stringify({x:320,y:650,hp:73,xp:120,gold:42,kills:2,vocation:'Ranger',floor:0}));window.__testSave=localStorage.getItem('elderwild-v1')});
+ await page.evaluate(()=>{p.gold=42;p.kills=2;p.hp=73;save()});
  await page.reload();await page.waitForTimeout(300);
  const state=await page.evaluate(()=>({hp:p.hp,gold:p.gold,kills:p.kills}));
  expect(state.gold).toBe(42);expect(state.kills).toBe(2);expect(state.hp).toBeGreaterThanOrEqual(73);
