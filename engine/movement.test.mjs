@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {World} from './world-core.mjs';
+import {findPath,stepCreature,tileCost} from './movement.mjs';
+const build=(width=5,height=3)=>{const w=new World();for(let y=0;y<height;y++)for(let x=0;x<width;x++)w.setTile(x,y,7,{id:'grass'});return w;};
+test('straight path is orthogonal',()=>{const w=build();assert.deepEqual(findPath(w,{x:0,y:0,z:7},{x:2,y:0,z:7}),[{x:1,y:0,z:7},{x:2,y:0,z:7}]);});
+test('avoids solid walls',()=>{const w=build();w.getTile(1,0,7).addStatic({blockWalking:true});const p=findPath(w,{x:0,y:0,z:7},{x:2,y:0,z:7});assert.equal(p.length,4);assert.equal(p.some(t=>t.x===1&&t.y===0),false);});
+test('weighted routing avoids expensive mud',()=>{const w=build(3,2);w.getTile(1,0,7).ground.moveCost=20;const p=findPath(w,{x:0,y:0,z:7},{x:2,y:0,z:7});assert.equal(p.length,4);assert.equal(p.some(t=>t.x===1&&t.y===0),false);});
+test('no route to absent, occupied or different-floor destination',()=>{const w=build();const a={id:'npc'};w.getTile(2,0,7).setCreature(a);assert.equal(findPath(w,{x:0,y:0,z:7},{x:2,y:0,z:7}),null);assert.equal(findPath(w,{x:0,y:0,z:7},{x:10,y:0,z:7}),null);assert.equal(findPath(w,{x:0,y:0,z:7},{x:1,y:0,z:6}),null);});
+test('movement applies destination terrain cost',()=>{const w=build();const a={id:'player'};w.getTile(0,0,7).setCreature(a);w.getTile(1,0,7).ground.moveCost=3;assert.deepEqual(stepCreature(w,a,{x:0,y:0,z:7},{x:1,y:0,z:7}),{position:{x:1,y:0,z:7},durationMilliseconds:600});assert.equal(w.getTile(0,0,7).creature,null);});
+test('rejects teleport, diagonal, occupied and cross-floor movement',()=>{const w=build();const a={id:'player'};w.getTile(0,0,7).setCreature(a);assert.equal(stepCreature(w,a,{x:0,y:0,z:7},{x:2,y:0,z:7}),null);assert.equal(stepCreature(w,a,{x:0,y:0,z:7},{x:1,y:1,z:7}),null);assert.equal(stepCreature(w,a,{x:0,y:0,z:7},{x:0,y:0,z:6}),null);w.getTile(1,0,7).setCreature({id:'other'});assert.equal(stepCreature(w,a,{x:0,y:0,z:7},{x:1,y:0,z:7}),null);});
+test('rejects invalid movement costs',()=>{const w=build();w.getTile(1,0,7).ground.moveCost=0;assert.throws(()=>tileCost(w.getTile(1,0,7)),RangeError);});
