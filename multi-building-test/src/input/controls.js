@@ -1,4 +1,10 @@
 document.getElementById('doorControl').addEventListener('click',()=>toggleDoor());
+document.getElementById('toggleInventory')?.addEventListener('click',()=>{
+ const content=document.getElementById('inventoryContents'),button=document.getElementById('toggleInventory');
+ content.hidden=!content.hidden;button.textContent=content.hidden?'+':'−';
+ button.setAttribute('aria-expanded',String(!content.hidden));
+ button.setAttribute('aria-label',content.hidden?'Toon inventory':'Verberg inventory');
+});
 document.getElementById('takeLoot')?.addEventListener('click',takeCorpseLoot);
 document.getElementById('closeLoot')?.addEventListener('click',()=>{document.getElementById('lootPanel').hidden=true;openedCorpseId=null;});
 canvas.addEventListener('pointerdown',e=>{
