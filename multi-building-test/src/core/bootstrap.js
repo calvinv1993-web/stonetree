@@ -2,7 +2,21 @@
 setInterval(()=>{
  if(!path.length)return;
  const [x,y]=path.shift();player.x=x;player.y=y;
- if(isStair(x,y)){player.z=1-player.z;path=[];}
+ if(isStair(x,y)){
+  // Stair landings are offset one tile: north when ascending,
+  // south when descending. Never leave the player inside the stairs.
+  const ascending=player.z===0;
+  const landingY=y+(ascending?-1:1);
+  const landingZ=ascending?1:0;
+  const validLanding=inside(x,landingY)&&
+   (landingZ===0||!VOID_TILES.has(x+','+landingY))&&
+   !(landingY===N-1&&(landingZ!==0||x!==BUILDING.door.col));
+  if(validLanding){
+   player.z=landingZ;
+   player.y=landingY;
+  }
+  path=[];
+ }
  paint();
 },160);
 addEventListener('resize',paint);paint();
