@@ -53,68 +53,85 @@ function exterior(x,y){
  poly([[x-12,base-2*HEIGHT],[x,base-2*HEIGHT-12],[x+N*TILE,base-2*HEIGHT-12],[x+N*TILE+12,base-2*HEIGHT]],'#756052');
  rect(x-12,base-2*HEIGHT-3,N*TILE+24,5,'#b5a48b');
 }
-// Both floors remain in world space. Upper-floor voids reveal the actual
-// ground-floor tiles, staircase and entrance below, never a fake facade.
-const UPPER_VOIDS=new Set(['1,1','1,2','2,1','2,2']);
-function groundUnderUpper(x,y){
- const lowerY=y+HEIGHT,size=N*TILE;
- rect(x,lowerY-HEIGHT,size,HEIGHT,'#aaa99c');
- for(let row=0;row<N;row++)for(let col=0;col<N;col++){
-  rect(x+col*TILE,lowerY+row*TILE,TILE,TILE,(row+col)%2?'#888f7d':'#979e8c');
-  ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
-  ctx.strokeRect(x+col*TILE+.5,lowerY+row*TILE+.5,TILE,TILE);
- }
- const sx=x+BUILDING.stairs.x*TILE,sy=lowerY+BUILDING.stairs.y*TILE;
- rect(sx+4,sy+5,TILE-8,TILE-9,'#715b37');
- for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
- // The lower entrance is always part of the scene.
- facade(x,lowerY+size,0,true);
+// One physical building: each storey has a fixed world elevation.
+// Camera follows the player's z. The geometry does not change between views.
+const VOID_TILES=new Set(['1,1','1,2','2,1','2,2']);
+function floorTile(x,y,col,row,level){
+ const wood=BUILDING.floors[level].material==='wood';
+ rect(x+col*TILE,y+row*TILE,TILE,TILE,wood?((col+row)%2?'#947959':'#a48966'):((col+row)%2?'#888f7d':'#979e8c'));
+ ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
+ ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
 }
-function interior(x,y,level){
- // Floor is the actual level plane, not a copy of the exterior facade.
- const floor=BUILDING.floors[level],size=N*TILE;
- if(level===1)groundUnderUpper(x,y);
+function staircase(x,y,level){
+ const sx=x+BUILDING.stairs.x*TILE,sy=y+BUILDING.stairs.y*TILE;
+ rect(sx+4,sy+5,TILE-8,TILE-9,level===0?'#715b37':'#635443');
+ for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
+}
+function walls(x,y){
+ const size=N*TILE;
  rect(x,y-HEIGHT,size,HEIGHT,'#aaa99c');
  for(let i=1;i<4;i++)line(x,y-HEIGHT+i*HEIGHT/4,x+size,y-HEIGHT+i*HEIGHT/4,'#8b8b80');
  poly([[x,y-HEIGHT],[x+THICK,y-HEIGHT-THICK],[x+size+THICK,y-HEIGHT-THICK],[x+size,y-HEIGHT]],'#e0dac8');
- for(let row=0;row<N;row++)for(let col=0;col<N;col++){
-  if(level===1&&UPPER_VOIDS.has(col+','+row))continue;
-  rect(x+col*TILE,y+row*TILE,TILE,TILE,floor.material==='wood'?((row+col)%2?'#947959':'#a48966'):((row+col)%2?'#888f7d':'#979e8c'));
-  ctx.strokeStyle='#646b5e';ctx.lineWidth=1;ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
- }
  rect(x-SIDE,y-HEIGHT,SIDE,size+HEIGHT,'#777d72');
  rect(x+size,y-HEIGHT,SIDE,size+HEIGHT,'#777d72');
  rect(x-SIDE,y-HEIGHT,SIDE+THICK,THICK,'#d9d7c6');
  rect(x+size,y-HEIGHT,SIDE+THICK,THICK,'#d9d7c6');
- const sx=x+BUILDING.stairs.x*TILE,sy=y+BUILDING.stairs.y*TILE;
- rect(sx+4,sy+5,TILE-8,TILE-9,'#715b37');
- for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
- if(level===1){
-  // The upper slab has an opening above the staircase. Looking through
-  // that opening shows the ground floor rendered at its real elevation.
-  rect(x,y+size,size,8,'#665b4b');
-  rect(x,y+size,size,4,'#d0b68e');
+}
+function renderFloor(x,y,level,holes){
+ walls(x,y);
+ for(let row=0;row<N;row++)for(let col=0;col<N;col++){
+  if(holes&&VOID_TILES.has(col+','+row))continue;
+  floorTile(x,y,col,row,level);
  }
- playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);
- // Front wall belongs to this floor; same openings as the outside.
- facade(x,y+size,level,level===0);
- if(level===1){
-  ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';ctx.fillText('Verdieping 2',x,y-HEIGHT-18);
+ staircase(x,y,level);
+}
+function interior(x,upperY,level){
+ const size=N*TILE;
+ if(level===0){
+  renderFloor(x,upperY,0,false);
+  playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
+  // A door is an actual opening, not a filled-in brown rectangle.
+  facade(x,upperY+size,0,true);
+  return;
  }
+ // The downstairs room remains at its own world elevation.
+ // Clip it to the actual upper-floor stairwell; never paint a fake
+ // duplicate of its floor onto the upstairs floor.
+ const lowerY=upperY+HEIGHT;
+ ctx.save();ctx.beginPath();
+ for(const key of VOID_TILES){
+  const [col,row]=key.split(',').map(Number);
+  ctx.rect(x+col*TILE,upperY+row*TILE,TILE,TILE);
+ }
+ ctx.clip();
+ renderFloor(x,lowerY,0,false);
+ ctx.restore();
+ // The upper floor is a real slab with an open stairwell.
+ renderFloor(x,upperY,1,true);
+ // Show slab thickness at the edges of the void.
+ for(const key of VOID_TILES){
+  const [col,row]=key.split(',').map(Number);
+  if(!VOID_TILES.has(col+','+(row-1)))rect(x+col*TILE,upperY+row*TILE,TILE,5,'#d4bc91');
+  if(!VOID_TILES.has((col-1)+','+row))rect(x+col*TILE,upperY+row*TILE,5,TILE,'#665b4b');
+ }
+ playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
+ // Ground-floor entrance remains physically BELOW the upper floor.
+ // It is drawn before the upper south wall, never substituted for it.
+ facade(x,lowerY+size,0,true);
+ facade(x,upperY+size,1,false);
+ ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
+ ctx.fillText('Verdieping 2',x,upperY-HEIGHT-18);
 }
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
- canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
- // Player stays screen-centered. Geometry is shifted for elevation,
- // rather than moving the player sprite to a fake screen height.
+ canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
+ ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  const x=Math.round(w/2-(player.x+.5)*TILE);
- const groundY=Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT);
- originX=x;originY=groundY;
- grass(x,groundY,w,h);
- if(outside()){
-  exterior(x,groundY);
-  playerSprite(x+(player.x+.5)*TILE,groundY+(player.y+.5)*TILE);
- }else interior(x,groundY,player.z);
+ const y=Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT);
+ originX=x;originY=y;
+ grass(x,y,w,h);
+ if(outside()){exterior(x,y);playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);}
+ else interior(x,y,player.z);
 }
 function walkable(x,y){
  if(inside(x,y))return true;
