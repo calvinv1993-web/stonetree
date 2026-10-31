@@ -4,6 +4,8 @@ function refreshMovementTimer(){
  movementTimer=setInterval(()=>{if(stepMovement())paint();},playerStepMilliseconds());
 }
 refreshMovementTimer();
+inventory.items.push(...starterItems.map(item=>({...item})));
+bindEquipment();
 refreshInventory();
 
 if(typeof requestAnimationFrame==='function'){
