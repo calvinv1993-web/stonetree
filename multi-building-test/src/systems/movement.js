@@ -1,33 +1,40 @@
 // Stonetree: src/systems/movement.js
-function isStair(x,y){return localX(x)===BUILDING.stairs.x&&localY(y)===BUILDING.stairs.y;}
+function isStair(x,y){const b=buildingAt(x,y);return !!b&&x-b.position.x===b.stairs.x&&y-b.position.y===b.stairs.y;}
 function walkable(x,y){
- if(inside(x,y)){
+ const b=buildingAt(x,y);
+ if(b){
+  const lx=x-b.position.x,ly=y-b.position.y;
   // South wall occupies the front row except for the actual doorway.
   // Never let the player stand in the facade to either side of the door.
   // Every storey has solid exterior walls. Only the ground-floor door
   // is a traversable opening; upper floors have no exterior doorway.
-  if(localY(y)===N-1&&(player.z!==0||localX(x)!==BUILDING.door.col))return false;
-  return player.z===0||!VOID_TILES.has(localX(x)+','+localY(y))||isStair(x,y);
+  if(ly===b.height-1&&(player.z!==0||lx!==b.door.col))return false;
+  return player.z===0||!VOID_TILES.has(lx+','+ly)||isStair(x,y);
  }
- return player.z===0&&x>=BUILDING.position.x-7&&x<BUILDING.position.x+N+8&&y>=BUILDING.position.y-7&&y<=BUILDING.position.y+N+5;
+ return player.z===0&&x>=-7&&x<=21&&y>=-7&&y<=10;
 }
 function connected(cx,cy,nx,ny){
- if(inside(cx,cy)===inside(nx,ny))return true;
- return doorOpen&&localX(cx)===BUILDING.door.col&&localX(nx)===BUILDING.door.col&&
-  ((localY(cy)===N-1&&localY(ny)===N)||(localY(cy)===N&&localY(ny)===N-1));
+ const a=buildingAt(cx,cy),b=buildingAt(nx,ny);
+ if(a===b)return true;
+ const building=a||b;
+ if(!building||!doorStates[building.id]||player.z!==0)return false;
+ const dx=building.position.x+building.door.col,front=building.position.y+building.height-1;
+ return cx===dx&&nx===dx&&((cy===front&&ny===front+1)||(cy===front+1&&ny===front));
 }
-function adjacentToDoor(){
- return player.z===0&&localX(player.x)===BUILDING.door.col&&
-  (localY(player.y)===N-1||localY(player.y)===N);
+function doorBuilding(){
+ return BUILDINGS.find(b=>player.z===0&&player.x===b.position.x+b.door.col&&
+ (player.y===b.position.y+b.height-1||player.y===b.position.y+b.height));
 }
+function adjacentToDoor(){return !!doorBuilding();}
 function toggleDoor(){
- if(!adjacentToDoor())return false;
+ const b=doorBuilding();if(!b)return false;
+ selectBuilding(b);
  // Closing the door while standing in its tile moves the player
  // onto the free exterior tile before the door becomes solid.
  if(doorOpen&&localX(player.x)===BUILDING.door.col&&localY(player.y)===N-1){
   player.y=BUILDING.position.y+N;
  }
- doorOpen=!doorOpen;
+ doorOpen=!doorOpen;doorStates[b.id]=doorOpen;
  path=[];paint();return true;
 }
 function route(tx,ty){
