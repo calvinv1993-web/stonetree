@@ -7,49 +7,52 @@ const fill=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.rou
 const add=(kind,x,y,blocking=true)=>{items.push({kind,x,y});if(blocking)solid.add(key(x,y))};
 function floorRect(l,t,r,b,type){for(let y=t;y<=b;y++)for(let x=l;x<=r;x++)floors.set(key(x,y),type)}
 floorRect(1,1,5,4,'wood');floorRect(1,6,5,9,'wood');floorRect(1,11,5,14,'wood');floorRect(8,9,17,14,'wood');
-floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
+floorRect(6,1,7,14,'wood');floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
 function wallLine(x1,y1,x2,y2){const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1);let x=x1,y=y1;while(true){add('wall',x,y);if(x===x2&&y===y2)break;x+=dx;y+=dy}}
 wallLine(0,0,6,0);wallLine(0,0,0,15);wallLine(6,0,6,7);wallLine(0,5,6,5);wallLine(0,10,6,10);wallLine(0,15,7,15);
 wallLine(7,8,18,8);wallLine(7,8,7,15);wallLine(18,8,18,15);wallLine(7,15,18,15);
 for(const d of doors){solid.delete(key(d.x,d.y));for(let i=items.length-1;i>=0;i--)if(items[i].kind==='wall'&&items[i].x===d.x&&items[i].y===d.y)items.splice(i,1);add('door',d.x,d.y,false)}
 // Deliberate connected entrance at south and inner corridor. Walls never disappear on entry.
-for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,9],['desk',4,1],['books',5,0],['chest',9,8],['chest',10,8],['chest',11,8],['barrel',16,14],['barrel',17,14],['barrel',18,14],['fire',14,4],['pot',8,5],['table',4,12],['crate',1,16],['crate',2,16],['water',7,16]])add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
+for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,8],['desk',4,1],['books',5,2],['chest',9,9],['chest',10,9],['chest',11,9],['barrel',15,13],['barrel',16,13],['barrel',17,13],['fire',14,4],['pot',8,5],['table',3,12],['crate',1,16],['crate',2,16],['water',7,16]])if(!solid.has(key(x,y)))add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
 function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(a,b,32,32,'#775837');for(let j=0;j<4;j++){const yy=b+j*8;fill(a,yy,32,7,(j+x)%3?'#c8a46b':'#d4b77d');fill(a,yy,32,2,'#e5c68f');fill(a,yy+7,32,1,'#76563b');fill(a+((x+j)%2?14:25),yy+2,1,5,'#8d714e');if(rand(x,y,j)%4===0)fill(a+5,yy+4,6,1,'#ad8856')}return}
 if(t==='stone'){fill(a,b,32,32,'#676d6b');fill(a+1,b+1,30,29,'#a4a8a4');fill(a+2,b+2,28,3,'#c7c9c2');fill(a,b+29,32,3,'#5c625f');fill(a+15,b+4,2,12,'#777e7a');fill(a,b+16,32,2,'#717873');return}
 fill(a,b,32,32,rand(x,y)%4?'#49783e':'#568249');for(let j=0;j<15;j++){const n=rand(x,y,j);fill(a+2+n%28,b+2+(n>>>8)%28,1+n%3,1+n%2,['#2e6034','#77a456','#a3a66b','#386f3a'][n%4])}
 }
 function wall(o){
  const a=o.x*T,b=o.y*T;
- // Every wall occupies one collision tile, but its 2.5D sprite extends above
- // the anchor. Continuous vertical runs are narrow side faces, not full facades.
- const isWall=(x,y)=>items.some(v=>v.kind==='wall'&&v.x===x&&v.y===y);
- const vertical=isWall(o.x,o.y-1)||isWall(o.x,o.y+1);
- const horizontal=isWall(o.x-1,o.y)||isWall(o.x+1,o.y);
- const side=vertical&&!horizontal;
- const h=side?38:44,top=b+32-h;
- fill(a,top,32,h,'#3b423e');
+ const neighbor=(x,y)=>items.some(v=>(v.kind==='wall'||v.kind==='door')&&v.x===x&&v.y===y);
+ const n=neighbor(o.x,o.y-1),south=neighbor(o.x,o.y+1),west=neighbor(o.x-1,o.y),east=neighbor(o.x+1,o.y);
+ const side=(n||south)&&!(west||east);
+ const top=b-13,depth=45;
+ // Solid anchor: stone occupies exactly one map tile, but the visible face
+ // rises above that tile. A narrow bright top and shaded vertical side
+ // communicate orthographic height without distorting the floor grid.
+ fill(a,top,32,depth,'#38413c');
+ fill(a+1,top+1,30,10,'#aeb5aa');
+ fill(a+2,top+1,28,3,'#d4d9cc');
+ fill(a+2,top+8,28,3,'#636d64');
  if(side){
-   // Side wall: slim visible top edge, recessed inner face, dark outside face.
-   fill(a+1,top+2,23,7,'#b6bbb1');
-   fill(a+2,top+2,19,3,'#e0dfd0');
-   fill(a+3,top+9,19,h-13,'#89918a');
-   fill(a+23,top+4,9,h-5,'#4e5b54');
-   fill(a+25,top+7,3,h-10,'#66746a');
-   for(let j=0;j<3;j++){const yy=top+12+j*9;fill(a+3,yy,20,2,'#525d55');fill(a+5+(j%2)*9,yy+2,2,6,'#677269')}
+   fill(a+3,top+11,21,30,'#929c90');
+   fill(a+24,top+7,8,37,'#46564c');
+   fill(a+25,top+10,2,29,'#728075');
  }else{
-   // Front/back wall: broad masonry elevation and visible upper coping.
-   fill(a+1,top+2,30,h-5,'#939a91');
-   fill(a,top,32,8,'#b7bdb3');
-   fill(a+1,top,30,3,'#e0dfd1');
-   fill(a,top+8,32,3,'#5a665e');
-   for(let j=0;j<3;j++){
-     const yy=top+12+j*9;
-     fill(a+2,yy,28,2,'#58635c');
-     fill(a+4+(j%2)*14,yy+2,2,7,'#677168');
-     fill(a+7,yy+4,7,2,'#adb4aa');
-   }
-   fill(a,b+27,32,5,'#4b554e');
+   fill(a+2,top+11,28,30,'#919a90');
+   fill(a+29,top+11,3,30,'#525e55');
  }
+ const width=side?19:26;
+ for(let j=0;j<3;j++){
+   let yy=top+13+j*9;
+   fill(a+3,yy,width,2,'#4f5b51');
+   fill(a+3+(j%2?9:width-5),yy+2,2,7,'#657166');
+   const h=rand(o.x,o.y,j);
+   fill(a+5+h%Math.max(5,width-8),yy+4,5,2,'#c0c5b9');
+ }
+ // Connected wall tops: caps bridge adjacent tiles and corners.
+ if(west)fill(a,top+1,4,9,'#b4baae');
+ if(east)fill(a+28,top+1,4,9,'#a4ada2');
+ if(n)fill(a+1,top,7,4,'#d0d5c7');
+ if(south)fill(a+1,top+8,7,3,'#6b776b');
+ fill(a,b+28,32,4,'#414c44');
 }
 function drawItem(o){const a=o.x*T,b=o.y*T;switch(o.kind){
 case 'wall':wall(o);return;
