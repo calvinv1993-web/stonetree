@@ -311,6 +311,45 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
 }
+function rootheartHomeFurniture(b,x,y,level){
+ if(b.id!=='rootheart-home')return;
+ const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
+ if(level===0){
+  // Hearth and dining area; keep the south entrance and staircase at (1,2) open.
+  let p=at(3,0);
+  rect(p.x+4,p.y+5,32,30,'#77766e');
+  rect(p.x+9,p.y+13,22,19,'#393b37');
+  rect(p.x+13,p.y+19,14,11,'#c66c39');
+  rect(p.x+18,p.y+22,6,7,'#edb45e');
+  p=at(2,1);
+  rect(p.x+6,p.y+25,5,10,'#62462e');
+  rect(p.x+29,p.y+25,5,10,'#62462e');
+  rect(p.x+4,p.y+12,32,17,'#906b47');
+  rect(p.x+7,p.y+12,26,4,'#c39a68');
+  p=at(0,1);
+  rect(p.x+5,p.y+8,30,27,'#604a36');
+  rect(p.x+8,p.y+11,24,5,'#ad8b61');
+  rect(p.x+8,p.y+22,24,5,'#ad8b61');
+  p=at(4,2);
+  rect(p.x+7,p.y+14,26,18,'#796044');
+  rect(p.x+10,p.y+10,20,6,'#b49669');
+ }else if(level===1){
+  // Bed, bedside chest and storage; stair opening remains untouched.
+  let p=at(3,1);
+  rect(p.x+3,p.y+6,34,30,'#614731');
+  rect(p.x+6,p.y+9,28,23,'#b2a58d');
+  rect(p.x+7,p.y+10,26,8,'#e1d7bd');
+  rect(p.x+7,p.y+20,26,10,'#687b68');
+  p=at(4,1);
+  rect(p.x+7,p.y+15,26,19,'#76573c');
+  rect(p.x+9,p.y+12,22,6,'#ad885c');
+  rect(p.x+16,p.y+22,8,4,'#c6ad78');
+  p=at(0,1);
+  rect(p.x+6,p.y+5,28,30,'#6e543b');
+  rect(p.x+9,p.y+8,22,24,'#997653');
+  line(p.x+20,p.y+9,p.x+20,p.y+31,'#594532');
+ }
+}
 function rootheartTempleFurniture(b,x,y,level){
  if(b.id!=='rootheart-temple')return;
  const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
@@ -456,6 +495,7 @@ function drawStorey(b,x,y,level,occupied){
  rootheartSmithyFurniture(b,x,y,level);
  rootheartShopFurniture(b,x,y,level);
  rootheartTempleFurniture(b,x,y,level);
+ rootheartHomeFurniture(b,x,y,level);
  elevatedFloorEdge(b,x,y,level);
  if(occupied)cutawayFront(b,x,y+b.height*TILE,level);
  else{
