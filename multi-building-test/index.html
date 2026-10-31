@@ -43,9 +43,6 @@ function paint(){
   line(x+size,yy-WALL,x+size+SIDE,yy-WALL,'#626a60');
  }
 
-}
-addEventListener('resize',paint);paint();
-</script
  // Horizontal south wall is always the final foreground layer.
  // South wall rises from the southern grid edge, rather than hanging below it.
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
@@ -54,4 +51,8 @@ addEventListener('resize',paint);paint();
  for(let i=1;i<4;i++)line(x,y+size-WALL+i*WALL/4,x+size,y+size-WALL+i*WALL/4,'#86877c');
  ctx.fillStyle='#d8d3c3';
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
- ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);>
+ ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
+}
+addEventListener('resize',paint);paint();
+
+</script>
