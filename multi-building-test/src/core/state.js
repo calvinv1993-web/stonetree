@@ -4,6 +4,7 @@ const TILE=40,HEIGHT=64,THICK=6,SIDE=12;
 let BUILDING=BUILDING_CONFIG;
 const BUILDINGS=BUILDING_CONFIGS;
 const doorStates=Object.fromEntries(BUILDINGS.map(b=>[b.id,false]));
+const terraceDoorStates=Object.fromEntries(BUILDINGS.filter(b=>b.terrace).map(b=>[b.id,false]));
 for(const b of BUILDINGS){
  if(!Number.isInteger(b.width)||b.width!==5||b.height!==5||
     !Number.isInteger(b.position.x)||!Number.isInteger(b.position.y)||b.position.z!==0||
