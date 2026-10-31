@@ -3,6 +3,7 @@ const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
 const TILE=40,N=5,WALL=64,THICK=6;
 const player={x:2,y:2,z:0};let path=[];let originX=0,originY=0;
 const STAIRS={x:1,y:1},DOOR_X=2;
+const UPPER_WINDOWS=[1,3]; // Same openings on the south wall, inside and outside.
 function inside(x,y){return x>=0&&x<N&&y>=0&&y<N;}
 function walkable(x,y){return inside(x,y)||(player.z===0&&x===DOOR_X&&y>=N&&y<=N+5)||(player.z===0&&y>=N+1&&y<=N+5&&x>=-7&&x<N+8);}
 function stairsAt(x,y){return x===STAIRS.x&&y===STAIRS.y;}
@@ -127,6 +128,17 @@ function paint(){
   line(x,yy,doorLeft,yy,'#86877c');
   line(doorLeft+TILE,yy,x+size,yy,'#86877c');
  }
+ // Windows are wall openings, so draw them on the foreground wall layer.
+ if(player.z===1){
+  for(const col of UPPER_WINDOWS){
+   const wx=x+col*TILE+6,wy=y+size-WALL+17;
+   ctx.fillStyle='#514d43';ctx.fillRect(wx-3,wy-3,34,37);
+   ctx.fillStyle='#37677b';ctx.fillRect(wx,wy,28,28);
+   ctx.fillStyle='#8fb2b8';ctx.fillRect(wx+12,wy,3,28);
+   ctx.fillStyle='#8fb2b8';ctx.fillRect(wx,wy+12,28,3);
+   ctx.fillStyle='#d6c8a8';ctx.fillRect(wx-4,wy+29,36,5);
+  }
+ }
  ctx.fillStyle='#d8d3c3';
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
  ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
@@ -144,7 +156,7 @@ function paint(){
   ctx.fillStyle='#77786e';ctx.fillRect(x,upperBottom-5,size,5);
   for(let i=1;i<4;i++)line(x,upperTop+i*WALL/4,x+size,upperTop+i*WALL/4,'#89897e');
   // Two upper windows make the storey visually distinct from the doorway below.
-  for(const col of [1,3]){
+  for(const col of UPPER_WINDOWS){
    const wx=x+col*TILE+6,wy=upperTop+17;
    ctx.fillStyle='#514d43';ctx.fillRect(wx-3,wy-3,34,37);
    ctx.fillStyle='#37677b';ctx.fillRect(wx,wy,28,28);
