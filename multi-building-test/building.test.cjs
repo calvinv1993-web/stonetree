@@ -140,3 +140,23 @@ test('loot: cannot take corpse contents from a distance or other floor',()=>{
  g.run('openedCorpseId=ratCorpses[0].id;takeCorpseLoot()');assert.equal(g.run('inventory.gold'),0);
  g.place(6,6,1);assert.equal(g.run('openRatCorpse(ratCorpses[0])'),false);
 });
+
+test('equipment: equip and unequip all starter items without changing combat damage',()=>{
+ const g=game();
+ for(const slot of ['weapon','shield','armor']){
+  const i=g.run('bagItems().findIndex(item=>item.slot==='+JSON.stringify(slot)+')');
+  assert.ok(i>=0);assert.equal(g.run('equipItem('+i+')'),true);
+  assert.equal(g.run('equipment.'+slot+'.slot'),slot);
+ }
+ assert.deepEqual(g.json('equipmentStats()'),{attack:8,defense:5,armor:2});
+ assert.equal(g.run('unequipItem("weapon")'),true);
+ assert.equal(g.run('equipment.weapon'),null);
+ assert.equal(g.run('inventory.items.length'),1);
+ assert.equal(g.run('playerHealth.current'),100);
+});
+test('equipment: gold cannot be equipped and empty slots cannot be unequipped',()=>{
+ const g=game();g.run('inventory.gold=3');
+ assert.equal(g.run('equipItem(0)'),false);
+ assert.equal(g.run('unequipItem("helmet")'),false);
+ assert.equal(g.run('inventory.gold'),3);
+});
