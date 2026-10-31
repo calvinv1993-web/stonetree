@@ -1,37 +1,44 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,THICK=10,HEIGHT=64;
-function wallSprite(){
- const c=document.createElement('canvas');
- // One wall occupies a 48px tile horizontally, with its height above the tile.
- c.width=TILE;c.height=TILE+HEIGHT;
+const TILE=48,HEIGHT=82,DEPTH=14,SIDE=9;
+// Each sprite has a 48px tile anchor and projects upward by HEIGHT.
+// The end cap belongs only to the exposed right end of the wall.
+function wallSprite(endCap=false){
+ const c=document.createElement('canvas');c.width=TILE+(endCap?SIDE:0);c.height=HEIGHT+DEPTH;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- const top=HEIGHT-9,depth=9;
- // Front plane, normal stone shade.
- g.fillStyle='#78847e';g.fillRect(0,top+depth,TILE,HEIGHT-depth);
- g.fillStyle='#67736d';g.fillRect(0,top+depth+11,TILE,2);
- g.fillStyle='#a0aaa3';g.fillRect(1,top+depth+2,TILE-2,2);
- g.fillStyle='#59655f';g.fillRect(0,top+HEIGHT-3,TILE,3);
- // Bright top plane: clearly separate from the vertical front.
- g.fillStyle='#c5cec5';g.fillRect(0,top,TILE,depth);
- g.fillStyle='#e0e6da';g.fillRect(1,top+1,TILE-2,2);
- g.fillStyle='#a0aba2';g.fillRect(0,top+depth-2,TILE,2);
- // Right-side plane, darker to create 2.5D volume.
- g.fillStyle='#45514e';g.fillRect(TILE-7,top+depth,7,HEIGHT-depth);
- g.fillStyle='#64716b';g.fillRect(TILE-7,top+depth,2,HEIGHT-depth-2);
- // End grain on the top-right.
- g.fillStyle='#87938b';g.fillRect(TILE-7,top,7,depth);
- g.fillStyle='#5b6861';g.fillRect(TILE-2,top,2,depth);
+ const faceY=DEPTH,faceH=HEIGHT;
+ // Vertical front face: full wall height, without fake side faces at joins.
+ g.fillStyle='#6f7d76';g.fillRect(0,faceY,TILE,faceH);
+ g.fillStyle='#85938a';g.fillRect(1,faceY+2,TILE-2,faceH-5);
+ g.fillStyle='#a2afa5';g.fillRect(1,faceY+3,TILE-2,3);
+ g.fillStyle='#5c6b64';g.fillRect(0,faceY+faceH-4,TILE,4);
+ // Subtle stone courses continue seamlessly through adjacent segments.
+ for(const yy of [27,52,76]){
+  g.fillStyle='#617069';g.fillRect(0,faceY+yy,TILE,2);
+  g.fillStyle='#99a69c';g.fillRect(0,faceY+yy+2,TILE,1);
+ }
+ // Top plane: lighter, visibly deeper than the previous version.
+ g.fillStyle='#bac8bd';g.fillRect(0,0,TILE,DEPTH);
+ g.fillStyle='#e0e8dc';g.fillRect(0,1,TILE,3);
+ g.fillStyle='#99a89c';g.fillRect(0,DEPTH-3,TILE,3);
+ // Only the last segment has a visible right side.
+ if(endCap){
+  g.fillStyle='#3f4d48';g.fillRect(TILE,DEPTH,SIDE,HEIGHT);
+  g.fillStyle='#56665e';g.fillRect(TILE,DEPTH,2,HEIGHT);
+  g.fillStyle='#87978b';g.fillRect(TILE,0,SIDE,DEPTH);
+  g.fillStyle='#65756b';g.fillRect(TILE+SIDE-2,0,2,DEPTH);
+  g.fillStyle='#35433e';g.fillRect(TILE+SIDE-2,DEPTH,2,HEIGHT);
+ }
  return c;
 }
-const sprite=wallSprite();
+const middle=wallSprite(false),last=wallSprite(true);
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*3)/2),y=Math.round(h/2);
- for(let i=0;i<3;i++)ctx.drawImage(sprite,x+i*TILE,y-HEIGHT);
+ const x=Math.round((w-TILE*3-SIDE)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
+ for(let i=0;i<3;i++)ctx.drawImage(i===2?last:middle,x+i*TILE,y);
 }
 addEventListener('resize',paint);paint();
 </script>
