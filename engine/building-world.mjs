@@ -24,7 +24,7 @@ export class BuildingWorld {
   if(b.holes.some(h=>h.x===x&&h.y===y&&h.z===z))return {type:'hole',z};
   if(b.stairs&&b.stairs.x===x&&b.stairs.y===y&&level<b.floors)return {type:'stairs',z};
   if(level===0)return {...b.base.at(x,y),z};
-  return {type:b.base.boundary(x,y)?'wall':'floor',z,material:b.base.material};
+  return b.base.boundary(x,y)?{type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y)}:{type:'floor',z,material:b.base.material};
  }
  blocked(x,y,z){
   const t=this.tile(x,y,z);
