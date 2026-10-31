@@ -7,8 +7,9 @@ function game(){
  const events={},calls=[];let interval;
  const ctx=new Proxy({globalAlpha:1},{get:(o,k)=>o[k]??((...a)=>calls.push([k,...a])),set:(o,k,v)=>(o[k]=v,true)});
  const status={textContent:''},button={hidden:true,addEventListener:(k,f)=>events['door:'+k]=f};
+ const panels=Object.fromEntries(['lootPanel','lootContents','takeLoot','inventoryContents','toggleInventory','closeLoot'].map(id=>[id,{hidden:false,textContent:'',addEventListener(){},setAttribute(){}}]));
  const canvas={dataset:{},width:0,height:0,getContext:()=>ctx,addEventListener:(k,f)=>events[k]=f,focus(){},getBoundingClientRect:()=>({left:0,top:0,width:sandbox.innerWidth,height:sandbox.innerHeight})};
- const sandbox={document:{getElementById:id=>({map:canvas,status,doorControl:button})[id]},innerWidth:1363,innerHeight:936,devicePixelRatio:1,addEventListener:(k,f)=>events[k]=f,setInterval:f=>interval=f};
+ const sandbox={document:{getElementById:id=>({map:canvas,status,doorControl:button,...panels})[id]},innerWidth:1363,innerHeight:936,devicePixelRatio:1,addEventListener:(k,f)=>events[k]=f,setInterval:f=>interval=f};
  vm.createContext(sandbox);
  const html=readFileSync(join(__dirname,'index.html'),'utf8');
  for(const [,src] of html.matchAll(/<script src="([^"]+)"/g))vm.runInContext(readFileSync(join(__dirname,src.split('?')[0]),'utf8'),sandbox,{filename:src});
@@ -121,4 +122,21 @@ test('rectangular configuration renders; overlap and invalid landings rejected',
  const g=game();g.run("var sample=JSON.parse(JSON.stringify(BUILDINGS[0]));sample.id='rect';sample.width=6;sample.height=7;validateBuildings([sample]);exterior(sample,0,0);drawStorey(sample,0,0,1,false)");
  assert.throws(()=>g.run('validateBuildings([sample,sample])'));
  assert.throws(()=>g.run('sample.floors[0].stairs.up.y=0;validateBuildings([sample])'));
+});
+
+test('loot: corpse can be opened and taken once, inventory receives gold',()=>{
+ const g=game();g.place(6,6);
+ g.run('rat.x=6;rat.y=7;createRatCorpse()');
+ assert.equal(g.run('openRatCorpse(ratCorpses[0])'),true);
+ const amount=g.run('ratCorpses[0].items[0].amount');
+ g.run('takeCorpseLoot()');
+ assert.equal(g.run('inventory.gold'),amount);
+ assert.equal(g.run('ratCorpses[0].items.length'),0);
+ g.run('takeCorpseLoot()');assert.equal(g.run('inventory.gold'),amount);
+});
+test('loot: cannot take corpse contents from a distance or other floor',()=>{
+ const g=game();g.run('createRatCorpse()');
+ g.place(2,2);assert.equal(g.run('openRatCorpse(ratCorpses[0])'),false);
+ g.run('openedCorpseId=ratCorpses[0].id;takeCorpseLoot()');assert.equal(g.run('inventory.gold'),0);
+ g.place(6,6,1);assert.equal(g.run('openRatCorpse(ratCorpses[0])'),false);
 });
