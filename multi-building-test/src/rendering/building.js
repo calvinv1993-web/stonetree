@@ -34,6 +34,7 @@ function facade(x,baseY,level,door){
  rect(x,baseY-5,N*TILE,5,'#77786e');
 }
 function exterior(x,y){
+ if(BUILDING.terrace){terraceExterior(x,y);return;}
  const size=N*TILE,base=y+size,roofY=y-BUILDING.floors.length*HEIGHT;
  // The roof covers the same complete footprint as both storeys.
  rect(x-SIDE,roofY,SIDE,size+BUILDING.floors.length*HEIGHT,'#656e65');
@@ -99,10 +100,42 @@ function exteriorStorey(x,y,level){
   rect(x-SIDE,base-HEIGHT,SIDE,HEIGHT,'#656e65');
   rect(x+size,base-HEIGHT,SIDE,HEIGHT,'#6f786c');
  }
- renderFloor(x,upperY,level,level>0);
+ if(BUILDING.terrace&&level===BUILDING.terrace.level)terraceFloor(x,upperY,level);
+ else renderFloor(x,upperY,level,level>0);
  ctx.save();ctx.globalAlpha=.18;
  facade(x,upperY+size,level,level===0);
  ctx.restore();
+}
+function terraceFloor(x,y,level){
+ const edge=BUILDING.terrace.startCol*TILE;
+ // Left-hand room retains the upper floor; the right is open stone.
+ renderFloor(x,y,level,true);
+ for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
+  rect(x+col*TILE,y+row*TILE,TILE,TILE,(row+col)%2?'#a9a697':'#bcb8a7');
+  ctx.strokeStyle='#8c8b80';ctx.lineWidth=1;
+  ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
+ }
+ // Low parapet on the outer edges; an open passage connects room and terrace.
+ rect(x+edge,y,5,TILE,'#b4ac9a');
+ rect(x+edge,y+3*TILE,5,TILE,'#b4ac9a');
+ rect(x+edge,y+4*TILE,5,TILE,'#b4ac9a');
+ rect(x+edge,y-12,(N-BUILDING.terrace.startCol)*TILE,12,'#b7b09e');
+ rect(x+N*TILE-10,y,10,N*TILE,'#999586');
+ rect(x+edge,y+(N-1)*TILE-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
+}
+function terraceExterior(x,y){
+ const roofY=y-2*HEIGHT,edge=BUILDING.terrace.startCol*TILE;
+ // The roof only covers the enclosed left section.
+ BUILDING.terrace=null;
+ exterior(x,y);
+ BUILDING.terrace={level:1,startCol:edge/TILE};
+ rect(x+edge-SIDE,roofY,(N-BUILDING.terrace.startCol)*TILE+2*SIDE,N*TILE+8,'#8c8170');
+ for(let row=0;row<N;row++)for(let col=BUILDING.terrace.startCol;col<N;col++){
+  rect(x+col*TILE,y-HEIGHT+row*TILE,TILE,TILE,(row+col)%2?'#a9a697':'#bcb8a7');
+ }
+ rect(x+edge,y-HEIGHT-12,(N-BUILDING.terrace.startCol)*TILE,12,'#b7b09e');
+ rect(x+N*TILE-10,y-HEIGHT,10,N*TILE,'#999586');
+ rect(x+edge,y-HEIGHT+(N-1)*TILE-10,(N-BUILDING.terrace.startCol)*TILE,10,'#aaa595');
 }
 function towerInterior(x,upperY,level){
  const size=N*TILE;
@@ -147,7 +180,8 @@ function interior(x,upperY,level){
  renderFloor(x,lowerY,0,false);
  ctx.restore();
  // The upper floor is a real slab with an open stairwell.
- renderFloor(x,upperY,1,true);
+ if(BUILDING.terrace)terraceFloor(x,upperY,1);
+ else renderFloor(x,upperY,1,true);
  // Show slab thickness at the edges of the void.
  for(const key of VOID_TILES){
   const [col,row]=key.split(',').map(Number);
