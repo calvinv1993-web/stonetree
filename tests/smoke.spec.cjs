@@ -7,7 +7,8 @@ test('loads without uncaught errors and draws the game', async ({ page }) => {
  await page.reload(); await page.waitForTimeout(1000);
  await expect(page.locator('canvas')).toBeVisible();
  const result=await page.locator('canvas').evaluate(c=>{const {width:w,height:h}=c;const d=c.getContext('2d').getImageData(0,0,w,h).data;let drawn=0;for(let i=3;i<d.length;i+=4)if(d[i])drawn++;return {w,h,drawn}});
- expect(result.w).toBeGreaterThan(0);expect(result.h).toBeGreaterThan(0);expect(result.drawn).toBeGreaterThan(100);
+ expect(result.w).toBeGreaterThan(0);expect(result.h).toBeGreaterThan(0);if(result.drawn===0){await page.screenshot({path:'test-results/blank-canvas-diagnostic.png',fullPage:true});const diagnostic=await page.evaluate(()=>({canvasSize:[document.querySelector('canvas').width,document.querySelector('canvas').height],style:getComputedStyle(document.querySelector('canvas')).display,raf:typeof requestAnimationFrame,visibility:document.visibilityState}));console.log('BLANK_CANVAS_DIAGNOSTIC',JSON.stringify(diagnostic));}
+ expect(result.drawn).toBeGreaterThan(100);
  expect(errors).toEqual([]);
 });
 test('player state survives reload', async ({ page }) => {
