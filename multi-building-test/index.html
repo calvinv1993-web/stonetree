@@ -104,6 +104,8 @@ function interior(x,upperY,level){
   ctx.rect(x+col*TILE,upperY+row*TILE,TILE,TILE);
  }
  ctx.clip();
+ // Show the actual lower storey at its projected depth through the void.
+ // Its walls, stairs and floor are drawn from the same geometry functions.
  renderFloor(x,lowerY,0,false);
  ctx.restore();
  // The upper floor is a real slab with an open stairwell.
@@ -117,8 +119,14 @@ function interior(x,upperY,level){
  playerSprite(x+(player.x+.5)*TILE,upperY+(player.y+.5)*TILE);
  // Ground-floor entrance remains physically BELOW the upper floor.
  // It is drawn before the upper south wall, never substituted for it.
- facade(x,lowerY+size,0,true);
+ // The downstairs entrance remains visible BELOW the upstairs slab.
+ // Do not paint the lower facade over the upstairs room or windows.
  facade(x,upperY+size,1,false);
+ // Ground-floor south facade is occluded by the upper wall except for
+ // the portion physically beneath the upper floor's lower edge.
+ ctx.save();ctx.beginPath();ctx.rect(x,upperY+size+HEIGHT,size,HEIGHT);ctx.clip();
+ facade(x,lowerY+size,0,true);
+ ctx.restore();
  ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
  ctx.fillText('Verdieping 2',x,upperY-HEIGHT-18);
 }
