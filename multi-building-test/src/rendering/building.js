@@ -181,6 +181,7 @@ function renderFloor(b,x,y,level,holes){
  }
  rootheartTempleMosaic(b,x,y,level);
  rootheartSmithyFloorDetail(b,x,y,level);
+ rootheartShopFloorDetail(b,x,y,level);
  staircase(b,x,y,level);
 }
 function cutawayFront(b,x,base,level){
@@ -312,6 +313,22 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,10,depth+8,'#625e51');
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
+}
+function rootheartShopFloorDetail(b,x,y,level){
+ if(b.id!=='rootheart-shop'||level!==0)return;
+ // Worn merchant's runner from the south entrance toward the counter.
+ // The central aisle stays walkable and all details are visual only.
+ for(let row=1;row<b.height;row++){
+  const px=x+3*TILE,py=y+row*TILE;
+  rect(px+8,py+2,TILE-16,TILE-4,'#77644b');
+  rect(px+11,py+3,TILE-22,TILE-6,'#a28a62');
+  line(px+13,py+8,px+TILE-13,py+8,'#c2a979');
+  line(px+13,py+TILE-9,px+TILE-13,py+TILE-9,'#6e5b44');
+  for(let i=0;i<3;i++){
+   rect(px+9,py+7+i*12,3,4,'#c0a779');
+   rect(px+TILE-12,py+7+i*12,3,4,'#c0a779');
+  }
+ }
 }
 function rootheartSmithyFloorDetail(b,x,y,level){
  if(b.id!=='rootheart-smithy'||level!==0)return;
