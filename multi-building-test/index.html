@@ -13,10 +13,16 @@ function paint(){
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const size=N*TILE,x=Math.round((w-size)/2),y=Math.round((h-size-WALL)/2);
+ // Camera follows the player's world tile; the building stays on the grid.
+ const size=N*TILE;
+ const x=Math.round(w/2-(player.x+.5)*TILE);
+ const y=Math.round(h/2-(player.y+.5)*TILE);
+ const outside=!inside(player.x,player.y);
  originX=x;originY=y;
  // Grass on the surrounding world grid.
- for(let gy=-6;gy<N+7;gy++)for(let gx=-8;gx<N+9;gx++){
+ const minGX=Math.floor(-x/TILE)-1,maxGX=Math.ceil((w-x)/TILE)+1;
+ const minGY=Math.floor(-y/TILE)-1,maxGY=Math.ceil((h-y)/TILE)+1;
+ for(let gy=minGY;gy<=maxGY;gy++)for(let gx=minGX;gx<=maxGX;gx++){
   if(gx>=0&&gx<N&&gy>=0&&gy<N)continue;
   const xx=x+gx*TILE,yy=y+gy*TILE;
   const n=((gx*73856093)^(gy*19349663))>>>0;
@@ -65,6 +71,9 @@ function paint(){
  for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#c7a467':'#ddbf83';ctx.fillRect(sx+6,sy+7+i*7,TILE-12,5);}
  // Floor indicator (upper floor has a distinct wooden floor).
  if(player.z===1){ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';ctx.fillText('Verdieping 2',x,y-WALL-18);}
+ // Exterior wall faces are visible above the ground when approaching from outside.
+ // The south facade retains the highest layer priority over indoor characters.
+ if(!outside){
  // Player: simple top-down sprite, one grid tile at a time.
  const px=x+player.x*TILE+TILE/2,py=y+player.y*TILE+TILE/2;
  ctx.fillStyle='#30352e';ctx.fillRect(px-9,py+11,18,5);
@@ -72,6 +81,7 @@ function paint(){
  ctx.fillStyle='#d8b38c';ctx.fillRect(px-7,py-13,14,13);
  ctx.fillStyle='#493a2c';ctx.fillRect(px-8,py-15,16,5);
  ctx.fillStyle='#292c32';ctx.fillRect(px-8,py+11,6,6);ctx.fillRect(px+2,py+11,6,6);
+ }
  // Horizontal south wall is always the final foreground layer.
  // South wall rises from the southern grid edge, rather than hanging below it.
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
@@ -99,6 +109,16 @@ function paint(){
  ctx.fillStyle='#d8d3c3';
  ctx.fillRect(x-THICK,y+size-WALL-THICK,THICK*2,THICK);
  ctx.fillRect(x+size-THICK,y+size-WALL-THICK,THICK*2,THICK);
+ // Outside characters appear in front of the building facade; inside
+ // characters remain occluded by the foreground south wall.
+ if(outside){
+  const px=x+player.x*TILE+TILE/2,py=y+player.y*TILE+TILE/2;
+  ctx.fillStyle='#30352e';ctx.fillRect(px-9,py+11,18,5);
+  ctx.fillStyle='#384f76';ctx.fillRect(px-9,py-2,18,15);
+  ctx.fillStyle='#d8b38c';ctx.fillRect(px-7,py-13,14,13);
+  ctx.fillStyle='#493a2c';ctx.fillRect(px-8,py-15,16,5);
+  ctx.fillStyle='#292c32';ctx.fillRect(px-8,py+11,6,6);ctx.fillRect(px+2,py+11,6,6);
+ }
 }
 // Grid movement, including the doorway and grass outside.
 function route(tx,ty){
