@@ -46,21 +46,29 @@ function rootheartGround(){
  }
 }
 
+// Build the visual access routes from the actual door coordinates, not duplicate
+// hard-coded entrance positions. Each south-facing door lands one tile outside.
+function rootheartDoorLanding(id){
+ const building=BUILDINGS.find(b=>b.id===id);
+ if(!building)throw Error('Missing Rootheart building: '+id);
+ return {x:building.position.x+building.door.col,y:building.position.y+building.height};
+}
+const ROOTHEART_INN_DOOR=rootheartDoorLanding('rootheart-inn');
+const ROOTHEART_SMITHY_DOOR=rootheartDoorLanding('rootheart-smithy');
+const ROOTHEART_SHOP_DOOR=rootheartDoorLanding('rootheart-shop');
+const ROOTHEART_TEMPLE_DOOR=rootheartDoorLanding('rootheart-temple');
+const ROOTHEART_HOME_DOOR=rootheartDoorLanding('rootheart-home');
 const ROOTHEART_APPROACHES=[
-  // North: connect the inn and smithy south-facing doors to the main north road.
-  {x0:57,x1:57,y0:-6,y1:-3},
-  {x0:57,x1:64,y0:-3,y1:-3},
-  {x0:74,x1:74,y0:-7,y1:-3},
-  {x0:64,x1:74,y0:-3,y1:-3},
-  {x0:64,x1:64,y0:-3,y1:-2},
-  // South: both entrances face south at y=16; connect below the buildings.
-  {x0:57,x1:57,y0:16,y1:17},
-  {x0:57,x1:75,y0:17,y1:17},
-  {x0:75,x1:75,y0:16,y1:17},
-  {x0:64,x1:64,y0:2,y1:17},
-  // East: the house entrance is at (85,6).
-  {x0:66,x1:85,y0:6,y1:6}
- ];
+ {x0:ROOTHEART_INN_DOOR.x,x1:ROOTHEART_INN_DOOR.x,y0:ROOTHEART_INN_DOOR.y,y1:-3},
+ {x0:ROOTHEART_INN_DOOR.x,x1:ROOTHEART.centerX,y0:-3,y1:-3},
+ {x0:ROOTHEART_SMITHY_DOOR.x,x1:ROOTHEART_SMITHY_DOOR.x,y0:ROOTHEART_SMITHY_DOOR.y,y1:-3},
+ {x0:ROOTHEART.centerX,x1:ROOTHEART_SMITHY_DOOR.x,y0:-3,y1:-3},
+ {x0:ROOTHEART_SHOP_DOOR.x,x1:ROOTHEART_SHOP_DOOR.x,y0:ROOTHEART_SHOP_DOOR.y,y1:17},
+ {x0:ROOTHEART_SHOP_DOOR.x,x1:ROOTHEART_TEMPLE_DOOR.x,y0:17,y1:17},
+ {x0:ROOTHEART_TEMPLE_DOOR.x,x1:ROOTHEART_TEMPLE_DOOR.x,y0:ROOTHEART_TEMPLE_DOOR.y,y1:17},
+ {x0:ROOTHEART.centerX,x1:ROOTHEART.centerX,y0:2,y1:17},
+ {x0:ROOTHEART.centerX+2,x1:ROOTHEART_HOME_DOOR.x,y0:ROOTHEART_HOME_DOOR.y,y1:ROOTHEART_HOME_DOOR.y}
+];
 function rootheartApproachTile(x,y){return ROOTHEART_APPROACHES.some(b=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1);}
 function rootheartApproaches(){
  const a=ROOTHEART;
