@@ -17,6 +17,7 @@ function paint(){
  originX=camera.x;originY=camera.y-player.z*HEIGHT;
  grass(camera.x,camera.y,w,h);
  rootheartGround();
+ rootheartApproaches();
  rootheartPlazaDetails();
  const current=buildingAt(player.x,player.y);
  const drawPlayer=()=>{const p=worldToScreen(visual.x+.5,visual.y+.5,player.z);playerSprite(p.x,p.y);};
