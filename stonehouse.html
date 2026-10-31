@@ -11,14 +11,46 @@ floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
 function wallLine(x1,y1,x2,y2){const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1);let x=x1,y=y1;while(true){add('wall',x,y);if(x===x2&&y===y2)break;x+=dx;y+=dy}}
 wallLine(0,0,6,0);wallLine(0,0,0,15);wallLine(6,0,6,7);wallLine(0,5,6,5);wallLine(0,10,6,10);wallLine(0,15,7,15);
 wallLine(7,8,18,8);wallLine(7,8,7,15);wallLine(18,8,18,15);wallLine(7,15,18,15);
-for(const d of doors){solid.delete(key(d.x,d.y));for(let i=items.length-1;i>=0;i--)if(items[i].kind==='wall'&&items[i].x===d.x&&items[i].y===d.y)items.splice(i,1);add('door',d.x,d.y,true)}
+for(const d of doors){solid.delete(key(d.x,d.y));for(let i=items.length-1;i>=0;i--)if(items[i].kind==='wall'&&items[i].x===d.x&&items[i].y===d.y)items.splice(i,1);add('door',d.x,d.y,false)}
 // Deliberate connected entrance at south and inner corridor. Walls never disappear on entry.
 for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,9],['desk',4,1],['books',5,0],['chest',9,8],['chest',10,8],['chest',11,8],['barrel',16,14],['barrel',17,14],['barrel',18,14],['fire',14,4],['pot',8,5],['table',4,12],['crate',1,16],['crate',2,16],['water',7,16]])add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
 function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(a,b,32,32,'#775837');for(let j=0;j<4;j++){const yy=b+j*8;fill(a,yy,32,7,(j+x)%3?'#c8a46b':'#d4b77d');fill(a,yy,32,2,'#e5c68f');fill(a,yy+7,32,1,'#76563b');fill(a+((x+j)%2?14:25),yy+2,1,5,'#8d714e');if(rand(x,y,j)%4===0)fill(a+5,yy+4,6,1,'#ad8856')}return}
 if(t==='stone'){fill(a,b,32,32,'#676d6b');fill(a+1,b+1,30,29,'#a4a8a4');fill(a+2,b+2,28,3,'#c7c9c2');fill(a,b+29,32,3,'#5c625f');fill(a+15,b+4,2,12,'#777e7a');fill(a,b+16,32,2,'#717873');return}
 fill(a,b,32,32,rand(x,y)%4?'#49783e':'#568249');for(let j=0;j<15;j++){const n=rand(x,y,j);fill(a+2+n%28,b+2+(n>>>8)%28,1+n%3,1+n%2,['#2e6034','#77a456','#a3a66b','#386f3a'][n%4])}
 }
-function wall(o){const a=o.x*T,b=o.y*T;const h=40;fill(a,b-14,32,h,'#414744');fill(a+2,b-14,28,33,'#686e69');for(let j=0;j<7;j++){let n=rand(o.x,o.y,j),xx=a+2+n%23,yy=b-13+Math.floor(j/2)*9;fill(xx,yy,7+n%5,6+n%3,['#9fa29a','#bcc0b7','#737d77','#858c86'][n%4]);fill(xx,yy,7+n%5,2,'#cdd0c5');fill(xx+3,yy+6,5,2,'#515954')}fill(a,b+18,32,8,'#4b514e');fill(a,b+18,32,2,'#959b94');fill(a+28,b-13,4,36,'#464f4a')}
+function wall(o){
+ const a=o.x*T,b=o.y*T;
+ // Every wall occupies one collision tile, but its 2.5D sprite extends above
+ // the anchor. Continuous vertical runs are narrow side faces, not full facades.
+ const isWall=(x,y)=>items.some(v=>v.kind==='wall'&&v.x===x&&v.y===y);
+ const vertical=isWall(o.x,o.y-1)||isWall(o.x,o.y+1);
+ const horizontal=isWall(o.x-1,o.y)||isWall(o.x+1,o.y);
+ const side=vertical&&!horizontal;
+ const h=side?38:44,top=b+32-h;
+ fill(a,top,32,h,'#3b423e');
+ if(side){
+   // Side wall: slim visible top edge, recessed inner face, dark outside face.
+   fill(a+1,top+2,23,7,'#b6bbb1');
+   fill(a+2,top+2,19,3,'#e0dfd0');
+   fill(a+3,top+9,19,h-13,'#89918a');
+   fill(a+23,top+4,9,h-5,'#4e5b54');
+   fill(a+25,top+7,3,h-10,'#66746a');
+   for(let j=0;j<3;j++){const yy=top+12+j*9;fill(a+3,yy,20,2,'#525d55');fill(a+5+(j%2)*9,yy+2,2,6,'#677269')}
+ }else{
+   // Front/back wall: broad masonry elevation and visible upper coping.
+   fill(a+1,top+2,30,h-5,'#939a91');
+   fill(a,top,32,8,'#b7bdb3');
+   fill(a+1,top,30,3,'#e0dfd1');
+   fill(a,top+8,32,3,'#5a665e');
+   for(let j=0;j<3;j++){
+     const yy=top+12+j*9;
+     fill(a+2,yy,28,2,'#58635c');
+     fill(a+4+(j%2)*14,yy+2,2,7,'#677168');
+     fill(a+7,yy+4,7,2,'#adb4aa');
+   }
+   fill(a,b+27,32,5,'#4b554e');
+ }
+}
 function drawItem(o){const a=o.x*T,b=o.y*T;switch(o.kind){
 case 'wall':wall(o);return;
 case 'door':{const d=doors.find(v=>v.x===o.x&&v.y===o.y);fill(a,b-17,32,47,'#424740');fill(a+2,b-17,28,6,'#bfc2b5');fill(a+3,b-11,5,40,'#777d72');fill(a+25,b-11,5,40,'#646c64');fill(a+8,b-10,17,39,'#362d22');if(d.open){fill(a+8,b-10,4,38,'#a66c3e');fill(a+8,b-10,2,38,'#d69b62')}else{fill(a+9,b-10,15,38,'#9a6235');fill(a+11,b-8,11,34,'#c0874d');fill(a+19,b+8,3,3,'#eed293')}return}
@@ -38,6 +70,6 @@ function render(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)ground(x,y);const acto
 function blocked(x,y){return x<0||y<0||x>=W||y>=H||solid.has(key(x,y))||doors.some(d=>d.x===x&&d.y===y&&!d.open)}
 function route(tx,ty){if(blocked(tx,ty))return null;const q=[[player.x,player.y]],seen=new Set([key(player.x,player.y)]),parent=new Map();for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let k=key(x,y),path=[];while(parent.has(k)){path.unshift(k.split(',').map(Number));k=parent.get(k)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let xx=x+dx,yy=y+dy,k=key(xx,yy);if(!seen.has(k)&&!blocked(xx,yy)){seen.add(k);parent.set(k,key(x,y));q.push([xx,yy])}}}return null}
 let timer=null;function walk(path){clearTimeout(timer);let i=0;const step=()=>{if(i>=path.length)return;if(blocked(...path[i]))return;[player.x,player.y]=path[i++];render();timer=setTimeout(step,90)};step()}
-c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*640/r.width/T),y=Math.floor((e.clientY-r.top)*576/r.height/T);const d=doors.find(d=>d.x===x&&Math.abs(d.y-y)<=1);if(d){if(Math.abs(player.x-d.x)+Math.abs(player.y-d.y)>2){message.textContent='Move closer to use this door.';return}if(d.open&&player.x===d.x&&player.y===d.y){message.textContent='Cannot close an occupied doorway.';return}clearTimeout(timer);d.open=!d.open;message.textContent=d.open?'Door opened. Walk through on the same map.':'Door closed.';render();return}const p=route(x,y);if(!p){message.textContent='That tile is blocked.';return}walk(p)});
+c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*640/r.width/T),y=Math.floor((e.clientY-r.top)*576/r.height/T);const d=doors.find(d=>d.x===x&&d.y===y);if(d){if(Math.abs(player.x-d.x)+Math.abs(player.y-d.y)>3){message.textContent='Move closer to use this door.';return}if(d.open&&player.x===d.x&&player.y===d.y){message.textContent='Cannot close an occupied doorway.';return}clearTimeout(timer);d.open=!d.open;message.textContent=d.open?'Door opened. Walk through on the same map.':'Door closed.';render();return}const p=route(x,y);if(!p){message.textContent='That tile is blocked.';return}walk(p)});
 document.getElementById('reset').onclick=()=>{clearTimeout(timer);player.x=10;player.y=17;doors.forEach(d=>d.open=false);render()};render();
 </script></body></html>
