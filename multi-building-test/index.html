@@ -22,12 +22,26 @@ function paint(){
   ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
   ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
- // Side walls: narrow continuous edges with a visible top and exterior face.
- // They run north-south exactly along the left/right grid boundaries.
- ctx.fillStyle='#6f776d';ctx.fillRect(x-THICK,y-WALL,THICK,size+WALL);
- ctx.fillStyle='#7b8277';ctx.fillRect(x+size,y-WALL,THICK,size+WALL);
- polygon([[x-THICK,y],[x,y],[x,y+size],[x-THICK,y+size]],'#c8c7b8');
- polygon([[x+size,y],[x+size+THICK,y],[x+size+THICK,y+size],[x+size,y+size]],'#c8c7b8');
+ // Side walls stay anchored to the west/east grid edges.
+ // Their projected 2.5D wall faces extend OUTWARD, leaving the floor unchanged.
+ const SIDE=24;
+ // West: visible exterior face, full height at every point along the edge.
+ polygon([[x-SIDE,y-WALL],[x,y-WALL],[x,y+size],[x-SIDE,y+size]],'#777d72');
+ polygon([[x-SIDE,y-WALL],[x-SIDE+THICK,y-WALL-THICK],[x+THICK,y-WALL-THICK],[x,y-WALL]],'#d9d7c6');
+ // East: same height and footprint, with a darker outer face.
+ polygon([[x+size,y-WALL],[x+size+SIDE,y-WALL],[x+size+SIDE,y+size],[x+size,y+size]],'#818679');
+ polygon([[x+size,y-WALL],[x+size+THICK,y-WALL-THICK],[x+size+SIDE+THICK,y-WALL-THICK],[x+size+SIDE,y-WALL]],'#d9d7c6');
+ // Horizontal courses and grid-aligned vertical joints make the height legible.
+ for(let i=1;i<4;i++){
+  const yy=y-WALL+i*WALL/4;
+  line(x-SIDE,yy,x,yy,'#5e675d');
+  line(x+size,yy,x+size+SIDE,yy,'#656d61');
+ }
+ for(let i=1;i<N;i++){
+  const yy=y+i*TILE;
+  line(x-SIDE,yy-WALL,x,yy-WALL,'#626a60');
+  line(x+size,yy-WALL,x+size+SIDE,yy-WALL,'#626a60');
+ }
  // South wall rises from the southern grid edge, rather than hanging below it.
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
  polygon([[x,y+size-WALL],[x+size,y+size-WALL],[x+size,y+size],[x,y+size]],'#9c9b8f');
