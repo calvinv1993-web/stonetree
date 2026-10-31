@@ -28,7 +28,16 @@ function walkable(x,y){
 }
 function connected(cx,cy,nx,ny){
  const a=buildingAt(cx,cy),b=buildingAt(nx,ny);
- if(a===b)return player.z===0||Boolean(a);
+ if(a===b){
+  if(a&&a.terrace&&player.z===a.terrace.level){
+   const boundary=a.position.x+a.terrace.startCol;
+   if((cx===boundary-1&&nx===boundary)||(cx===boundary&&nx===boundary-1)){
+    const row=cy-a.position.y;
+    return row===2&&ny===cy&&Boolean(terraceDoorStates[a.id]);
+   }
+  }
+  return player.z===0||Boolean(a);
+ }
  const building=a||b;
  if(!building||!doorStates[building.id]||player.z!==0)return false;
  const dx=building.position.x+building.door.col,front=building.position.y+building.height-1;
@@ -38,8 +47,18 @@ function doorBuilding(){
  return BUILDINGS.find(b=>player.z===0&&player.x===b.position.x+b.door.col&&
  (player.y===b.position.y+b.height-1||player.y===b.position.y+b.height));
 }
-function adjacentToDoor(){return !!doorBuilding();}
+function terraceDoorBuilding(){
+ return BUILDINGS.find(b=>b.terrace&&player.z===b.terrace.level&&
+  player.y===b.position.y+2&&
+  (player.x===b.position.x+b.terrace.startCol-1||player.x===b.position.x+b.terrace.startCol));
+}
+function adjacentToDoor(){return !!doorBuilding()||!!terraceDoorBuilding();}
 function toggleDoor(){
+ const terrace=terraceDoorBuilding();
+ if(terrace){
+  terraceDoorStates[terrace.id]=!terraceDoorStates[terrace.id];
+  path=[];paint();return true;
+ }
  const b=doorBuilding();if(!b)return false;
  selectBuilding(b);
  // Closing the door while standing in its tile moves the player
