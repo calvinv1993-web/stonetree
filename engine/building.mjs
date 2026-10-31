@@ -16,11 +16,12 @@ export class Building {
   if(this.doors.has(key)||this.windows.has(key))throw new Error('Duplicate opening');
   (type==='door'?this.doors:this.windows).set(key,{x,y,open:!!open});
  }
+ wallEdges(x,y){return [y===this.y?'north':null,x===this.x+this.width-1?'east':null,y===this.y+this.height-1?'south':null,x===this.x?'west':null].filter(Boolean)}
  at(x,y){
   const key=this.key(x,y);
   if(this.doors.has(key))return {type:'door',...this.doors.get(key),material:this.material};
   if(this.windows.has(key))return {type:'window',...this.windows.get(key),material:this.material};
-  if(this.boundary(x,y))return {type:'wall',material:this.material,mask:this.wallMask(x,y)};
+  if(this.boundary(x,y))return {type:'wall',material:this.material,mask:this.wallMask(x,y),edges:this.wallEdges(x,y)};
   if(this.contains(x,y))return {type:'floor',material:this.material};
   return null;
  }
