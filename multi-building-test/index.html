@@ -1,87 +1,40 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — vijf hoge dunne muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — 2.5D rastertest</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#171a1b}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=94,DEPTH=6;
-function poly(g,p,color){g.fillStyle=color;g.beginPath();g.moveTo(...p[0]);for(let i=1;i<p.length;i++)g.lineTo(...p[i]);g.closePath();g.fill();}
-function makeWall(){
- const c=document.createElement('canvas');c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
- const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- // Tibia-style oblique projection: front at x=0..48; wall depth recedes
- // up and to the RIGHT. The front is not shifted down/right by its depth.
- const y=DEPTH;
- g.fillStyle='#4a372c';g.fillRect(0,y,TILE,HEIGHT);
- const colors=['#9c7759','#b18b69','#8e6b51','#a78162','#967156'];
- for(let row=0;row<12;row++){
-  const yy=y+row*8,shift=(row%2)*12;
-  for(let bx=-24;bx<TILE+24;bx+=24){
-   const l=Math.max(0,bx+shift),rr=Math.min(TILE,bx+shift+22);
-   if(rr<=l)continue;
-   g.fillStyle=colors[((row*3+Math.floor((bx+24)/24)*2)%colors.length+colors.length)%colors.length];
-   g.fillRect(l,yy+1,rr-l,6);
-   g.fillStyle='#c5a080';g.fillRect(l+1,yy+1,Math.max(0,rr-l-2),1);
-  }
- }
- // Narrow visible depth at the RIGHT, drawn behind the front.
- // Bottom stays horizontal, avoiding the previous protruding triangle.
- poly(g,[[TILE,DEPTH],[TILE+DEPTH,0],[TILE+DEPTH,HEIGHT],[TILE,HEIGHT+DEPTH]],'#655043');
- // Repaint the face so the side never overlaps the brick pattern.
- g.fillStyle='#4a372c';g.fillRect(0,DEPTH,TILE,0);
- // The cap slopes up-right, consistent with Tibia's 2.5D wall projection.
- poly(g,[[0,DEPTH],[DEPTH,0],[TILE+DEPTH,0],[TILE,DEPTH]],'#bfa186');
- g.fillStyle='#e1c3a0';g.fillRect(DEPTH+1,1,TILE-2,2);
- g.fillStyle='#765c48';g.fillRect(0,DEPTH,TILE,2);
- return c;
-}
-const wall=makeWall();
-// Side walls are single continuous polygons, not five overlapping sprites.
-// The 5-tile run recedes upward in screen space while keeping the same height.
-function drawSide(g,x,y,dx){
- const run=5*TILE,top=y-DEPTH;
- // Visible side face: constant vertical height across its full run.
- poly(g,[[x,y],[x+dx,y-run],[x+dx,y-run+HEIGHT],[x,y+HEIGHT]],'#755945');
- // Brick courses are horizontal in world height, not diagonal stripes.
- g.save();
- g.beginPath();g.moveTo(x,y);g.lineTo(x+dx,y-run);g.lineTo(x+dx,y-run+HEIGHT);g.lineTo(x,y+HEIGHT);g.closePath();g.clip();
- for(let row=0;row<12;row++){
-  const z=row*8;
-  // Each course follows the receding ground edge; joints follow vertical height.
-  const startX=Math.min(x,x+dx),endX=Math.max(x,x+dx);
-  for(let sx=startX-2;sx<endX+4;sx+=12){
-   const t=dx===0?0:(sx-x)/dx;
-   const baseY=y-run*t+z;
-   g.strokeStyle='#49372d';g.lineWidth=2;
-   g.beginPath();g.moveTo(sx,baseY);g.lineTo(sx+12,baseY-12*run/Math.abs(dx));g.stroke();
-  }
- }
- g.restore();
- poly(g,[[x,y],[x+dx,y-run],[x+dx,y-run-DEPTH],[x,y-DEPTH]],'#bfa186');
-}
+const TILE=40,N=5,WALL=64,THICK=6;
+function polygon(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);ctx.closePath();ctx.fill();}
+function line(x1,y1,x2,y2,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*5)/2),y=Math.round((h-HEIGHT)/2)+65;
- // A top-down Tibia grid has parallel side edges. Both recede straight UP,
- // rather than splaying outward into a V.
- const run=5*TILE;
- function side(x0,shade){
-  const top=y-run/2;
-  // continuous wall face, height fixed at 94px, five tiles long
-  poly(ctx,[[x0,y],[x0,y-run/2],[x0+DEPTH,y-run/2-DEPTH],[x0+DEPTH,y-DEPTH]],'#bfa186');
-  ctx.fillStyle=shade;ctx.fillRect(x0,top+DEPTH,DEPTH+5,HEIGHT+run/2-DEPTH);
-  // Brick rows are vertical along wall height; no staircase silhouettes.
-  ctx.fillStyle='#9c7759';
-  for(let k=0;k<5;k++){
-   const yy=y-k*TILE/2;
-   ctx.fillRect(x0+1,yy-HEIGHT,DEPTH+3,TILE/2-2);
-   ctx.fillStyle='#4a372c';ctx.fillRect(x0+1,yy-HEIGHT+TILE/2-3,DEPTH+3,2);
-   ctx.fillStyle='#9c7759';
-  }
-  // Repaint narrow top cap above wall front.
-  poly(ctx,[[x0,y-HEIGHT],[x0,y-HEIGHT-run/2],[x0+DEPTH,y-HEIGHT-run/2-DEPTH],[x0+DEPTH,y-HEIGHT-DEPTH]],'#c4a589');
+ const size=N*TILE,x=Math.round((w-size)/2),y=Math.round((h-size)/2+WALL/3);
+ // Strict orthogonal top-down grid, no isometric diamond.
+ for(let row=0;row<N;row++)for(let col=0;col<N;col++){
+  ctx.fillStyle=(row+col)%2?'#888f7d':'#979e8c';
+  ctx.fillRect(x+col*TILE,y+row*TILE,TILE,TILE);
+  ctx.strokeStyle='#646b5e';ctx.lineWidth=1;ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
- side(x,'#8e6b51');side(x+TILE*5-DEPTH,'#745844');
- for(let i=0;i<5;i++)ctx.drawImage(wall,x+i*TILE,y-HEIGHT-DEPTH);
+ // Four equal-height walls anchored to the four perimeter grid edges.
+ // Far (north) and side walls are behind the floor foreground.
+ // The front (south) wall is intentionally omitted from the foreground
+ // until after side and rear faces, so the square remains readable.
+ // Back wall: its front face hangs BELOW the north grid edge.
+ polygon([[x,y-WALL],[x+size,y-WALL],[x+size,y],[x,y]],'#a6a69a');
+ polygon([[x,y-WALL],[x+THICK,y-WALL-THICK],[x+size+THICK,y-WALL-THICK],[x+size,y-WALL]],'#ded9c8');
+ // Side walls follow the vertical grid edges and project UP from them.
+ polygon([[x-THICK,y-WALL-THICK],[x,y-WALL],[x,y+size-WALL],[x-THICK,y+size-WALL-THICK]],'#777f75');
+ polygon([[x,y-WALL],[x+THICK,y-WALL-THICK],[x+THICK,y+size-WALL-THICK],[x,y+size-WALL]],'#c7c6b6');
+ polygon([[x+size-THICK,y-WALL-THICK],[x+size,y-WALL],[x+size,y+size-WALL],[x+size-THICK,y+size-WALL-THICK]],'#777f75');
+ polygon([[x+size,y-WALL],[x+size+THICK,y-WALL-THICK],[x+size+THICK,y+size-WALL-THICK],[x+size,y+size-WALL]],'#c7c6b6');
+ // Front wall hangs below the south grid edge, as in Tibia.
+ polygon([[x,y+size-WALL],[x+size,y+size-WALL],[x+size,y+size],[x,y+size]],'#9c9b8f');
+ polygon([[x,y+size-WALL],[x+THICK,y+size-WALL-THICK],[x+size+THICK,y+size-WALL-THICK],[x+size,y+size-WALL]],'#ded9c8');
+ // Minimal horizontal divisions show equal height, without brick textures.
+ for(let i=1;i<4;i++){
+  const yy=y+size-WALL+i*WALL/4;
+  line(x,yy,x+size,yy,'#86877c');
+ }
 }
 addEventListener('resize',paint);paint();
 </script>
