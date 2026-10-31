@@ -202,48 +202,31 @@ function buildingStairPortals(b){
 }
 const lodge=registerBuilding({left:2,right:6,top:20,bottom:24,door:4,upper:4});
 function buildingArt(b){
- const {x,y}=ground.center({c:b.left,r:b.top}),w=(b.right-b.left+1)*24,h=(b.bottom-b.top+1)*24;
- const door=ground.center({c:b.door,r:b.bottom});
- const interior=p.floor===b.upper||(p.floor===0&&p.x>=x-12&&p.x<x+w-12&&p.y>=y-12&&p.y<door.y+13);
- rect(x+4,y+h-19,w-9,12,'rgba(16,32,26,.48)');
- if(!interior){stamp('gildehuis',x-14,y-31,w+4,h+21);return}
+ const t=24,corner=ground.center({c:b.left,r:b.top}),x0=corner.x-12,y0=corner.y-12;
+ const cell=ground.cell(p),inside=p.floor===b.upper||(p.floor===0&&cell.c>b.left&&cell.c<b.right&&cell.r>b.top&&cell.r<b.bottom);
  const lift=p.floor===b.upper?32:0;
- rect(x-12,y-12,w,h,'#615b47');rect(x-12,y-12-lift,w,h,'#454b40');
- for(let j=0;j<h/12;j++)for(let i=0;i<w/24;i++)rect(x-11+i*24,y-10-lift+j*12,23,10,j%2?'#a79979':'#90866a');
- rect(x-12,y-12-lift,w,9,'#b3ab8c');rect(x-12,y-5-lift,6,h-7,'#797d66');rect(x+w-18,y-5-lift,6,h-7,'#50594c');
- const stair=ground.center({c:b.right-1,r:b.top+1});for(let i=0;i<6;i++){rect(stair.x-10,stair.y-10-lift+i*4,20,4,'#634e35');rect(stair.x-10,stair.y-10-lift+i*4,20,2,'#d1b88d')}
- if(lift){
-  // Exposed storey edge: a deep masonry face, shadow and bright coping
-  // make the upper floor read as elevated rather than a flat recolour.
-  const edgeY=y+h-12-lift;
-  rect(x-12,edgeY,w,25,'#27362f');
-  rect(x-12,edgeY+3,w,16,'#505b50');
-  rect(x-12,edgeY+3,w,3,'#818b78');
-  for(let i=0;i<w;i+=24){
-   rect(x-12+i,edgeY+7,1,12,'#35453b');
-   rect(x-9+i,edgeY+9,13,2,'#647064');
-   rect(x-8+i,edgeY+15,8,1,'#3d4d42');
+ const stones=['#7a8071','#636e61','#8b8e79','#687365'];
+ for(let r=b.top;r<=b.bottom;r++)for(let c=b.left;c<=b.right;c++){
+  const x=x0+(c-b.left)*t,y=y0+(r-b.top)*t-lift;
+  const edge=c===b.left||c===b.right||r===b.top||r===b.bottom;
+  if(!inside){
+   if(edge){if(r===b.bottom&&c===b.door){rect(x,y,24,24,'#655c46');continue}
+    rect(x,y-12,24,36,'#3e4b42');
+    for(let k=0;k<3;k++){rect(x+1,y-10+k*10,22,9,stones[(c+r+k)%4]);rect(x+2,y-8+k*10,19,2,'#a0a48d')}
+   }else{rect(x,y-22,24,24,(c+r)%2?'#586353':'#626d5b');rect(x+1,y-21,22,3,'#9ba28c')}
+  }else if(!edge){
+   rect(x,y,24,24,(c+r)%2?'#a99b7c':'#b5a688');rect(x+1,y+1,22,2,'#cbb999');rect(x+2,y+22,20,2,'#81775e');
+  }else if(r===b.top||c===b.left||c===b.right){
+   rect(x,y-17,24,41,'#48594d');rect(x+1,y-15,22,12,stones[(c+r)%4]);rect(x+1,y-1,22,3,'#9ca28b');
   }
-  rect(x-14,edgeY-3,w+4,5,'#bcb69a');
-  rect(x-14,edgeY+2,w+4,2,'#777e6c');
-  rect(x-14,edgeY+20,w+4,4,'rgba(12,24,22,.6)');
-  // Side-wall thickness and small inset windows reinforce the height.
-  rect(x-17,y-13-lift,5,h+22,'#303e35');
-  rect(x-17,y-13-lift,2,h+22,'#9a9e84');
-  rect(x+w-12,y-13-lift,7,h+22,'#303d35');
-  rect(x+w-12,y-13-lift,2,h+22,'#838d76');
-  for(const wx of [x+13,x+w-41]){
-   rect(wx,edgeY+8,15,10,'#2b3836');
-   rect(wx+2,edgeY+9,11,7,'#56736e');
-   rect(wx+7,edgeY+9,2,7,'#c0b997');
-   rect(wx+1,edgeY+17,13,2,'#a7a188');
-  }
-  // Stairs remain visible and unobstructed for touch navigation.
-  rect(stair.x-12,stair.y-13-lift,24,3,'#e1cda2');
-  rect(stair.x-12,stair.y-10-lift,3,23,'#7d674a');
-  rect(stair.x+9,stair.y-10-lift,3,23,'#7d674a');
+ }
+ if(inside){
+  const stair=b.stairs;
+  for(let i=0;i<5;i++){rect(stair.x-10,stair.y-10-lift+i*4,20,4,'#614c34');rect(stair.x-10,stair.y-10-lift+i*4,20,2,'#d1b88d')}
+  if(lift){const front=y0+(b.bottom-b.top+1)*24-lift;rect(x0-3,front-3,(b.right-b.left+1)*24+6,23,'#48574a');rect(x0-3,front-3,(b.right-b.left+1)*24+6,5,'#b7af93')}
  }
 }
+
 for(const m of monsters)m.floor=0;
 for(const [floor,x,y,name] of [[1,432,384,'Highland Slime'],[-1,312,336,'Cave Slime'],[-1,408,456,'Cave Slime']])monsters.push({floor,x,y,hp:55,max:55,name,kind:'slime',spawn:0,root:0,last:0,boss:false});
 if(!floors[p.floor])p.floor=0;
