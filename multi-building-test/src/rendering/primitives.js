@@ -101,9 +101,13 @@ function rootheartApproaches(){
   const px=camera.x+x*TILE,py=camera.y+y*TILE;
   const n=((x*73856093)^(y*19349663))>>>0;
   rect(px,py,TILE,TILE,n%2?'#8f897a':'#999182');
-  rect(px,py+TILE-2,TILE,2,'#66665d');
-  rect(px+TILE-2,py,2,TILE,'#777166');
-  if(n%4===0)line(px+8,py+11,px+22,py+11,'#b3a998');
+  // Smaller inset cobbles distinguish footpaths from the broad main roads.
+  rect(px+3,py+3,TILE-7,TILE-7,n%3===0?'#a69e8c':'#9b9485');
+  rect(px+3,py+3,TILE-7,2,'#c3b9a5');
+  rect(px+3,py+3,2,TILE-7,'#b3aa99');
+  rect(px+3,py+TILE-5,TILE-7,2,'#716e64');
+  rect(px+TILE-5,py+3,2,TILE-7,'#78746b');
+  if(n%4===0)line(px+10,py+17,px+22,py+17,'#807a6e');
  }
 }
 function rootheartNature(){
