@@ -1,12 +1,12 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree — Temple Reconstruction</title><style>*{box-sizing:border-box}body{margin:0;background:#151b18;color:#e8dfc8;font:14px system-ui}header{padding:13px 16px;background:#283329;display:flex;justify-content:space-between;gap:10px}header small{color:#c4ba9d}canvas{display:block;width:min(100vw,640px);height:auto;image-rendering:pixelated;touch-action:none;margin:12px auto;border:2px solid #596751}nav{display:flex;justify-content:center;gap:8px}button{padding:11px 16px;background:#394d3e;color:#eee5d1;border:1px solid #8c947a;border-radius:5px}p{max-width:640px;margin:12px auto;padding:0 14px;line-height:1.5}</style></head><body><header><strong>STONETREE · TEMPLE</strong><small>Rebuild 03 / layered world</small></header><canvas id="game" width="512" height="512"></canvas><nav><button id="outside">Outside</button><button id="inside">Inside</button></nav><p id="note">Tap a floor tile to walk. Enter through the southern doorway. Roof and front-wall occlusion change when you enter.</p><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree — Temple Reconstruction</title><style>*{box-sizing:border-box}body{margin:0;background:#151b18;color:#e8dfc8;font:14px system-ui}header{padding:13px 16px;background:#283329;display:flex;justify-content:space-between;gap:10px}header small{color:#c4ba9d}canvas{display:block;width:min(100vw,640px);height:auto;image-rendering:pixelated;touch-action:none;margin:12px auto;border:2px solid #596751}nav{display:flex;justify-content:center;gap:8px}button{padding:11px 16px;background:#394d3e;color:#eee5d1;border:1px solid #8c947a;border-radius:5px}p{max-width:640px;margin:12px auto;padding:0 14px;line-height:1.5}</style></head><body><header><strong>STONETREE · TEMPLE</strong><small>Rebuild 03 / layered world</small></header><canvas id="game" width="512" height="512"></canvas><nav><button id="reset">Reset position</button></nav><p id="note">Tap the door to open or close it. Then walk through the doorway without teleporting. Tap floor tiles to move.</p><script>
 'use strict';
 const T=32,N=16,cv=document.getElementById('game'),ctx=cv.getContext('2d'),note=document.getElementById('note');ctx.imageSmoothingEnabled=false;
 const bounds={l:3,r:12,t:3,b:12,door:7},player={x:7,y:14},npc={x:7,y:6};
 const ground=Array.from({length:N},(_,y)=>Array.from({length:N},(_,x)=>({kind:x>3&&x<12&&y>3&&y<12?'flagstone':x>=6&&x<=8&&y>=12?'path':'grass'})));
-const things=[];function put(kind,x,y,opts={}){things.push({kind,x,y,blocks:true,sort:0,...opts})}
+let doorOpen=false;const things=[];function put(kind,x,y,opts={}){things.push({kind,x,y,blocks:true,sort:0,...opts})}
 for(let x=3;x<=12;x++){put('northWall',x,3);if(x!==7)put('southWall',x,12)}
 for(let y=4;y<12;y++){put('westWall',3,y);put('eastWall',12,y)}
-put('door',7,12,{blocks:false});put('altar',7,4);put('pillar',5,6);put('pillar',10,6);put('pillar',5,9);put('pillar',10,9);put('carpet',7,9,{blocks:false});put('priest',npc.x,npc.y);
+put('door',7,12,{blocks:true});put('altar',7,4);put('pillar',5,6);put('pillar',10,6);put('pillar',5,9);put('pillar',10,9);put('carpet',7,9,{blocks:false});put('priest',npc.x,npc.y);
 const roof=[];for(let y=2;y<=11;y++)for(let x=3;x<=12;x++)roof.push({kind:'roof',x,y,blocks:false});
 function box(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function hash(x,y,s=0){let n=Math.imul(x+37,73856093)^Math.imul(y+91,19349663)^Math.imul(s+19,83492791);n^=n>>>15;return n>>>0}
@@ -16,22 +16,29 @@ function drawGround(x,y){let a=x*T,b=y*T,g=ground[y][x].kind;
 function masonry(x,y,height=48,front=false){let top=y-height+32;box(x,top,32,height,'#514e47');box(x+2,top+2,28,height-5,'#9f9887');
  for(let i=0;i<Math.ceil(height/11);i++){let yy=top+i*11;if(yy>=y+31)break;box(x+2,yy,28,2,'#c6baa2');box(x+2,yy+9,28,2,'#5e5c54');box(x+(i%2?10:22),yy+2,2,7,'#706d61');if(hash(x,y,i)%3===0)box(x+5+hash(x,y,i)%15,yy+5,5,2,'#878272')}
  box(x+2,top+2,3,height-5,'#d0c4a8');box(x+29,top+2,2,height-5,'#69675d');
- if(front){box(x,y+25,32,5,'#6e685b');box(x,y+25,32,2,'#c6b79b')}}
+ if(front){box(x,y+25,32,7,'#62594c');box(x,y+25,32,2,'#c6b79b');box(x+3,y+29,29,3,'#3e423c')}}
 function drawThing(o){let x=o.x*T,y=o.y*T;switch(o.kind){
  case 'northWall':masonry(x,y,48);box(x-1,y-19,34,6,'#d3c6a8');box(x-1,y-19,34,2,'#e4d8b9');break;
  case 'southWall':masonry(x,y,54,true);break;
  case 'westWall':case 'eastWall':masonry(x,y,48);break;
- case 'door':box(x,y-22,32,54,'#5a5246');box(x+2,y-22,28,5,'#d3c5a8');box(x+3,y-17,5,48,'#b9ad94');box(x+25,y-17,5,48,'#776e60');box(x+8,y-14,17,45,'#4b382a');box(x+10,y-12,13,41,'#a17143');box(x+19,y+8,3,3,'#e4ca80');break;
+ case 'door':
+ // Frame is anchored to its floor tile; the leaf opens in place.
+ box(x,y-22,32,54,'#514a3f');box(x+1,y-22,30,6,'#e0d1b2');
+ box(x+2,y-16,5,48,'#c6b99b');box(x+26,y-16,4,48,'#777061');
+ box(x+7,y-14,19,44,'#332a24');
+ if(doorOpen){box(x+7,y-13,5,41,'#9b6a42');box(x+8,y-12,2,38,'#d5a06a');box(x+12,y+6,2,3,'#e7c77e')}
+ else{box(x+8,y-13,17,42,'#8e5e3b');box(x+10,y-11,13,38,'#b18050');box(x+20,y+8,3,3,'#e4ca80')}
+ break;
  case 'pillar':box(x+8,y-23,16,54,'#5b574e');box(x+11,y-21,10,48,'#aaa08c');box(x+11,y-21,3,48,'#ded0b0');box(x+19,y-21,2,48,'#777063');box(x+4,y-26,24,8,'#c8baa0');box(x+4,y-26,24,3,'#e4d4b1');box(x+5,y+23,22,8,'#81796b');box(x+5,y+23,22,3,'#d4c6a7');break;
  case 'altar':box(x+1,y+7,30,24,'#5b554a');box(x+3,y+11,26,17,'#afa38d');box(x-2,y+3,36,10,'#6e685c');box(x,y+2,32,7,'#dfd0b0');box(x+3,y+3,26,2,'#f4e4c4');for(let dx of [8,21]){box(x+dx,y-9,4,12,'#e5dbbd');box(x+dx,y-11,4,4,'#f0bb5c')}box(x+14,y+14,4,10,'#887856');box(x+11,y+17,10,3,'#887856');break;
  case 'carpet':box(x+1,y+1,30,30,'#6d493e');box(x+3,y+3,26,26,'#bc8b5a');box(x+6,y+6,20,20,'#8e4f3d');box(x+13,y+10,6,12,'#c59d65');break;
  case 'priest':box(x+9,y-22,14,7,'#e0d9c0');box(x+12,y-17,9,12,'#e1b98d');box(x+19,y-12,2,2,'#4d4239');box(x+6,y-5,20,28,'#e5dfcd');box(x+9,y-5,4,27,'#fff1d6');box(x+15,y-4,5,25,'#a9b7aa');box(x+9,y+22,6,7,'#605144');box(x+20,y+22,6,7,'#605144');break;
- case 'roof':{let a=x,b=y-23;box(a,b,32,43,'#633b31');for(let j=0;j<4;j++){let yy=b+j*11;box(a,yy,32,10,(o.x+j)%2?'#a85d3e':'#b86d48');box(a,yy,32,3,'#d9925d');box(a+((o.x+j)%2)*14+9,yy+3,2,7,'#744434');box(a+3,yy+6,7,2,'#c17a50');box(a,yy+9,32,2,'#684034')}if(o.y===11){box(a,y+17,32,6,'#6e4838');box(a,y+17,32,2,'#d6a271')}break}
+ case 'roof':{let a=x,b=y-23;box(a,b,32,43,'#633b31');for(let j=0;j<4;j++){let yy=b+j*11;box(a,yy,32,10,(o.x+j)%2?'#a85d3e':'#b86d48');box(a,yy,32,3,'#d9925d');box(a+((o.x+j)%2)*14+9,yy+3,2,7,'#744434');box(a+3,yy+6,7,2,'#c17a50');box(a,yy+9,32,2,'#684034')}if(o.y===11){box(a,y+17,32,12,'#583b30');box(a,y+17,32,3,'#d6a271');box(a,y+21,32,3,'#7e5340')}break}
  }}
 function inside(){return player.x>bounds.l&&player.x<bounds.r&&player.y>bounds.t&&player.y<bounds.b}
 function hero(){let x=player.x*T,y=player.y*T;box(x+9,y+2,14,10,'#dcb589');box(x+8,y,16,5,'#5e4b35');box(x+7,y+12,18,14,'#4f7551');box(x+10,y+14,12,9,'#8ca077');box(x+10,y+26,5,6,'#524333');box(x+19,y+26,5,6,'#524333')}
 function render(){ctx.clearRect(0,0,512,512);for(let y=0;y<N;y++)for(let x=0;x<N;x++)drawGround(x,y);
- const interior=inside();
+ const interior=inside()||(player.x===bounds.door&&player.y===bounds.b);
  // Object sprites are depth-sorted by their anchor tile. This preserves occlusion.
  const all=things.filter(o=>!(interior&&o.kind==='southWall')).map(o=>({...o,order:o.y*100+o.x}));all.push({kind:'player',x:player.x,y:player.y,order:player.y*100+player.x+0.5});
  all.sort((a,b)=>a.order-b.order);for(const o of all)o.kind==='player'?hero():drawThing(o);
@@ -39,9 +46,16 @@ function render(){ctx.clearRect(0,0,512,512);for(let y=0;y<N;y++)for(let x=0;x<N
  if(!interior){for(const o of roof)drawThing(o)}
  // Inside, the front wall is deliberately hidden to reveal the room.
  box(0,0,512,25,'#17241ee8');ctx.fillStyle='#f1e4c7';ctx.font='bold 12px monospace';ctx.fillText(interior?'TEMPLE INTERIOR · CUTAWAY':'TEMPLE EXTERIOR · ROOF',10,17)}
-function occupied(x,y){return x<0||y<0||x>=N||y>=N||things.some(o=>o.blocks&&o.x===x&&o.y===y)}
+function occupied(x,y){return x<0||y<0||x>=N||y>=N||things.some(o=>o.blocks&&o.x===x&&o.y===y&&!(o.kind==='door'&&doorOpen))}
 function findPath(tx,ty){if(occupied(tx,ty))return null;const q=[[player.x,player.y]],prev=new Map(),seen=new Set([player.x+','+player.y]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let path=[],key=x+','+y;while(prev.has(key)){path.unshift(key.split(',').map(Number));key=prev.get(key)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!occupied(a,b)){seen.add(k);prev.set(k,x+','+y);q.push([a,b])}}}return null}
-let timer=null;function walk(path){clearTimeout(timer);let i=0;function step(){if(i>=path.length)return;[player.x,player.y]=path[i++];render();timer=setTimeout(step,105)}step()}
-cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);if(x===npc.x&&y===npc.y){note.textContent='Priest: Welcome, traveler. (Original placeholder dialogue.)';return}let path=findPath(x,y);if(path){note.textContent='Walking on ground tiles beneath separate objects.';walk(path)}else note.textContent='That tile is occupied by a wall or object.'});
-document.getElementById('outside').onclick=()=>{clearTimeout(timer);player.x=7;player.y=14;render()};document.getElementById('inside').onclick=()=>{clearTimeout(timer);player.x=7;player.y=10;render()};render();
+let timer=null;function walk(path){clearTimeout(timer);let i=0;function step(){if(i>=path.length){timer=null;return}if(occupied(path[i][0],path[i][1])){timer=null;return}[player.x,player.y]=path[i++];render();timer=setTimeout(step,105)}step()}
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);
+if(x===bounds.door&&y===bounds.b){
+ const distance=Math.abs(player.x-x)+Math.abs(player.y-y);
+ if(distance>2){note.textContent='Walk closer to the door to use it.';return}
+ if(doorOpen&&player.x===x&&player.y===y){note.textContent='You cannot close the door while standing in its doorway.';return}
+ clearTimeout(timer);doorOpen=!doorOpen;note.textContent=doorOpen?'Door opened. Tap a floor tile inside and walk straight through.':'Door closed. The entrance now blocks movement.';render();return;
+}
+if(x===npc.x&&y===npc.y){note.textContent='Priest: Welcome, traveler. (Original placeholder dialogue.)';return}let path=findPath(x,y);if(path){note.textContent='Walking on ground tiles beneath separate objects.';walk(path)}else note.textContent='That tile is occupied by a wall or object.'});
+document.getElementById('reset').onclick=()=>{clearTimeout(timer);player.x=7;player.y=14;doorOpen=false;render()};render();
 </script></body></html>
