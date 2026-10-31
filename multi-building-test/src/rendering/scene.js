@@ -3,7 +3,7 @@
 // real ground-floor geometry. No separate room or duplicate building is made.
 function nearExteriorWall(){
  if(!outside()||player.z!==0)return false;
- const x=player.x,y=player.y;
+ const x=localX(player.x),y=localY(player.y);
  return (x>=-1&&x<=N&&y>=-1&&y<=N) &&
   ((x===-1||x===N)&&y>=0&&y<N ||
    (y===-1||y===N)&&x>=0&&x<N);
@@ -16,23 +16,23 @@ function exteriorCutaway(x,y){
  ctx.save();ctx.globalAlpha=.18;
  facade(x,y+N*TILE,0,true);
  ctx.restore();
- playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);
+ playerSprite(x+(localX(player.x)+.5)*TILE,y+(localY(player.y)+.5)*TILE);
 }
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
- const x=Math.round(w/2-(player.x+.5)*TILE);
- const y=Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT);
+ const x=Math.round(w/2-(localX(player.x)+.5)*TILE)+BUILDING.position.x*TILE;
+ const y=Math.round(h/2-(localY(player.y)+.5)*TILE+player.z*HEIGHT)+BUILDING.position.y*TILE;
  originX=x;originY=y-player.z*HEIGHT;
  grass(x,y,w,h);
  if(outside()){
   if(nearExteriorWall())exteriorCutaway(x,y);
   else{
-   const drawPlayer=()=>playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);
-   if(player.y<N)drawPlayer();
+   const drawPlayer=()=>playerSprite(x+(localX(player.x)+.5)*TILE,y+(localY(player.y)+.5)*TILE);
+   if(localY(player.y)<N)drawPlayer();
    exterior(x,y);
-   if(player.y>=N)drawPlayer();
+   if(localY(player.y)>=N)drawPlayer();
   }
  }
  else interior(x,y-player.z*HEIGHT,player.z);
