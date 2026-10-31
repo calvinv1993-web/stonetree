@@ -68,10 +68,35 @@ function exteriorShell(b,x,y){
 // Camera follows the player's z. The geometry does not change between views.
 
 function floorTile(b,x,y,col,row,level){
+ const px=x+col*TILE,py=y+row*TILE;
  const wood=b.floors[level].material==='wood';
- rect(x+col*TILE,y+row*TILE,TILE,TILE,wood?((col+row)%2?'#947959':'#a48966'):((col+row)%2?'#888f7d':'#979e8c'));
- ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
- ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
+ if(wood){
+  rect(px,py,TILE,TILE,(col+row)%3===0?'#967957':'#a18560');
+  // Two planks per tile, with staggered end joints and subtle grain.
+  for(let plank=0;plank<2;plank++){
+   const sy=py+plank*20;
+   rect(px,sy+18,TILE,2,'#5e4b39');
+   line(px,sy+2,px+TILE,sy+2,'#c1a17a');
+   const joint=px+(((row*3+plank+col)%3)+1)*10;
+   line(joint,sy+3,joint,sy+17,'#70583e');
+   line(px+5,sy+9,px+16,sy+9,'#846a4d');
+   line(px+23,sy+13,px+34,sy+13,'#b0926b');
+  }
+ }else{
+  rect(px,py,TILE,TILE,(col+row)%3===0?'#92998a':'#858d80');
+  // Offset stone seams, small chipped corners and muted wear.
+  rect(px,py+TILE-2,TILE,2,'#5d675d');
+  rect(px+TILE-2,py,2,TILE,'#667066');
+  line(px+2,py+2,px+TILE-3,py+2,'#b1b7a5');
+  line(px+2,py+2,px+2,py+TILE-3,'#a2aa9a');
+  if((col+row)%2===0){
+   rect(px+6,py+12,10,2,'#7a8378');
+   rect(px+26,py+28,6,2,'#a5ac9b');
+  }else{
+   rect(px+20,py+8,12,2,'#a1a999');
+   rect(px+9,py+29,8,2,'#747e72');
+  }
+ }
 }
 function staircase(b,x,y,level){
  const stairs=Object.values(stairsAt(b,level));
