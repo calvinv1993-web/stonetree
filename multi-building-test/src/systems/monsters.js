@@ -6,6 +6,8 @@ let ratMode='wander';
 let ratSelected=false;
 let ratHP=20;
 let playerNextAttack=0;
+let ratRespawnAt=0;
+const playerProgress={xp:0};
 const RAT_SIGHT=5,RAT_LEASH=8;
 const ratDistance=(x,y)=>Math.abs(rat.x-x)+Math.abs(rat.y-y);
 function ratValid(x,y){
@@ -26,7 +28,13 @@ function ratPath(tx,ty){
  return key.split(',').map(Number);
 }
 function ratTick(now){
- if(ratHP===0)return false;
+ if(ratHP===0){
+  if(!ratRespawnAt||now<ratRespawnAt)return false;
+  if(player.z===0&&player.x===RAT_SPAWN.x&&player.y===RAT_SPAWN.y)return false;
+  Object.assign(rat,{x:RAT_SPAWN.x,y:RAT_SPAWN.y,fromX:RAT_SPAWN.x,fromY:RAT_SPAWN.y,movedAt:now});
+  ratHP=20;ratMode='wander';ratSelected=false;ratNextMove=now+650;ratRespawnAt=0;ratNextAttack=0;playerNextAttack=0;
+  return true;
+ }
  if(now<ratNextMove)return false;
  const distance=player.z===0?ratDistance(player.x,player.y):Infinity;
  const homeDistance=Math.abs(rat.x-RAT_SPAWN.x)+Math.abs(rat.y-RAT_SPAWN.y);
@@ -92,6 +100,6 @@ function playerAttackTick(now){
  if(now<playerNextAttack)return false;
  playerNextAttack=now+1200;
  ratHP=Math.max(0,ratHP-5);
- if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;}
+ if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;playerProgress.xp+=5;}
  return true;
 }
