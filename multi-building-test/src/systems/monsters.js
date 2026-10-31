@@ -3,6 +3,9 @@ const RAT_SPAWN={x:6,y:7,z:0,radius:2};
 const rat={x:RAT_SPAWN.x,y:RAT_SPAWN.y,z:0,fromX:RAT_SPAWN.x,fromY:RAT_SPAWN.y,movedAt:0};
 let ratNextMove=0;
 let ratMode='wander';
+let ratSelected=false;
+let ratHP=20;
+let playerNextAttack=0;
 const RAT_SIGHT=5,RAT_LEASH=8;
 const ratDistance=(x,y)=>Math.abs(rat.x-x)+Math.abs(rat.y-y);
 function ratValid(x,y){
