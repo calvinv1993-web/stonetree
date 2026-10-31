@@ -16,6 +16,7 @@ function paint(){
  Object.assign(camera,{x:Math.round(w/2-(visual.x+.5)*TILE),y:Math.round(h/2-(visual.y+.5)*TILE+player.z*HEIGHT),width:w,height:h,dpr:d});
  originX=camera.x;originY=camera.y-player.z*HEIGHT;
  grass(camera.x,camera.y,w,h);
+ rootheartGround();
  const current=buildingAt(player.x,player.y);
  const drawPlayer=()=>{const p=worldToScreen(visual.x+.5,visual.y+.5,player.z);playerSprite(p.x,p.y);};
  let drawn=Boolean(current);
