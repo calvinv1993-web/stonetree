@@ -182,6 +182,7 @@ function renderFloor(b,x,y,level,holes){
  rootheartTempleMosaic(b,x,y,level);
  rootheartSmithyFloorDetail(b,x,y,level);
  rootheartShopFloorDetail(b,x,y,level);
+ rootheartInnFloorDetail(b,x,y,level);
  staircase(b,x,y,level);
 }
 function cutawayFront(b,x,base,level){
@@ -313,6 +314,27 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,10,depth+8,'#625e51');
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
+}
+function rootheartInnFloorDetail(b,x,y,level){
+ if(b.id!=='rootheart-inn')return;
+ if(level===0){
+  // Warm, worn stone around the dining tables; keep the stair tile unchanged.
+  for(const [col,row] of [[2,1],[3,1],[4,1],[2,2],[3,2],[4,2],[2,3],[3,3],[4,3]]){
+   const px=x+col*TILE,py=y+row*TILE;
+   rect(px+3,py+3,TILE-6,TILE-6,'rgba(121,87,57,0.16)');
+   line(px+7,py+TILE-8,px+TILE-8,py+TILE-8,'#a69a81');
+   if((col+row)%2===0)rect(px+15,py+13,10,3,'#b8a98a');
+  }
+ }else if(level===1){
+  // A narrow woven hallway runner, avoiding the upstairs stairwell.
+  for(const row of [1,2,3,4]){
+   const px=x+3*TILE,py=y+row*TILE;
+   rect(px+9,py+2,TILE-18,TILE-4,'#765a4b');
+   rect(px+12,py+4,TILE-24,TILE-8,'#ad8667');
+   line(px+13,py+8,px+TILE-13,py+8,'#c7a788');
+   line(px+13,py+TILE-9,px+TILE-13,py+TILE-9,'#674e43');
+  }
+ }
 }
 function rootheartShopFloorDetail(b,x,y,level){
  if(b.id!=='rootheart-shop'||level!==0)return;
