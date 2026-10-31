@@ -31,41 +31,24 @@ function wallSprite(endCap=false){
  }
  return c;
 }
-// The north-south wall occupies a full tile in depth, not a thin post.
-// Its light cap recedes toward the top of the screen, while its face
-// projects down over the tile, just like the horizontal wall.
-function verticalWallSprite(){
- const c=document.createElement('canvas');c.width=TILE;c.height=TILE+HEIGHT+DEPTH;
- const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- const width=18,faceX=0,top=0;
- // Dark right-hand thickness, visible throughout the wall's length.
- g.fillStyle='#405049';g.fillRect(faceX+width,DEPTH,TILE-width,HEIGHT+TILE);
- g.fillStyle='#5c6d63';g.fillRect(faceX+width,DEPTH,3,HEIGHT+TILE);
- // Tall visible front face.
- g.fillStyle='#77867c';g.fillRect(faceX,DEPTH,width,HEIGHT+TILE);
- g.fillStyle='#98a69a';g.fillRect(faceX+2,DEPTH+2,width-5,HEIGHT+TILE-5);
- g.fillStyle='#56665d';g.fillRect(faceX+width-3,DEPTH,3,HEIGHT+TILE);
- // Light receding upper plane, sloped by one pixel step per four pixels.
- g.fillStyle='#b7c7b9';g.beginPath();
- g.moveTo(faceX,DEPTH);g.lineTo(faceX+width,DEPTH);
- g.lineTo(faceX+width+9,0);g.lineTo(faceX+9,0);g.closePath();g.fill();
- g.fillStyle='#e0e8dc';g.fillRect(faceX+10,1,width-3,3);
- return c;
-}
-const middle=wallSprite(false),vertical=verticalWallSprite();
+// Three identical wall tiles; a continuous angled top plane creates depth.
+const middle=wallSprite(false);
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*5)/2),y=Math.round((h-HEIGHT-DEPTH)/2)+TILE;
- // The front wall spans three tiles. Side walls extend behind it.
- for(let i=0;i<3;i++)ctx.drawImage(vertical,x,y-(i+1)*TILE);
- for(let i=0;i<3;i++)ctx.drawImage(vertical,x+4*TILE,y-(i+1)*TILE);
- for(let i=0;i<3;i++)ctx.drawImage(middle,x+(i+1)*TILE,y);
- // Join both side walls to the front wall at the same tile anchors.
- ctx.drawImage(vertical,x,y);
- ctx.drawImage(vertical,x+4*TILE,y);
+ const x=Math.round((w-TILE*3-SIDE)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
+ for(let i=0;i<3;i++)ctx.drawImage(middle,x+i*TILE,y);
+ // A single receding, slanted cap across all three wall sprites.
+ const skew=12;
+ ctx.fillStyle='#b9c8bb';
+ ctx.beginPath();ctx.moveTo(x,y+DEPTH);ctx.lineTo(x+TILE*3,y+DEPTH);
+ ctx.lineTo(x+TILE*3+skew,y);ctx.lineTo(x+skew,y);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#e0e8dc';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(x+skew,y+2);ctx.lineTo(x+TILE*3+skew,y+2);ctx.stroke();
+ ctx.fillStyle='#45544c';ctx.fillRect(x+TILE*3,y+DEPTH,SIDE,HEIGHT);
+ ctx.fillStyle='#68796d';ctx.fillRect(x+TILE*3,y+DEPTH,2,HEIGHT);
 }
 addEventListener('resize',paint);paint();
 </script>
