@@ -1,31 +1,31 @@
 // Stonetree: src/systems/movement.js
-function isStair(x,y){return x===BUILDING.stairs.x&&y===BUILDING.stairs.y;}
+function isStair(x,y){return localX(x)===BUILDING.stairs.x&&localY(y)===BUILDING.stairs.y;}
 function walkable(x,y){
  if(inside(x,y)){
   // South wall occupies the front row except for the actual doorway.
   // Never let the player stand in the facade to either side of the door.
   // Every storey has solid exterior walls. Only the ground-floor door
   // is a traversable opening; upper floors have no exterior doorway.
-  if(y===N-1&&(player.z!==0||x!==BUILDING.door.col))return false;
-  return player.z===0||!VOID_TILES.has(x+','+y)||isStair(x,y);
+  if(localY(y)===N-1&&(player.z!==0||localX(x)!==BUILDING.door.col))return false;
+  return player.z===0||!VOID_TILES.has(localX(x)+','+localY(y))||isStair(x,y);
  }
- return player.z===0&&x>=-7&&x<N+8&&y>=-7&&y<=N+5;
+ return player.z===0&&x>=BUILDING.position.x-7&&x<BUILDING.position.x+N+8&&y>=BUILDING.position.y-7&&y<=BUILDING.position.y+N+5;
 }
 function connected(cx,cy,nx,ny){
  if(inside(cx,cy)===inside(nx,ny))return true;
- return doorOpen&&cx===BUILDING.door.col&&nx===BUILDING.door.col&&
-  ((cy===N-1&&ny===N)||(cy===N&&ny===N-1));
+ return doorOpen&&localX(cx)===BUILDING.door.col&&localX(nx)===BUILDING.door.col&&
+  ((localY(cy)===N-1&&localY(ny)===N)||(localY(cy)===N&&localY(ny)===N-1));
 }
 function adjacentToDoor(){
- return player.z===0&&player.x===BUILDING.door.col&&
-  (player.y===N-1||player.y===N);
+ return player.z===0&&localX(player.x)===BUILDING.door.col&&
+  (localY(player.y)===N-1||localY(player.y)===N);
 }
 function toggleDoor(){
  if(!adjacentToDoor())return false;
  // Closing the door while standing in its tile moves the player
  // onto the free exterior tile before the door becomes solid.
- if(doorOpen&&player.x===BUILDING.door.col&&player.y===N-1){
-  player.y=N;
+ if(doorOpen&&localX(player.x)===BUILDING.door.col&&localY(player.y)===N-1){
+  player.y=BUILDING.position.y+N;
  }
  doorOpen=!doorOpen;
  path=[];paint();return true;
