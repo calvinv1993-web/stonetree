@@ -6,12 +6,12 @@ test('loads without uncaught errors and draws the game', async ({ page }) => {
  const errors=[]; page.on('pageerror',e=>errors.push(e.message));
  await page.reload(); await page.waitForTimeout(1000);
  await expect(page.locator('canvas')).toBeVisible();
- const result=await page.locator('canvas').evaluate(c=>({w:c.width,h:c.height,opaque:[...c.getContext('2d').getImageData(Math.floor(c.width/2),Math.floor(c.height/2),1,1).data][3]}));
- expect(result.w).toBeGreaterThan(0);expect(result.h).toBeGreaterThan(0);expect(result.opaque).toBeGreaterThan(0);
+ const result=await page.locator('canvas').evaluate(c=>{const {width:w,height:h}=c;const d=c.getContext('2d').getImageData(0,0,w,h).data;let drawn=0;for(let i=3;i<d.length;i+=4)if(d[i])drawn++;return {w,h,drawn}});
+ expect(result.w).toBeGreaterThan(0);expect(result.h).toBeGreaterThan(0);expect(result.drawn).toBeGreaterThan(100);
  expect(errors).toEqual([]);
 });
 test('player state survives reload', async ({ page }) => {
- await page.evaluate(()=>localStorage.setItem('elderwild-v1',JSON.stringify({x:320,y:650,hp:73,xp:120,gold:42,kills:2,vocation:'Ranger',floor:0})));
+ await page.evaluate(()=>{localStorage.setItem('elderwild-v1',JSON.stringify({x:320,y:650,hp:73,xp:120,gold:42,kills:2,vocation:'Ranger',floor:0}));window.__testSave=localStorage.getItem('elderwild-v1')});
  await page.reload();await page.waitForTimeout(300);
  const state=await page.evaluate(()=>({hp:p.hp,gold:p.gold,kills:p.kills}));
  expect(state.gold).toBe(42);expect(state.kills).toBe(2);expect(state.hp).toBeGreaterThanOrEqual(73);
