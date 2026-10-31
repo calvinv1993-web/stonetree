@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="nl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stonetree — drie muren</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+</style>
+<canvas id="view"></canvas>
+<script>
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+const TILE=48,THICK=10,HEIGHT=32;
+function wallSprite(){
+ const c=document.createElement('canvas');c.width=TILE;c.height=TILE+HEIGHT;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ // Top surface: thickness occupies the upper tile edge.
+ g.fillStyle='#8b9794';g.fillRect(0,HEIGHT,TILE,THICK);
+ g.fillStyle='#c0c9c3';g.fillRect(1,HEIGHT+1,TILE-2,3);
+ g.fillStyle='#5b6967';g.fillRect(0,HEIGHT+THICK-2,TILE,2);
+ // Front face rises from the same wall anchor, outside the floor tile.
+ g.fillStyle='#57635f';g.fillRect(0,0,TILE,HEIGHT);
+ g.fillStyle='#74817c';g.fillRect(1,2,TILE-2,HEIGHT-5);
+ g.fillStyle='#a6b1a8';g.fillRect(2,2,TILE-4,3);
+ g.fillStyle='#43504d';g.fillRect(0,HEIGHT-4,TILE,4);
+ // A few horizontal masonry joints; continuous across segments.
+ g.fillStyle='#505d59';g.fillRect(0,14,TILE,2);
+ g.fillStyle='#8d9a93';g.fillRect(0,16,TILE,1);
+ g.fillStyle='#505d59';g.fillRect(0,27,TILE,2);
+ return c;
+}
+const sprite=wallSprite();
+function paint(){
+ const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
+ canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
+ ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
+ ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
+ const x=Math.round((w-TILE*3)/2),y=Math.round(h/2);
+ // Three separate instances, each anchored to the top edge of its tile.
+ for(let i=0;i<3;i++)ctx.drawImage(sprite,x+i*TILE,y-HEIGHT);
+}
+addEventListener('resize',paint);paint();
+</script>
