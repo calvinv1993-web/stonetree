@@ -35,12 +35,18 @@ function facade(b,w,h){
  // Side wall: a darker return face gives the building a consistent 2.5D silhouette.
  ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(left+width,front-lift);ctx.lineTo(left+width+9,front-lift-8);ctx.lineTo(left+width+9,front-8);ctx.lineTo(left+width,front);ctx.closePath();ctx.fill();
  // Roof stays aligned to the top of the facade; the sloped front eave covers the join.
- const roofTop=top-lift;
+ const roofDepth=Math.min(height*.58,S*3.7),roofTop=front-lift-roofDepth,roofRow=roofDepth/a.height;
+ // Compress roof depth in screen space; the building footprint and collision stay unchanged.
+ // Darker rear plane and a ridge distinguish roof geometry from flat ground tiles.
+ ctx.fillStyle=timber?'#342b25':'#402e2c';ctx.fillRect(left-5,roofTop-5,width+10,roofDepth+8);
  for(let row=0;row<a.height;row++)for(let col=0;col<a.width;col++){
   const x=a.x+col,y=a.y+row,t=world.tile(x,y,b.roofZ);
-  ctx.drawImage(cachedTile(t,x,y),left+col*S,roofTop+row*S);
+  ctx.drawImage(cachedTile(t,x,y),left+col*S,roofTop+row*roofRow,S,roofRow+1);
  }
- ctx.fillStyle=dark;ctx.fillRect(left,front-lift-5,width,7);
+ ctx.fillStyle='rgba(20,17,17,.22)';ctx.fillRect(left,roofTop+roofDepth*.52,width,roofDepth*.48);
+ ctx.fillStyle=timber?'#d0a575':'#c79a8a';ctx.fillRect(left-3,roofTop+roofDepth*.47,width+6,4);
+ ctx.fillStyle=dark;ctx.fillRect(left-6,front-lift-6,width+12,8);
+ ctx.fillStyle=trim;ctx.fillRect(left-3,front-lift-6,width+6,2);
  ctx.fillStyle=trim;ctx.fillRect(left+3,front-lift-5,width-6,2);
  ctx.fillStyle='rgba(0,0,0,.17)';ctx.fillRect(left+7,front-lift+2,width-14,5);
 }
