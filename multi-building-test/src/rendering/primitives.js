@@ -34,10 +34,23 @@ function rootheartGround(){
   const road=(dx<=1||dy<=1);
   const seed=((gx*73856093)^(gy*19349663))>>>0;
   if(plaza||road){
-   rect(px,py,TILE,TILE,plaza?(seed%3?'#999486':'#a49c8b'):(seed%3?'#817f73':'#8c8879'));
-   rect(px,py+TILE-2,TILE,2,'#69695f');
-   rect(px+TILE-2,py,2,TILE,'#6c6b62');
+   const palette=plaza?['#999486','#a49c8b','#918d80','#aaa392']:['#817f73','#8c8879','#77776e','#969082'];
+   rect(px,py,TILE,TILE,palette[seed%palette.length]);
+   // Inset stone edges and offset joints give the plaza and roads depth.
+   rect(px+2,py+2,TILE-5,2,plaza?'#bdb5a2':'#a8a397');
+   rect(px+2,py+2,2,TILE-5,plaza?'#b2aa98':'#989588');
+   rect(px,py+TILE-3,TILE,3,'#69695f');
+   rect(px+TILE-3,py,3,TILE,'#6c6b62');
    if(seed%5===0)rect(px+9,py+12,13,2,'#aaa394');
+   if(seed%7===0){
+    line(px+8,py+24,px+18,py+24,'#777569');
+    line(px+18,py+24,px+21,py+28,'#777569');
+   }
+   if(plaza&&(dx===6||dy===6)){
+    // Continuous border distinguishes the ceremonial square from the roads.
+    if(dx===6)rect(px+(gx<area.centerX?2:TILE-6),py,4,TILE,'#c1b8a3');
+    if(dy===6)rect(px,py+(gy<area.centerY?2:TILE-6),TILE,4,'#c1b8a3');
+   }
   }else{
    rect(px,py,TILE,TILE,['#456d3e','#4b7542','#527a45'][seed%3]);
    rect(px+6+(seed%22),py+7+((seed>>>5)%22),5,3,'#648d4d');
