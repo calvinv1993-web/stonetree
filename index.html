@@ -120,7 +120,7 @@ function stamp(name,x,y,w,h){
   ctx.drawImage(sprite,x,y,w,h);return true;
 }
 function drawVillage(){
-  if(p.floor!==-1&&p.floor!==lodge.upper)buildingArt(lodge);
+  if(p.floor===0)for(const b of buildings)buildingArt(b);
   stamp('plein',224,679,184,42);
   
   if(!stamp('handelshuis',374,548,84,82))house(385,585);
@@ -203,7 +203,7 @@ function buildingStairPortals(b){
 const lodge=registerBuilding({left:2,right:6,top:20,bottom:24,door:4,upper:4});
 function buildingArt(b){
  const t=24,corner=ground.center({c:b.left,r:b.top}),x0=corner.x-12,y0=corner.y-12;
- const cell=ground.cell(p),inside=p.floor===b.upper||(p.floor===0&&cell.c>b.left&&cell.c<b.right&&cell.r>b.top&&cell.r<b.bottom);
+ const inside=buildingInside(b);
  const upper=p.floor===b.upper,dy=upper?32:0;
  const width=(b.right-b.left+1)*t,height=(b.bottom-b.top+1)*t;
  const stone=['#716d62','#898476','#77776d','#9c9380'];
@@ -224,7 +224,7 @@ function buildingArt(b){
   rect(x0+width-2,y0-20,4,height+20,'#3d483f');
   return;
  }
- // Open roof: actual floor cells are rendered independently from walls.
+ // Roof removed: draw the actual tile floor, connected back and side walls.
  for(let r=b.top+1;r<b.bottom;r++)for(let c=b.left+1;c<b.right;c++)floor(x0+(c-b.left)*t,y0+(r-b.top)*t-dy,c,r);
  // Rear wall and side walls are upright, with separate top and front faces.
  for(let c=b.left;c<=b.right;c++){
@@ -259,7 +259,22 @@ const portals=[
  ...buildings.flatMap(buildingStairPortals)
 ];
 const floorNames={4:'Wayfarer Lodge · Upper floor',0:'Woodland · Ground floor',1:'Moss Terrace · Upper floor',[-1]:'Underground cave · Lower floor'};
+// Floors use the same tile coordinates; camera height is a view transform, not a second world position.
 const floorOffset=()=>p.floor>0?32:0;
+function buildingInside(b){
+ const t=ground.cell(p);
+ return p.floor===b.upper||(p.floor===0&&t.c>b.left&&t.c<b.right&&t.r>b.top&&t.r<b.bottom);
+}
+function drawBuildingFloorOcclusion(b){
+ if(p.floor!==b.upper)return;
+ const a=ground.center({c:b.left,r:b.top}),x=a.x-12,y=a.y-12;
+ const w=(b.right-b.left+1)*24,h=(b.bottom-b.top+1)*24;
+ // The opaque elevated deck blocks the entire footprint of the ground scene.
+ // This is drawn AFTER ground terrain/NPCs and BEFORE the upper architecture.
+ rect(x,y-32,w,h,'#2b342e');
+ rect(x-3,y+h-32,w+6,17,'#40483e');
+ rect(x-3,y+h-32,w+6,4,'#a79c82');
+}
 let portalLatch=p.floor+':'+world.key(p.tile);
 function changeFloor(portal){
  const next=floors[portal.to],landing=next.cell({x:portal.tx,y:portal.ty});
@@ -476,7 +491,7 @@ rect(237,562,161,151,'#3d4d3b');
 for(let row=0;row<10;row++)for(let col=0;col<9;col++){const x=240+col*17,y=565+row*14;rect(x,y,16,13,(row+col)%3?'#8b8b70':'#999479');rect(x+1,y,14,2,'#bbb092');rect(x+15,y+2,1,11,'#636f55');rect(x+2,y+12,13,1,'#4c5f46');if((row*3+col)%7===0)rect(x+2,y+10,4,2,'#627b45')}
 drawVillage();
 for(const t of trees)tree(t.x,t.y,t.s)
-if(p.floor!==-1)drawMonsters(0);ctx.restore();drawLowerFloorDepth();drawHeightTerrain();if(p.floor===lodge.upper)buildingArt(lodge);if(p.floor!==-1){ctx.save();ctx.translate(0,-32);drawMonsters(1);ctx.restore()}else drawMonsters(-1);ctx.translate(0,-floorOffset());
+if(p.floor!==-1)drawMonsters(0);ctx.restore();drawLowerFloorDepth();drawHeightTerrain();for(const b of buildings)if(p.floor===b.upper){drawBuildingFloorOcclusion(b);buildingArt(b)}if(p.floor!==-1){ctx.save();ctx.translate(0,-32);drawMonsters(1);ctx.restore()}else drawMonsters(-1);ctx.translate(0,-floorOffset());
 for(const b of bags){if((b.floor??0)!==p.floor)continue;rect(b.x-5,b.y-5,10,9,'#b58a54');rect(b.x-3,b.y-8,6,4,'#88603a')}
 if(dest){ctx.strokeStyle='#d5d29c';ctx.strokeRect(dest.x-12,dest.y-12,24,24)}
 
