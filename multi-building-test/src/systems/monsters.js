@@ -7,6 +7,27 @@ let ratSelected=false;
 let ratHP=20;
 let playerNextAttack=0;
 let ratRespawnAt=0;
+const ratCorpses=[];
+let nextCorpseId=1;
+function createRatCorpse(){
+ ratCorpses.push({id:nextCorpseId++,x:rat.x,y:rat.y,z:0,items:[{name:'Gold coin',amount:1+Math.floor(Math.random()*3)}]});
+}
+function drawRatCorpses(){
+ if(player.z!==0)return;
+ for(const corpse of ratCorpses){
+  const p=worldToScreen(corpse.x+.5,corpse.y+.5,0);
+  rect(p.x-12,p.y-6,24,14,'#403529');rect(p.x-9,p.y-3,18,8,'#796b51');
+  rect(p.x-4,p.y-1,8,4,'#aa9570');
+ }
+}
+function openRatCorpse(corpse){
+ if(player.z!==0||Math.abs(player.x-corpse.x)+Math.abs(player.y-corpse.y)>1)return false;
+ const panel=document.getElementById('lootPanel');
+ panel.hidden=false;
+ document.getElementById('lootContents').textContent=corpse.items.length?corpse.items.map(item=>item.amount+' '+item.name).join(', '):'Empty';
+ return true;
+}
+
 const playerProgress={xp:0};
 const RAT_SIGHT=5,RAT_LEASH=8;
 const ratDistance=(x,y)=>Math.abs(rat.x-x)+Math.abs(rat.y-y);
@@ -100,6 +121,6 @@ function playerAttackTick(now){
  if(now<playerNextAttack)return false;
  playerNextAttack=now+1200;
  ratHP=Math.max(0,ratHP-5);
- if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;gainExperience(5);}
+ if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;gainExperience(5);createRatCorpse();}
  return true;
 }
