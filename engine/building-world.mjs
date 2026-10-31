@@ -21,7 +21,7 @@ export class BuildingWorld {
   if(z===b.roofZ){
    // The upper wall ring occupies the boundary tiles; roof tiles fill
    // only the interior. Both belong to the same real Z layer.
-   if(b.base.boundary(x,y))return {type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y)};
+   if(b.base.boundary(x,y))return {type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y),edges:b.base.wallEdges(x,y)};
    return {type:'roof',z,material:b.base.material};
   }
   if(z>b.groundZ||z<b.roofZ)return null;
@@ -29,7 +29,7 @@ export class BuildingWorld {
   if(b.holes.some(h=>h.x===x&&h.y===y&&h.z===z))return {type:'hole',z};
   if(b.stairs&&b.stairs.x===x&&b.stairs.y===y&&level<b.floors)return {type:'stairs',z};
   if(level===0)return {...b.base.at(x,y),z};
-  return b.base.boundary(x,y)?{type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y)}:{type:'floor',z,material:b.base.material};
+  return b.base.boundary(x,y)?{type:'wall',z,material:b.base.material,mask:b.base.wallMask(x,y),edges:b.base.wallEdges(x,y)}:{type:'floor',z,material:b.base.material};
  }
  blocked(x,y,z){
   const t=this.tile(x,y,z);
