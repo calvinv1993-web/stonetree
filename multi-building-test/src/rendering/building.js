@@ -1,9 +1,25 @@
 // Stonetree: src/rendering/building.js
+// Shared masonry pattern for exterior facades and interior rear walls.
+function stoneCourses(x,y,width,height){
+ rect(x,y,width,height,'#a8a698');
+ ctx.save();ctx.beginPath();ctx.rect(x,y,width,height);ctx.clip();
+ for(let row=0;row<Math.ceil(height/16);row++){
+  const cy=y+row*16;
+  line(x,cy+15,x+width,cy+15,'#797a70');
+  line(x,cy+1,x+width,cy+1,'#c8c4b1');
+  const offset=row%2?20:0;
+  for(let col=-1;col<Math.ceil(width/40)+1;col++){
+   const cx=x+col*40+offset;
+   line(cx,cy+2,cx,cy+14,'#818277');
+   if((col+row)%3===0)rect(cx+8,cy+6,11,2,'#929386');
+  }
+ }
+ ctx.restore();
+}
 function facade(b,x,baseY,level,door){
  // One authoritative facade per physical storey, shared by interior and exterior views.
  const top=baseY-HEIGHT;
- rect(x,top,b.width*TILE,HEIGHT,'#aaa89a');
- for(let i=1;i<4;i++)line(x,top+i*HEIGHT/4,x+b.width*TILE,top+i*HEIGHT/4,'#89897e');
+ stoneCourses(x,top,b.width*TILE,HEIGHT);
  rect(x,top,b.width*TILE,5,'#d9d4bf');
  if(door){
   const dx=x+b.door.col*TILE;
@@ -67,8 +83,7 @@ function staircase(b,x,y,level){
 }
 function walls(b,x,y){
  const size=b.width*TILE,depth=b.height*TILE;
- rect(x,y-HEIGHT,size,HEIGHT,'#aaa99c');
- for(let i=1;i<4;i++)line(x,y-HEIGHT+i*HEIGHT/4,x+size,y-HEIGHT+i*HEIGHT/4,'#8b8b80');
+ stoneCourses(x,y-HEIGHT,size,HEIGHT);
  poly([[x,y-HEIGHT],[x+THICK,y-HEIGHT-THICK],[x+size+THICK,y-HEIGHT-THICK],[x+size,y-HEIGHT]],'#e0dac8');
  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#777d72');
  rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#777d72');
