@@ -22,27 +22,28 @@ function paint(){
   ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
   ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
- // Side walls stay anchored to the west/east grid edges.
- // Their projected 2.5D wall faces extend OUTWARD, leaving the floor unchanged.
- const SIDE=24;
- // West: visible exterior face, full height at every point along the edge.
+ // Both side walls are upright planes anchored to the vertical grid edges.
+ // Their bases follow the 5-tile grid lines; their tops are WALL pixels higher.
+ // Draw outward faces behind the south wall, which retains final draw priority.
+ const SIDE=12;
+ // Left side: tall face projected to the left of the western edge.
  polygon([[x-SIDE,y-WALL],[x,y-WALL],[x,y+size],[x-SIDE,y+size]],'#777d72');
+ // Right side: tall face projected right of the eastern edge.
+ polygon([[x+size,y-WALL],[x+size+SIDE,y-WALL],[x+size+SIDE,y+size],[x+size,y+size]],'#777d72');
+ // Top caps run north-south along the grid boundaries, not horizontally across the wall.
  polygon([[x-SIDE,y-WALL],[x-SIDE+THICK,y-WALL-THICK],[x+THICK,y-WALL-THICK],[x,y-WALL]],'#d9d7c6');
- // East: same height and footprint, with a darker outer face.
- polygon([[x+size,y-WALL],[x+size+SIDE,y-WALL],[x+size+SIDE,y+size],[x+size,y+size]],'#818679');
  polygon([[x+size,y-WALL],[x+size+THICK,y-WALL-THICK],[x+size+SIDE+THICK,y-WALL-THICK],[x+size+SIDE,y-WALL]],'#d9d7c6');
- // Horizontal courses and grid-aligned vertical joints make the height legible.
- for(let i=1;i<4;i++){
-  const yy=y-WALL+i*WALL/4;
+ // Vertical faces use brick-height courses and tile-spaced joints.
+ for(let row=1;row<4;row++){
+  const yy=y-WALL+row*WALL/4;
   line(x-SIDE,yy,x,yy,'#5e675d');
-  line(x+size,yy,x+size+SIDE,yy,'#656d61');
+  line(x+size,yy,x+size+SIDE,yy,'#5e675d');
  }
  for(let i=1;i<N;i++){
-  const yy=y+i*TILE;
-  line(x-SIDE,yy-WALL,x,yy-WALL,'#626a60');
-  line(x+size,yy-WALL,x+size+SIDE,yy-WALL,'#626a60');
+  const yy=y+i*TILE-WALL;
+  line(x-SIDE,yy,x,yy,'#626a60');
+  line(x+size,yy,x+size+SIDE,yy,'#626a60');
  }
-
  // Horizontal south wall is always the final foreground layer.
  // South wall rises from the southern grid edge, rather than hanging below it.
  // Its lower edge meets the floor boundary; the floor remains drawn behind it.
