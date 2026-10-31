@@ -45,8 +45,24 @@ function facade(b,x,baseY,level,door){
    rect(dx+28,top+32,4,4,'#e1c77d');
   }
   rect(dx+4,baseY-5,TILE-8,5,'#d6bd85');
- }else for(const col of b.floors[level].windows)
-  windowAt(x+col*TILE+6,top+17);
+ }else for(const col of b.floors[level].windows){
+  // Open masonry aperture: render the actual room floor through the wall.
+  const wx=x+col*TILE+6,wy=top+17;
+  rect(wx-4,wy-4,36,37,'#68665c');
+  rect(wx-1,wy-1,30,30,'#302f2a');
+  ctx.save();
+  ctx.beginPath();ctx.rect(wx+2,wy+2,24,24);ctx.clip();
+  const floorY=baseY-b.height*TILE;
+  for(let row=Math.max(0,b.height-2);row<b.height;row++)
+   floorTile(b,x,floorY,col,row,level);
+  ctx.restore();
+  // Thick stone reveal and sill, without glass or crossbars.
+  rect(wx-3,wy-3,4,34,'#bcb6a3');
+  rect(wx+27,wy-3,4,34,'#77766b');
+  rect(wx-3,wy-3,34,4,'#d0c8b2');
+  rect(wx-5,wy+27,38,6,'#c7bda5');
+  rect(wx-5,wy+32,38,3,'#777366');
+ }
  rect(x,baseY-5,b.width*TILE,5,'#77786e');
 }
 function exterior(b,x,y){
