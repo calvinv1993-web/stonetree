@@ -21,6 +21,37 @@ function displayedTile(x,y){
  const z=inside||near?p.z:b.roofZ;
  return world.tile(x,y,z);
 }
+// Tile-edge wall faces: one segment per tile and per actual storey.
+// Roof tiles remain on roofZ and rest on the top edge of these faces.
+function drawExteriorHeight(b,w,h){
+ const a=b.base,step=15,levels=b.floors;
+ const x0=w/2+(a.x-p.x)*S-S/2,y0=h/2+(a.y-p.y)*S-S/2;
+ const wood=a.material==='wood',face=wood?'#76583f':'#747e78';
+ const shade=wood?'#4e392a':'#4d5956',rim=wood?'#b08b60':'#b6bcb0';
+ const bottom=y0+a.height*S;
+ for(let col=0;col<a.width;col++){
+  const px=x0+col*S;
+  for(let level=0;level<levels;level++){
+   const py=bottom+level*step;
+   ctx.fillStyle=face;ctx.fillRect(px,py,S,step);
+   ctx.fillStyle=shade;ctx.fillRect(px,py+step-3,S,3);
+   ctx.fillStyle=rim;ctx.fillRect(px+1,py+1,S-2,2);
+   if(col>0&&col<a.width-1){
+    ctx.fillStyle=shade;ctx.fillRect(px+S/2-5,py+4,10,step-7);
+    ctx.fillStyle='#8bb6bd';ctx.fillRect(px+S/2-3,py+5,6,step-9);
+   }
+  }
+ }
+ const right=x0+a.width*S;
+ for(let row=0;row<a.height;row++){
+  const py=y0+row*S;
+  for(let level=0;level<levels;level++){
+   const px=right+level*3;
+   ctx.fillStyle=shade;ctx.fillRect(px,py,3,S);
+   ctx.fillStyle=rim;ctx.fillRect(px,py,1,S-2);
+  }
+ }
+}
 function paint(){
  const w=innerWidth,h=innerHeight-62,d=Math.min(devicePixelRatio||1,2);
  if(w!==lastW||h!==lastH||d!==lastD){
@@ -42,6 +73,10 @@ function paint(){
    ctx.drawImage(cachedTile(ground,x,y),sx,sy);
    if(p.z<7){ctx.fillStyle='rgba(8,14,20,.70)';ctx.fillRect(sx,sy,S,S)}
   }
+ }
+ // Draw exterior height only while the upper roof layer is visible.
+ for(const b of world.buildings){
+  if(displayedTile(b.base.x,b.base.y)?.z===b.roofZ)drawExteriorHeight(b,w,h);
  }
  drawPlayer(ctx,w/2-S/2,h/2-S/2,S);
  const current=world.find(p.x,p.y);
