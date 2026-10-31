@@ -198,7 +198,8 @@ function drawStorey(b,x,y,level,occupied){
  }
  if(occupied){
   const tile=localTile(b,player.x,player.y);
-  playerSprite(x+(tile.x+.5)*TILE,y+(tile.y+.5)*TILE);
+  const visual=visualPlayer();
+  playerSprite(x+(visual.x-b.position.x+.5)*TILE,y+(visual.y-b.position.y+.5)*TILE);
   ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
   ctx.fillText(b.name+' · '+(level?'Verdieping '+level:'Begane grond'),x,y-HEIGHT-18);
  }
