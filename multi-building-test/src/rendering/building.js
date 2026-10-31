@@ -118,14 +118,26 @@ function exteriorStorey(x,y,level){
 // Half-width enclosed room, doorway at row 2, open stone terrace.
 function terracePartition(x,y){
  const edge=x+BUILDING.terrace.startCol*TILE;
+ // Full-height partition on the room side, with a one-tile doorway at row 2.
  for(let row=0;row<N;row++){
-  if(row===2)continue;
-  rect(edge-7,y+row*TILE,14,TILE,'#b0aea2');
-  rect(edge-7,y+row*TILE,4,TILE,'#77786e');
+  const top=y+row*TILE;
+  if(row===2){
+   // A visible framed opening, without blocking the walking tile.
+   rect(edge-9,top,18,7,'#6c5b48');
+   rect(edge-9,top+TILE-7,18,7,'#6c5b48');
+   rect(edge-9,top,5,TILE,'#786956');
+   rect(edge+4,top,5,TILE,'#786956');
+  }else{
+   rect(edge-10,top,20,TILE,'#a7a497');
+   rect(edge-10,top,5,TILE,'#77786e');
+   for(let stripe=12;stripe<TILE;stripe+=16)
+    line(edge-5,top+stripe,edge+10,top+stripe,'#858478');
+  }
  }
- // Doorframe; passage is deliberately open for click-to-walk movement.
- rect(edge-7,y+2*TILE,14,7,'#77654c');
- rect(edge-7,y+3*TILE-7,14,7,'#77654c');
+ // Upright masonry makes the partition read as a wall, not floor edging.
+ rect(edge-10,y-HEIGHT,20,HEIGHT,'#aaa89a');
+ rect(edge-10,y-HEIGHT,5,HEIGHT,'#77786e');
+ rect(edge-10,y-HEIGHT,20,5,'#ded9c6');
 }
 function terraceFloor(x,y,level){
  const edge=BUILDING.terrace.startCol*TILE;
