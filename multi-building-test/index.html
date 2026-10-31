@@ -31,14 +31,37 @@ function wallSprite(endCap=false){
  }
  return c;
 }
-const middle=wallSprite(false),last=wallSprite(true);
+// Two mirrored corners connect a north-south wall to the horizontal run.
+function verticalWallSprite(){
+ const c=document.createElement('canvas');c.width=TILE;c.height=TILE+HEIGHT;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ // Wall follows the left tile edge; top and left-facing planes show depth.
+ g.fillStyle='#53625a';g.fillRect(0,DEPTH,14,HEIGHT);
+ g.fillStyle='#829087';g.fillRect(2,DEPTH,10,HEIGHT);
+ g.fillStyle='#a4b2a6';g.fillRect(2,DEPTH+2,2,HEIGHT-4);
+ g.fillStyle='#b9c8bb';g.fillRect(0,0,14,DEPTH);
+ g.fillStyle='#e0e8dc';g.fillRect(1,1,11,3);
+ g.fillStyle='#47554e';g.fillRect(12,DEPTH,2,HEIGHT);
+ return c;
+}
+const middle=wallSprite(false),vertical=verticalWallSprite();
 function paint(){
  const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*3-SIDE)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
- for(let i=0;i<3;i++)ctx.drawImage(i===2?last:middle,x+i*TILE,y);
+ const x=Math.round((w-TILE*5)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
+ // Left and right corners plus three connected horizontal wall sprites.
+ for(let i=0;i<3;i++)ctx.drawImage(middle,x+(i+1)*TILE,y);
+ // North-south wall strips on either end, extending away from the horizontal wall.
+ for(let i=0;i<3;i++){
+  const yy=y-(i+1)*TILE;
+  ctx.drawImage(vertical,x,yy);
+  ctx.drawImage(vertical,x+4*TILE,yy);
+ }
+ // Shared corner anchors are drawn last to join the two orientations.
+ ctx.drawImage(vertical,x,y);
+ ctx.drawImage(vertical,x+4*TILE,y);
 }
 addEventListener('resize',paint);paint();
 </script>
