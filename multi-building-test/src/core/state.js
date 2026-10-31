@@ -15,5 +15,7 @@ if(!Number.isInteger(BUILDING.width)||BUILDING.width<3||
 const N=BUILDING.width;
 const player={x:2,y:2,z:0};let path=[],originX=0,originY=0,screenY=0;
 let doorOpen=false;
-const inside=(x,y)=>x>=0&&x<N&&y>=0&&y<N;
+const inside=(x,y)=>x>=BUILDING.position.x&&x<BUILDING.position.x+N&&y>=BUILDING.position.y&&y<BUILDING.position.y+N;
+const localX=x=>x-BUILDING.position.x;
+const localY=y=>y-BUILDING.position.y;
 const outside=()=>!inside(player.x,player.y);
