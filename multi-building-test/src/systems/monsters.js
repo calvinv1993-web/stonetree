@@ -100,6 +100,6 @@ function playerAttackTick(now){
  if(now<playerNextAttack)return false;
  playerNextAttack=now+1200;
  ratHP=Math.max(0,ratHP-5);
- if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;playerProgress.xp+=5;}
+ if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;gainExperience(5);}
  return true;
 }
