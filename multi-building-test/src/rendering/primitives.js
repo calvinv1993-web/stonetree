@@ -73,6 +73,9 @@ function rootheartApproaches(){
 
  for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
   if(!rootheartApproachTile(x,y))continue;
+  // Preserve the original plaza paving and both main roads at intersections.
+  const dx=Math.abs(x-a.centerX),dy=Math.abs(y-a.centerY);
+  if((dx<=6&&dy<=6)||dx<=1||dy<=1)continue;
   if(BUILDINGS.some(b=>contains(b,x,y)))continue;
   const px=camera.x+x*TILE,py=camera.y+y*TILE;
   const n=((x*73856093)^(y*19349663))>>>0;
