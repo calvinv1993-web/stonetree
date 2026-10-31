@@ -53,13 +53,32 @@ function exterior(x,y){
  poly([[x-12,base-2*HEIGHT],[x,base-2*HEIGHT-12],[x+N*TILE,base-2*HEIGHT-12],[x+N*TILE+12,base-2*HEIGHT]],'#756052');
  rect(x-12,base-2*HEIGHT-3,N*TILE+24,5,'#b5a48b');
 }
+// Both floors remain in world space. Upper-floor voids reveal the actual
+// ground-floor tiles, staircase and entrance below, never a fake facade.
+const UPPER_VOIDS=new Set(['1,1','1,2','2,1','2,2']);
+function groundUnderUpper(x,y){
+ const lowerY=y+HEIGHT,size=N*TILE;
+ rect(x,lowerY-HEIGHT,size,HEIGHT,'#aaa99c');
+ for(let row=0;row<N;row++)for(let col=0;col<N;col++){
+  rect(x+col*TILE,lowerY+row*TILE,TILE,TILE,(row+col)%2?'#888f7d':'#979e8c');
+  ctx.strokeStyle='#646b5e';ctx.lineWidth=1;
+  ctx.strokeRect(x+col*TILE+.5,lowerY+row*TILE+.5,TILE,TILE);
+ }
+ const sx=x+BUILDING.stairs.x*TILE,sy=lowerY+BUILDING.stairs.y*TILE;
+ rect(sx+4,sy+5,TILE-8,TILE-9,'#715b37');
+ for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
+ // The lower entrance is always part of the scene.
+ facade(x,lowerY+size,0,true);
+}
 function interior(x,y,level){
  // Floor is the actual level plane, not a copy of the exterior facade.
  const floor=BUILDING.floors[level],size=N*TILE;
+ if(level===1)groundUnderUpper(x,y);
  rect(x,y-HEIGHT,size,HEIGHT,'#aaa99c');
  for(let i=1;i<4;i++)line(x,y-HEIGHT+i*HEIGHT/4,x+size,y-HEIGHT+i*HEIGHT/4,'#8b8b80');
  poly([[x,y-HEIGHT],[x+THICK,y-HEIGHT-THICK],[x+size+THICK,y-HEIGHT-THICK],[x+size,y-HEIGHT]],'#e0dac8');
  for(let row=0;row<N;row++)for(let col=0;col<N;col++){
+  if(level===1&&UPPER_VOIDS.has(col+','+row))continue;
   rect(x+col*TILE,y+row*TILE,TILE,TILE,floor.material==='wood'?((row+col)%2?'#947959':'#a48966'):((row+col)%2?'#888f7d':'#979e8c'));
   ctx.strokeStyle='#646b5e';ctx.lineWidth=1;ctx.strokeRect(x+col*TILE+.5,y+row*TILE+.5,TILE,TILE);
  }
@@ -71,9 +90,8 @@ function interior(x,y,level){
  rect(sx+4,sy+5,TILE-8,TILE-9,'#715b37');
  for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
  if(level===1){
-  // Exposed slab and the LOWER physical storey below it.
-  rect(x,y+size,size,HEIGHT,'#77796e');
-  for(let i=1;i<4;i++)line(x,y+size+i*HEIGHT/4,x+size,y+size+i*HEIGHT/4,'#60665e');
+  // The upper slab has an opening above the staircase. Looking through
+  // that opening shows the ground floor rendered at its real elevation.
   rect(x,y+size,size,8,'#665b4b');
   rect(x,y+size,size,4,'#d0b68e');
  }
