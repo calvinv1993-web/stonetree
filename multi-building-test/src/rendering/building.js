@@ -180,6 +180,7 @@ function renderFloor(b,x,y,level,holes){
   floorTile(b,x,y,col,row,level);
  }
  rootheartTempleMosaic(b,x,y,level);
+ rootheartSmithyFloorDetail(b,x,y,level);
  staircase(b,x,y,level);
 }
 function cutawayFront(b,x,base,level){
@@ -311,6 +312,19 @@ function elevatedFloorEdge(b,x,y,level){
  rect(x+width-4,y,10,depth+8,'#625e51');
  rect(x+width-4,y,3,depth,'#b3a48b');
  ctx.restore();
+}
+function rootheartSmithyFloorDetail(b,x,y,level){
+ if(b.id!=='rootheart-smithy'||level!==0)return;
+ // Heat-worn masonry beneath the furnace and anvil; visual only.
+ for(const [col,row] of [[4,0],[3,0],[4,1],[2,1],[2,2]]){
+  const px=x+col*TILE,py=y+row*TILE;
+  rect(px+3,py+4,TILE-6,TILE-8,'rgba(49,43,39,0.18)');
+  line(px+6,py+TILE-9,px+TILE-7,py+TILE-9,'#69665d');
+  if((col+row)%2===0){
+   rect(px+12,py+18,5,3,'#a37a52');
+   rect(px+26,py+26,4,3,'#6d5a4a');
+  }
+ }
 }
 function rootheartTempleMosaic(b,x,y,level){
  if(b.id!=='rootheart-temple'||level!==0)return;
