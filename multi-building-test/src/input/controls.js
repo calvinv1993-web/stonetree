@@ -4,6 +4,10 @@ canvas.addEventListener('pointerdown',e=>{
  canvas.focus({preventScroll:true});
  const box=canvas.getBoundingClientRect();
  const px=(e.clientX-box.left)*camera.width/box.width,py=(e.clientY-box.top)*camera.height/box.height;
+ if(typeof rat!=='undefined'&&ratHP>0&&player.z===0){
+  const rp=worldToScreen(rat.x+.5,rat.y+.5,0);
+  if(Math.abs(px-rp.x)<=TILE/2&&Math.abs(py-rp.y)<=TILE/2){selectRat();paint();return;}
+ }
  for(const door of DOORS){
   if(door.z!==player.z)continue;
   const r=doorHitBox(door);
