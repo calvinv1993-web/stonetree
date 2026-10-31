@@ -137,7 +137,12 @@ function paint(){
  const y=Math.round(h/2-(player.y+.5)*TILE+player.z*HEIGHT);
  originX=x;originY=y-player.z*HEIGHT;
  grass(x,y,w,h);
- if(outside()){exterior(x,y);playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);}
+ if(outside()){
+  const drawPlayer=()=>playerSprite(x+(player.x+.5)*TILE,y+(player.y+.5)*TILE);
+  if(player.y<N)drawPlayer();
+  exterior(x,y);
+  if(player.y>=N)drawPlayer();
+ }
  else interior(x,y-player.z*HEIGHT,player.z);
  const place=outside()?'Buiten':player.z===0?'Begane grond':'Bovenverdieping';
  document.getElementById('status').textContent=`${place} · z=${player.z} · (${player.x}, ${player.y})`;
