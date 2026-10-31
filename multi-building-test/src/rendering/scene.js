@@ -20,6 +20,8 @@ function paint(){
  rootheartApproaches();
  rootheartNature();
  rootheartPlazaDetails();
+ // Depth-sort the central landmark against the player on the south side.
+ if(player.y>ROOTHEART.centerY+1)rootheartPetrifiedTree();
  const current=buildingAt(player.x,player.y);
  const drawPlayer=()=>{const p=worldToScreen(visual.x+.5,visual.y+.5,player.z);playerSprite(p.x,p.y);};
  let drawn=Boolean(current);
@@ -30,7 +32,7 @@ function paint(){
   else{const level=visibleExteriorStorey(b);if(level===null)exterior(b,p.x,p.y);else exteriorStorey(b,p.x,p.y,level);}
  }
  if(!drawn)drawPlayer();
- rootheartPetrifiedTree();
+ if(player.y<=ROOTHEART.centerY+1)rootheartPetrifiedTree();
  drawRatCorpses();
  drawRat(typeof performance!=='undefined'&&performance.now?performance.now():Date.now());
  if(typeof playerHealth!=='undefined'){
