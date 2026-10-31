@@ -16,7 +16,9 @@ function paint(){
  // Camera follows the player's world tile; the building stays on the grid.
  const size=N*TILE;
  const x=Math.round(w/2-(player.x+.5)*TILE);
- const y=Math.round(h/2-(player.y+.5)*TILE);
+ // On the upper floor the entire playable floor is elevated in screen space.
+ const elevation=player.z*WALL;
+ const y=Math.round(h/2-(player.y+.5)*TILE+elevation);
  const outside=!inside(player.x,player.y);
  originX=x;originY=y;
  // Grass on the surrounding world grid.
@@ -30,12 +32,26 @@ function paint(){
   ctx.fillRect(xx,yy,TILE,TILE);
   ctx.fillStyle='#719b58';ctx.fillRect(xx+8+n%18,yy+9+(n>>>5)%19,4,3);
  }
+ // Upper-floor cutaway: visible support facade underneath the raised floor.
+ if(player.z===1){
+  const groundY=y-WALL;
+  ctx.fillStyle='#646c61';ctx.fillRect(x-12,groundY+N*TILE-WALL,12,WALL);
+  ctx.fillStyle='#70786b';ctx.fillRect(x+N*TILE,groundY+N*TILE-WALL,12,WALL);
+  ctx.fillStyle='#77796e';ctx.fillRect(x,groundY+N*TILE-WALL,N*TILE,WALL);
+  ctx.fillStyle='#d1c9b5';ctx.fillRect(x,groundY+N*TILE-WALL,N*TILE,5);
+  for(let i=1;i<4;i++)line(x,groundY+N*TILE-WALL+i*WALL/4,x+N*TILE,groundY+N*TILE-WALL+i*WALL/4,'#60665e');
+ }
  // A 5x5 orthogonal ground grid. All wall bases sit on its four edges.
  // The wall height is projected vertically UP, never down onto the floor.
  // North wall: full height visible behind the floor.
  polygon([[x,y-WALL],[x+size,y-WALL],[x+size,y],[x,y]],'#aaa99c');
  polygon([[x,y-WALL],[x+THICK,y-WALL-THICK],[x+size+THICK,y-WALL-THICK],[x+size,y-WALL]],'#e0dac8');
  for(let i=1;i<4;i++)line(x,y-WALL+i*WALL/4,x+size,y-WALL+i*WALL/4,'#8b8b80');
+ // Raised-floor rim shows the thickness of the second-storey slab.
+ if(player.z===1){
+  ctx.fillStyle='#4c5149';ctx.fillRect(x-5,y,5,size);
+  ctx.fillStyle='#b8a887';ctx.fillRect(x+size,y,5,size);
+ }
  // Floor rendered after the north wall, so every floor tile remains visible.
  for(let row=0;row<N;row++)for(let col=0;col<N;col++){
   ctx.fillStyle=player.z===1?((row+col)%2?'#947959':'#a48966'):((row+col)%2?'#888f7d':'#979e8c');
@@ -69,8 +85,13 @@ function paint(){
  const sx=x+STAIRS.x*TILE,sy=y+STAIRS.y*TILE;
  ctx.fillStyle=player.z===0?'#715b37':'#635443';ctx.fillRect(sx+4,sy+5,TILE-8,TILE-9);
  for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#c7a467':'#ddbf83';ctx.fillRect(sx+6,sy+7+i*7,TILE-12,5);}
+ // Upper floor has an exposed front floor slab, reinforcing its elevation.
+ if(player.z===1){
+  ctx.fillStyle='#665b4b';ctx.fillRect(x,y+size,size,12);
+  ctx.fillStyle='#d0b68e';ctx.fillRect(x,y+size,size,4);
+ }
  // Floor indicator (upper floor has a distinct wooden floor).
- if(player.z===1){ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';ctx.fillText('Verdieping 2',x,y-WALL-18);}
+ if(player.z===1){ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';ctx.fillText('Verdieping 2 · +1',x,y-WALL-18);}
  // Exterior wall faces are visible above the ground when approaching from outside.
  // The south facade retains the highest layer priority over indoor characters.
  if(!outside){
