@@ -190,7 +190,12 @@ function paint(){
 }
 function isStair(x,y){return x===BUILDING.stairs.x&&y===BUILDING.stairs.y;}
 function walkable(x,y){
- if(inside(x,y))return player.z===0||!VOID_TILES.has(x+','+y)||isStair(x,y);
+ if(inside(x,y)){
+  // South wall occupies the front row except for the actual doorway.
+  // Never let the player stand in the facade to either side of the door.
+  if(y===N-1&&x!==BUILDING.door.col)return false;
+  return player.z===0||!VOID_TILES.has(x+','+y)||isStair(x,y);
+ }
  return player.z===0&&x>=-7&&x<N+8&&y>=-7&&y<=N+5;
 }
 function connected(cx,cy,nx,ny){
