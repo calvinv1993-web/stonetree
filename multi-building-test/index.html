@@ -7,51 +7,43 @@ const world=new BuildingWorld([{x:0,y:-5,width:7,height:7,z:7,floors:2,material:
 const canvas=document.querySelector('#map'),ctx=canvas.getContext('2d'),status=document.querySelector('#status');let p={x:-4,y:0,z:7},walkId=0;const S=38;const tileCache=new Map();let lastW=0,lastH=0,lastD=0;
 function cachedTile(t,x,y){const key=[x,y,t.z??p.z,t.type,t.material??'',t.open??'',t.mask??'',t.below?.type??''].join(':');let image=tileCache.get(key);if(!image){image=document.createElement('canvas');image.width=S;image.height=S;drawTile(image.getContext('2d'),t,0,0,S,x,y);if(tileCache.size>=480)tileCache.clear();tileCache.set(key,image)}return image}
 function blocked(x,y){const b=world.find(x,y);if(b){const t=world.tile(x,y,p.z);if(t?.type==='hole')return world.blocked(x,y,p.z+1);return world.blocked(x,y,p.z)}return p.z!==7||terrainAt(x,y).blocked}
-// 2.5D exterior: roof raised above its footprint, with a height-dependent front facade.
-function exterior(b){return p.z===b.groundZ&&!b.base.contains(p.x,p.y)&&Math.max(b.base.x-p.x,0,p.x-(b.base.x+b.base.width-1),b.base.y-p.y,p.y-(b.base.y+b.base.height-1))>2}
-function facade(b,w,h){
- const a=b.base,left=w/2+(a.x-p.x)*S-S/2,top=h/2+(a.y-p.y)*S-S/2;
- const width=a.width*S,height=a.height*S,levelHeight=30,lift=b.floors*levelHeight;
- const timber=a.material==='wood',front=top+height;
- const wall=timber?'#876245':'#88938d',dark=timber?'#453224':'#434e4c',trim=timber?'#c09a66':'#bfc6b6';
- // South-facing facade is anchored to the real footprint, not pasted on top of the roof.
- ctx.fillStyle='rgba(0,0,0,.22)';ctx.fillRect(left+10,front+4,width+8,10);
- ctx.fillStyle=wall;ctx.fillRect(left,front-lift,width,lift);
- ctx.fillStyle=dark;ctx.fillRect(left,front-lift,5,lift);
- ctx.fillStyle=trim;ctx.fillRect(left+5,front-lift,width-10,4);
- for(let level=0;level<b.floors;level++){
-  const yy=front-lift+level*levelHeight;
-  ctx.fillStyle=dark;ctx.fillRect(left+4,yy+levelHeight-5,width-4,5);
-  ctx.fillStyle=trim;ctx.fillRect(left+5,yy+levelHeight-7,width-10,2);
-  for(let col=1;col<a.width-1;col+=2){
-   const xx=left+col*S+S/2-10;
-   ctx.fillStyle=dark;ctx.fillRect(xx-3,yy+7,26,18);
-   ctx.fillStyle='#254958';ctx.fillRect(xx,yy+9,20,12);
-   ctx.fillStyle='#9fc4c3';ctx.fillRect(xx+2,yy+10,16,4);
-   ctx.fillStyle=trim;ctx.fillRect(xx+9,yy+9,3,12);
-   ctx.fillRect(xx-4,yy+23,28,3);
+// Technical tile renderer: every floor and roof is a real world Z layer.
+// No synthetic facade, projected roof, or distance-based visibility switch.
+function displayedTile(x,y){
+ const b=world.find(x,y);
+ if(!b)return null;
+ // A roof is a normal ground tile on roofZ, visible only while outside.
+ // Inside a building, show the player's actual Z layer.
+ const inside=world.find(p.x,p.y)===b;
+ const z=inside?p.z:b.roofZ;
+ return world.tile(x,y,z);
+}
+function paint(){
+ const w=innerWidth,h=innerHeight-62,d=Math.min(devicePixelRatio||1,2);
+ if(w!==lastW||h!==lastH||d!==lastD){
+  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  lastW=w;lastH=h;lastD=d;
+ }
+ ctx.setTransform(d,0,0,d,0,0);
+ ctx.fillStyle='#151515';ctx.fillRect(0,0,w,h);
+ const rx=Math.ceil(w/S/2)+1,ry=Math.ceil(h/S/2)+1;
+ for(let dy=-ry;dy<=ry;dy++)for(let dx=-rx;dx<=rx;dx++){
+  const x=p.x+dx,y=p.y+dy,sx=w/2+dx*S-S/2,sy=h/2+dy*S-S/2;
+  const b=world.find(x,y),t=displayedTile(x,y);
+  if(t){
+   // Each wall, door, stair and roof is drawn independently on its own tile.
+   ctx.drawImage(cachedTile(t,x,y),sx,sy);
+  }else{
+   const ground=terrainAt(x,y);
+   ctx.drawImage(cachedTile(ground,x,y),sx,sy);
+   if(p.z<7){ctx.fillStyle='rgba(8,14,20,.70)';ctx.fillRect(sx,sy,S,S)}
   }
  }
- // Side wall: a darker return face gives the building a consistent 2.5D silhouette.
- ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(left+width,front-lift);ctx.lineTo(left+width+9,front-lift-8);ctx.lineTo(left+width+9,front-8);ctx.lineTo(left+width,front);ctx.closePath();ctx.fill();
- // Roof stays aligned to the top of the facade; the sloped front eave covers the join.
- const roofDepth=height,roofTop=top-lift,roofRow=S;
- // Roof uses exactly the same tile footprint as the interior (width x height).
- // Height is expressed only through vertical elevation and the facade below.
- ctx.fillStyle=timber?'#342b25':'#402e2c';ctx.fillRect(left-5,roofTop-5,width+10,roofDepth+8);
- for(let row=0;row<a.height;row++)for(let col=0;col<a.width;col++){
-  const x=a.x+col,y=a.y+row,t=world.tile(x,y,b.roofZ);
-  ctx.drawImage(cachedTile(t,x,y),left+col*S,roofTop+row*roofRow,S,roofRow+1);
- }
- ctx.fillStyle='rgba(20,17,17,.22)';ctx.fillRect(left,roofTop+roofDepth*.52,width,roofDepth*.48);
- ctx.fillStyle=timber?'#d0a575':'#c79a8a';ctx.fillRect(left-3,roofTop+roofDepth*.47,width+6,4);
- ctx.fillStyle=dark;ctx.fillRect(left-6,front-lift-6,width+12,8);
- ctx.fillStyle=trim;ctx.fillRect(left-3,front-lift-6,width+6,2);
- ctx.fillStyle=trim;ctx.fillRect(left+3,front-lift-5,width-6,2);
- ctx.fillStyle='rgba(0,0,0,.17)';ctx.fillRect(left+7,front-lift+2,width-14,5);
+ drawPlayer(ctx,w/2-S/2,h/2-S/2,S);
+ const current=world.find(p.x,p.y);
+ status.textContent=(p.z===7?'Begane grond':'Verdieping '+(7-p.z))+' · Z'+p.z+(current?' · Binnen':' · Buiten');
 }
-
-function paint(){const w=innerWidth,h=innerHeight-62,d=Math.min(devicePixelRatio||1,2);if(w!==lastW||h!==lastH||d!==lastD){canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);canvas.style.width=w+'px';canvas.style.height=h+'px';lastW=w;lastH=h;lastD=d}ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#151515';ctx.fillRect(0,0,w,h);for(let dy=-Math.ceil(h/S/2)-1;dy<=Math.ceil(h/S/2)+1;dy++)for(let dx=-Math.ceil(w/S/2)-1;dx<=Math.ceil(w/S/2)+1;dx++){const x=p.x+dx,y=p.y+dy,sx=w/2+dx*S-S/2,sy=h/2+dy*S-S/2;const buildingAt=world.find(x,y),raised=buildingAt&&exterior(buildingAt);const t=raised?null:world.visibleTile(x,y,p);if(t){ctx.drawImage(cachedTile(t,x,y),sx,sy);if(p.z<7){const building=world.find(x,y),edge=building?.base.boundary(x,y);if(edge){const south=y===building.base.y+building.base.height-1,east=x===building.base.x+building.base.width-1;ctx.fillStyle='rgba(5,9,12,.30)';ctx.fillRect(sx+3,sy+S-7,S-6,7);if(south){ctx.fillStyle=building.base.material==='wood'?'#46382d':'#454e4c';ctx.fillRect(sx+3,sy+S-5,S-3,5);ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(sx+5,sy+S,S-5,Math.min(10,(7-p.z)*4))}if(east){ctx.fillStyle='rgba(12,18,19,.48)';ctx.fillRect(sx+S-6,sy+3,6,S-3)}}}}else{const ground=terrainAt(x,y);ctx.drawImage(cachedTile(ground,x,y),sx,sy);if(p.z<7){ctx.fillStyle='rgba(8,14,20,.70)';ctx.fillRect(sx,sy,S,S);ctx.fillStyle='rgba(155,185,185,.13)';ctx.fillRect(sx,sy,S,1)}}}for(const b of world.buildings)if(exterior(b))facade(b,w,h);drawPlayer(ctx,w/2-S/2,h/2-S/2,S);status.textContent=(p.z===7?'Begane grond':'Verdieping '+(7-p.z))+' · Z'+p.z}
 // Adapter: use the shared weighted A* movement engine without changing building collision.
 const navigation={
  getTile(x,y,z){if(Math.abs(x-p.x)>30||Math.abs(y-p.y)>30)return null;const b=world.find(x,y);if(!b&&z!==7)return null;return {ground:{moveCost:terrainCost(x,y,z)}}},
