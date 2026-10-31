@@ -220,6 +220,11 @@ function adjacentToDoor(){
 }
 function toggleDoor(){
  if(!adjacentToDoor())return false;
+ // Closing the door while standing in its tile moves the player
+ // onto the free exterior tile before the door becomes solid.
+ if(doorOpen&&player.x===BUILDING.door.col&&player.y===N-1){
+  player.y=N;
+ }
  doorOpen=!doorOpen;
  path=[];paint();return true;
 }
