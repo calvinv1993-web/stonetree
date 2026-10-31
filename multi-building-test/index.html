@@ -35,9 +35,9 @@ function facade(b,w,h){
  // Side wall: a darker return face gives the building a consistent 2.5D silhouette.
  ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(left+width,front-lift);ctx.lineTo(left+width+9,front-lift-8);ctx.lineTo(left+width+9,front-8);ctx.lineTo(left+width,front);ctx.closePath();ctx.fill();
  // Roof stays aligned to the top of the facade; the sloped front eave covers the join.
- const roofDepth=Math.min(height*.58,S*3.7),roofTop=front-lift-roofDepth,roofRow=roofDepth/a.height;
- // Compress roof depth in screen space; the building footprint and collision stay unchanged.
- // Darker rear plane and a ridge distinguish roof geometry from flat ground tiles.
+ const roofDepth=height,roofTop=top-lift,roofRow=S;
+ // Roof uses exactly the same tile footprint as the interior (width x height).
+ // Height is expressed only through vertical elevation and the facade below.
  ctx.fillStyle=timber?'#342b25':'#402e2c';ctx.fillRect(left-5,roofTop-5,width+10,roofDepth+8);
  for(let row=0;row<a.height;row++)for(let col=0;col<a.width;col++){
   const x=a.x+col,y=a.y+row,t=world.tile(x,y,b.roofZ);
