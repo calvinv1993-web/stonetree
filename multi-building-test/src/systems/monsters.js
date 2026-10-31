@@ -7,44 +7,6 @@ let ratSelected=false;
 let ratHP=20;
 let playerNextAttack=0;
 let ratRespawnAt=0;
-const ratCorpses=[];
-let nextCorpseId=1;
-const inventory={gold:0};
-let openedCorpseId=null;
-function refreshInventory(){
- document.getElementById('inventoryContents').textContent='Gold coins: '+inventory.gold;
-}
-function takeCorpseLoot(){
- const corpse=ratCorpses.find(c=>c.id===openedCorpseId);
- if(!corpse||player.z!==0||Math.abs(player.x-corpse.x)+Math.abs(player.y-corpse.y)>1)return;
- for(const item of corpse.items)if(item.name==='Gold coin')inventory.gold+=item.amount;
- corpse.items.length=0;
- document.getElementById('lootContents').textContent='Empty';
- document.getElementById('takeLoot').hidden=true;
- refreshInventory();
-}
-
-function createRatCorpse(){
- ratCorpses.push({id:nextCorpseId++,x:rat.x,y:rat.y,z:0,items:[{name:'Gold coin',amount:1+Math.floor(Math.random()*3)}]});
-}
-function drawRatCorpses(){
- if(player.z!==0)return;
- for(const corpse of ratCorpses){
-  const p=worldToScreen(corpse.x+.5,corpse.y+.5,0);
-  rect(p.x-12,p.y-6,24,14,'#403529');rect(p.x-9,p.y-3,18,8,'#796b51');
-  rect(p.x-4,p.y-1,8,4,'#aa9570');
- }
-}
-function openRatCorpse(corpse){
- if(player.z!==0||Math.abs(player.x-corpse.x)+Math.abs(player.y-corpse.y)>1)return false;
- const panel=document.getElementById('lootPanel');
- openedCorpseId=corpse.id;
- panel.hidden=false;
- document.getElementById('takeLoot').hidden=corpse.items.length===0;
- document.getElementById('lootContents').textContent=corpse.items.length?corpse.items.map(item=>item.amount+' '+item.name).join(', '):'Empty';
- return true;
-}
-
 const playerProgress={xp:0};
 const RAT_SIGHT=5,RAT_LEASH=8;
 const ratDistance=(x,y)=>Math.abs(rat.x-x)+Math.abs(rat.y-y);
@@ -114,30 +76,3 @@ function drawRat(now){
  rect(p.x-15,p.y+4,6,3,'#9c8075');
 }
 
-const playerHealth={current:100,max:100};
-let ratNextAttack=0;
-function ratAttackTick(now){
- if(ratHP===0)return false;
- const adjacent=player.z===0&&ratDistance(player.x,player.y)===1;
- if(!adjacent||ratMode!=='chase'||playerHealth.current===0){ratNextAttack=0;return false;}
- if(!ratNextAttack){ratNextAttack=now+2000;return false;}
- if(now<ratNextAttack)return false;
- ratNextAttack=now+2000;
- playerHealth.current=Math.max(0,playerHealth.current-5);
- return true;
-}
-
-function selectRat(){
- if(player.z!==0||ratHP===0)return false;
- ratSelected=true;playerNextAttack=0;return true;
-}
-function playerAttackTick(now){
- if(!ratSelected||ratHP===0||playerHealth.current===0||player.z!==0)return false;
- if(ratDistance(player.x,player.y)!==1){playerNextAttack=0;return false;}
- if(!playerNextAttack){playerNextAttack=now+1200;return false;}
- if(now<playerNextAttack)return false;
- playerNextAttack=now+1200;
- ratHP=Math.max(0,ratHP-5);
- if(ratHP===0){ratSelected=false;ratMode='dead';ratNextAttack=0;ratRespawnAt=now+30000;gainExperience(5);createRatCorpse();}
- return true;
-}
