@@ -1,96 +1,29 @@
-<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree buildings</title><style>body{margin:0;background:#151515;color:white;font:14px system-ui;overflow:hidden}canvas{display:block;touch-action:none}footer{height:62px;display:flex;align-items:center;justify-content:space-around;background:#222}button{padding:10px;color:white;background:#444;border:1px solid #888;border-radius:5px}</style><canvas id="map"></canvas><footer><span id="status"></span><button id="reset">Reset</button></footer><script type="module">
-import {BuildingWorld} from '../engine/building-world.mjs';
-import {findPath} from '../engine/movement.mjs';
-import {terrainAt} from '../engine/terrain.mjs';
-import {drawTile,drawPlayer} from '../engine/pixel-renderer.mjs';
-const world=new BuildingWorld([{x:0,y:-5,width:7,height:7,z:7,floors:2,material:'stone',doors:[{x:0,y:-2}],windows:[{x:3,y:-5}],stairs:{x:3,y:-2},holes:[{x:2,y:-3,z:6}]},{x:12,y:-4,width:6,height:6,z:7,floors:3,material:'wood',doors:[{x:12,y:-1}],windows:[{x:15,y:-4}],stairs:{x:15,y:-1},holes:[{x:13,y:-2,z:5}]}]);
-const canvas=document.querySelector('#map'),ctx=canvas.getContext('2d'),status=document.querySelector('#status');let p={x:-4,y:0,z:7},walkId=0;const S=38;const tileCache=new Map();let lastW=0,lastH=0,lastD=0;
-function cachedTile(t,x,y){const key=[x,y,t.z??p.z,t.type,t.material??'',t.open??'',t.mask??'',t.below?.type??''].join(':');let image=tileCache.get(key);if(!image){image=document.createElement('canvas');image.width=S;image.height=S;drawTile(image.getContext('2d'),t,0,0,S,x,y);if(tileCache.size>=480)tileCache.clear();tileCache.set(key,image)}return image}
-function blocked(x,y){const b=world.find(x,y);if(b){const t=world.tile(x,y,p.z);if(t?.type==='hole')return world.blocked(x,y,p.z+1);return world.blocked(x,y,p.z)}return p.z!==7||terrainAt(x,y).blocked}
-// Technical tile renderer: every floor and roof is a real world Z layer.
-// No synthetic facade, projected roof, or distance-based visibility switch.
-function displayedTile(x,y){
- const b=world.find(x,y);
- if(!b)return null;
- // Reveal the actual floor and its door when approaching a building.
- // Roof tiles remain real Z-layer tiles, not a synthetic facade.
- const inside=world.find(p.x,p.y)===b;
- const dx=Math.max(b.base.x-p.x,0,p.x-(b.base.x+b.base.width-1));
- const dy=Math.max(b.base.y-p.y,0,p.y-(b.base.y+b.base.height-1));
- const near=Math.max(dx,dy)<=2;
- const z=inside||near?p.z:b.roofZ;
- return world.tile(x,y,z);
+<!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
+const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
+const TILE=48,THICK=10,HEIGHT=32;
+function wallSprite(){
+ const c=document.createElement('canvas');c.width=TILE;c.height=TILE+HEIGHT;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ g.fillStyle='#8b9794';g.fillRect(0,HEIGHT,TILE,THICK);
+ g.fillStyle='#c0c9c3';g.fillRect(1,HEIGHT+1,TILE-2,3);
+ g.fillStyle='#5b6967';g.fillRect(0,HEIGHT+THICK-2,TILE,2);
+ g.fillStyle='#57635f';g.fillRect(0,0,TILE,HEIGHT);
+ g.fillStyle='#74817c';g.fillRect(1,2,TILE-2,HEIGHT-5);
+ g.fillStyle='#a6b1a8';g.fillRect(2,2,TILE-4,3);
+ g.fillStyle='#43504d';g.fillRect(0,HEIGHT-4,TILE,4);
+ g.fillStyle='#505d59';g.fillRect(0,14,TILE,2);
+ g.fillStyle='#8d9a93';g.fillRect(0,16,TILE,1);
+ g.fillStyle='#505d59';g.fillRect(0,27,TILE,2);
+ return c;
 }
-// Tile-edge wall faces: one segment per tile and per actual storey.
-// Roof tiles remain on roofZ and rest on the top edge of these faces.
-function drawExteriorHeight(b,w,h){
- const a=b.base,step=15,levels=b.floors;
- const x0=w/2+(a.x-p.x)*S-S/2,y0=h/2+(a.y-p.y)*S-S/2;
- const wood=a.material==='wood',face=wood?'#76583f':'#747e78';
- const shade=wood?'#4e392a':'#4d5956',rim=wood?'#b08b60':'#b6bcb0';
- const bottom=y0+a.height*S;
- for(let col=0;col<a.width;col++){
-  const px=x0+col*S;
-  for(let level=0;level<levels;level++){
-   const py=bottom+level*step;
-   ctx.fillStyle=face;ctx.fillRect(px,py,S,step);
-   ctx.fillStyle=shade;ctx.fillRect(px,py+step-3,S,3);
-   ctx.fillStyle=rim;ctx.fillRect(px+1,py+1,S-2,2);
-   if(col>0&&col<a.width-1){
-    ctx.fillStyle=shade;ctx.fillRect(px+S/2-5,py+4,10,step-7);
-    ctx.fillStyle='#8bb6bd';ctx.fillRect(px+S/2-3,py+5,6,step-9);
-   }
-  }
- }
- const right=x0+a.width*S;
- for(let row=0;row<a.height;row++){
-  const py=y0+row*S;
-  for(let level=0;level<levels;level++){
-   const px=right+level*3;
-   ctx.fillStyle=shade;ctx.fillRect(px,py,3,S);
-   ctx.fillStyle=rim;ctx.fillRect(px,py,1,S-2);
-  }
- }
-}
+const sprite=wallSprite();
 function paint(){
- const w=innerWidth,h=innerHeight-62,d=Math.min(devicePixelRatio||1,2);
- if(w!==lastW||h!==lastH||d!==lastD){
-  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
-  canvas.style.width=w+'px';canvas.style.height=h+'px';
-  lastW=w;lastH=h;lastD=d;
- }
- ctx.setTransform(d,0,0,d,0,0);
- ctx.fillStyle='#151515';ctx.fillRect(0,0,w,h);
- const rx=Math.ceil(w/S/2)+1,ry=Math.ceil(h/S/2)+1;
- for(let dy=-ry;dy<=ry;dy++)for(let dx=-rx;dx<=rx;dx++){
-  const x=p.x+dx,y=p.y+dy,sx=w/2+dx*S-S/2,sy=h/2+dy*S-S/2;
-  const b=world.find(x,y),t=displayedTile(x,y);
-  if(t){
-   // Each wall, door, stair and roof is drawn independently on its own tile.
-   ctx.drawImage(cachedTile(t,x,y),sx,sy);
-  }else{
-   const ground=terrainAt(x,y);
-   ctx.drawImage(cachedTile(ground,x,y),sx,sy);
-   if(p.z<7){ctx.fillStyle='rgba(8,14,20,.70)';ctx.fillRect(sx,sy,S,S)}
-  }
- }
- // Draw exterior height only while the upper roof layer is visible.
- for(const b of world.buildings){
-  if(displayedTile(b.base.x,b.base.y)?.z===b.roofZ)drawExteriorHeight(b,w,h);
- }
- drawPlayer(ctx,w/2-S/2,h/2-S/2,S);
- const current=world.find(p.x,p.y);
- status.textContent=(p.z===7?'Begane grond':'Verdieping '+(7-p.z))+' · Z'+p.z+(current?' · Binnen':' · Buiten');
+ const d=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;
+ canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
+ ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
+ ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
+ const x=Math.round((w-TILE*3)/2),y=Math.round(h/2);
+ for(let i=0;i<3;i++)ctx.drawImage(sprite,x+i*TILE,y-HEIGHT);
 }
-// Adapter: use the shared weighted A* movement engine without changing building collision.
-const navigation={
- getTile(x,y,z){if(Math.abs(x-p.x)>30||Math.abs(y-p.y)>30)return null;const b=world.find(x,y);if(!b&&z!==7)return null;return {ground:{moveCost:terrainCost(x,y,z)}}},
- canWalk(x,y,z){return z===p.z&&Math.abs(x-p.x)<=30&&Math.abs(y-p.y)<=30&&!blocked(x,y)}
-};
-function terrainCost(x,y,z){return z!==7||world.find(x,y)?1:terrainAt(x,y).moveCost}
-function path(tx,ty){return findPath(navigation,{...p},{x:tx,y:ty,z:p.z},{maxVisited:1800})}
-function transition(){const b=world.find(p.x,p.y);if(!b)return false;const t=world.tile(p.x,p.y,p.z);let next=null;if(t?.type==='stairs'&&p.z>b.groundZ-b.floors+1)next=p.z-1;else if(t?.type==='hole')next=p.z+1;if(next===null||next>b.groundZ||next<b.groundZ-b.floors+1||world.blocked(p.x,p.y,next))return false;p.z=next;return true}
-async function walk(r){const id=++walkId;for(const {x,y,z} of r){if(id!==walkId||z!==p.z||blocked(x,y))return false;p.x=x;p.y=y;const changed=transition();paint();if(changed)return true;await new Promise(resolve=>setTimeout(resolve,100*terrainCost(x,y,z)))}return id===walkId}
-async function door(b,x,y){if(p.z!==b.groundZ)return;if(Math.abs(p.x-x)+Math.abs(p.y-y)!==1){let best=null;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,c=y+dy;if(blocked(a,c))continue;const r=path(a,c);if(r&&(!best||r.length<best.length))best=r}if(!best||!await walk(best))return}if(Math.abs(p.x-x)+Math.abs(p.y-y)===1){b.base.toggleDoor(x,y,p);paint()}}
-canvas.addEventListener('pointerup',e=>{const r=canvas.getBoundingClientRect(),x=p.x+Math.round((e.clientX-r.left-r.width/2)/S),y=p.y+Math.round((e.clientY-r.top-r.height/2)/S),b=world.find(x,y);if(b?.base.doors.has(x+','+y)&&p.z===b.groundZ){void door(b,x,y);return}if(x===p.x&&y===p.y)return;if(blocked(x,y))return;const rpath=path(x,y);if(rpath)void walk(rpath)});document.querySelector('#reset').onclick=()=>{walkId++;p={x:-4,y:0,z:7};paint()};addEventListener('resize',paint);paint();
+addEventListener('resize',paint);paint();
 </script>
