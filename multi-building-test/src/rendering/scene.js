@@ -45,6 +45,7 @@ function paint(){
  document.getElementById('status').textContent=`${place} · z=${player.z} · deur ${doorOpen?'open':'dicht'} · (${player.x}, ${player.y})`;
  const control=document.getElementById('doorControl');
  control.hidden=!adjacentToDoor();
- if(adjacentToDoor())control.textContent=doorStates[doorBuilding().id]?'Sluit deur':'Open deur';
+ if(terraceDoorBuilding())control.textContent=terraceDoorStates[terraceDoorBuilding().id]?'Sluit deur':'Open deur';
+ else if(doorBuilding())control.textContent=doorStates[doorBuilding().id]?'Sluit deur':'Open deur';
  canvas.dataset.x=player.x;canvas.dataset.y=player.y;canvas.dataset.z=player.z;
 }
