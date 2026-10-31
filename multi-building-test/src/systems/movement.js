@@ -15,7 +15,7 @@ function walkable(x,y){
 }
 function connected(cx,cy,nx,ny){
  const a=buildingAt(cx,cy),b=buildingAt(nx,ny);
- if(a===b)return player.z===0||a!==undefined&&a!==null;
+ if(a===b)return player.z===0||Boolean(a);
  const building=a||b;
  if(!building||!doorStates[building.id]||player.z!==0)return false;
  const dx=building.position.x+building.door.col,front=building.position.y+building.height-1;
@@ -31,10 +31,11 @@ function toggleDoor(){
  selectBuilding(b);
  // Closing the door while standing in its tile moves the player
  // onto the free exterior tile before the door becomes solid.
- if(doorOpen&&localX(player.x)===BUILDING.door.col&&localY(player.y)===N-1){
-  player.y=BUILDING.position.y+N;
+ if(doorStates[b.id]&&player.x===b.position.x+b.door.col&&player.y===b.position.y+b.height-1){
+  player.y=b.position.y+b.height;
  }
- doorOpen=!doorOpen;doorStates[b.id]=doorOpen;
+ doorStates[b.id]=!doorStates[b.id];
+ doorOpen=doorStates[b.id];
  path=[];paint();return true;
 }
 function route(tx,ty){
