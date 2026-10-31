@@ -26,6 +26,7 @@ function paint(){
   else{const level=visibleExteriorStorey(b);if(level===null)exterior(b,p.x,p.y);else exteriorStorey(b,p.x,p.y,level);}
  }
  if(!drawn)drawPlayer();
+ drawRat(typeof performance!=='undefined'&&performance.now?performance.now():Date.now());
  const door=adjacentDoor(),control=document.getElementById('doorControl');
  const place=current?current.name+' · '+(player.z?'Verdieping '+player.z:'Begane grond'):'Buiten';
  const doorText=door?' · '+(door.kind==='terrace'?'terrasdeur':'deur')+' '+(doorStates[door.id]?'open':'dicht'):'';
