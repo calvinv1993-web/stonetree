@@ -103,6 +103,11 @@ function interior(x,upperY,level){
  // Clip it to the actual upper-floor stairwell; never paint a fake
  // duplicate of its floor onto the upstairs floor.
  const lowerY=upperY+HEIGHT;
+ // The ground-storey facade sits BELOW the upper room, not inside it.
+ // This visible support keeps the elevation readable against the grass.
+ rect(x-SIDE,upperY+size,SIDE,HEIGHT,'#656e65');
+ rect(x+size,upperY+size,SIDE,HEIGHT,'#6f786c');
+ facade(x,lowerY+size,0,true);
  ctx.save();ctx.beginPath();
  for(const key of VOID_TILES){
   const [col,row]=key.split(',').map(Number);
