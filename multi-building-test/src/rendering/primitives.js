@@ -46,15 +46,7 @@ function rootheartGround(){
  }
 }
 
-function rootheartApproaches(){
- const a=ROOTHEART;
- const left=Math.max(a.left,Math.floor(-camera.x/TILE)-1);
- const right=Math.min(a.left+a.size-1,Math.ceil((camera.width-camera.x)/TILE)+1);
- const top=Math.max(a.top,Math.floor(-camera.y/TILE)-1);
- const bottom=Math.min(a.top+a.size-1,Math.ceil((camera.height-camera.y)/TILE)+1);
- // Branch paths connect the existing north/south roads to building entrances.
- // Paths are purely visual: existing doors and collision remain authoritative.
- const branches=[
+const ROOTHEART_APPROACHES=[
   // North: connect the inn and smithy south-facing doors to the main north road.
   {x0:57,x1:57,y0:-6,y1:-3},
   {x0:57,x1:64,y0:-3,y1:-3},
@@ -69,8 +61,18 @@ function rootheartApproaches(){
   // East: the house entrance is at (85,6).
   {x0:66,x1:85,y0:6,y1:6}
  ];
+function rootheartApproachTile(x,y){return ROOTHEART_APPROACHES.some(b=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1);}
+function rootheartApproaches(){
+ const a=ROOTHEART;
+ const left=Math.max(a.left,Math.floor(-camera.x/TILE)-1);
+ const right=Math.min(a.left+a.size-1,Math.ceil((camera.width-camera.x)/TILE)+1);
+ const top=Math.max(a.top,Math.floor(-camera.y/TILE)-1);
+ const bottom=Math.min(a.top+a.size-1,Math.ceil((camera.height-camera.y)/TILE)+1);
+ // Branch paths connect the existing north/south roads to building entrances.
+ // Paths are purely visual: existing doors and collision remain authoritative.
+
  for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
-  if(!branches.some(b=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1))continue;
+  if(!rootheartApproachTile(x,y))continue;
   if(BUILDINGS.some(b=>contains(b,x,y)))continue;
   const px=camera.x+x*TILE,py=camera.y+y*TILE;
   const n=((x*73856093)^(y*19349663))>>>0;
@@ -88,7 +90,7 @@ function rootheartNature(){
  const bottom=Math.min(a.top+a.size-1,Math.ceil((camera.height-camera.y)/TILE)+2);
  for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
   const dx=Math.abs(x-a.centerX),dy=Math.abs(y-a.centerY);
-  if(dx<=7&&dy<=7||dx<=2||dy<=2||BUILDINGS.some(b=>contains(b,x,y)))continue;
+  if(dx<=7&&dy<=7||dx<=2||dy<=2||rootheartApproachTile(x,y)||BUILDINGS.some(b=>contains(b,x,y)))continue;
   // Leave a clear border around building entrances and approach paths.
   if(BUILDINGS.some(b=>x>=b.position.x-1&&x<=b.position.x+b.width&&
                          y>=b.position.y-1&&y<=b.position.y+b.height))continue;
