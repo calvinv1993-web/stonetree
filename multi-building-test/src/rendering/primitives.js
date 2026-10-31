@@ -20,3 +20,28 @@ function grass(x,y,w,h){
   rect(xx+8+n%18,yy+9+(n>>>5)%19,4,3,'#719b58');
  }
 }
+
+function rootheartGround(){
+ const area=ROOTHEART;
+ const left=Math.max(area.left,Math.floor(-camera.x/TILE)-1);
+ const right=Math.min(area.left+area.size-1,Math.ceil((camera.width-camera.x)/TILE)+1);
+ const top=Math.max(area.top,Math.floor(-camera.y/TILE)-1);
+ const bottom=Math.min(area.top+area.size-1,Math.ceil((camera.height-camera.y)/TILE)+1);
+ for(let gy=top;gy<=bottom;gy++)for(let gx=left;gx<=right;gx++){
+  const px=camera.x+gx*TILE,py=camera.y+gy*TILE;
+  const dx=Math.abs(gx-area.centerX),dy=Math.abs(gy-area.centerY);
+  const plaza=dx<=6&&dy<=6;
+  const road=(dx<=1||dy<=1);
+  const seed=((gx*73856093)^(gy*19349663))>>>0;
+  if(plaza||road){
+   rect(px,py,TILE,TILE,plaza?(seed%3?'#999486':'#a49c8b'):(seed%3?'#817f73':'#8c8879'));
+   rect(px,py+TILE-2,TILE,2,'#69695f');
+   rect(px+TILE-2,py,2,TILE,'#6c6b62');
+   if(seed%5===0)rect(px+9,py+12,13,2,'#aaa394');
+  }else{
+   rect(px,py,TILE,TILE,['#456d3e','#4b7542','#527a45'][seed%3]);
+   rect(px+6+(seed%22),py+7+((seed>>>5)%22),5,3,'#648d4d');
+   if(seed%11===0)rect(px+22,py+18,8,5,'#777668');
+  }
+ }
+}
