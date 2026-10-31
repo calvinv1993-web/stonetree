@@ -49,7 +49,7 @@ function doorBuilding(){
 }
 function terraceDoorBuilding(){
  return BUILDINGS.find(b=>b.terrace&&player.z===b.terrace.level&&
-  player.y===b.position.y+2&&
+  Math.abs(player.y-(b.position.y+2))<=1&&
   (player.x===b.position.x+b.terrace.startCol-1||player.x===b.position.x+b.terrace.startCol));
 }
 function adjacentToDoor(){return !!doorBuilding()||!!terraceDoorBuilding();}
