@@ -1,23 +1,24 @@
 <!doctype html><html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Stonetree — drie muren</title><style>html,body{margin:0;width:100%;height:100%;background:#171a1b;overflow:hidden}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style><canvas id="map"></canvas><script>
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
-const TILE=48,HEIGHT=82,THICK=12;
-function shape(g,points,color){
- g.fillStyle=color;g.beginPath();g.moveTo(points[0][0],points[0][1]);
- for(let i=1;i<points.length;i++)g.lineTo(points[i][0],points[i][1]);
+const TILE=48,HEIGHT=72,DEPTH=12;
+function polygon(g,points,color){
+ g.fillStyle=color;g.beginPath();g.moveTo(...points[0]);
+ for(let i=1;i<points.length;i++)g.lineTo(...points[i]);
  g.closePath();g.fill();
 }
-// Sprite anchor: front face starts at (THICK,THICK).
-// Only the thin wall thickness projects 45 degrees toward top-left.
+// One wall sprite, anchored to one grid edge.
+// Its cap is shifted UP-LEFT, with a flat front and a dark right edge.
 function makeWall(){
- const c=document.createElement('canvas');c.width=TILE+THICK;c.height=HEIGHT+THICK;
+ const c=document.createElement('canvas');
+ c.width=TILE+DEPTH;c.height=HEIGHT+DEPTH;
  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
- // Thin top face, NOT an entire tile projected backward.
- shape(g,[[0,0],[TILE,0],[TILE+THICK,THICK],[THICK,THICK]],'#c2cfc4');
- shape(g,[[1,1],[TILE-2,1],[TILE+THICK-3,THICK-3],[THICK+2,THICK-3]],'#d6e0d4');
- // Front face.
- g.fillStyle='#89988d';g.fillRect(THICK,THICK,TILE,HEIGHT);
- g.fillStyle='#a0aea2';g.fillRect(THICK+1,THICK+2,TILE-2,HEIGHT-5);
- g.fillStyle='#64756b';g.fillRect(THICK,THICK+HEIGHT-3,TILE,3);
+ // The front occupies exactly one tile width, no oversized block.
+ g.fillStyle='#849188';g.fillRect(DEPTH,DEPTH,TILE,HEIGHT);
+ g.fillStyle='#9aa79d';g.fillRect(DEPTH+2,DEPTH+2,TILE-4,HEIGHT-5);
+ // Exposed right edge: dark, narrow, and vertically aligned.
+ polygon(g,[[TILE,0],[TILE+DEPTH,DEPTH],[TILE+DEPTH,DEPTH+HEIGHT],[TILE,HEIGHT]],'#526259');
+ // Top cap: a 45-degree oblique projection toward upper-left.
+ polygon(g,[[0,0],[TILE,0],[TILE+DEPTH,DEPTH],[DEPTH,DEPTH]],'#c5d1c5');
  return c;
 }
 const wall=makeWall();
@@ -26,13 +27,8 @@ function paint(){
  canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);
  ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='#171a1b';ctx.fillRect(0,0,w,h);
- const x=Math.round((w-TILE*3-THICK)/2),y=Math.round((h-HEIGHT-THICK)/2);
- // Three tile-width wall sprites. Their front faces touch exactly.
- for(let i=0;i<3;i++)ctx.drawImage(wall,x+i*TILE,y);
- // The exposed end has only a THICK-pixel side, not a tile-wide block.
- shape(ctx,[[x+TILE*3+THICK,y+THICK],[x+TILE*3,y],[x+TILE*3,y+HEIGHT],[x+TILE*3+THICK,y+HEIGHT+THICK]],'#53645b');
- // Cover the projecting lower triangle so the wall remains vertically anchored.
- shape(ctx,[[x+TILE*3,y+HEIGHT],[x+TILE*3+THICK,y+HEIGHT+THICK],[x+TILE*3+THICK,y+HEIGHT]],'#171a1b');
+ const x=Math.round((w-TILE-DEPTH)/2),y=Math.round((h-HEIGHT-DEPTH)/2);
+ ctx.drawImage(wall,x,y);
 }
 addEventListener('resize',paint);paint();
 </script>
