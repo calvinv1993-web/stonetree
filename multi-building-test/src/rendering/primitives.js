@@ -46,6 +46,33 @@ function rootheartGround(){
  }
 }
 
+function rootheartPlazaDetails(){
+ const area=ROOTHEART,cx=area.centerX,cy=area.centerY;
+ // Decorative paving and vegetation only; keep the tree's 3x3 collision footprint.
+ const p=(x,y)=>({x:camera.x+x*TILE,y:camera.y+y*TILE});
+ // A broken stone curb marks the four corners of the central square.
+ for(const [x,y] of [[cx-6,cy-6],[cx+6,cy-6],[cx-6,cy+6],[cx+6,cy+6]]){
+  const q=p(x,y);
+  rect(q.x+3,q.y+6,34,9,'#c0b8a5');
+  rect(q.x+3,q.y+15,34,5,'#6b6a60');
+  rect(q.x+8,q.y+4,24,3,'#ded2b9');
+ }
+ // Small patches of growth sit around the outer edge, not on the paths.
+ for(const [x,y] of [[cx-5,cy-5],[cx+5,cy-5],[cx-5,cy+5],[cx+5,cy+5],
+                     [cx-4,cy-6],[cx+4,cy-6],[cx-4,cy+6],[cx+4,cy+6]]){
+  const q=p(x,y);
+  rect(q.x+13,q.y+22,14,4,'#4c6740');
+  line(q.x+17,q.y+22,q.x+14,q.y+13,'#6d8651');
+  line(q.x+21,q.y+22,q.x+25,q.y+12,'#82965e');
+  rect(q.x+12,q.y+12,5,5,'#a39b79');
+ }
+ // Inlaid markers point toward the tree along the four approach roads.
+ for(const [x,y] of [[cx,cy-5],[cx,cy+5],[cx-5,cy],[cx+5,cy]]){
+  const q=p(x,y),mx=q.x+20,my=q.y+20;
+  poly([[mx,my-10],[mx+7,my],[mx,my+10],[mx-7,my]],'#b8b09a');
+  poly([[mx,my-6],[mx+4,my],[mx,my+6],[mx-4,my]],'#77786d');
+ }
+}
 function rootheartPetrifiedTree(){
  const cx=camera.x+(ROOTHEART.centerX+.5)*TILE;
  const cy=camera.y+(ROOTHEART.centerY+.5)*TILE;
