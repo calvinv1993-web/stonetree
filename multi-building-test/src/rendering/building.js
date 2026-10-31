@@ -99,11 +99,24 @@ function floorTile(b,x,y,col,row,level){
  }
 }
 function staircase(b,x,y,level){
- const stairs=Object.values(stairsAt(b,level));
- for(const stair of stairs){
+ const stairs=stairsAt(b,level);
+ for(const [direction,stair] of Object.entries(stairs)){
   const sx=x+stair.x*TILE,sy=y+stair.y*TILE;
-  rect(sx+4,sy+5,TILE-8,TILE-9,level===0?'#715b37':'#635443');
-  for(let i=0;i<4;i++)rect(sx+6,sy+7+i*7,TILE-12,5,i%2?'#c7a467':'#ddbf83');
+  const ascending=direction==='up';
+  // Recessed stair opening; direction controls the step shading.
+  rect(sx+3,sy+3,TILE-6,TILE-6,'#403a30');
+  rect(sx+5,sy+5,TILE-10,TILE-10,'#66513a');
+  for(let i=0;i<5;i++){
+   const index=ascending?i:4-i;
+   const top=sy+6+i*6;
+   rect(sx+7,top,TILE-14,5,index%2?'#a78960':'#bd9b6a');
+   line(sx+7,top,sx+TILE-7,top,'#e0bf86');
+   line(sx+7,top+5,sx+TILE-7,top+5,'#56442f');
+  }
+  // Side rails and landing lip give the stairs a clear depth.
+  rect(sx+4,sy+4,3,TILE-8,'#8b7655');
+  rect(sx+TILE-7,sy+4,3,TILE-8,'#534633');
+  rect(sx+4,sy+TILE-6,TILE-8,3,'#d0b083');
  }
 }
 function walls(b,x,y){
