@@ -55,10 +55,19 @@ function rootheartApproaches(){
  // Branch paths connect the existing north/south roads to building entrances.
  // Paths are purely visual: existing doors and collision remain authoritative.
  const branches=[
-  {x0:57,x1:57,y0:-6,y1:-6},{x0:74,x1:74,y0:-7,y1:-6},
-  {x0:57,x1:57,y0:2,y1:10},{x0:57,x1:57,y0:16,y1:16},
-  {x0:75,x1:75,y0:2,y1:9},{x0:75,x1:75,y0:16,y1:16},
-  {x0:65,x1:85,y0:6,y1:6}
+  // North: connect the inn and smithy south-facing doors to the main north road.
+  {x0:57,x1:57,y0:-6,y1:-3},
+  {x0:57,x1:64,y0:-3,y1:-3},
+  {x0:74,x1:74,y0:-7,y1:-3},
+  {x0:64,x1:74,y0:-3,y1:-3},
+  {x0:64,x1:64,y0:-3,y1:-2},
+  // South: both entrances face south at y=16; connect below the buildings.
+  {x0:57,x1:57,y0:16,y1:17},
+  {x0:57,x1:75,y0:17,y1:17},
+  {x0:75,x1:75,y0:16,y1:17},
+  {x0:64,x1:64,y0:2,y1:17},
+  // East: the house entrance is at (85,6).
+  {x0:66,x1:85,y0:6,y1:6}
  ];
  for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
   if(!branches.some(b=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1))continue;
