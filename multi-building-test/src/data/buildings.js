@@ -1,10 +1,17 @@
 // World tiles use x/y; z=0 is ground and z increases upwards.
 // Door passage coordinates are gameplay anchors; visualRise is projection only.
 const WORLD_CONFIG={tileSize:40,storeyHeight:64,wallThickness:12,capThickness:6,
- stepMilliseconds:260,bounds:{left:-7,right:95,top:-32,bottom:31},revision:'rootheart-ground-v1'};
+ stepMilliseconds:260,bounds:{left:-7,right:95,top:-32,bottom:31},revision:'rootheart-inn-v1'};
 // Rootheart occupies x=32..95 and y=-32..31; the original test area remains intact.
 const ROOTHEART={left:32,top:-32,size:64,centerX:64,centerY:0};
 const BUILDING_CONFIGS=[{
+ id:'rootheart-inn',name:'Rootheart Herberg',position:{x:54,y:-12,z:0},width:7,height:6,
+ door:{side:'south',col:3},
+ floors:[
+  {material:'stone',windows:[],stairs:{up:{x:1,y:2}}},
+  {material:'wood',windows:[1,3,5],stairs:{down:{x:1,y:2}},holes:[[1,2]]}
+ ]
+},{
  id:'starter-house',name:'Huis 1',position:{x:0,y:0,z:0},width:5,height:5,
  door:{side:'south',col:2},
  floors:[
