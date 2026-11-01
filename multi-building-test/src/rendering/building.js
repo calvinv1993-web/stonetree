@@ -98,7 +98,54 @@ function exterior(b,x,y){
  if(b.terrace)return terraceExterior(b,x,y);
  return exteriorShell(b,x,y);
 }
+// Dedicated temple architecture: a pitched slate roof, carved cornice and
+// stone buttresses. Other buildings retain their existing roof renderer.
+function templeExterior(b,x,y){
+ const width=b.width*TILE,depth=b.height*TILE;
+ const front=y+depth,wallTop=front-HEIGHT;
+ // Side masonry projects above the ground plane and reads as thick walls.
+ rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#686e68');
+ rect(x+width,y-HEIGHT,SIDE,depth+HEIGHT,'#525d58');
+ for(let row=0;row<b.height;row++){
+  const py=y+row*TILE-HEIGHT;
+  rect(x-SIDE,py,SIDE,TILE-2,row%2?'#92998d':'#aab0a1');
+  rect(x+width,py,SIDE,TILE-2,row%2?'#727e77':'#858f85');
+  line(x-SIDE,py+TILE-2,x,py+TILE-2,'#515a54');
+  line(x+width,py+TILE-2,x+width+SIDE,py+TILE-2,'#4a554e');
+ }
+ facade(b,x,front,0,true);
+ // Temple columns stand in front of the masonry, not as painted stripes.
+ for(const col of [0,2,4,6]){
+  const px=x+col*TILE+8;
+  rect(px-3,wallTop+4,30,9,'#ded8c6');
+  rect(px+1,wallTop+13,22,HEIGHT-24,'#c4c0af');
+  rect(px+1,wallTop+13,5,HEIGHT-24,'#e0d9c6');
+  rect(px+19,wallTop+13,4,HEIGHT-24,'#8d9187');
+  rect(px-4,front-11,32,8,'#9a9d90');
+ }
+ // A broad slate roof with two sloping planes and a raised ridge.
+ const roofTop=y-HEIGHT-17, ridgeY=roofTop+depth*.44;
+ poly([[x-17,roofTop+depth*.12],[x+width+17,roofTop+depth*.12],[x+width+17,ridgeY],[x-17,ridgeY]],'#9ca9a1');
+ poly([[x-17,ridgeY],[x+width+17,ridgeY],[x+width+17,roofTop+depth+13],[x-17,roofTop+depth+13]],'#586760');
+ for(let row=0;row<6;row++){
+  const yy=roofTop+20+row*32;
+  const dark=row>=3;
+  line(x-13,yy,x+width+13,yy,dark?'#34453f':'#6b7971');
+  for(let col=0;col<b.width*2;col++){
+   const xx=x-10+col*20+(row%2?10:0);
+   if(xx<x+width+12)line(xx,yy-14,xx,yy-1,dark?'#495a53':'#b8c3b7');
+  }
+ }
+ rect(x-19,ridgeY-5,width+38,10,'#c3c9b8');
+ rect(x-19,ridgeY+3,width+38,4,'#606f66');
+ rect(x-18,roofTop+depth+9,width+36,8,'#424e48');
+ // Carved front pediment visually separates the roof from the entrance.
+ poly([[x+width*.5,roofTop+depth-11],[x+width*.5-66,roofTop+depth+25],[x+width*.5+66,roofTop+depth+25]],'#c6c6b7');
+ poly([[x+width*.5,roofTop+depth],[x+width*.5-44,roofTop+depth+23],[x+width*.5+44,roofTop+depth+23]],'#78897e');
+ rect(x+width*.5-70,roofTop+depth+25,140,8,'#aeb6a6');
+}
 function exteriorShell(b,x,y){
+ if(b.id==='rootheart-temple')return templeExterior(b,x,y);
  const size=b.width*TILE,depth=b.height*TILE,base=y+depth,roofY=y-b.floors.length*HEIGHT;
  // The roof covers the same complete footprint as both storeys.
  rect(x-SIDE,roofY,SIDE,depth+b.floors.length*HEIGHT,'#656e65');
