@@ -1,8 +1,9 @@
-import {map, WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, isWalkable} from "./map.js";
+import {map, WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, isWalkable, takeTopItem} from "./map.js";
 
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d", {alpha:false});
-const player = {x:8,y:12,z:GROUND_Z};
+const player = {x:8,y:12,z:GROUND_Z,inventory:[]};
+const inventoryLabel = document.querySelector("#inventory");
 const camera = {x:0,y:0};
 let viewWidth=1, viewHeight=1;
 
@@ -14,7 +15,8 @@ class AssetManager {
       player:"./assets/player.png", grass:"./assets/grass.png",
       wall:"./assets/wall.png", roof:"./assets/roof.png",
       stairs_up:"./assets/stairs_up.png",
-      stairs_down:"./assets/stairs_down.png"
+      stairs_down:"./assets/stairs_down.png",
+      gold_coin:"./assets/gold_coin.png", sword:"./assets/sword.png"
     };
   }
   async load() {
@@ -65,7 +67,18 @@ function render() {
     const px=camera.x+x*TILE_SIZE, py=camera.y+y*TILE_SIZE;
     if(px+TILE_SIZE<0 || py+TILE_SIZE<0 || px>viewWidth || py>viewHeight) continue;
     for(const obj of stack) {
-      if(!["ground","floor","wall","roof","stairs_up","stairs_down"].includes(obj.type)) continue;
+      if(!["ground","floor","wall","roof","stairs_up","stairs_down","item"].includes(obj.type)) continue;
+      if(obj.type==="item") {
+        const img=assets.get(obj.sprite ?? obj.id);
+        if(img) ctx.drawImage(img,px,py,TILE_SIZE,TILE_SIZE);
+        else {
+          ctx.fillStyle=obj.color ?? "#f3cb43";
+          ctx.fillRect(px+9,py+9,14,14);
+          ctx.strokeStyle="#493b20";
+          ctx.strokeRect(px+9.5,py+9.5,13,13);
+        }
+        continue;
+      }
       const sprite = obj.sprite ?? ({ground:"grass",floor:"grass",wall:"wall",roof:"roof",stairs_up:"stairs_up",stairs_down:"stairs_down"}[obj.type]);
       drawTile(sprite,obj.color ?? "#777",px,py);
       if(obj.type==="wall" && !assets.get(sprite)) {
@@ -84,6 +97,21 @@ function render() {
     ctx.fillRect(px+10,py+5,12,12);
   }
 }
+function updateInventory() {
+  inventoryLabel.textContent = player.inventory.length
+    ? player.inventory.map(item=>item.id).join(", ")
+    : "Empty";
+}
+function pickUp() {
+  const item=takeTopItem(player.x,player.y,player.z);
+  if(!item) return;
+  player.inventory.push(item);
+  updateInventory();
+  render();
+}
+document.querySelector("#pickup").addEventListener("click",pickUp);
+updateInventory();
+
 function move(dx,dy) {
   const nx=player.x+dx, ny=player.y+dy;
   if(!isWalkable(nx,ny,player.z)) return;
