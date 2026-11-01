@@ -120,7 +120,87 @@ function pickUp() {
 document.querySelector("#pickup").addEventListener("click",pickUp);
 updateInventory();
 
+
+const STEP_MS=140;
+const pathDirections=[[0,-1],[1,0],[0,1],[-1,0]];
+let walkingTimer=null;
+let walkingPath=[];
+
+function stopPath() {
+  if(walkingTimer!==null) clearInterval(walkingTimer);
+  walkingTimer=null;
+  walkingPath=[];
+}
+// A*: four directions, Manhattan heuristic, optimal shortest path in steps.
+function findPath(startX,startY,targetX,targetY,z) {
+  if(!isWalkable(targetX,targetY,z)) return [];
+  const index=(x,y)=>y*WIDTH+x;
+  const start=index(startX,startY), goal=index(targetX,targetY);
+  if(start===goal) return [];
+  const count=WIDTH*HEIGHT;
+  const g=new Float64Array(count).fill(Infinity);
+  const previous=new Int32Array(count).fill(-1);
+  const closed=new Uint8Array(count);
+  const open=[{id:start,f:Math.abs(targetX-startX)+Math.abs(targetY-startY)}];
+  g[start]=0;
+  while(open.length) {
+    let best=0;
+    for(let i=1;i<open.length;i++) if(open[i].f<open[best].f) best=i;
+    const current=open.splice(best,1)[0].id;
+    if(closed[current]) continue;
+    if(current===goal) {
+      const result=[];
+      let cursor=goal;
+      while(cursor!==start) {
+        result.push({x:cursor%WIDTH,y:Math.floor(cursor/WIDTH)});
+        cursor=previous[cursor];
+      }
+      return result.reverse();
+    }
+    closed[current]=1;
+    const x=current%WIDTH,y=Math.floor(current/WIDTH);
+    for(const [dx,dy] of pathDirections) {
+      const nx=x+dx,ny=y+dy;
+      if(!isWalkable(nx,ny,z)) continue;
+      const next=index(nx,ny);
+      if(closed[next]) continue;
+      const cost=g[current]+1;
+      if(cost>=g[next]) continue;
+      g[next]=cost;
+      previous[next]=current;
+      open.push({id:next,f:cost+Math.abs(targetX-nx)+Math.abs(targetY-ny)});
+    }
+  }
+  return [];
+}
+function startPath(x,y) {
+  stopPath();
+  walkingPath=findPath(player.x,player.y,x,y,player.z);
+  if(!walkingPath.length) return;
+  walkingTimer=setInterval(()=>{
+    const next=walkingPath.shift();
+    if(!next||!isWalkable(next.x,next.y,player.z)) {
+      stopPath();
+      return;
+    }
+    player.x=next.x;player.y=next.y;
+    render();
+    if(!walkingPath.length) stopPath();
+  },STEP_MS);
+}
+// Pointer events handle both mouse taps and mobile touch without double-firing.
+canvas.addEventListener("pointerdown",event=>{
+  if(event.pointerType==="mouse"&&event.button!==0) return;
+  event.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  const x=Math.floor((event.clientX-rect.left-camera.x)/TILE_SIZE);
+  const y=Math.floor((event.clientY-rect.top-camera.y)/TILE_SIZE);
+  if(x<0||y<0||x>=WIDTH||y>=HEIGHT) return;
+  startPath(x,y);
+});
+
 function move(dx,dy) {
+  stopPath();
   const nx=player.x+dx, ny=player.y+dy;
   if(!isWalkable(nx,ny,player.z)) return;
   player.x=nx; player.y=ny;
