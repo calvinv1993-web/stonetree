@@ -101,34 +101,8 @@ function exterior(b,x,y){
 // Dedicated Rootheart Temple renderer.
 // The temple deliberately does not use the generic rectangular roof/facade,
 // so its exterior and cutaway interior can match the approved concept.
-const templeStoneWallImage=typeof Image!=='undefined'?new Image():null;
-if(templeStoneWallImage){
- templeStoneWallImage.src='assets/temple/stone-wall-atlas.png?v=1';
- templeStoneWallImage.onload=()=>{if(typeof paint==='function')paint();};
-}
-function templeStoneWallReady(){
- return Boolean(templeStoneWallImage&&templeStoneWallImage.complete&&templeStoneWallImage.naturalWidth>=160&&templeStoneWallImage.naturalHeight>=20);
-}
 function templeBrickFace(x,y,w,h,light='#aaa89a',dark='#6f746c'){
  rect(x,y,w,h,light);
- if(templeStoneWallReady()){
-  const bw=40,bh=20,variants=4;
-  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
-  const smoothing=ctx.imageSmoothingEnabled;
-  ctx.imageSmoothingEnabled=false;
-  for(let row=0,yy=y;yy<y+h;row++,yy+=bh){
-   const off=row%2?-20:0;
-   let col=0;
-   for(let xx=x+off;xx<x+w;xx+=bw,col++){
-    const variant=(row*3+col)%variants;
-    ctx.drawImage(templeStoneWallImage,variant*bw,0,bw,bh,xx,yy,bw,bh);
-   }
-  }
-  ctx.imageSmoothingEnabled=smoothing;
-  ctx.restore();
-  return;
- }
- // Primitive fallback keeps headless tests and loading states functional.
  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
  for(let row=0,yy=y;yy<y+h;row++,yy+=16){
   line(x,yy+15,x+w,yy+15,dark);
