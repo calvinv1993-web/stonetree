@@ -134,11 +134,12 @@ function templeExterior(b,x,y){
  const w=b.width*TILE,d=b.height*TILE,front=y+d;
  const wallTop=front-HEIGHT;
  const left=x-14,right=x+w+14;
- const roofBack=y-26,roofFront=wallTop+3,ridge=x+w/2;
+ const roofBack=y-6,roofFront=wallTop-34,ridge=x+w/2;
 
  // Wall mass first: side returns are visible below the roof edges.
- rect(left,y-10,14,d-44,'#727a72');
- rect(x+w,y-10,14,d-44,'#4e5b54');
+ rect(left,y+8,14,d-52,'#727a72');
+ rect(x+w,y+8,14,d-52,'#4e5b54');
+ templeBrickFace(x,wallTop-18,w,18,'#b4b1a2','#777b72');
  templeBrickFace(x,wallTop,w,HEIGHT,'#aaa89a','#6f746c');
 
  // Four projecting buttresses create readable stone depth.
@@ -235,8 +236,8 @@ function templeInterior(b,x,y,occupied=true){
   templeFloorTile(x+col*TILE,y+row*TILE,col,row);
 
  // Heavy rear and side walls, drawn as real cutaway planes.
- const wall=18;
- templeBrickFace(x-wall,y-wall,w+wall*2,wall,'#a9a698','#72766e');
+ const wall=20,rear=34;
+ templeBrickFace(x-wall,y-rear,w+wall*2,rear,'#a9a698','#72766e');
  rect(x-wall,y,wall,d,'#8b9187');
  rect(x-wall,y,5,d,'#c4c2b2');
  rect(x+w,y,wall,d,'#626f66');
@@ -256,20 +257,21 @@ function templeInterior(b,x,y,occupied=true){
  }
 
  // Altar, banner/sigil and paired torches.
- const altarX=x+3*TILE,altarY=y+3;
- rect(altarX-15,altarY+4,70,7,'#6d6d65');
- rect(altarX-10,altarY+11,60,23,'#b9b3a1');
- rect(altarX-4,altarY+15,48,15,'#d0c7b2');
+ const altarX=x+3*TILE,altarY=y+14;
+ rect(altarX-24,altarY-4,88,6,'#6f716a');
+ rect(altarX-18,altarY+2,76,8,'#8b8b80');
+ rect(altarX-14,altarY+10,68,22,'#b9b3a1');
+ rect(altarX-7,altarY+14,54,14,'#d0c7b2');
  // Open book.
  poly([[altarX+5,altarY+13],[altarX+20,altarY+9],[altarX+20,altarY+24],[altarX+5,altarY+20]],'#e5d6aa');
  poly([[altarX+20,altarY+9],[altarX+35,altarY+13],[altarX+35,altarY+20],[altarX+20,altarY+24]],'#d8c894');
  line(altarX+20,altarY+10,altarX+20,altarY+23,'#866b45');
- templeTorch(x+TILE*2, y+22);
- templeTorch(x+TILE*5, y+22);
+ templeTorch(x+TILE*2, y+34);
+ templeTorch(x+TILE*5, y+34);
  // Rootheart wall banner.
- rect(x+w/2-15,y-wall+2,30,34,'#73272a');
- rect(x+w/2-12,y-wall+5,24,28,'#9b3034');
- poly([[x+w/2,y-wall+9],[x+w/2+8,y-wall+17],[x+w/2,y-wall+25],[x+w/2-8,y-wall+17]],'#d6b25e');
+ rect(x+w/2-17,y-rear+3,34,38,'#73272a');
+ rect(x+w/2-14,y-rear+6,28,32,'#9b3034');
+ poly([[x+w/2,y-rear+10],[x+w/2+9,y-rear+19],[x+w/2,y-rear+28],[x+w/2-9,y-rear+19]],'#d6b25e');
 
  // Four symmetric benches.
  templeBench(x+1*TILE,y+2*TILE);
