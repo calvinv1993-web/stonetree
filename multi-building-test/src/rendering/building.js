@@ -201,44 +201,34 @@ function templeExterior(b,x,y){
    rect(px-7,front-10,36,8,'#9fa596');
   }
  }
- // Pitched roof with one vertical center ridge. The two roof planes are
- // separately clipped/textured, so the roof reads left/right rather than as
- // a horizontal split.
- const eave=wallTop-7,back=y-HEIGHT-4,roofCenter=x+w/2;
- const topY=back+8,shoulderY=back+34;
- const leftRoof=[[roofCenter,topY],[x+34,back],[x-13,shoulderY],[x-20,eave],[roofCenter,eave]];
- const rightRoof=[[roofCenter,topY],[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[roofCenter,eave]];
- poly(leftRoof,'#667a70');
- poly(rightRoof,'#4d6258');
-
- function texturedRoofPlane(points,shade){
-  ctx.save();ctx.beginPath();
-  ctx.moveTo(points[0][0],points[0][1]);
+ // A continuous gabled roof: the ridge recedes toward the rear, while
+ // both slate planes slope out toward their own eaves. No crossing faces.
+ const back=y-HEIGHT-4, eave=wallTop-7, center=x+w/2;
+ const ridgeBack=back+10, ridgeFront=eave-20;
+ const leftEave=x-20, rightEave=x+w+20;
+ const leftRoof=[[center,ridgeBack],[x+25,back],[leftEave,back+30],[leftEave,eave],[center,ridgeFront]];
+ const rightRoof=[[center,ridgeBack],[x+w-25,back],[rightEave,back+30],[rightEave,eave],[center,ridgeFront]];
+ function drawSlatePlane(points,shade){
+  ctx.save();ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
   for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
   ctx.closePath();ctx.clip();
-  if(!templeTile('roof',x-24,back,w+48,eave-back+8,40,40)){
-   for(let yy=back;yy<eave;yy+=20)line(x-20,yy,x+w+20,yy,'#71858a');
-  }
-  if(shade){
-   ctx.globalAlpha=shade;
-   rect(x-24,back,w+48,eave-back+8,'#172d27');
-  }
+  if(!templeTile('roof',leftEave,back,w+40,eave-back+2,40,40))rect(leftEave,back,w+40,eave-back+2,'#455b63');
+  if(shade){ctx.globalAlpha=shade;rect(leftEave,back,w+40,eave-back+2,'#14262f');}
   ctx.restore();
  }
- texturedRoofPlane(leftRoof,0);
- texturedRoofPlane(rightRoof,.18);
-
- // Receding outer faces keep the roof volume from becoming a flat diamond.
- poly([[x-20,eave],[x-13,shoulderY],[x+34,back],[x+22,back+18]],'#46594f');
- poly([[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[x+w-22,back+18]],'#34483e');
-
- // The ridge now runs vertically down the center of the roof.
- rect(roofCenter-5,topY-4,10,eave-topY+6,'#b7b7a7');
- rect(roofCenter-2,topY-2,4,eave-topY+4,'#e1ddca');
- rect(roofCenter+3,topY,3,eave-topY+2,'#6f786f');
-
- rect(x-23,eave-3,w+46,9,'#394a40');
- if(!templeTile('cornice',x-23,eave-3,w+46,5,40,12))rect(x-23,eave-3,w+46,3,'#9cae9e');
+ drawSlatePlane(leftRoof,.02);
+ drawSlatePlane(rightRoof,.25);
+ // Defined roof edges and a restrained central ridge establish depth.
+ line(leftEave,back+30,leftEave,eave,'#253b43');
+ line(rightEave,back+30,rightEave,eave,'#263943');
+ line(center,ridgeBack,center,ridgeFront,'#b8c2bd');
+ line(center+3,ridgeBack+2,center+3,ridgeFront,'#334951');
+ // A front gable follows the actual pitched silhouette.
+ poly([[leftEave,eave],[center,ridgeFront],[rightEave,eave],[rightEave,eave+8],[leftEave,eave+8]],'#344951');
+ line(leftEave,eave,center,ridgeFront,'#9aacae');
+ line(center,ridgeFront,rightEave,eave,'#647b7d');
+ rect(leftEave,eave+7,w+40,6,'#394a40');
+ if(!templeTile('cornice',leftEave,eave+7,w+40,5,40,12))rect(leftEave,eave+7,w+40,3,'#9cae9e');
  // Pediment is anchored to the wall, below the roof overhang.
  const center=x+w/2,peak=wallTop-22;
  poly([[center,peak],[center-66,wallTop+4],[center+66,wallTop+4]],'#d7d2bd');
