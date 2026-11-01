@@ -24,6 +24,20 @@ function buildChunk(cx,cy) {
     }
     if(x===8&&y===7) stack.push({type:"item",id:"gold_coin",pickupable:true,color:"#f3cb43"});
     if(x===9&&y===8) stack.push({type:"item",id:"sword",pickupable:true,color:"#c5e2ee"});
+    // Demo access points outside the original house; original walls/items remain unchanged.
+    if(x===14&&y===12) stack.push({type:"stairs_up",dx:0,dy:-1,color:"#a9c3e5"});
+    if(x===18&&y===12) stack.push({type:"hole",dx:0,dy:1,color:"#27212b"});
+    if(x>=12&&x<=17&&y>=9&&y<=15) {
+      const upper=tiles[lx][ly][GROUND_Z-1];
+      upper.push({type:"floor",color:"#b8a989"});
+      if(x===14&&y===11) upper.push({type:"stairs_down",dx:0,dy:1,color:"#c8b58b"});
+      if(x===13&&y===10) upper.push({type:"roof",color:"#943b38"});
+    }
+    if(x>=17&&x<=21&&y>=11&&y<=16) {
+      const basement=tiles[lx][ly][GROUND_Z+1];
+      basement.push({type:"floor",color:"#706d65"});
+      if(x===18&&y===13) basement.push({type:"stairs_up",dx:0,dy:-1,color:"#a9c3e5"});
+    }
   }
   return tiles;
 }
@@ -58,7 +72,18 @@ export function addObject(x,y,z,object) {
 }
 export function isWalkable(x,y,z) {
   const stack=getObjects(x,y,z);
-  return stack!==null&&stack.some(o=>o.type==="ground")&&!stack.some(o=>o.solid===true||o.blocking===true);
+  return stack!==null&&stack.some(o=>o.type==="ground"||o.type==="floor")&&!stack.some(o=>o.solid===true||o.blocking===true);
+}
+// Resolve a floor transition on entry. Never transition again on arrival.
+export function getTransition(x,y,z) {
+  const stack=getObjects(x,y,z);
+  if(!stack) return null;
+  const stair=stack.find(o=>["stairs_up","stairs_down","hole"].includes(o.type));
+  if(!stair) return null;
+  const dz=stair.type==="stairs_up"?-1:1;
+  const nx=x+(stair.dx??0),ny=y+(stair.dy??0),nz=z+dz;
+  if(!isWalkable(nx,ny,nz)) return null;
+  return {x:nx,y:ny,z:nz};
 }
 export function takeTopItem(x,y,z) {
   const stack=getObjects(x,y,z);
