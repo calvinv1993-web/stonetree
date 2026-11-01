@@ -226,7 +226,20 @@ function templeExterior(b,x,y){
   ctx.restore();
  }
  texturedRoofPlane(leftRoof,0);
- texturedRoofPlane(rightRoof,.18);
+ texturedRoofPlane(rightRoof,.32);
+ // Directional lighting makes the two existing pitched planes read at
+ // different elevations without changing the building footprint.
+ ctx.save();
+ ctx.beginPath();ctx.moveTo(leftRoof[0][0],leftRoof[0][1]);
+ for(let i=1;i<leftRoof.length;i++)ctx.lineTo(leftRoof[i][0],leftRoof[i][1]);
+ ctx.closePath();ctx.clip();
+ ctx.globalAlpha=.11;rect(x-24,back,w/2+24,eave-back+8,'#e0eef0');
+ ctx.restore();
+ // Fine slope lines converge visually toward the central raised ridge.
+ for(let offset=35;offset<roofCenter-x-12;offset+=38){
+  line(x-20+offset,eave-12,roofCenter-9,eave-24,'rgba(170,193,194,.20)');
+  line(x+w+20-offset,eave-12,roofCenter+9,eave-24,'rgba(18,38,46,.24)');
+ }
 
  // Eave shadows are kept beneath the slate planes, so they cannot
  // paint over the textured roof or interrupt its vertical ridge.
