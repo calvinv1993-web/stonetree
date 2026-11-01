@@ -1,4 +1,4 @@
-import {map, WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, isWalkable, takeTopItem} from "./map.js";
+import {WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, CHUNK_SIZE, isWalkable, takeTopItem, activateChunks, getActiveChunks} from "./map.js";
 
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d", {alpha:false});
@@ -62,28 +62,36 @@ function render() {
   ctx.fillRect(0,0,viewWidth,viewHeight);
   camera.x = Math.round(viewWidth/2 - (player.x+0.5)*TILE_SIZE);
   camera.y = Math.round(viewHeight/2 - (player.y+0.5)*TILE_SIZE);
-  for(let y=0;y<HEIGHT;y++) for(let x=0;x<WIDTH;x++) {
-    const stack = map[x][y][player.z]; // preserve explicit Z filtering
-    const px=camera.x+x*TILE_SIZE, py=camera.y+y*TILE_SIZE;
-    if(px+TILE_SIZE<0 || py+TILE_SIZE<0 || px>viewWidth || py>viewHeight) continue;
-    for(const obj of stack) {
-      if(!["ground","floor","wall","roof","stairs_up","stairs_down","item"].includes(obj.type)) continue;
-      if(obj.type==="item") {
-        const img=assets.get(obj.sprite ?? obj.id);
-        if(img) ctx.drawImage(img,px,py,TILE_SIZE,TILE_SIZE);
-        else {
-          ctx.fillStyle=obj.color ?? "#f3cb43";
-          ctx.fillRect(px+9,py+9,14,14);
-          ctx.strokeStyle="#493b20";
-          ctx.strokeRect(px+9.5,py+9.5,13,13);
+  const minX=Math.max(0,Math.floor(-camera.x/TILE_SIZE)-1);
+  const minY=Math.max(0,Math.floor(-camera.y/TILE_SIZE)-1);
+  const maxX=Math.min(WIDTH-1,Math.ceil((viewWidth-camera.x)/TILE_SIZE));
+  const maxY=Math.min(HEIGHT-1,Math.ceil((viewHeight-camera.y)/TILE_SIZE));
+  activateChunks(minX,minY,maxX,maxY);
+  for(const chunk of getActiveChunks()) {
+    const x0=Math.max(minX,chunk.cx*CHUNK_SIZE),x1=Math.min(maxX,(chunk.cx+1)*CHUNK_SIZE-1);
+    const y0=Math.max(minY,chunk.cy*CHUNK_SIZE),y1=Math.min(maxY,(chunk.cy+1)*CHUNK_SIZE-1);
+    for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) {
+      const stack=chunk.tiles[x%CHUNK_SIZE][y%CHUNK_SIZE][player.z];
+      const px=camera.x+x*TILE_SIZE,py=camera.y+y*TILE_SIZE;
+      for(const obj of stack) {
+        if(!["ground","floor","wall","roof","stairs_up","stairs_down","item"].includes(obj.type)) continue;
+        if(obj.type==="item") {
+          const img=assets.get(obj.sprite??obj.id);
+          if(img) ctx.drawImage(img,px,py,TILE_SIZE,TILE_SIZE);
+          else {
+            ctx.fillStyle=obj.color??"#f3cb43";
+            ctx.fillRect(px+9,py+9,14,14);
+            ctx.strokeStyle="#493b20";
+            ctx.strokeRect(px+9.5,py+9.5,13,13);
+          }
+          continue;
         }
-        continue;
-      }
-      const sprite = obj.sprite ?? ({ground:"grass",floor:"grass",wall:"wall",roof:"roof",stairs_up:"stairs_up",stairs_down:"stairs_down"}[obj.type]);
-      drawTile(sprite,obj.color ?? "#777",px,py);
-      if(obj.type==="wall" && !assets.get(sprite)) {
-        ctx.fillStyle="#736f6a";
-        ctx.fillRect(px,py+TILE_SIZE-5,TILE_SIZE,5);
+        const sprite=obj.sprite??({ground:"grass",floor:"grass",wall:"wall",roof:"roof",stairs_up:"stairs_up",stairs_down:"stairs_down"}[obj.type]);
+        drawTile(sprite,obj.color??"#777",px,py);
+        if(obj.type==="wall"&&!assets.get(sprite)) {
+          ctx.fillStyle="#736f6a";
+          ctx.fillRect(px,py+TILE_SIZE-5,TILE_SIZE,5);
+        }
       }
     }
   }
