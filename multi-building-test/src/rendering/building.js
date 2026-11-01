@@ -101,54 +101,60 @@ function exterior(b,x,y){
 // Dedicated temple architecture: a pitched slate roof, carved cornice and
 // stone buttresses. Other buildings retain their existing roof renderer.
 function templeExterior(b,x,y){
- const width=b.width*TILE,depth=b.height*TILE;
- const front=y+depth,wallTop=front-HEIGHT;
- // Side masonry projects above the ground plane and reads as thick walls.
- rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#686e68');
- rect(x+width,y-HEIGHT,SIDE,depth+HEIGHT,'#525d58');
+ const w=b.width*TILE,d=b.height*TILE,front=y+d,wallTop=front-HEIGHT;
+ // Deep stone side walls with a visible top edge and directional lighting.
+ rect(x-14,y-HEIGHT,14,d+HEIGHT,'#8f978b');
+ rect(x+w,y-HEIGHT,14,d+HEIGHT,'#56635b');
  for(let row=0;row<b.height;row++){
-  const py=y+row*TILE-HEIGHT;
-  rect(x-SIDE,py,SIDE,TILE-2,row%2?'#92998d':'#aab0a1');
-  rect(x+width,py,SIDE,TILE-2,row%2?'#727e77':'#858f85');
-  line(x-SIDE,py+TILE-2,x,py+TILE-2,'#515a54');
-  line(x+width,py+TILE-2,x+width+SIDE,py+TILE-2,'#4a554e');
+  const py=y-HEIGHT+row*TILE;
+  line(x-13,py,x,py,'#c3c5b6');
+  line(x+w,py,x+w+13,py,'#38483f');
+  rect(x-13,py+4,4,TILE-8,'#b1b7a8');
+  rect(x+w+8,py+4,4,TILE-8,'#414f47');
  }
  facade(b,x,front,0,true);
- // Temple columns stand in front of the masonry, not as painted stripes.
+ // Projecting carved pilasters, each with a shadowed right face.
  for(const col of [0,2,4,6]){
   const px=x+col*TILE+8;
-  rect(px-3,wallTop+4,30,9,'#ded8c6');
-  rect(px+1,wallTop+13,22,HEIGHT-24,'#c4c0af');
-  rect(px+1,wallTop+13,5,HEIGHT-24,'#e0d9c6');
-  rect(px+19,wallTop+13,4,HEIGHT-24,'#8d9187');
-  rect(px-4,front-11,32,8,'#9a9d90');
+  rect(px-5,wallTop+3,33,9,'#d7d3c0');
+  rect(px,wallTop+12,22,HEIGHT-22,'#c1bdac');
+  rect(px+1,wallTop+12,5,HEIGHT-22,'#eee6cf');
+  rect(px+18,wallTop+12,5,HEIGHT-22,'#777e74');
+  rect(px-7,front-10,36,8,'#9fa596');
  }
- // Roof follows the footprint, with a readable ridge and individual slate courses.
- // Its lower edge stops above the facade so the entrance remains visible.
- const top=y-HEIGHT-24,bottom=wallTop-8,mid=(top+bottom)/2;
- poly([[x-18,top+17],[x+width+18,top+17],[x+width+18,mid],[x-18,mid]],'#788a82');
- poly([[x-18,mid],[x+width+18,mid],[x+width+18,bottom],[x-18,bottom]],'#46574f');
- ctx.save();ctx.beginPath();ctx.rect(x-18,top+17,width+36,bottom-top-17);ctx.clip();
- for(let yy=top+23,row=0;yy<bottom;yy+=16,row++){
-  const lower=yy>=mid;
-  rect(x-18,yy+12,width+36,3,lower?'#2f403a':'#566a60');
-  line(x-16,yy,x+width+16,yy,lower?'#84958a':'#b2beb0');
-  for(let xx=x-18+(row%2?12:0);xx<x+width+18;xx+=24){
-   line(xx,yy+2,xx,yy+12,lower?'#35473f':'#687b70');
-   rect(xx+3,yy+3,8,2,lower?'#62776a':'#9dafa1');
+ // Shorter hipped roof: a tapering top plane, steep front slope and
+ // substantial dark eaves. No full-depth rectangular roof blanket.
+ const eave=wallTop-7,back=y-HEIGHT-4,ridge=back+78;
+ poly([[x-13,back+33],[x+34,back],[x+w-34,back],[x+w+13,back+33],
+       [x+w+13,ridge],[x-13,ridge]],'#899b8e');
+ poly([[x-13,ridge],[x+w+13,ridge],[x+w+20,eave],[x-20,eave]],'#52675c');
+ // Receding roof side faces reinforce its three-dimensional silhouette.
+ poly([[x-20,eave],[x-13,ridge],[x-13,back+33],[x-25,back+49]],'#46594f');
+ poly([[x+w+13,back+33],[x+w+25,back+49],[x+w+20,eave],[x+w+13,ridge]],'#34483e');
+ ctx.save();ctx.beginPath();
+ ctx.moveTo(x-13,back+33);ctx.lineTo(x+34,back);ctx.lineTo(x+w-34,back);
+ ctx.lineTo(x+w+13,back+33);ctx.lineTo(x+w+13,ridge);
+ ctx.lineTo(x+w+20,eave);ctx.lineTo(x-20,eave);ctx.lineTo(x-13,ridge);
+ ctx.closePath();ctx.clip();
+ for(let row=0,yy=back+14;yy<eave;row++,yy+=22){
+  const dark=yy>=ridge;
+  rect(x-20,yy+18,w+40,3,dark?'#354a3e':'#64796b');
+  line(x-17,yy,x+w+17,yy,dark?'#829789':'#bdc9b9');
+  for(let col=0;col<16;col++){
+   const xx=x-16+col*21+(row%2?10:0);
+   line(xx,yy+3,xx,yy+17,dark?'#40584b':'#748d7d');
+   rect(xx+4,yy+5,8,2,dark?'#6e8576':'#aebdae');
   }
  }
  ctx.restore();
- // Continuous raised ridge, roof thickness, and projecting eaves.
- rect(x-21,mid-6,width+42,8,'#c1c8b8');
- rect(x-21,mid+2,width+42,5,'#5c6c60');
- rect(x-22,bottom-3,width+44,10,'#313e38');
- rect(x-22,bottom-3,width+44,3,'#8c9c8f');
- // The entrance pediment sits in front of the roof, not halfway up it.
- const center=x+width/2,peak=wallTop-22;
- poly([[center,peak],[center-67,wallTop+5],[center+67,wallTop+5]],'#d3d0bd');
- poly([[center,peak+8],[center-46,wallTop+2],[center+46,wallTop+2]],'#71847a');
- rect(center-73,wallTop+4,146,7,'#b9b7a5');
+ rect(x-20,ridge-5,w+40,8,'#b6c2b1');
+ rect(x-23,eave-3,w+46,9,'#394a40');
+ rect(x-23,eave-3,w+46,3,'#9cae9e');
+ // Pediment is anchored to the wall, below the roof overhang.
+ const center=x+w/2,peak=wallTop-22;
+ poly([[center,peak],[center-66,wallTop+4],[center+66,wallTop+4]],'#d7d2bd');
+ poly([[center,peak+8],[center-43,wallTop+1],[center+43,wallTop+1]],'#74877b');
+ rect(center-70,wallTop+4,140,7,'#b2b6a5');
 }
 function exteriorShell(b,x,y){
  if(b.id==='rootheart-temple')return templeExterior(b,x,y);
