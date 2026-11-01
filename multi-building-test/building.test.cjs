@@ -13,6 +13,7 @@ function game(){
  vm.createContext(sandbox);
  const html=readFileSync(join(__dirname,'index.html'),'utf8');
  for(const [,src] of html.matchAll(/<script src="([^"]+)"/g))vm.runInContext(readFileSync(join(__dirname,src.split('?')[0]),'utf8'),sandbox,{filename:src});
+ vm.runInContext("function legacyBuilding(i){return BUILDINGS.find(b=>b.id===['starter-house','east-house','tower-house'][i]);}",sandbox);
  const run=s=>vm.runInContext(s,sandbox),json=s=>JSON.parse(run(`JSON.stringify(${s})`));
  const state=()=>json('player');
  const place=(x,y,z=0)=>run(`Object.assign(player,{x:${x},y:${y},z:${z}});path=[];paint()`);
@@ -49,8 +50,8 @@ test('tower: z=0 → 1 → 2 → 1 → 0 without stair bounce',()=>{
 });
 test('terrace: preserve passage (11,3)↔(12,3) and original projected door',()=>{
  const g=game();g.place(11,3,1);
- const d=g.json("doorFor(BUILDINGS[1],'terrace')");assert.deepEqual(d.a,{x:11,y:3});assert.deepEqual(d.b,{x:12,y:3});
- assert.equal(g.run("doorHitBox(doorFor(BUILDINGS[1],'terrace')).y"),g.run('originY+2*TILE-10'));
+ const d=g.json("doorFor(legacyBuilding(1),'terrace')");assert.deepEqual(d.a,{x:11,y:3});assert.deepEqual(d.b,{x:12,y:3});
+ assert.equal(g.run("doorHitBox(doorFor(legacyBuilding(1),'terrace')).y"),g.run('originY+2*TILE-10'));
  assert.deepEqual(g.key('ArrowRight'),{x:11,y:3,z:1});g.run('toggleDoor()');
  assert.deepEqual(g.key('ArrowRight'),{x:12,y:3,z:1});g.run('toggleDoor()');
  assert.deepEqual(g.key('ArrowLeft'),{x:12,y:3,z:1});g.run('toggleDoor()');
@@ -61,7 +62,7 @@ test('terrace: preserve passage (11,3)↔(12,3) and original projected door',()=
 test('all solid upper tiles reachable; ordinary routes never trigger stairs',()=>{
  const g=game();
  for(const [i,bx] of [[0,0],[1,9],[2,18]]){
-  const b=g.json(`BUILDINGS[${i}]`);
+  const b=g.json(`legacyBuilding(${i})`);
   for(let z=1;z<b.floors.length;z++){
    g.place(bx,0,z);g.run("doorStates['east-house:terrace']=true");
    for(let y=0;y<5;y++)for(let x=0;x<5;x++){
@@ -79,7 +80,7 @@ test('queued steps recheck collision and doors',()=>{
  const g=game();g.place(11,3,1);g.run("doorStates['east-house:terrace']=true;route(13,3);doorStates['east-house:terrace']=false");g.tick();assert.deepEqual(g.state(),{x:11,y:3,z:1});assert.equal(g.run('path.length'),0);
 });
 test('invalid stair landing cannot partially move the player',()=>{
- const g=game();g.place(19,1,0);g.run('BUILDINGS[2].floors[1].holes.push([1,1])');g.key('ArrowDown');assert.deepEqual(g.state(),{x:19,y:1,z:0});
+ const g=game();g.place(19,1,0);g.run('legacyBuilding(2).floors[1].holes.push([1,1])');g.key('ArrowDown');assert.deepEqual(g.state(),{x:19,y:1,z:0});
 });
 test('projection round trips and pointer movement at desktop/phone sizes and z=0/1/2',()=>{
  const g=game();
@@ -92,34 +93,34 @@ test('projection round trips and pointer movement at desktop/phone sizes and z=0
 });
 test('secondary pointer is ignored; button and projected door tap share state',()=>{
  const g=game();g.place(11,3,1);
- const r=g.json("doorHitBox(doorFor(BUILDINGS[1],'terrace'))");
- g.events.pointerdown({clientX:r.x+14,clientY:r.y+25,isPrimary:false});assert.equal(g.run("doorIsOpen(BUILDINGS[1],'terrace')"),false);
- g.events.pointerdown({clientX:r.x+14,clientY:r.y+25,isPrimary:true});assert.equal(g.run("doorIsOpen(BUILDINGS[1],'terrace')"),true);
- g.events['door:click']();assert.equal(g.run("doorIsOpen(BUILDINGS[1],'terrace')"),false);assert.match(g.status.textContent,/terrasdeur dicht/);
+ const r=g.json("doorHitBox(doorFor(legacyBuilding(1),'terrace'))");
+ g.events.pointerdown({clientX:r.x+14,clientY:r.y+25,isPrimary:false});assert.equal(g.run("doorIsOpen(legacyBuilding(1),'terrace')"),false);
+ g.events.pointerdown({clientX:r.x+14,clientY:r.y+25,isPrimary:true});assert.equal(g.run("doorIsOpen(legacyBuilding(1),'terrace')"),true);
+ g.events['door:click']();assert.equal(g.run("doorIsOpen(legacyBuilding(1),'terrace')"),false);assert.match(g.status.textContent,/terrasdeur dicht/);
 });
 test('distance visibility reveals 0/1/2 and roof at the configured distances',()=>{
  const g=game();for(let b=0;b<3;b++){
-  const building=g.json(`BUILDINGS[${b}]`);
+  const building=g.json(`legacyBuilding(${b})`);
   for(let distance=1;distance<=building.floors.length+1;distance++){
-   g.place(building.position.x+2,4+distance);assert.equal(g.run(`visibleExteriorStorey(BUILDINGS[${b}])`),distance<=building.floors.length?distance-1:null);
+   g.place(building.position.x+2,4+distance);assert.equal(g.run(`visibleExteriorStorey(legacyBuilding(${b}))`),distance<=building.floors.length?distance-1:null);
   }
  }
- g.place(20,1,1);assert.equal(g.run('visibleExteriorStorey(BUILDINGS[0])'),null);
+ g.place(20,1,1);assert.equal(g.run('visibleExteriorStorey(legacyBuilding(0))'),null);
 });
 test('rendering preserves game state, stairwell backing is opaque, all views render',()=>{
  const g=game();for(let i=0;i<3;i++){
-  const b=g.json(`BUILDINGS[${i}]`);
+  const b=g.json(`legacyBuilding(${i})`);
   for(let z=0;z<b.floors.length;z++){
    g.place(b.position.x+2,0,z);const before=g.json('[player,doorStates,path]');
    g.run('paint()');assert.deepEqual(g.json('[player,doorStates,path]'),before);
-   g.run(`drawStorey(BUILDINGS[${i}],0,0,${z},false)`);
+   g.run(`drawStorey(legacyBuilding(${i}),0,0,${z},false)`);
   }
  }
  assert.ok(g.calls.every(call=>call.slice(1).filter(v=>typeof v==='number').every(Number.isFinite)));
- assert.equal(g.run("ctx.fillStyle='#sentinel';drawStairwell(BUILDINGS[2],0,0,2);ctx.fillStyle==='#sentinel'"),false);
+ assert.equal(g.run("ctx.fillStyle='#sentinel';drawStairwell(legacyBuilding(2),0,0,2);ctx.fillStyle==='#sentinel'"),false);
 });
 test('rectangular configuration renders; overlap and invalid landings rejected',()=>{
- const g=game();g.run("var sample=JSON.parse(JSON.stringify(BUILDINGS[0]));sample.id='rect';sample.width=6;sample.height=7;validateBuildings([sample]);exterior(sample,0,0);drawStorey(sample,0,0,1,false)");
+ const g=game();g.run("var sample=JSON.parse(JSON.stringify(legacyBuilding(0)));sample.id='rect';sample.width=6;sample.height=7;validateBuildings([sample]);exterior(sample,0,0);drawStorey(sample,0,0,1,false)");
  assert.throws(()=>g.run('validateBuildings([sample,sample])'));
  assert.throws(()=>g.run('sample.floors[0].stairs.up.y=0;validateBuildings([sample])'));
 });
