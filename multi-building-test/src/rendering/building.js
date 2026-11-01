@@ -201,59 +201,47 @@ function templeExterior(b,x,y){
    rect(px-7,front-10,36,8,'#9fa596');
   }
  }
- // Pitched roof with one vertical center ridge. The two roof planes are
- // separately clipped/textured, so the roof reads left/right rather than as
- // a horizontal split.
+ // Sacred temple roof: two continuous slate slopes, raised stone ridge,
+ // stepped slate courses and heavy eaves. Only visual rendering changes.
  const eave=wallTop-7,back=y-HEIGHT-4,roofCenter=x+w/2;
  const topY=back+8,shoulderY=back+34;
  const leftRoof=[[roofCenter,topY],[x+34,back],[x-13,shoulderY],[x-20,eave],[roofCenter,eave]];
  const rightRoof=[[roofCenter,topY],[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[roofCenter,eave]];
- poly(leftRoof,'#667a70');
- poly(rightRoof,'#4d6258');
-
- function texturedRoofPlane(points,shade){
-  ctx.save();ctx.beginPath();
-  ctx.moveTo(points[0][0],points[0][1]);
+ function sacredSlope(points,shade,side){
+  ctx.save();ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
   for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
   ctx.closePath();ctx.clip();
+  rect(x-24,back,w+48,eave-back+8,side<0?'#607781':'#344b55');
   if(!templeTile('roof',x-24,back,w+48,eave-back+8,40,40)){
-   for(let yy=back;yy<eave;yy+=20)line(x-20,yy,x+w+20,yy,'#71858a');
+   for(let yy=back;yy<eave;yy+=10)line(x-24,yy,x+w+24,yy,'#344b55');
   }
-  if(shade){
-   ctx.globalAlpha=shade;
-   rect(x-24,back,w+48,eave-back+8,'#172d27');
+  // Slate course highlights and shadows run across each individual plane.
+  for(let yy=back+13;yy<eave;yy+=20){
+   line(x-24,yy,x+w+24,yy,side<0?'rgba(185,211,213,.26)':'rgba(12,29,38,.42)');
+   line(x-24,yy+3,x+w+24,yy+3,'rgba(15,32,42,.24)');
   }
+  ctx.globalAlpha=shade;
+  rect(x-24,back,w+48,eave-back+8,side<0?'#b4d1d7':'#091e2b');
   ctx.restore();
  }
- texturedRoofPlane(leftRoof,0);
- texturedRoofPlane(rightRoof,.32);
- // Directional lighting makes the two existing pitched planes read at
- // different elevations without changing the building footprint.
- ctx.save();
- ctx.beginPath();ctx.moveTo(leftRoof[0][0],leftRoof[0][1]);
- for(let i=1;i<leftRoof.length;i++)ctx.lineTo(leftRoof[i][0],leftRoof[i][1]);
- ctx.closePath();ctx.clip();
- ctx.globalAlpha=.11;rect(x-24,back,w/2+24,eave-back+8,'#e0eef0');
- ctx.restore();
- // Fine slope lines converge visually toward the central raised ridge.
- for(let offset=35;offset<roofCenter-x-12;offset+=38){
-  line(x-20+offset,eave-12,roofCenter-9,eave-24,'rgba(170,193,194,.20)');
-  line(x+w+20-offset,eave-12,roofCenter+9,eave-24,'rgba(18,38,46,.24)');
+ sacredSlope(leftRoof,.16,-1);
+ sacredSlope(rightRoof,.30,1);
+ // Deep eave shadow falls below the roof, not across the slate surface.
+ rect(x-21,eave+3,w+42,8,'#263b42');
+ line(x-20,eave,x+w+20,eave,'#80979b');
+ line(x-13,shoulderY,x-20,eave,'#9caaab');
+ line(x+w+13,shoulderY,x+w+20,eave,'#263e48');
+ // Carved central stone ridge, with an offset dark face for height.
+ rect(roofCenter-6,topY-4,12,eave-topY+9,'#788e90');
+ rect(roofCenter-5,topY-4,5,eave-topY+9,'#d0d5c9');
+ rect(roofCenter+3,topY-2,3,eave-topY+7,'#30434b');
+ for(let yy=topY+14;yy<eave-8;yy+=30){
+  rect(roofCenter-6,yy,12,3,'#53696e');
+  rect(roofCenter-5,yy+3,5,2,'#e0dfd1');
  }
-
- // Eave shadows are kept beneath the slate planes, so they cannot
- // paint over the textured roof or interrupt its vertical ridge.
- line(x-20,eave,x+w+20,eave,'#263d42');
- line(x-13,shoulderY,x-20,eave,'#435b60');
- line(x+w+13,shoulderY,x+w+20,eave,'#263c42');
-
- // The ridge now runs vertically down the center of the roof.
- rect(roofCenter-5,topY-4,10,eave-topY+6,'#b7b7a7');
- rect(roofCenter-2,topY-2,4,eave-topY+4,'#e1ddca');
- rect(roofCenter+3,topY,3,eave-topY+2,'#6f786f');
-
- rect(x-23,eave-3,w+46,9,'#394a40');
- if(!templeTile('cornice',x-23,eave-3,w+46,5,40,12))rect(x-23,eave-3,w+46,3,'#9cae9e');
+ // Stone fascia and projecting trim along the front roof edge.
+ rect(x-23,eave+9,w+46,7,'#35474c');
+ if(!templeTile('cornice',x-23,eave+9,w+46,5,40,12))rect(x-23,eave+9,w+46,4,'#aeb9ad');
  // Pediment is anchored to the wall, below the roof overhang.
  const center=x+w/2,peak=wallTop-22;
  poly([[center,peak],[center-66,wallTop+4],[center+66,wallTop+4]],'#d7d2bd');
