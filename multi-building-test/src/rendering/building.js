@@ -137,7 +137,7 @@ if(templeExteriorImage){
  templeExteriorImage.onload=()=>{if(typeof paint==='function')paint();};
 }
 if(templeInteriorImage){
- templeInteriorImage.src='assets/rootheart-temple-interior.webp?v=6';
+ templeInteriorImage.src='assets/rootheart-temple-interior.webp?v=4';
  templeInteriorImage.onload=()=>{if(typeof paint==='function')paint();};
 }
 function templeImageReady(image){
