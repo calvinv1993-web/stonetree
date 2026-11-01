@@ -450,7 +450,7 @@ function rootheartTempleFurniture(b,x,y,level){
   rect(p.x+1,p.y+12,38,8,'#d2cbbb');
   rect(p.x+15,p.y+4,10,9,'#8c998c');
   rect(p.x+18,p.y+1,4,8,'#d8cba4');
-  for(const [col,row] of [[0,3],[5,2],[5,3]]){
+  for(const [col,row] of [[1,2],[5,2],[1,3],[5,3]]){
    p=at(col,row);
    rect(p.x+4,p.y+14,32,8,'#806a52');
    rect(p.x+7,p.y+22,5,12,'#554838');
