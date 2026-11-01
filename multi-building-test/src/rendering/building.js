@@ -228,9 +228,11 @@ function templeExterior(b,x,y){
  texturedRoofPlane(leftRoof,0);
  texturedRoofPlane(rightRoof,.18);
 
- // Receding outer faces keep the roof volume from becoming a flat diamond.
- poly([[x-20,eave],[x-13,shoulderY],[x+34,back],[x+22,back+18]],'#46594f');
- poly([[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[x+w-22,back+18]],'#34483e');
+ // Eave shadows are kept beneath the slate planes, so they cannot
+ // paint over the textured roof or interrupt its vertical ridge.
+ line(x-20,eave,x+w+20,eave,'#263d42');
+ line(x-13,shoulderY,x-20,eave,'#435b60');
+ line(x+w+13,shoulderY,x+w+20,eave,'#263c42');
 
  // The ridge now runs vertically down the center of the roof.
  rect(roofCenter-5,topY-4,10,eave-topY+6,'#b7b7a7');
