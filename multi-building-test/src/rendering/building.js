@@ -123,26 +123,32 @@ function templeExterior(b,x,y){
   rect(px+19,wallTop+13,4,HEIGHT-24,'#8d9187');
   rect(px-4,front-11,32,8,'#9a9d90');
  }
- // A broad slate roof with two sloping planes and a raised ridge.
- const roofTop=y-HEIGHT-17, ridgeY=roofTop+depth*.44;
- poly([[x-17,roofTop+depth*.12],[x+width+17,roofTop+depth*.12],[x+width+17,ridgeY],[x-17,ridgeY]],'#9ca9a1');
- poly([[x-17,ridgeY],[x+width+17,ridgeY],[x+width+17,roofTop+depth+13],[x-17,roofTop+depth+13]],'#586760');
- for(let row=0;row<6;row++){
-  const yy=roofTop+20+row*32;
-  const dark=row>=3;
-  line(x-13,yy,x+width+13,yy,dark?'#34453f':'#6b7971');
-  for(let col=0;col<b.width*2;col++){
-   const xx=x-10+col*20+(row%2?10:0);
-   if(xx<x+width+12)line(xx,yy-14,xx,yy-1,dark?'#495a53':'#b8c3b7');
+ // Roof follows the footprint, with a readable ridge and individual slate courses.
+ // Its lower edge stops above the facade so the entrance remains visible.
+ const top=y-HEIGHT-24,bottom=wallTop-8,mid=(top+bottom)/2;
+ poly([[x-18,top+17],[x+width+18,top+17],[x+width+18,mid],[x-18,mid]],'#788a82');
+ poly([[x-18,mid],[x+width+18,mid],[x+width+18,bottom],[x-18,bottom]],'#46574f');
+ ctx.save();ctx.beginPath();ctx.rect(x-18,top+17,width+36,bottom-top-17);ctx.clip();
+ for(let yy=top+23,row=0;yy<bottom;yy+=16,row++){
+  const lower=yy>=mid;
+  rect(x-18,yy+12,width+36,3,lower?'#2f403a':'#566a60');
+  line(x-16,yy,x+width+16,yy,lower?'#84958a':'#b2beb0');
+  for(let xx=x-18+(row%2?12:0);xx<x+width+18;xx+=24){
+   line(xx,yy+2,xx,yy+12,lower?'#35473f':'#687b70');
+   rect(xx+3,yy+3,8,2,lower?'#62776a':'#9dafa1');
   }
  }
- rect(x-19,ridgeY-5,width+38,10,'#c3c9b8');
- rect(x-19,ridgeY+3,width+38,4,'#606f66');
- rect(x-18,roofTop+depth+9,width+36,8,'#424e48');
- // Carved front pediment visually separates the roof from the entrance.
- poly([[x+width*.5,roofTop+depth-11],[x+width*.5-66,roofTop+depth+25],[x+width*.5+66,roofTop+depth+25]],'#c6c6b7');
- poly([[x+width*.5,roofTop+depth],[x+width*.5-44,roofTop+depth+23],[x+width*.5+44,roofTop+depth+23]],'#78897e');
- rect(x+width*.5-70,roofTop+depth+25,140,8,'#aeb6a6');
+ ctx.restore();
+ // Continuous raised ridge, roof thickness, and projecting eaves.
+ rect(x-21,mid-6,width+42,8,'#c1c8b8');
+ rect(x-21,mid+2,width+42,5,'#5c6c60');
+ rect(x-22,bottom-3,width+44,10,'#313e38');
+ rect(x-22,bottom-3,width+44,3,'#8c9c8f');
+ // The entrance pediment sits in front of the roof, not halfway up it.
+ const center=x+width/2,peak=wallTop-22;
+ poly([[center,peak],[center-67,wallTop+5],[center+67,wallTop+5]],'#d3d0bd');
+ poly([[center,peak+8],[center-46,wallTop+2],[center+46,wallTop+2]],'#71847a');
+ rect(center-73,wallTop+4,146,7,'#b9b7a5');
 }
 function exteriorShell(b,x,y){
  if(b.id==='rootheart-temple')return templeExterior(b,x,y);
@@ -161,6 +167,17 @@ function exteriorShell(b,x,y){
 
 function floorTile(b,x,y,col,row,level){
  const px=x+col*TILE,py=y+row*TILE;
+ if(b.id==='rootheart-temple'&&level===0){
+  // Larger alternating limestone flags, with a carved central nave.
+  const aisle=col===3,edge=col===2||col===4;
+  rect(px,py,TILE,TILE,aisle?'#777e76':(col+Math.floor(row/2))%2?'#b0afa1':'#a39f91');
+  rect(px,py+TILE-3,TILE,3,aisle?'#505e55':'#79796f');
+  rect(px+TILE-3,py,3,TILE,aisle?'#59665d':'#89887b');
+  line(px+3,py+3,px+TILE-5,py+3,aisle?'#9ba99c':'#d0cbb9');
+  if(edge){rect(px+(col===2?TILE-7:3),py+4,4,TILE-8,'#c6bfa8');}
+  if(!aisle&&((col*7+row*3)%5===0))line(px+9,py+19,px+20,py+19,'#8b8d81');
+  return;
+ }
  const wood=b.floors[level].material==='wood';
  if(wood){
   rect(px,py,TILE,TILE,(col+row)%3===0?'#967957':'#a18560');
