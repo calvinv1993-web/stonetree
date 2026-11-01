@@ -58,7 +58,7 @@ export function addObject(x,y,z,object) {
 }
 export function isWalkable(x,y,z) {
   const stack=getObjects(x,y,z);
-  return stack!==null&&stack.some(o=>o.type==="ground")&&!stack.some(o=>o.solid===true);
+  return stack!==null&&stack.some(o=>o.type==="ground")&&!stack.some(o=>o.solid===true||o.blocking===true);
 }
 export function takeTopItem(x,y,z) {
   const stack=getObjects(x,y,z);
