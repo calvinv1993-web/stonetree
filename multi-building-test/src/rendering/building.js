@@ -98,67 +98,7 @@ function exterior(b,x,y){
  if(b.terrace)return terraceExterior(b,x,y);
  return exteriorShell(b,x,y);
 }
-// Dedicated temple architecture: a pitched slate roof, carved cornice and
-// stone buttresses. Other buildings retain their existing roof renderer.
-function templeExterior(b,x,y){
- const w=b.width*TILE,d=b.height*TILE,front=y+d;
- // Compress the facade vertically so the building reads as one storey.
- const wallH=48,wallTop=front-wallH;
- // Side wall planes project from the footprint with clear light/shadow separation.
- rect(x-12,y-wallH,12,d+wallH,'#a3aa9b');
- rect(x-12,y-wallH,4,d+wallH,'#d4d2bf');
- rect(x+w,y-wallH,12,d+wallH,'#59675e');
- rect(x+w+8,y-wallH,4,d+wallH,'#3b4a41');
- for(let row=0;row<b.height;row++){
-  const py=y+row*TILE;
-  line(x-12,py,x,py,'#747e72');
-  line(x+w,py,x+w+12,py,'#3d4b42');
- }
- // Front facade is rendered once, then visually capped lower than the generic wall height.
- facade(b,x,front,0,true);
- rect(x,front-HEIGHT,w,HEIGHT-wallH,'#a8a698');
- rect(x,wallTop,w,5,'#ded8c7');
- // Pilasters are shorter and heavier, matching the compressed wall proportions.
- for(const col of [0,2,4,6]){
-  const px=x+col*TILE+8;
-  rect(px-5,wallTop+3,33,7,'#d7d3c0');
-  rect(px,wallTop+10,22,wallH-18,'#c1bdac');
-  rect(px+1,wallTop+10,5,wallH-18,'#eee6cf');
-  rect(px+18,wallTop+10,5,wallH-18,'#777e74');
-  rect(px-7,front-9,36,7,'#9fa596');
- }
- // Compact hipped roof: only the upper part of the footprint is roofed visually.
- // This keeps the facade visible and removes the oversized rectangular blanket.
- const roofDepth=112;
- const eave=wallTop-5,back=eave-roofDepth,ridge=back+46;
- poly([[x-12,back+24],[x+30,back],[x+w-30,back],[x+w+12,back+24],
-       [x+w+12,ridge],[x-12,ridge]],'#8e9f91');
- poly([[x-12,ridge],[x+w+12,ridge],[x+w+18,eave],[x-18,eave]],'#4f6358');
- poly([[x-18,eave],[x-12,ridge],[x-12,back+24],[x-22,back+38]],'#44564c');
- poly([[x+w+12,back+24],[x+w+22,back+38],[x+w+18,eave],[x+w+12,ridge]],'#33463d');
- ctx.save();ctx.beginPath();
- ctx.moveTo(x-12,back+24);ctx.lineTo(x+30,back);ctx.lineTo(x+w-30,back);
- ctx.lineTo(x+w+12,back+24);ctx.lineTo(x+w+12,ridge);
- ctx.lineTo(x+w+18,eave);ctx.lineTo(x-18,eave);ctx.lineTo(x-12,ridge);
- ctx.closePath();ctx.clip();
- for(let row=0,yy=back+10;yy<eave;row++,yy+=18){
-  const dark=yy>=ridge;
-  line(x-15,yy,x+w+15,yy,dark?'#839489':'#c0cabb');
-  rect(x-18,yy+14,w+36,3,dark?'#34483e':'#63766a');
-  for(let xx=x-14+(row%2?10:0);xx<x+w+14;xx+=22)line(xx,yy+2,xx,yy+13,dark?'#40564a':'#788c7e');
- }
- ctx.restore();
- rect(x-18,ridge-4,w+36,7,'#b8c3b3');
- rect(x-20,eave-2,w+40,8,'#37483f');
- rect(x-20,eave-2,w+40,3,'#99aa9b');
- // Smaller pediment tied directly to the doorway instead of spanning half the facade.
- const center=x+w/2,peak=wallTop-16;
- poly([[center,peak],[center-50,wallTop+3],[center+50,wallTop+3]],'#d5d0bc');
- poly([[center,peak+7],[center-32,wallTop+1],[center+32,wallTop+1]],'#74867a');
- rect(center-54,wallTop+3,108,6,'#b3b6a4');
-}
 function exteriorShell(b,x,y){
- if(b.id==='rootheart-temple')return templeExterior(b,x,y);
  const size=b.width*TILE,depth=b.height*TILE,base=y+depth,roofY=y-b.floors.length*HEIGHT;
  // The roof covers the same complete footprint as both storeys.
  rect(x-SIDE,roofY,SIDE,depth+b.floors.length*HEIGHT,'#656e65');
@@ -174,17 +114,6 @@ function exteriorShell(b,x,y){
 
 function floorTile(b,x,y,col,row,level){
  const px=x+col*TILE,py=y+row*TILE;
- if(b.id==='rootheart-temple'&&level===0){
-  // Larger alternating limestone flags, with a carved central nave.
-  const aisle=col===3,edge=col===2||col===4;
-  rect(px,py,TILE,TILE,aisle?'#777e76':(col+Math.floor(row/2))%2?'#b0afa1':'#a39f91');
-  rect(px,py+TILE-3,TILE,3,aisle?'#505e55':'#79796f');
-  rect(px+TILE-3,py,3,TILE,aisle?'#59665d':'#89887b');
-  line(px+3,py+3,px+TILE-5,py+3,aisle?'#9ba99c':'#d0cbb9');
-  if(edge){rect(px+(col===2?TILE-7:3),py+4,4,TILE-8,'#c6bfa8');}
-  if(!aisle&&((col*7+row*3)%5===0))line(px+9,py+19,px+20,py+19,'#8b8d81');
-  return;
- }
  const wood=b.floors[level].material==='wood';
  if(wood){
   rect(px,py,TILE,TILE,(col+row)%3===0?'#967957':'#a18560');
@@ -237,24 +166,6 @@ function staircase(b,x,y,level){
 }
 function walls(b,x,y){
  const size=b.width*TILE,depth=b.height*TILE;
- if(b.id==='rootheart-temple'){
-  // Actual wall geometry: rear masonry rises above the floor, while
-  // left/right faces are separate shaded planes with substantial thickness.
-  stoneCourses(x,y-HEIGHT,size,HEIGHT);
-  rect(x,y-HEIGHT,size,5,'#ded9c7');
-  rect(x,y-5,size,5,'#777e73');
-  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#9ea596');
-  rect(x-SIDE,y-HEIGHT,4,depth+HEIGHT,'#d2d1be');
-  rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#68766b');
-  rect(x+size+SIDE-4,y-HEIGHT,4,depth+HEIGHT,'#424f46');
-  for(let row=0;row<b.height;row++){
-   const yy=y+row*TILE;
-   rect(x-SIDE,yy+TILE-3,SIDE,3,'#687468');
-   rect(x+size,yy+TILE-3,SIDE,3,'#465449');
-  }
-  poly([[x-SIDE,y-HEIGHT],[x,y-HEIGHT-THICK],[x+size,y-HEIGHT-THICK],[x+size+SIDE,y-HEIGHT]],'#d9d8c5');
-  return;
- }
  stoneCourses(x,y-HEIGHT,size,HEIGHT);
  poly([[x,y-HEIGHT],[x+THICK,y-HEIGHT-THICK],[x+size+THICK,y-HEIGHT-THICK],[x+size,y-HEIGHT]],'#e0dac8');
  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#777d72');
