@@ -12,3 +12,4 @@ jobs:
         with:
           node-version: '22'
       - run: node --test multi-building-test/building.test.cjs
+      - run: node multi-building-test/tests/rootheart-paths.test.cjs
