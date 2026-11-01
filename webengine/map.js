@@ -1,7 +1,7 @@
 export const TILE_SIZE=32;
 export const GROUND_Z=7;
-export const WIDTH=100;
-export const HEIGHT=100;
+export const WIDTH=128;
+export const HEIGHT=128;
 export const CHUNK_SIZE=32;
 export const FLOOR_COUNT=16;
 
@@ -66,13 +66,14 @@ export function takeTopItem(x,y,z) {
   for(let i=stack.length-1;i>=0;i--) if(stack[i].type==="item"&&stack[i].pickupable===true) return stack.splice(i,1)[0];
   return null;
 }
-// Only chunks intersecting the viewport (plus one tile of margin) are active.
+// Activate viewport chunks and their immediate 1-chunk neighbors as a movement buffer.
+// Rendering still clips to visible tiles, avoiding unnecessary draw calls.
 export function activateChunks(minX,minY,maxX,maxY) {
   const next=new Set();
-  const left=Math.max(0,Math.floor(minX/CHUNK_SIZE));
-  const right=Math.min(Math.ceil(WIDTH/CHUNK_SIZE)-1,Math.floor(maxX/CHUNK_SIZE));
-  const top=Math.max(0,Math.floor(minY/CHUNK_SIZE));
-  const bottom=Math.min(Math.ceil(HEIGHT/CHUNK_SIZE)-1,Math.floor(maxY/CHUNK_SIZE));
+  const left=Math.max(0,Math.floor(minX/CHUNK_SIZE)-1);
+  const right=Math.min(Math.ceil(WIDTH/CHUNK_SIZE)-1,Math.floor(maxX/CHUNK_SIZE)+1);
+  const top=Math.max(0,Math.floor(minY/CHUNK_SIZE)-1);
+  const bottom=Math.min(Math.ceil(HEIGHT/CHUNK_SIZE)-1,Math.floor(maxY/CHUNK_SIZE)+1);
   for(let cy=top;cy<=bottom;cy++) for(let cx=left;cx<=right;cx++) {
     next.add(key(cx,cy));chunkAt(cx,cy);
   }
