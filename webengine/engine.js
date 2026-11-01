@@ -12,11 +12,11 @@ class AssetManager {
   constructor() {
     this.images = new Map();
     this.paths = {
-      player:"./assets/player.png", grass:"./assets/grass.png",
-      wall:"./assets/wall.png", roof:"./assets/roof.png",
-      stairs_up:"./assets/stairs_up.png",
-      stairs_down:"./assets/stairs_down.png",
-      gold_coin:"./assets/gold_coin.png", sword:"./assets/sword.png"
+      player:"./sprites/player.png", grass:"./sprites/grass.png",
+      wall:"./sprites/wall.png", roof:"./sprites/roof.png",
+      stairs_up:"./sprites/stairs_up.png",
+      stairs_down:"./sprites/stairs_down.png",
+      gold_coin:"./sprites/gold_coin.png", sword:"./sprites/sword.png"
     };
   }
   async load() {
