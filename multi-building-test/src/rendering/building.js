@@ -93,6 +93,19 @@ function rootheartFacadeDetail(b,x,top,baseY,level,door){
   for(let col=0;col<b.width;col+=2)rect(x+col*TILE+7,top+13,5,HEIGHT-20,'#816347');
  }
 }
+function drawOpenFrontDoorView(b,x,baseY,level,dx,top){
+ // Draw the real room floor through the doorway. This covers the facade
+ // texture, so an open door is a true passage instead of a black void.
+ ctx.save();
+ ctx.beginPath();
+ ctx.rect(dx+4,top+4,TILE-8,HEIGHT-9);
+ ctx.clip();
+ const floorY=baseY-b.height*TILE;
+ for(let row=Math.max(0,b.height-2);row<b.height;row++)
+  floorTile(b,x,floorY,b.door.col,row,level);
+ staircase(b,x,floorY,level);
+ ctx.restore();
+}
 function facade(b,x,baseY,level,door){
  // One authoritative facade per physical storey, shared by interior and exterior views.
  const top=baseY-HEIGHT;
@@ -101,23 +114,19 @@ function facade(b,x,baseY,level,door){
  if(door){
   const dx=x+b.door.col*TILE;
   // Temple door is a real sprite; interaction still uses the existing door state.
-  if(b.id==='rootheart-temple'&&templeDraw(doorIsOpen(b)?'doorOpen':'doorClosed',dx,top,TILE,HEIGHT)){
-   rect(dx+4,baseY-5,TILE-8,5,'#d6bd85');
-   rootheartFacadeDetail(b,x,top,baseY,level,door);
-   rect(x,baseY-5,b.width*TILE,5,'#77786e');
-   return;
+  if(b.id==='rootheart-temple'){
+   if(doorIsOpen(b))drawOpenFrontDoorView(b,x,baseY,level,dx,top);
+   if(templeDraw(doorIsOpen(b)?'doorOpen':'doorClosed',dx,top,TILE,HEIGHT)){
+    rect(dx+4,baseY-5,TILE-8,5,'#d6bd85');
+    rootheartFacadeDetail(b,x,top,baseY,level,door);
+    rect(x,baseY-5,b.width*TILE,5,'#77786e');
+    return;
+   }
   }
   // The doorway occupies one tile and has one shared interactive state.
   if(doorIsOpen(b)){
-   // Cut out the wall visually: show the actual floor tiles behind the
-   // opening, rather than filling it with an opaque dark rectangle.
-   ctx.save();
-   ctx.beginPath();
-   ctx.rect(dx+4,top+4,TILE-8,HEIGHT-9);
-   ctx.clip();
-   const floorY=baseY-b.height*TILE;
-   for(let row=b.height-2;row<b.height;row++)floorTile(b,x,floorY,b.door.col,row,0);
-   ctx.restore();
+   // Every open front door uses the same true-through passage rendering.
+   drawOpenFrontDoorView(b,x,baseY,level,dx,top);
    rect(dx,top,4,HEIGHT,'#62513e');
    rect(dx+TILE-4,top,4,HEIGHT,'#62513e');
    rect(dx+4,top,7,HEIGHT-5,'#8c6843');
@@ -192,29 +201,42 @@ function templeExterior(b,x,y){
    rect(px-7,front-10,36,8,'#9fa596');
   }
  }
- // Shorter hipped roof: a tapering top plane, steep front slope and
- // substantial dark eaves. No full-depth rectangular roof blanket.
- const eave=wallTop-7,back=y-HEIGHT-4,ridge=back+78;
- poly([[x-13,back+33],[x+34,back],[x+w-34,back],[x+w+13,back+33],
-       [x+w+13,ridge],[x-13,ridge]],'#899b8e');
- poly([[x-13,ridge],[x+w+13,ridge],[x+w+20,eave],[x-20,eave]],'#52675c');
- // Receding roof side faces reinforce its three-dimensional silhouette.
- poly([[x-20,eave],[x-13,ridge],[x-13,back+33],[x-25,back+49]],'#46594f');
- poly([[x+w+13,back+33],[x+w+25,back+49],[x+w+20,eave],[x+w+13,ridge]],'#34483e');
- ctx.save();ctx.beginPath();
- ctx.moveTo(x-13,back+33);ctx.lineTo(x+34,back);ctx.lineTo(x+w-34,back);
- ctx.lineTo(x+w+13,back+33);ctx.lineTo(x+w+13,ridge);
- ctx.lineTo(x+w+20,eave);ctx.lineTo(x-20,eave);ctx.lineTo(x-13,ridge);
- ctx.closePath();ctx.clip();
- if(!templeTile('roof',x-24,back,w+48,eave-back+8,40,40)){
-  for(let row=0,yy=back+14;yy<eave;row++,yy+=22){
-   const dark=yy>=ridge;
-   rect(x-20,yy+18,w+40,3,dark?'#354a3e':'#64796b');
-   line(x-17,yy,x+w+17,yy,dark?'#829789':'#bdc9b9');
+ // Pitched roof with one vertical center ridge. The two roof planes are
+ // separately clipped/textured, so the roof reads left/right rather than as
+ // a horizontal split.
+ const eave=wallTop-7,back=y-HEIGHT-4,roofCenter=x+w/2;
+ const topY=back+8,shoulderY=back+34;
+ const leftRoof=[[roofCenter,topY],[x+34,back],[x-13,shoulderY],[x-20,eave],[roofCenter,eave]];
+ const rightRoof=[[roofCenter,topY],[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[roofCenter,eave]];
+ poly(leftRoof,'#667a70');
+ poly(rightRoof,'#4d6258');
+
+ function texturedRoofPlane(points,shade){
+  ctx.save();ctx.beginPath();
+  ctx.moveTo(points[0][0],points[0][1]);
+  for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
+  ctx.closePath();ctx.clip();
+  if(!templeTile('roof',x-24,back,w+48,eave-back+8,40,40)){
+   for(let yy=back;yy<eave;yy+=20)line(x-20,yy,x+w+20,yy,'#71858a');
   }
+  if(shade){
+   ctx.globalAlpha=shade;
+   rect(x-24,back,w+48,eave-back+8,'#172d27');
+  }
+  ctx.restore();
  }
- ctx.restore();
- if(!templeTile('cornice',x-20,ridge-5,w+40,8,40,12))rect(x-20,ridge-5,w+40,8,'#b6c2b1');
+ texturedRoofPlane(leftRoof,0);
+ texturedRoofPlane(rightRoof,.18);
+
+ // Receding outer faces keep the roof volume from becoming a flat diamond.
+ poly([[x-20,eave],[x-13,shoulderY],[x+34,back],[x+22,back+18]],'#46594f');
+ poly([[x+w-34,back],[x+w+13,shoulderY],[x+w+20,eave],[x+w-22,back+18]],'#34483e');
+
+ // The ridge now runs vertically down the center of the roof.
+ rect(roofCenter-5,topY-4,10,eave-topY+6,'#b7b7a7');
+ rect(roofCenter-2,topY-2,4,eave-topY+4,'#e1ddca');
+ rect(roofCenter+3,topY,3,eave-topY+2,'#6f786f');
+
  rect(x-23,eave-3,w+46,9,'#394a40');
  if(!templeTile('cornice',x-23,eave-3,w+46,5,40,12))rect(x-23,eave-3,w+46,3,'#9cae9e');
  // Pediment is anchored to the wall, below the roof overhang.
