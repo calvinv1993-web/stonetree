@@ -1,4 +1,58 @@
 // Stonetree: src/rendering/building.js
+// Rootheart Temple: real reusable image assets. Geometry, collision and object positions stay unchanged.
+const TEMPLE_TEXTURE_PATHS={
+ wall:'assets/temple/wall-stone.svg?v=1',
+ floor:'assets/temple/floor-stone.svg?v=1',
+ roof:'assets/temple/roof-slate.svg?v=1',
+ doorClosed:'assets/temple/door-closed.svg?v=1',
+ doorOpen:'assets/temple/door-open.svg?v=1',
+ window:'assets/temple/window-amber.svg?v=1',
+ torch:'assets/temple/torch.svg?v=1',
+ bench:'assets/temple/bench.svg?v=1',
+ altar:'assets/temple/altar.svg?v=1',
+ banner:'assets/temple/banner.svg?v=1',
+ carpet:'assets/temple/carpet.svg?v=1',
+ pillar:'assets/temple/pillar.svg?v=1',
+ cornice:'assets/temple/cornice.svg?v=1'
+};
+const templeTextures={};
+if(typeof Image!=='undefined'){
+ for(const [name,src] of Object.entries(TEMPLE_TEXTURE_PATHS)){
+  const image=new Image();
+  image.src=src;
+  image.onload=()=>{if(typeof paint==='function')paint();};
+  templeTextures[name]=image;
+ }
+}
+function templeTextureReady(name){
+ const image=templeTextures[name];
+ return Boolean(image&&image.complete&&image.naturalWidth&&image.naturalHeight);
+}
+function templeDraw(name,x,y,w,h){
+ if(!templeTextureReady(name))return false;
+ const smoothing=ctx.imageSmoothingEnabled;
+ ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(templeTextures[name],x,y,w,h);
+ ctx.imageSmoothingEnabled=smoothing;
+ return true;
+}
+function templeTile(name,x,y,w,h,tileW=40,tileH=40,offsetX=0,offsetY=0){
+ if(!templeTextureReady(name))return false;
+ ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+ const smoothing=ctx.imageSmoothingEnabled;
+ ctx.imageSmoothingEnabled=false;
+ const startX=x-((offsetX%tileW)+tileW)%tileW;
+ const startY=y-((offsetY%tileH)+tileH)%tileH;
+ for(let yy=startY;yy<y+h;yy+=tileH)
+  for(let xx=startX;xx<x+w;xx+=tileW)
+   ctx.drawImage(templeTextures[name],xx,yy,tileW,tileH);
+ ctx.imageSmoothingEnabled=smoothing;
+ ctx.restore();
+ return true;
+}
+function templeStoneCourses(x,y,width,height){
+ if(!templeTile('wall',x,y,width,height,80,40))stoneCourses(x,y,width,height);
+}
 // Shared masonry pattern for exterior facades and interior rear walls.
 function stoneCourses(x,y,width,height){
  rect(x,y,width,height,'#a8a698');
@@ -32,8 +86,7 @@ function rootheartFacadeDetail(b,x,top,baseY,level,door){
   rect(x+4,top+7,width-8,7,'#876f47');
   if(door){rect(x+TILE,top+10,TILE*4,8,'#a67b45');rect(x+TILE+7,top+11,TILE*4-14,4,'#e2c68b');}
  }else if(b.id==='rootheart-temple'){
-  for(let col=0;col<b.width;col+=2)rect(x+col*TILE+5,top+8,9,HEIGHT-16,'#d0c8b4');
-  rect(x+5,top+6,width-10,5,'#c8bd9e');
+  if(!templeTile('cornice',x+5,top+5,width-10,10,40,12))rect(x+5,top+6,width-10,5,'#c8bd9e');
   if(door){rect(x+TILE*3+14,top-18,12,12,'#8e988e');rect(x+TILE*3+17,top-15,6,6,'#c9c4a8');}
  }else if(b.id==='rootheart-home'){
   rect(x+4,top+8,width-8,5,'#71563e');
@@ -43,10 +96,17 @@ function rootheartFacadeDetail(b,x,top,baseY,level,door){
 function facade(b,x,baseY,level,door){
  // One authoritative facade per physical storey, shared by interior and exterior views.
  const top=baseY-HEIGHT;
- stoneCourses(x,top,b.width*TILE,HEIGHT);
+ if(b.id==='rootheart-temple')templeStoneCourses(x,top,b.width*TILE,HEIGHT);else stoneCourses(x,top,b.width*TILE,HEIGHT);
  rect(x,top,b.width*TILE,5,'#d9d4bf');
  if(door){
   const dx=x+b.door.col*TILE;
+  // Temple door is a real sprite; interaction still uses the existing door state.
+  if(b.id==='rootheart-temple'&&templeDraw(doorIsOpen(b)?'doorOpen':'doorClosed',dx,top,TILE,HEIGHT)){
+   rect(dx+4,baseY-5,TILE-8,5,'#d6bd85');
+   rootheartFacadeDetail(b,x,top,baseY,level,door);
+   rect(x,baseY-5,b.width*TILE,5,'#77786e');
+   return;
+  }
   // The doorway occupies one tile and has one shared interactive state.
   if(doorIsOpen(b)){
    // Cut out the wall visually: show the actual floor tiles behind the
@@ -103,8 +163,9 @@ function exterior(b,x,y){
 function templeExterior(b,x,y){
  const w=b.width*TILE,d=b.height*TILE,front=y+d,wallTop=front-HEIGHT;
  // Deep stone side walls with a visible top edge and directional lighting.
- rect(x-14,y-HEIGHT,14,d+HEIGHT,'#8f978b');
- rect(x+w,y-HEIGHT,14,d+HEIGHT,'#56635b');
+ if(!templeTile('wall',x-14,y-HEIGHT,14,d+HEIGHT,80,40))rect(x-14,y-HEIGHT,14,d+HEIGHT,'#8f978b');
+ if(!templeTile('wall',x+w,y-HEIGHT,14,d+HEIGHT,80,40,24,0))rect(x+w,y-HEIGHT,14,d+HEIGHT,'#56635b');
+ ctx.save();ctx.globalAlpha=.22;rect(x+w,y-HEIGHT,14,d+HEIGHT,'#24342d');ctx.restore();
  for(let row=0;row<b.height;row++){
   const py=y-HEIGHT+row*TILE;
   line(x-13,py,x,py,'#c3c5b6');
@@ -113,14 +174,23 @@ function templeExterior(b,x,y){
   rect(x+w+8,py+4,4,TILE-8,'#414f47');
  }
  facade(b,x,front,0,true);
+ // Amber window sprites occupy the existing facade bays; no collision changes.
+ for(const col of [1,5]){
+  const wx=x+col*TILE+4,wy=wallTop+12;
+  if(!templeDraw('window',wx,wy,32,42)){
+   rect(wx,wy,32,42,'#5d625a');rect(wx+5,wy+5,22,30,'#b88b43');
+  }
+ }
  // Projecting carved pilasters, each with a shadowed right face.
  for(const col of [0,2,4,6]){
   const px=x+col*TILE+8;
-  rect(px-5,wallTop+3,33,9,'#d7d3c0');
-  rect(px,wallTop+12,22,HEIGHT-22,'#c1bdac');
-  rect(px+1,wallTop+12,5,HEIGHT-22,'#eee6cf');
-  rect(px+18,wallTop+12,5,HEIGHT-22,'#777e74');
-  rect(px-7,front-10,36,8,'#9fa596');
+  if(!templeDraw('pillar',px-7,wallTop+3,36,HEIGHT-5)){
+   rect(px-5,wallTop+3,33,9,'#d7d3c0');
+   rect(px,wallTop+12,22,HEIGHT-22,'#c1bdac');
+   rect(px+1,wallTop+12,5,HEIGHT-22,'#eee6cf');
+   rect(px+18,wallTop+12,5,HEIGHT-22,'#777e74');
+   rect(px-7,front-10,36,8,'#9fa596');
+  }
  }
  // Shorter hipped roof: a tapering top plane, steep front slope and
  // substantial dark eaves. No full-depth rectangular roof blanket.
@@ -136,20 +206,17 @@ function templeExterior(b,x,y){
  ctx.lineTo(x+w+13,back+33);ctx.lineTo(x+w+13,ridge);
  ctx.lineTo(x+w+20,eave);ctx.lineTo(x-20,eave);ctx.lineTo(x-13,ridge);
  ctx.closePath();ctx.clip();
- for(let row=0,yy=back+14;yy<eave;row++,yy+=22){
-  const dark=yy>=ridge;
-  rect(x-20,yy+18,w+40,3,dark?'#354a3e':'#64796b');
-  line(x-17,yy,x+w+17,yy,dark?'#829789':'#bdc9b9');
-  for(let col=0;col<16;col++){
-   const xx=x-16+col*21+(row%2?10:0);
-   line(xx,yy+3,xx,yy+17,dark?'#40584b':'#748d7d');
-   rect(xx+4,yy+5,8,2,dark?'#6e8576':'#aebdae');
+ if(!templeTile('roof',x-24,back,w+48,eave-back+8,40,40)){
+  for(let row=0,yy=back+14;yy<eave;row++,yy+=22){
+   const dark=yy>=ridge;
+   rect(x-20,yy+18,w+40,3,dark?'#354a3e':'#64796b');
+   line(x-17,yy,x+w+17,yy,dark?'#829789':'#bdc9b9');
   }
  }
  ctx.restore();
- rect(x-20,ridge-5,w+40,8,'#b6c2b1');
+ if(!templeTile('cornice',x-20,ridge-5,w+40,8,40,12))rect(x-20,ridge-5,w+40,8,'#b6c2b1');
  rect(x-23,eave-3,w+46,9,'#394a40');
- rect(x-23,eave-3,w+46,3,'#9cae9e');
+ if(!templeTile('cornice',x-23,eave-3,w+46,5,40,12))rect(x-23,eave-3,w+46,3,'#9cae9e');
  // Pediment is anchored to the wall, below the roof overhang.
  const center=x+w/2,peak=wallTop-22;
  poly([[center,peak],[center-66,wallTop+4],[center+66,wallTop+4]],'#d7d2bd');
@@ -174,14 +241,12 @@ function exteriorShell(b,x,y){
 function floorTile(b,x,y,col,row,level){
  const px=x+col*TILE,py=y+row*TILE;
  if(b.id==='rootheart-temple'&&level===0){
-  // Larger alternating limestone flags, with a carved central nave.
-  const aisle=col===3,edge=col===2||col===4;
-  rect(px,py,TILE,TILE,aisle?'#777e76':(col+Math.floor(row/2))%2?'#b0afa1':'#a39f91');
-  rect(px,py+TILE-3,TILE,3,aisle?'#505e55':'#79796f');
-  rect(px+TILE-3,py,3,TILE,aisle?'#59665d':'#89887b');
-  line(px+3,py+3,px+TILE-5,py+3,aisle?'#9ba99c':'#d0cbb9');
-  if(edge){rect(px+(col===2?TILE-7:3),py+4,4,TILE-8,'#c6bfa8');}
-  if(!aisle&&((col*7+row*3)%5===0))line(px+9,py+19,px+20,py+19,'#8b8d81');
+  if(!templeDraw('floor',px,py,TILE,TILE)){
+   rect(px,py,TILE,TILE,(col+Math.floor(row/2))%2?'#b0afa1':'#a39f91');
+   rect(px,py+TILE-3,TILE,3,'#79796f');
+   rect(px+TILE-3,py,3,TILE,'#89887b');
+  }
+  if(col===3)templeDraw('carpet',px,py,TILE,TILE);
   return;
  }
  const wood=b.floors[level].material==='wood';
@@ -239,13 +304,18 @@ function walls(b,x,y){
  if(b.id==='rootheart-temple'){
   // Actual wall geometry: rear masonry rises above the floor, while
   // left/right faces are separate shaded planes with substantial thickness.
-  stoneCourses(x,y-HEIGHT,size,HEIGHT);
+  templeStoneCourses(x,y-HEIGHT,size,HEIGHT);
   rect(x,y-HEIGHT,size,5,'#ded9c7');
   rect(x,y-5,size,5,'#777e73');
-  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#9ea596');
-  rect(x-SIDE,y-HEIGHT,4,depth+HEIGHT,'#d2d1be');
-  rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#68766b');
-  rect(x+size+SIDE-4,y-HEIGHT,4,depth+HEIGHT,'#424f46');
+  if(!templeTile('wall',x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,80,40))rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#9ea596');
+  if(!templeTile('wall',x+size,y-HEIGHT,SIDE,depth+HEIGHT,80,40,30,0))rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#68766b');
+  rect(x-SIDE,y-HEIGHT,4,depth+HEIGHT,'rgba(240,235,215,.55)');
+  rect(x+size+SIDE-4,y-HEIGHT,4,depth+HEIGHT,'rgba(39,51,44,.62)');
+  for(const row of [1,3]){
+   const wy=y+row*TILE+2;
+   templeDraw('window',x-SIDE-8,wy,24,36);
+   templeDraw('window',x+size-4,wy,24,36);
+  }
   for(let row=0;row<b.height;row++){
    const yy=y+row*TILE;
    rect(x-SIDE,yy+TILE-3,SIDE,3,'#687468');
@@ -478,16 +548,8 @@ function rootheartSmithyFloorDetail(b,x,y,level){
  }
 }
 function rootheartTempleMosaic(b,x,y,level){
+ // The center aisle is now the carpet sprite drawn by floorTile().
  if(b.id!=='rootheart-temple'||level!==0)return;
- // A continuous ceremonial aisle, kept clear of the stairs and furnishings.
- for(let row=1;row<b.height;row++){
-  const px=x+3*TILE,py=y+row*TILE;
-  rect(px+5,py+3,TILE-10,TILE-6,'#aca795');
-  rect(px+8,py+6,TILE-16,TILE-12,'#777e76');
-  const mx=px+TILE/2,my=py+TILE/2;
-  poly([[mx,my-11],[mx+10,my],[mx,my+11],[mx-10,my]],'#d2c5a5');
-  poly([[mx,my-6],[mx+5,my],[mx,my+6],[mx-5,my]],'#8b9a8b');
- }
 }
 function rootheartHomeFurniture(b,x,y,level){
  if(b.id!=='rootheart-home')return;
@@ -529,41 +591,30 @@ function rootheartHomeFurniture(b,x,y,level){
  }
 }
 function rootheartTempleFurniture(b,x,y,level){
- if(b.id!=='rootheart-temple')return;
+ if(b.id!=='rootheart-temple'||level!==0)return;
  const at=(col,row)=>({x:x+col*TILE,y:y+row*TILE});
- if(level===0){
-  // Stone altar at the north wall; central aisle and entrance stay open.
-  let p=at(3,0);
+ // Banner is visual-only on the north wall.
+ let p=at(3,0);
+ templeDraw('banner',p.x,p.y-36,TILE,48);
+ if(!templeDraw('altar',p.x,p.y,TILE,TILE)){
   rect(p.x+3,p.y+17,34,18,'#a9a697');
   rect(p.x+1,p.y+12,38,8,'#d2cbbb');
-  rect(p.x+15,p.y+4,10,9,'#8c998c');
-  rect(p.x+18,p.y+1,4,8,'#d8cba4');
-  for(const [col,row] of [[1,2],[5,2],[1,3],[5,3]]){
-   p=at(col,row);
+ }
+ // Same four solid bench tiles as before.
+ for(const [col,row] of [[1,2],[5,2],[1,3],[5,3]]){
+  p=at(col,row);
+  if(!templeDraw('bench',p.x,p.y,TILE,TILE)){
    rect(p.x+4,p.y+14,32,8,'#806a52');
    rect(p.x+7,p.y+22,5,12,'#554838');
    rect(p.x+28,p.y+22,5,12,'#554838');
-   rect(p.x+5,p.y+10,30,5,'#a28b6a');
   }
-  for(const col of [1,5]){
-   p=at(col,0);
+ }
+ // Same two solid torch tiles as before.
+ for(const col of [1,5]){
+  p=at(col,0);
+  if(!templeDraw('torch',p.x+8,p.y,24,TILE)){
    rect(p.x+15,p.y+15,10,20,'#858579');
-   rect(p.x+12,p.y+10,16,7,'#c1b59c');
    rect(p.x+17,p.y+5,6,8,'#e0b66c');
-  }
- }else if(level===1){
-  // Upstairs reliquary and wall inscriptions; avoid the stair opening at (1,2).
-  let p=at(3,1);
-  rect(p.x+5,p.y+8,30,27,'#777b73');
-  rect(p.x+9,p.y+11,22,20,'#c0b9a5');
-  rect(p.x+17,p.y+14,6,14,'#879789');
-  rect(p.x+13,p.y+18,14,5,'#879789');
-  for(const col of [2,4]){
-   p=at(col,3);
-   rect(p.x+7,p.y+11,26,23,'#6c6457');
-   rect(p.x+10,p.y+13,20,17,'#aba38f');
-   line(p.x+14,p.y+18,p.x+26,p.y+18,'#6e7b71');
-   line(p.x+14,p.y+24,p.x+24,p.y+24,'#6e7b71');
   }
  }
 }
