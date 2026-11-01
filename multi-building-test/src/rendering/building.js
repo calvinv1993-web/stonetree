@@ -101,60 +101,61 @@ function exterior(b,x,y){
 // Dedicated temple architecture: a pitched slate roof, carved cornice and
 // stone buttresses. Other buildings retain their existing roof renderer.
 function templeExterior(b,x,y){
- const w=b.width*TILE,d=b.height*TILE,front=y+d,wallTop=front-HEIGHT;
- // Deep stone side walls with a visible top edge and directional lighting.
- rect(x-14,y-HEIGHT,14,d+HEIGHT,'#8f978b');
- rect(x+w,y-HEIGHT,14,d+HEIGHT,'#56635b');
+ const w=b.width*TILE,d=b.height*TILE,front=y+d;
+ // Compress the facade vertically so the building reads as one storey.
+ const wallH=48,wallTop=front-wallH;
+ // Side wall planes project from the footprint with clear light/shadow separation.
+ rect(x-12,y-wallH,12,d+wallH,'#a3aa9b');
+ rect(x-12,y-wallH,4,d+wallH,'#d4d2bf');
+ rect(x+w,y-wallH,12,d+wallH,'#59675e');
+ rect(x+w+8,y-wallH,4,d+wallH,'#3b4a41');
  for(let row=0;row<b.height;row++){
-  const py=y-HEIGHT+row*TILE;
-  line(x-13,py,x,py,'#c3c5b6');
-  line(x+w,py,x+w+13,py,'#38483f');
-  rect(x-13,py+4,4,TILE-8,'#b1b7a8');
-  rect(x+w+8,py+4,4,TILE-8,'#414f47');
+  const py=y+row*TILE;
+  line(x-12,py,x,py,'#747e72');
+  line(x+w,py,x+w+12,py,'#3d4b42');
  }
+ // Front facade is rendered once, then visually capped lower than the generic wall height.
  facade(b,x,front,0,true);
- // Projecting carved pilasters, each with a shadowed right face.
+ rect(x,front-HEIGHT,w,HEIGHT-wallH,'#a8a698');
+ rect(x,wallTop,w,5,'#ded8c7');
+ // Pilasters are shorter and heavier, matching the compressed wall proportions.
  for(const col of [0,2,4,6]){
   const px=x+col*TILE+8;
-  rect(px-5,wallTop+3,33,9,'#d7d3c0');
-  rect(px,wallTop+12,22,HEIGHT-22,'#c1bdac');
-  rect(px+1,wallTop+12,5,HEIGHT-22,'#eee6cf');
-  rect(px+18,wallTop+12,5,HEIGHT-22,'#777e74');
-  rect(px-7,front-10,36,8,'#9fa596');
+  rect(px-5,wallTop+3,33,7,'#d7d3c0');
+  rect(px,wallTop+10,22,wallH-18,'#c1bdac');
+  rect(px+1,wallTop+10,5,wallH-18,'#eee6cf');
+  rect(px+18,wallTop+10,5,wallH-18,'#777e74');
+  rect(px-7,front-9,36,7,'#9fa596');
  }
- // Shorter hipped roof: a tapering top plane, steep front slope and
- // substantial dark eaves. No full-depth rectangular roof blanket.
- const eave=wallTop-7,back=y-HEIGHT-4,ridge=back+78;
- poly([[x-13,back+33],[x+34,back],[x+w-34,back],[x+w+13,back+33],
-       [x+w+13,ridge],[x-13,ridge]],'#899b8e');
- poly([[x-13,ridge],[x+w+13,ridge],[x+w+20,eave],[x-20,eave]],'#52675c');
- // Receding roof side faces reinforce its three-dimensional silhouette.
- poly([[x-20,eave],[x-13,ridge],[x-13,back+33],[x-25,back+49]],'#46594f');
- poly([[x+w+13,back+33],[x+w+25,back+49],[x+w+20,eave],[x+w+13,ridge]],'#34483e');
+ // Compact hipped roof: only the upper part of the footprint is roofed visually.
+ // This keeps the facade visible and removes the oversized rectangular blanket.
+ const roofDepth=112;
+ const eave=wallTop-5,back=eave-roofDepth,ridge=back+46;
+ poly([[x-12,back+24],[x+30,back],[x+w-30,back],[x+w+12,back+24],
+       [x+w+12,ridge],[x-12,ridge]],'#8e9f91');
+ poly([[x-12,ridge],[x+w+12,ridge],[x+w+18,eave],[x-18,eave]],'#4f6358');
+ poly([[x-18,eave],[x-12,ridge],[x-12,back+24],[x-22,back+38]],'#44564c');
+ poly([[x+w+12,back+24],[x+w+22,back+38],[x+w+18,eave],[x+w+12,ridge]],'#33463d');
  ctx.save();ctx.beginPath();
- ctx.moveTo(x-13,back+33);ctx.lineTo(x+34,back);ctx.lineTo(x+w-34,back);
- ctx.lineTo(x+w+13,back+33);ctx.lineTo(x+w+13,ridge);
- ctx.lineTo(x+w+20,eave);ctx.lineTo(x-20,eave);ctx.lineTo(x-13,ridge);
+ ctx.moveTo(x-12,back+24);ctx.lineTo(x+30,back);ctx.lineTo(x+w-30,back);
+ ctx.lineTo(x+w+12,back+24);ctx.lineTo(x+w+12,ridge);
+ ctx.lineTo(x+w+18,eave);ctx.lineTo(x-18,eave);ctx.lineTo(x-12,ridge);
  ctx.closePath();ctx.clip();
- for(let row=0,yy=back+14;yy<eave;row++,yy+=22){
+ for(let row=0,yy=back+10;yy<eave;row++,yy+=18){
   const dark=yy>=ridge;
-  rect(x-20,yy+18,w+40,3,dark?'#354a3e':'#64796b');
-  line(x-17,yy,x+w+17,yy,dark?'#829789':'#bdc9b9');
-  for(let col=0;col<16;col++){
-   const xx=x-16+col*21+(row%2?10:0);
-   line(xx,yy+3,xx,yy+17,dark?'#40584b':'#748d7d');
-   rect(xx+4,yy+5,8,2,dark?'#6e8576':'#aebdae');
-  }
+  line(x-15,yy,x+w+15,yy,dark?'#839489':'#c0cabb');
+  rect(x-18,yy+14,w+36,3,dark?'#34483e':'#63766a');
+  for(let xx=x-14+(row%2?10:0);xx<x+w+14;xx+=22)line(xx,yy+2,xx,yy+13,dark?'#40564a':'#788c7e');
  }
  ctx.restore();
- rect(x-20,ridge-5,w+40,8,'#b6c2b1');
- rect(x-23,eave-3,w+46,9,'#394a40');
- rect(x-23,eave-3,w+46,3,'#9cae9e');
- // Pediment is anchored to the wall, below the roof overhang.
- const center=x+w/2,peak=wallTop-22;
- poly([[center,peak],[center-66,wallTop+4],[center+66,wallTop+4]],'#d7d2bd');
- poly([[center,peak+8],[center-43,wallTop+1],[center+43,wallTop+1]],'#74877b');
- rect(center-70,wallTop+4,140,7,'#b2b6a5');
+ rect(x-18,ridge-4,w+36,7,'#b8c3b3');
+ rect(x-20,eave-2,w+40,8,'#37483f');
+ rect(x-20,eave-2,w+40,3,'#99aa9b');
+ // Smaller pediment tied directly to the doorway instead of spanning half the facade.
+ const center=x+w/2,peak=wallTop-16;
+ poly([[center,peak],[center-50,wallTop+3],[center+50,wallTop+3]],'#d5d0bc');
+ poly([[center,peak+7],[center-32,wallTop+1],[center+32,wallTop+1]],'#74867a');
+ rect(center-54,wallTop+3,108,6,'#b3b6a4');
 }
 function exteriorShell(b,x,y){
  if(b.id==='rootheart-temple')return templeExterior(b,x,y);
