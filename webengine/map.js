@@ -38,3 +38,17 @@ for (let x = 6; x <= 12; x++) {
     }
   }
 }
+
+ // Dynamic objects are appended after terrain and walls (top of stack).
+export function takeTopItem(x,y,z) {
+  const stack = getObjects(x,y,z);
+  if (!stack) return null;
+  for (let i=stack.length-1; i>=0; i--) {
+    if (stack[i].type === "item" && stack[i].pickupable === true) {
+      return stack.splice(i,1)[0];
+    }
+  }
+  return null;
+}
+addObject(8,7,GROUND_Z,{type:"item",id:"gold_coin",pickupable:true,color:"#f3cb43"});
+addObject(9,8,GROUND_Z,{type:"item",id:"sword",pickupable:true,color:"#c5e2ee"});
