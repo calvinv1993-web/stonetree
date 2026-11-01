@@ -333,11 +333,11 @@ function walls(b,x,y){
   if(!templeTile('wall',x+size,y-HEIGHT,SIDE,depth+HEIGHT,80,40,30,0))rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#68766b');
   rect(x-SIDE,y-HEIGHT,4,depth+HEIGHT,'rgba(240,235,215,.55)');
   rect(x+size+SIDE-4,y-HEIGHT,4,depth+HEIGHT,'rgba(39,51,44,.62)');
-  for(const row of [1,3]){
-   const wy=y+row*TILE+2;
-   templeDraw('window',x-SIDE-8,wy,24,36);
-   templeDraw('window',x+size-4,wy,24,36);
-  }
+  // Windows are mounted on the horizontal rear wall, not the side walls.
+   for(const col of [1,5]){
+    const wx=x+col*TILE+4,wy=y-HEIGHT+10;
+    templeDraw('window',wx,wy,32,42);
+   }
   for(let row=0;row<b.height;row++){
    const yy=y+row*TILE;
    rect(x-SIDE,yy+TILE-3,SIDE,3,'#687468');
