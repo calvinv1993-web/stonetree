@@ -15,8 +15,7 @@ const BUILDING_CONFIGS=[{
  id:'rootheart-temple',name:'Rootheart Tempel',position:{x:72,y:10,z:0},width:7,height:6,
  door:{side:'south',col:3},
  floors:[
-  {material:'stone',windows:[],stairs:{up:{x:1,y:2}}},
-  {material:'stone',windows:[1,3,5],stairs:{down:{x:1,y:2}},holes:[[1,2]]}
+  {material:'stone',windows:[],stairs:{}}
  ]
 },{
  id:'rootheart-shop',name:'Rootheart Winkel',position:{x:54,y:11,z:0},width:6,height:5,
