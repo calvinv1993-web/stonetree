@@ -236,6 +236,24 @@ function staircase(b,x,y,level){
 }
 function walls(b,x,y){
  const size=b.width*TILE,depth=b.height*TILE;
+ if(b.id==='rootheart-temple'){
+  // Actual wall geometry: rear masonry rises above the floor, while
+  // left/right faces are separate shaded planes with substantial thickness.
+  stoneCourses(x,y-HEIGHT,size,HEIGHT);
+  rect(x,y-HEIGHT,size,5,'#ded9c7');
+  rect(x,y-5,size,5,'#777e73');
+  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#9ea596');
+  rect(x-SIDE,y-HEIGHT,4,depth+HEIGHT,'#d2d1be');
+  rect(x+size,y-HEIGHT,SIDE,depth+HEIGHT,'#68766b');
+  rect(x+size+SIDE-4,y-HEIGHT,4,depth+HEIGHT,'#424f46');
+  for(let row=0;row<b.height;row++){
+   const yy=y+row*TILE;
+   rect(x-SIDE,yy+TILE-3,SIDE,3,'#687468');
+   rect(x+size,yy+TILE-3,SIDE,3,'#465449');
+  }
+  poly([[x-SIDE,y-HEIGHT],[x,y-HEIGHT-THICK],[x+size,y-HEIGHT-THICK],[x+size+SIDE,y-HEIGHT]],'#d9d8c5');
+  return;
+ }
  stoneCourses(x,y-HEIGHT,size,HEIGHT);
  poly([[x,y-HEIGHT],[x+THICK,y-HEIGHT-THICK],[x+size+THICK,y-HEIGHT-THICK],[x+size,y-HEIGHT]],'#e0dac8');
  rect(x-SIDE,y-HEIGHT,SIDE,depth+HEIGHT,'#777d72');
