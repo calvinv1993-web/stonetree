@@ -130,86 +130,39 @@ function templeWindow(cx,top){
  line(cx-8,top+31,cx+8,top+31,'#7b542e');
  rect(cx-18,top+52,36,5,'#8b8c82');
 }
+const templeExteriorImage=typeof Image!=='undefined'?new Image():null;
+const templeInteriorImage=typeof Image!=='undefined'?new Image():null;
+if(templeExteriorImage){
+ templeExteriorImage.src='assets/rootheart-temple-exterior.webp?v=4';
+ templeExteriorImage.onload=()=>{if(typeof paint==='function')paint();};
+}
+if(templeInteriorImage){
+ templeInteriorImage.src='assets/rootheart-temple-interior.webp?v=6';
+ templeInteriorImage.onload=()=>{if(typeof paint==='function')paint();};
+}
+function templeImageReady(image){
+ return Boolean(image&&image.complete&&image.naturalWidth&&image.naturalHeight);
+}
 function templeExterior(b,x,y){
  const w=b.width*TILE,d=b.height*TILE,front=y+d;
- const wallTop=front-HEIGHT;
- const left=x-14,right=x+w+14;
- const roofBack=y-6,roofFront=wallTop-34,ridge=x+w/2;
-
- // Wall mass first: side returns are visible below the roof edges.
- rect(left,y+8,14,d-52,'#727a72');
- rect(x+w,y+8,14,d-52,'#4e5b54');
- templeBrickFace(x,wallTop-18,w,18,'#b4b1a2','#777b72');
- templeBrickFace(x,wallTop,w,HEIGHT,'#aaa89a','#6f746c');
-
- // Four projecting buttresses create readable stone depth.
- for(const col of [0,2,4,6]){
-  const bx=x+col*TILE+4;
-  rect(bx,wallTop-5,28,HEIGHT+10,'#8b8c82');
-  rect(bx+4,wallTop-9,24,HEIGHT+5,'#c7c1ad');
-  rect(bx+21,wallTop-4,7,HEIGHT,'#777c74');
-  rect(bx-3,front-7,34,8,'#878b82');
+ const drawW=w+40,drawH=drawW*(590/600);
+ const dx=x-(drawW-w)/2,dy=front-drawH+5;
+ if(templeImageReady(templeExteriorImage)){
+  ctx.drawImage(templeExteriorImage,dx,dy,drawW,drawH);
+  // The source artwork contains the closed double door. Preserve the
+  // existing interactive door by replacing only that small area when open.
+  if(doorIsOpen(b)){
+   const doorW=34,doorH=55,doorX=x+w/2-doorW/2,doorY=front-doorH+1;
+   rect(doorX,doorY,doorW,doorH,'#201d19');
+   rect(doorX+4,doorY+6,5,doorH-8,'#4b3929');
+   rect(doorX+doorW-9,doorY+6,5,doorH-8,'#362b22');
+   rect(doorX+3,front-6,doorW-6,6,'#8a775e');
+  }
+  return;
  }
-
- // Windows flank the central entrance.
- templeWindow(x+TILE*1.5,wallTop+1);
- templeWindow(x+TILE*5.5,wallTop+1);
-
- // Central arched double door, preserving the real door state.
- const doorX=x+b.door.col*TILE;
- rect(doorX-8,wallTop+4,TILE+16,HEIGHT-4,'#8c8779');
- poly([[doorX-8,wallTop+22],[doorX+TILE/2,wallTop-4],[doorX+TILE+8,wallTop+22]],'#bcb5a3');
- rect(doorX-3,wallTop+21,TILE+6,HEIGHT-21,'#4e3a2a');
- if(doorIsOpen(b)){
-  rect(doorX+3,wallTop+24,TILE-6,HEIGHT-24,'#24241f');
-  rect(doorX+4,front-8,TILE-8,8,'#897052');
- }else{
-  rect(doorX+2,wallTop+22,TILE/2-3,HEIGHT-22,'#6e482b');
-  rect(doorX+TILE/2+1,wallTop+22,TILE/2-3,HEIGHT-22,'#5d3d28');
-  line(doorX+TILE/2,wallTop+23,doorX+TILE/2,front,'#2e241d');
-  rect(doorX+11,wallTop+36,3,3,'#d0aa5d');
-  rect(doorX+TILE-14,wallTop+36,3,3,'#d0aa5d');
- }
- templeTorch(doorX-15,wallTop+39);
- templeTorch(doorX+TILE+15,wallTop+39);
-
- // Stone gable and unique Rootheart diamond sigil.
- const cx=x+w/2;
- poly([[cx,wallTop-38],[cx-62,wallTop+1],[cx+62,wallTop+1]],'#c7c0ad');
- poly([[cx,wallTop-29],[cx-43,wallTop-1],[cx+43,wallTop-1]],'#8e958c');
- poly([[cx,wallTop-21],[cx+10,wallTop-11],[cx,wallTop-1],[cx-10,wallTop-11]],'#d9c999');
- poly([[cx,wallTop-16],[cx+5,wallTop-11],[cx,wallTop-6],[cx-5,wallTop-11]],'#6f8175');
-
- // Main roof: two genuinely separate planes split by a vertical ridge.
- // Chamfered corners stop it reading as a giant rectangle.
- const eaveL=x-18,eaveR=x+w+18;
- poly([[ridge,roofBack],[x+28,roofBack],[eaveL,roofBack+40],[eaveL,roofFront],
-       [ridge-8,roofFront]],'#7f9189');
- poly([[ridge,roofBack],[x+w-28,roofBack],[eaveR,roofBack+40],[eaveR,roofFront],
-       [ridge+8,roofFront]],'#53675f');
- // Slate courses follow the roof slope rather than a square tile grid.
- ctx.save();ctx.beginPath();
- ctx.moveTo(ridge,roofBack);ctx.lineTo(x+28,roofBack);ctx.lineTo(eaveL,roofBack+40);
- ctx.lineTo(eaveL,roofFront);ctx.lineTo(ridge-8,roofFront);ctx.closePath();ctx.clip();
- for(let yy=roofBack+16,row=0;yy<roofFront;yy+=18,row++){
-  line(eaveL,yy,ridge,yy,'#aab8ad');
-  for(let xx=eaveL+(row%2?11:0);xx<ridge;xx+=22)line(xx,yy+2,xx,yy+15,'#52675f');
- }
- ctx.restore();
- ctx.save();ctx.beginPath();
- ctx.moveTo(ridge,roofBack);ctx.lineTo(x+w-28,roofBack);ctx.lineTo(eaveR,roofBack+40);
- ctx.lineTo(eaveR,roofFront);ctx.lineTo(ridge+8,roofFront);ctx.closePath();ctx.clip();
- for(let yy=roofBack+16,row=0;yy<roofFront;yy+=18,row++){
-  line(ridge,yy,eaveR,yy,'#7d9187');
-  for(let xx=ridge+(row%2?11:0);xx<eaveR;xx+=22)line(xx,yy+2,xx,yy+15,'#394f47');
- }
- ctx.restore();
- // Ridge, eaves and corner caps.
- rect(ridge-5,roofBack-4,10,roofFront-roofBack+7,'#b7b7a8');
- rect(ridge+2,roofBack,4,roofFront-roofBack,'#68756d');
- rect(eaveL-3,roofFront-4,w+42,9,'#414e48');
- rect(eaveL-3,roofFront-4,w+42,3,'#aaa99c');
- for(const px of [x+12,x+w-26])rect(px,roofBack+1,14,14,'#bdb7a5');
+ // Safe fallback while the sprite is loading or in headless regression tests.
+ templeBrickFace(x,front-HEIGHT,w,HEIGHT,'#aaa89a','#6f746c');
+ rect(x-8,y-HEIGHT,w+16,d,'#59675f');
 }
 function templeFloorTile(px,py,col,row){
  const aisle=col===3;
@@ -230,70 +183,42 @@ function templeBench(px,py){
  rect(px+4,py+31,32,4,'#3f3027');
 }
 function templeInterior(b,x,y,occupied=true){
- const w=b.width*TILE,d=b.height*TILE;
- // Floor first.
+ const w=b.width*TILE,d=b.height*TILE,front=y+d;
+ const drawW=w+60,drawH=drawW*(650/625);
+ const dx=x-(drawW-w)/2,dy=front-drawH+8;
+ if(templeImageReady(templeInteriorImage)){
+  ctx.drawImage(templeInteriorImage,dx,dy,drawW,drawH);
+  // The concept interior shows open doors. Overlay the original closed state
+  // only when gameplay says the door is shut.
+  if(!doorIsOpen(b)){
+   const doorW=31,doorH=43,doorX=x+w/2-doorW/2,doorY=front-doorH+2;
+   rect(doorX,doorY,doorW/2-1,doorH,'#67452f');
+   rect(doorX+doorW/2+1,doorY,doorW/2-1,doorH,'#573b2c');
+   line(doorX+doorW/2,doorY,doorX+doorW/2,front,'#2f261f');
+   rect(doorX+7,doorY+21,3,3,'#c9a35b');
+   rect(doorX+doorW-10,doorY+21,3,3,'#c9a35b');
+  }
+  if(occupied){
+   // Map logical 7x6 tile coordinates onto the walkable floor area in the
+   // source artwork so movement/collision remain tile-based while the sprite
+   // stays visually 1:1.
+   const visual=visualPlayer();
+   const lx=visual.x-b.position.x,ly=visual.y-b.position.y;
+   const sx=112+(lx/Math.max(1,b.width-1))*402;
+   const sy=176+(ly/Math.max(1,b.height-1))*344;
+   const px=dx+(sx/625)*drawW,py=dy+(sy/650)*drawH;
+   playerSprite(px,py);
+   ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
+   ctx.fillText(b.name+' · Begane grond',x,y-38);
+  }
+  return;
+ }
+ // Headless/loading fallback keeps tests and gameplay functional.
  for(let row=0;row<b.height;row++)for(let col=0;col<b.width;col++)
-  templeFloorTile(x+col*TILE,y+row*TILE,col,row);
-
- // Heavy rear and side walls, drawn as real cutaway planes.
- const wall=20,rear=34;
- templeBrickFace(x-wall,y-rear,w+wall*2,rear,'#a9a698','#72766e');
- rect(x-wall,y,wall,d,'#8b9187');
- rect(x-wall,y,5,d,'#c4c2b2');
- rect(x+w,y,wall,d,'#626f66');
- rect(x+w+wall-5,y,5,d,'#3f4d45');
- for(let row=0;row<b.height;row++){
-  const yy=y+row*TILE;
-  line(x-wall,yy,x,yy,'#666f68');
-  line(x+w,yy,x+w+wall,yy,'#3f4c45');
- }
- // Amber side windows like the approved concept.
- for(const row of [1,3]){
-  const cy=y+row*TILE+20;
-  rect(x-wall+3,cy-13,11,27,'#4b4031');
-  rect(x-wall+5,cy-10,7,21,'#e3a143');
-  rect(x+w+4,cy-13,11,27,'#4b4031');
-  rect(x+w+6,cy-10,7,21,'#d98f35');
- }
-
- // Altar, banner/sigil and paired torches.
- const altarX=x+3*TILE,altarY=y+14;
- rect(altarX-24,altarY-4,88,6,'#6f716a');
- rect(altarX-18,altarY+2,76,8,'#8b8b80');
- rect(altarX-14,altarY+10,68,22,'#b9b3a1');
- rect(altarX-7,altarY+14,54,14,'#d0c7b2');
- // Open book.
- poly([[altarX+5,altarY+13],[altarX+20,altarY+9],[altarX+20,altarY+24],[altarX+5,altarY+20]],'#e5d6aa');
- poly([[altarX+20,altarY+9],[altarX+35,altarY+13],[altarX+35,altarY+20],[altarX+20,altarY+24]],'#d8c894');
- line(altarX+20,altarY+10,altarX+20,altarY+23,'#866b45');
- templeTorch(x+TILE*2, y+34);
- templeTorch(x+TILE*5, y+34);
- // Rootheart wall banner.
- rect(x+w/2-17,y-rear+3,34,38,'#73272a');
- rect(x+w/2-14,y-rear+6,28,32,'#9b3034');
- poly([[x+w/2,y-rear+10],[x+w/2+9,y-rear+19],[x+w/2,y-rear+28],[x+w/2-9,y-rear+19]],'#d6b25e');
-
- // Four symmetric benches.
- templeBench(x+1*TILE,y+2*TILE);
- templeBench(x+5*TILE,y+2*TILE);
- templeBench(x+1*TILE,y+3*TILE);
- templeBench(x+5*TILE,y+3*TILE);
-
- // Low front cutaway wall, with the real doorway kept open visually.
- const front=y+d;
- templeBrickFace(x,front-18,w,18,'#9c9a8d','#666b64');
- const dx=x+b.door.col*TILE;
- rect(dx,front-18,TILE,18,'#2e2b25');
- rect(dx-5,front-20,5,22,'#c5c0ad');
- rect(dx+TILE,front-20,5,22,'#777d74');
- templeTorch(dx-13,front-9);
- templeTorch(dx+TILE+13,front-9);
-
+  floorTile(b,x,y,col,row,0);
  if(occupied){
   const visual=visualPlayer();
   playerSprite(x+(visual.x-b.position.x+.5)*TILE,y+(visual.y-b.position.y+.5)*TILE);
-  ctx.fillStyle='#f0dfb0';ctx.font='bold 15px system-ui';
-  ctx.fillText(b.name+' · Begane grond',x,y-32);
  }
 }
 function exteriorShell(b,x,y){
