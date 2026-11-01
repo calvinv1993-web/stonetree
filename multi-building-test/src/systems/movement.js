@@ -3,6 +3,21 @@ function stairAction(x,y,z=player.z){
  const tile=localTile(b,x,y);
  return Object.entries(stairsAt(b,z)).find(([,s])=>sameTile(s,tile))?.[0]||null;
 }
+// Solid furnishings use the same local tile positions as the rendering layer.
+// Decorative rugs, floor patterns and wall inscriptions remain walkable.
+const ROOTHEART_SOLID_FURNITURE={
+ 'rootheart-home':{0:[[3,0],[2,1],[0,1],[4,2]],1:[[3,1],[4,1],[0,1]]},
+ 'rootheart-temple':{0:[[3,0],[1,3],[5,2],[5,3],[1,0],[5,0]],1:[[3,1],[2,3],[4,3]]},
+ 'rootheart-shop':{0:[[1,0],[2,0],[4,0],[0,2],[3,2],[5,1],[1,3]]},
+ 'rootheart-smithy':{0:[[4,0],[2,1],[4,2],[0,1]]},
+ 'rootheart-inn':{0:[[2,1],[4,2],[2,2],[4,3],[5,1]],1:[[2,1],[4,1],[5,3],[3,3]]}
+};
+function furnitureBlocks(b,x,y,z){
+ const tiles=ROOTHEART_SOLID_FURNITURE[b.id]?.[z];
+ if(!tiles)return false;
+ const local=localTile(b,x,y);
+ return tiles.some(([col,row])=>col===local.x&&row===local.y);
+}
 function walkable(x,y,z=player.z){
  if(![x,y,z].every(Number.isSafeInteger))return false;
  const b=buildingAt(x,y);
@@ -17,6 +32,7 @@ function walkable(x,y,z=player.z){
  if(!b.floors[z])return false;
  const t=localTile(b,x,y),terrace=terraceAt(b,z);
  if(t.y===b.height-1&&!(z===0&&t.x===b.door.col)&&!(terrace&&t.x>=terrace.startCol))return false;
+ if(furnitureBlocks(b,x,y,z))return false;
  return !floorVoids(b,z).has(t.x+','+t.y)||Boolean(stairAction(x,y,z));
 }
 function connected(cx,cy,nx,ny,z=player.z){
