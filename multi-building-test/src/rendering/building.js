@@ -133,11 +133,11 @@ function templeWindow(cx,top){
 const templeExteriorImage=typeof Image!=='undefined'?new Image():null;
 const templeInteriorImage=typeof Image!=='undefined'?new Image():null;
 if(templeExteriorImage){
- templeExteriorImage.src='assets/rootheart-temple-exterior.webp?v=3';
+ templeExteriorImage.src='assets/rootheart-temple-exterior.webp?v=4';
  templeExteriorImage.onload=()=>{if(typeof paint==='function')paint();};
 }
 if(templeInteriorImage){
- templeInteriorImage.src='assets/rootheart-temple-interior.webp?v=3';
+ templeInteriorImage.src='assets/rootheart-temple-interior.webp?v=4';
  templeInteriorImage.onload=()=>{if(typeof paint==='function')paint();};
 }
 function templeImageReady(image){
