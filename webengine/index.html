@@ -7,26 +7,26 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111b19;color:white;font-family:system-ui}
 main{height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-header{height:42px;display:grid;place-items:center;font-size:14px;letter-spacing:.1em}
+header{min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px;letter-spacing:.07em}\n.inventory{font-size:11px;letter-spacing:0;color:#c7dfd3;max-width:95vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #game{display:block;width:100%;flex:1;min-height:0;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
-.controls{height:176px;flex:none;display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,68px);justify-content:center;align-content:center;gap:5px;touch-action:none;user-select:none}
+.controls{height:176px;flex:none;display:grid;grid-template-columns:repeat(4,56px);grid-template-rows:repeat(2,68px);justify-content:center;align-content:center;gap:5px;touch-action:none;user-select:none}
 button{border:1px solid #7a9b91;border-radius:12px;background:#314b43;color:white;font-size:27px;touch-action:none;-webkit-tap-highlight-color:transparent}
 button:active{background:#567b6d}
 [data-dir=up]{grid-column:2;grid-row:1}
 [data-dir=left]{grid-column:1;grid-row:2}
 [data-dir=down]{grid-column:2;grid-row:2}
-[data-dir=right]{grid-column:3;grid-row:2}
+[data-dir=right]{grid-column:3;grid-row:2}\n#pickup{grid-column:4;grid-row:2;font-size:12px;font-weight:700}
 </style>
 </head>
 <body>
 <main>
-<header>STONETREE · ENGINE TEST</header>
+<header><span>STONETREE · ENGINE TEST</span><span class="inventory">Inventory: <span id="inventory">Empty</span></span></header>
 <canvas id="game" aria-label="Game world"></canvas>
 <div class="controls" aria-label="Movement controls">
 <button data-dir="up" aria-label="Move up">▲</button>
 <button data-dir="left" aria-label="Move left">◀</button>
 <button data-dir="down" aria-label="Move down">▼</button>
-<button data-dir="right" aria-label="Move right">▶</button>
+<button data-dir="right" aria-label="Move right">▶</button>\n<button id="pickup" aria-label="Pick up item">Pick Up</button>
 </div>
 </main>
 <script type="module" src="./engine.js"></script>
