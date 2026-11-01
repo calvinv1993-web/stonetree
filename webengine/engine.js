@@ -1,9 +1,10 @@
-import {WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, CHUNK_SIZE, isWalkable, takeTopItem, activateChunks, getActiveChunks} from "./map.js";
+import {WIDTH, HEIGHT, TILE_SIZE, GROUND_Z, CHUNK_SIZE, isWalkable, getTransition, takeTopItem, activateChunks, getActiveChunks} from "./map.js";
 
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d", {alpha:false});
 const player = {x:8,y:12,z:GROUND_Z,inventory:[]};
 const inventoryLabel = document.querySelector("#inventory");
+const floorLabel = document.querySelector("#floor");
 const camera = {x:0,y:0};
 let viewWidth=1, viewHeight=1;
 
@@ -57,6 +58,7 @@ function drawTile(assetKey, color, px, py) {
   }
 }
 function render() {
+  floorLabel.textContent = `Z: ${player.z}`;
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = "#202b29";
   ctx.fillRect(0,0,viewWidth,viewHeight);
@@ -74,7 +76,7 @@ function render() {
       const stack=chunk.tiles[x%CHUNK_SIZE][y%CHUNK_SIZE][player.z];
       const px=camera.x+x*TILE_SIZE,py=camera.y+y*TILE_SIZE;
       for(const obj of stack) {
-        if(!["ground","floor","wall","roof","stairs_up","stairs_down","item"].includes(obj.type)) continue;
+        if(!["ground","floor","wall","roof","stairs_up","stairs_down","hole","item"].includes(obj.type)) continue;
         if(obj.type==="item") {
           const img=assets.get(obj.sprite??obj.id);
           if(img) ctx.drawImage(img,px,py,TILE_SIZE,TILE_SIZE);
@@ -87,7 +89,11 @@ function render() {
           continue;
         }
         const sprite=obj.sprite??({ground:"grass",floor:"grass",wall:"wall",roof:"roof",stairs_up:"stairs_up",stairs_down:"stairs_down"}[obj.type]);
-        drawTile(sprite,obj.color??"#777",px,py);
+        if(obj.type==="roof"&&player.z===GROUND_Z-1) continue; // hide roof over upper-floor interior
+        if(obj.type==="hole") {
+          ctx.fillStyle=obj.color??"#27212b";
+          ctx.fillRect(px+3,py+3,TILE_SIZE-6,TILE_SIZE-6);
+        } else drawTile(sprite,obj.color??"#777",px,py);
         if(obj.type==="wall"&&!assets.get(sprite)) {
           ctx.fillStyle="#736f6a";
           ctx.fillRect(px,py+TILE_SIZE-5,TILE_SIZE,5);
@@ -173,6 +179,21 @@ function findPath(startX,startY,targetX,targetY,z) {
   }
   return [];
 }
+// Shared by D-pad and A*: entering a transition changes floor once.
+function stepTo(x,y) {
+  if(!isWalkable(x,y,player.z)) return false;
+  player.x=x; player.y=y;
+  const transition=getTransition(x,y,player.z);
+  if(transition) {
+    player.x=transition.x;
+    player.y=transition.y;
+    player.z=transition.z;
+    render();
+    return true;
+  }
+  render();
+  return false;
+}
 function startPath(x,y) {
   stopPath();
   walkingPath=findPath(player.x,player.y,x,y,player.z);
@@ -183,9 +204,8 @@ function startPath(x,y) {
       stopPath();
       return;
     }
-    player.x=next.x;player.y=next.y;
-    render();
-    if(!walkingPath.length) stopPath();
+    const changedFloor=stepTo(next.x,next.y);
+    if(changedFloor||!walkingPath.length) stopPath();
   },STEP_MS);
 }
 // Pointer events handle both mouse taps and mobile touch without double-firing.
@@ -203,8 +223,7 @@ function move(dx,dy) {
   stopPath();
   const nx=player.x+dx, ny=player.y+dy;
   if(!isWalkable(nx,ny,player.z)) return;
-  player.x=nx; player.y=ny;
-  render();
+  stepTo(nx,ny);
 }
 const directions={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 let repeat=null;
