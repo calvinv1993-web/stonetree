@@ -688,7 +688,7 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
-  if (t - lastFrameAt < FRAME_INTERVAL - 1) return;
+  if (document.body.classList.contains('touch-ui') && t - lastFrameAt < FRAME_INTERVAL - 1) return;
   lastFrameAt = t;
   try {
     if (online()) {
@@ -729,7 +729,7 @@ function startWorldPreview() {
   const preview = t => {
     if (!paused) return;
     requestAnimationFrame(preview);
-    if (t - lastPreviewAt < FRAME_INTERVAL - 1) return;
+    if (document.body.classList.contains('touch-ui') && t - lastPreviewAt < FRAME_INTERVAL - 1) return;
     lastPreviewAt = t;
     now = t;
     draw();
