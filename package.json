@@ -1,0 +1,14 @@
+{
+  "name": "tilequest",
+  "private": true,
+  "description": "A small top-down 2D RPG with floors and a map editor",
+  "scripts": {
+    "test": "node tests/unit.test.js && node tests/sim.test.js",
+    "test:soak": "node tests/sim.test.js 60 8",
+    "test:browser": "node tests/browser.test.js",
+    "screenshot": "node tests/screenshot.js"
+  },
+  "devDependencies": {
+    "playwright-core": "1.61.1"
+  }
+}

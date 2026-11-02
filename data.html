@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tilequest Data Editor</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="editor data-editor">
+  <header class="toolbar">
+    <div class="group" id="sections"></div>
+    <div class="group right">
+      <button id="saveData" class="primary" title="Check and save (Ctrl+S)">Save</button>
+      <button id="resetSection">Reset this section</button>
+      <button id="resetAll">Reset everything</button>
+      <button id="exportData">Export</button>
+      <button id="importData">Import</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <a class="button" href="index.html">Play</a>
+      <a class="button" href="editor.html">Map editor</a>
+    </div>
+  </header>
+  <div class="editor-body">
+    <aside class="palette data-help" id="help"></aside>
+    <main class="data-main"><textarea id="json" spellcheck="false"></textarea></main>
+  </div>
+  <footer class="statusbar"><span id="status"></span></footer>
+
+  <script src="js/defs.js"></script>
+  <script src="js/items.js"></script>
+  <script src="js/creatures.js"></script>
+  <script src="js/npcs.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/data-editor.js"></script>
+</body>
+</html>

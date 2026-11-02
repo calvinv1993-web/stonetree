@@ -1,0 +1,336 @@
+'use strict';
+// Static definitions shared by the game, the editor and the server: map tiles and small helpers.
+
+const TILE = 32;
+const DX = [0, 1, 0, -1]; // directions: 0 north, 1 east, 2 south, 3 west
+const DY = [-1, 0, 1, 0];
+
+// Everything that can be placed on a map tile. A tile has one ground and a
+// stack of things drawn on top of it in placement order.
+//   ground:   goes in the ground slot instead of the stack
+//   block:    creatures cannot walk here
+//   low:      blocks walking but not missiles/spells (tables, fences...)
+//   change:   stepping here moves you one floor up (+1) or down (-1)
+//   light:    light radius in tiles (in the dark: underground and at night)
+//   chest:    a quest chest that gives its reward once per character:
+//             { flag, quest?, requires?, gold?, items: [[itemId, count]], locked? }
+//             Chests sharing a flag are a "pick one" choice.
+//   sprite:   draw with another thing's sprite
+//   toggle:   using it turns it into this thing (doors)
+//   fireSwap: using it puts the fire out (or lights it again): it turns into this thing
+//   wall:     drawn one floor tall: 'thin' (building walls, shaped by their
+//             neighbours) or 'block' (solid rock and dungeon stone)
+//   onWall:   decoration drawn on the face of the wall on the same tile
+//   tall:     a 64x64 sprite that rises up-left from its tile (trees)
+//   roof:     a roof (a ground on the floor above a building), shaped by the
+//             building under it: slopes, ridges, hips and eaves
+//   movable:  can be dragged to another tile
+//   meta:     per-tile setting the editor asks for, stored in map.meta:
+//             to (teleport destination), target (lever target tile), lock (key name),
+//             quest (quest id), level (minimum level), text (sign text);
+//             and look: what you read when you look at it (a gravestone's inscription)
+//   ...and flags for things you can use: lever, teleport, ropeSpot, digSpot,
+//   breakable, depot, readable, houseDoor, questDoor, levelDoor, lockDoor, bookshelf, oreVein (mine it with a pick)
+const THINGS = {
+  grass:       { name: 'grass', cat: 'Ground', ground: true },
+  dirt:        { name: 'dirt', cat: 'Ground', ground: true },
+  sand:        { name: 'sand', cat: 'Ground', ground: true },
+  cobble:      { name: 'cobblestone', cat: 'Ground', ground: true },
+  marble:      { name: 'marble floor', cat: 'Ground', ground: true },
+  wood:        { name: 'wooden floor', cat: 'Ground', ground: true },
+  cave:        { name: 'cave floor', cat: 'Ground', ground: true },
+  swamp:       { name: 'swamp', cat: 'Ground', ground: true },
+  paving:      { name: 'paving stones', cat: 'Ground', ground: true },
+  brick:       { name: 'brick road', cat: 'Ground', ground: true },
+  tiles:       { name: 'tiled floor', cat: 'Ground', ground: true },
+  gravel:      { name: 'gravel', cat: 'Ground', ground: true },
+  farmland:    { name: 'farmland', cat: 'Ground', ground: true },
+  mountain:    { name: 'rocky ground', cat: 'Ground', ground: true },
+  snow:        { name: 'snow', cat: 'Ground', ground: true },
+  ice:         { name: 'ice', cat: 'Ground', ground: true },
+  jungle:      { name: 'jungle floor', cat: 'Ground', ground: true },
+  sandstone:   { name: 'sandstone floor', cat: 'Ground', ground: true },
+  ash:         { name: 'ash', cat: 'Ground', ground: true },
+  lava:        { name: 'lava', cat: 'Ground', ground: true, block: true, light: 3 },
+  carpet:      { name: 'carpet', cat: 'Ground', ground: true },
+  water:       { name: 'water', cat: 'Ground', ground: true, block: true },
+  bridge_ns:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing north-south
+  bridge_ew:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing east-west
+
+  roof:        { name: 'roof', cat: 'Roofs', ground: true, roof: true },
+  roof_slate:  { name: 'slate roof', cat: 'Roofs', ground: true, roof: true },
+  roof_thatch: { name: 'thatched roof', cat: 'Roofs', ground: true, roof: true },
+  roof_shingle:{ name: 'shingle roof', cat: 'Roofs', ground: true, roof: true },
+  roof_green:  { name: 'copper roof', cat: 'Roofs', ground: true, roof: true },
+  roof_flat:   { name: 'flat roof', cat: 'Roofs', ground: true, roof: true },
+
+  wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
+  wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },
+  wall_sandstone: { name: 'sandstone wall', cat: 'Walls', block: true, wall: 'thin' },
+  wall_secret: { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin', sprite: 'wall_stone' },
+  wall_block:  { name: 'stone block', cat: 'Walls', block: true, wall: 'block' },
+  wall_cave:   { name: 'rock wall', cat: 'Walls', block: true, wall: 'block' },
+  ore_vein:    { name: 'ore vein', cat: 'Walls', block: true, wall: 'block', oreVein: true },
+  cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block' },
+  door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
+  door_closed: { name: 'closed door', cat: 'Walls', block: true, toggle: 'door', wall: 'thin' },
+  door_locked: { name: 'locked door', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_sealed', lockDoor: true, meta: 'lock' },
+  door_house:  { name: 'house door', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_closed', houseDoor: true, toggle: 'door_house_open' },
+  door_house_open: { name: 'open house door', cat: 'Walls', wall: 'thin', sprite: 'door', houseDoor: true, toggle: 'door_house' },
+  door_quest:  { name: 'sealed door', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_sealed', questDoor: true, meta: 'quest' },
+  door_level:  { name: 'gate of expertise', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_sealed', levelDoor: true, meta: 'level' },
+  fence:       { name: 'fence', cat: 'Walls', block: true, low: true },
+
+  window:      { name: 'window', cat: 'Wall decor', onWall: true },
+  wall_torch:  { name: 'wall torch', cat: 'Wall decor', onWall: true, light: 3, fireSwap: 'wall_torch_out' },
+  wall_torch_out: { name: 'unlit wall torch', cat: 'Wall decor', onWall: true, fireSwap: 'wall_torch' },
+  painting:    { name: 'painting', cat: 'Wall decor', onWall: true },
+  painting_ship: { name: 'painting of a ship', cat: 'Wall decor', onWall: true },
+  damp_wall:   { name: 'damp stone', cat: 'Wall decor', onWall: true },
+  banner:      { name: 'banner', cat: 'Wall decor', onWall: true },
+  sign_wall:   { name: 'sign', cat: 'Wall decor', onWall: true, readable: true, meta: 'text' },
+
+  tree:        { name: 'tree', cat: 'Nature', block: true, tall: true },
+  pine:        { name: 'fir tree', cat: 'Nature', block: true, tall: true },
+  bush:        { name: 'bush', cat: 'Nature', block: true, low: true },
+  palm:        { name: 'palm tree', cat: 'Nature', block: true, tall: true },
+  cactus:      { name: 'cactus', cat: 'Nature', block: true, low: true },
+  snow_pine:   { name: 'snowy fir tree', cat: 'Nature', block: true, tall: true },
+  jungle_tree: { name: 'jungle tree', cat: 'Nature', block: true, tall: true },
+  dead_tree:   { name: 'dead tree', cat: 'Nature', block: true, tall: true },
+  fern:        { name: 'fern', cat: 'Nature' },
+  crops:       { name: 'crops', cat: 'Nature' },
+  rock:        { name: 'boulder', cat: 'Nature', block: true, low: true },
+  flowers:     { name: 'flowers', cat: 'Nature' },
+  reeds:       { name: 'reeds', cat: 'Nature' },
+  mushrooms:   { name: 'mushrooms', cat: 'Nature' },
+  web:         { name: 'spider web', cat: 'Nature' },
+  bones:       { name: 'old bones', cat: 'Nature' },
+  tallgrass:   { name: 'tall grass', cat: 'Nature' },
+  stump:       { name: 'tree stump', cat: 'Nature', block: true, low: true },
+  log:         { name: 'fallen log', cat: 'Nature', block: true, low: true },
+  dry_bush:    { name: 'dry bush', cat: 'Nature' },
+  lilypad:     { name: 'water lilies', cat: 'Nature' },
+  stalagmite:  { name: 'stalagmite', cat: 'Nature', block: true, low: true },
+  rubble:      { name: 'rubble', cat: 'Nature' },
+  crystal:     { name: 'glowing crystal', cat: 'Nature', block: true, low: true, light: 3 },
+  puddle:      { name: 'puddle', cat: 'Nature' },
+
+  table:       { name: 'table', cat: 'Furniture', block: true, low: true, movable: true },
+  chair:       { name: 'chair', cat: 'Furniture', movable: true },
+  plant:       { name: 'potted plant', cat: 'Furniture', block: true, low: true, movable: true },
+  bed:         { name: 'bed', cat: 'Furniture', block: true, low: true },
+  counter:     { name: 'counter', cat: 'Furniture', block: true, low: true },
+  chest:       { name: 'chest', cat: 'Furniture', block: true, low: true, movable: true },
+  barrel:      { name: 'barrel', cat: 'Furniture', block: true, low: true, movable: true },
+  crate:       { name: 'crate', cat: 'Furniture', block: true, low: true, movable: true },
+  bookshelf:   { name: 'bookshelf', cat: 'Furniture', block: true, bookshelf: true },
+  altar:       { name: 'altar', cat: 'Furniture', block: true, low: true },
+  gravestone:  { name: 'gravestone', cat: 'Furniture', block: true, low: true },
+  tent:        { name: 'tent', cat: 'Furniture', block: true },
+  torch:       { name: 'torch', cat: 'Furniture', light: 3, fireSwap: 'torch_out' },
+  torch_out:   { name: 'unlit torch', cat: 'Furniture', fireSwap: 'torch' },
+  campfire:    { name: 'campfire', cat: 'Furniture', block: true, low: true, light: 4, fireSwap: 'campfire_out' },
+  campfire_out:{ name: 'cold campfire', cat: 'Furniture', block: true, low: true, fireSwap: 'campfire' },
+  signpost:    { name: 'signpost', cat: 'Furniture', block: true, low: true, readable: true, meta: 'text' },
+  depot:       { name: 'depot locker', cat: 'Furniture', block: true, low: true, depot: true },
+  throne:      { name: 'throne', cat: 'Furniture', block: true, low: true },
+  statue:      { name: 'old statue', cat: 'Furniture', block: true, tall: true },
+  well:        { name: 'well', cat: 'Furniture', block: true, low: true },
+  anvil:       { name: 'anvil', cat: 'Furniture', block: true, low: true },
+
+  // In and around towns. A fountain takes 2x2 tiles: the fountain on the bottom-right one, its rim on the others.
+  fountain:    { name: 'fountain', cat: 'Town', block: true, low: true, tall: true },
+  fountain_rim:{ name: 'fountain', cat: 'Town', block: true, low: true },
+  lamppost:    { name: 'street lamp', cat: 'Town', block: true, low: true, tall: true, light: 4, fireSwap: 'lamppost_off' },
+  lamppost_off:{ name: 'street lamp (out)', cat: 'Town', block: true, low: true, tall: true, fireSwap: 'lamppost' },
+  bench:       { name: 'bench', cat: 'Town', block: true, low: true },
+  stall:       { name: 'market stall', cat: 'Town', block: true, low: true, tall: true },
+  hedge:       { name: 'hedge', cat: 'Town', block: true, low: true },
+  planter:     { name: 'flower box', cat: 'Town', block: true, low: true },
+  haystack:    { name: 'haystack', cat: 'Town', block: true, low: true },
+  wagon:       { name: 'wagon', cat: 'Town', block: true, low: true, tall: true },
+  woodpile:    { name: 'woodpile', cat: 'Town', block: true, low: true },
+  chimney:     { name: 'chimney', cat: 'Town', block: true, tall: true },
+  basket:      { name: 'basket of goods', cat: 'Town', block: true, low: true },
+  sack:        { name: 'sack', cat: 'Town', block: true, low: true, movable: true },
+  boat:        { name: 'rowing boat', cat: 'Town', block: true, low: true, tall: true },
+  wreck:       { name: 'old shipwreck', cat: 'Nature', block: true, low: true },
+  scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
+  pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
+  // Out in the wilds
+  windmill:    { name: 'windmill', cat: 'Wilds', block: true, tall: true },
+  igloo:       { name: 'igloo', cat: 'Wilds', block: true, low: true },
+  totem:       { name: 'totem pole', cat: 'Wilds', block: true, low: true, tall: true },
+  beehive:     { name: 'beehive', cat: 'Wilds', block: true, low: true },
+  eggs:        { name: 'nest of eggs', cat: 'Wilds', block: true, low: true },
+  obelisk:     { name: 'obelisk', cat: 'Wilds', block: true, tall: true, light: 2 },
+  cauldron:    { name: 'cauldron', cat: 'Wilds', block: true, low: true, light: 2 },
+  sword_grave: { name: 'a sword in the ground', cat: 'Wilds' },
+  flagpole:    { name: 'banner', cat: 'Wilds', block: true, low: true, tall: true },
+  ancient_tree:{ name: 'ancient tree', cat: 'Wilds', block: true, tall: true },
+  ice_spike:   { name: 'ice crystals', cat: 'Wilds', block: true, low: true },
+  fallen_pillar:{ name: 'fallen pillar', cat: 'Wilds', block: true, low: true },
+  noticeboard: { name: 'notice board', cat: 'Town', block: true, low: true, tall: true, readable: true, meta: 'text' },
+
+  stairs_up:   { name: 'stairs leading up', cat: 'Floor change', change: 1 },
+  ladder:      { name: 'ladder', cat: 'Floor change', change: 1 },
+  stairs_down: { name: 'stairs leading down', cat: 'Floor change', change: -1 },
+  hole:        { name: 'hole', cat: 'Floor change', change: -1 },
+  // A path up a mountain side, in place of a cliff. The floor above gets ramp_top
+  // (an invisible ground) right over it: step on it from above to walk down.
+  ramp:        { name: 'mountain path', cat: 'Floor change', change: 1, tall: true },
+  ramp_top:    { name: 'mountain path', cat: 'Floor change', ground: true, change: -1 },
+  rope_spot:   { name: 'rope spot', cat: 'Floor change', ropeSpot: true },
+  rails:       { name: 'cart rails', cat: 'Mechanisms' },
+  treasure:    { name: 'heap of treasure', cat: 'Furniture', block: true, low: true },
+  bars:        { name: 'iron bars', cat: 'Walls', block: true, low: true },
+
+  lever:       { name: 'lever', cat: 'Mechanisms', block: true, low: true, lever: true, meta: 'target' },
+  lever_on:    { name: 'lever', cat: 'Mechanisms', block: true, low: true, lever: true, meta: 'target' },
+  teleport:    { name: 'magic forcefield', cat: 'Mechanisms', teleport: true, light: 2, meta: 'to' },
+  loose_sand:  { name: 'loose sand', cat: 'Mechanisms', digSpot: true },
+  cracked_rock:{ name: 'cracked rock', cat: 'Mechanisms', block: true, breakable: true },
+
+  qchest_parcel: {
+    name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',
+    chest: { flag: 'parcel', requires: 'lost_parcel', items: [['parcel', 1]], locked: 'The crate is nailed shut. Maybe someone is looking for it?' },
+  },
+  qchest_hunter: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'hunters_cache', quest: 'hunters_cache', items: [['bow', 1], ['arrow', 40]] },
+  },
+  qchest_longsword: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'crypt_armory', quest: 'crypt_armory', items: [['longsword', 1]] },
+  },
+  qchest_mace: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'crypt_armory', quest: 'crypt_armory', items: [['mace', 1]] },
+  },
+  qchest_war_axe: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'crypt_armory', quest: 'crypt_armory', items: [['war_axe', 1]] },
+  },
+  qchest_crypt_secret: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'crypt_secret', quest: 'crypt_secret', gold: 150, items: [['ring_life', 1]] },
+  },
+  qchest_sand: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'sand_cache', quest: 'sand_cache', gold: 100, items: [['amulet_guard', 1]] },
+  },
+  qchest_hoard: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'ogre_hoard', quest: 'ogre_hoard', gold: 400, items: [['steel_helmet', 1], ['health_potion', 5]] },
+  },
+  qchest_tower: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'tower_secrets', quest: 'tower_secrets', gold: 300, items: [['iron_boots', 1], ['mana_potion', 5]] },
+  },
+  qchest_key: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'pirate_key', items: [['key_bronze', 1]] },
+  },
+  qchest_chart: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'sea_chart', requires: 'drowned_king', items: [['sea_chart', 1]], locked: 'The chest is locked tight. Someone must know what is inside.' },
+  },
+  qchest_pirate_gold: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'pirate_gold', quest: 'pirate_gold', gold: 600, items: [['ring_swift', 1]] },
+  },
+  qchest_trunk: {
+    name: 'battered trunk', cat: 'Quest chests', block: true, low: true, sprite: 'trunk',
+    chest: { flag: 'sky_trunk', requires: 'free_elf', items: [['old_sock', 1]], locked: 'A battered school trunk, fallen from the sky by the look of it. The lock is stuck.' },
+  },
+  qchest_webs: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'webbed_cache', quest: 'webbed_cache', gold: 800, items: [['ring_life', 1], ['health_potion', 5]] },
+  },
+  qchest_summit: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'cyclops_summit', quest: 'cyclops_summit', gold: 500, items: [['war_hammer', 1]] },
+  },
+  qchest_dragon_hoard: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'dragon_hoard', quest: 'dragon_hoard', gold: 2500, items: [['plate_armor', 1], ['health_potion', 10]] },
+  },
+  // A chest out in the wilds: what's in it is set per tile (map meta { gold, items }); everyone can open each one once.
+  cache:       { name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest', cache: true },
+  qchest_frost: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'frost_hoard', quest: 'frost_hoard', gold: 3000, items: [['rod_glacier', 1], ['frost_scale', 3]] },
+  },
+  qchest_maze: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'labyrinth_prize', quest: 'labyrinth_prize', gold: 1200, items: [['minotaur_horn', 3], ['steel_helmet', 1]] },
+  },
+  qchest_pyramid: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'pyramid_tomb', quest: 'pyramid_tomb', gold: 4000, items: [['ring_life', 1], ['crown_helmet', 1]] },
+  },
+  qchest_idol: {
+    name: 'chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'jungle_idol', quest: 'jungle_idol', gold: 2500, items: [['elven_bow', 1], ['lizard_scale', 5]] },
+  },
+  qchest_demon: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'demon_hoard', quest: 'demon_hoard', gold: 15000, items: [['golden_armor', 1], ['amulet_keeping', 1], ['demon_horn', 2]] },
+  },
+  qchest_tide: {
+    name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'tide_hoard', quest: 'tide_hoard', gold: 1000, items: [['amulet_keeping', 1], ['ring_life', 1]] },
+  },
+};
+
+// How slow each ground is to walk on, as in Tibia: roads, paving and floors are
+// quickest (1), grass and sand slower, deep snow and swamp slowest.
+const GROUND_SLOWNESS = { grass: 1.25, sand: 1.3, snow: 1.4, swamp: 1.55, jungle: 1.35, ash: 1.25, mountain: 1.25, ice: 1.15, farmland: 1.2, cave: 1.1 };
+const groundSlowness = id => GROUND_SLOWNESS[id] || 1;
+
+// Outfits, as in the outfit window: each comes in a male and a female cut, in four
+// colours of your choice (head, primary, secondary, detail), with two addons that
+// unlock as you level. Your vocation picks the outfit you start in.
+const OUTFITS = {
+  citizen: { name: 'Citizen', addons: ['feathered cap', 'backpack'] },
+  hunter: { name: 'Hunter', addons: ['hunting hat', 'crossbow'] },
+  mage: { name: 'Mage', addons: ['wizard hat', 'staff'] },
+  knight: { name: 'Knight', addons: ['plumed helmet', 'sword and shield'] },
+  noble: { name: 'Noble', addons: ['grand hat', 'cape'] },
+  barbarian: { name: 'Barbarian', addons: ['horned helmet', 'great axe'] },
+  druid: { name: 'Druid', addons: ['antler crown', 'leaf staff'] },
+  pirate: { name: 'Pirate', addons: ['tricorn', 'sabre'] },
+};
+const ADDON_LEVELS = [20, 40];
+const VOCATION_OUTFIT = { none: 'citizen', knight: 'knight', paladin: 'hunter', sorcerer: 'mage', druid: 'druid' };
+// The addons (bit 1: first, bit 2: second) a character of this level may wear.
+const allowedAddons = level => (level >= ADDON_LEVELS[0] ? 1 : 0) | (level >= ADDON_LEVELS[1] ? 2 : 0);
+
+// Map marks, as in Tibia: one of these icons, with a description of your own, on any spot of the map.
+const MAX_MARKS = 200;
+const MARK_ICONS = ['check', 'question', 'exclamation', 'star', 'crossmark', 'cross', 'mouth', 'spear', 'sword', 'flag',
+  'lock', 'bag', 'skull', 'dollar', 'up', 'down', 'left', 'right', 'green_up', 'green_down'];
+
+const ELEMENT_COLORS = {
+  physical: '#d83030', fire: '#ff7a1a', ice: '#8fe0ff', energy: '#c58cff', earth: '#6fcf3f', holy: '#fff1a0', poison: '#7ad040',
+};
+
+const capitalize = s => s[0].toUpperCase() + s.slice(1);
+
+function withArticle(name) {
+  if (/s$/.test(name)) return name;
+  return (/^[aeiou]/i.test(name) ? 'an ' : 'a ') + name;
+}
+
+// Small deterministic RNG (mulberry32) so sprites and the default map look the same every time.
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}

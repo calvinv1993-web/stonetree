@@ -1,0 +1,245 @@
+'use strict';
+// Touch controls for phones and tablets. The map itself is the controller: tap
+// to click, long-press to use, swipe or hold-and-steer to walk (see game.js).
+// Around it: a joystick bottom left; the favourites (spells, potions), attack and
+// backpack buttons bottom right; fight mode and chase top right; the chat behind a
+// button and the side panel as a drawer.
+// Shown on touch screens, or anywhere with ?mobile in the address.
+
+const touchScreen = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('mobile');
+
+// Browser storage can be missing (private mode): then favourites just aren't remembered.
+const touchStorage = {
+  get(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch (e) {
+      return null;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) { /* not remembered */ }
+  },
+};
+
+function setTouchMode(mode) {
+  touchMode = mode;
+  $('tUse').classList.toggle('active', mode === 'use');
+  $('tLook').classList.toggle('active', mode === 'look');
+  canvas.classList.toggle('targeting', !!mode);
+}
+
+// Fullscreen where the browser can (Safari on an iPad only knows its webkit version; an
+// iPhone can't at all, except for a page opened from the home screen).
+function toggleFullscreen() {
+  const root = document.documentElement, doc = document;
+  if (doc.fullscreenElement || doc.webkitFullscreenElement) return (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+  const enter = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (!enter) return log('Fullscreen: add this page to your home screen (Share > Add to Home Screen), then open it from there.');
+  Promise.resolve(enter.call(root, { navigationUI: 'hide' }))
+    .then(() => touchScreen && screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}))
+    .catch(() => log('Your browser did not allow fullscreen.'));
+}
+
+function setChat(open, focus) {
+  document.body.classList.toggle('chat-open', open);
+  if (open && focus) $('chat').focus();
+  if (!open) $('chat').blur();
+}
+
+// ---- favourites: three pinned spells or potions -------------------------------------------
+// Tap to use; hold for 5 seconds (the button fills up) to choose what goes there.
+const FAV_HOLD = 5000;
+const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
+let favPickSlot = null, favHold = null, favShown = '';
+
+function favourites() {
+  const saved = touchStorage.get(favKey());
+  if (Array.isArray(saved) && saved.length === 3) return saved;
+  // Until you pin your own: your two newest spells, then potions.
+  const known = hotbarEntries().filter(e => !e.locked).map(e => e.id).filter(id => !['h', 'm', 'f'].includes(id));
+  return [...known.slice(-2), 'h', 'm', 'f'].slice(0, 3);
+}
+
+function useFav(slot) {
+  const e = hotbarEntries().find(x => x.id === favourites()[slot]);
+  if (!e) openFavPicker(slot);
+  else if (!e.locked && player && !paused) e.act();
+}
+
+function renderFavs() {
+  if (!touchScreen || !player) return;
+  const entries = hotbarEntries();
+  const shown = favourites().map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
+  if (shown.join() === favShown) return; // redrawing mid-press would lose the press
+  favShown = shown.join();
+  const root = $('favs');
+  root.replaceChildren();
+  favourites().forEach((id, slot) => {
+    const e = entries.find(x => x.id === id);
+    const b = document.createElement('button');
+    b.className = `fav${e && e.locked ? ' locked' : ''}`;
+    b.innerHTML = '<span></span><small></small>';
+    b.querySelector('span').textContent = e ? e.name : '+';
+    b.querySelector('small').textContent = e ? e.sub : 'hold to pin';
+    b.addEventListener('pointerdown', ev => {
+      ev.preventDefault();
+      if (favHold) clearTimeout(favHold.timer);
+      b.classList.add('holding');
+      favHold = { slot, el: b, held: false };
+      favHold.timer = setTimeout(() => {
+        favHold.held = true;
+        b.classList.remove('holding');
+        if (navigator.vibrate) navigator.vibrate(30);
+        openFavPicker(slot);
+      }, FAV_HOLD);
+    });
+    root.appendChild(b);
+  });
+}
+
+function endFavPress(use) {
+  if (!favHold) return;
+  clearTimeout(favHold.timer);
+  favHold.el.classList.remove('holding');
+  if (use && !favHold.held) useFav(favHold.slot);
+  favHold = null;
+}
+
+function openFavPicker(slot) {
+  favPickSlot = slot;
+  const list = $('favList');
+  list.replaceChildren();
+  for (const e of hotbarEntries()) {
+    const b = document.createElement('button');
+    b.className = 'hot';
+    b.disabled = !!e.locked;
+    b.innerHTML = '<span></span> <small></small>';
+    b.querySelector('span').textContent = e.name;
+    b.querySelector('small').textContent = e.sub;
+    b.addEventListener('click', () => {
+      const favs = favourites();
+      favs[favPickSlot] = e.id;
+      touchStorage.set(favKey(), favs);
+      $('favPicker').hidden = true;
+      favShown = '';
+      renderFavs();
+    });
+    list.appendChild(b);
+  }
+  $('favPicker').hidden = false;
+}
+
+// The joystick, bottom left: steer with your thumb; a flick walks one tile.
+function initJoystick() {
+  const pad = $('joystick'), knob = pad.querySelector('.knob');
+  let id = null, key = null;
+  const release = () => {
+    if (key) Actions.keyUp(key);
+    key = id = null;
+    knob.style.transform = '';
+  };
+  pad.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    id = e.pointerId;
+    pad.setPointerCapture(id);
+  });
+  pad.addEventListener('pointermove', e => {
+    if (e.pointerId !== id || !player || paused) return;
+    const r = pad.getBoundingClientRect(), max = r.width / 2 - 14;
+    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy);
+    if (d > max) {
+      dx *= max / d;
+      dy *= max / d;
+    }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    const k = d > 12 ? swipeKey(dx, dy) : null;
+    if (k === key) return;
+    if (key) Actions.keyUp(key);
+    key = k;
+    if (k) Actions.keyDown(k, false);
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, release);
+}
+
+// Messages pop up at the top for a few seconds, as the log is put away on a phone.
+function toast(text, kind) {
+  if (!touchScreen || document.body.classList.contains('chat-open')) return;
+  const box = $('toasts'), line = document.createElement('div');
+  line.className = `toast ${kind || ''}`;
+  line.textContent = text;
+  box.appendChild(line);
+  while (box.children.length > 2) box.firstChild.remove(); // the two newest
+  setTimeout(() => line.remove(), 3500);
+}
+
+function initTouch() {
+  if (!touchScreen) return;
+  document.body.classList.add('touch-ui');
+  $('touch').hidden = false;
+  // The loot window and the backpack float over the map, so you needn't open the drawer for them.
+  $('viewport').appendChild($('lootBox'));
+  $('viewport').appendChild($('containers'));
+
+  const tap = (id, fn) => $(id).addEventListener('click', e => {
+    e.preventDefault();
+    if (player && !paused) fn();
+  });
+  tap('tAttack', () => Actions.targetNearest());
+  tap('tStop', () => {
+    setTouchMode(null);
+    if (useWith) cancelUseWith();
+    Actions.stop();
+  });
+  tap('tUse', () => setTouchMode(touchMode === 'use' ? null : 'use'));
+  tap('tLook', () => setTouchMode(touchMode === 'look' ? null : 'look'));
+  tap('tHeal', () => Actions.hotkey('h'));
+  tap('tMana', () => Actions.hotkey('m'));
+  tap('tChat', () => setChat(!document.body.classList.contains('chat-open'), true));
+  tap('tMap', () => toggleWorldMap());
+  tap('tRide', () => {
+    if ($('worldmap').hidden) toggleWorldMap(true);
+    else setRideMode(true);
+  });
+  tap('tPanel', () => document.body.classList.toggle('panel-open'));
+  tap('tBag', () => document.body.classList.toggle('bag-open'));
+  const MODES = ['offensive', 'balanced', 'defensive'];
+  tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));
+  tap('tChase', () => Actions.setChase(!player.chase));
+  tap('tSecure', () => Actions.setSecure(player.secure === false));
+  $('tFull').addEventListener('click', toggleFullscreen);
+  initJoystick();
+  $('chatClose').addEventListener('click', () => setChat(false));
+  $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
+  document.addEventListener('pointerup', () => endFavPress(true));
+  document.addEventListener('pointercancel', () => endFavPress(false));
+  // Touching the map puts the drawer away.
+  canvas.addEventListener('pointerdown', () => document.body.classList.remove('panel-open'));
+  window.addEventListener('resize', fitView);
+  fitView();
+  // Health and mana stay in sight while the panel is put away, and so do the fight settings.
+  const FIGHT_ICONS = { offensive: ['&#9876;', 'Attack'], balanced: ['&#9878;', 'Balanced'], defensive: ['&#128737;', 'Defend'] };
+  let fightShown = '';
+  setInterval(() => {
+    if (!player) return;
+    const fight = `${player.fightMode}|${player.chase}|${player.secure}`;
+    if (fight !== fightShown) {
+      fightShown = fight;
+      const [icon, label] = FIGHT_ICONS[player.fightMode] || FIGHT_ICONS.balanced;
+      $('tFight').innerHTML = `${icon}<small>${label}</small>`;
+      $('tChase').innerHTML = player.chase ? '&#127939;<small>Chase</small>' : '&#9995;<small>Stand</small>';
+      $('tChase').classList.toggle('active', player.chase);
+      $('tSecure').innerHTML = player.secure !== false ? '&#128330;<small>Secure</small>' : '&#9760;<small>PvP</small>';
+      $('tSecure').classList.toggle('active', player.secure !== false);
+    }
+    for (const [bar, v, max] of [['Hp', player.hp, player.maxHp], ['Mana', player.mana, player.maxMana]]) {
+      $(`tb${bar}`).style.width = `${(100 * v) / max}%`;
+      $(`tb${bar}Text`).textContent = `${v} / ${max}`;
+    }
+  }, 250);
+}
+
+initTouch();
