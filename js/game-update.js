@@ -415,7 +415,17 @@ function updateFlyby() {
 function updateWorld() {
   walkInsLeft = 2;
   for (const p of players) asPlayer(p, updatePlayer);
-  monsters.forEach(updateMonster);
+  // Keep combat, conditions, summons and respawns on their normal schedule.
+  // Only idle monsters far from every player can use a slower update cadence.
+  monsters.forEach((m, i) => {
+    const idleFarAway = !m.dead && !m.goal && !m.summoner &&
+      !Object.keys(m.conditions || {}).length &&
+      !players.some(p => !p.dead && p.z === m.z &&
+        Math.abs(p.x - m.x) <= 15 && Math.abs(p.y - m.y) <= 13);
+    if (idleFarAway && now < (m.nextFarUpdate || 0)) return;
+    if (idleFarAway) m.nextFarUpdate = now + 250;
+    updateMonster(m, i);
+  });
   monsters = monsters.filter(m => !m.remove);
   updateNpcs();
   updateParties();
