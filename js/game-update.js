@@ -210,7 +210,12 @@ const quickGround = (x, y) => groundSlowness((map.get(x, y, player.z) || {}).gro
 function walkTo(x, y, maxNodes = 4000) {
   player.action = null;
   if (x === player.x && y === player.y) return;
-  const path = playerCanEnter(x, y, player.z) && findPath(playerPassable(x, y), player.x, player.y, x, y, { maxNodes, stepCost: quickGround });
+  const passable = playerPassable(x, y);
+  // Prefer cardinal-only routes for tap-to-walk; allow diagonals only when unavoidable.
+  const path = playerCanEnter(x, y, player.z) && (
+    findPath(passable, player.x, player.y, x, y, { maxNodes, stepCost: quickGround, orthogonalOnly: true }) ||
+    findPath(passable, player.x, player.y, x, y, { maxNodes, stepCost: quickGround })
+  );
   if (path) {
     player.path = path;
     player.pathGoal = { x, y, range: 0 };
