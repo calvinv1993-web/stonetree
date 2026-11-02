@@ -53,18 +53,29 @@ function setChat(open, focus) {
 // Tap to use; hold for 5 seconds (the button fills up) to choose what goes there.
 const FAV_HOLD = 5000;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
-let favPickSlot = null, favHold = null, favShown = '';
+let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
+const FAV_SLOTS = 4, FAV_PAGES = 3;
 
 function favourites() {
   const saved = touchStorage.get(favKey());
-  if (Array.isArray(saved) && saved.length === 3) return saved;
-  // Until you pin your own: your two newest spells, then potions.
-  const known = hotbarEntries().filter(e => !e.locked).map(e => e.id).filter(id => !['h', 'm', 'f'].includes(id));
-  return [...known.slice(-2), 'h', 'm', 'f'].slice(0, 3);
+  if (Array.isArray(saved) && saved.length === FAV_SLOTS * FAV_PAGES) return saved;
+  const known = hotbarEntries().filter(e => !e.locked).map(e => e.id);
+  const defaults = [...known.filter(id => !['h', 'm', 'f'].includes(id)), 'h', 'm', 'f'];
+  const slots = Array(FAV_SLOTS * FAV_PAGES).fill(null);
+  if (Array.isArray(saved)) saved.slice(0, 3).forEach((id, i) => { slots[i] = id; });
+  else defaults.slice(0, FAV_SLOTS).forEach((id, i) => { slots[i] = id; });
+  return slots;
+}
+function changeFavPage(delta) {
+  endFavPress(false);
+  favPageIndex = (favPageIndex + delta + FAV_PAGES) % FAV_PAGES;
+  $('favPage').textContent = `${favPageIndex + 1} / ${FAV_PAGES}`;
+  favShown = '';
+  renderFavs();
 }
 
 function useFav(slot) {
-  const e = hotbarEntries().find(x => x.id === favourites()[slot]);
+  const e = hotbarEntries().find(x => x.id === favourites()[favPageIndex * FAV_SLOTS + slot]);
   if (!e) openFavPicker(slot);
   else if (!e.locked && player && !paused) e.act();
 }
@@ -72,12 +83,13 @@ function useFav(slot) {
 function renderFavs() {
   if (!touchScreen || !player) return;
   const entries = hotbarEntries();
-  const shown = favourites().map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
+  const current = favourites().slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS);
+  const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
   if (shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
   const root = $('favs');
   root.replaceChildren();
-  favourites().forEach((id, slot) => {
+  current.forEach((id, slot) => {
     const e = entries.find(x => x.id === id);
     const b = document.createElement('button');
     b.className = `fav${e && e.locked ? ' locked' : ''}`;
@@ -121,7 +133,7 @@ function openFavPicker(slot) {
     b.querySelector('small').textContent = e.sub;
     b.addEventListener('click', () => {
       const favs = favourites();
-      favs[favPickSlot] = e.id;
+      favs[favPageIndex * FAV_SLOTS + favPickSlot] = e.id;
       touchStorage.set(favKey(), favs);
       $('favPicker').hidden = true;
       favShown = '';
@@ -211,6 +223,8 @@ function initTouch() {
   tap('tChase', () => Actions.setChase(!player.chase));
   tap('tSecure', () => Actions.setSecure(player.secure === false));
   $('tFull').addEventListener('click', toggleFullscreen);
+  tap('favPrev', () => changeFavPage(-1));
+  tap('favNext', () => changeFavPage(1));
   initJoystick();
   $('chatClose').addEventListener('click', () => setChat(false));
   $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
