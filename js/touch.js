@@ -54,16 +54,25 @@ function setChat(open, focus) {
 const FAV_HOLD = 5000;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
-const FAV_SLOTS = 4, FAV_PAGES = 3;
+const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 2;
+const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + slot - FAV_SLOTS;
 
 function favourites() {
   const saved = touchStorage.get(favKey());
-  if (Array.isArray(saved) && saved.length === FAV_SLOTS * FAV_PAGES) return saved;
-  const known = hotbarEntries().filter(e => !e.locked).map(e => e.id);
-  const defaults = [...known.filter(id => !['h', 'm', 'f'].includes(id)), 'h', 'm', 'f'];
-  const slots = Array(FAV_SLOTS * FAV_PAGES).fill(null);
-  if (Array.isArray(saved)) saved.slice(0, 3).forEach((id, i) => { slots[i] = id; });
-  else defaults.slice(0, FAV_SLOTS).forEach((id, i) => { slots[i] = id; });
+  if (Array.isArray(saved) && saved.length === FAV_SLOTS * FAV_PAGES + FAV_FIXED) return saved;
+  const slots = Array(FAV_SLOTS * FAV_PAGES + FAV_FIXED).fill(null);
+  if (Array.isArray(saved)) {
+    // Migrate the old 4-slot pages without losing the user's pinned spells.
+    for (let page = 0; page < FAV_PAGES; page++)
+      for (let slot = 0; slot < FAV_SLOTS; slot++)
+        slots[page * FAV_SLOTS + slot] = saved[page * 4 + slot] || null;
+  } else {
+    const known = hotbarEntries().filter(e => !e.locked).map(e => e.id);
+    known.filter(id => !['h', 'm', 'f'].includes(id)).slice(0, 3)
+      .forEach((id, i) => { slots[i] = id; });
+  }
+  slots[9] = 'h';
+  slots[10] = 'm';
   return slots;
 }
 function changeFavPage(delta) {
@@ -75,7 +84,7 @@ function changeFavPage(delta) {
 }
 
 function useFav(slot) {
-  const e = hotbarEntries().find(x => x.id === favourites()[favPageIndex * FAV_SLOTS + slot]);
+  const e = hotbarEntries().find(x => x.id === favourites()[favIndex(slot)]);
   if (!e) openFavPicker(slot);
   else if (!e.locked && player && !paused) e.act();
 }
@@ -83,7 +92,8 @@ function useFav(slot) {
 function renderFavs() {
   if (!touchScreen || !player) return;
   const entries = hotbarEntries();
-  const current = favourites().slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS);
+  const favs = favourites();
+  const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(FAV_SLOTS * FAV_PAGES)];
   const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
   if (shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
@@ -133,7 +143,7 @@ function openFavPicker(slot) {
     b.querySelector('small').textContent = e.sub;
     b.addEventListener('click', () => {
       const favs = favourites();
-      favs[favPageIndex * FAV_SLOTS + favPickSlot] = e.id;
+      favs[favIndex(favPickSlot)] = e.id;
       touchStorage.set(favKey(), favs);
       $('favPicker').hidden = true;
       favShown = '';
