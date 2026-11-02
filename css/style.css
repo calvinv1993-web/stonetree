@@ -630,8 +630,11 @@ input { background: #0e0d0b; border-color: #5e4e36; box-shadow: inset 0 1px 3px 
 }
 .touch .fav { background: radial-gradient(circle at 50% 30%, #3a342cdd, #1a1814dd); border-color: #c89a48cc; box-shadow: 0 2px 8px #000a; }
 
-/* Modal maps must cover the entire touch HUD, including the action button. */
-body.touch-ui .worldmap:not([hidden]){z-index:80}
+/* Explicit overlay hierarchy: HUD < world map < active dialogs.
+   The map must cover the smart button, but never hide a ride-choice dialog. */
+body.touch-ui #worldmap:not([hidden]) { z-index: 70; }
+body.touch-ui #viewport > .window:not(.worldmap):not([hidden]) { z-index: 90; }
+body.touch-ui #viewport > .window.ride-choice:not([hidden]) { z-index: 100; }
 /* Compact portrait thumb cluster: three paged actions left, two fixed potions right. */
 html,body{background:#262420}
 body.touch-ui .radial-controls{
