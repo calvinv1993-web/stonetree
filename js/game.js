@@ -672,6 +672,9 @@ function drawTexts(screen, z) {
 
 // ---- main loop ----------------------------------------------------------------------------
 let lastBars = 0, lastSave = 0, lastError = '';
+// Map canvases are independent of the world canvas; 10 refreshes/sec is sufficient.
+let lastMapDraw = -Infinity;
+const MAP_DRAW_INTERVAL = 100;
 // Cap expensive simulation and canvas work without changing elapsed-time gameplay timers.
 const FRAME_INTERVAL = 1000 / 30;
 let lastFrameAt = -Infinity;
@@ -700,7 +703,10 @@ function frame(t) {
     handleEvents();
     draw();
     exploreAround();
-    drawMinimap();
+    if (now - lastMapDraw >= MAP_DRAW_INTERVAL || now < lastMapDraw) {
+      drawMinimap();
+      lastMapDraw = now;
+    }
     if (uiNeedsRender) renderUI();
     if (now - lastBars > 100 || lastBars > now) {
       updateBars();
