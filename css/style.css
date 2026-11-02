@@ -649,3 +649,14 @@ body.touch-ui .radial-controls .fav:active{opacity:1}
 body.touch-ui .radial-controls .fav span{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 body.touch-ui .radial-controls .fav small{font-size:9px}
 @media(max-width:360px){body.touch-ui .radial-controls{transform:scale(.88);transform-origin:bottom right}body.touch-ui .joystick{width:108px;height:108px;left:5px}}
+
+/* Keep the most useful shortcuts visible; advanced actions remain available through More. */
+body.touch-ui .touch-buttons{justify-content:flex-end;flex-wrap:wrap;padding-right:2px}
+body.touch-ui .touch-buttons button{display:none;width:38px;height:38px}
+body.touch-ui .touch-buttons #tMore,body.touch-ui .touch-buttons #tChat,body.touch-ui .touch-buttons #tMap,body.touch-ui .touch-buttons #tPanel{display:block}
+body.touch-ui .touch.more-open .touch-buttons button{display:block}
+body.touch-ui .touch.more-open .touch-buttons{background:#17130edb;border-radius:10px;padding:5px}
+body.touch-ui .touch-corner{top:145px;opacity:.75}
+body.touch-ui .touch-corner button{width:43px;height:38px}
+body.touch-ui .tb-status{justify-content:flex-start;max-width:230px}
+body.touch-ui .radial-controls .fav{touch-action:none}
