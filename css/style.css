@@ -629,3 +629,12 @@ input { background: #0e0d0b; border-color: #5e4e36; box-shadow: inset 0 1px 3px 
   box-shadow: 0 2px 6px #000a, inset 0 1px 0 rgba(255, 240, 210, 0.2);
 }
 .touch .fav { background: radial-gradient(circle at 50% 30%, #3a342cdd, #1a1814dd); border-color: #c89a48cc; box-shadow: 0 2px 8px #000a; }
+
+/* Radial mobile controls */
+body.touch-ui .radial-controls{position:absolute;right:8px;bottom:10px;width:220px;height:240px;pointer-events:none}
+body.touch-ui .radial-controls .favs{position:absolute;inset:0;display:block;pointer-events:none}
+body.touch-ui .radial-controls .fav{position:absolute;width:55px;height:55px;border-radius:12px;background:#252018bf;opacity:.78}
+body.touch-ui .radial-controls .fav:nth-child(1){left:5px;top:73px}
+body.touch-ui .radial-controls .fav:nth-child(2){left:51px;top:19px}
+body.touch-ui .radial-controls .fav:nth-child(3){left:115px;top:8px}
+body.touch-ui .radial-controls .fav:nth-child(4){right:0;top:70px}
