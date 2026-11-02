@@ -630,6 +630,8 @@ input { background: #0e0d0b; border-color: #5e4e36; box-shadow: inset 0 1px 3px 
 }
 .touch .fav { background: radial-gradient(circle at 50% 30%, #3a342cdd, #1a1814dd); border-color: #c89a48cc; box-shadow: 0 2px 8px #000a; }
 
+/* Modal maps must cover the entire touch HUD, including the action button. */
+body.touch-ui .worldmap:not([hidden]){z-index:80}
 /* Compact portrait thumb cluster: three paged actions left, two fixed potions right. */
 html,body{background:#262420}
 body.touch-ui .radial-controls{
@@ -688,3 +690,17 @@ body.touch-ui .touch.more-open .touch-buttons{
 body.touch-ui .touch-corner{top:145px;opacity:.8}
 body.touch-ui .touch-corner button{width:43px;height:38px}
 body.touch-ui .tb-status{justify-content:flex-start;max-width:230px}
+
+/* Tighter visual hierarchy: clean slots and unobtrusive page arrows. */
+body.touch-ui .radial-controls .fav{
+ border-radius:12px;border:1.5px solid #b99b69;
+ background:linear-gradient(160deg,#302b25e8,#191714d9);
+ box-shadow:0 2px 5px #0008,inset 0 1px 0 #ffffff15;
+}
+body.touch-ui .radial-controls .fav-page{
+ width:32px;height:32px;border-radius:11px;font-size:26px;line-height:25px;
+ background:#29251fdf;border:1px solid #a78b60;
+}
+body.touch-ui .radial-controls .fav-page.prev{left:61px}
+body.touch-ui .radial-controls .fav-page.next{right:61px}
+body.touch-ui .radial-controls .fav-page-label{bottom:8px;font-size:10px}
