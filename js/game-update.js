@@ -24,6 +24,7 @@ const Actions = {
     const inp = player.input;
     if (!DIR_KEYS[key]) return;
     player.follow = null; // walking yourself stops following
+    if (player.target && !player.target.dead) player.chase = false; // manual movement stops automatic pursuit
     if (!inp.held.includes(key)) inp.held.push(key);
     if (!repeat) inp.queued = DIR_KEYS[key];
     player.path = [];
@@ -48,6 +49,7 @@ const Actions = {
     if (maxNodes > 4000 && now < (player.longWalkAt || 0)) return;
     if (maxNodes > 4000) player.longWalkAt = now + 500;
     player.follow = null;
+    if (player.target && !player.target.dead) player.chase = false; // tap-to-walk stops automatic pursuit
     walkTo(x, y, Math.min(maxNodes || 4000, 30000));
   },
   // kind: 'talk' (the NPC on that tile) or 'use' (whatever is there)
