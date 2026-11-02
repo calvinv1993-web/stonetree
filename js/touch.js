@@ -46,7 +46,12 @@ function toggleFullscreen() {
 function setChat(open, focus) {
   document.body.classList.toggle('chat-open', open);
   if (open && focus) $('chat').focus();
-  if (!open) $('chat').blur();
+  if (!open) {
+    $('chat').blur();
+    // Closing NPC chat also cancels the dialogue; walking away must not reopen it.
+    if (player && player.conversation) endConversation(true);
+    if (player && player.action && player.action.kind === 'talk') player.action = null;
+  }
 }
 
 // ---- favourites: three pinned spells or potions -------------------------------------------
