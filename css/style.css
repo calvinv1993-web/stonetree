@@ -630,33 +630,61 @@ input { background: #0e0d0b; border-color: #5e4e36; box-shadow: inset 0 1px 3px 
 }
 .touch .fav { background: radial-gradient(circle at 50% 30%, #3a342cdd, #1a1814dd); border-color: #c89a48cc; box-shadow: 0 2px 8px #000a; }
 
-/* Radial mobile controls */
-body.touch-ui .radial-controls{position:absolute;right:8px;bottom:10px;width:220px;height:240px;pointer-events:none}
+/* Single source of truth for the portrait action cluster. */
+html,body{background:#262420}
+body.touch-ui .radial-controls{
+  position:absolute;right:max(8px,env(safe-area-inset-right));
+  bottom:max(10px,env(safe-area-inset-bottom));
+  width:240px;height:260px;pointer-events:none;
+}
 body.touch-ui .radial-controls .favs{position:absolute;inset:0;display:block;pointer-events:none}
-body.touch-ui .radial-controls .fav{position:absolute;width:55px;height:55px;border-radius:12px;background:#252018bf;opacity:.78}
-body.touch-ui .radial-controls .fav:nth-child(1){left:5px;top:73px}
-body.touch-ui .radial-controls .fav:nth-child(2){left:51px;top:19px}
-body.touch-ui .radial-controls .fav:nth-child(3){left:115px;top:8px}
-body.touch-ui .radial-controls .fav:nth-child(4){right:0;top:70px}
-
-body.touch-ui .attack-btn{right:72px;bottom:64px;width:84px;height:84px;z-index:2;background:#86251fd4;border:3px solid #e8a05b}
-body.touch-ui .radial-controls .fav-page{position:absolute;bottom:15px;width:42px;height:42px;border-radius:50%;font-size:25px;background:#292219d0}
-body.touch-ui .radial-controls .fav-page.prev{left:10px}
-body.touch-ui .radial-controls .fav-page.next{right:8px}
-body.touch-ui .radial-controls .fav-page-label{position:absolute;bottom:23px;left:75px;width:72px;text-align:center;color:#f0d090;background:#191610c9;border-radius:10px;font-size:12px}
-body.touch-ui .bag-btn{right:8px;bottom:270px;width:43px;height:43px}
-body.touch-ui .radial-controls .fav:active{opacity:1}
-body.touch-ui .radial-controls .fav span{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+body.touch-ui .radial-controls .fav{
+  position:absolute;width:52px;height:52px;border-radius:14px;padding:3px;
+  background:#262420c4;border:2px solid #b18c54;opacity:.8;
+}
+body.touch-ui .radial-controls .fav:active,body.touch-ui .radial-controls .fav.holding{opacity:1}
+body.touch-ui .radial-controls .fav:nth-child(1){left:4px;top:85px}
+body.touch-ui .radial-controls .fav:nth-child(2){left:45px;top:32px}
+body.touch-ui .radial-controls .fav:nth-child(3){left:143px;top:32px}
+body.touch-ui .radial-controls .fav:nth-child(4){left:184px;top:85px}
+body.touch-ui .radial-controls .fav span{
+  font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
 body.touch-ui .radial-controls .fav small{font-size:9px}
-@media(max-width:360px){body.touch-ui .radial-controls{transform:scale(.88);transform-origin:bottom right}body.touch-ui .joystick{width:108px;height:108px;left:5px}}
-
-/* Keep the most useful shortcuts visible; advanced actions remain available through More. */
+body.touch-ui .attack-btn{
+  right:calc(max(8px,env(safe-area-inset-right)) + 78px);
+  bottom:calc(max(10px,env(safe-area-inset-bottom)) + 63px);
+  width:84px;height:84px;z-index:2;border-radius:50%;
+  background:#852922e3;border:3px solid #e0a55e;
+}
+body.touch-ui .attack-btn[data-action="talk"]{background:#365b64e3}
+body.touch-ui .attack-btn[data-action="loot"]{background:#715328e3}
+body.touch-ui .attack-btn[data-action="use"]{background:#4a5833e3}
+body.touch-ui .attack-btn[data-action="idle"]{background:#3b3934e3}
+body.touch-ui .radial-controls .fav-page{
+  position:absolute;bottom:6px;width:42px;height:42px;border-radius:50%;
+  font-size:24px;background:#262420e6;border:2px solid #b18c54;
+}
+body.touch-ui .radial-controls .fav-page.prev{left:12px}
+body.touch-ui .radial-controls .fav-page.next{right:12px}
+body.touch-ui .radial-controls .fav-page-label{
+  position:absolute;bottom:15px;left:84px;width:72px;
+  text-align:center;color:#f0d090;background:#262420d9;border-radius:10px;font-size:12px
+}
+body.touch-ui .bag-btn{
+  right:max(8px,env(safe-area-inset-right));bottom:285px;
+  width:44px;height:44px;
+}
 body.touch-ui .touch-buttons{justify-content:flex-end;flex-wrap:wrap;padding-right:2px}
 body.touch-ui .touch-buttons button{display:none;width:38px;height:38px}
-body.touch-ui .touch-buttons #tMore,body.touch-ui .touch-buttons #tChat,body.touch-ui .touch-buttons #tMap,body.touch-ui .touch-buttons #tPanel{display:block}
+body.touch-ui .touch-buttons #tMore,
+body.touch-ui .touch-buttons #tChat,
+body.touch-ui .touch-buttons #tMap,
+body.touch-ui .touch-buttons #tPanel{display:block}
 body.touch-ui .touch.more-open .touch-buttons button{display:block}
-body.touch-ui .touch.more-open .touch-buttons{background:#17130edb;border-radius:10px;padding:5px}
-body.touch-ui .touch-corner{top:145px;opacity:.75}
+body.touch-ui .touch.more-open .touch-buttons{
+  background:#262420e6;border-radius:10px;padding:5px
+}
+body.touch-ui .touch-corner{top:145px;opacity:.8}
 body.touch-ui .touch-corner button{width:43px;height:38px}
 body.touch-ui .tb-status{justify-content:flex-start;max-width:230px}
-body.touch-ui .radial-controls .fav{touch-action:none}
