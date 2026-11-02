@@ -25,8 +25,12 @@ function updateNpcs() {
   for (const n of npcs) {
     const def = n.def;
     if (!def.wander && !def.chatter) continue;
-    finishWalk(n);
-    const watched = players.some(p => !p.dead && p.z === n.z && dist(p, n) <= 10);
+    // A stationary NPC needs no movement work; cheap coordinate checks reject
+    // distant players before the more expensive distance calculation.
+    if (n.walk) finishWalk(n);
+    const watched = players.some(p => !p.dead && p.z === n.z &&
+      Math.abs(p.x - n.x) <= 10 && Math.abs(p.y - n.y) <= 10 &&
+      dist(p, n) <= 10);
     if (!watched) continue;
     if (def.chatter && now >= (n.nextChat || 0)) {
       if (n.nextChat) addSpeech(n, def.chatter[Math.floor(Math.random() * def.chatter.length)], true);
