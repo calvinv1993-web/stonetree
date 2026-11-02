@@ -188,42 +188,46 @@ function toast(text, kind) {
   setTimeout(() => line.remove(), 3500);
 }
 
-// Context-sensitive main action. Combat retains priority over passive nearby objects.
+// Mobile action priority is independent from the button layout.
 function smartActionContext() {
-  if (!player || player.dead) return { kind: 'attack', label: 'Attack' };
-  const target = player.target;
-  if (target && !target.dead && target.z === player.z && dist(target, player) <= 7)
-    return { kind: 'attack', label: 'Attack' };
-  const visible = monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m));
-  if (visible) return { kind: 'attack', label: 'Attack' };
+  if (!player || player.dead) return { kind: 'idle', label: 'Action' };
+  const protectedZone = inPZ();
+  const nearbyMonsters = !protectedZone && monsters.some(m =>
+    !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m));
+  if (nearbyMonsters) return { kind: 'attack', label: 'Attack' };
+
+  // Corpses and ground piles can be reached by pathfinding, even when covered by controls.
+  const nearbyPiles = piles.filter(p => p.z === player.z && p.items && p.items.length &&
+    dist(p, player) <= 7).sort((a, b) => dist(a, player) - dist(b, player));
+  if (nearbyPiles.length) return { kind: 'loot', label: 'Loot', pile: nearbyPiles[0] };
+
   const npc = npcs.filter(n => n.z === player.z && dist(n, player) <= TALK_RANGE)
     .sort((a, b) => dist(a, player) - dist(b, player))[0];
   if (npc) return { kind: 'talk', label: 'Talk', x: npc.x, y: npc.y, z: npc.z };
+
   const nearby = [{ x: player.x, y: player.y, z: player.z }];
   for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++)
     if (dx || dy) nearby.push({ x: player.x + dx, y: player.y + dy, z: player.z });
   for (const t of nearby) {
-    const pile = pileAt(t.x, t.y, t.z);
-    if (pile && pile.items && pile.items.length)
-      return { kind: 'loot', label: 'Loot', ...t };
-  }
-  for (const t of nearby) {
     const tile = map.get(t.x, t.y, t.z);
     if (tile && tile.items && tile.items.some(id => {
       const d = THINGS[id];
-      return d && (d.door || d.chest || d.lever || d.depot || d.readable || d.bookshelf);
+      return d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor ||
+        d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache);
     })) return { kind: 'use', label: 'Use', ...t };
   }
-  return { kind: 'attack', label: 'Attack' };
+  return { kind: protectedZone ? 'idle' : 'attack', label: protectedZone ? 'Action' : 'Attack' };
 }
 function pressSmartAction() {
   const action = smartActionContext();
   if (action.kind === 'attack') Actions.targetNext();
-  else Actions.interact(action.kind === 'talk' ? 'talk' : 'use', action.x, action.y, action.z);
+  else if (action.kind === 'loot') Actions.lootNearest(action.pile.id);
+  else if (action.kind === 'talk' || action.kind === 'use')
+    Actions.interact(action.kind, action.x, action.y, action.z);
 }
 function updateSmartAction() {
   const action = smartActionContext(), button = $('tAttack');
-  const icon = { attack: '⚔', talk: '☏', loot: '▣', use: '✋' };
+  const icon = { attack: '⚔', talk: '💬', loot: '▣', use: '✋', idle: '•' };
   if (button.dataset.action !== action.kind) {
     button.dataset.action = action.kind;
     button.textContent = icon[action.kind];
