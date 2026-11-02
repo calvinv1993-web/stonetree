@@ -188,6 +188,50 @@ function toast(text, kind) {
   setTimeout(() => line.remove(), 3500);
 }
 
+// Context-sensitive main action. Combat retains priority over passive nearby objects.
+function smartActionContext() {
+  if (!player || player.dead) return { kind: 'attack', label: 'Attack' };
+  const target = player.target;
+  if (target && !target.dead && target.z === player.z && dist(target, player) <= 7)
+    return { kind: 'attack', label: 'Attack' };
+  const visible = monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m));
+  if (visible) return { kind: 'attack', label: 'Attack' };
+  const npc = npcs.filter(n => n.z === player.z && dist(n, player) <= TALK_RANGE)
+    .sort((a, b) => dist(a, player) - dist(b, player))[0];
+  if (npc) return { kind: 'talk', label: 'Talk', x: npc.x, y: npc.y, z: npc.z };
+  const nearby = [{ x: player.x, y: player.y, z: player.z }];
+  for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++)
+    if (dx || dy) nearby.push({ x: player.x + dx, y: player.y + dy, z: player.z });
+  for (const t of nearby) {
+    const pile = pileAt(t.x, t.y, t.z);
+    if (pile && pile.items && pile.items.length)
+      return { kind: 'loot', label: 'Loot', ...t };
+  }
+  for (const t of nearby) {
+    const tile = map.get(t.x, t.y, t.z);
+    if (tile && tile.items && tile.items.some(id => {
+      const d = THINGS[id];
+      return d && (d.door || d.chest || d.lever || d.depot || d.readable || d.bookshelf);
+    })) return { kind: 'use', label: 'Use', ...t };
+  }
+  return { kind: 'attack', label: 'Attack' };
+}
+function pressSmartAction() {
+  const action = smartActionContext();
+  if (action.kind === 'attack') Actions.targetNext();
+  else Actions.interact(action.kind === 'talk' ? 'talk' : 'use', action.x, action.y, action.z);
+}
+function updateSmartAction() {
+  const action = smartActionContext(), button = $('tAttack');
+  const icon = { attack: '⚔', talk: '☏', loot: '▣', use: '✋' };
+  if (button.dataset.action !== action.kind) {
+    button.dataset.action = action.kind;
+    button.textContent = icon[action.kind];
+    button.title = action.label;
+    button.setAttribute('aria-label', action.label);
+  }
+}
+
 function initTouch() {
   if (!touchScreen) return;
   document.body.classList.add('touch-ui');
@@ -200,7 +244,7 @@ function initTouch() {
     e.preventDefault();
     if (player && !paused) fn();
   });
-  tap('tAttack', () => Actions.targetNearest());
+  tap('tAttack', pressSmartAction);
   tap('tStop', () => {
     setTouchMode(null);
     if (useWith) cancelUseWith();
@@ -239,6 +283,7 @@ function initTouch() {
   let fightShown = '';
   setInterval(() => {
     if (!player) return;
+    updateSmartAction();
     const fight = `${player.fightMode}|${player.chase}|${player.secure}`;
     if (fight !== fightShown) {
       fightShown = fight;
