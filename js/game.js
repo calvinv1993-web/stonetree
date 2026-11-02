@@ -254,6 +254,11 @@ canvas.addEventListener('pointerdown', e => {
       setTouchMode(null);
       return mode === 'use' ? Actions.interact('use', t.x, t.y, t.z) : look(t.x, t.y, creatureUnder(wx, wy));
     }
+    const source = dragSourceAt(t);
+    if (source) {
+      startDrag(e, source.ref, source.icon, up => clickTile(up, t, wx, wy));
+      return;
+    }
     return touchGesture(e, t, wx, wy);
   }
   const source = e.button === 0 && !e.shiftKey && dragSourceAt(t);
