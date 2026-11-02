@@ -61,11 +61,18 @@ const Actions = {
   },
   // Move to a nearby pile, open it, and collect gold only; all other loot is manual.
   lootNearest(pileId) {
-    const pile = piles.find(p => p.id === pileId);
-    if (!pile || pile.z !== player.z || !pile.items.length) return;
-    player.action = { kind: 'loot', x: pile.x, y: pile.y, z: pile.z, range: 1, pileId };
-    interact(player.action);
-    if (dist(player, pile) <= 1) performAction();
+    const candidates = piles.filter(p => p.z === player.z && p.items.length &&
+      dist(p, player) <= 7).sort((a, b) => dist(a, player) - dist(b, player));
+    // Prefer the closest reachable pile; an inaccessible pile must not block looting.
+    for (const pile of candidates) {
+      if (dist(player, pile) > 1 && !findPath(playerPassable(pile.x, pile.y),
+          player.x, player.y, pile.x, pile.y, { range: 1, stepCost: quickGround }))
+        continue;
+      interact({ kind: 'loot', x: pile.x, y: pile.y, z: pile.z, range: 1, pileId: pile.id });
+      if (dist(player, pile) <= 1) performAction();
+      return;
+    }
+    log('There is no reachable loot nearby.');
   },
   setTarget(id) {
     const c = monsters.find(m => m.id === id && !m.dead) || players.find(p => p.id === id && p !== player && !p.dead);
