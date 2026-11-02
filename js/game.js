@@ -672,6 +672,9 @@ function drawTexts(screen, z) {
 
 // ---- main loop ----------------------------------------------------------------------------
 let lastBars = 0, lastSave = 0, lastError = '';
+// Cap expensive simulation and canvas work without changing elapsed-time gameplay timers.
+const FRAME_INTERVAL = 1000 / 30;
+let lastFrameAt = -Infinity;
 
 // A bug must never stop the game loop: report it in the log and keep going.
 function reportError(err) {
@@ -685,6 +688,8 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
+  if (t - lastFrameAt < FRAME_INTERVAL - 1) return;
+  lastFrameAt = t;
   try {
     if (online()) {
       now = Net.clock();
@@ -720,11 +725,14 @@ function startWorld() {
 
 // Draw the world behind the character creation dialog.
 function startWorldPreview() {
+  let lastPreviewAt = -Infinity;
   const preview = t => {
     if (!paused) return;
+    requestAnimationFrame(preview);
+    if (t - lastPreviewAt < FRAME_INTERVAL - 1) return;
+    lastPreviewAt = t;
     now = t;
     draw();
-    requestAnimationFrame(preview);
   };
   requestAnimationFrame(preview);
 }
