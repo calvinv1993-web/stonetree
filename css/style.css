@@ -638,3 +638,14 @@ body.touch-ui .radial-controls .fav:nth-child(1){left:5px;top:73px}
 body.touch-ui .radial-controls .fav:nth-child(2){left:51px;top:19px}
 body.touch-ui .radial-controls .fav:nth-child(3){left:115px;top:8px}
 body.touch-ui .radial-controls .fav:nth-child(4){right:0;top:70px}
+
+body.touch-ui .attack-btn{right:72px;bottom:64px;width:84px;height:84px;z-index:2;background:#86251fd4;border:3px solid #e8a05b}
+body.touch-ui .radial-controls .fav-page{position:absolute;bottom:15px;width:42px;height:42px;border-radius:50%;font-size:25px;background:#292219d0}
+body.touch-ui .radial-controls .fav-page.prev{left:10px}
+body.touch-ui .radial-controls .fav-page.next{right:8px}
+body.touch-ui .radial-controls .fav-page-label{position:absolute;bottom:23px;left:75px;width:72px;text-align:center;color:#f0d090;background:#191610c9;border-radius:10px;font-size:12px}
+body.touch-ui .bag-btn{right:8px;bottom:270px;width:43px;height:43px}
+body.touch-ui .radial-controls .fav:active{opacity:1}
+body.touch-ui .radial-controls .fav span{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+body.touch-ui .radial-controls .fav small{font-size:9px}
+@media(max-width:360px){body.touch-ui .radial-controls{transform:scale(.88);transform-origin:bottom right}body.touch-ui .joystick{width:108px;height:108px;left:5px}}
