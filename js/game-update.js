@@ -59,6 +59,14 @@ const Actions = {
     if (kind === 'talk' && !npc) return;
     interact({ kind, npc, x, y, z, range: kind === 'talk' ? TALK_RANGE : 1 });
   },
+  // Move to a nearby pile, open it, and collect gold only; all other loot is manual.
+  lootNearest(pileId) {
+    const pile = piles.find(p => p.id === pileId);
+    if (!pile || pile.z !== player.z || !pile.items.length) return;
+    player.action = { kind: 'loot', x: pile.x, y: pile.y, z: pile.z, range: 1, pileId };
+    interact(player.action);
+    if (dist(player, pile) <= 1) performAction();
+  },
   setTarget(id) {
     const c = monsters.find(m => m.id === id && !m.dead) || players.find(p => p.id === id && p !== player && !p.dead);
     if (c && (inPZ() || inPZ(c))) { player.target = null; return log(NOT_IN_PZ); }
@@ -243,7 +251,18 @@ function performAction() {
   const a = player.action;
   player.action = null;
   player.path = [];
-  if (a.kind === 'talk') {
+  if (a.kind === 'loot') {
+    const pile = piles.find(p => p.id === a.pileId);
+    if (!pile || pile.z !== player.z || dist(player, pile) > 1) return;
+    player.openPile = pile;
+    // Collect gold from every reachable adjacent pile; never auto-take equipment or items.
+    for (const nearby of [...piles]) {
+      if (nearby.z !== player.z || dist(player, nearby) > 1) continue;
+      for (let i = nearby.items.length - 1; i >= 0; i--)
+        if (nearby.items[i].id === 'gold') takeFromPile(nearby.id, i);
+    }
+    uiDirty();
+  } else if (a.kind === 'talk') {
     logDialog(player.name, 'hi', true);
     startConversation(a.npc);
   } else if (!useThing(a.x, a.y, a.z)) {
