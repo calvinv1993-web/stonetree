@@ -245,6 +245,7 @@ function initTouch() {
     if (player && !paused) fn();
   });
   tap('tAttack', pressSmartAction);
+  tap('tMore', () => $('touch').classList.toggle('more-open'));
   tap('tStop', () => {
     setTouchMode(null);
     if (useWith) cancelUseWith();
