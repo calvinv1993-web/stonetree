@@ -768,11 +768,12 @@ function putInto(c, item) {
     }
     if (item.count <= 0) return null;
   }
-  if (c.contents.length < capacityOf(c)) {
-    c.contents.push(item);
-    return null;
+  while (c.contents.length < capacityOf(c) && item.count > 0) {
+    const n = ITEMS[item.id].stack ? Math.min(item.count, MAX_STACK) : item.count;
+    c.contents.push({ ...item, count: n });
+    item.count -= n;
   }
-  return item;
+  return item.count > 0 ? item : null;
 }
 
 // Into the bag, or the first bag inside it with room.
@@ -1013,9 +1014,21 @@ function dropToGround(item, pos) {
   if (!p) piles.push((p = { id: newId(), x: pos.x, y: pos.y, z: pos.z, items: [], corpse: null, until: 0 }));
   const h = map.houseAt(pos.x, pos.y, pos.z);
   if (h && h.owner) p.house = h.id; // things in a rented house don't rot away
-  const same = ITEMS[item.id].stack && p.items.find(i => i.id === item.id && i.count < MAX_STACK);
-  if (same) same.count += item.count;
-  else p.items.push(item);
+  // Merge stacks without exceeding MAX_STACK; split the remainder.
+  if (ITEMS[item.id].stack) {
+    for (const same of p.items) {
+      if (same.id !== item.id || same.count >= MAX_STACK) continue;
+      const n = Math.min(item.count, MAX_STACK - same.count);
+      same.count += n;
+      item.count -= n;
+      if (!item.count) break;
+    }
+    while (item.count > 0) {
+      const n = Math.min(item.count, MAX_STACK);
+      p.items.push({ ...item, count: n });
+      item.count -= n;
+    }
+  } else p.items.push(item);
   p.until = Math.max(p.until, now + 5 * 60000);
   uiDirty();
 }
