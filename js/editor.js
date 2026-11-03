@@ -622,6 +622,90 @@
   // ---- input -----------------------------------------------------------------------
   canvas.addEventListener('contextmenu', e => e.preventDefault());
 
+  // Mobile defaults to navigation: one finger pans, two fingers pinch to zoom.
+  // Drawing is opt-in so dragging the map never accidentally paints tiles.
+  let mobileDraw = false, touchGesture = null;
+  const touchMode = $('touchMode');
+  touchMode.addEventListener('click', () => {
+    mobileDraw = !mobileDraw;
+    touchMode.textContent = mobileDraw ? 'Move' : 'Draw';
+  });
+  $('togglePalette').addEventListener('click', () => $('editorBody').classList.toggle('palette-open'));
+  const zoomStep = direction => {
+    const i = ZOOMS.indexOf(ed.zoom);
+    ed.zoom = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i + direction))];
+    updateStatus();
+  };
+  $('zoomIn').addEventListener('click', () => zoomStep(1));
+  $('zoomOut').addEventListener('click', () => zoomStep(-1));
+  const touchPoint = touch => ({ clientX: touch.clientX, clientY: touch.clientY });
+  const touchDistance = touches => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length >= 2) {
+      if (touchGesture?.painting) endStroke();
+      touchGesture = { mode: 'pinch', distance: touchDistance(e.touches), zoom: ed.zoom,
+        camX: ed.camX, camY: ed.camY };
+      return;
+    }
+    const t = e.touches[0];
+    touchGesture = { mode: mobileDraw ? 'draw' : 'pan', sx: t.clientX, sy: t.clientY,
+      camX: ed.camX, camY: ed.camY, last: eventTile(t), painting: false };
+    if (mobileDraw) {
+      if (ed.tool === 'picker') pick(touchGesture.last.x, touchGesture.last.y);
+      else if (['rect', 'outline', 'house', 'select'].includes(ed.tool)) {
+        touchGesture.from = touchGesture.last;
+      } else {
+        beginStroke();
+        touchGesture.painting = true;
+        brushAt(touchGesture.last.x, touchGesture.last.y, ed.tool === 'eraser');
+      }
+    }
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const g = touchGesture;
+    if (!g) return;
+    if (e.touches.length >= 2) {
+      if (g.mode !== 'pinch') {
+        if (g.painting) endStroke();
+        touchGesture = { mode: 'pinch', distance: touchDistance(e.touches), zoom: ed.zoom };
+        return;
+      }
+      const ratio = touchDistance(e.touches) / Math.max(1, g.distance);
+      ed.zoom = ZOOMS.reduce((best, z) => Math.abs(z - g.zoom * ratio) < Math.abs(best - g.zoom * ratio) ? z : best, ZOOMS[0]);
+      return;
+    }
+    if (g.mode === 'pinch') return;
+    const t = e.touches[0];
+    if (g.mode === 'pan') {
+      ed.camX = g.camX - (t.clientX - g.sx) / ed.zoom;
+      ed.camY = g.camY - (t.clientY - g.sy) / ed.zoom;
+    } else {
+      const tile = eventTile(t);
+      if (g.from) g.last = tile;
+      else if (g.painting && (tile.x !== g.last.x || tile.y !== g.last.y)) {
+        line(g.last, tile, (x, y) => brushAt(x, y, ed.tool === 'eraser'));
+        g.last = tile;
+      }
+    }
+  }, { passive: false });
+  const finishTouch = e => {
+    if (e.touches.length) return;
+    const g = touchGesture;
+    touchGesture = null;
+    if (!g) return;
+    if (g.from) {
+      if (ed.tool === 'select') ed.selection = rectOf(g.from, g.last);
+      else if (ed.tool === 'house') addHouse(rectOf(g.from, g.last));
+      else { beginStroke(); fillArea(g.from, g.last, ed.tool === 'outline'); }
+    }
+    if (g.painting || g.from) endStroke();
+  };
+  canvas.addEventListener('touchend', finishTouch, { passive: false });
+  canvas.addEventListener('touchcancel', finishTouch, { passive: false });
+
+
   canvas.addEventListener('mousedown', e => {
     e.preventDefault();
     if (ed.drag) return;
