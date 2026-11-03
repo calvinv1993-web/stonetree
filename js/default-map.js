@@ -700,6 +700,34 @@ function createDefaultMap() {
   sign(33, 35, S, 'signpost', 'Brightwater village. Temple to the north, the smith to the west, Hilda\'s shop to the east, the Seer\'s tower to the south.');
   put(18, 41, S, 'window'); put(20, 41, S, 'window'); put(42, 41, S, 'window'); put(44, 41, S, 'window');
 
+  // Vaelthorne: a protected town core with deliberately controlled exits.
+  // The northern approach surrounds the temple; the wider southern enclosure
+  // keeps the shops, square, cellar entrance and Seer's tower within the walls.
+  // All gates use the editor's existing level-door metadata.
+  const townWall = (x, y) => put(x, y, S, 'wall_stone');
+  for (let x = 23; x <= 39; x++) if (x !== 24) townWall(x, 23);
+  for (let y = 24; y <= 33; y++) { townWall(23, y); townWall(39, y); }
+  for (let x = 13; x <= 22; x++) townWall(x, 33);
+  for (let x = 40; x <= 48; x++) if (x !== 42) townWall(x, 33);
+  for (let y = 34; y <= 53; y++) {
+    if (y !== 38) townWall(13, y);
+    townWall(48, y);
+  }
+  for (let x = 13; x <= 48; x++) if (x !== 21) townWall(x, 54);
+  for (const [x, y, level] of [[24, 23, 2], [42, 33, 5], [13, 38, 6], [21, 54, 8]]) {
+    put(x, y, S, 'door_level');
+    meta(x, y, S, { level });
+  }
+  // A narrow bridge over the northern defensive ditch.
+  for (let y = 20; y <= 22; y++) {
+    m.setGround(23, y, S, 'water');
+    m.setGround(25, y, S, 'water');
+    m.setGround(24, y, S, 'bridge_ns');
+  }
+  // The square and town buildings are a protection zone, not a hunting area.
+  m.zones.push({ x0: 14, y0: 34, x1: 47, y1: 53, z: S });
+  m.zones.push({ x0: 24, y0: 24, x1: 38, y1: 33, z: S });
+
   // The Seer's tower: stairs to the first floor, where the Seer lives
   building({ x0: 28, y0: 47, x1: 34, y1: 52, floor: 'cobble', wall: 'wall_stone', roof: null, doors: [[31, 47]] });
   put(33, 51, S, 'stairs_up'); put(29, 48, S, 'torch');
