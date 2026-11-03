@@ -517,13 +517,17 @@
     const answer = prompt('New map size (width x height x floors):', `${map.width}x${map.height}x${map.depth}`);
     if (!answer) return;
     const [w, h, d] = answer.split(/[^0-9]+/).filter(Boolean).map(Number);
-    if (![w, h, d].every(n => Number.isInteger(n) && n > 0) || w > 512 || h > 512 || d > 16) {
-      alert('Please enter a size like 64x64x8 (at most 512x512x16).');
+    if (![w, h, d].every(n => Number.isInteger(n) && n > 0) || w > 1024 || h > 1024 || d > 16) {
+      alert('Please enter a size like 128x128x8 (at most 1024x1024x16).');
       return;
     }
     if (!confirmReplace()) return;
+    // A new world starts as an ocean on the surface; other floors stay empty.
+    // Large worlds may exceed browser memory or local storage limits.
     const m = new GameMap(w, h, d, Math.floor(d / 2));
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m.setGround(x, y, m.surfaceZ, 'grass');
+    const surface = m.floors[m.surfaceZ];
+    for (let i = 0; i < surface.length; i++) surface[i] = { ground: 'water', items: [] };
+    m.version = GameMap.edits = GameMap.edits + 1;
     loadMap(m);
   });
 
