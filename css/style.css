@@ -704,3 +704,20 @@ body.touch-ui .radial-controls .fav-page{
 body.touch-ui .radial-controls .fav-page.prev{left:61px}
 body.touch-ui .radial-controls .fav-page.next{right:61px}
 body.touch-ui .radial-controls .fav-page-label{bottom:8px;font-size:10px}
+
+/* Mobile map editor: canvas first, compact scrollable tools and touch controls. */
+.mobile-map-controls { display: none; }
+@media (max-width: 760px) {
+  body.editor { height: 100dvh; }
+  .editor .toolbar { flex: 0 0 auto; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 5px; -webkit-overflow-scrolling: touch; }
+  .editor .toolbar .group { flex: 0 0 auto; }
+  .editor .toolbar button { min-height: 38px; }
+  .editor-body { position: relative; }
+  .editor .palette { position: absolute; z-index: 5; left: 0; top: 0; bottom: 0; width: min(80vw, 285px); box-shadow: 4px 0 18px #0008; transform: translateX(-105%); transition: transform .15s; }
+  .editor-body.palette-open .palette { transform: translateX(0); }
+  .editor .canvas-wrap { width: 100%; }
+  .editor #canvas { touch-action: none; }
+  .mobile-map-controls { display: flex; position: absolute; z-index: 6; right: 8px; bottom: 10px; gap: 5px; }
+  .mobile-map-controls button { min-width: 42px; min-height: 44px; background: #262420ee; }
+  .editor .statusbar { min-height: 24px; }
+}
