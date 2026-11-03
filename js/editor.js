@@ -531,6 +531,48 @@
     if (confirmReplace()) loadMap(createDefaultMap());
   });
 
+  // Non-destructive terrain operation: connect the existing starter town and Ashport.
+  // Existing items, buildings, spawns, caves and all other floors remain untouched.
+  $('mergeStarterIsland').addEventListener('click', () => {
+    if (map.width !== 768 || map.height !== 512 || map.depth !== 8 || map.surfaceZ !== 4) {
+      alert('This operation requires the original 768x512x8 world (surface Z=4).');
+      return;
+    }
+    if (!confirm('Connect the starter island to Ashport? Export a backup first. This changes surface terrain and starter-island boundaries, but does not publish the map.')) return;
+    const z = map.surfaceZ;
+    let changed = 0;
+    // Broad, gently meandering neck, safely west of Valoria. Preserve existing structures.
+    for (let y = 65; y <= 89; y++) {
+      const center = 31 + Math.round(2 * Math.sin((y - 65) / 7));
+      const halfWidth = 10 + Math.round(2 * Math.sin((y - 65) * Math.PI / 24));
+      for (let x = center - halfWidth; x <= center + halfWidth; x++) {
+        const tile = map.get(x, y, z);
+        if (!tile || tile.ground !== 'water' || tile.items.length) continue;
+        map.setGround(x, y, z, Math.abs(x - center) >= halfWidth - 2 ? 'sand' : 'grass');
+        changed++;
+      }
+    }
+    // A walkable north-south route through the new neck; never remove placed items.
+    for (let y = 65; y <= 89; y++) {
+      const center = 31 + Math.round(2 * Math.sin((y - 65) / 7));
+      for (let x = center - 1; x <= center + 1; x++) {
+        const tile = map.get(x, y, z);
+        if (tile && ['grass', 'sand', 'water'].includes(tile.ground) && !tile.items.length) {
+          map.setGround(x, y, z, 'dirt');
+        }
+      }
+    }
+    map.isle = { x0: 0, y0: 0, x1: 68, y1: 113 };
+    undoStack = [];
+    redoStack = [];
+    setFloor(z);
+    centerOn(31, 77);
+    scheduleSave();
+    alert('Starter island connected to Ashport (' + changed + ' water tiles reclaimed). Check the new route on Z=4 and export the map before publishing.');
+  });
+
+
+
   $('exportMap').addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(map)], { type: 'application/json' }));
