@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Tilequest Map Editor</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -28,7 +28,7 @@
     </div>
     <div class="group">
       <span class="muted">Floor</span>
-      <button id="mergeStarterIsland" title="Connect starter island and Ashport on the surface; export a backup first">Merge starter + Ashport</button>
+      <button hidden id="mergeStarterIsland" title="Connect starter island and Ashport on the surface; export a backup first">Merge starter + Ashport</button>
       <button id="floorDown" title="Floor down (PageDown)">&#9660;</button>
       <span id="floorLabel" class="floor-label"></span>
       <button id="floorUp" title="Floor up (PageUp)">&#9650;</button>
@@ -43,17 +43,17 @@
     </div>
     <div class="group right">
       <button id="newMap" title="Start an empty map">New</button>
-      <button id="defaultMap" title="Load the built-in demo map">Demo map</button>
+      <button hidden id="defaultMap" title="Load the built-in demo map">Demo map</button>
       <button id="importMap" title="Load a map .json file">Import</button>
       <button id="exportMap" title="Download the map as .json">Export</button>
-      <button id="publishMap" title="Save this map on the game server, so everyone plays on it" hidden>Publish to server</button>
-      <button id="unpublishMap" title="Let the game server play the built-in world again" hidden>Server: built-in world</button>
+      <button hidden id="publishMap" title="Save this map on the game server, so everyone plays on it" hidden>Publish to server</button>
+      <button hidden id="unpublishMap" title="Let the game server play the built-in world again" hidden>Server: built-in world</button>
       <button id="playMap" class="primary" title="Save and play this map">&#9654; Play</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
     </div>
   </header>
 
-  <div class="editor-body">
+  <div class="editor-body" id="editorBody">
     <aside class="palette">
       <div id="selectedName" class="selected"></div>
       <div id="palette"></div>
@@ -72,7 +72,7 @@
       <p class="muted">Teleports, levers, signs and special doors ask for their setting when placed (cyan dot). Houses are green outlines: drag one out with the House tool, then put a house door in its wall.</p>
       <p class="muted">NPC dialogs, shops, quests, items and monsters are edited in the <a href="data.html">data editor</a>.</p>
     </aside>
-    <main class="canvas-wrap"><canvas id="canvas"></canvas></main>
+    <main class="canvas-wrap"><div class="mobile-map-controls"><button id="touchMode" type="button">Draw</button><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="togglePalette" type="button">Tiles</button></div><canvas id="canvas"></canvas></main>
   </div>
   <footer class="statusbar"><span id="status"></span><span id="saveState"></span></footer>
 
