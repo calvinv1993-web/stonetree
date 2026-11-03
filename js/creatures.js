@@ -376,7 +376,7 @@ function skillTries(skill, level, vocation) {
   return Math.round(s.base * VOCATIONS[vocation].rates[s.kind] ** (level - s.start));
 }
 
-const xpForLevel = level => 12 * (level - 1) * level;
+const xpForLevel = level => Math.round((50 / 3) * (level ** 3 - 6 * level ** 2 + 17 * level - 12));
 
 // power: { min: [perLevel, perMagicLevel, perDistance, base], max: [...] }
 function powerRange(p, power) {
