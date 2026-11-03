@@ -2606,5 +2606,24 @@ function createDefaultMap() {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     if (biome[y * W + x] === SWAMP && groundAt(x, y) === 'water' && !m.get(x, y, S).items.length && r() < 0.07) put(x, y, S, 'lilypad');
   }
+  // Published Vaelthorne–Ashport land bridge (map-editor merge, surface only).
+  // Keep every existing object, spawn, teleport and other floor unchanged.
+  for (let y = 65; y <= 89; y++) {
+    const center = 31 + Math.round(2 * Math.sin((y - 65) / 7));
+    const halfWidth = 10 + Math.round(2 * Math.sin((y - 65) * Math.PI / 24));
+    for (let x = center - halfWidth; x <= center + halfWidth; x++) {
+      const tile = m.get(x, y, S);
+      if (!tile || tile.ground !== 'water' || tile.items.length) continue;
+      m.setGround(x, y, S, Math.abs(x - center) >= halfWidth - 2 ? 'sand' : 'grass');
+    }
+  }
+  for (let y = 65; y <= 89; y++) {
+    const center = 31 + Math.round(2 * Math.sin((y - 65) / 7));
+    for (let x = center - 1; x <= center + 1; x++) {
+      const tile = m.get(x, y, S);
+      if (tile && ['grass', 'sand', 'water'].includes(tile.ground) && !tile.items.length) m.setGround(x, y, S, 'dirt');
+    }
+  }
+  m.isle = { x0: 0, y0: 0, x1: 68, y1: 113 };
   return m;
 }
