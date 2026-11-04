@@ -1001,7 +1001,7 @@ const GROUND_COLORS = {
   snow: '#e8eef4', ice: '#b8d6e8', jungle: '#2f6a2a', sandstone: '#c8a868', ash: '#4a4644', lava: '#d04a18',
 };
 const WALL_COLORS = {
-  wall_stone: '#5a5a60', wall_block: '#5a5a60', wall_secret: '#5a5a60', wall_wood: '#5e4026', wall_cave: '#3a322c', wall_sandstone: '#9a7a48',
+  wall_stone: '#5a5a60', wall_temple: '#8a8478', wall_block: '#5a5a60', wall_secret: '#5a5a60', wall_wood: '#5e4026', wall_cave: '#3a322c', wall_sandstone: '#9a7a48',
   cliff: '#5e5446', tree: '#1f4f22', pine: '#1a4426', snow_pine: '#2a5a4a', jungle_tree: '#163a12', palm: '#3a7a2a', dead_tree: '#3a3028',
 };
 

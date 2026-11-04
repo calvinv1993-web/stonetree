@@ -171,6 +171,48 @@ const Sprites = (() => {
       }
     }
   }
+  // A stone wall face: big irregular blocks in dark mortar, each lit along its top. light: how pale.
+  function stoneBlocks(g, r, light, mortar) {
+    rect(g, mortar, 0, 0, TILE, TILE);
+    for (let row = 0; row < 3; row++) {
+      const y = row * 11 - 1;
+      let x = row % 2 ? -8 : -((r() * 5) | 0);
+      while (x < TILE) {
+        const w = 10 + ((r() * 8) | 0), v = light + ((r() * 22) | 0);
+        rect(g, gray(v - 26, 4), x + 1, y + 1, w - 1, 10);
+        rect(g, gray(v, 4), x + 1, y + 1, w - 2, 8);
+        rect(g, gray(v + 22, 4), x + 1, y + 1, w - 2, 1);
+        rect(g, gray(v + 12, 4), x + 1, y + 2, 1, 7);
+        x += w;
+      }
+    }
+  }
+  // A timber wall face: upright planks between dark posts, a beam along the top.
+  function timber(g, r, dark) {
+    rect(g, `rgb(${70 - dark},${42 - dark},${20 - dark})`, 0, 0, TILE, TILE);
+    for (let x = 0; x < TILE; x += 4) {
+      const v = ((r() * 16) | 0) - dark;
+      rect(g, `rgb(${132 + v},${88 + v},${48 + v})`, x, 3, 3, 29);
+      rect(g, `rgb(${150 + v},${104 + v},${60 + v})`, x, 3, 1, 29);
+      if (r() < 0.4) rect(g, `rgb(${104 + v},${66 + v},${34 + v})`, x + 1, 8 + ((r() * 18) | 0), 1, 3); // a knot
+    }
+    for (const x of [0, 16]) { rect(g, `rgb(${84 - dark},${52 - dark},${26 - dark})`, x, 0, 3, TILE); rect(g, `rgb(${110 - dark},${72 - dark},${38 - dark})`, x, 0, 1, TILE); }
+    rect(g, `rgb(${96 - dark},${60 - dark},${30 - dark})`, 0, 0, TILE, 3); rect(g, `rgb(${130 - dark},${88 - dark},${48 - dark})`, 0, 0, TILE, 1);
+  }
+  // A temple wall face: pale carved stone, a frieze of knotwork along the top, blocks below.
+  function carvedStone(g, r, dark) {
+    const c = v => gray(v - dark, 0).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b2, d) => `rgb(${+a + 6},${+b2 + 2},${+d - 10})`);
+    rect(g, c(120), 0, 0, TILE, TILE);
+    rect(g, c(150), 0, 1, TILE, 10); rect(g, c(176), 0, 1, TILE, 1); rect(g, c(110), 0, 10, TILE, 1);
+    for (let x = 0; x < TILE; x += 8) { // the knotwork
+      g.strokeStyle = c(104); g.lineWidth = 1.5;
+      g.beginPath(); g.arc(x + 4, 6, 2.5, 0, Math.PI * 2); g.stroke();
+      rect(g, c(170), x + 3, 3, 1, 1);
+    }
+    for (const [y, off] of [[12, 0], [22, 8]]) for (let x = -off; x < TILE; x += 16) {
+      rect(g, c(140), x + 1, y, 15, 9); rect(g, c(166), x + 1, y, 15, 1); rect(g, c(112), x + 1, y + 8, 15, 1);
+    }
+  }
   // Horizontal logs, so the grain follows the wall in this projection.
   function logs(g, r, dark) {
     for (let y = 0; y < TILE; y += 8) {
@@ -182,13 +224,24 @@ const Sprites = (() => {
   }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
   const WALL_STYLES = {
-    wall_stone: { south: (g, r) => bricks(g, r, 112, '#55555b'), east: (g, r) => bricks(g, r, 78, '#3a3a40'), top: '#9a9aa2' },
-    wall_wood: { south: (g, r) => logs(g, r, 0), east: (g, r) => logs(g, r, 34), top: '#a87a48' },
+    wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
+    wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
+    wall_temple: { south: (g, r) => carvedStone(g, r, 0), east: (g, r) => carvedStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
+  // The tops of walls: dressed stone with a bevel, or a wooden beam.
+  function capStone(g, r, v) {
+    rect(g, gray(v, 4), 0, 0, TILE, TILE);
+    for (let x = 0; x < TILE; x += 8) { rect(g, gray(v - 30, 4), x, 0, 1, TILE); rect(g, gray(v + 18, 4), x + 1, 0, 1, TILE); }
+    for (let i = 0; i < 4; i++) rect(g, gray(v - 16, 4), (r() * 30) | 0, (r() * 30) | 0, 2, 1);
+  }
+  function capWood(g, r) {
+    rect(g, '#8a5a2c', 0, 0, TILE, TILE);
+    for (let y = 0; y < TILE; y += 6) { rect(g, '#a8743e', 0, y, TILE, 1); rect(g, '#6a4220', 0, y + 5, TILE, 1); }
+  }
   function styledWall(g, r, shape, material) {
     const st = WALL_STYLES[material];
-    wallBlock(g, shape, { south: () => st.south(g, r), east: () => st.east(g, r), top: st.top });
+    wallBlock(g, shape, { south: () => st.south(g, r), east: () => st.east(g, r), top: typeof st.top === 'function' ? () => st.top(g, r) : st.top });
   }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
   // the face the wall runs along (south for a wall running east-west, east for
@@ -227,7 +280,7 @@ const Sprites = (() => {
     wallBlock(g, shape, {
       south: alongEast ? () => st.south(g, r) : doorway(() => st.south(g, r), false),
       east: alongEast ? doorway(() => st.east(g, r), true) : () => st.east(g, r),
-      top: st.top,
+      top: typeof st.top === 'function' ? () => st.top(g, r) : st.top,
     });
   }
 
@@ -473,12 +526,14 @@ const Sprites = (() => {
     // A mountain top you can't walk on: bare rock with a few clefts and loose stones.
     // A mountain top you can't walk on: a field of big grey boulders.
     rock_top(g, r) { rockFace(g, r, ROCK.top); },
+    // A red carpet with a gold border and a woven diamond pattern.
     carpet(g) {
-      rect(g, '#8a1a22', 0, 0, TILE, TILE);
-      rect(g, '#a8262e', 3, 0, 26, TILE);
-      rect(g, '#d0a030', 3, 0, 1, TILE);
-      rect(g, '#d0a030', 28, 0, 1, TILE);
-      for (let y = 4; y < TILE; y += 8) rect(g, '#c08a28', 14, y, 4, 4);
+      rect(g, '#7a1418', 0, 0, TILE, TILE);
+      rect(g, '#b02a2c', 3, 0, 26, TILE);
+      for (const x of [3, 28]) rect(g, '#e0a830', x, 0, 1, TILE);
+      for (const x of [1, 30]) rect(g, '#c88a24', x, 0, 1, TILE);
+      for (let y = 0; y < TILE; y += 8) { poly(g, '#d89a30', [16, y, 20, y + 4, 16, y + 8, 12, y + 4]); poly(g, '#8a1a1e', [16, y + 2, 18, y + 4, 16, y + 6, 14, y + 4]); }
+      for (let y = 2; y < TILE; y += 4) { rect(g, '#9a2024', 6, y, 2, 1); rect(g, '#9a2024', 24, y, 2, 1); }
     },
     // Swamp: dark wet ground with a few pools of black water.
     swamp(g, r) {
@@ -506,16 +561,15 @@ const Sprites = (() => {
         }
       }
     },
+    // Marble: big pale slabs, two to a tile, with soft grey veins and bevelled edges.
     marble(g, r) {
-      rect(g, '#d8d4cc', 0, 0, TILE, TILE);
-      for (let i = 0; i < 3; i++) {
-        const x = r() * 32, y = r() * 32;
-        line(g, 'rgba(150,145,140,0.5)', 1, x, y, x + 6 - r() * 12, y + 6 + r() * 6);
+      for (const [x, y] of [[0, 0], [16, 0], [0, 16], [16, 16]]) {
+        const v = 214 + ((r() * 14) | 0);
+        rect(g, `rgb(${v},${v - 4},${v - 12})`, x, y, 16, 16);
+        rect(g, `rgb(${v + 14},${v + 10},${v + 2})`, x, y, 16, 1); rect(g, `rgb(${v + 14},${v + 10},${v + 2})`, x, y, 1, 16);
+        rect(g, `rgb(${v - 40},${v - 44},${v - 52})`, x, y + 15, 16, 1); rect(g, `rgb(${v - 40},${v - 44},${v - 52})`, x + 15, y, 1, 16);
+        if (r() < 0.7) { const vx = x + 3 + r() * 9; line(g, `rgba(140,134,124,0.6)`, 1, vx, y + 2, vx + (r() - 0.5) * 8, y + 13); }
       }
-      rect(g, '#b8b4ac', 0, 0, TILE, 1);
-      rect(g, '#b8b4ac', 0, 16, TILE, 1);
-      rect(g, '#b8b4ac', 0, 0, 1, TILE);
-      rect(g, '#b8b4ac', 16, 0, 1, TILE);
     },
     // A wooden floor: long light planks, their ends staggered, with a dark gap between them.
     wood(g, r) {
@@ -558,12 +612,14 @@ const Sprites = (() => {
         }
       }
     },
+    // Tiled floor: beige and brown squares set as diamonds, each with a lit edge.
     tiles(g, r) {
-      for (let y = 0; y < TILE; y += 8) for (let x = 0; x < TILE; x += 8) {
-        const v = (r() * 10) | 0;
-        rect(g, ((x + y) / 8) % 2 ? `rgb(${168 + v},${136 + v},${100 + v})` : `rgb(${226 + v / 2},${210 + v / 2},${180 + v / 2})`, x, y, 8, 8);
+      rect(g, '#b89870', 0, 0, TILE, TILE);
+      for (let j = -1; j < 3; j++) for (let i = -1; i < 3; i++) {
+        const cx = i * 16 + (j % 2 ? 8 : 0) + 8, cy = j * 8 + 8, light = (i + j) % 2 === 0;
+        poly(g, light ? '#e4d2b0' : '#a07a52', [cx, cy - 8, cx + 8, cy, cx, cy + 8, cx - 8, cy]);
+        line(g, light ? '#f4e8cc' : '#b8916a', 1, cx - 7, cy, cx, cy - 7);
       }
-      for (let i = 0; i < TILE; i += 8) { rect(g, 'rgba(0,0,0,0.12)', i, 0, 1, TILE); rect(g, 'rgba(0,0,0,0.12)', 0, i, TILE, 1); }
     },
     // Gravel: small rounded stones, evenly spread.
     gravel(g, r) {
@@ -604,6 +660,7 @@ const Sprites = (() => {
     // for doors the material of the surrounding wall.
     wall_stone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_stone'),
     wall_wood: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_wood'),
+    wall_temple: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_temple'),
     wall_sandstone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_sandstone'),
     wall_block(g, r) {
       wallBlock(g, 'block', { south: () => bricks(g, r, 104, '#4f4f55'), east: () => bricks(g, r, 72, '#36363c'), top: '#8a8a92' });
@@ -1811,7 +1868,7 @@ const Sprites = (() => {
   const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
-  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, bookshelf: 2 };
+  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 

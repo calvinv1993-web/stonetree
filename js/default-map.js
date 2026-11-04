@@ -145,7 +145,7 @@ const OAKVALE = {
   ],
   square: [[120, 114, 134, 126]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 123, y0: 104, x1: 131, y1: 113, door: [127, 113], floor: 'marble', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 123, y0: 104, x1: 131, y1: 113, door: [127, 113], floor: 'marble', wall: 'wall_temple', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 115, y0: 104, x1: 121, y1: 112, door: [118, 112], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 133, y0: 104, x1: 139, y1: 111, door: [136, 111], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 106, y0: 104, x1: 111, y1: 109, door: [111, 107], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
@@ -843,6 +843,12 @@ function buildTown(m, S, runs, river) {
   for (const [x, y, text] of T.looks) m.setMeta(x, y, S, { look: text });
   { const [x, y, gold] = T.cache; m.set(x, y, S, { ground: 'grass', items: ['cache'] }); m.setMeta(x, y, S, { gold }); }
   sign(...T.firstSteps.slice(0, 2), S, 'signpost', T.firstSteps[2]);
+
+  // Pebbles on the streets and the square, here and there.
+  for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+    const t = m.get(x, y, S);
+    if (t && t.ground === 'cobble' && !t.items.length && hash(x + 11, y + 5) < 0.06) put(x, y, S, 'pebbles');
+  }
 
   // ---- trees, bushes and flowers in the open ground, thicker by the walls and fences ------------------------------
   const busy = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {

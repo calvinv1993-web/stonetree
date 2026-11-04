@@ -67,6 +67,7 @@ const THINGS = {
 
   wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },
+  wall_temple: { name: 'carved stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_sandstone: { name: 'sandstone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_secret: { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin', sprite: 'wall_stone' },
   wall_block:  { name: 'stone block', cat: 'Walls', block: true, wall: 'block' },
