@@ -993,7 +993,8 @@ function buildTown(m, S, runs, river) {
             m.set(x, y, z, { ground: 'wood', items: edge ? ['wall_temple'] : [] });
             if (edge && !corner && (x + y) % 3 === 0) put(x, y, z, 'window');
           } else { // the bell chamber: open all round, pillars carrying the eaves, so the bell can be seen
-            m.set(x, y, z, { ground: 'paving', items: edge && (corner || (x + y) % 2 === 0) ? ['pillar'] : [] });
+            const pillar = edge && y !== bt.y0 && (corner || (x + y) % 2 === 0); // none along the back, behind the bell
+            m.set(x, y, z, { ground: 'paving', items: pillar ? ['pillar'] : [] });
           }
         }
       }
