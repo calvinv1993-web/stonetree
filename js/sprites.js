@@ -146,15 +146,20 @@ const Sprites = (() => {
     rect(g, c.shine, x - rx * 0.45, y - ry * 0.55, Math.max(1, rx * 0.35), 1);
   }
   // A rock face (or a field of rock): boulders of a few sizes, back to front, filling a 32x32 square.
-  function rockFace(g, r, c) {
-    rect(g, c.fill, 0, 0, TILE, TILE);
-    const stones = [];
-    for (let row = 0; row < 2; row++) for (let k = 0; k < 3; k++) {
-      stones.push([k * 15 + (row % 2) * 8 - 3 + r() * 5, row * 16 + 4 + r() * 4, 9 + r() * 4, 7 + r() * 3]);
+  function rockFace(g, r, c, size = TILE) {
+    rect(g, c.dark, 0, 0, size, size); // between the boulders: shaded rock, not a hole
+    // Big boulders scattered freely (not in rows), each also drawn wrapped round the tile's edges so
+    // neighbouring tiles join without a seam; all drawn back to front.
+    const copies = [];
+    for (let i = 0; i < 7 * (size / TILE) ** 2; i++) {
+      const x = r() * size, y = r() * size, rx = 8 + r() * 4, ry = 6.5 + r() * 3;
+      for (const dy of [-size, 0, size]) for (const dx of [-size, 0, size]) {
+        const sx = x + dx, sy = y + dy;
+        if (sx + rx + 2 >= 0 && sx - rx - 2 <= size && sy + ry + 2 >= 0 && sy - ry - 2 <= size) copies.push([sx, sy, rx, ry, i % 4]);
+      }
     }
-    for (let k = 0; k < 2; k++) stones.push([4 + r() * 24, 33, 10, 6]); // the tops of the row below
-    stones.sort((a, b2) => a[1] - b2[1]);
-    stones.forEach(([x, y, rx, ry], i) => boulder(g, x, y, rx, ry, c, (i * 7 + ((r() * 4) | 0)) % 4));
+    copies.sort((a, b2) => a[1] - b2[1]);
+    for (const [x, y, rx, ry, tone] of copies) boulder(g, x, y, rx, ry, c, tone);
   }
   function bricks(g, r, light, mortar) {
     rect(g, mortar, 0, 0, TILE, TILE);
@@ -544,22 +549,27 @@ const Sprites = (() => {
     // Cobblestones: round stones of different greys set in dark mortar, each lit from the top-left.
     // Cobblestones: four rows of big rounded stones in dark mortar, each lit along its top-left.
     // Cobblestones: three rows of big rounded stones in dark mortar, each lit along its top-left.
+    // Cobblestones: three rows of big rounded stones in dark mortar, each lit along its top-left. The
+    // rows meet the next tile without a seam: the top and bottom rows end exactly at the tile's edges,
+    // and the middle row has one stone across each edge, the same on every tile.
     cobble(g, r) {
       rect(g, '#2e2c2a', 0, 0, TILE, TILE);
-      for (let row = 0; row < 3; row++) {
-        const y = row * 11 - 1, h = 10;
-        let x = (row % 2) ? -7 : -1 - ((r() * 4) | 0);
-        while (x < TILE) {
-          const w = 11 + ((r() * 5) | 0), v = 116 + ((r() * 34) | 0);
-          rect(g, gray(v - 34, 2), x + 1, y + 1, w - 1, h);                 // its shaded lower edge
-          rect(g, gray(v, 3), x + 1, y + 1, w - 2, h - 2);
-          rect(g, gray(v + 26, 3), x + 2, y + 1, w - 4, 2);                 // the lit top
-          rect(g, gray(v + 14, 3), x + 1, y + 2, 1, h - 4);
-          if (r() < 0.4) rect(g, gray(v - 18, 2), x + 3 + ((r() * (w - 6)) | 0), y + 4 + ((r() * 3) | 0), 2, 1);
-          for (const [cx, cy] of [[x + 1, y + 1], [x + w - 1, y + 1], [x + 1, y + h], [x + w - 1, y + h]]) rect(g, '#2e2c2a', cx, cy, 1, 1);
-          x += w;
-        }
-      }
+      const stone = (x, y, w, h) => {
+        const v = 116 + ((r() * 34) | 0);
+        rect(g, gray(v - 34, 2), x + 1, y + 1, w - 1, h);
+        rect(g, gray(v, 3), x + 1, y + 1, w - 2, h - 2);
+        rect(g, gray(v + 26, 3), x + 2, y + 1, w - 4, 2);
+        rect(g, gray(v + 14, 3), x + 1, y + 2, 1, h - 4);
+        if (r() < 0.4) rect(g, gray(v - 18, 2), x + 3 + ((r() * (w - 6)) | 0), y + 4 + ((r() * 3) | 0), 2, 1);
+        for (const [cx, cy] of [[x + 1, y + 1], [x + w - 1, y + 1], [x + 1, y + h], [x + w - 1, y + h]]) rect(g, '#2e2c2a', cx, cy, 1, 1);
+      };
+      const row = (y, h, from, to) => { // stones from x = from to x = to, in two or three pieces
+        const cut = r() < 0.5 ? [from + ((to - from) / 2 + (r() - 0.5) * 6) | 0] : [from + ((to - from) / 3) | 0, from + ((2 * (to - from)) / 3) | 0];
+        [from, ...cut, to].reduce((a, b) => (stone(a, y, b - a, h), b));
+      };
+      row(-1, 10, 0, TILE);
+      stone(-6, 10, 12, 10); stone(TILE - 6, 10, 12, 10); row(10, 10, 6, TILE - 6);
+      row(21, 10, 0, TILE);
     },
     // Marble: big pale slabs, two to a tile, with soft grey veins and bevelled edges.
     marble(g, r) {
@@ -1870,6 +1880,8 @@ const Sprites = (() => {
   // Ground tiles get 4 variants each; these get a few as well.
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
+  // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
+  const SEAMLESS = { rock_top: g => rockFace(g, makeRng(hashStr('rock_top')), ROCK.top, 3 * TILE) };
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 
   // --- inventory items --------------------------------------------------------------
@@ -3528,6 +3540,11 @@ const Sprites = (() => {
       const own = customImage(id);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
+      if (SEAMLESS[sprite]) { // a part of one big texture, by position, so neighbouring tiles always fit
+        const k = SEAMLESS[sprite], px = ((x % 3) + 3) % 3, py = ((y % 3) + 3) % 3;
+        const big = cached(`big:${sprite}`, g => k(g), 3 * TILE);
+        return cached(`${sprite}:part:${px}:${py}`, g => g.drawImage(big, -px * TILE, -py * TILE));
+      }
       const variant = hashXY(x, y) % variantsOf(id);
       const anim = ANIMATED[sprite];
       const frame = anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0;

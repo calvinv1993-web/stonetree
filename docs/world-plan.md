@@ -83,28 +83,27 @@ The island is the same size as map A's (about 25,000 walkable tiles). It's built
 
 These are targets for you to approve phase by phase. They're not built yet.
 
-### Phase 3: Oakvale (third version, waiting for approval)
+### Phase 3: Oakvale (fourth version)
 
-The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's closed in on every side, as the old starter towns were:
-- **West:** Willow River.
-- **South and east:** a moat.
-- **North:** rocky hills in two tiers.
-- **All round:** a stone wall inside the water.
+The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's laid out after the reference screenshots and the Rookgaard overview the owner sent:
+- **A ring of water and a wall:** a moat all round with a stone wall inside it, and gates with bridges north, south, east and west.
+- **The river runs through the middle:** Willow River comes in from Mirror Lake in the north, runs south through the town, then turns west and out. That splits the town into three quarters joined by bridges.
+- **Two rocky hills inside the walls,** and small rock patches scattered over the whole island.
 
-The only ways in are three bridges (west, east, south) and a cobbled pass through the hills in the north-west. More rocky hills stand inside the town by the training yard.
+| Quarter | What's there |
+|---|---|
+| North-east | The Temple of the Dawn (129–139, 99–107; **new characters wake at (134, 103)**), the square with the fountain, stalls, well and statue, and the depot |
+| North-west, over the bridge | Oakvale Academy (the oracle is upstairs), Moonpetal Magic, two houses, a vegetable garden, and a chest hidden behind the academy |
+| South, along the main street | The Dented Shield, Hide and Iron, Pip's Provisions, The Warm Loaf, the Sleepy Boar inn, the training yard, the graveyard and two houses |
 
-| What | Where (x, y) | Notes |
-|---|---|---|
-| Town | 98–156, 90–147 | Inside the wall: 105–150, 102–142 |
-| Temple of the Dawn | 123–131, 104–113 | Small, marble (a protection zone): carpet to the altar, banners, torches, pillars, benches. **New characters wake at (127, 111)** |
-| The square | 120–134, 114–126 | Cobbles, a fountain, the founder's statue, market stalls, benches, lamps, the well, a noticeboard |
-| Oakvale Academy | 115–121, 104–112 | 2 floors: a classroom below, the oracle's hall upstairs |
-| Depot and Post | 133–139, 104–111 | Marble (a protection zone), with lockers |
-| Shops | | Moonpetal Magic and The Dented Shield (west side), Hide and Iron (by the depot), Pip's Provisions and The Warm Loaf (south street) |
-| The Sleepy Boar inn | 137–148, 124–135 | 2 floors, with bedrooms upstairs |
-| Training yard | 113–120, 130–140 | Fenced sand with dummies |
-| Houses for rent | | Ivy Cottage, Riverside Cottage, Mill Lane House, Bell Cottage |
-| Graveyard and gardens | | South-east corner |
+**The beginner's route through town:**
+1. Out of the temple onto the square.
+2. The depot next door.
+3. Over the bridge to the academy (the oracle is upstairs).
+4. Back over the footbridge to the shops on the main street.
+5. Out of a gate to the first hunting grounds.
+
+The sewer grates are where the rat sewers will start (phase 5). The guide's texts and the townsfolk who send you along this route come with the NPCs in phase 6.
 
 **Things to discover, and signs that teach the game:**
 - Every shop hangs out a picture sign, so you can tell the trade at a glance: crossed swords for weapons, a shield for armour, a star for magic, bread for food, rope for the general store, an ale mug for the inn, a letter for the depot, a sun for the temple, a book for the academy.
@@ -113,7 +112,7 @@ The only ways in are three bridges (west, east, south) and a cobbled pass throug
 - The old graveyard has seven gravestones with inscriptions, which you read by looking at them. Some are hints.
 - Sewer grates in the streets: "something squeaks down there". These are the sewer entrances, for phase 5.
 - The well and the founder's statue have stories when you look at them.
-- A forgotten chest with 30 gold in a nook behind the magic shop.
+- A forgotten chest with 30 gold in the strip behind the academy.
 
 Every building is a shelter (monsters keep out). All doors, stairs and ladders are checked by `tests/world.test.js`.
 

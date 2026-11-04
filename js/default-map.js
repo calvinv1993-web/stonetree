@@ -16,9 +16,9 @@
 const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
-const MAP_TOWNS = [['Oakvale', 127, 111, 8]];
+const MAP_TOWNS = [['Oakvale', 134, 103, 8]];
 const MAP_SIGHTS = [
-  ['North Peaks', 100, 57, 9], ['Mirror Lake', 146, 88, 8], ['Willow River', 108, 92, 8], ['Wolf Woods', 60, 84, 8],
+  ['North Peaks', 100, 57, 9], ['Mirror Lake', 122, 60, 8], ['Willow River', 121, 76, 8], ['Wolf Woods', 60, 84, 8],
   ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
   ['Lighthouse Point', 128, 204, 8], ['Spider Hills', 178, 196, 9], ['Deer Woods', 176, 112, 8], ['Old Tower', 194, 118, 9],
   ['Goblin Hill', 190, 74, 8], ['Hermit Rock', 202, 48, 9], ['Stony Field', 96, 74, 8],
@@ -44,7 +44,7 @@ const ISLE_DESIGN = {
     [[40, 190], [96, 196], [96, 230], [40, 230]],            // below Bone Rocks
     [[112, 204], [150, 204], [150, 232], [112, 232]],        // Lighthouse Point
   ],
-  town: { x0: 98, y0: 90, x1: 156, y1: 147 },  // Oakvale (the plan is OAKVALE below)
+  town: { x0: 97, y0: 92, x1: 156, y1: 150 },  // Oakvale (the plan is OAKVALE below)
   clearings: [ // kept clear for buildings and camps (phase 4)
     { name: "Fisher's Rest", x0: 42, y0: 170, x1: 56, y1: 182 },
     { name: 'Sunny Fields farm', x0: 112, y0: 150, x1: 126, y1: 160 },
@@ -53,13 +53,13 @@ const ISLE_DESIGN = {
     { name: 'Lumber camp', x0: 56, y0: 96, x1: 66, y1: 104 },
   ],
   lakes: [
-    [[150, 62], [164, 58], [176, 64], [176, 78], [166, 84], [154, 82], [148, 72]], // Mirror Lake
+    [[110, 40], [122, 35], [136, 41], [137, 53], [125, 58], [111, 54], [106, 47]],  // Mirror Lake
+    [[156, 62], [164, 60], [168, 66], [160, 70]],                                 // a pond where the old lake was
     [[136, 166], [144, 164], [146, 172], [138, 174]],                             // a pond in Sunny Fields
     [[180, 136], [188, 134], [190, 142], [182, 144]],                             // a pond in Deer Woods
   ],
   rivers: [
-    { name: 'Willow River', width: 3, line: [[150, 72, 4], [116, 72], [116, 86], [104, 86], [104, 106], [102, 106], [102, 132], [84, 132],
-      [84, 150], [60, 150], [60, 166, 4], [30, 166]] },
+    { name: 'Willow River', width: 3, line: [[121, 56], [121, 125], [84, 125], [84, 150], [60, 150], [60, 166, 4], [30, 166]] },
     { name: 'Deer Brook', width: 2, line: [[186, 142], [186, 156], [204, 156], [204, 170], [228, 170]] },
   ],
   // Mountains: rock walls on the surface, rugged crags on top (one floor up), and on the big ones a
@@ -67,11 +67,17 @@ const ISLE_DESIGN = {
   // leads up from the south, or across the whole top of a hill (walkable).
   mountains: [
     { name: 'North Peaks', outline: [[62, 50], [78, 40], [94, 42], [106, 48], [105, 58], [92, 62], [76, 60]], tiers: 3, ramps: [99] },
-    { name: 'Eagle Peak', outline: [[114, 38], [126, 34], [136, 42], [130, 52], [116, 52]], tiers: 2, ramps: [] },
     { name: 'Bone Rocks', outline: [[62, 178], [80, 174], [92, 182], [90, 198], [74, 202], [62, 194]], tiers: 2, ramps: [76] },
     { name: 'Spider Hills', outline: [[164, 172], [180, 166], [194, 176], [192, 192], [176, 200], [166, 190]], tiers: 3, ramps: [178] },
     { name: 'Old Tower', outline: [[186, 112], [198, 110], [204, 118], [198, 126], [186, 124]], tiers: 1, ramps: [194], walkable: true },
     { name: 'Hermit Rock', outline: [[192, 40], [208, 40], [212, 52], [200, 56], [192, 50]], tiers: 1, ramps: [202], walkable: true },
+  ],
+  // Small rocky outcrops scattered over the island, as on the old maps: [x, y, half width, half height, tiers]
+  rocks: [
+    [150, 76, 6, 4, 2], [166, 80, 4, 3, 1], [158, 48, 4, 3, 1], [205, 98, 4, 4, 1], [214, 142, 4, 5, 2], [196, 154, 5, 3, 1],
+    [160, 140, 4, 3, 1], [112, 198, 5, 3, 2], [106, 182, 4, 3, 1], [72, 158, 4, 3, 1], [50, 152, 4, 4, 2], [78, 96, 4, 3, 1],
+    [52, 78, 4, 4, 2], [74, 72, 3, 3, 1], [142, 158, 4, 3, 1], [112, 156, 3, 2, 1], [208, 186, 4, 3, 1], [190, 206, 4, 3, 1],
+    [82, 210, 4, 3, 1], [44, 196, 4, 3, 1], [172, 100, 4, 3, 1], [184, 44, 4, 3, 1], [146, 44, 3, 3, 1], [94, 142, 3, 3, 1],
   ],
   // Rocky ground with boulders: walkable, open, stony
   stonefields: [
@@ -93,33 +99,38 @@ const ISLE_DESIGN = {
   ],
   meadows: [ // flowery meadows (no trees)
     { name: 'Sunny Fields', outline: [[108, 146], [150, 146], [152, 184], [110, 186]] },
-    { name: 'Lakeside', outline: [[126, 58], [146, 56], [146, 69], [126, 69]] },
+    { name: 'Lakeside', outline: [[108, 60], [132, 60], [132, 74], [108, 74]] },
   ],
   // Roads and trails: straight runs and turns, 2 or 3 wide; where they cross water they become bridges.
   roads: [
-    { name: 'North road', width: 3, line: [[113, 92], [100, 92], [100, 63]] },
-    { name: 'West road', width: 3, line: [[98, 120], [90, 120], [90, 116], [70, 116]] },
-    { name: 'South road', width: 3, line: [[127, 147], [127, 199]] },
-    { name: 'East road', width: 3, line: [[156, 120], [176, 120], [176, 130], [194, 130], [194, 127]] },
+    { name: 'North road', width: 3, line: [[126, 92], [126, 84], [100, 84], [100, 63]] },
+    { name: 'West road', width: 3, line: [[97, 130], [90, 130], [90, 116], [70, 116]] },
+    { name: 'South road', width: 3, line: [[128, 150], [128, 199]] },
+    { name: 'East road', width: 3, line: [[156, 116], [176, 116], [176, 130], [194, 130], [194, 127]] },
   ],
   paths: [
-    { name: 'Lake trail', line: [[113, 90], [113, 88], [146, 88], [146, 86]] },
-    { name: 'Goblin trail', line: [[146, 90], [180, 90], [180, 80], [190, 80], [190, 62], [202, 62], [202, 57]] },
-    { name: 'Spider trail', line: [[170, 120], [170, 152], [152, 152], [152, 203], [178, 203], [178, 201]] },
-    { name: 'Bone trail', line: [[127, 164], [96, 164], [96, 205], [76, 205], [76, 203]] },
+    { name: 'Lake trail', line: [[126, 84], [140, 84], [140, 50], [137, 50]] },
+    { name: 'Goblin trail', line: [[140, 84], [146, 84], [146, 90], [180, 90], [180, 80], [190, 80], [190, 62], [202, 62], [202, 57]] },
+    { name: 'Spider trail', line: [[170, 116], [170, 152], [152, 152], [152, 203], [178, 203], [178, 201]] },
+    { name: 'Bone trail', line: [[128, 164], [96, 164], [96, 205], [76, 205], [76, 203]] },
     { name: 'Fisher trail', line: [[96, 172], [56, 172]] },
     { name: 'Lumber trail', line: [[70, 116], [70, 100], [66, 100]] },
     { name: 'Marsh trail', line: [[70, 116], [56, 116], [56, 130]] },
   ],
 };
 
-// Oakvale, the town: a walled town in water and hills, as the old starter towns were. Willow River
-// runs down its west side and a moat round the south and east, so the only ways in are three bridges
-// and a pass through the rocky hills that close the north; a stone wall runs all round inside the
-// water. In the middle is a small square with the temple on its north side, where new characters wake.
+// Oakvale, the town: a walled town in a ring of water, as the old starter towns were. Willow River
+// comes in from the north and runs through the middle of town before it turns west and out, so the
+// town falls into three quarters joined by bridges:
+//   - north-east: the Temple of the Dawn (where new characters wake), the square and the depot;
+//   - north-west, over the river: the academy (the oracle is upstairs) and the magic shop;
+//   - south: the main street with the smithy, the armourer, the general store, the bakery and the
+//     inn; the training yard and the graveyard.
+// A beginner's first walk takes them through all of it: out of the temple onto the square, to the
+// depot, over the bridge to the academy, then down the main street to the shops and out of a gate.
 //   bounds:    the area the town is built in (cleared first)
 //   moat:      water [x0, y0, x1, y1] (the river's bed through the bounds is kept as well)
-//   hills:     rocky hills { outline, tiers }: rock walls with a rugged top, crags on the highest tier
+//   hills:     rocky hills { outline, tiers }: rock walls with a rugged top
 //   wall:      stone wall pieces [x0, y0, x1, y1]; gaps: where the gates are
 //   streets:   { line, width, ground }, drawn like the roads outside; bridges where they cross water
 //   square:    the town square, as rectangles [x0, y0, x1, y1]
@@ -128,92 +139,97 @@ const ISLE_DESIGN = {
 //   houses:    the buildings players can rent, with their rent
 //   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
-  bounds: { x0: 98, y0: 90, x1: 156, y1: 147 },
-  moat: [[101, 134, 104, 145], [101, 143, 153, 145], [151, 111, 153, 145]],
+  bounds: { x0: 97, y0: 92, x1: 156, y1: 150 },
+  moat: [[98, 93, 155, 95], [98, 147, 155, 149], [98, 93, 100, 149], [153, 93, 155, 149]],
   hills: [
-    { outline: [[115, 91], [133, 89], [150, 90], [156, 95], [156.9, 110.9], [150, 110.9], [146.9, 104], [140, 102.9], [115, 102.9]], tiers: 2 },
-    { outline: [[106, 136.5], [109, 135.5], [112, 138], [112.9, 141.9], [106, 141.9]], tiers: 1 },
+    { outline: [[147.5, 96.5], [151.9, 96.5], [151.9, 113.9], [149, 112], [147.5, 105]], tiers: 1 },
+    { outline: [[101.5, 135], [105, 134.5], [106.9, 138], [106.9, 145.9], [101.5, 145.9]], tiers: 1 },
   ],
-  wall: [[105, 102, 111, 102], [105, 102, 105, 142], [105, 142, 150, 142], [150, 111, 150, 142]],
-  gaps: [[105, 119, 105, 121], [126, 142, 128, 142], [150, 119, 150, 121]],
-  start: { x: 127, y: 111 }, // in the temple, before the altar
+  wall: [[101, 96, 152, 96], [101, 146, 152, 146], [101, 96, 101, 146], [152, 96, 152, 146]],
+  gaps: [[125, 96, 127, 96], [127, 146, 129, 146], [101, 129, 101, 131], [152, 115, 152, 117]],
+  start: { x: 134, y: 103 }, // in the temple, before the altar
   streets: [
-    { line: [[113, 90], [113, 116], [120, 116]], width: 3, ground: 'cobble' },  // in through the pass
-    { line: [[120, 120], [98, 120]], width: 3, ground: 'cobble' },              // west, over the river
-    { line: [[134, 120], [156, 120]], width: 3, ground: 'cobble' },             // east, over the moat
-    { line: [[127, 126], [127, 147]], width: 3, ground: 'cobble' },             // south, over the moat
+    { line: [[126, 92], [126, 108]], width: 3, ground: 'cobble' },              // from the north gate to the square
+    { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
+    { line: [[97, 130], [151, 130]], width: 3, ground: 'cobble' },              // the main street, from the west gate
+    { line: [[146, 116], [156, 116]], width: 3, ground: 'cobble' },             // to the east gate
+    { line: [[111, 116], [123, 116]], width: 3, ground: 'cobble' },             // over the bridge to the academy
+    { line: [[110, 107], [110, 130]], width: 3, ground: 'cobble' },             // the academy lane, over the footbridge
   ],
-  square: [[120, 114, 134, 126]],
+  square: [[123, 108, 146, 121]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 123, y0: 104, x1: 131, y1: 113, door: [127, 113], floor: 'marble', wall: 'wall_temple', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 115, y0: 104, x1: 121, y1: 112, door: [118, 112], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 133, y0: 104, x1: 139, y1: 111, door: [136, 111], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
-    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 106, y0: 104, x1: 111, y1: 109, door: [111, 107], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
-    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 141, y0: 105, x1: 146, y1: 111, door: [143, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
-    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 106, y0: 123, x1: 111, y1: 128, door: [108, 123], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
-    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 137, y0: 124, x1: 148, y1: 131, wings: [[137, 132, 141, 135]], door: [142, 124], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 130, y0: 129, x1: 135, y1: 134, door: [130, 131], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods. Every adventurer needs a rope and a shovel.' },
-    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 130, y0: 136, x1: 135, y1: 140, door: [130, 138], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread, cheese and ham. Eat to get your health and mana back faster.' },
-    { id: 'house1', name: 'Ivy Cottage', kind: 'house', x0: 141, y0: 113, x1: 148, y1: 117, door: [141, 115], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
-    { id: 'house2', name: 'Riverside Cottage', kind: 'house', x0: 106, y0: 111, x1: 111, y1: 116, door: [111, 114], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
-    { id: 'house3', name: 'Mill Lane House', kind: 'house', x0: 106, y0: 130, x1: 111, y1: 133, door: [111, 132], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
-    { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 114, y0: 123, x1: 119, y1: 127, door: [119, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 129, y0: 99, x1: 139, y1: 107, door: [134, 107], floor: 'marble', wall: 'wall_temple', roof: 'roof_slate', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 141, y0: 99, x1: 146, y1: 105, door: [141, 102], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 103, y0: 98, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
+    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 102, y0: 109, x1: 107, y1: 116, door: [107, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
+    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 131, y0: 122, x1: 137, y1: 127, door: [134, 127], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
+    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 140, y0: 122, x1: 146, y1: 127, door: [143, 127], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
+    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 133, x1: 122, y1: 138, door: [119, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods. Every adventurer needs a rope and a shovel.' },
+    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 116, y0: 140, x1: 121, y1: 145, door: [121, 142], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread, cheese and ham. Eat to get your health and mana back faster.' },
+    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 131, y0: 133, x1: 140, y1: 140, wings: [[131, 141, 135, 144]], door: [135, 133], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
+    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 118, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 113, y0: 118, x1: 118, y1: 122, door: [113, 120], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
+    { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 143, y0: 133, x1: 148, y1: 137, door: [145, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 147, y0: 118, x1: 151, y1: 123, door: [147, 120], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
   ],
-  houses: { house1: 450, house2: 350, house3: 400, house4: 350 },
+  houses: { house1: 350, house2: 400, house3: 450, house4: 350 },
   // Fenced gardens: vegetable rows (crops on farmland) or flower beds; gate: the gap in the fence.
   gardens: [
-    { x0: 143, y0: 133, x1: 148, y1: 140, kind: 'crops', gate: [143, 136] },
-    { x0: 122, y0: 129, x1: 124, y1: 140, kind: 'flowers' },
+    { x0: 102, y0: 118, x1: 107, y1: 122, kind: 'crops', gate: [107, 120] },
+    { x0: 123, y0: 134, x1: 125, y1: 139, kind: 'flowers' },
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
-  graveyard: { x0: 136, y0: 136, x1: 141, y1: 141, gate: [141, 138], stones: [
-    [138, 138, 'Here lies Old Wim, who went down the well for a bet.'],
-    [140, 138, 'An adventurer who never bought a rope.'],
-    [138, 140, 'Sir Galen. He said the rats in the cellar were "only rats".'],
-    [140, 140, 'No name. Only the words: "the hills remember".'],
+  graveyard: { x0: 142, y0: 139, x1: 151, y1: 145, gate: [142, 142], stones: [
+    [144, 141, 'Here lies Old Wim, who went down the well for a bet.'],
+    [146, 141, 'An adventurer who never bought a rope.'],
+    [148, 141, 'Bertha Oakhart. She fed the town through the long winter.'],
+    [144, 143, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [146, 143, 'Taken by the spiders of the hills. Go well armed, friend.'],
+    [148, 143, 'No name. Only the words: "the hills remember".'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
-  grates: [[113, 110], [140, 120], [127, 136], [108, 120]],
+  grates: [[130, 110], [140, 129], [110, 128], [127, 141]],
   grateLook: 'Something squeaks and scratches down there in the dark.',
   // Things with something to say when you look at them: [x, y, text]
   looks: [
-    [121, 114, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
-    [133, 125, 'Tamsin Oakhart, who built the first house by the river, and the bridge after it.'],
+    [124, 110, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
+    [140, 119, 'Tamsin Oakhart, who built the first house by the river, and the bridge after it.'],
   ],
-  // A forgotten chest for whoever explores the nook behind the magic shop: [x, y, gold]
-  cache: [106, 103, 30],
+  // A forgotten chest for whoever explores the strip behind the academy: [x, y, gold]
+  cache: [102, 97, 30],
   // The training yard: a fenced sandy yard with dummies.
-  yard: { x0: 113, y0: 130, x1: 120, y1: 140, gate: [116, 130] },
+  yard: { x0: 108, y0: 134, x1: 114, y1: 144, gate: [111, 134] },
   paths: [
-    [[118, 113], [118, 113]], [[136, 112], [136, 113]], [[143, 112], [143, 112]],  // academy, depot, armourer
-    [[112, 107], [112, 107]], [[112, 114], [112, 114]],                            // magic shop, Riverside Cottage
-    [[140, 115], [139, 115], [139, 118]],                                          // Ivy Cottage
-    [[142, 122], [142, 123]],                                                      // the inn
-    [[129, 131], [129, 131]], [[129, 138], [129, 138]],                            // general store, bakery
-    [[108, 122], [108, 122]], [[112, 132], [112, 128]],                // smithy, Mill Lane House
-    [[120, 125], [120, 125]], [[116, 129], [116, 128], [121, 128], [121, 127]],    // Bell Cottage, the training yard
-    [[142, 132], [142, 141]],                                                      // between the graveyard and the garden
-    [[106, 103], [112, 103]],                                                      // the nook behind the magic shop
+    [[140, 103], [140, 107]],                   // the depot, from the square
+    [[112, 111], [112, 111]], [[112, 120], [112, 120]], [[108, 112], [108, 112]], // the houses and the magic shop on the lane
+    [[134, 128], [134, 128]], [[143, 128], [143, 128]],                          // the smithy and the armourer
+    [[119, 132], [119, 132]], [[135, 132], [135, 132]], [[145, 132], [145, 132]], // the general store, the inn, Ivy Cottage
+    [[122, 142], [126, 142]],                   // the bakery
+    [[141, 132], [141, 142]],                   // to the graveyard
+    [[111, 132], [111, 133]],                   // the training yard
+    [[146, 120], [146, 120]],                   // Bell Cottage
+    [[117, 97], [117, 106], [112, 106]],        // the strip behind the academy
   ],
   // Things standing about: [x, y, id]
   props: [
-    [121, 114, 'well'], [122, 108, 'barrel'], [122, 109, 'crate'], [140, 113, 'firewood'], [132, 113, 'apple_crate'],
-    [112, 125, 'firewood'], [112, 126, 'barrel'], [146, 122, 'barrel'], [147, 122, 'crate'], [136, 135, 'wagon'],
-    [131, 116, 'stall'], [132, 116, 'apple_crate'], [121, 124, 'stall'], [121, 125, 'sack'], [148, 118, 'haystack'],
+    [124, 110, 'well'], [123, 119, 'barrel'], [123, 120, 'crate'], [131, 119, 'stall'], [132, 119, 'apple_crate'],
+    [137, 119, 'stall'], [138, 119, 'sack'], [148, 128, 'barrel'], [149, 128, 'crate'], [150, 128, 'firewood'],
+    [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
   ],
-  lamps: [[112, 103], [114, 103], [106, 118], [106, 122], [149, 118], [149, 122], [125, 141], [129, 141], [120, 114], [134, 114], [120, 126], [134, 126]],
-  benches: [[123, 118], [131, 118], [123, 123], [131, 123]],
-  planters: [[125, 114], [129, 114]],
-  fountain: [126, 119],
-  statue: [133, 125],
+  lamps: [[124, 97], [128, 97], [126, 145], [130, 145], [102, 128], [102, 132], [151, 114], [151, 118], [123, 108], [146, 108],
+    [123, 121], [109, 107], [112, 123], [112, 127]],
+  benches: [[126, 112], [142, 112], [126, 118], [142, 118]],
+  planters: [[132, 108], [136, 108]],
+  fountain: [134, 113],
+  statue: [140, 119],
   signs: [
-    [115, 89, 'North: the North Peaks and Mirror Lake. South: Oakvale.'],
-    [99, 117, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
-    [156, 117, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
-    [125, 147, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
+    [124, 91, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
+    [96, 128, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
+    [156, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
+    [126, 150, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
   ],
-  notice: [130, 114, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
-  firstSteps: [124, 115, 'First steps: the depot is east of the temple, the shops are round the square and along the streets, and the academy is next door. Fight rats first, then the wolves of the woods. Look at things: many have a story.'],
+  notice: [130, 108, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  firstSteps: [138, 108, 'First steps: the depot is just east of the temple. Over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Fight rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
 function createDefaultMap() {
@@ -407,7 +423,10 @@ function createDefaultMap() {
     return new Set([...raw].filter(i => [1, -1, W, -W].filter(o => raw.has(i + o)).length >= 3));
   };
   const ramps = [];
-  for (const mount of d.mountains) {
+  const outcrops = d.rocks.map(([cx, cy, rx, ry, tiers]) => ({
+    outline: Array.from({ length: 12 }, (_, k) => [cx + Math.cos(k * Math.PI / 6) * rx, cy + Math.sin(k * Math.PI / 6) * ry]), tiers, ramps: [],
+  }));
+  for (const mount of [...d.mountains, ...outcrops]) {
     const base = shape(mount.outline, 71);
     // Where the path up comes out: the bottom of the ramp column on the south edge.
     const way = mount.ramps.length > 0; // a mountain without a path up is rugged rock all over
@@ -528,7 +547,7 @@ function createDefaultMap() {
       else if (flowers > 0.72 && v < 0.12) put(x, y, S, 'flowers');
       else if (grassy > 0.68 && v < 0.14) put(x, y, S, v < 0.08 ? 'tallgrass' : 'grass_tuft');
       else if (!meadow[i] && grove > 0.7 && v < 0.26) put(x, y, S, v < 0.16 ? 'tree' : 'bush');
-      else if (!meadow[i] && v < 0.06 + grove * 0.12) put(x, y, S, v < 0.045 ? 'pine' : v < 0.075 ? 'bush' : 'tree'); // firs and bushes everywhere
+      else if (!meadow[i] && v < 0.09 + grove * 0.2) put(x, y, S, v < 0.07 ? 'pine' : v < 0.1 ? 'bush' : 'tree'); // firs and bushes everywhere
       else if (v < 0.006) put(x, y, S, 'grass_tuft');
       else if (v < 0.008) put(x, y, S, 'rock');
     } else if (t.ground === 'mountain') {
