@@ -13,7 +13,8 @@ const DY = [-1, 0, 1, 0];
 //   change:   stepping here moves you one floor up (+1) or down (-1)
 //   light:    light radius in tiles (in the dark: underground and at night)
 //   chest:    a quest chest that gives its reward once per character:
-//             { flag, quest?, requires?, gold?, items: [[itemId, count]], locked? }
+//             { flag, quest?, requires?, gold?, items: [[itemId, count]], locked?, empty? (what it says once taken) }
+//   bell:     the temple bell: use it to ring it, once it has its clapper back (ringBell)
 //             Chests sharing a flag are a "pick one" choice.
 //   sprite:   draw with another thing's sprite
 //   toggle:   using it turns it into this thing (doors)
@@ -174,6 +175,7 @@ const THINGS = {
   throne:      { name: 'throne', cat: 'Furniture', block: true, low: true },
   statue:      { name: 'old statue', cat: 'Furniture', block: true, tall: true },
   well:        { name: 'well', cat: 'Furniture', block: true, low: true },
+  temple_bell: { name: 'temple bell', cat: 'Furniture', block: true, low: true, bell: true },
   anvil:       { name: 'anvil', cat: 'Furniture', block: true, low: true },
 
   // In and around towns. A fountain takes 2x2 tiles: the fountain on the bottom-right one, its rim on the others.
@@ -239,6 +241,13 @@ const THINGS = {
   loose_sand:  { name: 'loose sand', cat: 'Mechanisms', digSpot: true },
   cracked_rock:{ name: 'cracked rock', cat: 'Mechanisms', block: true, breakable: true },
 
+  // The Silent Bell: the bell rope hanging down into the old cellar under the temple, cut and gnawed.
+  bell_rope: {
+    name: 'bell rope', cat: 'Quest chests',
+    chest: { flag: 'bell_rope', requires: 'bell_2', items: [['chewed_rope', 1], ['carved_stone', 1]],
+      locked: 'A rope hangs down through a hole in the ceiling. Its end is gnawed to shreds. Rats, probably.',
+      empty: 'The rest of the bell rope hangs from the hole in the ceiling, out of reach.' },
+  },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',
     chest: { flag: 'parcel', requires: 'lost_parcel', items: [['parcel', 1]], locked: 'The crate is nailed shut. Maybe someone is looking for it?' },

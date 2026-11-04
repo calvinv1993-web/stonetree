@@ -175,6 +175,9 @@ const ITEMS = {
 
   parcel:        { name: "Hilda's parcel", quest: true, weight: 20 },
   old_sock:      { name: 'old sock', quest: true, weight: 1 },
+  chewed_rope:   { name: 'chewed bell rope', quest: true, weight: 6 },   // The Silent Bell, from the bell cellar
+  carved_stone:  { name: 'strange carved stone', quest: true, weight: 8,
+    text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },
   ember_seal:    { name: 'Ember Seal', slot: 'neck', armor: 4, quest: true, weight: 3 }, // reforged in the Ember Seal story
   // forging ore, from common to legendary

@@ -467,7 +467,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder']);
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'temple_bell', 'bell_rope']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
@@ -1359,6 +1359,49 @@ const Sprites = (() => {
       prism(g, 2, 15, 30, 20, 34, 36, wood);
       const [rx, ry] = P(16, 18, 34); line(g, '#c0b090', 1, rx, ry, x, y);
       prism(g, 1, 15, 31, 20, 38, 40, { top: '#a03a2a', south: '#7a2a1e', east: '#5e1e14', edge: '#c85a44' }); // the little roof
+    },
+    // The bell of Oakvale in its wooden frame: the frame stands in the tiles' slant; the bronze bell hangs upright
+    // from its crossbeam (as figures stand upright), with no clapper and only a cut stub of rope.
+    temple_bell(g) {
+      floorShadow(g, 14, 3);
+      const wood = { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' };
+      prism(g, 3, 15, 6, 18, 0, 50, wood);
+      const [hx, hy] = P(16, 16.5, 48);
+      const grad = g.createLinearGradient(hx - 10, 0, hx + 10, 0);
+      grad.addColorStop(0, '#8a6020'); grad.addColorStop(0.3, '#f4d070'); grad.addColorStop(0.6, '#c08a30'); grad.addColorStop(1, '#5a3a0c');
+      rect(g, '#5a3a0c', hx - 1, hy, 2, 3); // the crown
+      g.fillStyle = grad;
+      g.beginPath();
+      g.moveTo(hx - 4, hy + 3);
+      g.quadraticCurveTo(hx - 6, hy + 4, hx - 6.5, hy + 10);
+      g.quadraticCurveTo(hx - 7, hy + 16, hx - 10, hy + 18);
+      g.lineTo(hx + 10, hy + 18);
+      g.quadraticCurveTo(hx + 7, hy + 16, hx + 6.5, hy + 10);
+      g.quadraticCurveTo(hx + 6, hy + 4, hx + 4, hy + 3);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = '#4a2e08'; g.lineWidth = 1; g.stroke();
+      rect(g, 'rgba(90,58,12,0.7)', hx - 7, hy + 14, 14, 1); // a band round it
+      ellipse(g, '#2a1a06', hx, hy + 18, 9, 2); // the empty mouth: no clapper
+      line(g, '#b89a68', 2, hx + 3, hy + 18, hx + 3, hy + 23); // the cut rope
+      line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 1, hy + 25); line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 5, hy + 25);
+      prism(g, 26, 15, 29, 18, 0, 50, wood);
+      prism(g, 2, 14, 30, 19, 48, 52, wood); // the crossbeam
+    },
+    // The temple bell's rope, hanging down through a hole in the cellar ceiling; its end lies gnawed on the floor.
+    bell_rope(g) {
+      const hole = [...P(11, 9, 54), ...P(21, 9, 54), ...P(21, 19, 54), ...P(11, 19, 54)];
+      poly(g, '#0a0806', hole);
+      const [tx, ty] = P(16, 14, 54), [bx, by] = P(16, 14, 4);
+      line(g, '#7a6040', 3, tx, ty, bx, by);
+      line(g, '#c0a070', 1, tx - 1, ty, bx - 1, by);
+      // the end, coiled on the floor and chewed to threads
+      ellipse(g, 'rgba(0,0,0,0.25)', 64 + 17, 64 + 18, 9, 4);
+      g.strokeStyle = '#a8865a'; g.lineWidth = 2.5;
+      g.beginPath(); g.ellipse(64 + 16, 64 + 17, 7, 3.5, 0, 0.3, Math.PI * 1.9); g.stroke();
+      g.strokeStyle = '#d0b080'; g.lineWidth = 1;
+      g.beginPath(); g.ellipse(64 + 16, 64 + 16.5, 7, 3.5, 0, 0.3, Math.PI * 1.2); g.stroke();
+      for (const [dx, dy] of [[0, 0], [3, 1], [5, -1], [2, 3]]) line(g, '#e0c898', 1, 64 + 22, 64 + 17, 64 + 24 + dx, 64 + 18 + dy);
     },
     tallgrass(g, r) {
       for (let i = 0; i < 9; i++) {
@@ -2462,6 +2505,23 @@ const Sprites = (() => {
     wolf_pelt(g) {
       poly(g, '#7a7a7a', [5, 10, 12, 6, 20, 7, 27, 11, 28, 20, 24, 27, 16, 25, 8, 27, 4, 20]);
       poly(g, '#9a9a9a', [9, 11, 16, 9, 23, 12, 22, 20, 12, 21]);
+    },
+    chewed_rope(g) {
+      g.strokeStyle = '#a8865a';
+      g.lineWidth = 3;
+      for (let i = 0; i < 2; i++) { g.beginPath(); g.ellipse(15, 18, 10 - i * 4, 7 - i * 3, 0, 0, Math.PI * 2); g.stroke(); }
+      line(g, '#a8865a', 3, 24, 18, 27, 10);
+      for (const [x, y] of [[25, 6], [28, 6], [30, 9], [26, 8]]) line(g, '#e0c898', 1, 27, 10, x, y); // gnawed threads
+      line(g, '#6a4a2a', 1, 21, 14, 27, 12); // and a clean cut
+    },
+    carved_stone(g) {
+      shadow(g, 16, 26, 11, 3);
+      ellipse(g, '#6e6e6a', 16, 18, 12, 9);
+      ellipse(g, '#8e8e88', 15, 17, 11, 8);
+      g.strokeStyle = '#4a4a46'; g.lineWidth = 1;
+      for (const [cx, cy] of [[9, 16], [23, 16]]) { g.beginPath(); for (let a = 0; a < 10; a += 0.4) g.lineTo(cx + Math.cos(a) * a * 0.35, cy + Math.sin(a) * a * 0.3); g.stroke(); }
+      ellipse(g, '#d8d4c8', 16, 16, 3.5, 3.5); // the little skull
+      rect(g, '#3a3a36', 14, 15, 1, 2); rect(g, '#3a3a36', 17, 15, 1, 2); rect(g, '#d8d4c8', 14, 19, 4, 1);
     },
     old_sock(g) {
       poly(g, '#d8d0b8', [11, 4, 19, 4, 19, 19, 24, 22, 24, 27, 13, 27, 11, 22]);

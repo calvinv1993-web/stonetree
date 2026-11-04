@@ -477,6 +477,7 @@ function useThing(x, y, z) {
     }
     if (def.fireSwap) return swapFire(x, y, z, i), true;
     if (def.chest) return openChest(def.chest), true;
+    if (def.bell) return ringBell(x, y, z), true;
     if (def.cache) return openChest({ flag: `cache:${x},${y},${z}`, ...(map.getMeta(x, y, z) || {}) }), true;
     if (def.change) {
       // Climb (or go down) from where you stand, as if you stepped onto it.
@@ -495,6 +496,13 @@ function useThing(x, y, z) {
   }
   if (t.ground === 'water') return log('You could fish here with a fishing rod.'), true;
   return false;
+}
+
+// The temple bell of Oakvale: silent until its clapper is back (The Silent Bell).
+function ringBell(x, y, z) {
+  if (questState('bell_3') !== 'done') return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
+  addSound('bell', x, y, z);
+  log('Dong... dong... The bell of Oakvale rings out over the town.');
 }
 
 function showText(title, text) {
@@ -1224,8 +1232,10 @@ function onMonsterKilled(type) {
 function openChest(chest) {
   if (player.chests[chest.flag]) {
     // Lost what a quest still needs (an unblessed death, long ago)? It's back in the chest.
-    const lost = chest.requires && questState(chest.requires) === 'active' ? (chest.items || []).filter(([id]) => ITEMS[id].quest && !countItem(id)) : [];
-    if (!lost.length) return log('It is empty.');
+    // (only what the quest still asks for: not what you have already handed in)
+    const req = chest.requires, ahead = req && questState(req) === 'active' ? questSteps(QUESTS[req]).slice(player.quests[req].step || 0).map(st => st.fetch) : [];
+    const lost = (chest.items || []).filter(([id]) => ITEMS[id].quest && ahead.includes(id) && !countItem(id));
+    if (!lost.length) return log(chest.empty || 'It is empty.');
     for (const [id, n] of lost) giveItem(id, n);
     return log(`You found ${lost.map(([id, n]) => itemName(id, n)).join(' and ')} again.`, 'quest');
   }

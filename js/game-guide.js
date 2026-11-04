@@ -58,6 +58,18 @@ const GUIDE = [
     done: () => !!player.shopNpc,
   },
   {
+    text: 'Sister Ama has more to ask about the silent bell. Once you are level 2, go back to her in the temple and ask about the bell.',
+    touch: 'Sister Ama has more to ask about the silent bell. Once you are level 2, go back to her in the temple and ask about the bell.',
+    target: [{ npc: 'ama' }],
+    done: () => questState('bell_2') !== 'none',
+  },
+  {
+    text: 'Climb down the grate on the square, below the temple steps, and follow the tunnel north to the bell cellar. Right-click the rope that hangs there. It is dark: say "lumen" for light.',
+    touch: 'Step onto the grate on the square, below the temple steps, and follow the tunnel north to the bell cellar. Long-press the rope that hangs there. It is dark: say "lumen" for light.',
+    target: [{ quest: 'bell_2' }, { at: [141, 103, 7] }, { at: [131, 111, 8] }],
+    done: () => questState('bell_2') === 'done',
+  },
+  {
     text: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
     touch: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
     target: [{ npc: 'oak_oracle', level: 10 }],

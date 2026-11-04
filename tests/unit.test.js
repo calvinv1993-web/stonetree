@@ -1283,6 +1283,36 @@ test('the sewers: a street grate takes you down to the rats, the ladder under it
   assert(below.some(s => s.type === 'giant_rat'), 'and giant rats in their nest');
 });
 
+test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt seal for Corwin', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
+  const rope = map.get(141, 103, 7);
+  assert(rope && rope.items.includes('bell_rope'), 'the bell rope hangs in the cellar under the temple bell');
+  assert(map.get(142, 103, 9).items.includes('temple_bell'), 'the bell stands in the temple above it');
+  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  talk(136, 102, 9, 'bell');
+  assert.strictEqual(state.questState('bell_2'), 'none', 'not at level 1');
+  ctx.useThing(141, 103, 7);
+  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope gives nothing before the quest');
+  p.level = 2;
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_2'), 'active');
+  ctx.useThing(141, 103, 7);
+  assert(state.countItem('chewed_rope') === 1 && state.countItem('carved_stone') === 1, 'the cut rope and the strange stone');
+  talk(136, 102, 9, 'rope');
+  assert.strictEqual(p.quests.bell_2.step, 1, 'Ama takes the rope');
+  assert.strictEqual(state.countItem('chewed_rope'), 0);
+  ctx.useThing(141, 103, 7);
+  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope Ama keeps does not come back');
+  talk(112, 103, 8, 'stone');
+  assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the stone');
+  assert(messages.some(m => /Bone Rocks/.test(m)), 'and sends you to Bone Rocks');
+  ctx.useThing(142, 103, 9);
+  assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

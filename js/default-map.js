@@ -267,14 +267,15 @@ const SEWERS = {
   channels: [[104, 130, 147, 130], [132, 108, 132, 129], [126, 131, 126, 144]],
   bridges: [[112, 130], [120, 130], [138, 130], [145, 130], [132, 128], [132, 129], [132, 117], [126, 131], [126, 132], [126, 139]],
   rooms: [
-    { x0: 133, y0: 101, x1: 140, y1: 106, ground: 'paving', wall: 'wall_sewer' }, // the bell cellar, under the temple
+    { x0: 133, y0: 101, x1: 142, y1: 106, ground: 'paving', wall: 'wall_sewer' }, // the bell cellar, under the temple
     { x0: 103, y0: 121, x1: 108, y1: 126, ground: 'paving', wall: 'wall_sewer' }, // an old storeroom, under the river
   ],
   caves: [{ cx: 146, cy: 139.5, rx: 5.6, ry: 4.6 }],
   torches: [[108, 127], [116, 127], [125, 127], [137, 127], [143, 127], [131, 107]],
   props: [
     [103, 121, 'barrel'], [104, 121, 'barrel'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
-    [133, 101, 'web'], [140, 101, 'web'], [140, 106, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
+    [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
+    [141, 103, 'bell_rope'], // under the temple bell
     [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
   ],
@@ -831,6 +832,9 @@ function buildTown(m, S, runs, river) {
     for (const y of [t.y0 + 2, t.y0 + 5]) for (const x of [cx - 4, cx + 4]) put(x, y, Z, 'pillar');
     for (const y of [t.y0 + 4, t.y0 + 6]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'bench');
     for (const y of [t.y0 + 2, t.y0 + 5]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
+    // The town's bell, in its frame by the east wall; its rope ran down through the floor to the cellar below.
+    put(t.x1 - 1, t.y0 + 4, Z, 'temple_bell');
+    m.setMeta(t.x1 - 1, t.y0 + 4, Z, { look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. It has hung silent for three days: its rope is cut, and its clapper is gone.' });
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // the terrace in front: paving, statues, lamps and flowers, with the steps down to the square
     const mt = T.mount;

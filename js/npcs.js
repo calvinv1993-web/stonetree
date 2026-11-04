@@ -1531,7 +1531,8 @@ const NPCS = {
 // ---- Oakvale Isle: the people of the starter town, and its beginner story --------------------------
 // "The Silent Bell": the temple bell of Oakvale has stopped ringing. The quest walks a newcomer through the
 // town and the game: the priestess, the teacher at the academy, the first fight outside the walls, the
-// depot, trading at Pip's, and back to the temple. (The bell itself, and what silenced it, come later.)
+// depot, trading at Pip's, and back to the temple. Part II sends them into the sewers to the old bell cellar
+// under the temple, where they find the bell rope cut through and a seal from the crypt under Bone Rocks.
 Object.assign(QUESTS, {
   bell_1: {
     name: 'The Silent Bell', giver: 'ama', level: 1,
@@ -1560,6 +1561,26 @@ Object.assign(QUESTS, {
       done: 'Thank you for your help, $name. The bell is still silent... but not for long, I hope.',
     },
   },
+  bell_2: {
+    name: 'The Silent Bell II: Teeth in the Dark', giver: 'ama', level: 2,
+    reward: { xp: 200, gold: 50, items: [['health_potion', 2]] },
+    summary: 'Find out what became of the temple bell\'s rope, down in the old bell cellar under the temple mount.',
+    steps: [
+      { npc: 'ama', fetch: 'chewed_rope', summary: 'Climb down the sewer grate on the square, follow the tunnel north under the temple mount to the old bell cellar, and bring Sister Ama what is left of the bell rope.',
+        progress: 'The bell rope hangs down into the old cellar under this temple. Climb down the grate on the square and follow the tunnel north, under the mount.',
+        done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a {stone} down there too? Show it to Master Corwin at the academy. He knows old things.' },
+      { npc: 'corwin', fetch: 'carved_stone', summary: 'Show the strange carved stone to Master Corwin at the academy.',
+        progress: 'Sister Ama says you found a strange stone under the temple. If you have lost it, look in the bell cellar again.',
+        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me when you are stronger, $name. Level 6, at least: the dead down there do not sleep lightly.' },
+    ],
+    text: {
+      offer: 'You are back, $name, and a little stronger. People say rats chewed through the bell rope, down in the old cellar under this temple. I do not believe it. Will you go down and see? ({yes}/{no})',
+      accept: 'Thank you. The cellar can only be reached through the sewers now: climb down the grate on the square and follow the tunnel north, under the mount. It is dark down there - Master Corwin can teach you the Torchlight spell. Bring me what is left of the rope.',
+      tooWeak: 'Something is wrong with our bell, $name, but the sewers are no place for you yet. Come back when you are level 2.',
+      elsewhere: 'Sister Ama was asking about the bell again. Go and see her in the temple.',
+      done: 'Master Corwin will know what that stone means. As for the bell... it still hangs silent.',
+    },
+  },
 });
 
 Object.assign(NPCS, {
@@ -1570,7 +1591,9 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
-      'bell|quest|mission|task|help': { quest: ['bell_1'] },
+      'bell|quest|mission|task|help|rope|cellar': { quest: ['bell_1', 'bell_2'] },
+      stone: 'Show the stone to Master Corwin at the academy. He knows old things.',
+      sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, over the bridge west of the square.',
       depot: 'The depot is the slate-roofed house beside this mount, to the east. The postmaster will explain your locker.',
       heal: { heal: true },
@@ -1582,7 +1605,10 @@ Object.assign(NPCS, {
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
-      'quest|mission|task|ama|bell': { quest: ['bell_1'] },
+      'quest|mission|task|ama|bell|stone|seal': { quest: ['bell_1', 'bell_2'] },
+      'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
+      'bone|rocks|crypt': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
+      'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',
       'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
       'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
       skills: 'Every weapon trains its skill as you use it, and a shield trains when you are hit. Spending mana trains your magic.',
