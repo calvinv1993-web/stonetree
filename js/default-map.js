@@ -16,7 +16,7 @@
 const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
-const MAP_TOWNS = [['Oakvale', 133, 124, 8]];
+const MAP_TOWNS = [['Oakvale', 118, 114, 8]];
 const MAP_SIGHTS = [
   ['North Peaks', 100, 57, 9], ['Mirror Lake', 146, 88, 8], ['Willow River', 108, 92, 8], ['Wolf Woods', 60, 84, 8],
   ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
@@ -44,7 +44,7 @@ const ISLE_DESIGN = {
     [[40, 190], [96, 196], [96, 230], [40, 230]],            // below Bone Rocks
     [[112, 204], [150, 204], [150, 232], [112, 232]],        // Lighthouse Point
   ],
-  town: { x0: 110, y0: 101, x1: 156, y1: 147 },  // Oakvale, inside its wall (the plan is OAKVALE below)
+  town: { x0: 92, y0: 96, x1: 158, y1: 150 },  // Oakvale (the plan is OAKVALE below)
   clearings: [ // kept clear for buildings and camps (phase 4)
     { name: "Fisher's Rest", x0: 42, y0: 170, x1: 56, y1: 182 },
     { name: 'Sunny Fields farm', x0: 112, y0: 150, x1: 126, y1: 160 },
@@ -97,65 +97,115 @@ const ISLE_DESIGN = {
   ],
   // Roads and trails: straight runs and turns, 2 or 3 wide; where they cross water they become bridges.
   roads: [
-    { name: 'North road', width: 3, line: [[133, 101], [133, 92], [100, 92], [100, 63]] },
-    { name: 'West road', width: 3, line: [[110, 124], [90, 124], [90, 116], [70, 116]] },
-    { name: 'South road', width: 3, line: [[133, 147], [133, 199]] },
-    { name: 'East road', width: 3, line: [[156, 124], [176, 124], [176, 130], [194, 130], [194, 127]] },
+    { name: 'North road', width: 3, line: [[138, 96], [138, 92], [100, 92], [100, 63]] },
+    { name: 'West road', width: 3, line: [[92, 125], [90, 125], [90, 116], [70, 116]] },
+    { name: 'South road', width: 3, line: [[135, 150], [135, 199]] },
+    { name: 'East road', width: 3, line: [[158, 125], [176, 125], [176, 130], [194, 130], [194, 127]] },
   ],
   paths: [
-    { name: 'Lake trail', line: [[133, 96], [146, 96], [146, 86]] },
+    { name: 'Lake trail', line: [[138, 94], [146, 94], [146, 86]] },
     { name: 'Goblin trail', line: [[146, 90], [180, 90], [180, 80], [190, 80], [190, 62], [202, 62], [202, 57]] },
-    { name: 'Spider trail', line: [[170, 124], [170, 152], [152, 152], [152, 203], [178, 203], [178, 201]] },
-    { name: 'Bone trail', line: [[133, 164], [96, 164], [96, 205], [76, 205], [76, 203]] },
+    { name: 'Spider trail', line: [[170, 125], [170, 152], [152, 152], [152, 203], [178, 203], [178, 201]] },
+    { name: 'Bone trail', line: [[135, 164], [96, 164], [96, 205], [76, 205], [76, 203]] },
     { name: 'Fisher trail', line: [[96, 172], [56, 172]] },
     { name: 'Lumber trail', line: [[70, 116], [70, 100], [66, 100]] },
     { name: 'Marsh trail', line: [[70, 116], [56, 116], [56, 130]] },
   ],
 };
 
-// Oakvale, the town: a stone wall with four gates; the temple in the middle on a paved square,
-// where new characters wake up; streets out to the gates; shops, the academy (the oracle is
-// upstairs), the depot, an inn, a training yard, a watchtower and houses around it.
-//   streets:   [x0, y0, x1, y1, ground]
-//   buildings: { id, name, kind, x0, y0, x1, y1, door: [x, y], floors (1 or 2), floor, wall, roof, sign }
-//              kind says how it's furnished: temple, academy, depot, shop, smithy, inn, house, tower
+// Oakvale, the town, laid out the way the old towns grew: Willow River runs through it, with the
+// fishermen's quarter on its west bank and two bridges; the temple stands west of the square, where
+// the roads from the gates meet after a jog or two; around it, buildings of every size face whichever
+// way their street runs. A stone wall guards the north and east, a fence the south and west, and a
+// rocky outcrop pokes up behind the inn.
+//   wall:      stone wall pieces [x0, y0, x1, y1]; fence: fence pieces; gaps leave the gates open
+//   streets:   { line, width, ground } drawn like the roads outside (straight runs and turns)
+//   square:    the paved square, as rectangles [x0, y0, x1, y1]
+//   buildings: { id, name, kind, x0, y0, x1, y1, wings: [[x0, y0, x1, y1]], door: [x, y], floors, floor,
+//                wall, roof, sign }; kind says how it's furnished: temple, academy, depot, shop, smithy,
+//                inn, house, tower
 //   houses:    the buildings players can rent, with their rent
+//   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
-  wall: { x0: 110, y0: 101, x1: 156, y1: 147 },
-  gates: [[132, 101, 134, 101], [132, 147, 134, 147], [110, 123, 110, 125], [156, 123, 156, 125]],
-  start: { x: 133, y: 124 }, // in the temple, before the altar
+  bounds: { x0: 92, y0: 96, x1: 158, y1: 150 },
+  wall: [[106, 96, 158, 96], [158, 96, 158, 150]],
+  fence: [[92, 96, 100, 96], [92, 96, 92, 150], [92, 150, 158, 150]],
+  gaps: [[137, 96, 139, 96], [158, 124, 158, 126], [134, 150, 136, 150], [92, 124, 92, 126]],
+  start: { x: 118, y: 114 }, // in the temple, where the aisles cross
   streets: [
-    [132, 102, 134, 113, 'cobble'], [132, 135, 134, 146, 'cobble'], [111, 123, 122, 125, 'cobble'], [144, 123, 155, 125, 'cobble'],
-    [123, 114, 143, 116, 'paving'], [123, 117, 125, 134, 'paving'], [141, 117, 143, 134, 'paving'], [126, 130, 140, 134, 'paving'],
+    { line: [[138, 96], [138, 106], [134, 106], [134, 108]], width: 3, ground: 'dirt' },   // from the north gate
+    { line: [[108, 125], [92, 125]], width: 3, ground: 'dirt' },                            // west, over the big bridge
+    { line: [[137, 116], [146, 116], [146, 125], [158, 125]], width: 3, ground: 'dirt' },   // to the east gate
+    { line: [[131, 127], [131, 138], [135, 138], [135, 150]], width: 3, ground: 'dirt' },   // to the south gate
+    { line: [[96, 104], [107, 104], [107, 123]], width: 2, ground: 'gravel' },              // the river lane and the footbridge
+    { line: [[99, 104], [99, 123]], width: 2, ground: 'gravel' },                           // the fishermen's lane
   ],
+  square: [[126, 108, 137, 122], [108, 123, 137, 127]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 128, y0: 117, x1: 138, y1: 129, wings: [[126, 120, 140, 124]], door: [133, 129], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 113, y0: 103, x1: 124, y1: 109, wings: [[113, 110, 117, 113]], door: [121, 109], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 136, y0: 103, x1: 143, y1: 110, door: [136, 106], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
-    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 113, y0: 116, x1: 119, y1: 121, door: [119, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Moonpetal Magic: runes, wands and potions.' },
-    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 113, y0: 127, x1: 120, y1: 133, door: [117, 127], floor: 'cobble', wall: 'wall_stone', roof: 'roof', sign: 'The Dented Shield: weapons, bought and sold.' },
-    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 147, y0: 115, x1: 154, y1: 121, door: [150, 121], floor: 'wood', wall: 'wall_wood', roof: 'roof', sign: 'Hide and Iron: armour, helmets and shields.' },
-    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 145, y0: 127, x1: 155, y1: 134, wings: [[151, 135, 155, 138]], door: [149, 127], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 136, y0: 137, x1: 142, y1: 142, door: [136, 140], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods.' },
-    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 144, y0: 140, x1: 149, y1: 145, door: [146, 140], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Warm Loaf: bread, cheese and ham.' },
-    { id: 'tower', name: 'North-east watchtower', kind: 'tower', x0: 151, y0: 102, x1: 155, y1: 106, door: [153, 106], floor: 'cobble', wall: 'wall_stone', roof: null },
-    { id: 'house1', name: 'Ivy Cottage', kind: 'house', x0: 145, y0: 103, x1: 149, y1: 107, door: [147, 107], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
-    { id: 'house2', name: 'Millstone House', kind: 'house', x0: 124, y0: 137, x1: 130, y1: 141, door: [130, 139], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle' },
-    { id: 'house3', name: 'Lantern Lodge', kind: 'house', x0: 151, y0: 141, x1: 155, y1: 145, door: [153, 141], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
-    { id: 'house4', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 136, x1: 118, y1: 140, door: [118, 138], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
-    { id: 'house5', name: 'Bell Cottage', kind: 'house', x0: 126, y0: 103, x1: 130, y1: 107, door: [128, 107], floor: 'wood', wall: 'wall_stone', roof: 'roof' },
-    { id: 'house6', name: 'Thatch End', kind: 'house', x0: 145, y0: 109, x1: 149, y1: 112, door: [145, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 113, y0: 108, x1: 123, y1: 122, wings: [[111, 112, 125, 115]], door: [118, 122], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 109, y0: 97, x1: 121, y1: 105, wings: [[121, 97, 124, 101]], door: [115, 105], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 126, y0: 98, x1: 133, y1: 103, door: [133, 100], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
+    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 141, y0: 98, x1: 146, y1: 103, door: [144, 103], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Moonpetal Magic: runes, wands and potions.' },
+    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 106, x1: 145, y1: 113, door: [142, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof', sign: 'Hide and Iron: armour, helmets and shields.' },
+    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 93, y0: 107, x1: 98, y1: 114, door: [98, 110], floor: 'cobble', wall: 'wall_stone', roof: 'roof', sign: 'The Dented Shield: weapons, bought and sold.' },
+    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 148, y0: 128, x1: 157, y1: 135, wings: [[148, 136, 152, 140]], door: [152, 128], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Sleepy Boar: food, drink and a bed.' },
+    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 130, x1: 122, y1: 136, door: [119, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods.' },
+    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 108, y0: 130, x1: 113, y1: 135, door: [110, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Warm Loaf: bread, cheese and ham.' },
+    { id: 'tower', name: 'North-east watchtower', kind: 'tower', x0: 153, y0: 97, x1: 157, y1: 101, door: [153, 99], floor: 'cobble', wall: 'wall_stone', roof: null },
+    { id: 'house1', name: 'Ivy Cottage', kind: 'house', x0: 148, y0: 98, x1: 151, y1: 102, door: [150, 102], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'house2', name: 'Millstone House', kind: 'house', x0: 149, y0: 105, x1: 155, y1: 110, door: [152, 110], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
+    { id: 'house3', name: 'Riverside Cottage', kind: 'house', x0: 93, y0: 117, x1: 97, y1: 121, door: [97, 119], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'house4', name: 'Fisher\'s Hut', kind: 'house', x0: 93, y0: 98, x1: 97, y1: 102, door: [95, 102], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'house5', name: 'Bell Cottage', kind: 'house', x0: 124, y0: 131, x1: 128, y1: 136, door: [128, 133], floor: 'wood', wall: 'wall_stone', roof: 'roof' },
+    { id: 'house6', name: 'Thatch End', kind: 'house', x0: 139, y0: 141, x1: 144, y1: 146, door: [139, 143], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
   ],
-  houses: { house1: 400, house2: 500, house3: 300, house4: 350, house5: 400, house6: 300 },
+  houses: { house1: 400, house2: 500, house3: 350, house4: 300, house5: 400, house6: 300 },
   // Fenced gardens: vegetable rows (crops on farmland) or flower beds; gate: the gap in the fence.
   gardens: [
-    { x0: 126, y0: 109, x1: 130, y1: 112, kind: 'crops', gate: [128, 112] },
-    { x0: 113, y0: 122, x1: 118, y1: 122, kind: 'flowers' },
-    { x0: 122, y0: 127, x1: 126, y1: 133, kind: 'crops', gate: [124, 127] },
-    { x0: 140, y0: 143, x1: 143, y1: 145, kind: 'flowers', gate: [140, 143] },
+    { x0: 139, y0: 129, x1: 145, y1: 135, kind: 'crops', gate: [139, 132] },
+    { x0: 109, y0: 108, x1: 110, y1: 121, kind: 'flowers' },
+    { x0: 93, y0: 135, x1: 100, y1: 141, kind: 'crops', gate: [100, 138] },
+    { x0: 124, y0: 140, x1: 129, y1: 144, kind: 'crops', gate: [129, 142] },
   ],
+  // A rocky outcrop: rock walls with a rugged top, as in the old towns.
+  outcrop: [[149, 114], [154, 113], [157, 117], [155, 122], [150, 121]],
   // The training yard: a fenced sandy yard with dummies.
-  yard: { x0: 112, y0: 142, x1: 125, y1: 146, gate: [119, 142] },
+  yard: { x0: 106, y0: 141, x1: 120, y1: 148, gate: [113, 141] },
+  paths: [
+    [[115, 106], [125, 106], [125, 107]],     // academy to the square
+    [[134, 100], [136, 100]],                 // depot to the north street
+    [[144, 104], [144, 105]],                 // magic shop
+    [[150, 103], [150, 104], [140, 104]],     // Ivy Cottage
+    [[152, 111], [152, 113], [147, 113]],     // Millstone House
+    [[142, 114], [142, 114]],                 // armourer
+    [[155, 102], [155, 104], [152, 104]],     // round the watchtower
+    [[152, 127], [152, 127]],                 // the inn
+    [[110, 128], [110, 129]], [[119, 128], [119, 129]], // bakery, general store
+    [[129, 133], [129, 133]],                 // Bell Cottage
+    [[138, 143], [137, 143]],                 // Thatch End
+    [[113, 140], [113, 137], [123, 137], [123, 128]], // the training yard
+    [[95, 103], [95, 103]],                   // Fisher's Hut
+    [[93, 115], [98, 115]],                   // behind the smithy
+  ],
+  // Things standing about: [x, y, id]
+  props: [
+    [131, 104, 'well'], [147, 113, 'woodpile'], [147, 104, 'haystack'], [146, 105, 'barrel'], [135, 112, 'statue'],
+    [94, 104, 'boat'], [93, 115, 'woodpile'], [93, 116, 'barrel'], [98, 116, 'anvil'], [94, 122, 'barrel'], [100, 128, 'crate'],
+    [125, 128, 'wagon'], [137, 128, 'barrel'], [137, 127, 'crate'], [146, 139, 'scarecrow'], [123, 104, 'barrel'], [155, 111, 'woodpile'],
+    [147, 127, 'barrel'], [147, 126, 'crate'],
+    [133, 109, 'stall'], [134, 109, 'basket'], [136, 111, 'stall'], [136, 112, 'crate'], [127, 120, 'stall'], [127, 121, 'sack'],
+  ],
+  lamps: [[136, 97], [140, 97], [157, 123], [157, 127], [133, 149], [137, 149], [93, 123], [93, 127], [126, 108], [137, 108], [126, 122], [137, 122], [108, 127], [104, 123], [104, 127], [108, 104]],
+  benches: [[129, 111], [129, 119], [134, 119], [112, 126], [124, 126]],
+  planters: [[117, 123], [119, 123], [126, 115], [137, 115]],
+  fountain: [131, 113],
+  signs: [
+    [136, 94, 'North: the North Peaks and Mirror Lake. South: Oakvale.'],
+    [160, 122, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
+    [133, 152, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
+    [90, 122, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
+  ],
+  notice: [128, 123, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
 };
 
 function createDefaultMap() {
@@ -484,7 +534,7 @@ function createDefaultMap() {
     } else if (t.ground === 'dirt' && v < 0.02) put(x, y, S, 'pebbles');
   }
 
-  buildTown(m, S);
+  buildTown(m, S, runs, d.rivers[0]);
 
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S };
@@ -494,29 +544,46 @@ function createDefaultMap() {
   return m;
 }
 
-// Builds Oakvale (see OAKVALE): wall, streets, buildings with their insides, roofs and signs, and
-// the square, yards and gardens between them.
-function buildTown(m, S) {
+// Builds Oakvale (see OAKVALE): the river through it, walls and fences, streets, the square, buildings
+// with their insides, roofs and signs, and the gardens, yards and things between them.
+// runs: the road painter from createDefaultMap; river: the river that runs through town.
+function buildTown(m, S, runs, river) {
   const T = OAKVALE, put = (x, y, z, id) => m.addItem(x, y, z, id);
-  const fill = (x0, y0, x1, y1, z, ground) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, z, { ground, items: [] }); };
   const free = (x, y, z = S) => { const t = m.get(x, y, z); return !!t && !t.items.length && !THINGS[t.ground].block; };
   const sign = (x, y, z, id, text) => { put(x, y, z, id); m.setMeta(x, y, z, { text }); };
   const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  const bd = T.bounds, inTown = (x, y) => x >= bd.x0 && x <= bd.x1 && y >= bd.y0 && y <= bd.y1;
 
-  // The ground inside the wall: grass, cleared of the wilds.
-  const w = T.wall;
-  fill(w.x0, w.y0, w.x1, w.y1, S, 'grass');
-  for (let z = S + 1; z < m.depth; z++) for (let y = w.y0; y <= w.y1; y++) for (let x = w.x0; x <= w.x1; x++) m.set(x, y, z, null);
+  // The ground: grass, cleared of the wilds, with the river through it in a tidy bed.
+  const bed = new Set();
+  runs(river.line, river.width, (x, y) => bed.add(`${x},${y}`));
+  for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+    m.set(x, y, S, { ground: bed.has(`${x},${y}`) ? 'water' : 'grass', items: [] });
+    for (let z = S + 1; z < m.depth; z++) m.set(x, y, z, null);
+  }
+  const water = (x, y) => (m.get(x, y, S) || {}).ground === 'water';
 
-  // The town wall, with its gates (a lamp either side) and signposts outside them.
-  for (let y = w.y0; y <= w.y1; y++) for (let x = w.x0; x <= w.x1; x++) {
-    if (x !== w.x0 && x !== w.x1 && y !== w.y0 && y !== w.y1) continue;
-    if (T.gates.some(([gx0, gy0, gx1, gy1]) => x >= gx0 && x <= gx1 && y >= gy0 && y <= gy1)) { m.setGround(x, y, S, 'cobble'); continue; }
-    put(x, y, S, 'wall_stone');
+  // Walls and fences, open at the gates.
+  const gap = (x, y) => T.gaps.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+  for (const [list, id] of [[T.wall, 'wall_stone'], [T.fence, 'fence']]) for (const [x0, y0, x1, y1] of list) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (!gap(x, y) && !water(x, y) && !m.get(x, y, S).items.length) put(x, y, S, id);
   }
 
-  // Streets and the square round the temple.
-  for (const [x0, y0, x1, y1, ground] of T.streets) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.setGround(x, y, S, ground);
+  // Streets (bridges over the river) and the square.
+  for (const st of T.streets) runs(st.line, st.width, (x, y, alongX) => {
+    if (!inTown(x, y)) return;
+    m.setGround(x, y, S, water(x, y) ? (alongX ? 'bridge_ew' : 'bridge_ns') : st.ground);
+  });
+  for (const [x0, y0, x1, y1] of T.square) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.setGround(x, y, S, 'cobble');
+
+  // The outcrop: rock walls with a rugged top and a few boulder piles.
+  const rockAt = (x, y) => { let hit = false; const p = T.outcrop; for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+    const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit; } return hit; };
+  for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+    if (!rockAt(x + 0.5, y + 0.5)) continue;
+    m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
+    m.set(x, y, S + 1, { ground: 'rock_top', items: hash(x, y) < 0.25 ? ['crag'] : [] });
+  }
 
   // A building: its main block and any wings (it's the shape they make together). Floor, walls (with
   // a door and windows), and a roof on the floor above. Upper floors get their own walls and
@@ -560,62 +627,62 @@ function buildTown(m, S) {
   const B = Object.fromEntries(T.buildings.map(b => [b.id, b]));
   const inside = (b, x, y, id, z = S) => { if (free(x, y, z) && !(x === b.door[0] && Math.abs(y - b.door[1]) <= 1) && !(y === b.door[1] && Math.abs(x - b.door[0]) <= 1)) put(x, y, z, id); };
 
-  // ---- the temple: an aisle of carpet up to the altar, pillars, benches, torches ----------------
+  // ---- the temple: an aisle of carpet up to the altar, pillars, benches, statues in the side chapels --------
   {
-    const t = B.temple, cx = (t.x0 + t.x1) >> 1;
+    const t = B.temple, cx = (t.x0 + t.x1) >> 1, [wx0, wy0, wx1, wy1] = t.wings[0];
     for (let y = t.y0 + 2; y < t.y1; y++) m.setGround(cx, y, S, 'carpet');
+    for (let x = wx0 + 1; x < wx1; x++) m.setGround(x, (wy0 + wy1 + 1) >> 1, S, 'carpet');
     put(cx, t.y0 + 1, S, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, S, 'torch');
     put(cx - 4, t.y0, S, 'banner'); put(cx + 4, t.y0, S, 'banner');
-    for (const y of [t.y0 + 2, t.y0 + 9]) for (const x of [cx - 3, cx + 3]) put(x, y, S, 'pillar');
-    for (const y of [t.y0 + 8, t.y0 + 10]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, S, 'bench');
-    for (const [x, y] of [[t.x0 + 1, t.y0 + 1], [t.x1 - 1, t.y0 + 1], [t.x0 + 1, t.y1 - 1], [t.x1 - 1, t.y1 - 1]]) put(x, y, S, 'plant');
-    const [wx0, , wx1] = t.wings[0];
-    put(wx0 + 1, 121, S, 'statue'); put(wx1 - 1, 121, S, 'statue'); // in the side chapels
-    put(wx0 + 1, 123, S, 'torch'); put(wx1 - 1, 123, S, 'torch');
-    for (const y of [t.y0 + 1, t.y1 - 2]) { put(t.x0, y, S, 'wall_torch'); put(t.x1, y, S, 'wall_torch'); }
+    for (const y of [t.y0 + 2, wy1 + 2]) for (const x of [cx - 3, cx + 3]) put(x, y, S, 'pillar');
+    for (const y of [wy1 + 4, wy1 + 6]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, S, 'bench');
+    put(wx0 + 1, wy0 + 1, S, 'statue'); put(wx1 - 1, wy0 + 1, S, 'statue');
+    put(wx0 + 1, wy1 - 1, S, 'plant'); put(wx1 - 1, wy1 - 1, S, 'plant');
+    for (const [x, y] of [[t.x0 + 1, t.y1 - 1], [t.x1 - 1, t.y1 - 1]]) put(x, y, S, 'plant');
+    for (const y of [t.y0 + 2, t.y1 - 3]) { put(t.x0, y, S, 'wall_torch'); put(t.x1, y, S, 'wall_torch'); }
     sign(cx + 1, t.y1, S, 'sign_wall', 'Temple of the Dawn. All who wake on Oakvale Isle wake here.');
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: S });
   }
 
-  // ---- the academy: a classroom below, the oracle's hall upstairs -------------------------------------
+  // ---- the academy: a classroom below (the teacher's room in the wing), the oracle's hall upstairs ----------
   {
-    const a = B.academy;
+    const a = B.academy, [, , wx1] = a.wings[0];
     for (let x = a.x0 + 2; x <= a.x1 - 2; x += 2) put(x, a.y0 + 1, S, 'bookshelf');
-    for (const y of [a.y0 + 3, a.y0 + 5]) for (let x = a.x0 + 4; x <= a.x1 - 3; x += 3) { put(x, y, S, 'table'); inside(a, x + 1, y, 'chair'); }
-    put(a.x0 + 2, 112, S, 'bed'); put(a.x0 + 3, 112, S, 'chest'); // the teacher's room in the wing
+    for (const y of [a.y0 + 3, a.y0 + 5]) for (let x = a.x0 + 3; x <= a.x1 - 3; x += 3) { put(x, y, S, 'table'); inside(a, x + 1, y, 'chair'); }
+    put(wx1 - 1, a.y0 + 1, S, 'bed'); put(wx1 - 1, a.y0 + 3, S, 'chest');
     put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Lessons every morning: fighting, magic, and how not to get eaten by rats.' });
-    put(a.x1 - 1, a.y0 + 1, S, 'stairs_up');
-    put(a.x1 - 1, a.y0 + 1, S + 1, 'stairs_down');
+    put(a.x0 + 1, a.y1 - 1, S, 'stairs_up');
+    put(a.x0 + 1, a.y1 - 1, S + 1, 'stairs_down');
     const cx = (a.x0 + a.x1) >> 1;
     for (let y = a.y0 + 2; y < a.y1; y++) m.setGround(cx, y, S + 1, 'carpet');
     put(cx, a.y0 + 2, S + 1, 'obelisk');
     for (const x of [cx - 3, cx + 3]) put(x, a.y0 + 2, S + 1, 'torch');
-    for (const x of [a.x0 + 2, a.x1 - 3]) put(x, a.y1 - 1, S + 1, 'bookshelf');
-    for (const y of [a.y0 + 5]) for (const x of [cx - 2, cx + 2]) put(x, y, S + 1, 'pillar');
-    put(a.x0 + 2, a.y0 + 1, S + 1, 'banner');
+    for (const x of [cx - 2, cx + 2]) put(x, a.y0 + 5, S + 1, 'pillar');
+    for (const x of [a.x1 - 2, wx1 - 1]) put(x, a.y0 + 1, S + 1, 'bookshelf');
+    put(a.x0 + 3, a.y0 + 1, S + 1, 'bookshelf'); put(a.x0 + 2, a.y0, S + 1, 'banner');
   }
 
-  // ---- the depot: lockers along the walls, a counter for the post -------------------------------------
+  // ---- the depot: lockers along the walls, a counter for the post ------------------------------------------
   {
     const d = B.depot;
-    for (let y = d.y0 + 1; y < d.y1; y += 2) put(d.x1 - 1, y, S, 'depot');
-    for (let x = d.x0 + 2; x < d.x1 - 1; x += 2) put(x, d.y0 + 1, S, 'depot');
-    for (let x = d.x0 + 2; x <= d.x0 + 4; x++) put(x, d.y1 - 2, S, 'counter');
-    put(d.x0 + 1, d.y1 - 1, S, 'plant');
-    sign(d.x0, d.door[1] + 1, S, 'sign_wall', 'Depot and post. Your locker keeps your things safe in every town.');
+    for (let x = d.x0 + 1; x < d.x1; x += 2) put(x, d.y0 + 1, S, 'depot');
+    for (let y = d.y0 + 3; y < d.y1; y += 2) put(d.x0 + 1, y, S, 'depot');
+    for (let x = d.x0 + 3; x <= d.x0 + 5; x++) put(x, d.y1 - 1, S, 'counter');
+    put(d.x1 - 1, d.y1 - 1, S, 'plant');
+    sign(d.x1, d.door[1] + 1, S, 'sign_wall', 'Depot and post. Your locker keeps your things safe in every town.');
   }
 
-  // ---- shops: a counter across the back, goods on shelves and in barrels -------------------------------
+  // ---- shops: a counter across the back, goods on shelves and in barrels -----------------------------------
   const shop = (b, goods) => {
     const back = b.door[1] === b.y1 ? b.y0 + 1 : b.door[1] === b.y0 ? b.y1 - 1 : null;
     if (back !== null) { // door in the front (north or south) wall: the counter runs across
       const cy = back + (back === b.y0 + 1 ? 1 : -1);
-      for (let x = b.x0 + 1; x < b.x1; x++) if (x !== b.x0 + 1) inside(b, x, cy, 'counter');
+      for (let x = b.x0 + 2; x < b.x1; x++) inside(b, x, cy, 'counter');
       for (let x = b.x0 + 1; x < b.x1; x++) inside(b, x, back, goods[(x - b.x0) % goods.length]);
     } else { // door in a side wall: the counter runs along the far side
       const back = b.door[0] === b.x0 ? b.x1 - 1 : b.x0 + 1, cx = back + (back === b.x0 + 1 ? 1 : -1);
-      for (let y = b.y0 + 1; y < b.y1; y++) if (y !== b.y0 + 1) inside(b, cx, y, 'counter');
+      for (let y = b.y0 + 2; y < b.y1; y++) inside(b, cx, y, 'counter');
       for (let y = b.y0 + 1; y < b.y1; y++) inside(b, back, y, goods[(y - b.y0) % goods.length]);
     }
     inside(b, b.door[0] === b.x0 ? b.x0 + 1 : b.x1 - 1, b.door[1] === b.y1 ? b.y1 - 1 : b.y0 + 1, 'plant');
@@ -625,22 +692,21 @@ function buildTown(m, S) {
   shop(B.general, ['barrel', 'crate', 'sack']);
   shop(B.bakery, ['basket', 'barrel', 'sack']);
 
-  // ---- the smithy: a forge and an anvil, and racks of goods ---------------------------------------------
+  // ---- the smithy: a forge and an anvil, and racks of goods ------------------------------------------------
   {
     const s = B.smith;
-    put(s.x0 + 1, s.y1 - 1, S, 'campfire'); put(s.x0 + 2, s.y1 - 1, S, 'anvil');
-    for (let x = s.x0 + 4; x < s.x1; x++) inside(s, x, s.y1 - 1, x % 2 ? 'crate' : 'barrel');
-    for (let x = s.x0 + 4; x < s.x1; x++) inside(s, x, s.y1 - 3, 'counter');
-    put(s.x1 - 1, s.y0 + 1, S, 'woodpile');
+    put(s.x0 + 1, s.y0 + 1, S, 'campfire'); put(s.x0 + 2, s.y0 + 1, S, 'anvil');
+    for (let y = s.y0 + 3; y < s.y1; y++) inside(s, s.x0 + 2, y, 'counter');
+    for (let y = s.y0 + 3; y < s.y1; y++) inside(s, s.x0 + 1, y, y % 2 ? 'crate' : 'barrel');
   }
 
-  // ---- the inn: the taproom below, rooms upstairs --------------------------------------------------------
+  // ---- the inn: the taproom below, rooms upstairs -----------------------------------------------------------
   {
     const n = B.inn;
-    for (let x = n.x0 + 1; x <= n.x0 + 4; x++) inside(n, x, n.y1 - 2, 'counter');
-    for (let x = n.x0 + 1; x <= n.x0 + 4; x++) inside(n, x, n.y1 - 1, 'barrel');
+    for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 2, 'counter');
+    for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 1, 'barrel');
     put(n.x1 - 1, n.y1 - 1, S, 'campfire');
-    for (const [x, y] of [[n.x0 + 7, n.y0 + 2], [n.x0 + 7, n.y0 + 5], [n.x0 + 3, n.y0 + 3]]) { put(x, y, S, 'table'); inside(n, x - 1, y, 'chair'); inside(n, x + 1, y, 'chair'); }
+    for (const [x, y] of [[n.x0 + 6, n.y0 + 3], [n.x0 + 6, n.y0 + 6], [n.x0 + 2, n.y0 + 3]]) { put(x, y, S, 'table'); inside(n, x - 1, y, 'chair'); inside(n, x + 1, y, 'chair'); }
     put(n.x1 - 1, n.y0 + 1, S, 'stairs_up');
     put(n.x1 - 1, n.y0 + 1, S + 1, 'stairs_down');
     // three rooms off a corridor along the north wall
@@ -648,26 +714,29 @@ function buildTown(m, S) {
     for (let x = n.x0 + 1; x < n.x1; x++) put(x, cy + 1, S + 1, 'wall_wood');
     for (const rx of [n.x0 + 3, n.x0 + 6]) for (let y = cy + 2; y < n.y1; y++) put(rx, y, S + 1, 'wall_wood');
     for (const [x0, x1] of [[n.x0 + 1, n.x0 + 2], [n.x0 + 4, n.x0 + 5], [n.x0 + 7, n.x1 - 1]]) {
-      const door = x0 + 1;
-      m.ensure(door, cy + 1, S + 1).items = ['door'];
+      m.ensure(x0 + 1, cy + 1, S + 1).items = ['door'];
       put(x0, n.y1 - 1, S + 1, 'bed');
       if (x1 > x0 + 1) put(x1, n.y1 - 1, S + 1, 'chest');
     }
     put(n.x0 + 1, n.y0 + 1, S + 1, 'plant');
+    const [wx0, wy0, wx1, wy1] = n.wings[0]; // the wing: the cellar store
+    for (let x = wx0 + 1; x < wx1; x++) inside(n, x, wy1 - 1, x % 2 ? 'barrel' : 'crate');
+    put(wx0 + 1, wy1 - 1, S + 1, 'bed'); put(wx1 - 1, wy1 - 1, S + 1, 'bed');
   }
 
-  // ---- the watchtower: a ladder up to the lookout on top ---------------------------------------------------
+  // ---- the watchtower: a ladder up to the lookout on top --------------------------------------------------------
   {
     const t = B.tower, cx = (t.x0 + t.x1) >> 1, cy = (t.y0 + t.y1) >> 1;
-    put(cx, cy - 1, S, 'ladder');
-    put(t.x0 + 1, t.y0 + 1, S, 'barrel'); put(t.x1 - 1, t.y0 + 1, S, 'crate');
-    fill(t.x0, t.y0, t.x1, t.y1, S + 1, 'wood');
-    for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) if (x === t.x0 || x === t.x1 || y === t.y0 || y === t.y1) put(x, y, S + 1, 'wall_stone');
-    put(cx, cy - 1, S + 1, 'trapdoor');
-    put(t.x1 - 1, t.y1 - 1, S + 1, 'flagpole');
+    put(cx + 1, cy, S, 'ladder');
+    put(t.x1 - 1, t.y0 + 1, S, 'barrel'); put(t.x1 - 1, t.y1 - 1, S, 'crate');
+    for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
+      m.set(x, y, S + 1, { ground: 'wood', items: x === t.x0 || x === t.x1 || y === t.y0 || y === t.y1 ? ['wall_stone'] : [] });
+    }
+    put(cx + 1, cy, S + 1, 'trapdoor');
+    put(t.x0 + 1, t.y0 + 1, S + 1, 'flagpole');
   }
 
-  // ---- houses: a bed, a table, a chest; rentable ---------------------------------------------------------------
+  // ---- houses: a bed, a table, a chest; rentable --------------------------------------------------------------
   for (const [id, rent] of Object.entries(T.houses)) {
     const h = B[id];
     inside(h, h.x0 + 1, h.y0 + 1, 'bed');
@@ -678,76 +747,69 @@ function buildTown(m, S) {
     m.houses.push({ id: `oak_${id}`, name: h.name, rent, x0: h.x0, y0: h.y0, x1: h.x1, y1: h.y1, z: S });
   }
 
-  // ---- the training yard: sand, a fence round it, dummies -------------------------------------------------
+  // ---- the training yard: sand, a fence round it, dummies --------------------------------------------------------
   {
     const y = T.yard;
     for (let yy = y.y0; yy <= y.y1; yy++) for (let xx = y.x0; xx <= y.x1; xx++) {
-      m.setGround(xx, yy, S, 'sand');
-      const edge = xx === y.x0 || xx === y.x1 || yy === y.y0;
+      const t = m.get(xx, yy, S);
+      t.ground = 'sand'; t.items = [];
+      const edge = xx === y.x0 || xx === y.x1 || yy === y.y0 || yy === y.y1;
       if (edge && !(xx === y.gate[0] && yy === y.gate[1])) put(xx, yy, S, 'fence');
     }
-    for (let xx = y.x0 + 2; xx <= y.x1 - 2; xx += 3) put(xx, y.y1 - 1, S, 'dummy');
+    for (let xx = y.x0 + 2; xx <= y.x1 - 2; xx += 3) put(xx, y.y1 - 2, S, 'dummy');
     put(y.x0 + 1, y.y0 + 1, S, 'barrel'); put(y.x1 - 1, y.y0 + 1, S, 'crate');
     sign(y.gate[0] + 1, y.y0 - 1, S, 'signpost', 'Training yard. Hit the dummies, not each other.');
   }
 
-  // ---- the square: a fountain, lamps, benches, flower boxes, a noticeboard ---------------------------------
-  {
-    put(127, 132, S, 'fountain_rim'); put(128, 132, S, 'fountain_rim'); put(127, 133, S, 'fountain_rim'); put(128, 133, S, 'fountain');
-    put(139, 133, S, 'statue');
-    for (const [x, y] of [[123, 114], [143, 114], [123, 134], [143, 134], [131, 102], [135, 102], [131, 146], [135, 146], [111, 122], [111, 126], [155, 122], [155, 126]]) put(x, y, S, 'lamppost');
-    for (const [x, y] of [[124, 120], [124, 126], [142, 120], [142, 126]]) put(x, y, S, 'bench');
-    for (const [x, y] of [[129, 130], [137, 130], [126, 114], [140, 114]]) put(x, y, S, 'planter');
-    sign(131, 130, S, 'noticeboard', 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.');
-  }
-
-  // ---- gardens and yards between the buildings: trees, hedges, flower beds, a well, a woodpile ------------
-  const occupied = (x, y) => T.buildings.some(b => partsOf(b).some(([x0, y0, x1, y1]) => x >= x0 - 1 && x <= x1 + 1 && y >= y0 - 1 && y <= y1 + 1))
-    || T.gardens.some(gd => x >= gd.x0 - 1 && x <= gd.x1 + 1 && y >= gd.y0 - 1 && y <= gd.y1 + 1);
-  const nearStreet = (x, y) => [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const g = m.get(x + dx, y + dy, S).ground; return g === 'cobble' || g === 'paving' || g === 'gravel'; });
-  for (let y = w.y0 + 1; y < w.y1; y++) for (let x = w.x0 + 1; x < w.x1; x++) {
-    const t = m.get(x, y, S);
-    if (t.ground !== 'grass' || t.items.length || occupied(x, y) || nearStreet(x, y)) continue;
-    const v = hash(x, y), byWall = x === w.x0 + 1 || x === w.x1 - 1 || y === w.y0 + 1 || y === w.y1 - 1;
-    if (byWall && v < 0.35) put(x, y, S, v < 0.2 ? 'tree' : 'bush');
-    else if (v < 0.07) put(x, y, S, 'tree');
-    else if (v < 0.1) put(x, y, S, 'bush');
-    else if (v < 0.17) put(x, y, S, 'flowers');
-    else if (v < 0.2) put(x, y, S, 'grass_tuft');
-  }
-  // Fenced gardens.
+  // ---- fenced gardens -------------------------------------------------------------------------------------------
   for (const gd of T.gardens) for (let y = gd.y0; y <= gd.y1; y++) for (let x = gd.x0; x <= gd.x1; x++) {
     const t = m.get(x, y, S), edge = x === gd.x0 || x === gd.x1 || y === gd.y0 || y === gd.y1;
     t.items = [];
-    if (gd.kind === 'crops') { t.ground = edge ? 'grass' : 'farmland'; if (!edge && y % 2) put(x, y, S, 'crops'); }
-    else if (!edge || gd.y0 === gd.y1) put(x, y, S, (x + y) % 3 ? 'flowers' : 'bush');
-    if (edge && gd.gate && gd.y0 !== gd.y1 && !(x === gd.gate[0] && y === gd.gate[1])) { t.items = []; put(x, y, S, 'fence'); }
+    if (gd.kind === 'crops') {
+      t.ground = edge ? 'grass' : 'farmland';
+      if (!edge && y % 2) put(x, y, S, 'crops');
+      if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
+    } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
-  put(131, 104, S, 'well'); put(144, 113, S, 'woodpile'); put(150, 108, S, 'haystack'); put(150, 109, S, 'barrel');
-  put(121, 134, S, 'woodpile'); put(122, 129, S, 'barrel'); put(122, 130, S, 'crate'); put(143, 136, S, 'wagon');
-  put(144, 141, S, 'barrel'); put(143, 139, S, 'crate'); put(150, 113, S, 'scarecrow');
-  // Paths of gravel from the streets to the doors that don't open onto one.
-  const path = (pts) => { for (let i = 0; i + 1 < pts.length; i++) { const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-    for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++) for (let y = Math.min(ay, by); y <= Math.max(ay, by); y++) {
-      const t = m.get(x, y, S); if (t.ground === 'grass') { t.ground = 'gravel'; t.items = t.items.filter(id => !THINGS[id].block); } } } };
-  path([[121, 110], [121, 113], [131, 113]]);             // academy to the north street
-  path([[120, 118], [122, 118]]);                         // magic shop to the square
-  path([[135, 106], [131, 106]]);                         // depot from the north street
-  path([[128, 108], [128, 108]]);                         // Bell Cottage
-  path([[147, 108], [147, 108]]); path([[144, 111], [144, 113], [135, 113]]); // Ivy Cottage, Thatch End
-  path([[150, 122], [150, 122]]);                         // armourer
-  path([[146, 136], [146, 139]]);                         // bakery
-  path([[153, 139], [153, 140], [150, 140], [150, 136]]); // Lantern Lodge
-  path([[131, 139], [131, 139]]);                         // Millstone House
-  path([[119, 138], [121, 138], [121, 135]]);             // Riverside Cottage
-  path([[119, 141], [121, 141]]);                         // the training yard
-  path([[153, 107], [153, 113], [150, 113]]);             // the watchtower
-  for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
-    const t = m.get(x, y, S); if (t && !t.items.some(id => THINGS[id].wall) && t.items.some(id => THINGS[id].block) && !(x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1)) t.items = []; } }
 
-  // Signposts outside the gates.
-  sign(131, 99, S, 'signpost', 'North: the North Peaks and Mirror Lake. South: Oakvale.');
-  sign(131, 149, S, 'signpost', 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.');
-  sign(108, 121, S, 'signpost', 'West: Willow River, Frog Marsh and Wolf Woods. East: Oakvale.');
-  sign(158, 121, S, 'signpost', 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.');
+  // Gates of gardens and the yard: a step of gravel through them and either side, so nothing grows there.
+  for (const g of [...T.gardens.filter(gd => gd.gate).map(gd => gd.gate), T.yard.gate]) for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const t = m.get(g[0] + dx, g[1] + dy, S);
+    if (t && !t.items.length && t.ground !== 'farmland' && t.ground !== 'sand') t.ground = 'gravel';
+  }
+
+  // ---- paths, the square's furniture, lamps, things about, signs ------------------------------------------------
+  for (const pts of T.paths) for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++) for (let y = Math.min(ay, by); y <= Math.max(ay, by); y++) {
+      const t = m.get(x, y, S);
+      if (t.ground === 'grass') { t.ground = 'gravel'; t.items = t.items.filter(id => !THINGS[id].block); }
+    }
+  }
+  const [fx, fy] = T.fountain;
+  put(fx, fy, S, 'fountain_rim'); put(fx + 1, fy, S, 'fountain_rim'); put(fx, fy + 1, S, 'fountain_rim'); put(fx + 1, fy + 1, S, 'fountain');
+  for (const [x, y] of T.lamps) put(x, y, S, 'lamppost');
+  for (const [x, y] of T.benches) put(x, y, S, 'bench');
+  for (const [x, y] of T.planters) put(x, y, S, 'planter');
+  for (const [x, y, id] of T.props) put(x, y, S, id);
+  for (const [x, y, text] of T.signs) { m.ensure(x, y, S).items = []; sign(x, y, S, 'signpost', text); }
+  sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
+
+  // ---- trees, bushes and flowers in the open ground, thicker by the walls and fences ------------------------------
+  const busy = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    const t = m.get(x + dx, y + dy, S); if (!t || t.ground !== 'grass' || t.items.some(id => THINGS[id].wall || id === 'fence')) return !(t && t.items.includes('fence') && (dx || dy)); } return false; };
+  const byFence = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const t = m.get(x + dx, y + dy, S); return t && t.items.some(id => id === 'fence' || id === 'wall_stone') && !T.buildings.some(b => inB(b, x + dx, y + dy)); });
+  for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+    const t = m.get(x, y, S);
+    if (t.ground !== 'grass' || t.items.length || busy(x, y)) continue;
+    const v = hash(x, y);
+    if (byFence(x, y) && v < 0.4) put(x, y, S, v < 0.22 ? 'tree' : 'bush');
+    else if (v < 0.05) put(x, y, S, 'tree');
+    else if (v < 0.08) put(x, y, S, 'bush');
+    else if (v < 0.15) put(x, y, S, 'flowers');
+    else if (v < 0.19) put(x, y, S, 'grass_tuft');
+  }
+  // Nothing in a doorway or straight in front of one.
+  for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
+    const t = m.get(x, y, S); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }
 }

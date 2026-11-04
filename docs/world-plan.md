@@ -83,23 +83,29 @@ The island is the same size as map A's (about 25,000 walkable tiles). It's built
 
 These are targets for you to approve phase by phase. They're not built yet.
 
-### Phase 3: Oakvale (built, waiting for approval)
+### Phase 3: Oakvale (second version, waiting for approval)
 
-The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`.
+The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's laid out like the reference towns (map A and the classic starter town), not as a grid:
+- **Willow River runs through it**, with the fishermen's quarter on the west bank, a big bridge on the west street and a footbridge further north.
+- **The temple stands west of the square**, not in the middle.
+- **The streets from the gates are dirt roads** that jog on their way in.
+- **The buildings vary in size and shape**, and their doors face whichever way their street runs.
+- **A stone wall guards only the north and east.** A fence closes the south and west.
+- **A rocky outcrop** rises behind the inn.
 
 | What | Where (x, y) | Notes |
 |---|---|---|
-| Town wall | 110–156, 101–147 | Stone, with gates (3 wide, lamps either side) north, south, west and east, and signposts outside them |
-| Temple of the Dawn | 126–140, 117–129 | Cross-shaped, marble (a protection zone). Carpet to the altar, pillars, benches, statues in the side chapels. **New characters wake at (133, 124)** |
-| The square | round the temple | Paving, a fountain, a statue, benches, lamps, flower boxes, a noticeboard |
-| Oakvale Academy | 113–124, 103–113 | L-shaped, 2 floors. A classroom below; stairs up to the oracle's hall (obelisk, pillars, books) |
-| Depot and Post | 136–143, 103–110 | Marble (a protection zone), lockers along the walls, a post counter |
-| Shops | | Moonpetal Magic (113–119, 116–121), The Dented Shield smithy (113–120, 127–133), Hide and Iron armour (147–154, 115–121), Pip's Provisions (136–142, 137–142), The Warm Loaf bakery (144–149, 140–145). Each has a sign by its door and a counter |
-| The Sleepy Boar inn | 145–155, 127–138 | L-shaped, 2 floors. The taproom below; three bedrooms off a corridor upstairs |
-| Watchtower | 151–155, 102–106 | A ladder up to the lookout, a trapdoor back down |
-| Training yard | 112–125, 142–146 | A fenced sandy yard with four training dummies |
-| Houses for rent | | Ivy Cottage, Millstone House, Lantern Lodge, Riverside Cottage, Bell Cottage, Thatch End (300–500 gold) |
-| Gardens and yards | | Fenced vegetable gardens, flower beds, a well, woodpiles, a haystack and scarecrow, a wagon, trees along the wall |
+| Town | 92–158, 96–150 | Gates: north (137–139), east (124–126), south (134–136), west (124–126), with lamps and signposts |
+| Temple of the Dawn | 111–125, 108–122 | Cross-shaped, marble (a protection zone): carpet aisles, the altar, pillars, benches, statues in the side chapels. **New characters wake at (118, 114)**, where the aisles cross |
+| The square | 108–137, 108–127 | Cobbles, a fountain, a statue, market stalls, benches, lamps, flower boxes, a noticeboard |
+| Oakvale Academy | 109–124, 97–105 | L-shaped, 2 floors. A classroom and the teacher's room below; stairs up to the oracle's hall |
+| Depot and Post | 126–133, 98–103 | Marble (a protection zone), lockers and a post counter |
+| Shops | | The Dented Shield smithy (in the fishermen's quarter), Moonpetal Magic, Hide and Iron (armour), Pip's Provisions, The Warm Loaf (bakery). Each has a sign by its door |
+| The Sleepy Boar inn | 148–157, 128–140 | L-shaped, 2 floors. The taproom and a store room below; three bedrooms off a corridor upstairs, and two more beds in the wing |
+| Watchtower | 153–157, 97–101 | In the north-east corner: a ladder up to the lookout, a trapdoor back down |
+| Training yard | 106–120, 141–148 | Fenced sand with four training dummies |
+| Houses for rent | | Fisher's Hut, Riverside Cottage, Ivy Cottage, Millstone House, Bell Cottage, Thatch End (300–500 gold) |
+| Gardens and yards | | Three fenced vegetable gardens, a flower bed by the temple, a well, a boat by the river, woodpiles, a haystack, a scarecrow, a wagon, trees along the fences |
 
 Every building is a shelter (monsters keep out). All doors, stairs and ladders are checked by `tests/world.test.js`.
 
