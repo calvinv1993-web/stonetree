@@ -883,6 +883,26 @@ const Sprites = (() => {
       solidify(g);
     },
     ramp_top() {},
+    // Stone steps up a rock face: dressed stone stairs, each step lit along its edge, with stone sides.
+    steps(g, r) {
+      g.save();
+      g.setTransform(...FACES.east);
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(0, TILE); g.lineTo(TILE, TILE); g.closePath(); g.clip();
+      stoneBlocks(g, r, 96, '#2e2e32');
+      g.restore();
+      g.save();
+      g.setTransform(1, 0, 1, 2, 0, 0); // (u, v) on the slope -> (u + v, 2v)
+      rect(g, '#8e8e8a', 0, 0, TILE, TILE);
+      for (let v = 0; v < TILE; v += 4) { // each step: its tread, lit, and its riser, in shade
+        rect(g, '#c4c4be', 0, v, TILE, 2);
+        rect(g, '#e2e2dc', 0, v, TILE, 1);
+        rect(g, '#6e6e6a', 0, v + 2, TILE, 2);
+      }
+      rect(g, 'rgba(0,0,0,0.12)', 0, 0, 1, TILE);
+      g.restore();
+      solidify(g);
+    },
+    steps_top() {},
     door: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, true),
     door_closed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false),
     // A fence joins the fences next to it ('wnse' flags, as for walls): a post on its

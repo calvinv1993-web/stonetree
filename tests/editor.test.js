@@ -66,9 +66,9 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
   await page.waitForTimeout(1500);
   START = await page.evaluate(() => createDefaultMap().start);
 
-  await test('the editor opens on the built-in world, on the surface, and shows it', async () => {
+  await test('the editor opens on the built-in world, on the start floor (the temple, one up), and shows it', async () => {
     const s = await status(page);
-    assert.match(s, /Floor 8 \(surface\)/);
+    assert.match(s, /Floor 9 \(\+1\)/);
     assert.match(s, /256×256, 16 floors/);
     assert.ok((await canvasLook(page)).colours > 8, 'the canvas looks blank');
     await shoot(page, 'editor-surface.png');
@@ -94,7 +94,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
     assert.ok((await canvasLook(page)).colours > 8);
     await shoot(page, 'editor-peaks.png');
     await page.selectOption('#goTo', { label: 'Oakvale' });
-    assert.match(await status(page), /Floor 8 \(surface\)/);
+    assert.match(await status(page), /Floor 9 \(\+1\)/);
   });
 
   await test('the mouse wheel zooms in and out', async () => {
@@ -196,7 +196,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
     const count = async () => mobile.evaluate(() => {
       const json = localStorage.getItem(MAP_STORAGE_KEY);
       const m = json ? GameMap.fromJSON(JSON.parse(json)) : createDefaultMap();
-      return m.floors[m.surfaceZ].filter(t => t && t.items.includes('rock')).length;
+      return m.floors[m.start.z].filter(t => t && t.items.includes('rock')).length; // the editor opens on the start floor
     });
     const before = await count();
     await touch('touchstart', [[200, 420]]);

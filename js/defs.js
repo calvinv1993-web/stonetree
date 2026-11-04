@@ -220,6 +220,8 @@ const THINGS = {
   // (an invisible ground) right over it: step on it from above to walk down.
   ramp:        { name: 'mountain path', cat: 'Floor change', change: 1, tall: true },
   ramp_top:    { name: 'mountain path', cat: 'Floor change', ground: true, change: -1 },
+  steps:       { name: 'stone steps', cat: 'Floor change', change: 1, tall: true },       // a grand stair up a rock face...
+  steps_top:   { name: 'stone steps', cat: 'Floor change', ground: true, change: -1 },  // ...and its top, the floor above
   rope_spot:   { name: 'rope spot', cat: 'Floor change', ropeSpot: true },
   rails:       { name: 'cart rails', cat: 'Mechanisms' },
   treasure:    { name: 'heap of treasure', cat: 'Furniture', block: true, low: true },
