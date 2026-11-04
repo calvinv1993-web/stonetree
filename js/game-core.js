@@ -1310,6 +1310,7 @@ function applySave(data) {
 function saveGame() {
   try {
     const data = serializePlayer(player);
+    data.worldId = 'rookgaard-74-v1';
     data.explored = typeof exportExplored === 'function' ? exportExplored() : null;
     data.guilds = guilds; // playing alone, your guild lives in your save
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -1327,6 +1328,12 @@ function loadGame() {
   }
   if (!data) return false;
   applySave(data);
+  if (data.worldId !== 'rookgaard-74-v1') {
+    // Preserve character progress, but never spawn at coordinates from the former world.
+    teleport(map.start);
+    player.home = 'start';
+    data.explored = null;
+  }
   if (data.guilds) guilds = data.guilds;
   if (typeof importExplored === 'function') importExplored(data.explored);
   return true;
