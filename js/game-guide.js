@@ -70,9 +70,9 @@ const GUIDE = [
     done: () => questState('bell_2') === 'done',
   },
   {
-    text: 'Grow stronger outside the walls: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
-    touch: 'Grow stronger outside the walls: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
-    target: [{ npc: 'corwin', level: 6 }],
+    text: 'Grow stronger outside the walls. The guards at the four town gates each have a task for you, and gear as a reward: start with Sergeant Bram at the west gate (level 3). At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
+    touch: 'Grow stronger outside the walls. The guards at the four town gates each have a task for you, and gear as a reward: start with Sergeant Bram at the west gate (level 3). At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
+    target: [{ npc: 'corwin', level: 6 }, { quest: 'gate_north' }, { quest: 'gate_east' }, { quest: 'gate_south' }, { quest: 'gate_west' }, { npc: 'gate_west' }],
     done: () => questState('bell_3') !== 'none',
   },
   {
@@ -108,7 +108,7 @@ function guideDid(deed) {
 function guideTarget(step) {
   for (const t of step.target || []) {
     if (t.level && player.level < t.level) continue;
-    if (t.quest && !stepReady(t.quest)) continue;
+    if (t.quest && (questState(t.quest) !== 'active' || !stepReady(t.quest))) continue; // only a step that's ready to hand in
     if (t.quest && !t.npc) { // the NPC this quest's current step is reported to
       const q = player.quests[t.quest], def = QUESTS[t.quest];
       const st = q && q.status === 'active' && (def.steps || [])[q.step];

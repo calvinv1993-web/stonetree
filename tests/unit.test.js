@@ -1395,6 +1395,29 @@ test('gear deep under Oakvale: a cap, a shield and leather armor, once each; one
   assert(/already taken your pick/.test(messages[messages.length - 1]));
 });
 
+test('the gate watch: a task beyond each gate, gear for it, and each guard sends you on to the next', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const guard = id => state.npcs.find(n => n.npcId === id);
+  const talk = (id, ...words) => { const g = guard(id); ctx.teleport({ ...ctx.findFreeTile(g.x, g.y, g.z, 2), z: g.z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  for (const id of ['gate_west', 'gate_south', 'gate_east', 'gate_north']) assert(guard(id), `${id} stands at a gate`);
+  talk('gate_west', 'wolves', 'yes');
+  assert.strictEqual(state.questState('gate_west'), 'none', 'not at level 1');
+  p.level = 5;
+  for (const [id, word, kill, n, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'leather_boots', /Tilda/], ['gate_south', 'crabs', 'crab', 6, 'leather_legs', /Hilde/],
+    ['gate_east', 'spiders', 'spider', 8, 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'goblin', 8, 'studded_shield', /crypt/]]) {
+    assert.strictEqual(ctx.questNews(id).mark, 'offer', `${id} has a task: !`);
+    talk(id, word, 'yes');
+    for (let i = 0; i < n; i++) ctx.onMonsterKilled(kill);
+    assert.strictEqual(ctx.questNews(id).mark, 'report', `${id} waits for the news: ?`);
+    talk(id, word);
+    assert.strictEqual(state.questState(id), 'done', `${id} is done`);
+    assert.strictEqual(state.countItem(item), 1, `${id} gives ${item}`);
+    assert(next.test(messages.join(' ')), `${id} sends you on`);
+  }
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

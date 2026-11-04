@@ -1528,6 +1528,23 @@ const NPCS = {
   },
 };
 
+// A guard at one of Oakvale's gates: the quest he gives (word: the plainest word for it), where his gate leads,
+// and his rank.
+function gateGuard(quest, name, hair, word, gate, captain) {
+  return {
+    name, wander: 2, idle: 3000,
+    look: { skin: '#e0b088', hair, body: '#8a2a2a', arms: '#a8aeb8', armor: '#a8aeb8', tabard: captain ? '#2a4a8a' : '#8a2a2a', legs: '#4a4a52', feet: '#2a2a2a', belt: '#3a2a1a', hat: { style: 'helmet', color: captain ? '#d0b040' : '#a8aeb8' }, held: 'sword' },
+    greet: `Halt, $name. ${captain ? 'Captain' : 'Guard'} of this gate. Need {directions}, or are you here about the {dangers}?`,
+    keywords: {
+      [`${word}|task|quest|mission|help`]: { quest: [quest] },
+      job: 'I keep this gate, and what comes through it.',
+      'directions|gate|road': gate,
+      'dangers|monsters|news': 'The further from town, the worse it gets: rats in the fields, wolves and slimes beyond, then spiders and goblins. Bears in the deep woods. Know when to run.',
+    },
+    chatter: ['All quiet at the gate.', 'Keep your weapon ready out there.', 'Wolves again last night.', 'Mind the road.'],
+  };
+}
+
 // ---- Oakvale Isle: the people of the starter town, and its beginner story --------------------------
 // "The Silent Bell": the temple bell of Oakvale has stopped ringing. The quest walks a newcomer through the
 // town and the game: the priestess, the teacher at the academy, the first fight outside the walls, the
@@ -1571,7 +1588,7 @@ Object.assign(QUESTS, {
         done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a stone down there too? Show Master Corwin at the academy the {stone}. He knows old things.' },
       { npc: 'corwin', fetch: 'carved_stone', summary: 'Show the strange carved stone to Master Corwin at the academy.',
         progress: 'Sister Ama says you found a strange stone under the temple. If you have lost it, look in the bell cellar again.',
-        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me at level 6 and ask me about the {crypt}: the dead down there do not sleep lightly.' },
+        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me at level 6 and ask me about the {crypt}: the dead down there do not sleep lightly. Until then, grow stronger: the guards at the town gates have work for you. Start with Sergeant Bram at the west gate, at level 3.' },
     ],
     text: {
       offer: 'You are back, $name, and a little stronger. Our bell has lost its rope: it fell down the old bell shaft, deep under the town, and people say the rats chewed it through. I do not believe it. Will you go down and find it? ({yes}/{no})',
@@ -1596,6 +1613,63 @@ Object.assign(QUESTS, {
       tooWeak: 'The crypt under Bone Rocks is no place for you yet, $name. Come back when you are level 6.',
       elsewhere: 'Master Corwin at the academy wants to see you about the bell.',
       done: 'The bell rings again, thanks to you. Now go and see the oracle upstairs, $name: you are ready.',
+    },
+  },
+});
+
+// The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
+// sends you on to the next gate. Together they lead a newcomer from level 3 to the crypt at level 6.
+Object.assign(QUESTS, {
+  gate_west: {
+    name: 'The Gate Watch: Wolves at the West Gate', giver: 'gate_west', level: 3, kill: { wolf: 8 },
+    reward: { xp: 250, gold: 30, items: [['leather_boots', 1]] },
+    summary: 'Kill 8 wolves in Wolf Woods, out of the west gate and north-west, and report to Sergeant Bram at the west gate.',
+    text: {
+      offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold - they come right up to the west road at night. Thin them out for me? Eight will do. ({yes}/{no})',
+      accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it. Come back and tell me about the {wolves}.',
+      progress: 'So far: $progress. Wolf Woods lies north-west of the west gate.',
+      reward: 'Eight wolves! The road will be quieter tonight. Here - good boots, for a good pair of legs. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      tooWeak: 'Wolves would tear you apart, friend. Come back at level 3.',
+      done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
+    },
+  },
+  gate_south: {
+    name: 'The Gate Watch: Crabs on the Beach', giver: 'gate_south', level: 3, kill: { crab: 6 },
+    reward: { xp: 300, gold: 30, items: [['leather_legs', 1]] },
+    summary: 'Kill 6 crabs on the beaches of Lighthouse Point (down the south road) or by Fisher\'s Rest, and report to Guard Tilda at the south gate.',
+    text: {
+      offer: 'Crabs, $name. Big ones, snapping at the fishermen\'s nets on the beaches. I can\'t leave my gate. Would you kill six of them for me? ({yes}/{no})',
+      accept: 'Down the south road, all the way to Lighthouse Point: the beaches there are crawling with them. Their shells are hard - hit them, and keep hitting. Then come back and tell me about the {crabs}.',
+      progress: 'So far: $progress. The beaches are at the end of the south road.',
+      reward: 'Six crabs, and you still have all your fingers! These leggings will keep the pincers off. Guard Hilde at the east gate keeps talking about {spiders} - see her next.',
+      tooWeak: 'Those pincers would snap you in two. Come back at level 3.',
+      done: 'The nets are safe again. Guard Hilde at the east gate has trouble with {spiders}.',
+    },
+  },
+  gate_east: {
+    name: 'The Gate Watch: Spiders in the East', giver: 'gate_east', level: 4, kill: { spider: 8 },
+    reward: { xp: 450, gold: 40, items: [['chain_helmet', 1]] },
+    summary: 'Kill 8 spiders in Thorn Thicket or round the Spider Hills (south-east), and report to Guard Hilde at the east gate.',
+    text: {
+      offer: 'Spiders, $name. They spin their webs over the trails in the south-east, and their bite burns. Kill eight for me and you shall have a proper helmet. ({yes}/{no})',
+      accept: 'Take the spider trail south from the east road, or go through Thorn Thicket south of Sunny Fields. Their poison burns: carry potions. Then come back and tell me about the {spiders}.',
+      progress: 'So far: $progress. Thorn Thicket and the Spider Hills are south-east of town.',
+      reward: 'Eight! You fight like a guard already. Take this helmet - it was mine, when I was younger. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.',
+      tooWeak: 'Their poison would finish you. Come back at level 4.',
+      done: 'The trails are clearer now. Captain Osric at the north gate wants to talk to you about {goblins}.',
+    },
+  },
+  gate_north: {
+    name: 'The Gate Watch: Goblins in the North', giver: 'gate_north', level: 5, kill: { goblin: 8 },
+    reward: { xp: 700, gold: 60, items: [['studded_shield', 1], ['health_potion', 2]] },
+    summary: 'Kill 8 goblins on Stony Field (up the north road) or on Goblin Hill (north-east), and report to Captain Osric at the north gate.',
+    text: {
+      offer: 'So you are the one the gate watch keeps talking about. Goblins, $name: scouts on Stony Field, and a whole camp on Goblin Hill. They grow bolder. Kill eight of them. ({yes}/{no})',
+      accept: 'Stony Field is up the north road, below the North Peaks. Goblin Hill lies north-east, past Mirror Lake. They hit hard and they fight together. Then come back and tell me about the {goblins}.',
+      progress: 'So far: $progress. Stony Field is up the north road; Goblin Hill is north-east.',
+      reward: 'Eight goblins. You have earned this shield, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.',
+      tooWeak: 'Goblins are no rats, friend. Come back at level 5.',
+      done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
     },
   },
 });
@@ -1693,6 +1767,11 @@ Object.assign(NPCS, {
     keywords: { job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.' },
     trade: { sells: [['health_potion', 40], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },
+  // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
+  gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),
+  gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
+  gate_east: gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.'),
+  gate_north: gateGuard('gate_north', 'Captain Osric', '#3a3a3a', 'goblins', 'The north gate: Mirror Lake, Stony Field and the North Peaks. Goblin Hill is north-east, past the lake.', true),
   oak_baker: {
     name: 'Baker Willa',
     look: { skin: '#f0c8a0', hair: '#e0c070', body: '#f0e8d8', arms: '#f0c8a0', legs: '#8a5a3a', belt: '#f0e8d8' },
