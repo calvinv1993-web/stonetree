@@ -127,10 +127,24 @@ const Render = {
         }
         const above = n => n && n !== here && Sprites.borderPriority(n) > p;
         const sides = { n: groundAt(x, y - 1), e: groundAt(x + 1, y), s: groundAt(x, y + 1), w: groundAt(x - 1, y) };
-        for (const [d, n] of Object.entries(sides)) if (above(n)) g.drawImage(Sprites.border(n, d), ox + x * TILE, oy + y * TILE);
+        const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0; // which of the three shapes, fixed per tile
+        for (const [d, n] of Object.entries(sides)) if (above(n)) g.drawImage(Sprites.border(n, d, variant % 3), ox + x * TILE, oy + y * TILE);
         for (const [d, dx, dy, a, b] of BORDER_DIRS) {
           const n = groundAt(x + dx, y + dy);
-          if (above(n) && sides[a] !== n && sides[b] !== n) g.drawImage(Sprites.border(n, d), ox + x * TILE, oy + y * TILE);
+          if (above(n) && sides[a] !== n && sides[b] !== n) g.drawImage(Sprites.border(n, d, (variant >>> 3) % 3), ox + x * TILE, oy + y * TILE);
+        }
+      }
+
+      // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
+      // straight line.
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const here = groundAt(x, y);
+        if (!Sprites.hasLip(here)) continue;
+        const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
+        for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
+          if (!tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height) {
+            g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+          }
         }
       }
 

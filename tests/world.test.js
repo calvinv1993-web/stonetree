@@ -76,7 +76,7 @@ const near = (x, y, z, r = 3) => {
   for (let d = 0; d <= r; d++) for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) if (walkable(x + dx, y + dy, z) && !change(x + dx, y + dy, z)) return key(x + dx, y + dy, z);
   return null;
 };
-const islet = (x, y) => x >= 218 && y >= 196; // Gannet Rock: no way across yet (boat in phase 4)
+const islet = () => false; // no islands off the coast: all land must be reachable
 
 test('the world is 256 x 256 tiles on 16 floors, with the surface on floor 8', () => {
   assert.strictEqual(JSON.stringify([map.width, map.height, map.depth, map.surfaceZ]), JSON.stringify([256, 256, 16, 8]));
@@ -171,7 +171,7 @@ test('every named place, road and mountain top can be reached on foot from the s
   assert.deepStrictEqual(missing, []);
 });
 
-test('no land is cut off, apart from Gannet Rock and pockets of a few tiles between trees', () => {
+test('no land is cut off, apart from pockets of a few tiles between trees', () => {
   const seen = new Set(), cut = [];
   for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const k = key(x, y, z);

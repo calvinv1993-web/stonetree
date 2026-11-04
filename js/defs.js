@@ -115,6 +115,11 @@ const THINGS = {
   rubble:      { name: 'rubble', cat: 'Nature' },
   crystal:     { name: 'glowing crystal', cat: 'Nature', block: true, low: true, light: 3 },
   puddle:      { name: 'puddle', cat: 'Nature' },
+  pebbles:     { name: 'pebbles', cat: 'Nature' },
+  shells:      { name: 'seashells', cat: 'Nature' },
+  leaves:      { name: 'fallen leaves', cat: 'Nature' },
+  grass_tuft:  { name: 'tuft of grass', cat: 'Nature' },
+  driftwood:   { name: 'driftwood', cat: 'Nature' },
 
   table:       { name: 'table', cat: 'Furniture', block: true, low: true, movable: true },
   chair:       { name: 'chair', cat: 'Furniture', movable: true },

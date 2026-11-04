@@ -37,7 +37,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 
 ## The game
 
-> **The world is being rebuilt.** The built-in world is now **Thistlewick Isle**, a new starter island, built in stages. So far there's the land: coasts and beaches, the river Wick and Glassmere lake, Highmoor, Watch Hill and Cragend with paths up them, the woods, Bramble Marsh and Gull Point. The town, the people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
+> **The world is being rebuilt.** The built-in world is now **Thistlewick Isle**, a new starter island, built in stages. So far there's the land: rocky coasts, beaches and coves, the river Wick past the town site and Glassmere lake, Highmoor, Cragend, the Webbed Hills, Watch Hill and Hermit's Crag with paths up them, the Old Pinewood, Eastwood and smaller woods, Bramble Marsh, Stonefield and the Redcap Hills, and Lantern Cape. The town, the people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
 
 - **Brightwater Isle** (starter island). You start in the temple next to Elder Maren. The island has:
   - a cellar full of rats

@@ -24,7 +24,7 @@ try {
 }
 const shots = process.argv[2];
 const URL_ = pathToFileURL(path.join(ROOT, 'editor.html')).href;
-const START = { x: 119, y: 129, z: 8 };
+let START; // the start tile of the built-in world, read from the page
 
 let passed = 0, failed = 0;
 async function test(name, fn) {
@@ -64,6 +64,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
   watch(page);
   await page.goto(URL_);
   await page.waitForTimeout(1500);
+  START = await page.evaluate(() => createDefaultMap().start);
 
   await test('the editor opens on the built-in world, on the surface, and shows it', async () => {
     const s = await status(page);

@@ -35,30 +35,35 @@ This is all in `WORLD_SIZE` and `ISLE_DESIGN` at the top of `js/default-map.js`.
 - **Underground**, every cave floor is enclosed by rock walls. Tiles that haven't been dug out are empty (`null`), and nobody can walk on them. The validator also requires a wall between any cave floor and the void.
 - **Upper floors** exist only where there's something there: mountain tops, upper storeys, roofs.
 
-## 3. The island (phase 2: geography, done)
+## 3. The island (phase 2: geography, second version)
 
-| Place | Where (x, y) | What |
-|---|---|---|
-| Thistlewick | 98–140, 112–146 | Town site: kept clear for walls, streets and buildings (phase 3) |
-| Glassmere | 116–148, 46–70 | The lake in the north, source of the river |
-| The Wick | lake → 185, 212 | A river 3 tiles wide, east of town, out to the south coast |
-| Highmoor | 74–108, 48–84 | Mountain in the north-west, with a summit two floors up. Path up at (90, 81) |
-| Old Pinewood | 44–84, 86–128 | Dense fir forest in the west |
-| Northwood | 150–178, 36–64 | Mixed wood east of the lake |
-| Seal Bay | 172–216, 52–78 | Bay on the north-east coast |
-| Eastwood | 162–212, 88–152 | Large oak forest east of the river, with a pond |
-| Watch Hill | 188–206, 100–118 | Hill in Eastwood. Path up at (196, 117). For a ruined watchtower (phase 4) |
-| Cragend | 190–210, 170–192 | Rocky headland in the south-east. Path up at (199, 190). Cave entrance planned (phase 5) |
-| Southfields | 104–142, 156–186 | Flowery meadows south of town. Farm planned (phase 4) |
-| Bramble Marsh | 80–104, 178–210 | Swamp with pools, and Bramble Creek running to Gull Cove |
-| Gull Point | 50–92, 200–238 | Peninsula in the south-west |
-| Saltreed | 46–60, 142–158 | Site of the fishing hamlet on the west coast (phase 4) |
-| Hollow Copse, Riverside thicket, Southfield grove | see `ISLE_DESIGN` | Small woods |
-| Gannet Rock | 222–244, 202–224 | An islet off Cragend. There's no way there yet (see open questions) |
+Built after studying map A (the imported map) and classic starter islands: see `docs/world-research.md`.
 
-Roads (2 tiles wide) leave the town site north, east, south and west, and go on to Cragend. Paths
-(1 tile wide) lead to Highmoor, Northwood, Seal Bay, the marsh, Gull Point, the Pinewood and the
-Copse. There are three bridges over the Wick: the east road, the Cragend road and the Northwood path.
+| Place | Where (x, y) | What | Hunting (planned) |
+|---|---|---|---|
+| Thistlewick | 112–152, 98–140 | Town site in the middle, kept clear for walls, streets and buildings (phase 3). Start at (132, 119) | Sewers below: easiest |
+| The Wick | Glassmere → west coast | River 3 tiles wide, past the town's west side, out through an estuary in the west. Bridges on the north road, the west road and the lake path | |
+| Glassmere | 148–178, 56–86 | Lake in the north-east, source of the Wick | Lakeside: easiest |
+| Southfields | 98–154, 150–190 | Meadows south of town, with a pond and a farm clearing | Easiest |
+| Highmoor | 58–150, 28–64 | Mountain range across the north, with a summit two floors up. Paths up at x 80 and 108 (summit at 104) | Hard, with caves (phase 5) |
+| Stonefield | 74–96, 68–86 | Stony ground at Highmoor's foot | Middle |
+| Old Pinewood | 24–72, 46–114 | Dense fir forest in the north-west, with a lumber camp clearing | Easy to middle |
+| Bramble Marsh | 28–62, 118–162 | Swamp on the west coast | Easy |
+| Saltreed | 34–48, 174–190 | Fishing hamlet clearing at the Wick's mouth | |
+| Cragend | 50–88, 180–216 | Rocky crag in the south-west. Path up at x 70 | Hard, with caves (phase 5) |
+| Gull Cove, Cove wood | 60–118, 206–234 | A bay on the south coast, with a small fir wood | |
+| Lantern Cape | 118–150, 222–246 | Rocky cape in the south, with a lighthouse clearing | |
+| Webbed Hills | 176–214, 166–204 | Hills in the south-east. Path up at x 192 | Hardest: spider caves (phase 5) |
+| Eastwood | 160–228, 90–164 | Big oak forest east of town, with a pond and Hollow Brook | Easy to middle |
+| Watch Hill | 204–224, 108–128 | Hill in Eastwood, for a ruined watchtower. Path up at x 214 | Middle |
+| Redcap Hills | 182–218, 60–92 | Stony hills with a goblin camp clearing | Middle |
+| Hermit's Crag | 200–228, 36–62 | Rocky headland in the north-east. Path up at x 212 | Hard |
+| Kittiwake Bay | 156–186, 22–50 | Bay on the north coast | |
+| Small woods | Thornbrake, Riverside thicket, Willow Bend, Webfoot copse, Lakewood, Southfield grove | Between the big areas | |
+
+Roads (2 tiles wide) leave the town north (to Highmoor), west (over the Wick to the Pinewood and the marsh), south
+(to Lantern Cape) and east (to Watch Hill). Paths (1 to 2 tiles wide) lead to Stonefield, the marsh, the lake,
+the Redcap Hills and Hermit's Crag, the Webbed Hills, Cragend and Saltreed.
 
 ## 4. Later phases: what's planned
 
@@ -81,25 +86,29 @@ These are targets for you to approve phase by phase. They're not built yet.
 - the Saltreed huts and a pier
 - the Southfields farm and mill
 - the ruined watchtower on Watch Hill
-- a hermit's hut on Gull Point
+- a hermit's hut on Hermit's Crag
+- a goblin camp in the Redcap Hills
+- a lumber camp in the Pinewood
+- a lighthouse on Lantern Cape
 - signposts
 - camps
 - the hunting grounds, from easy (near town) to hard (far out):
 
 | Danger | Hunting grounds |
 |---|---|
-| Easiest | Southfields, Lakeside |
-| Easy | Pinewood, Hollow Copse, Bramble Marsh |
-| Middle | Northwood, Eastwood |
-| Harder | Watch Hill, Highmoor, Cragend, Gull Point |
+| Easiest | the sewers, Southfields, the lakeside |
+| Easy | Bramble Marsh, the edges of the Pinewood and Eastwood |
+| Middle | Stonefield, Watch Hill, the Redcap Hills, deep in the woods |
+| Hard | Highmoor, Cragend, Hermit's Crag |
+| Hardest | the Webbed Hills caves |
 
 ### Phase 5: underground
 
 These caves are a design proposal, since there's no underground reference:
 - **Town sewers** under Thistlewick (z 7)
 - **Highmoor caves** (z 7 and 6)
-- **Cragend caves** (z 7 to 5): the hardest beginner area
-- **Marsh hollow** (z 7)
+- **Cragend crypt** (z 7 to 6)
+- **Webbed Hills spider caves** (z 7 to 5): the hardest beginner area
 
 Each entrance will be listed with its source and destination tiles, and checked by the validator.
 
@@ -119,8 +128,8 @@ levelling pace stays as it is.
 
 ## 5. Open questions
 
-1. **Gannet Rock:** should it be reached by a boat (an NPC ride), a sandbar at low tide, or not at all?
-2. **Leaving the island:** today the game sends level-8 players to the mainland (Valoria), but the old mainland is no longer in the built-in world. Should Thistlewick be the whole world for now?
+1. **Leaving the island:** at level 10, after choosing a vocation, players go to the mainland and can never come back (the game already works this way). The old mainland (Valoria and the rest) is no longer in the built-in world: bringing it back from the backup branch, beside this island, is proposed.
+2. **NPC and place names** are placeholders until you approve them.
 3. **The sealed tale** (`game-tales.js`) was tied to Brightwater Isle's hand-placed things. Those were removed with the earlier imported map (commit `ab17d3c`), before this work. The tale can't be completed until whoever holds its plaintext reseals it for the new island.
 4. **Unit tests tied to the old world:** 37 of 49 fail because they use old-world coordinates (floor 4, Brightwater). They need new coordinates once the town and spawns exist (phases 3 and 6). 30 already failed on the imported map before this work.
 

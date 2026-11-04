@@ -432,8 +432,17 @@ const Fx = (() => {
     const day = daylight();
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       if (!wet(x, y)) continue;
-      if (wet(x - 2, y) && wet(x + 2, y) && wet(x, y - 2) && wet(x, y + 2) && wet(x - 1, y - 1) && wet(x + 1, y + 1) && wet(x + 1, y - 1) && wet(x - 1, y + 1)) {
-        g.fillStyle = 'rgba(8,24,70,0.28)'; // deep
+      // Deeper the further from land (up to 4 tiles out), in small steps so the shelf fades out.
+      let depth = 0;
+      while (depth < 4) {
+        const d = depth + 1;
+        let open = true;
+        for (let i = -d; i <= d && open; i++) open = wet(x + i, y - d) && wet(x + i, y + d) && wet(x - d, y + i) && wet(x + d, y + i);
+        if (!open) break;
+        depth = d;
+      }
+      if (depth > 1) {
+        g.fillStyle = `rgba(8,24,70,${[0, 0, 0.1, 0.19, 0.28][depth]})`;
         g.fillRect(ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
       if (day > 0.6) { // the sun glinting on the water
