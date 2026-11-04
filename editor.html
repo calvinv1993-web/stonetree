@@ -76,16 +76,30 @@
   </div>
   <footer class="statusbar"><span id="status"></span><span id="saveState"></span></footer>
 
-  <script src="js/defs.js"></script>
-  <script src="js/items.js"></script>
-  <script src="js/creatures.js"></script>
-  <script src="js/npcs.js"></script>
-  <script src="js/data.js"></script>
-  <script src="sprites/custom.js"></script>
-  <script src="js/sprites.js"></script>
-  <script src="js/map.js"></script>
-  <script src="js/default-map.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/editor.js"></script>
+  <script>
+    // Display startup failures on mobile, where the developer console is unavailable.
+    window.addEventListener('error', function (event) {
+      var message = event.message || 'Unknown script error';
+      var box = document.getElementById('editorStartupError');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'editorStartupError';
+        box.style.cssText = 'position:fixed;z-index:99999;top:10px;left:10px;right:10px;padding:14px;background:#611;color:white;font:14px sans-serif;overflow-wrap:anywhere';
+        document.body.appendChild(box);
+      }
+      box.textContent = 'Map editor error: ' + message + (event.filename ? ' (' + event.filename.split('/').pop() + ':' + event.lineno + ')' : '');
+    });
+  </script>
+  <script src="js/defs.js?v=482cc7e"></script>
+  <script src="js/items.js?v=482cc7e"></script>
+  <script src="js/creatures.js?v=482cc7e"></script>
+  <script src="js/npcs.js?v=482cc7e"></script>
+  <script src="js/data.js?v=482cc7e"></script>
+  <script src="sprites/custom.js?v=482cc7e"></script>
+  <script src="js/sprites.js?v=482cc7e"></script>
+  <script src="js/map.js?v=482cc7e"></script>
+  <script src="js/default-map.js?v=482cc7e"></script>
+  <script src="js/render.js?v=482cc7e"></script>
+  <script src="js/editor.js?v=482cc7e"></script>
 </body>
 </html>
