@@ -6,11 +6,12 @@ const Sprites = (() => {
   const urls = new Map();
   const silhouettes = new WeakMap();
 
-  function cached(key, draw, size = TILE) {
+  function cached(key, draw, size = TILE, height = size) {
     let c = cache.get(key);
     if (!c) {
       c = document.createElement('canvas');
-      c.width = c.height = size;
+      c.width = size;
+      c.height = height;
       const g = c.getContext('2d');
       draw(g);
       cache.set(key, c);
@@ -442,12 +443,19 @@ const Sprites = (() => {
   }
 
   // --- things in 2.5D --------------------------------------------------------------
-  // Raised things stand up from their tile: on a 64x64 canvas with their tile in the bottom-right
-  // quarter, every point (u, v) on the tile at height z is drawn z pixels up and a third of that to the left. So
+  // Raised things stand up from their tile: on a 96x96 canvas with their tile in the bottom-right
+  // corner (so even tall ones have room and are never cut off), every point (u, v) on the tile at
+  // height z is drawn z pixels up and z pixels to the left - the same slant as walls and roofs. So
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
-  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot']);
-  const LEAN = 0.3; // how far left things lean per pixel of height
-  const P = (u, v, z) => [32 + u - z * LEAN, 32 + v - z];
+  // Round things and figures (barrels, sacks, the well, statues...) are drawn standing upright, seen from
+  // the front, as the classic games draw them: slanted, they would look as if they were lying down.
+  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'chair', 'bench',
+    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'gravestone', 'planter', 'apple_crate', 'anvil', 'firewood',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack']);
+  const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
+  const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
+  const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  const floorShadow = (g, rx = 13, ry = 3) => shadow(g, 81, 93, rx, ry); // on the ground, under the thing
   // A block from (u0, v0) to (u1, v1) on the tile, z0 to z1 high: its east face, south face and top.
   // c: { top, south, east } colours, and edge (the lit front edge of its top).
   function prism(g, u0, v0, u1, v1, z0, z1, c) {
@@ -457,10 +465,22 @@ const Sprites = (() => {
     line(g, c.edge || 'rgba(255,255,255,0.35)', 1, ...P(u0, v1, z1), ...P(u1, v1, z1));
     line(g, 'rgba(0,0,0,0.35)', 1, ...P(u1, v1, z0), ...P(u1, v1, z1));
   }
+  // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.
+  function streetLamp(g, lit) {
+    floorShadow(g, 7, 2);
+    const iron = { top: '#3a3a40', south: '#2a2a30', east: '#1e1e22', edge: '#5a5a62' };
+    prism(g, 12, 13, 20, 21, 0, 4, { top: '#9a9a96', south: '#7a7a76', east: '#5e5e5a', edge: '#bcbcb8' });
+    prism(g, 15, 16, 17, 18, 4, 40, iron);
+    prism(g, 11, 12, 21, 22, 40, 42, iron);
+    prism(g, 12, 13, 20, 21, 42, 52, { top: '#ffe090', south: lit ? '#ffe9a8' : '#59626e', east: lit ? '#e8c060' : '#3a4048', edge: '#fff4c8' });
+    onSouth(g, 21, f => { rect(f, '#2a2a30', 15, 42, 1, 10); rect(f, '#2a2a30', 12, 47, 8, 1); });
+    prism(g, 10, 11, 22, 23, 52, 55, iron);
+    const [x, y] = P(16, 17, 55); poly(g, '#2a2a30', [x - 4, y, x + 4, y, x, y - 4]);
+  }
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
   function onSouth(g, v, fn) {
     g.save();
-    g.setTransform(1, 0, -LEAN, -1, 32, 32 + v); // (u, z) -> (32 + u - z * LEAN, 32 + v - z)
+    g.setTransform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); // (u, z) -> P(u, v, z)
     fn(g);
     g.restore();
   }
@@ -993,32 +1013,33 @@ const Sprites = (() => {
       rect(g, 'rgba(160,200,220,0.25)', 9, 20, 14, 2); // water far below
     },
     // A crate full of red and green apples.
+    // A crate full of red and green apples.
     apple_crate(g, r) {
-      shadow(g, 16, 29, 13, 3);
-      rect(g, '#8a6436', 4, 14, 24, 14); for (let y = 18; y < 28; y += 4) rect(g, '#6e4e28', 4, y, 24, 1);
-      rect(g, 'rgba(255,240,200,0.2)', 4, 14, 24, 1);
-      for (let i = 0; i < 14; i++) {
-        const x = 7 + (i % 7) * 3 + (r() - 0.5), y = 12 + Math.floor(i / 7) * 3 + (r() - 0.5);
-        ellipse(g, r() < 0.7 ? '#c8302a' : '#7ab040', x, y, 2, 2); rect(g, '#ffffff', x - 1, y - 1, 1, 1);
+      floorShadow(g, 13, 3);
+      prism(g, 5, 6, 27, 26, 0, 12, { top: '#6e4e28', south: '#a07a46', east: '#7a5a30', edge: '#c8a068' });
+      onSouth(g, 26, f => { rect(f, '#7e5c32', 5, 6, 22, 1); });
+      for (let i = 0; i < 16; i++) {
+        const [x, y] = P(8 + (i % 4) * 5.5 + (r() - 0.5), 9 + Math.floor(i / 4) * 4.8, 13);
+        ellipse(g, r() < 0.7 ? '#c8302a' : '#7ab040', x, y, 2.4, 2.4); rect(g, '#ffffff', x - 1, y - 1, 1, 1);
       }
     },
     // Fish hung up to dry on a wooden frame.
+    // Fish hung up to dry on a wooden frame.
     fish_rack(g) {
-      shadow(g, 16, 29, 13, 3);
-      for (const x of [4, 26]) { rect(g, '#5a3618', x, 4, 2, 25); rect(g, '#7a4e26', x, 4, 1, 25); }
-      rect(g, '#6a4220', 3, 5, 26, 2);
-      for (const x of [8, 13, 18, 23]) {
-        rect(g, '#c8c0a8', x + 1, 7, 1, 3);
-        poly(g, '#8aa0b0', [x, 10, x + 3, 10, x + 3, 19, x + 1.5, 22, x, 19]);
-        rect(g, '#c0d0d8', x, 11, 1, 7);
-      }
+      floorShadow(g, 14, 3);
+      const wood = { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' };
+      prism(g, 3, 15, 5, 17, 0, 28, wood); prism(g, 27, 15, 29, 17, 0, 28, wood);
+      prism(g, 2, 15, 30, 17, 28, 30, wood);
+      onSouth(g, 17, f => { for (const u of [8, 13, 18, 23]) { poly(f, '#8aa0b0', [u, 26, u + 3, 26, u + 3, 16, u + 1.5, 13, u, 16]); rect(f, '#c0d0d8', u, 17, 1, 8); } });
     },
     // A chopping block with an axe in it and split logs.
+    // A chopping block with an axe in it, and split logs beside it.
     firewood(g) {
-      shadow(g, 16, 29, 13, 3);
-      ellipse(g, '#6a4220', 12, 22, 7, 5); rect(g, '#6a4220', 5, 15, 14, 7); ellipse(g, '#c8925a', 12, 15, 7, 3); ellipse(g, '#a8703a', 12, 15, 4, 1.6);
-      line(g, '#5a3618', 2, 13, 14, 20, 5); poly(g, '#a8acb4', [17, 4, 24, 4, 24, 9, 19, 9]);
-      for (const [x, y] of [[22, 22], [26, 25], [21, 27]]) { ellipse(g, '#8a5a2c', x, y, 4, 2); ellipse(g, '#d8a868', x - 2, y, 1.5, 1.5); }
+      floorShadow(g, 13, 3);
+      column(g, 11, 14, 7, 0, 10, { light: '#8a5a2c', mid: '#6a4220', dark: '#4a2c12', top: '#c8925a' });
+      const [tx, ty] = P(11, 14, 10); ellipse(g, '#a8703a', tx, ty, 4, 4);
+      line(g, '#5a3618', 2, tx, ty, tx + 6, ty - 12); prism(g, 14, 10, 19, 12, 18, 24, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
+      for (const [u, v] of [[20, 20], [24, 24], [19, 26]]) { prism(g, u, v, u + 8, v + 3, 0, 3, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' }); }
     },
     // A wooden pier over water: planks on posts.
     pier(g, r) {
@@ -1034,7 +1055,7 @@ const Sprites = (() => {
     // A sturdy table: a thick top lit from above, its front edge, four legs.
     // A table: a thick wooden top on four legs.
     table(g) {
-      shadow(g, 50, 62, 15, 3);
+      floorShadow(g, 15, 3);
       for (const [u, v] of [[4, 6], [26, 6], [4, 24], [26, 24]]) prism(g, u, v, u + 3, v + 3, 0, 13, { top: '#b07a42', south: '#7a4e26', east: '#5e3a1a', edge: '#d09a5e' });
       prism(g, 2, 4, 30, 28, 13, 17, { top: '#b07a42', south: '#7a4e26', east: '#5e3a1a', edge: '#d09a5e' });
       for (const v of [10, 16, 22]) line(g, 'rgba(90,56,26,0.35)', 1, ...P(3, v, 17), ...P(29, v, 17));
@@ -1048,7 +1069,7 @@ const Sprites = (() => {
     // A chest with a rounded lid, iron bands and a brass lock.
     // A chest: a wooden box with a lid, iron bands over it and a brass lock on its front.
     chest(g) {
-      shadow(g, 50, 62, 14, 3);
+      floorShadow(g, 14, 3);
       prism(g, 4, 9, 28, 25, 0, 10, { top: '#8a5428', south: '#6a3e1a', east: '#4e2c12', edge: '#a86c38' });
       prism(g, 4, 9, 28, 25, 10, 15, { top: '#a86c38', south: '#7e4c22', east: '#5e3818', edge: '#c88a50' });
       for (const u of [8, 24]) { line(g, '#5a5a62', 2, ...P(u, 25, 0), ...P(u, 25, 15)); line(g, '#5a5a62', 2, ...P(u, 25, 15), ...P(u, 9, 15)); line(g, '#b8b8c0', 1, ...P(u - 1, 25, 0), ...P(u - 1, 25, 15)); }
@@ -1057,12 +1078,14 @@ const Sprites = (() => {
     // A crate seen from the front and a little above: a lit top, planked sides, a brace, nails.
     // A crate: a box of planks with a brace across its front and its top.
     crate(g) {
-      shadow(g, 50, 62, 14, 3);
+      floorShadow(g, 14, 3);
       prism(g, 5, 5, 27, 27, 0, 20, { top: '#c8a068', south: '#a07a46', east: '#7a5a30', edge: '#e0bc84' });
       onSouth(g, 27, f => { for (const z of [6, 13]) rect(f, '#7e5c32', 5, z, 22, 1); rect(f, '#6e4e28', 5, 0, 2, 20); rect(f, '#6e4e28', 25, 0, 2, 20); line(f, '#6e4e28', 2, 7, 1, 25, 19); });
       for (const u of [10, 16, 22]) line(g, 'rgba(110,80,40,0.6)', 1, ...P(u, 5, 20), ...P(u, 27, 20));
     },
     // A barrel: staves bulging at the middle, two iron hoops, the lid on top; lit from the top-left.
+    // A barrel: a round body of staves with two iron hoops, its lid on top.
+// A barrel: staves bulging at the middle, two iron hoops, the lid on top; lit from the top-left.
     barrel(g) {
       shadow(g, 17, 29, 11, 3);
       const staves = ['#6a3e18', '#7e4c22', '#8e5a2a', '#9a6632', '#8a5628', '#7a4a20', '#64391a', '#57311a'];
@@ -1117,6 +1140,7 @@ const Sprites = (() => {
         for (let y = 12; y < 26; y += 4) { ellipse(g, '#d8b040', x + 2, y, 2, 1.5); ellipse(g, '#c8a030', x, y + 2, 2, 1.5); }
       }
     },
+    // A statue on a plinth: a stone figure holding a sword.
     statue(g) {
       shadow(g, 48, 61, 12, 3);
       rect(g, '#8a8a90', 38, 52, 20, 10);
@@ -1145,6 +1169,7 @@ const Sprites = (() => {
       rect(g, '#3a3a42', 2, 26, 28, 3);
       for (let x = 3; x < 30; x += 5) { rect(g, '#5a5a62', x, 6, 2, 23); rect(g, '#8a8a92', x, 6, 1, 23); }
     },
+    // A well: a round stone wall with dark water inside, two posts, a little roof and a crank.
     well(g) {
       shadow(g, 16, 27, 13, 4);
       ellipse(g, '#8a8a90', 16, 20, 12, 8);
@@ -1358,70 +1383,45 @@ const Sprites = (() => {
 
     // --- in and around towns (fountain, lamp post, stall, wagon, chimney, boat, scarecrow,
     // pillar and notice board are 64x64, standing in the bottom-right quarter) ---
+    // The fountain, drawn whole by its south-east tile (centred on the corner of its four tiles): a round
+    // stone basin of water, a pillar in the middle with a bowl on top, and water falling from it.
     fountain(g, r, frame) {
-      shadow(g, 32, 56, 31, 7);
-      ellipse(g, '#808088', 32, 41, 30, 17);
-      ellipse(g, '#a8a8b0', 32, 38, 30, 15);
-      ellipse(g, '#c0c0c8', 30, 36, 26, 11);
-      ellipse(g, '#2d63b5', 32, 39, 25, 11);
-      for (let i = 0; i < 7; i++) {
-        const a = (i / 7) * Math.PI * 2 + frame * 0.45;
-        ellipse(g, 'rgba(170,205,245,0.7)', 32 + Math.cos(a) * 16, 39 + Math.sin(a) * 6.5, 3, 1);
-      }
-      rect(g, '#9a9aa2', 29, 18, 7, 22);
-      rect(g, '#c0c0c8', 29, 18, 2, 22);
-      ellipse(g, '#a8a8b0', 32, 19, 10, 4);
-      ellipse(g, '#5b8fd6', 32, 18, 8, 2.5);
+      shadow(g, 64, 64, 30, 8);
+      column(g, 0, 0, 26, 0, 8, { light: '#c8c8cc', mid: '#a0a0a6', dark: '#707078', top: '#b8b8be' });
+      const [bx, by] = P(0, 0, 8); ellipse(g, '#2d63b5', bx, by, 22, 22);
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2 + frame * 0.4; ellipse(g, 'rgba(170,205,245,0.7)', bx + Math.cos(a) * 14, by + Math.sin(a) * 14, 3, 1.5); }
+      column(g, 0, 0, 4, 4, 28, { light: '#d0d0d4', mid: '#a8a8ae', dark: '#78787e', top: '#b8b8be' });
+      column(g, 0, 0, 10, 28, 32, { light: '#d0d0d4', mid: '#a8a8ae', dark: '#78787e', top: '#b8b8be' });
+      const [tx, ty] = P(0, 0, 32); ellipse(g, '#5b8fd6', tx, ty, 8, 8);
       const j = frame % 2;
-      line(g, 'rgba(210,232,255,0.9)', 2, 32, 15, 32, 4 + j);
-      for (const s of [-1, 1]) line(g, 'rgba(210,232,255,0.75)', 1, 32, 5 + j, 32 + s * 8, 16);
-      for (const s of [-1, 1]) line(g, 'rgba(210,232,255,0.65)', 1, 32 + s * 9, 20, 32 + s * 15, 35 + j);
+      line(g, 'rgba(210,232,255,0.95)', 2, tx, ty, tx, ty - 10 - j);
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [-0.7, 0.7], [0.7, 0.7]]) line(g, 'rgba(210,232,255,0.7)', 1, tx + dx * 9, ty + dy * 9, bx + dx * 16, by + dy * 16 + j);
     },
     fountain_rim() {}, // the fountain on the tile south-east of it draws over this one
-    lamppost_off(g) {
-      shadow(g, 48, 61, 6, 2);
-      rect(g, '#26262c', 44, 57, 9, 4);
-      rect(g, '#33333a', 46, 21, 4, 37);
-      rect(g, '#50505a', 46, 21, 1, 37);
-      rect(g, '#26262c', 41, 20, 14, 2);
-      poly(g, '#26262c', [41, 8, 55, 8, 52, 3, 44, 3]);
-      rect(g, '#3a4048', 42, 8, 12, 11);
-      rect(g, '#59626e', 44, 10, 3, 6);
-      for (const x of [41, 47, 54]) rect(g, '#26262c', x, 8, 1, 12);
-      rect(g, '#26262c', 41, 19, 14, 1);
-    },
-    lamppost(g) {
-      shadow(g, 48, 61, 6, 2);
-      rect(g, '#26262c', 44, 57, 9, 4);
-      rect(g, '#33333a', 46, 21, 4, 37);
-      rect(g, '#50505a', 46, 21, 1, 37);
-      rect(g, '#26262c', 41, 20, 14, 2);
-      poly(g, '#26262c', [41, 8, 55, 8, 52, 3, 44, 3]);
-      rect(g, '#ffe090', 42, 8, 12, 11);
-      rect(g, '#fff6d0', 44, 10, 4, 7);
-      for (const x of [41, 47, 54]) rect(g, '#26262c', x, 8, 1, 12);
-      rect(g, '#26262c', 41, 19, 14, 1);
-    },
+    lamppost_off(g) { streetLamp(g, false); },
+    // A street lamp: a stone foot, an iron post and a glowing lantern with a little roof.
+    lamppost(g) { streetLamp(g, true); },
     // A town bench: three planks for the seat, two for the back, iron ends.
+    // A town bench: iron ends, a slatted seat and a backrest.
     bench(g) {
-      shadow(g, 16, 29, 15, 3);
-      for (const x of [3, 26]) { rect(g, '#2e2e34', x, 6, 3, 23); rect(g, '#5a5a62', x, 6, 1, 23); }
-      for (const y of [6, 10]) { rect(g, '#8a5a2c', 2, y, 28, 3); rect(g, '#a8743e', 2, y, 28, 1); }
-      for (const y of [15, 18]) { rect(g, '#9a6632', 1, y, 30, 3); rect(g, '#c08a52', 1, y, 30, 1); }
-      rect(g, '#5a3618', 1, 21, 30, 1);
+      floorShadow(g, 15, 3);
+      for (const u of [2, 27]) { prism(g, u, 10, u + 3, 13, 0, 22, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' }); prism(g, u, 20, u + 3, 23, 0, 10, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' }); }
+      prism(g, 1, 10, 31, 12, 13, 22, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      line(g, '#5e3a1a', 1, ...P(2, 12, 17), ...P(30, 12, 17));
+      prism(g, 1, 12, 31, 23, 9, 11, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      for (const v of [15, 19]) line(g, '#5e3a1a', 1, ...P(2, v, 11), ...P(30, v, 11));
     },
+    // A market stall: a wooden counter heaped with goods, four poles and a striped awning.
     stall(g, r) {
+      floorShadow(g, 15, 3);
       const [a, b] = [['#c03a30', '#f0e6d0'], ['#2e6ab0', '#f0e6d0'], ['#3f8a3a', '#f4e8b0']][(r() * 3) | 0];
-      shadow(g, 46, 61, 17, 3);
-      rect(g, '#6a4422', 31, 30, 2, 31);
-      rect(g, '#6a4422', 60, 30, 2, 31);
-      rect(g, '#8a5a2e', 29, 45, 35, 13);
-      rect(g, '#a8743e', 29, 45, 35, 2);
-      rect(g, '#6a4422', 29, 56, 35, 2);
-      for (let i = 0; i < 7; i++) ellipse(g, ['#d03a2a', '#e8c040', '#5aa040', '#e07a20', '#8a4ab0'][(r() * 5) | 0], 33 + i * 4.5, 43, 2.5, 2);
-      poly(g, a, [27, 20, 64, 20, 64, 25, 27, 25]);
-      for (let i = 0; i < 6; i++) poly(g, i % 2 ? b : a, [27 + i * 6.2, 25, 33.2 + i * 6.2, 25, 34 + i * 6.2, 34, 28 + i * 6.2, 34]);
-      for (let i = 0; i < 6; i++) ellipse(g, i % 2 ? b : a, 31 + i * 6.2, 34, 3.1, 2);
+      const pole = { top: '#5e3a1a', south: '#5e3a1a', east: '#3e2410', edge: '#7a4e26' };
+      prism(g, 2, 4, 4, 6, 0, 38, pole); prism(g, 28, 4, 30, 6, 0, 38, pole);
+      prism(g, 1, 12, 31, 26, 0, 14, { top: '#9a6632', south: '#7a4e26', east: '#5e3a1a', edge: '#c08a52' });
+      for (let i = 0; i < 9; i++) { const [x, y] = P(5 + (i % 5) * 5.5, 15 + Math.floor(i / 5) * 6, 16); ellipse(g, ['#d03a2a', '#e8b860', '#7ab040', '#f0d050'][(i + ((r() * 4) | 0)) % 4], x, y, 2.5, 2.5); }
+      prism(g, 2, 24, 4, 26, 0, 38, pole); prism(g, 28, 24, 30, 26, 0, 38, pole);
+      for (let k = 0; k < 6; k++) prism(g, k * 5.4, 2, k * 5.4 + 5.4, 28, 38, 40, k % 2 ? { top: b, south: b, east: b, edge: b } : { top: a, south: a, east: a, edge: a });
+      onSouth(g, 28, f => { for (let k = 0; k < 6; k++) poly(f, k % 2 ? b : a, [k * 5.4, 38, k * 5.4 + 5.4, 38, k * 5.4 + 2.7, 33]); });
     },
     hedge(g, r) {
       rect(g, '#244e1f', 0, 9, TILE, 19);
@@ -1429,17 +1429,18 @@ const Sprites = (() => {
       for (let i = 0; i < 46; i++) rect(g, r() < 0.5 ? '#1e4419' : '#4a8a3c', r() * 31, 9 + r() * 18, 2, 2);
       rect(g, 'rgba(0,0,0,0.3)', 0, 27, TILE, 2);
     },
+    // A flower box: a wooden box full of flowers.
     planter(g, r) {
-      shadow(g, 16, 28, 13, 3);
-      for (let i = 0; i < 9; i++) {
-        const x = 6 + i * 2.5, y = 11 + (i % 3);
-        rect(g, '#3a7a30', x, y, 1, 8);
-        ellipse(g, ['#e04a6a', '#f0d040', '#f4f4f4', '#a05ad0'][(r() * 4) | 0], x + 0.5, y, 2, 2);
+      floorShadow(g, 13, 3);
+      prism(g, 3, 9, 29, 23, 0, 9, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      onSouth(g, 23, f => { rect(f, '#5e3a1a', 3, 4, 26, 1); });
+      for (let i = 0; i < 12; i++) {
+        const [x, y] = P(6 + (i % 6) * 4, 12 + Math.floor(i / 6) * 6, 12);
+        line(g, '#2f6a29', 1, x, y + 3, x, y);
+        ellipse(g, ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0], x, y, 2, 2);
       }
-      rect(g, '#7a4a26', 4, 18, 24, 10);
-      rect(g, '#93602f', 4, 18, 24, 2);
-      rect(g, '#5a3418', 4, 26, 24, 2);
     },
+    // A haystack: a round heap of straw.
     haystack(g, r) {
       shadow(g, 16, 28, 14, 4);
       ellipse(g, '#c8a040', 16, 20, 14, 10);
@@ -1449,29 +1450,22 @@ const Sprites = (() => {
         line(g, r() < 0.5 ? '#a8822c' : '#ecd070', 1, x, y, x + 2 - r() * 4, y + 3);
       }
     },
+    // A hand cart: a wooden bed with sides on two big wheels, a shaft out front.
     wagon(g) {
-      shadow(g, 44, 60, 20, 4);
-      ellipse(g, '#c8a040', 44, 34, 15, 6);
-      ellipse(g, '#dcb850', 41, 32, 9, 3);
-      rect(g, '#6a4422', 26, 36, 36, 14);
-      rect(g, '#8a5a2e', 26, 36, 36, 3);
-      for (let x = 30; x < 62; x += 8) rect(g, '#5a3818', x, 39, 1, 11);
-      line(g, '#5a3818', 3, 26, 46, 12, 53);
-      for (const x of [33, 55]) {
-        ellipse(g, '#3a2410', x, 52, 7, 7);
-        ellipse(g, '#8a6a3a', x, 52, 5, 5);
-        line(g, '#3a2410', 1, x - 5, 52, x + 5, 52);
-        line(g, '#3a2410', 1, x, 47, x, 57);
-        ellipse(g, '#3a2410', x, 52, 1.5, 1.5);
-      }
+      floorShadow(g, 15, 3);
+      const wood = { top: '#9a6632', south: '#7a4e26', east: '#5e3a1a', edge: '#c08a52' };
+      prism(g, 2, 9, 30, 23, 8, 10, wood);
+      prism(g, 2, 9, 30, 10, 10, 16, wood); prism(g, 29, 9, 30, 23, 10, 16, wood); prism(g, 2, 22, 30, 23, 10, 16, wood);
+      prism(g, -6, 15, 2, 17, 6, 8, wood);
+      onSouth(g, 23, f => { for (const u of [8, 24]) { f.strokeStyle = '#3e2410'; f.lineWidth = 2; f.beginPath(); f.arc(u, 7, 6, 0, Math.PI * 2); f.stroke(); f.fillStyle = '#6a4422'; f.beginPath(); f.arc(u, 7, 1.5, 0, Math.PI * 2); f.fill(); for (let a = 0; a < 4; a++) line(f, '#5e3a1a', 1, u, 7, u + Math.cos(a * 0.785 * 2) * 5, 7 + Math.sin(a * 0.785 * 2) * 5); } });
     },
+    // A stack of split logs.
     woodpile(g) {
-      shadow(g, 16, 28, 14, 3);
-      for (let row = 0; row < 3; row++) for (let i = 0; i < 4 - row; i++) {
-        const x = 7 + i * 6 + row * 3, y = 24 - row * 5;
-        ellipse(g, '#6e4422', x, y, 3.2, 3.2);
-        ellipse(g, '#c8a070', x, y, 2.2, 2.2);
-        ellipse(g, '#a87a48', x, y, 1, 1);
+      floorShadow(g, 15, 3);
+      for (let row = 0; row < 3; row++) for (let k = 0; k < 4 - row; k++) {
+        const u = 4 + k * 7 + row * 3.5, z = row * 6;
+        column(g, u, 16, 3.5, z, z + 1, { light: '#8a5a2c', mid: '#6a4220', dark: '#4a2c12', top: '#6a4220' });
+        const [x, y] = P(u, 24, z + 3.5); ellipse(g, '#4a2c12', x, y, 3.6, 3.6); ellipse(g, '#d8a868', x, y, 2.8, 2.8); ellipse(g, '#a8703a', x, y, 1, 1);
       }
     },
     chimney(g, r, frame) {
@@ -1485,6 +1479,7 @@ const Sprites = (() => {
       rect(g, '#5a2a1e', 40, 33, 16, 4);
       rect(g, '#2a1610', 43, 33, 10, 1);
     },
+    // A wicker basket full of goods.
     basket(g, r) {
       shadow(g, 16, 28, 11, 3);
       const goods = [['#d03a2a', '#e86040'], ['#e8b860', '#c89040'], ['#9ab8d0', '#7090a8']][(r() * 3) | 0];
@@ -1493,6 +1488,8 @@ const Sprites = (() => {
       for (let y = 18; y < 28; y += 3) rect(g, '#7a5426', 7, y, 18, 1);
     },
     // A full sack, tied at the neck, sagging in folds.
+    // A full sack, tied at the neck.
+// A full sack, tied at the neck, sagging in folds.
     sack(g) {
       shadow(g, 16, 29, 11, 3);
       ellipse(g, '#a88a5a', 16, 21, 11, 8);
@@ -1533,6 +1530,8 @@ const Sprites = (() => {
       for (const x of [4, 10, 17, 24, 28]) ellipse(g, 'rgba(230,240,255,0.55)', x, keelY(x) + 2, 2.5, 1); // foam
     },
     // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
+    // A training dummy: a post, a straw-stuffed body with a painted target, arms and a head.
+// A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
     dummy(g) {
       shadow(g, 48, 61, 7, 2);
       rect(g, '#5a3a1e', 46, 30, 4, 32);
@@ -1545,6 +1544,7 @@ const Sprites = (() => {
       rect(g, '#8a6a3a', 43, 22, 10, 2);
       rect(g, '#6a4422', 44, 50, 8, 3); // the rope round its waist
     },
+    // A scarecrow: a post and crossbar in old clothes, a straw head and a hat.
     scarecrow(g) {
       shadow(g, 48, 61, 6, 2);
       rect(g, '#6a4422', 46, 24, 3, 38);
@@ -1559,31 +1559,27 @@ const Sprites = (() => {
     },
     // A marble pillar: a square plinth, a round fluted shaft, a square capital.
     pillar(g) {
-      shadow(g, 52, 62, 12, 3);
+      floorShadow(g, 12, 3);
       prism(g, 5, 5, 27, 27, 0, 5, { top: '#f2efe8', south: '#cdc8be', east: '#aaa59b', edge: '#ffffff' });
       column(g, 16, 16, 8, 5, 50, { light: '#f4f1ea', mid: '#d6d1c7', dark: '#9c978d', top: '#e8e4dc' });
       for (const o of [-4, 0, 4]) line(g, 'rgba(120,114,104,0.45)', 1, ...P(16 + o * 0.7, 16 - o * 0.7, 6), ...P(16 + o * 0.7, 16 - o * 0.7, 49));
       prism(g, 4, 4, 28, 28, 50, 56, { top: '#f2efe8', south: '#cdc8be', east: '#aaa59b', edge: '#ffffff' });
     },
+    // A noticeboard: two posts, a board with notes pinned on it and a little roof.
     noticeboard(g) {
-      shadow(g, 48, 61, 12, 3);
-      rect(g, '#5a3a1a', 37, 30, 3, 32);
-      rect(g, '#5a3a1a', 56, 30, 3, 32);
-      rect(g, '#8a5a2e', 34, 18, 28, 22);
-      rect(g, '#6a4422', 34, 38, 28, 2);
-      poly(g, '#6a4422', [32, 18, 64, 18, 58, 13, 38, 13]);
-      for (const [x, y, w, h] of [[37, 21, 8, 9], [47, 22, 11, 7], [39, 31, 9, 6], [50, 30, 8, 7]]) {
-        rect(g, '#efe6cc', x, y, w, h);
-        rect(g, '#c03030', x + w / 2 - 0.5, y, 1, 1);
-        for (let l = y + 2; l < y + h - 1; l += 2) rect(g, '#9a907a', x + 1, l, w - 2, 1);
-      }
+      floorShadow(g, 13, 3);
+      prism(g, 4, 15, 7, 18, 0, 34, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' }); prism(g, 25, 15, 28, 18, 0, 34, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
+      prism(g, 3, 16, 29, 18, 12, 32, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      onSouth(g, 18, f => { for (const [u, z, w, h] of [[6, 22, 8, 8], [17, 21, 9, 9], [8, 14, 7, 6], [18, 14, 6, 6]]) { rect(f, '#efe6d0', u, z, w, h); for (let k = 2; k < h - 1; k += 2) rect(f, '#9a8a70', u + 1, z + k, w - 2, 1); rect(f, '#c03030', u + w / 2, z + h - 1, 1, 1); } });
+      prism(g, 2, 14, 30, 20, 34, 36, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
     },
+    // An anvil on a wooden block.
     anvil(g) {
-      shadow(g, 16, 27, 11, 3);
-      rect(g, '#3a3a40', 12, 20, 8, 7);
-      poly(g, '#55555c', [5, 13, 27, 13, 24, 19, 8, 19]);
-      poly(g, '#55555c', [27, 13, 31, 14, 27, 16]);
-      rect(g, '#7a7a82', 5, 13, 22, 2);
+      floorShadow(g, 12, 3);
+      prism(g, 9, 10, 23, 22, 0, 9, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
+      prism(g, 12, 12, 20, 20, 9, 14, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
+      prism(g, 6, 11, 26, 21, 14, 19, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
+      prism(g, 26, 13, 31, 19, 15, 18, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
     },
     web(g) {
       g.globalAlpha = 0.75;
@@ -1614,20 +1610,21 @@ const Sprites = (() => {
     },
     // An altar: a stone block under a white cloth with a gold hem, a golden sun on it, two candles.
     altar(g) {
-      shadow(g, 50, 62, 15, 3);
+      floorShadow(g, 15, 3);
       prism(g, 3, 7, 29, 26, 0, 13, { top: '#e8e4dc', south: '#c4beb2', east: '#a09a8e', edge: '#ffffff' });
       prism(g, 2, 6, 30, 27, 13, 15, { top: '#fbfaf6', south: '#e8e4da', east: '#d4cfc4', edge: '#ffffff' });
       onSouth(g, 27, f => { rect(f, '#d8a830', 2, 13, 28, 2); rect(f, '#fbfaf6', 9, 5, 14, 8); rect(f, '#d8a830', 9, 5, 14, 1); });
       const [sx, sy] = P(16, 16, 16); ellipse(g, '#f0c040', sx, sy - 4, 4, 4); ellipse(g, '#fff0a0', sx - 1, sy - 5, 1.5, 1.5);
       for (const u of [6, 26]) { column(g, u, 16, 1.5, 15, 22, { light: '#fffbe8', mid: '#f0e8c8', dark: '#c8bc98', top: '#fff' }); const [fx, fy] = P(u, 16, 24); ellipse(g, '#ffb030', fx, fy, 1.2, 2); }
     },
+    // A gravestone: a stone slab with a rounded top and a cross cut into it.
     gravestone(g) {
-      shadow(g, 16, 28, 10, 3);
-      rect(g, '#8a8a90', 9, 10, 14, 18);
-      ellipse(g, '#8a8a90', 16, 10, 7, 6);
-      rect(g, '#6a6a70', 15, 9, 2, 10);
-      rect(g, '#6a6a70', 12, 12, 8, 2);
-      rect(g, '#a0a0a6', 9, 10, 1, 18);
+      floorShadow(g, 10, 2);
+      prism(g, 7, 14, 25, 19, 0, 20, { top: '#b8b8b4', south: '#8e8e8a', east: '#6e6e6a', edge: '#dcdcd8' });
+      const [lx, ly] = P(7, 19, 20), [rx, ry] = P(25, 19, 20), [ex, ey] = P(25, 14, 20);
+      g.fillStyle = '#8e8e8a'; g.beginPath(); g.arc((lx + rx) / 2, ly, (rx - lx) / 2, Math.PI, 0); g.fill();
+      g.fillStyle = '#b8b8b4'; g.beginPath(); g.arc((lx + rx) / 2 + (ex - rx), ey, (rx - lx) / 2, Math.PI, 0); g.fill();
+      onSouth(g, 19, f => { rect(f, '#5e5e5a', 15, 6, 2, 12); rect(f, '#5e5e5a', 11, 13, 10, 2); });
     },
     tent(g) {
       shadow(g, 16, 29, 15, 3);
@@ -1791,14 +1788,16 @@ const Sprites = (() => {
     }),
     door_sealed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false, true),
     // A chair: a slatted back, a seat lit from above, legs.
+    // A chair: four legs, a seat, and a slatted back along its north edge.
     chair(g) {
-      shadow(g, 16, 29, 9, 3);
-      for (const x of [9, 21]) { rect(g, '#5a3618', x, 3, 3, 26); rect(g, '#7a4e26', x, 3, 1, 26); }
-      for (const y of [5, 9]) rect(g, '#8a5a2c', 10, y, 13, 2);
-      rect(g, '#a8703a', 8, 16, 17, 4);
-      rect(g, '#c8925a', 8, 16, 17, 1);
-      rect(g, '#6a4220', 8, 20, 17, 2);
+      floorShadow(g, 8, 2);
+      prism(g, 9, 9, 11, 11, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' }); prism(g, 21, 9, 23, 11, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
+      prism(g, 9, 9, 23, 11, 10, 24, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      for (const z of [15, 20]) line(g, '#5e3a1a', 1, ...P(10, 11, z), ...P(22, 11, z));
+      prism(g, 9, 21, 11, 23, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' }); prism(g, 21, 21, 23, 23, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
+      prism(g, 8, 9, 24, 23, 10, 13, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
     },
+    // A potted plant: a clay pot and a bushy plant in it.
     plant(g) {
       shadow(g, 16, 28, 8, 3);
       poly(g, '#a8543a', [10, 18, 22, 18, 20, 28, 12, 28]);
@@ -1808,7 +1807,7 @@ const Sprites = (() => {
     },
     // A bed: a wooden frame, a white pillow and a red blanket, a tall headboard at the north end.
     bed(g) {
-      shadow(g, 50, 62, 15, 3);
+      floorShadow(g, 15, 3);
       prism(g, 3, 1, 29, 4, 0, 16, { top: '#8a5a2c', south: '#6e4422', east: '#55331a', edge: '#a8743e' });
       prism(g, 3, 4, 29, 30, 0, 6, { top: '#7a4e26', south: '#6a4220', east: '#4e2e14', edge: '#9a6a38' });
       prism(g, 5, 5, 27, 29, 6, 9, { top: '#f4f2ec', south: '#d8d4cc', east: '#b8b4ac', edge: '#ffffff' });
@@ -1816,17 +1815,16 @@ const Sprites = (() => {
       prism(g, 5, 13, 27, 29, 9, 10, { top: '#b8302e', south: '#8e2220', east: '#701a18', edge: '#d84a46' });
       line(g, 'rgba(255,255,255,0.3)', 1, ...P(6, 16, 10), ...P(26, 16, 10));
     },
+    // A signpost: a post with a board on it.
     signpost(g) {
-      shadow(g, 16, 28, 6, 2);
-      rect(g, '#5a3a1a', 15, 10, 3, 19);
-      rect(g, '#9a6a38', 5, 5, 22, 10);
-      rect(g, '#6e4422', 5, 14, 22, 1);
-      rect(g, '#4a2a10', 8, 8, 14, 1);
-      rect(g, '#4a2a10', 8, 11, 10, 1);
+      floorShadow(g, 7, 2);
+      prism(g, 14, 15, 17, 18, 0, 26, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
+      prism(g, 4, 15, 28, 17, 16, 27, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
+      onSouth(g, 17, f => { for (const z of [19, 22]) rect(f, '#4a2a10', 8, z, 15, 1); });
     },
     // A depot locker: an iron-bound wooden cabinet with two doors, a handle and a brass plate.
     depot(g) {
-      shadow(g, 50, 62, 14, 3);
+      floorShadow(g, 14, 3);
       prism(g, 3, 8, 29, 26, 0, 26, { top: '#6a4a2a', south: '#5a3a1c', east: '#432a12', edge: '#8a6a40' });
       onSouth(g, 26, f => {
         for (const u of [3, 15]) { rect(f, '#4a2e14', u, 2, 11, 21); rect(f, '#6e4a26', u + 1, 3, 9, 19); }
@@ -3578,9 +3576,9 @@ const Sprites = (() => {
       const frame = anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0;
       const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence';
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
-      const size = def.wall || def.tall || def.onWall || RAISED.has(sprite) ? 2 * TILE : TILE;
+      const raised = RAISED.has(sprite), size = def.wall || def.tall || def.onWall || raised ? 2 * TILE : TILE;
       const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
-      return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, size);
+      return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, raised ? 3 * TILE : size);
     },
     item(id) {
       return customImage(id) || cached(`item:${id}`, g => ITEM_DRAW[id](g));

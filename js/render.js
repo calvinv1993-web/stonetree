@@ -185,7 +185,7 @@ const Render = {
               const fenceAt = (fx, fy) => { const n = tileAt(fx, fy); return n && n.items.includes('fence') ? '1' : '0'; };
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);
             }
-            const img = Sprites.thing(id, x, y, v.time, shape, material), lift = img.width - TILE; // tall things rise up-left
+            const img = Sprites.thing(id, x, y, v.time, shape, material), lift = img.width - TILE, rise = img.height - TILE; // tall things rise up-left
             const st = v.seeThrough, hides = def.tall && !def.wall && st && st.z === z && st.x >= x - 1 && st.x <= x && st.y >= y - 1 && st.y <= y && !(st.x === x && st.y === y);
             if (hides) g.globalAlpha = 0.45;
             if (v.wind && SWAYING.has(id)) { // anchored at its foot, its top sways
@@ -195,9 +195,9 @@ const Render = {
               g.translate(bx, by);
               g.transform(1, 0, -lean, 1, 0, 0);
               g.translate(-bx, -by);
-              g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - lift);
+              g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - rise);
               g.restore();
-            } else g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - lift);
+            } else g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - rise);
             if (hides) g.globalAlpha = 1;
           }
         }
