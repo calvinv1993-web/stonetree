@@ -716,8 +716,8 @@ function buildTown(m, S, runs, river) {
     const d = B.depot;
     for (let x = d.x0 + 1; x < d.x1; x += 2) put(x, d.y0 + 1, S, 'depot');
     for (let y = d.y0 + 3; y < d.y1; y += 2) put(d.x0 + 1, y, S, 'depot');
-    for (let x = d.x0 + 3; x <= d.x0 + 5; x++) put(x, d.y1 - 1, S, 'counter');
-    put(d.x1 - 1, d.y1 - 1, S, 'plant');
+    for (let x = d.x0 + 2; x <= d.x1 - 2; x++) put(x, d.y1 - 1, S, 'counter');
+    put(d.x1 - 1, d.y1 - 2, S, 'plant');
   }
 
   // ---- shops: a counter across the back, goods on shelves and in barrels -----------------------------------
