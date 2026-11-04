@@ -92,7 +92,7 @@ The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It'
 
 | Quarter | What's there |
 |---|---|
-| North-east | **The temple mount:** a block of rock north of the square (128–146, 98–109) with the Temple of the Dawn on top, one floor up (130–144, 98–106; copper roof, a great hall with an altar on a dais, two rows of pillars, statues and benches). **New characters wake at (137, 102, 9)**, step out through a portico of pillars onto a terrace with statues and a welcome sign, and go down a broad flight of stone steps to the square with its fountain, stalls and well. The depot is east of it (147–151, 99–106) |
+| North-east | **The temple mount:** a block of rock north of the square (128–143, 99–109) with the Temple of the Dawn on top, one floor up (131–143, 99–106; copper roof, a great hall with an altar on a dais, two rows of pillars, statues and benches). **New characters wake at (137, 102, 9)**, step out through a portico of pillars onto a terrace with statues and a welcome sign, and go down a broad flight of stone steps to the square with its fountain, stalls and well. The depot is east of it (145–149, 99–106). Every building stands at least two tiles clear of the town wall |
 | North-west, over the bridge | Oakvale Academy (the oracle is upstairs), Moonpetal Magic, two houses, a vegetable garden, and a chest hidden behind the academy |
 | South, along the main street | The Dented Shield, Hide and Iron, Pip's Provisions, The Warm Loaf, the Sleepy Boar inn, the training yard, the graveyard and two houses |
 

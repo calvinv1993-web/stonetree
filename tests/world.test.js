@@ -200,6 +200,46 @@ test('the start, monsters and NPCs stand on free ground, and no monster in a pro
   for (const n of map.npcs) assert.ok(walkable(n.x, n.y, n.z), `NPC ${n.type} at ${n.x},${n.y},${n.z} is not walkable`);
 });
 
+test('in Oakvale, every building stands at least two tiles clear of the town wall', () => {
+  const T = require('vm').runInContext('OAKVALE', ctx), [wx0, wy0, wx1, wy1] = [101, 96, 152, 146];
+  const close = [];
+  for (const b of [...T.buildings, { id: 'temple mount', ...T.mount }]) {
+    for (const [x0, y0, x1, y1] of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) {
+      if (x0 - wx0 - 1 < 2 || y0 - wy0 - 1 < 2 || wx1 - x1 - 1 < 2 || wy1 - y1 - 1 < 2) close.push(b.id);
+    }
+  }
+  assert.deepStrictEqual(close, []);
+});
+
+test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch', () => {
+  const T = require('vm').runInContext('OAKVALE', ctx), rects = [];
+  for (const b of T.buildings) for (const r of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) rects.push([b.id, ...r]);
+  T.gardens.forEach((gd, i) => rects.push([`garden ${i}`, gd.x0, gd.y0, gd.x1, gd.y1]));
+  rects.push(['yard', T.yard.x0, T.yard.y0, T.yard.x1, T.yard.y1], ['graveyard', T.graveyard.x0, T.graveyard.y0, T.graveyard.x1, T.graveyard.y1]);
+  const clash = [];
+  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+    const [a, ax0, ay0, ax1, ay1] = rects[i], [b, bx0, by0, bx1, by1] = rects[j];
+    if (a === b) continue; // the wings of one building
+    if (ax0 <= bx1 && bx0 <= ax1 && ay0 <= by1 && by0 <= ay1) clash.push(`${a} / ${b}`);
+  }
+  const m = T.mount;
+  for (const b of T.buildings) if (b.id !== 'temple' && b.x0 <= m.x1 && m.x0 <= b.x1 && b.y0 <= m.y1 && m.y0 <= b.y1) clash.push(`${b.id} / mount`);
+  assert.deepStrictEqual(clash, []);
+});
+
+test('nothing stands in a doorway or straight in front of a door, inside or out', () => {
+  const blocked = [];
+  for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const t = map.get(x, y, z);
+    if (!t || !t.items.some(id => THINGS[id].toggle && THINGS[id].wall)) continue;
+    for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+      const n = map.get(x + dx, y + dy, z);
+      if (n && !n.items.some(id => THINGS[id].wall) && n.items.some(id => THINGS[id].block && !THINGS[id].toggle)) blocked.push(`${x + dx},${y + dy},${z}`);
+    }
+  }
+  assert.deepStrictEqual(blocked, []);
+});
+
 test('the world saves compactly and loads back tile for tile', () => {
   const json = JSON.stringify(map), copy = GameMap.fromJSON(JSON.parse(json));
   assert.ok(json.length < 1.5e6, `the saved world is ${json.length} bytes`);

@@ -162,6 +162,20 @@ const Sprites = (() => {
     copies.sort((a, b2) => a[1] - b2[1]);
     for (const [x, y, rx, ry, tone] of copies) boulder(g, x, y, rx, ry, c, tone);
   }
+  // The surface of a mountain: clean, even grey stone, as the classic maps fill a mountain's top - a few
+  // broad soft patches and the odd thin crack, nothing busy. size: the square it fills (seamless at 96).
+  function rockSurface(g, r, size = TILE, v = 138) {
+    rect(g, gray(v, 2), 0, 0, size, size);
+    for (let i = 0; i < size / 6; i++) {
+      const x = r() * size, y = r() * size, rx = 6 + r() * 10, ry = 4 + r() * 6, c = r() < 0.5 ? gray(v - 8, 2) : gray(v + 8, 2);
+      for (const dx of [-size, 0, size]) for (const dy of [-size, 0, size]) ellipse(g, c, x + dx, y + dy, rx, ry);
+    }
+    for (let i = 0; i < size / 16; i++) { // thin cracks, lit along one side
+      let x = 4 + r() * (size - 8), y = 4 + r() * (size - 8);
+      for (let k = 0; k < 4; k++) { const nx = x + (r() - 0.3) * 6, ny = y + 2 + r() * 3; line(g, gray(v - 40, 2), 1, x, y, nx, ny); line(g, gray(v + 22, 2), 1, x + 1, y, nx + 1, ny); x = nx; y = ny; }
+    }
+    for (let i = 0; i < size / 10; i++) { const x = (r() * size) | 0, y = (r() * size) | 0; rect(g, gray(v - 30, 2), x, y + 1, 2, 1); rect(g, gray(v + 30, 2), x, y, 2, 1); }
+  }
   function bricks(g, r, light, mortar) {
     rect(g, mortar, 0, 0, TILE, TILE);
     for (let j = 0; j < 4; j++) {
@@ -664,19 +678,14 @@ const Sprites = (() => {
     // Rocky ground: grey-brown stone with a few loose stones on it.
     // Rocky ground you can walk on: big flat grey slabs with dark seams, lit along their top edges.
     // Rocky ground you can walk on: big flat grey slabs with dark seams, lit along their top edges.
+    // Rocky ground you can walk on: grey stone, rough, with loose stones and grit lying about.
     mountain(g, r) {
-      rect(g, '#363636', 0, 0, TILE, TILE);
-      for (const [y, h] of [[0, 16], [16, 16]]) {
-        let x = -((r() * 12) | 0);
-        while (x < TILE) {
-          const w = 15 + ((r() * 10) | 0), v = 130 + ((r() * 22) | 0);
-          rect(g, gray(v - 26, 2), x + 1, y + 1, w - 1, h - 1);
-          rect(g, gray(v, 2), x + 1, y + 1, w - 2, h - 3);
-          rect(g, gray(v + 24, 2), x + 2, y + 1, w - 4, 1);
-          rect(g, gray(v + 12, 2), x + 1, y + 2, 1, h - 5);
-          if (r() < 0.6) { const cx = x + 4 + r() * (w - 8); line(g, gray(v - 40, 2), 1, cx, y + 3, cx + (r() - 0.5) * 6, y + h - 4); }
-          x += w;
-        }
+      rockSurface(g, r, TILE, 134);
+      for (let i = 0; i < 5; i++) {
+        const x = 3 + r() * 26, y = 3 + r() * 26, rx = 1.5 + r() * 2;
+        ellipse(g, 'rgba(0,0,0,0.3)', x + 0.5, y + 1, rx + 0.5, rx * 0.7);
+        ellipse(g, gray(150 + ((r() * 30) | 0), 2), x, y, rx, rx * 0.7);
+        rect(g, gray(200, 2), x - rx * 0.4, y - rx * 0.4, 1, 1);
       }
     },
     // A mountain top you can't walk on: broken rock, boulders and dark clefts.
@@ -854,7 +863,7 @@ const Sprites = (() => {
       wallBlock(g, 'block', {
         south: () => rockFace(g, r, ROCK.south),
         east: () => rockFace(g, r, ROCK.east),
-        top: () => rockFace(g, r, ROCK.top),
+        top: () => rockSurface(g, r),
       });
     },
     // A path up the mountain side: a rocky slope from the ground at the tile's
@@ -872,14 +881,14 @@ const Sprites = (() => {
       g.restore();
       g.save();
       g.setTransform(1, 0, 1, 2, 0, 0); // (u, v) on the slope -> (u + v, 2v)
-      noise(g, r, '#8f7f62', ['#7f7056', '#9c8c6e', '#857660', '#a39478'], 120, 2);
+      rockSurface(g, r, TILE, 140);
       for (let v = 3; v < TILE; v += 5) { // worn steps
         rect(g, 'rgba(255,255,255,0.18)', 3, v, 26, 1);
         rect(g, 'rgba(0,0,0,0.22)', 3, v + 1, 26, 1);
       }
       rect(g, 'rgba(0,0,0,0.25)', 0, 0, 3, TILE);
       rect(g, 'rgba(0,0,0,0.15)', 29, 0, 3, TILE);
-      for (let i = 0; i < 4; i++) ellipse(g, '#9a917f', r() < 0.5 ? 1.5 : 30.5, 4 + r() * 24, 2, 1.5);
+      for (let i = 0; i < 4; i++) ellipse(g, '#a8a8a4', r() < 0.5 ? 1.5 : 30.5, 4 + r() * 24, 2, 1.5);
       g.restore();
       solidify(g);
     },
@@ -1051,11 +1060,11 @@ const Sprites = (() => {
       for (const [x, y] of [[9, 17], [14, 11], [19, 17]]) ellipse(g, '#5aa842', x, y, 3, 2);
       for (let i = 0; i < 4; i++) { const x = 8 + ((r() * 16) | 0), y = 14 + ((r() * 9) | 0); rect(g, '#c8303a', x, y, 2, 2); rect(g, '#f08080', x, y, 1, 1); }
     },
-    rock(g) {
-      shadow(g, 17, 26, 12, 4);
-      poly(g, '#77777c', [5, 25, 8, 12, 16, 7, 25, 10, 28, 24, 18, 28]);
-      poly(g, '#9a9aa0', [8, 13, 16, 8, 24, 11, 17, 15]);
-      poly(g, '#5c5c61', [17, 15, 24, 11, 28, 24, 18, 28]);
+    // A boulder: two or three big grey rocks heaped together, in the style of the mountains.
+    rock(g, r) {
+      shadow(g, 17, 27, 12, 4);
+      const n = 2 + ((r() * 2) | 0);
+      for (let i = 0; i < n; i++) boulder(g, 10 + i * 6 + r() * 3, 22 - (i % 2) * 5 - r() * 2, 6 + r() * 2.5, 5 + r() * 2, ROCK.top, i);
     },
     flowers(g, r) {
       const colors = ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'];
@@ -2053,7 +2062,9 @@ const Sprites = (() => {
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
-  const SEAMLESS = { rock_top: g => rockFace(g, makeRng(hashStr('rock_top')), ROCK.top, 3 * TILE) };
+  const SEAMLESS = {
+    rock_top: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132),
+  };
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 
   // --- inventory items --------------------------------------------------------------
@@ -3664,7 +3675,7 @@ const Sprites = (() => {
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
   const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, marble: 0, carpet: 0 };
-  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 5, rock_top: 6 };
+  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
@@ -3945,18 +3956,18 @@ const Sprites = (() => {
     // The lip along side d (n, e, s, w) of a raised tile: a ragged band of rock, lit on top,
     // with a dark line where it drops away. variant 0-2.
     lip(d, variant = 0) {
+      // A rim of rocks along an open edge of a mountain top: big boulders lying over the edge (as the classic
+      // maps edge a mountain), half on the top and half hanging over, the gaps between them in shadow.
       return cached(`lip:${d}:${variant}`, g => {
         const r = makeRng(hashStr(`lip${d}${variant}`));
         g.translate(16, 16);
         g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
         g.translate(-16, -16);
-        for (let x = 0; x < TILE; x += 2) {
-          const depth = x === 0 || x === TILE - 2 ? 3 : 2 + ((r() * 3) | 0);
-          rect(g, '#4a4a4a', x, 0, 2, depth);
-          rect(g, r() < 0.5 ? '#b4b4b0' : '#9c9c98', x, depth - 1, 2, 1);
-          if (r() < 0.25) rect(g, '#d8d8d4', x, depth, 1, 1);
-        }
-        rect(g, 'rgba(20,16,12,0.55)', 0, 0, TILE, 1);
+        rect(g, 'rgba(0,0,0,0.25)', 0, 0, TILE, 5);
+        const stones = [];
+        for (let x = -2; x < TILE + 4; x += 7 + r() * 3) stones.push([x, 2 + r() * 2, 5 + r() * 2.5, 4 + r() * 1.5]);
+        stones.sort((p, q) => p[1] - q[1]);
+        stones.forEach(([x, y, rx, ry], i) => boulder(g, x, y, rx, ry, ROCK.top, i));
       });
     },
     // Start flags, only shown in the editor.
