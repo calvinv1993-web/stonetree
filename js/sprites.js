@@ -447,9 +447,9 @@ const Sprites = (() => {
   // corner (so even tall ones have room and are never cut off), every point (u, v) on the tile at
   // height z is drawn z pixels up and z pixels to the left - the same slant as walls and roofs. So
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
-  // Round things and figures (barrels, sacks, the well, statues, gravestones, the chopping block...) are drawn standing upright, seen from
-  // the front, as the classic games draw them: slanted, they would look as if they were lying down.
-  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'chair', 'chair_east',
+  // Figures (statues, dummies, the scarecrow) and gravestones are drawn standing upright, seen from the
+  // front, like the people and creatures that walk past them.
+  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack']);
@@ -495,6 +495,22 @@ const Sprites = (() => {
     prism(g, u0, v0, u1, v1, seat, seat + 2, wood);
     prism(g, u1 - 2, v1 - 2, u1, v1, 0, seat, leg);
     if (facing === 'n' || facing === 'w') drawBack();
+  }
+  // A round body standing on the tile, centred at (cu, cv), from z0 up to z1, as a stack of slices:
+  // rad(t) is its radius at t (0 bottom .. 1 top); c: { dark, light, mid, edge } colours, lit from the left.
+  function drum(g, cu, cv, z0, z1, rad, c) {
+    for (let z = z0; z <= z1; z += 1) {
+      const [x, y] = P(cu, cv, z), r = rad((z - z0) / (z1 - z0));
+      const grad = g.createLinearGradient(x - r, y, x + r, y);
+      grad.addColorStop(0, c.edge); grad.addColorStop(0.25, c.light); grad.addColorStop(0.55, c.mid); grad.addColorStop(1, c.dark);
+      g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    return P(cu, cv, z1);
+  }
+  // The front half of a ring round a drum at height z (a hoop, a rim, a band).
+  function frontRing(g, cu, cv, z, r, colour, width = 2) {
+    const [x, y] = P(cu, cv, z);
+    g.lineWidth = width; g.strokeStyle = colour; g.beginPath(); g.arc(x, y, r, -Math.PI / 4, Math.PI * 3 / 4); g.stroke();
   }
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.
   function streetLamp(g, lit) {
@@ -1116,21 +1132,26 @@ const Sprites = (() => {
     // A barrel: staves bulging at the middle, two iron hoops, the lid on top; lit from the top-left.
     // A barrel: a round body of staves with two iron hoops, its lid on top.
 // A barrel: staves bulging at the middle, two iron hoops, the lid on top; lit from the top-left.
+    // A barrel standing on its tile, in the same slant as everything else: a body of staves that bulges a
+    // little, two iron hoops round the half that faces you, and its round lid on top.
+    // A barrel standing on its tile, in the same slant as everything else: a body of staves that bulges a
+    // little, two iron hoops round the half that faces you, and its round lid on top.
     barrel(g) {
-      shadow(g, 17, 29, 11, 3);
-      const staves = ['#6a3e18', '#7e4c22', '#8e5a2a', '#9a6632', '#8a5628', '#7a4a20', '#64391a', '#57311a'];
-      for (let i = 0; i < 8; i++) { // each stave a little wider in the middle
-        const x = 6 + i * 2.6;
-        poly(g, staves[i], [x + 0.6, 7, x + 3.2, 7, x + 3.4, 17, x + 3.2, 28, x + 0.6, 28, x + 0.2, 17]);
+      floorShadow(g, 11, 3);
+      const cu = 16, cv = 17, z1 = 21, rad = t => 9 + 1.5 * Math.sin(t * Math.PI);
+      drum(g, cu, cv, 0, z1, rad, { edge: '#5a3414', light: '#a8703c', mid: '#8a5628', dark: '#4a2a10' });
+      for (const a of [0.15, 0.55, 0.95, 1.35, 1.75, 2.15, 2.55, 2.95]) {
+        const ang = -Math.PI / 4 + a;
+        g.strokeStyle = 'rgba(50,28,10,0.55)'; g.lineWidth = 1; g.beginPath();
+        for (let z = 1; z <= z1 - 1; z++) { const [x, y] = P(cu, cv, z), r = rad(z / z1); const px = x + Math.cos(ang) * r, py = y + Math.sin(ang) * r; z === 1 ? g.moveTo(px, py) : g.lineTo(px, py); }
+        g.stroke();
       }
-      rect(g, 'rgba(255,240,210,0.18)', 9, 8, 2, 19); // the shine
-      for (const y of [10, 24]) { rect(g, '#3e3a38', 6, y, 21, 2); rect(g, '#8a8680', 7, y, 19, 1); }
-      ellipse(g, '#5a3414', 16.5, 7, 10.5, 3.6);
-      ellipse(g, '#a87446', 16.5, 6.6, 9, 2.8);
-      for (let x = 10; x < 24; x += 3) rect(g, '#8a5a30', x, 4.5, 1, 4);
-      ellipse(g, '#3e3a38', 16.5, 6.6, 9, 2.8);
-      ellipse(g, '#a87446', 16.5, 6.6, 7.6, 2.1);
-      rect(g, '#7a4e24', 11, 6, 11, 1);
+      for (const z of [4, z1 - 4]) { frontRing(g, cu, cv, z, rad(z / z1) + 0.5, '#2e2a28'); frontRing(g, cu, cv, z - 1, rad(z / z1), '#8a8680', 1); }
+      const [tx, ty] = P(cu, cv, z1), tr = rad(1);
+      ellipse(g, '#3a2210', tx, ty, tr, tr);
+      ellipse(g, '#b07a46', tx, ty, tr - 1.5, tr - 1.5);
+      for (let k = -6; k <= 6; k += 3) { const h = Math.sqrt(Math.max(0, (tr - 1.5) ** 2 - k * k)); line(g, '#8a5a30', 1, tx + k, ty - h, tx + k, ty + h); }
+      ellipse(g, 'rgba(255,230,190,0.35)', tx - 3, ty - 3, 3, 2);
     },
     // A bookshelf against the wall: a tall wooden case with four shelves of books on its front.
     bookshelf(g, r) {
@@ -1200,15 +1221,18 @@ const Sprites = (() => {
       for (let x = 3; x < 30; x += 5) { rect(g, '#5a5a62', x, 6, 2, 23); rect(g, '#8a8a92', x, 6, 1, 23); }
     },
     // A well: a round stone wall with dark water inside, two posts, a little roof and a crank.
+    // A well: a round wall of stones with dark water inside, two posts, a little roof and a crank.
     well(g) {
-      shadow(g, 16, 27, 13, 4);
-      ellipse(g, '#8a8a90', 16, 20, 12, 8);
-      ellipse(g, '#1a3a6a', 16, 19, 8, 5);
-      ellipse(g, 'rgba(255,255,255,0.3)', 13, 18, 3, 1.5);
-      rect(g, '#5a3a1e', 5, 4, 2, 16);
-      rect(g, '#5a3a1e', 25, 4, 2, 16);
-      rect(g, '#6e4a26', 3, 3, 26, 3);
-      line(g, '#c0b090', 1, 16, 6, 16, 16);
+      floorShadow(g, 14, 3);
+      const wood = { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' };
+      prism(g, 3, 16, 6, 19, 0, 34, wood);
+      const [x, y] = drum(g, 16, 18, 0, 12, () => 12, { edge: '#6e6e6a', light: '#c4c4c0', mid: '#9a9a96', dark: '#5e5e5a' });
+      for (const z of [4, 8]) frontRing(g, 16, 18, z, 12, 'rgba(60,60,58,0.7)', 1);
+      ellipse(g, '#4e4e4a', x, y, 12, 12); ellipse(g, '#1a3a6a', x, y, 9.5, 9.5); ellipse(g, 'rgba(255,255,255,0.25)', x - 3, y - 3, 3, 1.5);
+      prism(g, 26, 16, 29, 19, 0, 34, wood);
+      prism(g, 2, 15, 30, 20, 34, 36, wood);
+      const [rx, ry] = P(16, 18, 34); line(g, '#c0b090', 1, rx, ry, x, y);
+      prism(g, 1, 15, 31, 20, 38, 40, { top: '#a03a2a', south: '#7a2a1e', east: '#5e1e14', edge: '#c85a44' }); // the little roof
     },
     tallgrass(g, r) {
       for (let i = 0; i < 9; i++) {
@@ -1471,14 +1495,11 @@ const Sprites = (() => {
       }
     },
     // A haystack: a round heap of straw.
-    haystack(g, r) {
-      shadow(g, 16, 28, 14, 4);
-      ellipse(g, '#c8a040', 16, 20, 14, 10);
-      ellipse(g, '#dcb850', 13, 16, 9, 6);
-      for (let i = 0; i < 26; i++) {
-        const x = 4 + r() * 24, y = 11 + r() * 16;
-        line(g, r() < 0.5 ? '#a8822c' : '#ecd070', 1, x, y, x + 2 - r() * 4, y + 3);
-      }
+    // A haystack: a round heap of straw, rounded at the top.
+    haystack(g) {
+      floorShadow(g, 14, 3);
+      const [x, y] = drum(g, 16, 17, 0, 13, t => 13.5 * Math.sqrt(Math.max(0, 1 - t * t * 0.8)), { edge: '#a8801c', light: '#f4d880', mid: '#d8b040', dark: '#987010' });
+      for (let i = 0; i < 9; i++) { const a = -0.6 + i * 0.25; line(g, '#b89030', 1, x + Math.cos(a) * 3, y + Math.sin(a) * 3, x + Math.cos(a) * 12, y + Math.sin(a) * 12 + 6); }
     },
     // A hand cart: a wooden bed with sides on two big wheels, a shaft out front.
     wagon(g) {
@@ -1510,26 +1531,25 @@ const Sprites = (() => {
       rect(g, '#2a1610', 43, 33, 10, 1);
     },
     // A wicker basket full of goods.
+    // A wicker basket full of goods.
     basket(g, r) {
-      shadow(g, 16, 28, 11, 3);
+      floorShadow(g, 11, 3);
       const goods = [['#d03a2a', '#e86040'], ['#e8b860', '#c89040'], ['#9ab8d0', '#7090a8']][(r() * 3) | 0];
-      for (let i = 0; i < 7; i++) ellipse(g, goods[i % 2], 10 + (i % 4) * 4, 15 - Math.floor(i / 4) * 3, 3, 2.5);
-      poly(g, '#a8783e', [6, 16, 26, 16, 23, 28, 9, 28]);
-      for (let y = 18; y < 28; y += 3) rect(g, '#7a5426', 7, y, 18, 1);
+      drum(g, 16, 17, 0, 11, t => 8 + 2 * t, { edge: '#7a5426', light: '#d0a058', mid: '#a8783e', dark: '#6a4820' });
+      for (const z of [3, 6, 9]) frontRing(g, 16, 17, z, 8.5 + 2 * z / 11, '#7a5426', 1);
+      const [x, y] = P(16, 17, 11); ellipse(g, '#5a3c1a', x, y, 10, 10);
+      for (let i = 0; i < 7; i++) { const a = i * 0.9, d = i ? 5 : 0; ellipse(g, goods[i % 2], x + Math.cos(a) * d, y + Math.sin(a) * d, 3, 2.8); rect(g, 'rgba(255,255,255,0.6)', x + Math.cos(a) * d - 1, y + Math.sin(a) * d - 1, 1, 1); }
     },
     // A full sack, tied at the neck, sagging in folds.
     // A full sack, tied at the neck.
 // A full sack, tied at the neck, sagging in folds.
+    // A full sack: a round, sagging body of cloth, tied at the neck.
     sack(g) {
-      shadow(g, 16, 29, 11, 3);
-      ellipse(g, '#a88a5a', 16, 21, 11, 8);
-      ellipse(g, '#c8ac78', 15, 20, 10, 7);
-      ellipse(g, '#dcc490', 12, 17, 5, 4);
-      line(g, '#a08050', 1, 9, 24, 13, 19);
-      line(g, '#a08050', 1, 22, 26, 20, 18);
-      poly(g, '#c0a070', [12, 13, 20, 13, 22, 7, 10, 7]);
-      rect(g, '#7a5a30', 11, 12, 10, 2);
-      rect(g, '#d8c08c', 12, 7, 3, 2);
+      floorShadow(g, 10, 3);
+      const [tx, ty] = drum(g, 16, 17, 0, 12, t => 9.5 - 5.5 * t ** 3, { edge: '#9a7e50', light: '#dcc490', mid: '#c8ac78', dark: '#8a6e44' });
+      drum(g, 16, 17, 12, 16, t => 3.5 + 1.5 * t, { edge: '#8a6e44', light: '#d8c08c', mid: '#c0a070', dark: '#7a5e38' });
+      frontRing(g, 16, 17, 12, 4, '#6a4a28');
+      line(g, 'rgba(120,96,60,0.6)', 1, tx + 3, ty + 4, tx + 7, ty + 12);
     },
     boat(g) {
       ellipse(g, 'rgba(0,10,40,0.3)', 44, 56, 22, 5);
@@ -1826,12 +1846,15 @@ const Sprites = (() => {
     chair_west(g) { drawChair(g, 'w'); },
     chair_north(g) { drawChair(g, 'n'); },
     // A potted plant: a clay pot and a bushy plant in it.
+    // A potted plant: a clay pot with a rim, and a bushy plant growing out of it.
     plant(g) {
-      shadow(g, 16, 28, 8, 3);
-      poly(g, '#a8543a', [10, 18, 22, 18, 20, 28, 12, 28]);
-      ellipse(g, '#3a8a35', 16, 12, 8, 7);
-      ellipse(g, '#4fa046', 13, 10, 4, 4);
-      ellipse(g, '#2f6e2a', 20, 14, 4, 3);
+      floorShadow(g, 9, 3);
+      drum(g, 16, 17, 0, 10, t => 6 + 2 * t, { edge: '#7a3a24', light: '#d8784e', mid: '#a8543a', dark: '#6a2e1c' });
+      drum(g, 16, 17, 10, 12, () => 8.5, { edge: '#8a4228', light: '#e08858', mid: '#b86040', dark: '#7a3620' });
+      const [x, y] = P(16, 17, 18);
+      for (const [dx, dy, rad] of [[-4, 3, 5], [4, 3, 5], [0, -3, 6], [0, 2, 6]]) ellipse(g, '#1e5a1a', x + dx + 0.5, y + dy + 1, rad, rad * 0.9);
+      for (const [dx, dy, rad] of [[-4, 3, 5], [4, 3, 5], [0, -3, 6], [0, 2, 6]]) ellipse(g, '#3a8a35', x + dx, y + dy, rad - 1, rad * 0.9 - 1);
+      for (const [dx, dy] of [[-5, 1], [-1, -5], [3, 0]]) ellipse(g, '#5aaa48', x + dx, y + dy, 2, 1.5);
     },
     // A bed: a wooden frame, a white pillow and a red blanket, a tall headboard at the north end.
     bed(g) {
