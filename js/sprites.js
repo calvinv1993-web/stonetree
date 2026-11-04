@@ -455,7 +455,9 @@ const Sprites = (() => {
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
-  const floorShadow = (g, rx = 13, ry = 3) => shadow(g, 81, 93, rx, ry); // on the ground, under the thing
+  // The shadow on the floor: right under the thing's foot (the middle of its tile), shifted a little
+  // down-right, away from the light, so the thing stands on it rather than floating above it.
+  const floorShadow = (g, rx = 13, ry = 3) => ellipse(g, 'rgba(0,0,0,0.22)', 64 + 17, 64 + 18, rx + 1, Math.max(ry * 2.5, rx * 0.55));
   // A block from (u0, v0) to (u1, v1) on the tile, z0 to z1 high: its east face, south face and top.
   // c: { top, south, east } colours, and edge (the lit front edge of its top).
   function prism(g, u0, v0, u1, v1, z0, z1, c) {
