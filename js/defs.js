@@ -268,6 +268,32 @@ const THINGS = {
       locked: 'The lid of the great tomb has been pushed aside. Something glints inside, but a cold dread holds you back. Not yet.',
       empty: 'Only the founder\'s old bones lie in the tomb now. Let them sleep.' },
   },
+  // Oakvale Isle: gear for those who dare go deep, once per character. Further down, better gear.
+  qchest_oak_cap: {
+    name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_cap', items: [['leather_cap', 1]] },
+  },
+  qchest_oak_shield: {
+    name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_shield', items: [['wooden_shield', 1]] },
+  },
+  qchest_oak_armor: {
+    name: 'rotting pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_armor', gold: 25, items: [['leather_armor', 1]] },
+  },
+  // The crypt under Bone Rocks: three weapon chests, and you may take from only one.
+  qchest_crypt_sword: {
+    name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['short_sword', 1]] },
+  },
+  qchest_crypt_axe: {
+    name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['hatchet', 1]] },
+  },
+  qchest_crypt_club: {
+    name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['spiked_club', 1]] },
+  },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',
     chest: { flag: 'parcel', requires: 'lost_parcel', items: [['parcel', 1]], locked: 'The crate is nailed shut. Maybe someone is looking for it?' },

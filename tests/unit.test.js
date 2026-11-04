@@ -1379,6 +1379,22 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
 });
 
+test('gear deep under Oakvale: a cap, a shield and leather armor, once each; one weapon of three in the crypt', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  for (const [x, y, z, item] of [[105, 121, 7, 'leather_cap'], [109, 128, 6, 'wooden_shield'], [142, 103, 5, 'leather_armor']]) {
+    ctx.useThing(x, y, z);
+    assert.strictEqual(state.countItem(item), 1, `the chest at ${x},${y},${z} gives ${item}`);
+    ctx.useThing(x, y, z);
+    assert.strictEqual(state.countItem(item), 1, 'but only once');
+  }
+  ctx.useThing(80, 178, 7);
+  assert.strictEqual(state.countItem('hatchet'), 1, 'a weapon from the crypt');
+  ctx.useThing(79, 178, 7);
+  assert.strictEqual(state.countItem('short_sword'), 0, 'and only one of the three');
+  assert(/already taken your pick/.test(messages[messages.length - 1]));
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

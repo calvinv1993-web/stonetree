@@ -278,7 +278,7 @@ const SEWERS = {
   caves: [{ cx: 146, cy: 139.5, rx: 5.6, ry: 4.6 }],
   torches: [[108, 127], [116, 127], [125, 127], [137, 127], [143, 127], [131, 107]],
   props: [
-    [103, 121, 'barrel'], [104, 121, 'barrel'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
+    [103, 121, 'barrel'], [104, 121, 'barrel'], [105, 121, 'qchest_oak_cap'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
     [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
     [140, 104, 'rubble'], [134, 105, 'rubble'],
     [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
@@ -302,7 +302,7 @@ const DEEP_SEWERS = [
     z: 6, up: [147, 139], down: [128, 111],
     drains: [[129, 139, 143, 140], [125, 115, 126, 135], [113, 128, 124, 129]],
     caves: [{ cx: 147, cy: 139, rx: 4.5, ry: 3.5 }, { cx: 126, cy: 138, rx: 4, ry: 3.6 }, { cx: 126, cy: 111, rx: 5.5, ry: 4.2 }, { cx: 110, cy: 128.5, rx: 3.6, ry: 3.2 }],
-    props: [[145, 137, 'bones'], [132, 140, 'rubble'], [124, 136, 'bones'], [126, 124, 'rubble'], [109, 127, 'bones'], [123, 109, 'bones'], [130, 112, 'rubble']],
+    props: [[109, 128, 'qchest_oak_shield'], [145, 137, 'bones'], [132, 140, 'rubble'], [124, 136, 'bones'], [126, 124, 'rubble'], [109, 127, 'bones'], [123, 109, 'bones'], [130, 112, 'rubble']],
     monsters: [['giant_rat', [[148, 141], [137, 139], [127, 139], [124, 137], [125, 128], [126, 120], [111, 129], [123, 112], [127, 109], [130, 110]]]],
   },
   {
@@ -311,7 +311,7 @@ const DEEP_SEWERS = [
     pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
     drains: [[135, 108, 138, 108]], // the narrow way on, where the slime keeps
     rooms: [[139, 103, 144, 109, 'paving'], [135, 102, 138, 105, 'paving']], // the bottom of the bell shaft
-    props: [[136, 103, 'bell_rope'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
+    props: [[136, 103, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
       ['giant_rat', [[121, 108], [124, 106], [127, 105], [131, 109], [133, 112], [130, 115], [126, 116], [122, 115], [119, 110], [118, 104], [132, 118], [129, 112]]],
       ['slime', [[136, 108]]],
@@ -344,6 +344,7 @@ const CRYPT = {
       props: [
         [74, 179, 'sarcophagus'], [77, 179, 'sarcophagus'], [83, 179, 'sarcophagus'], [86, 179, 'sarcophagus'],
         [74, 182, 'sarcophagus'], [77, 182, 'sarcophagus'], [83, 182, 'sarcophagus'], [86, 182, 'sarcophagus'],
+        [79, 178, 'qchest_crypt_sword'], [80, 178, 'qchest_crypt_axe'], [81, 178, 'qchest_crypt_club'],
         [78, 192, 'web'], [83, 192, 'rubble'], [79, 195, 'bones'], [72, 178, 'web'], [80, 180, 'bones'], [67, 181, 'bones'],
       ],
       monsters: [['skeleton', 75, 180], ['skeleton', 85, 181], ['skeleton', 80, 183], ['skeleton', 82, 194]],

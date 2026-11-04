@@ -2548,6 +2548,7 @@ const Sprites = (() => {
     },
     wooden_club: g => club(g, '#8a5a2a', false),
     mace: g => club(g, '#9a9aa0', true),
+    spiked_club: g => club(g, '#7a4e26', true),
     war_hammer: hammer,
     dagger: g => sword(g, 9, '#c8c8d0', '#6a4a2a', 3),
     short_sword: g => sword(g, 13, '#c8c8d0', '#6a4a2a', 3),

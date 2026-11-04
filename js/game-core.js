@@ -1246,7 +1246,7 @@ function openChest(chest) {
     // (only what the quest still asks for: not what you have already handed in)
     const req = chest.requires, ahead = req && questState(req) === 'active' ? questSteps(QUESTS[req]).slice(player.quests[req].step || 0).map(st => st.fetch) : [];
     const lost = (chest.items || []).filter(([id]) => ITEMS[id].quest && ahead.includes(id) && !countItem(id));
-    if (!lost.length) return log(chest.empty || 'It is empty.');
+    if (!lost.length) return log(chest.empty || (chest.choice ? 'You have already taken your pick.' : 'It is empty.'));
     for (const [id, n] of lost) giveItem(id, n);
     return log(`You found ${lost.map(([id, n]) => itemName(id, n)).join(' and ')} again.`, 'quest');
   }
