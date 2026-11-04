@@ -91,6 +91,55 @@ function startConversation(npc) {
   player.conversation = { npc, pending: null };
   npc.dir = dirTo(player.x - npc.x, player.y - npc.y);
   npcSay(npc, npc.def.greet);
+  const hint = questHint(npc.npcId);
+  if (hint) npcSay(npc, hint);
+}
+
+// ---- what an NPC has for you ------------------------------------------------------------
+// Looks through the NPC's quest keywords ({ quest: [ids] }, a chain: the first unfinished quest counts) for
+// what it has for the acting player: { mark, word, id, level }, the most pressing first:
+//   report  you can hand in or finish a step here now
+//   offer   a new quest, and you are strong enough for it
+//   busy    a step of yours is reported here, but it isn't done yet
+//   later   a new quest, once you reach `level`
+// word: the keyword to say (the first of its alternatives, so put the plainest word first).
+const NEWS_ORDER = { report: 0, offer: 1, busy: 2, later: 3 };
+function questNews(npcId) {
+  const def = NPCS[npcId];
+  let best = null;
+  for (const [keys, s] of Object.entries((def && def.keywords) || {})) {
+    if (!s || !s.quest) continue;
+    const word = keys.split('|')[0];
+    for (const id of s.quest) {
+      const q = QUESTS[id], state = q ? questState(id) : 'done';
+      if (state === 'done') continue;
+      let news = null;
+      if (state === 'none') {
+        if (q.giver === npcId || (q.offers && q.offers[npcId])) news = player.level >= (q.level || 0) ? { mark: 'offer', word, id } : { mark: 'later', word, id, level: q.level };
+      } else if ((questStep(id).npc || q.giver) === npcId) news = { mark: stepReady(id) ? 'report' : 'busy', word, id };
+      if (news && (!best || NEWS_ORDER[news.mark] < NEWS_ORDER[best.mark])) best = news;
+      break;
+    }
+  }
+  return best;
+}
+
+// The word to ask an NPC with about a quest (null if that NPC has nothing to say about it).
+function questWord(npcId, id) {
+  for (const [keys, s] of Object.entries((NPCS[npcId] && NPCS[npcId].keywords) || {})) if (s && s.quest && s.quest.includes(id)) return keys.split('|')[0];
+  return null;
+}
+
+// What an NPC adds to its greeting when it has something for you, with the word to ask about in blue.
+function questHint(npcId) {
+  const n = questNews(npcId);
+  if (!n) return null;
+  return {
+    report: `Have you brought me news? Tell me about the {${n.word}}.`,
+    offer: `I could use your help, $name. Ask me about the {${n.word}}.`,
+    busy: `Ask me about the {${n.word}} if you need a reminder of what to do.`,
+    later: `Come back when you are level ${n.level}: I may need your help then.`,
+  }[n.mark];
 }
 
 function endConversation(silent) {
@@ -132,7 +181,7 @@ function ask(text, yes, no) {
 
 // The services from npcs.js. Returns what the NPC says.
 function service(s, npc, text) {
-  if (s.quest) return questTalk(s.quest, npc);
+  if (s.quest) return questTalk(s.quest, npc, s.otherwise);
   if (s.heal) {
     if (player.hp >= player.maxHp && !Object.keys(player.conditions).some(k => CONDITIONS[k].interval)) return 'You are not hurt.';
     player.hp = player.maxHp;
@@ -170,7 +219,8 @@ function citizenTalk(npc) {
 }
 
 // Offers the first unfinished quest of a chain, tracks its steps and hands out rewards.
-function questTalk(ids, npc) {
+// otherwise: what the NPC says instead when the chain has nothing (more) for you here.
+function questTalk(ids, npc, otherwise) {
   for (const id of ids) {
     const q = QUESTS[id];
     if (!q) continue;
@@ -178,7 +228,7 @@ function questTalk(ids, npc) {
     if (state === 'done') continue;
     if (state === 'none') {
       const own = q.giver === npc.npcId ? t : q.offers && q.offers[npc.npcId]; // the giver, or someone who may offer it too
-      if (!own) return t.elsewhere || 'I know nothing about that. Maybe someone else does.';
+      if (!own) return otherwise || t.elsewhere || 'I know nothing about that. Maybe someone else does.';
       if (q.level && player.level < q.level) return t.tooWeak;
       return ask(own.offer, () => {
         startQuest(id);
@@ -186,14 +236,17 @@ function questTalk(ids, npc) {
       }, () => 'Maybe another time then.');
     }
     const s = questStep(id), single = !q.steps;
-    if ((s.npc || q.giver) !== npc.npcId) return `${NPCS[s.npc || q.giver].name} is waiting for you. (${s.summary || q.summary})`;
+    if ((s.npc || q.giver) !== npc.npcId) {
+      const who = s.npc || q.giver, word = questWord(who, id);
+      return `${otherwise ? `${otherwise} ` : ''}${NPCS[who].name} is waiting for you${word ? `: ask about the ${word}` : ''}. (${s.summary || q.summary})`;
+    }
     if (!stepReady(id)) return (single ? t.progress : s.progress).replace('$progress', questProgress(id));
     const said = single ? t.reward : s.done;
     advanceQuest(id);
     return said;
   }
   const last = QUESTS[ids[ids.length - 1]];
-  return (last && last.text && last.text.done) || 'Thank you again for your help.';
+  return otherwise || (last && last.text && last.text.done) || 'Thank you again for your help.';
 }
 
 function destinyTalk() {

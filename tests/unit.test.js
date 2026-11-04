@@ -1347,6 +1347,34 @@ test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bel
   assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
 });
 
+test('NPCs say which word to ask with, and show ! or ? when they have something for you', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  assert.strictEqual(ctx.questNews('ama').mark, 'offer', 'Ama has a quest: !');
+  assert.strictEqual(ctx.questNews('corwin'), null, 'Corwin has nothing yet');
+  ctx.teleport({ x: 136, y: 102, z: 9 });
+  A.say('hi');
+  assert(messages.some(m => /Ask me about the \{bell\}/.test(m)), 'Ama names the word in blue');
+  A.say('bell'); A.say('yes'); A.say('bye');
+  assert.strictEqual(ctx.questNews('corwin').mark, 'report', 'Corwin is next: ?');
+  ctx.teleport({ x: 112, y: 103, z: 8 });
+  A.say('hi');
+  assert(messages.some(m => /Tell me about the \{bell\}/.test(m)), 'Corwin names the word too');
+  A.say('bell');
+  assert.strictEqual(ctx.questNews('corwin').mark, 'busy', 'then waits for the rats');
+  A.say('bye');
+  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
+  ctx.teleport({ x: 112, y: 103, z: 8 }); A.say('hi'); A.say('bell'); A.say('bye');
+  assert.strictEqual(ctx.questNews('postmaster').mark, 'report');
+  ctx.teleport({ x: 147, y: 104, z: 8 }); A.say('hi');
+  assert(messages.some(m => /\{locker\}/.test(m)), 'the postmaster asks about the locker');
+  A.say('locker'); A.say('bye');
+  assert.strictEqual(p.quests.bell_1.step, 3, 'and the locker finishes his step');
+  ctx.teleport({ x: 147, y: 104, z: 8 }); A.say('hi'); A.say('locker');
+  assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

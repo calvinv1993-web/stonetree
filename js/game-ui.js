@@ -688,15 +688,26 @@ function renderSkills() {
 function renderQuests() {
   const root = $('tab-quests');
   root.replaceChildren();
-  // The main story first: the chapters behind you, the one you're on, and where the next begins.
-  const story = Object.keys(QUESTS).filter(id => QUESTS[id].story);
-  if (story.length) {
-    const box = document.createElement('div'), title = document.createElement('b');
+  // Where to go now in an active quest, and what to say there.
+  const goTo = id => {
+    const s = questStep(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);
+    return `${stepReady(id) ? 'Then go' : 'When it is done, go'} to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.`;
+  };
+  // The stories first (The Silent Bell on Oakvale Isle, The Ember Seal on the mainland): the chapters
+  // behind you, the one you're on, and where the next begins.
+  const stories = {};
+  for (const id of Object.keys(QUESTS)) {
+    const st = QUESTS[id].story;
+    if (st) (stories[st === true ? 'The Ember Seal' : st] = stories[st === true ? 'The Ember Seal' : st] || []).push(id);
+  }
+  for (const [title, story] of Object.entries(stories)) {
+    if ((title === 'The Ember Seal') === (player.vocation === 'none') && !story.some(id => questState(id) !== 'none')) continue; // the mainland's story waits for the mainland
+    const box = document.createElement('div'), head = document.createElement('b');
     box.className = 'story';
     const done = story.filter(id => questState(id) === 'done').length;
-    title.textContent = `The Ember Seal · ${done === story.length ? 'complete!' : `chapter ${Math.min(done + 1, story.length)} of ${story.length}`}`;
-    box.appendChild(title);
-    const chapter = id => QUESTS[id].name.replace(/^The Ember Seal /, '');
+    head.textContent = `${title} · ${done === story.length ? 'complete!' : `chapter ${Math.min(done + 1, story.length)} of ${story.length}`}`;
+    box.appendChild(head);
+    const chapter = id => QUESTS[id].name.replace(`${title} `, '');
     let next = true;
     for (const id of story) {
       const line = document.createElement('div'), state = questState(id);
@@ -706,14 +717,15 @@ function renderQuests() {
       } else if (state === 'active') {
         const s = questStep(id), progress = questProgress(id);
         line.className = 'now';
-        line.innerHTML = '<b></b><span></span>';
+        line.innerHTML = '<b></b><span></span><i></i>';
         line.children[0].textContent = chapter(id);
         line.children[1].textContent = `${s.summary || QUESTS[id].summary}${progress ? ` (${progress})` : ''}`;
+        line.children[2].textContent = ` ${goTo(id)}`;
         next = false;
       } else if (next) {
-        const q = QUESTS[id], who = q.offers && player.home !== 'start' ? Object.keys(q.offers)[0] : q.giver;
+        const q = QUESTS[id], who = q.offers && player.home !== 'start' ? Object.keys(q.offers)[0] : q.giver, word = questWord(who, id) || 'quest';
         line.className = 'next';
-        line.textContent = `Next: ${chapter(id)} - ask ${NPCS[who].name} about the seal${q.level > player.level ? ` (from level ${q.level})` : ''}.`;
+        line.textContent = `Next: ${chapter(id)} - say "${word}" to ${NPCS[who].name}${q.level > player.level ? ` (from level ${q.level})` : ''}.`;
         next = false;
       } else continue;
       box.appendChild(line);
@@ -732,7 +744,7 @@ function renderQuests() {
     if (done) text.textContent = q.chest ? q.summary : 'Completed.';
     else {
       const s = questStep(id), progress = questProgress(id);
-      text.textContent = `${s.summary || q.summary}${progress ? ` (${progress})` : ''}`;
+      text.textContent = `${s.summary || q.summary}${progress ? ` (${progress})` : ''} ${goTo(id)}`;
     }
     el.append(head, text);
     root.appendChild(el);

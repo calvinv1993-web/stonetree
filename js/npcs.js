@@ -1535,43 +1535,43 @@ const NPCS = {
 // under the temple, where they find the bell rope cut through and a seal from the crypt under Bone Rocks.
 Object.assign(QUESTS, {
   bell_1: {
-    name: 'The Silent Bell', giver: 'ama', level: 1,
+    name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1,
     reward: { xp: 120, gold: 40, items: [['rope', 1]] },
     summary: 'Sister Ama in the Temple of the Dawn wants you to learn the ways of Oakvale. Go to Master Corwin at the academy.',
     steps: [
       { npc: 'corwin', summary: 'Visit Master Corwin at the academy, over the bridge west of the square.',
         progress: 'Master Corwin teaches at the academy, over the bridge west of the square.',
-        done: 'Sister Ama sent you? Good. Before I teach you anything, show me you can hold a weapon. Rats have been running wild in {Sunny Fields}, out of the south gate. Kill five of them and come back.' },
+        done: 'Sister Ama sent you? Good. Before I teach you anything, show me you can hold a weapon. Rats have been running wild in {Sunny Fields}, out of the south gate. Kill five of them, then come back and tell me about the {bell} again.' },
       { npc: 'corwin', kill: { rat: 5 }, summary: 'Kill 5 rats in Sunny Fields, out of the south gate, and report to Master Corwin.',
         progress: 'So far you have killed $progress. The rats are in the fields south of town.',
-        done: 'Five rats! You will do. Now: everything you carry can be lost when you die. Go to the {depot} east of the temple and ask the postmaster about your locker.' },
-      { npc: 'postmaster', summary: 'Ask the postmaster in the depot, east of the temple, about your locker.',
+        done: 'Five rats! You will do. Now: everything you carry can be lost when you die. Go to the depot east of the temple and ask Postmaster Hobb about your {locker}.' },
+      { npc: 'postmaster', summary: 'Ask Postmaster Hobb in the depot, east of the temple, about your locker.',
         progress: 'The depot is the slate-roofed house east of the temple mount.',
-        done: 'Your locker? Open any locker here and it is yours - and it is the same locker in every town. Put what you treasure in it. Now, take this letter to {Pip} at the provisions shop on the main street, would you?' },
+        done: 'Your locker? Open any locker here and it is yours - and it is the same locker in every town. Put what you treasure in it. Now, would you take a letter to Pip at the provisions shop on the main street? Give him the {letter} and he will know it is from me.' },
       { npc: 'pip', summary: 'Bring the postmaster\'s letter to Pip at Pip\'s Provisions, on the main street.',
         progress: 'Pip\'s Provisions is on the main street, south of the square, with a rope on its sign.',
-        done: 'A letter for me? Thank you! Here is a tip, newcomer: I {trade} anything you find on monsters, and no adventurer should leave town without a rope and a shovel. Now go back to Sister Ama - she was worried about something.' },
+        done: 'A letter for me? Thank you! Here is a tip, newcomer: I {trade} anything you find on monsters, and no adventurer should leave town without a rope and a shovel. Now go back to Sister Ama in the temple and tell her about the {bell} - she was worried about something.' },
       { npc: 'ama', summary: 'Go back to Sister Ama in the temple.',
         progress: 'Sister Ama waits in the Temple of the Dawn, on the mount north of the square.' },
     ],
     text: {
       offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} has not rung for three days. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})',
-      accept: 'Good. Go down the steps, cross the square to the west and over the bridge: Master {Corwin} teaches at the academy.',
-      reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the {bell}... I fear something is down in the dark beneath us. Come back when you are stronger.',
+      accept: 'Good. Go down the steps, cross the square to the west and over the bridge to the academy. Master Corwin teaches there: tell him about the {bell}, and that I sent you.',
+      reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the bell... I fear something is down in the dark beneath us. Come back at level 2 and ask me about the {bell} again.',
       done: 'Thank you for your help, $name. The bell is still silent... but not for long, I hope.',
     },
   },
   bell_2: {
-    name: 'The Silent Bell II: Teeth in the Dark', giver: 'ama', level: 2,
+    name: 'The Silent Bell II: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 2,
     reward: { xp: 200, gold: 50, items: [['health_potion', 2]] },
     summary: 'Find out what became of the temple bell\'s rope, down in the old bell cellar under the temple mount.',
     steps: [
       { npc: 'ama', fetch: 'chewed_rope', summary: 'Climb down the sewer grate on the square, follow the tunnel north under the temple mount to the old bell cellar, and bring Sister Ama what is left of the bell rope.',
         progress: 'The bell rope hangs down into the old cellar under this temple. Climb down the grate on the square and follow the tunnel north, under the mount.',
-        done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a {stone} down there too? Show it to Master Corwin at the academy. He knows old things.' },
+        done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a stone down there too? Show Master Corwin at the academy the {stone}. He knows old things.' },
       { npc: 'corwin', fetch: 'carved_stone', summary: 'Show the strange carved stone to Master Corwin at the academy.',
         progress: 'Sister Ama says you found a strange stone under the temple. If you have lost it, look in the bell cellar again.',
-        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me when you are stronger, $name. Level 6, at least: the dead down there do not sleep lightly.' },
+        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me at level 6 and ask me about the {crypt}: the dead down there do not sleep lightly.' },
     ],
     text: {
       offer: 'You are back, $name, and a little stronger. People say rats chewed through the bell rope, down in the old cellar under this temple. I do not believe it. Will you go down and see? ({yes}/{no})',
@@ -1582,7 +1582,7 @@ Object.assign(QUESTS, {
     },
   },
   bell_3: {
-    name: 'The Silent Bell III: Under Bone Rocks', giver: 'corwin', level: 6,
+    name: 'The Silent Bell III: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 6,
     reward: { xp: 700, gold: 150, items: [['health_potion', 3]], bell: true },
     summary: 'Go down into the founders\' crypt under Bone Rocks, find what was taken from the temple bell, and bring it to Sister Ama.',
     steps: [
@@ -1592,7 +1592,7 @@ Object.assign(QUESTS, {
     ],
     text: {
       offer: 'You have grown strong, $name. Someone broke the seal of the founders\' crypt under Bone Rocks and silenced our bell. Will you go down into the crypt and find out what was taken? ({yes}/{no})',
-      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks. At the foot of the crag, steps lead down into the crypt. Skeletons walk there - and something worse, I fear. Whatever you find, bring it to Sister Ama.',
+      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks. At the foot of the crag, steps lead down into the crypt. Skeletons walk there - and something worse, I fear. Whatever you find, show it to Sister Ama: tell her about the {clapper}.',
       tooWeak: 'The crypt under Bone Rocks is no place for you yet, $name. Come back when you are level 6.',
       elsewhere: 'Master Corwin at the academy wants to see you about the bell.',
       done: 'The bell rings again, thanks to you. Now go and see the oracle upstairs, $name: you are ready.',
@@ -1609,8 +1609,8 @@ Object.assign(NPCS, {
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
       'bell|quest|mission|task|help|rope|cellar|clapper': { quest: ['bell_1', 'bell_2', 'bell_3'] },
+      'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
       'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10 - or at level 8, once our bell rings again.',
-      stone: 'Show the stone to Master Corwin at the academy. He knows old things.',
       sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, over the bridge west of the square.',
       depot: 'The depot is the slate-roofed house beside this mount, to the east. The postmaster will explain your locker.',
@@ -1623,7 +1623,7 @@ Object.assign(NPCS, {
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
-      'quest|mission|task|ama|bell|stone|seal|crypt': { quest: ['bell_1', 'bell_2', 'bell_3'] },
+      'bell|quest|mission|task|ama|stone|seal|crypt': { quest: ['bell_1', 'bell_2', 'bell_3'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
       'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',
@@ -1653,8 +1653,8 @@ Object.assign(NPCS, {
     greet: 'Good day, $name! Letters, parcels, and your {locker}. What can I do for you?',
     keywords: {
       job: 'I run the depot and the post.',
-      'locker|depot': 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.',
-      'quest|mission|task|letter': { quest: ['bell_1'] },
+      'locker|letter|quest|mission|task': { quest: ['bell_1'], otherwise: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.' },
+      depot: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.',
     },
   },
   pip: {
@@ -1663,7 +1663,7 @@ Object.assign(NPCS, {
     greet: 'Hello $name, welcome to Pip\'s Provisions! Food, potions, rope and shovels - just ask to {trade}. I buy what you find on monsters, too.',
     keywords: {
       job: 'I sell everything an adventurer needs, and buy what they bring back.',
-      'quest|mission|task|letter': { quest: ['bell_1'] },
+      'letter|quest|mission|task': { quest: ['bell_1'] },
       'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
     },
     trade: {
