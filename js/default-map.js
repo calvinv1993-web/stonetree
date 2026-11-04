@@ -280,13 +280,44 @@ const SEWERS = {
   props: [
     [103, 121, 'barrel'], [104, 121, 'barrel'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
     [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
-    [141, 103, 'bell_rope'], // under the temple bell
+    [141, 103, 'rock'], [140, 104, 'rubble'], // the bell shaft, choked with fallen stone
     [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[144, 138], [148, 140], [146, 142]],
+  shaft: [141, 103, 'The bell shaft goes on down here, but it is choked with fallen stone. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
+  down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
+
+// Deeper under Oakvale, below the sewers: the way down to the bottom of the bell shaft (The Silent Bell II).
+// Floor 6, the old drains: crumbling brick tunnels and fallen-in caves, where the giant rats breed. Floor 5,
+// the deep cistern: a flooded cave full of giant rats, and a narrow passage that a slime keeps; past it, the
+// bottom of the bell shaft under the temple, where the bell's rope lies.
+//   z: the floor; up: where the ladder up stands (under the trapdoor above); down: the trapdoor further down
+//   drains: brick tunnels [x0, y0, x1, y1]; caves: fallen-in parts { cx, cy, rx, ry }; rooms: [x0, y0, x1, y1, ground]
+//   pools: water in the caves { cx, cy, rx, ry }; props: [x, y, id, look?]; monsters: [type, [[x, y], ...]]
+const DEEP_SEWERS = [
+  {
+    z: 6, up: [147, 139], down: [128, 111],
+    drains: [[129, 139, 143, 140], [125, 115, 126, 135], [113, 128, 124, 129]],
+    caves: [{ cx: 147, cy: 139, rx: 4.5, ry: 3.5 }, { cx: 126, cy: 138, rx: 4, ry: 3.6 }, { cx: 126, cy: 111, rx: 5.5, ry: 4.2 }, { cx: 110, cy: 128.5, rx: 3.6, ry: 3.2 }],
+    props: [[145, 137, 'bones'], [132, 140, 'rubble'], [124, 136, 'bones'], [126, 124, 'rubble'], [109, 127, 'bones'], [123, 109, 'bones'], [130, 112, 'rubble']],
+    monsters: [['giant_rat', [[148, 141], [137, 139], [127, 139], [124, 137], [125, 128], [126, 120], [111, 129], [123, 112], [127, 109], [130, 110]]]],
+  },
+  {
+    z: 5, up: [128, 111],
+    caves: [{ cx: 127, cy: 111, rx: 8, ry: 6.5 }, { cx: 119, cy: 107, rx: 4, ry: 3.5 }, { cx: 131, cy: 117, rx: 4, ry: 3 }],
+    pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
+    drains: [[135, 108, 138, 108]], // the narrow way on, where the slime keeps
+    rooms: [[139, 103, 144, 109, 'paving']], // the bottom of the bell shaft
+    props: [[141, 104, 'bell_rope'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
+    monsters: [
+      ['giant_rat', [[121, 108], [124, 106], [127, 105], [131, 109], [133, 112], [130, 115], [126, 116], [122, 115], [119, 110], [118, 104], [132, 118], [129, 112]]],
+      ['slime', [[136, 108]]],
+    ],
+  },
+];
 
 // The founders' crypt under Bone Rocks, two floors deep: a flight of steps cut into the foot of the crag
 // (on its south side, near the end of the bone trail) leads down to an antechamber, a corridor and the
@@ -665,6 +696,7 @@ function createDefaultMap() {
   buildTown(m, S, runs, d.rivers[0]);
   buildSewers(m, S);
   buildCrypt(m, S);
+  buildDeepSewers(m, S);
 
   // ---- the first hunting grounds: [type, [[x, y], ...]], each on the nearest free tile outside town ----
   const huntingGrounds = [
@@ -742,6 +774,37 @@ function buildSewers(m, S) {
   for (const [type, list] of [['rat', D.rats], ['giant_rat', D.bigRats]]) for (const [x, y] of list) {
     const p = spot(x, y);
     if (p) m.spawns.push({ type, x: p[0], y: p[1], z: Z });
+  }
+}
+
+// Builds the old drains and the deep cistern under the sewers (see DEEP_SEWERS), and the way down to them.
+function buildDeepSewers(m, S) {
+  const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  { const [x, y] = SEWERS.down; m.get(x, y, SEWERS.z).items = ['trapdoor']; }
+  { const [x, y, look] = SEWERS.shaft; m.setMeta(x, y, SEWERS.z, { look }); }
+  for (const L of DEEP_SEWERS) {
+    const Z = L.z, wallOf = new Map();
+    const carve = (x, y, ground, wall) => { m.set(x, y, Z, { ground, items: [] }); wallOf.set(`${x},${y}`, wall); };
+    for (const [x0, y0, x1, y1] of L.drains || []) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) carve(x, y, 'sewer', 'wall_sewer');
+    for (const c of L.caves || []) {
+      for (let y = Math.floor(c.cy - c.ry - 1); y <= Math.ceil(c.cy + c.ry + 1); y++) for (let x = Math.floor(c.cx - c.rx - 1); x <= Math.ceil(c.cx + c.rx + 1); x++) {
+        if (((x - c.cx) / c.rx) ** 2 + ((y - c.cy) / c.ry) ** 2 < 0.75 + hash(x + 3, y + 7) * 0.4) carve(x, y, 'cave', 'wall_cave');
+      }
+    }
+    for (const [x0, y0, x1, y1, ground] of L.rooms || []) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) carve(x, y, ground, 'wall_sewer');
+    for (const p of L.pools || []) {
+      for (let y = Math.floor(p.cy - p.ry); y <= Math.ceil(p.cy + p.ry); y++) for (let x = Math.floor(p.cx - p.rx); x <= Math.ceil(p.cx + p.rx); x++) {
+        if (((x - p.cx) / p.rx) ** 2 + ((y - p.cy) / p.ry) ** 2 < 1 && wallOf.has(`${x},${y}`)) m.setGround(x, y, Z, 'sewer_water');
+      }
+    }
+    for (const [k, wall] of wallOf) {
+      const [x, y] = k.split(',').map(Number);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (!m.get(x + dx, y + dy, Z)) m.set(x + dx, y + dy, Z, { ground: 'cave', items: [wall] });
+    }
+    m.get(...L.up, Z).items = ['cave_ladder'];
+    if (L.down) m.get(...L.down, Z).items = ['trapdoor'];
+    for (const [x, y, id] of L.props) m.addItem(x, y, Z, id);
+    for (const [type, spots] of L.monsters) for (const [x, y] of spots) if (m.isWalkable(x, y, Z) && !m.floorChange(x, y, Z)) m.spawns.push({ type, x, y, z: Z });
   }
 }
 

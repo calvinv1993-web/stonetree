@@ -230,6 +230,7 @@ const THINGS = {
   hole:        { name: 'hole', cat: 'Floor change', change: -1 },
   trapdoor:    { name: 'trapdoor', cat: 'Floor change', change: -1 }, // the top of a ladder
   sewer_ladder:{ name: 'ladder', cat: 'Floor change', change: 1, light: 2 }, // up to a grate, in the daylight falling through it
+  cave_ladder: { name: 'ladder', cat: 'Floor change', change: 1 },           // up through a hole in the ceiling (under a trapdoor)
   // A path up a mountain side, in place of a cliff. The floor above gets ramp_top
   // (an invisible ground) right over it: step on it from above to walk down.
   ramp:        { name: 'mountain path', cat: 'Floor change', change: 1, tall: true },

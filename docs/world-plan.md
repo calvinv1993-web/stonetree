@@ -147,6 +147,10 @@ These caves are a design proposal, since there's no underground reference:
   - The four street grates go down; a ladder under each one, at the same x, y, goes back up: (131,111), (140,129), (110,128), (127,141).
   - Rooms: the bell cellar under the temple (133–140, 101–106, a dead end for "The Silent Bell"), an old storeroom (103–108, 121–126), and a rats' nest where the walls have fallen in, under the graveyard (around 146, 139).
   - 12 rats, and 3 giant rats in the nest.
+- **Under the sewers** (`DEEP_SEWERS` and `buildDeepSewers`), the way to the bottom of the bell shaft for The Silent Bell II:
+  - The old bell cellar on floor 7 is choked with fallen stone; a trapdoor in the rats' nest (147,139) leads down.
+  - Floor 6, the old drains: crumbling tunnels and fallen-in caves, 10 giant rats; a trapdoor at (128,111) leads on down.
+  - Floor 5, the deep cistern: a flooded cave with 12 giant rats; a narrow passage east (135–138, 108) kept by a slime, to the bottom of the bell shaft (139–144, 103–109) where the bell rope lies.
 - **North Peaks caves** (z 7 and 6)
 - **Bone Rocks crypt** (z 7 to 6). **Built** (`CRYPT` and `buildCrypt` in `js/default-map.js`):
   - The way in: steps down cut into the south foot of the crag at (81,198), in a niche cleared of rock (also on the floor above, so the crag's rim doesn't hide them), with a short path from the bone trail and a warning sign.

@@ -64,9 +64,9 @@ const GUIDE = [
     done: () => questState('bell_2') !== 'none',
   },
   {
-    text: 'Climb down the grate on the square, below the temple steps, and follow the tunnel north to the bell cellar. Right-click the rope that hangs there. It is dark: say "lumen" for light.',
-    touch: 'Step onto the grate on the square, below the temple steps, and follow the tunnel north to the bell cellar. Long-press the rope that hangs there. It is dark: say "lumen" for light.',
-    target: [{ quest: 'bell_2' }, { at: [141, 103, 7] }, { at: [131, 111, 8] }],
+    text: 'Climb down the grate on the square. In the sewers, go east to the rats\' nest under the graveyard and down its trapdoor; then on down, past the slime, to the bottom of the bell shaft. Right-click the rope there. Say "lumen" for light.',
+    touch: 'Step onto the grate on the square. In the sewers, go east to the rats\' nest under the graveyard and down its trapdoor; then on down, past the slime, to the bottom of the bell shaft. Long-press the rope there. Say "lumen" for light.',
+    target: [{ quest: 'bell_2' }, { at: [141, 104, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_2') === 'done',
   },
   {

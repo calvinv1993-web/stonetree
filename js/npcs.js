@@ -1564,18 +1564,18 @@ Object.assign(QUESTS, {
   bell_2: {
     name: 'The Silent Bell II: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 2,
     reward: { xp: 200, gold: 50, items: [['health_potion', 2]] },
-    summary: 'Find out what became of the temple bell\'s rope, down in the old bell cellar under the temple mount.',
+    summary: 'Find out what became of the temple bell\'s rope, deep under the town at the bottom of the bell shaft.',
     steps: [
-      { npc: 'ama', fetch: 'chewed_rope', summary: 'Climb down the sewer grate on the square, follow the tunnel north under the temple mount to the old bell cellar, and bring Sister Ama what is left of the bell rope.',
-        progress: 'The bell rope hangs down into the old cellar under this temple. Climb down the grate on the square and follow the tunnel north, under the mount.',
+      { npc: 'ama', fetch: 'chewed_rope', summary: 'Go down through the sewers (a grate on the square), through the rats\' nest under the graveyard into the old drains, and on down to the deep cistern. Past it, at the bottom of the bell shaft, find what is left of the bell rope and bring it to Sister Ama.',
+        progress: 'The rope fell down the bell shaft, deep under the town. The old cellar is choked with stone - but the rats have dug their own way down, from their nest under the graveyard. Go down, and down again.',
         done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a stone down there too? Show Master Corwin at the academy the {stone}. He knows old things.' },
       { npc: 'corwin', fetch: 'carved_stone', summary: 'Show the strange carved stone to Master Corwin at the academy.',
         progress: 'Sister Ama says you found a strange stone under the temple. If you have lost it, look in the bell cellar again.',
         done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me at level 6 and ask me about the {crypt}: the dead down there do not sleep lightly.' },
     ],
     text: {
-      offer: 'You are back, $name, and a little stronger. People say rats chewed through the bell rope, down in the old cellar under this temple. I do not believe it. Will you go down and see? ({yes}/{no})',
-      accept: 'Thank you. The cellar can only be reached through the sewers now: climb down the grate on the square and follow the tunnel north, under the mount. It is dark down there - Master Corwin can teach you the Torchlight spell. Bring me what is left of the rope.',
+      offer: 'You are back, $name, and a little stronger. Our bell has lost its rope: it fell down the old bell shaft, deep under the town, and people say the rats chewed it through. I do not believe it. Will you go down and find it? ({yes}/{no})',
+      accept: 'Thank you. Climb down the grate on the square into the sewers. The old cellar under this temple fell in long ago, but the rats have dug deep from their nest under the graveyard: follow them down, past the old drains, to the cistern at the bottom. It is dark and full of rats as big as dogs - take potions, and say "lumen" for light. Bring me what is left of the rope, and tell me about the {rope}.',
       tooWeak: 'Something is wrong with our bell, $name, but the sewers are no place for you yet. Come back when you are level 2.',
       elsewhere: 'Sister Ama was asking about the bell again. Go and see her in the temple.',
       done: 'Master Corwin will know what that stone means. As for the bell... it still hangs silent.',

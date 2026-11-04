@@ -492,7 +492,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'bell_rope', 'chimney',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney',
     'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -2184,6 +2184,14 @@ const Sprites = (() => {
       rect(g, '#6a5a48', 2, 2, 2, 28);
       rect(g, '#3a3028', 28, 2, 2, 28);
       rect(g, '#3a3028', 2, 28, 28, 2);
+    },
+    // A ladder up through a dark hole in the ceiling, to the trapdoor on the floor above.
+    cave_ladder(g) {
+      poly(g, '#0a0806', [...P(5, 5, 54), ...P(27, 5, 54), ...P(27, 27, 54), ...P(5, 27, 54)]);
+      const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
+      prism(g, 8, 3, 11, 6, 0, 54, wood);
+      for (let z = 7; z < 54; z += 8) prism(g, 11, 4, 21, 5, z, z + 2, wood);
+      prism(g, 21, 3, 24, 6, 0, 54, wood);
     },
     // A ladder up to a sewer grate: it stands against the tile's north edge and reaches the ceiling,
     // in the daylight that falls through the grate, striped by its bars.
