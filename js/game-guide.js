@@ -1,5 +1,5 @@
 'use strict';
-// The guide for new adventurers on Brightwater Isle: one thing at a time, with an arrow
+// The guide for new adventurers on Oakvale Isle: one thing at a time, with an arrow
 // pointing the way (drawGuideArrow in game.js, renderGuide in game-ui.js), from a first
 // word with Elder Maren to the Seer's tower. You can put it away whenever you like.
 // player.tutorial is the step you're on (1 is the first), 0 when the guide is done.
@@ -10,21 +10,27 @@
 // player), or on: the deed that does it (see guideDid). The last step waits for "Got it".
 const GUIDE = [
   {
-    text: 'Welcome to Brightwater Isle! Elder Maren stands by the altar, just north of you. Walk to her with W A S D or the arrow keys (or click where to go), then click her to talk.',
-    touch: 'Welcome to Brightwater Isle! Elder Maren stands by the altar, just north of you. Walk with the joystick (or tap where to go), then tap her to talk.',
-    target: [{ npc: 'maren' }],
-    done: () => talkingTo('maren'),
+    text: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Walk to her with W A S D or the arrow keys (or click where to go), then click her to talk.',
+    touch: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Walk with the joystick (or tap where to go), then tap her to talk.',
+    target: [{ npc: 'ama' }],
+    done: () => talkingTo('ama'),
   },
   {
-    text: 'Words in blue are things you can ask about: click them, or type them. Ask Maren for a quest, and say yes.',
-    touch: 'Words in blue are things you can ask about: tap them. Ask Maren for a quest, and say yes.',
-    target: [{ npc: 'maren' }],
-    done: () => questState('rat_problem') !== 'none',
+    text: 'Words in blue are things you can ask about: click them, or type them. Ask Sister Ama about the bell, and say yes.',
+    touch: 'Words in blue are things you can ask about: tap them. Ask Sister Ama about the bell, and say yes.',
+    target: [{ npc: 'ama' }],
+    done: () => questState('bell_1') !== 'none',
   },
   {
-    text: 'Rats have overrun the cellar under the square: its stairs are in the south-east corner. Click a rat to attack it, or press Space to attack the nearest monster.',
-    touch: 'Rats have overrun the cellar under the square: its stairs are in the south-east corner. Tap a rat to attack it, or press the sword button for the nearest monster.',
-    target: [{ monster: 'rat' }, { at: [36, 42, 4] }],
+    text: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: talk to him.',
+    touch: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: tap him to talk.',
+    target: [{ npc: 'corwin' }],
+    done: () => talkingTo('corwin'),
+  },
+  {
+    text: 'Rats run wild in Sunny Fields, out of the south gate. Click a rat to attack it, or press Space to attack the nearest monster. Kill 5 ($progress).',
+    touch: 'Rats run wild in Sunny Fields, out of the south gate. Tap a rat to attack it, or press the sword button for the nearest monster. Kill 5 ($progress).',
+    target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
     on: 'kill',
   },
   {
@@ -40,32 +46,21 @@ const GUIDE = [
     done: () => player.fedUntil > now,
   },
   {
-    text: 'Kill 5 rats for Maren ($progress), then go back up and tell her: say hi, then quest. Getting hurt? Drink a health potion with H.',
-    touch: 'Kill 5 rats for Maren ($progress), then go back up and tell her: tap her, then quest. Getting hurt? Tap the heart for a health potion.',
-    target: [{ quest: 'rat_problem', npc: 'maren' }, { monster: 'rat' }, { at: [36, 42, 4] }],
-    done: () => questState('rat_problem') === 'done',
+    text: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Drink a health potion with H.',
+    touch: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Tap the heart for a health potion.',
+    target: [{ quest: 'bell_1' }, { monster: 'rat' }],
+    done: () => questState('bell_1') === 'done',
   },
   {
-    text: 'Maren gave you a leather cap. Put it on: click it in your bag, or drag it onto your head.',
-    touch: 'Maren gave you a leather cap. Put it on: open your backpack and tap it.',
-    target: [],
-    done: () => !!player.equipment.head || !findInBag(it => ITEMS[it.id].slot === 'head'),
-  },
-  {
-    text: 'Hilda, east of the square, sells food, potions and tools, and buys what you loot. Bram the smith, west, sells weapons and armor. Talk to Hilda and ask to trade.',
-    touch: 'Hilda, east of the square, sells food, potions and tools, and buys what you loot. Bram the smith, west, sells weapons and armor. Talk to Hilda and ask to trade.',
-    target: [{ npc: 'hilda' }],
+    text: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. The Dented Shield sells weapons, Hide and Iron armour. Talk to Pip and ask to trade.',
+    touch: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. The Dented Shield sells weapons, Hide and Iron armour. Talk to Pip and ask to trade.',
+    target: [{ npc: 'pip' }],
     done: () => !!player.shopNpc,
   },
   {
-    text: 'Guard Tomas, at the south-east corner of the square, needs help against the goblins. Ask him for a mission.',
-    touch: 'Guard Tomas, at the south-east corner of the square, needs help against the goblins. Ask him for a mission.',
-    target: [{ npc: 'tomas' }],
-    done: () => talkingTo('tomas'),
-  },
-  {
-    text: 'That is all you need to know. Explore the island: the goblin camp to the east, the forest to the north, Old Gnarl\'s swamp to the north-west and the old crypt to the south. At level 10 the Seer, in the tower south of the square, lets you choose a vocation and sends you to the mainland - for good: nobody ever comes back to Brightwater. So take your time. They say the island still keeps an old secret...',
-    target: [{ npc: 'seer', level: 10 }],
+    text: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
+    touch: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
+    target: [{ npc: 'oak_oracle', level: 10 }],
   },
 ];
 
@@ -90,6 +85,13 @@ function guideTarget(step) {
   for (const t of step.target || []) {
     if (t.level && player.level < t.level) continue;
     if (t.quest && !stepReady(t.quest)) continue;
+    if (t.quest && !t.npc) { // the NPC this quest's current step is reported to
+      const q = player.quests[t.quest], def = QUESTS[t.quest];
+      const st = q && q.status === 'active' && (def.steps || [])[q.step];
+      const n = st !== undefined && npcs.find(c => c.npcId === ((st && st.npc) || def.giver));
+      if (n) return n;
+      continue;
+    }
     if (t.npc) {
       const n = npcs.find(c => c.npcId === t.npc);
       if (n) return n;
@@ -118,7 +120,7 @@ const onIsle = p => !!map.isle && p.x >= map.isle.x0 && p.x <= map.isle.x1 && p.
 function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
-  if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to Brightwater Isle. Once you have chosen your path, the island is behind you for good.';
-  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Brightwater Isle without a vocation. The Seer, in the tower south of the square, sends you to the mainland once you are level 10.';
+  if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
+  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10.';
   return null;
 }

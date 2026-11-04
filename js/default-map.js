@@ -230,6 +230,13 @@ const OAKVALE = {
     [156, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
     [126, 150, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
   ],
+  // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
+  people: [
+    ['ama', 136, 101, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 103, 8], ['pip', 119, 136, 8],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8],
+    ['guard', 126, 100, 8], ['guard', 147, 116, 8], ['guard', 128, 140, 8], ['guard', 106, 130, 8],
+    ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
+  ],
   notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
   firstSteps: [140, 107, 'Welcome to Oakvale Isle! Below you lies the town. Down the steps is the square; the depot is east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
@@ -564,6 +571,21 @@ function createDefaultMap() {
   }
 
   buildTown(m, S, runs, d.rivers[0]);
+
+  // ---- the first hunting grounds: [type, [[x, y], ...]], each on the nearest free tile outside town ----
+  const huntingGrounds = [
+    ['rat', [[118, 156], [124, 160], [140, 158], [112, 168], [146, 170], [120, 176], [134, 182], [108, 160]]],   // Sunny Fields
+    ['wolf', [[56, 70], [66, 80], [50, 92], [70, 100], [60, 104], [46, 76]]],                                       // Wolf Woods
+    ['goblin', [[186, 66], [196, 70], [202, 80], [190, 84], [182, 74]]],                                             // Goblin Hill
+  ];
+  const spot = (x, y, z) => {
+    for (let r = 0; r <= 4; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      const t = m.get(x + dx, y + dy, z);
+      if (m.isWalkable(x + dx, y + dy, z) && !m.floorChange(x + dx, y + dy, z) && !m.isShelter(x + dx, y + dy, z) && t.ground !== 'bridge_ns' && t.ground !== 'bridge_ew') return [x + dx, y + dy];
+    }
+    return null;
+  };
+  for (const [type, pts] of huntingGrounds) for (const [x, y] of pts) { const p = spot(x, y, S); if (p) m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
 
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount
@@ -914,6 +936,18 @@ function buildTown(m, S, runs, river) {
     else if (v < 0.15) put(x, y, S, 'flowers');
     else if (v < 0.19) put(x, y, S, 'grass_tuft');
   }
+  // The townsfolk, each on the nearest free tile to their spot (never in a doorway).
+  for (const [type, x, y, z] of T.people) {
+    let placed = false;
+    for (let r = 0; r <= 3 && !placed; r++) for (let dy = -r; dy <= r && !placed; dy++) for (let dx = -r; dx <= r && !placed; dx++) {
+      const t = m.get(x + dx, y + dy, z);
+      if (!t || !m.isWalkable(x + dx, y + dy, z) || m.floorChange(x + dx, y + dy, z) || m.npcs.some(n => n.x === x + dx && n.y === y + dy && n.z === z)) continue;
+      if (t.items.some(id => THINGS[id].toggle)) continue;
+      m.npcs.push({ type, x: x + dx, y: y + dy, z });
+      placed = true;
+    }
+  }
+
   // Nothing in a doorway or straight in front of one.
   for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
     const t = m.get(x, y, S); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }

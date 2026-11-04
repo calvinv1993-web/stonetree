@@ -56,12 +56,17 @@ function startServer() {
     assert(alice.welcome && bob.welcome, 'both logged in');
     assert(alice.state.players.some(p => p.name === `Bob${tag}`), 'Alice sees Bob');
 
-    const bobAt = bob.state.you.y;
-    bob.act('keyDown', 's', false);
-    bob.act('keyUp', 's');
-    await sleep(800);
-    const seen = alice.state.players.find(p => p.name === `Bob${tag}`);
-    assert(seen && seen.y !== bobAt, 'Alice sees Bob walk');
+    // Bob takes a step, whichever way is free (furniture may stand next to where he wakes).
+    const bobAt = `${bob.state.you.x},${bob.state.you.y}`;
+    let seen = null;
+    for (const key of ['s', 'w', 'e', 'n']) {
+      bob.act('keyDown', key, false);
+      bob.act('keyUp', key);
+      await sleep(800);
+      seen = alice.state.players.find(p => p.name === `Bob${tag}`);
+      if (seen && `${seen.x},${seen.y}` !== bobAt) break;
+    }
+    assert(seen && `${seen.x},${seen.y}` !== bobAt, 'Alice sees Bob walk');
 
     bob.act('say', 'hello there');
     await sleep(300);

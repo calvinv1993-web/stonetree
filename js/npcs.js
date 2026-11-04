@@ -1527,3 +1527,144 @@ const NPCS = {
     chatter: ['Dig, dig, dig.', 'Stone and steel!', 'Where is my pick?', 'Too much sky up there.'],
   },
 };
+
+// ---- Oakvale Isle: the people of the starter town, and its beginner story --------------------------
+// "The Silent Bell": the temple bell of Oakvale has stopped ringing. The quest walks a newcomer through the
+// town and the game: the priestess, the teacher at the academy, the first fight outside the walls, the
+// depot, trading at Pip's, and back to the temple. (The bell itself, and what silenced it, come later.)
+Object.assign(QUESTS, {
+  bell_1: {
+    name: 'The Silent Bell', giver: 'ama', level: 1,
+    reward: { xp: 120, gold: 40, items: [['rope', 1]] },
+    summary: 'Sister Ama in the Temple of the Dawn wants you to learn the ways of Oakvale. Go to Master Corwin at the academy.',
+    steps: [
+      { npc: 'corwin', summary: 'Visit Master Corwin at the academy, over the bridge west of the square.',
+        progress: 'Master Corwin teaches at the academy, over the bridge west of the square.',
+        done: 'Sister Ama sent you? Good. Before I teach you anything, show me you can hold a weapon. Rats have been running wild in {Sunny Fields}, out of the south gate. Kill five of them and come back.' },
+      { npc: 'corwin', kill: { rat: 5 }, summary: 'Kill 5 rats in Sunny Fields, out of the south gate, and report to Master Corwin.',
+        progress: 'So far you have killed $progress. The rats are in the fields south of town.',
+        done: 'Five rats! You will do. Now: everything you carry can be lost when you die. Go to the {depot} east of the temple and ask the postmaster about your locker.' },
+      { npc: 'postmaster', summary: 'Ask the postmaster in the depot, east of the temple, about your locker.',
+        progress: 'The depot is the slate-roofed house east of the temple mount.',
+        done: 'Your locker? Open any locker here and it is yours - and it is the same locker in every town. Put what you treasure in it. Now, take this letter to {Pip} at the provisions shop on the main street, would you?' },
+      { npc: 'pip', summary: 'Bring the postmaster\'s letter to Pip at Pip\'s Provisions, on the main street.',
+        progress: 'Pip\'s Provisions is on the main street, south of the square, with a rope on its sign.',
+        done: 'A letter for me? Thank you! Here is a tip, newcomer: I {trade} anything you find on monsters, and no adventurer should leave town without a rope and a shovel. Now go back to Sister Ama - she was worried about something.' },
+      { npc: 'ama', summary: 'Go back to Sister Ama in the temple.',
+        progress: 'Sister Ama waits in the Temple of the Dawn, on the mount north of the square.' },
+    ],
+    text: {
+      offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} has not rung for three days. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})',
+      accept: 'Good. Go down the steps, cross the square to the west and over the bridge: Master {Corwin} teaches at the academy.',
+      reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the {bell}... I fear something is down in the dark beneath us. Come back when you are stronger.',
+      done: 'Thank you for your help, $name. The bell is still silent... but not for long, I hope.',
+    },
+  },
+});
+
+Object.assign(NPCS, {
+  ama: {
+    name: 'Sister Ama',
+    look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
+    greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
+    keywords: {
+      job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
+      oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
+      'bell|quest|mission|task|help': { quest: ['bell_1'] },
+      'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, over the bridge west of the square.',
+      depot: 'The depot is the slate-roofed house beside this mount, to the east. The postmaster will explain your locker.',
+      heal: { heal: true },
+    },
+  },
+  corwin: {
+    name: 'Master Corwin',
+    look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
+    greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
+    keywords: {
+      job: 'I teach newcomers how to stay alive on this isle.',
+      'quest|mission|task|ama|bell': { quest: ['bell_1'] },
+      'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
+      'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
+      skills: 'Every weapon trains its skill as you use it, and a shield trains when you are hit. Spending mana trains your magic.',
+      spells: 'You learn your first spells as you grow: Torchlight at level 2, Light Heal at level 3. Your {vocation} teaches you more.',
+      tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
+      'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation and sends you to the mainland - and you never come back.',
+      'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate. The rats there are a good first fight.',
+    },
+  },
+  oak_oracle: {
+    name: 'The Oracle',
+    look: { skin: '#e8d0b8', body: '#4a2a6a', arms: '#4a2a6a', legs: '#4a2a6a', belt: '#d0b040', robe: true, hat: { style: 'hood', color: '#3a1e5a' } },
+    greet: 'I have been waiting for you, $name. Shall I reveal your {destiny}?',
+    keywords: {
+      job: 'I see the paths that lie before those who come here.',
+      'destiny|vocation': { destiny: true },
+      knight: { vocation: 'knight' }, paladin: { vocation: 'paladin' }, sorcerer: { vocation: 'sorcerer' }, druid: { vocation: 'druid' },
+    },
+  },
+  postmaster: {
+    name: 'Postmaster Hobb',
+    look: { skin: '#f0c8a0', hair: '#5a3a1a', body: '#3a5a8a', arms: '#3a5a8a', legs: '#2a2a3a', belt: '#c0a040', hat: { style: 'wide', color: '#2a3a5a' } },
+    greet: 'Good day, $name! Letters, parcels, and your {locker}. What can I do for you?',
+    keywords: {
+      job: 'I run the depot and the post.',
+      'locker|depot': 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.',
+      'quest|mission|task|letter': { quest: ['bell_1'] },
+    },
+  },
+  pip: {
+    name: 'Pip',
+    look: { skin: '#f0c090', hair: '#c87a2a', body: '#4a7a3a', arms: '#f0c090', legs: '#6a4a2a', belt: '#3a2a1a' },
+    greet: 'Hello $name, welcome to Pip\'s Provisions! Food, potions, rope and shovels - just ask to {trade}. I buy what you find on monsters, too.',
+    keywords: {
+      job: 'I sell everything an adventurer needs, and buy what they bring back.',
+      'quest|mission|task|letter': { quest: ['bell_1'] },
+      'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
+    },
+    trade: {
+      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 40], ['mana_potion', 50], ['backpack', 60], ['rope', 50], ['shovel', 50],
+        ['pick', 50], ['fishing_rod', 120]],
+      buys: ['loot', 'tools'],
+    },
+  },
+  oak_smith: {
+    name: 'Smith Dunstan',
+    look: { skin: '#d89868', hair: '#2a1a0a', beard: '#2a1a0a', body: '#5a3a1a', arms: '#d89868', legs: '#3a3a40', belt: '#2a1a0a' },
+    greet: 'Welcome to the Dented Shield, $name. Weapons, bought and sold - want to {trade}?',
+    keywords: { job: 'I make weapons, and I buy the ones you find.' },
+    trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8]], buys: ['gear', 'distance'] },
+  },
+  oak_armourer: {
+    name: 'Armourer Brenna',
+    look: { skin: '#e8b890', hair: '#a83a1a', body: '#6a6a72', arms: '#e8b890', legs: '#4a4a52', belt: '#2a1a0a' },
+    greet: 'Hide and Iron, at your service, $name. Helmets, armour and shields - shall we {trade}?',
+    keywords: { job: 'I make armour that keeps young adventurers in one piece.' },
+    trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15]], buys: ['gear'] },
+  },
+  oak_mage: {
+    name: 'Moonpetal',
+    look: { skin: '#f0d8c0', hair: '#d8d8f0', body: '#5a3a8a', arms: '#5a3a8a', legs: '#5a3a8a', belt: '#c0a0e0', robe: true, hat: { style: 'pointy', color: '#4a2a7a' } },
+    greet: 'Welcome to my little shop, $name. Potions, runes and wands - would you like to {trade}?',
+    keywords: { job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.' },
+    trade: { sells: [['health_potion', 40], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
+  },
+  oak_baker: {
+    name: 'Baker Willa',
+    look: { skin: '#f0c8a0', hair: '#e0c070', body: '#f0e8d8', arms: '#f0c8a0', legs: '#8a5a3a', belt: '#f0e8d8' },
+    greet: 'Fresh bread, $name! Eat well, heal fast. Want to {trade}?',
+    keywords: { job: 'I bake for the whole town. Eating makes you heal much faster, you know.' },
+    trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
+  },
+  oak_innkeeper: {
+    name: 'Innkeeper Rolf',
+    look: { skin: '#e0a878', hair: '#6a4a2a', beard: '#6a4a2a', body: '#8a5a2a', arms: '#e0a878', legs: '#4a3a2a', belt: '#2a1a0a' },
+    greet: 'Welcome to the Sleepy Boar, $name! A meal, a drink, and the best {rumours} on the isle. Want to {trade}?',
+    keywords: {
+      job: 'I keep the Sleepy Boar.',
+      'rumours|rumors|news|bell': 'They say the temple bell went quiet the night the rats came up through the grates. And old Wim\'s gravestone says he went down the well for a bet... nobody knows what he found.',
+      'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
+    },
+    trade: { sells: [['bread', 4], ['cheese', 3], ['meat', 7], ['fish', 5], ['health_potion', 45]], buys: ['loot'] },
+  },
+});

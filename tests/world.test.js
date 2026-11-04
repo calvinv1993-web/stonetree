@@ -240,6 +240,18 @@ test('nothing stands in a doorway or straight in front of a door, inside or out'
   assert.deepStrictEqual(blocked, []);
 });
 
+test('every NPC on the map exists, and every item they sell or a quest gives exists', () => {
+  const vmr = require('vm'), NPCS = vmr.runInContext('NPCS', ctx), ITEMS = vmr.runInContext('ITEMS', ctx), QUESTS = vmr.runInContext('QUESTS', ctx);
+  const bad = [];
+  for (const n of map.npcs) if (!NPCS[n.type]) bad.push(`npc ${n.type}`);
+  for (const [id, n] of Object.entries(NPCS)) for (const [item] of (n.trade && n.trade.sells) || []) if (!ITEMS[item]) bad.push(`${id} sells ${item}`);
+  for (const [id, q] of Object.entries(QUESTS)) {
+    for (const [item] of (q.reward && q.reward.items) || []) if (!ITEMS[item]) bad.push(`${id} gives ${item}`);
+    for (const st of q.steps || []) if (st.npc && !NPCS[st.npc]) bad.push(`${id} step npc ${st.npc}`);
+  }
+  assert.deepStrictEqual(bad, []);
+});
+
 test('the world saves compactly and loads back tile for tile', () => {
   const json = JSON.stringify(map), copy = GameMap.fromJSON(JSON.parse(json));
   assert.ok(json.length < 1.5e6, `the saved world is ${json.length} bytes`);
