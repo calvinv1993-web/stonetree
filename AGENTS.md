@@ -23,6 +23,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Online test (spawns its own server) | `node tests/online.test.js` |
 | Browser soak test | `node tests/browser.test.js [seconds] [seed]` |
 | Screenshot of the real page | `node tests/screenshot.js out.png [x y z] [--hour 22] [--mobile] [--view] [--eval "js"]` |
+| Balance along the Oakvale route: fights with the real combat code | `node tests/balance.js [name]` |
 | World validator: size, coast, floor changes, reachability | `node tests/world.test.js [--verbose]` |
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |

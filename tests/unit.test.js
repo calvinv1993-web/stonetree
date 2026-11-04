@@ -1290,7 +1290,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
   const rope = map.get(136, 103, 5);
   assert(rope && rope.items.includes('bell_rope'), 'the bell rope lies at the bottom of the bell shaft, three floors down');
-  assert(map.spawns.some(s => s.type === 'slime' && s.z === 5) && map.spawns.filter(s => s.type === 'giant_rat' && s.z === 6).length >= 8, 'giant rats in the drains, a slime by the shaft');
+  assert(map.spawns.some(s => s.type === 'cistern_slime' && s.z === 5) && map.spawns.filter(s => s.type === 'giant_rat' && s.z === 6).length >= 8, 'giant rats in the drains, a slime by the shaft');
   assert(map.get(137, 102, 11).items.includes('bell_nw'), 'the bell hangs in the tower, high over the temple');
   const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
   talk(136, 102, 9, 'bell');

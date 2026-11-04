@@ -16,14 +16,15 @@ const MONSTERS = {
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
   giant_rat: { // the big rats of the Oakvale sewers
-    name: 'giant rat', hp: 42, xp: 16, dmg: [1, 6], speed: 440, attackSpeed: 1500, aggro: 5, corpse: 'blood',
+    name: 'giant rat', hp: 55, xp: 22, dmg: [2, 11], speed: 420, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
-    name: 'Gravewaker', proper: true, hp: 150, xp: 180, dmg: [2, 9], armor: 2, speed: 520, attackSpeed: 2000, aggro: 6, corpse: 'blood',
+    name: 'Gravewaker', proper: true, hp: 380, xp: 450, dmg: [6, 18], armor: 4, speed: 500, attackSpeed: 1800, aggro: 7, corpse: 'blood',
     respawn: 300000, weak: { holy: 1.3 },
-    ranged: { range: 4, dmg: [5, 14], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
-    summon: { type: 'skeleton', max: 1, chance: 0.08 },
+    ranged: { range: 4, dmg: [12, 30], missile: 'poison', element: 'earth', chance: 0.6, keepDistance: true },
+    hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
+    summon: { type: 'skeleton', max: 2, chance: 0.12 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
   },
   spider: {
@@ -34,6 +35,12 @@ const MONSTERS = {
   wolf: {
     name: 'wolf', hp: 40, xp: 15, dmg: [2, 8], speed: 320, attackSpeed: 1400, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.2]] },
+  },
+  cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
+    name: 'cistern slime', hp: 160, xp: 140, dmg: [3, 12], armor: 2, speed: 900, attackSpeed: 1700, aggro: 4, corpse: 'slime',
+    respawn: 180000, immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.3, power: 3 },
+    summon: { type: 'slime', max: 2, chance: 0.1 },
+    loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
   },
   slime: {
     name: 'slime', hp: 40, xp: 12, dmg: [1, 7], speed: 800, attackSpeed: 1800, aggro: 4, corpse: 'slime',

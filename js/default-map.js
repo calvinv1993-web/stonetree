@@ -309,12 +309,12 @@ const DEEP_SEWERS = [
     z: 5, up: [128, 111],
     caves: [{ cx: 127, cy: 111, rx: 8, ry: 6.5 }, { cx: 119, cy: 107, rx: 4, ry: 3.5 }, { cx: 131, cy: 117, rx: 4, ry: 3 }],
     pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
-    drains: [[135, 108, 138, 108]], // the narrow way on, where the slime keeps
+    drains: [[135, 108, 138, 109]], // the narrow way on, where the slime keeps (two rows: a south wall hides the row along it)
     rooms: [[139, 103, 144, 109, 'paving'], [135, 102, 138, 105, 'paving']], // the bottom of the bell shaft
     props: [[136, 103, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
       ['giant_rat', [[121, 108], [124, 106], [127, 105], [131, 109], [133, 112], [130, 115], [126, 116], [122, 115], [119, 110], [118, 104], [132, 118], [129, 112]]],
-      ['slime', [[136, 108]]],
+      ['cistern_slime', [[136, 108]]],
     ],
   },
 ];

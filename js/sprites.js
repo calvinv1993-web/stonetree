@@ -3855,12 +3855,20 @@ const Sprites = (() => {
     if (key.startsWith('npc:')) return NPCS[key.slice(4)].look;
     return MONSTER_LOOKS[key] || null;
   }
-  const BIG_BEASTS = ['giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
+  const BIG_BEASTS = ['cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
   function creatureDrawer(key) {
     const look = lookFor(key);
     if (look) return (g, d, f) => humanoid(g, look, d, f);
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
+      cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
+        g.translate(16, 27);
+        g.scale(1.7, 1.7);
+        g.translate(-16, -27);
+        g.filter = 'hue-rotate(40deg) brightness(0.75)';
+        slime(g, d, f);
+        g.filter = 'none';
+      },
       giant_rat: (g, d, f) => { // a rat the size of a dog, with red eyes
         g.translate(16, 26);
         g.scale(1.45, 1.45);
