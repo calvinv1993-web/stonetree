@@ -512,6 +512,55 @@ const Sprites = (() => {
     const [x, y] = P(cu, cv, z);
     g.lineWidth = width; g.strokeStyle = colour; g.beginPath(); g.arc(x, y, r, -Math.PI / 4, Math.PI * 3 / 4); g.stroke();
   }
+  // --- big things made of several tiles ---------------------------------------------------------
+  // Each is drawn whole, with its outline, on one canvas (its north-west tile's corner at 64, 64, so P()
+  // works over its whole footprint); then every tile it covers shows the part of that drawing that rises
+  // above it: the tile and the strip up-left of it. Those strips fit together without a seam.
+  //   w, h: its size in tiles; draw(g, frame)
+  const BIG = {
+    bed: { w: 1, h: 2, draw(g) {
+      shadow(g, 64 + 18, 64 + 36, 15, 26);
+      const frame = { top: '#7a4e26', south: '#6a4220', east: '#4e2e14', edge: '#9a6a38' };
+      prism(g, 3, 1, 29, 4, 0, 24, { top: '#8a5a2c', south: '#6e4422', east: '#55331a', edge: '#a8743e' }); // the headboard
+      prism(g, 3, 4, 29, 61, 0, 8, frame);
+      prism(g, 5, 5, 27, 59, 8, 11, { top: '#f4f2ec', south: '#d8d4cc', east: '#b8b4ac', edge: '#ffffff' });   // the mattress
+      prism(g, 7, 6, 25, 15, 11, 14, { top: '#ffffff', south: '#e4e0d8', east: '#c8c4bc', edge: '#ffffff' });  // the pillow
+      prism(g, 5, 19, 27, 59, 11, 12, { top: '#b8302e', south: '#8e2220', east: '#701a18', edge: '#d84a46' }); // the blanket
+      prism(g, 5, 19, 27, 23, 12, 13, { top: '#e8e4dc', south: '#c8c4bc', east: '#a8a49c', edge: '#ffffff' }); // its folded-back sheet
+      prism(g, 3, 59, 29, 62, 0, 14, { top: '#8a5a2c', south: '#6e4422', east: '#55331a', edge: '#a8743e' }); // the footboard
+    } },
+    fountain: { w: 2, h: 2, draw(g, frame) {
+      shadow(g, 64 + 34, 64 + 35, 30, 30);
+      const stone = { light: '#d4d4d8', mid: '#a8a8ae', dark: '#6e6e76', edge: '#8a8a92' };
+      drum(g, 32, 32, 0, 9, () => 29, stone);
+      for (const z of [3, 6]) frontRing(g, 32, 32, z, 29, 'rgba(70,70,76,0.6)', 1);
+      const [bx, by] = P(32, 32, 9);
+      ellipse(g, '#9a9aa2', bx, by, 29, 29); ellipse(g, '#2d63b5', bx, by, 25, 25);
+      for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + frame * 0.35; ellipse(g, 'rgba(170,205,245,0.7)', bx + Math.cos(a) * 17, by + Math.sin(a) * 17, 3, 1.5); }
+      drum(g, 32, 32, 5, 30, t => 5 - 1.5 * Math.sin(t * Math.PI), stone);
+      drum(g, 32, 32, 30, 34, t => 7 + 5 * t, stone);
+      const [tx, ty] = P(32, 32, 34); ellipse(g, '#5b8fd6', tx, ty, 10, 10);
+      const j = frame % 2;
+      line(g, 'rgba(220,238,255,0.95)', 2, tx, ty, tx, ty - 10 - j);
+      for (let i = 0; i < 6; i++) { const a = -0.4 + i * 0.55; line(g, 'rgba(210,232,255,0.7)', 1, tx + Math.cos(a) * 11, ty + Math.sin(a) * 11, bx + Math.cos(a) * 20, by + Math.sin(a) * 20 + j); }
+    } },
+  };
+  const PARTS = {
+    bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
+    fountain_nw: ['fountain', 0, 0], fountain_ne: ['fountain', 1, 0], fountain_sw: ['fountain', 0, 1], fountain_se: ['fountain', 1, 1],
+  };
+  function bigPart(id, frame) {
+    const [name, col, row] = PARTS[id], b = BIG[name];
+    const whole = cached(`bigthing:${name}:${frame}`, g => inked(g, f => b.draw(f, frame)), b.w * TILE + 64, b.h * TILE + 64);
+    return cached(`part:${id}:${frame}`, g => {
+      g.beginPath(); // this tile, and the strip rising up-left from it
+      for (const [x, y] of [[0, 0], [32, 0], [96, 64], [96, 96], [64, 96], [0, 32]]) g.lineTo(x, y);
+      g.closePath();
+      g.clip();
+      g.drawImage(whole, -col * TILE, -row * TILE);
+    }, 3 * TILE);
+  }
+
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.
   function streetLamp(g, lit) {
     floorShadow(g, 7, 2);
@@ -1452,6 +1501,8 @@ const Sprites = (() => {
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [-0.7, 0.7], [0.7, 0.7]]) line(g, 'rgba(210,232,255,0.7)', 1, tx + dx * 9, ty + dy * 9, bx + dx * 16, by + dy * 16 + j);
     },
     fountain_rim() {}, // the fountain on the tile south-east of it draws over this one
+    // big things' parts are drawn by bigPart (see BIG); these are never called
+    fountain_nw() {}, fountain_ne() {}, fountain_sw() {}, fountain_se() {}, bed_head() {}, bed_foot() {},
     lamppost_off(g) { streetLamp(g, false); },
     // A street lamp: a stone foot, an iron post and a glowing lantern with a little roof.
     lamppost(g) { streetLamp(g, true); },
@@ -3617,6 +3668,10 @@ const Sprites = (() => {
       const own = customImage(id);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
+      if (PARTS[sprite]) {
+        const anim = ANIMATED[PARTS[sprite][0]];
+        return bigPart(sprite, anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0);
+      }
       if (SEAMLESS[sprite]) { // a part of one big texture, by position, so neighbouring tiles always fit
         const k = SEAMLESS[sprite], px = ((x % 3) + 3) % 3, py = ((y % 3) + 3) % 3;
         const big = cached(`big:${sprite}`, g => k(g), 3 * TILE);

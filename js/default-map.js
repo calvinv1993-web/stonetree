@@ -681,6 +681,8 @@ function buildTown(m, S, runs, river) {
     if (b.kind === 'house' || b.kind === 'inn') eachOf(b, (x, y) => { const t = m.get(x, y, S); if (t.items.includes('window') && (y === b.y1 || x === b.x1)) put(x, y, S, 'window_box'); });
   }
   const B = Object.fromEntries(T.buildings.map(b => [b.id, b]));
+  // A bed two tiles long, its head at (x, y) and its foot on the tile south of it.
+  const longBed = (x, y, z) => { put(x, y, z, 'bed_head'); put(x, y + 1, z, 'bed_foot'); };
   const inside = (b, x, y, id, z = S) => { if (free(x, y, z) && !(x === b.door[0] && Math.abs(y - b.door[1]) <= 1) && !(y === b.door[1] && Math.abs(x - b.door[0]) <= 1)) put(x, y, z, id); };
 
   // ---- the temple: carpet up to the altar, banners and torches behind it, pillars and benches ----------------
@@ -701,7 +703,7 @@ function buildTown(m, S, runs, river) {
     const a = B.academy, cx = (a.x0 + a.x1) >> 1;
     for (let x = a.x0 + 1; x < a.x1; x += 2) put(x, a.y0 + 1, S, 'bookshelf');
     for (const y of [a.y0 + 3, a.y0 + 5]) { put(cx - 1, y, S, 'table'); inside(a, cx, y, 'chair_west'); }
-    put(a.x1 - 1, a.y1 - 1, S, 'bed'); put(a.x1 - 1, a.y1 - 2, S, 'chest');
+    longBed(a.x1 - 1, a.y1 - 2, S); put(a.x1 - 1, a.y1 - 3, S, 'chest');
     put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Lessons every morning: fighting, magic, and how not to get eaten by rats.' });
     put(a.x0 + 1, a.y1 - 1, S, 'stairs_up');
     put(a.x0 + 1, a.y1 - 1, S + 1, 'stairs_down');
@@ -762,13 +764,13 @@ function buildTown(m, S, runs, river) {
     for (const rx of [n.x0 + 3, n.x0 + 6]) for (let y = cy + 2; y < n.y1; y++) put(rx, y, S + 1, 'wall_wood');
     for (const [x0, x1] of [[n.x0 + 1, n.x0 + 2], [n.x0 + 4, n.x0 + 5], [n.x0 + 7, n.x1 - 1]]) {
       m.ensure(x0 + 1, cy + 1, S + 1).items = ['door'];
-      put(x0, n.y1 - 1, S + 1, 'bed');
+      longBed(x0, n.y1 - 2, S + 1);
       if (x1 > x0 + 1) put(x1, n.y1 - 1, S + 1, 'chest');
     }
     put(n.x0 + 1, n.y0 + 1, S + 1, 'plant');
     const [wx0, wy0, wx1, wy1] = n.wings[0]; // the wing: the cellar store
     for (let x = wx0 + 1; x < wx1; x++) inside(n, x, wy1 - 1, x % 2 ? 'barrel' : 'crate');
-    put(wx0 + 1, wy1 - 1, S + 1, 'bed'); put(wx1 - 1, wy1 - 1, S + 1, 'bed');
+    longBed(wx0 + 1, wy1 - 2, S + 1); longBed(wx1 - 1, wy1 - 2, S + 1);
   }
 
   // ---- the watchtower: a ladder up to the lookout on top --------------------------------------------------------
@@ -786,8 +788,9 @@ function buildTown(m, S, runs, river) {
   // ---- houses: a bed, a table, a chest; rentable --------------------------------------------------------------
   for (const [id, rent] of Object.entries(T.houses)) {
     const h = B[id];
-    inside(h, h.x0 + 1, h.y0 + 1, 'bed');
-    inside(h, h.x1 - 1, h.y0 + 1, 'chest');
+    const bedX = h.door[0] === h.x0 ? h.x1 - 1 : h.x0 + 1; // against the wall away from a west door
+    longBed(bedX, h.y0 + 1, S);
+    inside(h, bedX === h.x0 + 1 ? h.x1 - 1 : h.x0 + 1, h.y0 + 1, 'chest');
     const tx = (h.x0 + h.x1) >> 1, ty = (h.y0 + h.y1 + 1) >> 1;
     inside(h, tx, ty, 'table'); inside(h, tx + 1, ty, 'chair_west');
     inside(h, h.x0 + 1, h.y1 - 1, 'plant');
@@ -834,7 +837,7 @@ function buildTown(m, S, runs, river) {
     }
   }
   const [fx, fy] = T.fountain;
-  put(fx, fy, S, 'fountain_rim'); put(fx + 1, fy, S, 'fountain_rim'); put(fx, fy + 1, S, 'fountain_rim'); put(fx + 1, fy + 1, S, 'fountain');
+  put(fx, fy, S, 'fountain_nw'); put(fx + 1, fy, S, 'fountain_ne'); put(fx, fy + 1, S, 'fountain_sw'); put(fx + 1, fy + 1, S, 'fountain_se');
   for (const [x, y] of T.lamps) put(x, y, S, 'lamppost');
   for (const [x, y] of T.benches) put(x, y, S, 'bench');
   for (const [x, y] of T.planters) put(x, y, S, 'planter');

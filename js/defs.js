@@ -150,6 +150,8 @@ const THINGS = {
   chair_north: { name: 'chair', cat: 'Furniture', movable: true }, // facing north
   plant:       { name: 'potted plant', cat: 'Furniture', block: true, low: true, movable: true },
   bed:         { name: 'bed', cat: 'Furniture', block: true, low: true },
+  bed_head:    { name: 'bed', cat: 'Furniture', block: true, low: true }, // a bed two tiles long: its head (north)...
+  bed_foot:    { name: 'bed', cat: 'Furniture', block: true, low: true }, // ...and its foot, the tile south of it
   counter:     { name: 'counter', cat: 'Furniture', block: true, low: true },
   chest:       { name: 'chest', cat: 'Furniture', block: true, low: true, movable: true },
   barrel:      { name: 'barrel', cat: 'Furniture', block: true, low: true, movable: true },
@@ -172,6 +174,11 @@ const THINGS = {
   // In and around towns. A fountain takes 2x2 tiles: the fountain on the bottom-right one, its rim on the others.
   fountain:    { name: 'fountain', cat: 'Town', block: true, low: true, tall: true },
   fountain_rim:{ name: 'fountain', cat: 'Town', block: true, low: true },
+  // Big things built from several tiles that join up: each tile shows its own part of one drawing.
+  fountain_nw: { name: 'fountain', cat: 'Town', block: true, low: true },
+  fountain_ne: { name: 'fountain', cat: 'Town', block: true, low: true },
+  fountain_sw: { name: 'fountain', cat: 'Town', block: true, low: true },
+  fountain_se: { name: 'fountain', cat: 'Town', block: true, low: true },
   lamppost:    { name: 'street lamp', cat: 'Town', block: true, low: true, tall: true, light: 4, fireSwap: 'lamppost_off' },
   lamppost_off:{ name: 'street lamp (out)', cat: 'Town', block: true, low: true, tall: true, fireSwap: 'lamppost' },
   bench:       { name: 'bench', cat: 'Town', block: true, low: true },
