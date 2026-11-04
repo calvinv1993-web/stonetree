@@ -218,10 +218,10 @@ const OAKVALE = {
     [137, 119, 'stall'], [138, 119, 'sack'], [148, 128, 'barrel'], [149, 128, 'crate'], [150, 128, 'firewood'],
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
   ],
-  lamps: [[124, 97], [126, 145], [130, 145], [102, 128], [102, 132], [151, 114], [151, 118], [123, 110], [146, 110],
+  lamps: [[124, 98], [126, 144], [130, 144], [103, 128], [103, 132], [150, 114], [150, 118], [123, 111], [146, 111],
     [123, 121], [109, 107], [112, 123], [112, 127]],
   benches: [[126, 112], [142, 112], [126, 118], [142, 118]],
-  planters: [[133, 110], [141, 110]],
+  planters: [[132, 113], [140, 113]],
   fountain: [134, 113],
   statue: [140, 119],
   signs: [
@@ -230,7 +230,7 @@ const OAKVALE = {
     [156, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
     [126, 150, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
   ],
-  notice: [129, 111, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
   firstSteps: [140, 107, 'Welcome to Oakvale Isle! Below you lies the town. Down the steps is the square; the depot is east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
@@ -643,8 +643,8 @@ function buildTown(m, S, runs, river) {
       const [x, y] = k.split(',').map(Number);
       m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
       const high = hill.tiers > 1 && deep(x, y, 2) && smooth(x, y, 4, 3) > 0.32;
-      m.set(x, y, S + 1, high ? { ground: 'mountain', items: ['cliff'] } : { ground: 'rock_top', items: hash(x, y) < 0.12 ? ['crag'] : [] });
-      if (high) m.set(x, y, S + 2, { ground: 'rock_top', items: hash(x + 3, y) < 0.22 ? ['crag'] : [] });
+      m.set(x, y, S + 1, high ? { ground: 'mountain', items: ['cliff'] } : { ground: 'rock_top', items: [] });
+      if (high) m.set(x, y, S + 2, { ground: 'rock_top', items: [] });
     }
   }
   // A building: its main block and any wings (it's the shape they make together). Floor, walls (with
@@ -716,8 +716,8 @@ function buildTown(m, S, runs, river) {
     const mt = T.mount;
     for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0; x <= t.x1; x++) m.set(x, y, Z, { ground: 'paving', items: [] });
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'paving');
-    for (const [x, id] of [[t.x0 + 1, 'statue'], [t.x1 - 1, 'statue'], [t.x0 + 3, 'planter'], [t.x1 - 3, 'planter']]) put(x, mt.y1 - 1, Z, id);
-    for (const x of [cx - 2, cx + 2]) put(x, t.y1 + 1, Z, 'pillar'); // a portico of pillars either side of the door
+    for (const [x, id] of [[t.x0 + 1, 'statue'], [t.x1 - 1, 'statue']]) put(x, mt.y1 - 1, Z, id);
+    for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
     for (const x of [cx - 4, cx + 4]) put(x, t.y1 + 1, Z, 'torch');
     sign(cx + 3, t.y1 + 1, Z, 'signpost', T.firstSteps[2]); // between the portico and the torch
     for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
@@ -773,9 +773,9 @@ function buildTown(m, S, runs, river) {
   // ---- the smithy: a forge and an anvil, and racks of goods ------------------------------------------------
   {
     const s = B.smith;
-    put(s.x0 + 1, s.y0 + 1, S, 'campfire'); put(s.x0 + 2, s.y0 + 1, S, 'anvil');
-    for (let y = s.y0 + 3; y < s.y1; y++) inside(s, s.x0 + 2, y, 'counter');
-    for (let y = s.y0 + 3; y < s.y1; y++) inside(s, s.x0 + 1, y, y % 2 ? 'crate' : 'barrel');
+    put(s.x0 + 1, s.y0 + 1, S, 'campfire'); put(s.x0 + 3, s.y0 + 1, S, 'anvil');
+    for (let x = s.x0 + 1; x <= s.x0 + 3; x++) inside(s, x, s.y0 + 3, 'counter');
+    inside(s, s.x1 - 1, s.y0 + 1, 'barrel'); inside(s, s.x1 - 1, s.y0 + 2, 'crate');
   }
 
   // ---- the inn: the taproom below, rooms upstairs -----------------------------------------------------------
@@ -835,7 +835,7 @@ function buildTown(m, S, runs, river) {
       const edge = xx === y.x0 || xx === y.x1 || yy === y.y0 || yy === y.y1;
       if (edge && !(xx === y.gate[0] && yy === y.gate[1])) put(xx, yy, S, 'fence');
     }
-    for (let xx = y.x0 + 2; xx <= y.x1 - 2; xx += 3) put(xx, y.y1 - 2, S, 'dummy');
+    for (let xx = y.x0 + 2; xx <= y.x1 - 2; xx += 2) put(xx, y.y1 - 2, S, 'dummy');
     put(y.x0 + 1, y.y0 + 1, S, 'barrel'); put(y.x1 - 1, y.y0 + 1, S, 'crate');
     sign(y.gate[0] + 1, y.y0 - 1, S, 'signpost', 'Training yard. Hit the dummies, not each other.');
   }
