@@ -147,6 +147,10 @@ const OAKVALE = {
   wall: [[101, 96, 152, 96], [101, 146, 152, 146], [101, 96, 101, 146], [152, 96, 152, 146]],
   gaps: [[125, 96, 127, 96], [127, 146, 129, 146], [101, 129, 101, 131], [152, 115, 152, 117]],
   start: { x: 137, y: 102 }, // in the temple on the mount, before the altar (one floor up)
+  // The bell tower over the back of the temple: two storeys above the hall and a copper spire. stairs: up from
+  // the hall; up: on up from the ringers' room; bell: the north-west tile of the great bell (2x2).
+  belfry: { x0: 134, y0: 99, x1: 140, y1: 104, stairs: [139, 102], up: [135, 101], bell: [137, 102],
+    look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
   // The temple mount: a block of rock north of the square, its top one floor up, with the temple on it and
   // a terrace in front; a broad flight of stone steps runs down from the terrace to the square.
   mount: { x0: 128, y0: 99, x1: 143, y1: 109, steps: [136, 137, 138] },
@@ -911,9 +915,32 @@ function buildTown(m, S, runs, river) {
     for (const y of [t.y0 + 2, t.y0 + 5]) for (const x of [cx - 4, cx + 4]) put(x, y, Z, 'pillar');
     for (const y of [t.y0 + 4, t.y0 + 6]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'bench');
     for (const y of [t.y0 + 2, t.y0 + 5]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
-    // The town's bell, in its frame by the east wall; its rope ran down through the floor to the cellar below.
-    put(t.x1 - 1, t.y0 + 4, Z, 'temple_bell');
-    m.setMeta(t.x1 - 1, t.y0 + 4, Z, { look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. It has hung silent for three days: its rope is cut, and its clapper is gone.' });
+    // The bell tower, rising from the back of the temple (see OAKVALE.belfry): the ringers' room, the bell
+    // chamber with its arches all round, and a copper spire with a banner, high over the town.
+    {
+      const bt = T.belfry, [sx, sy] = bt.stairs, [ux, uy] = bt.up, [bx, by] = bt.bell;
+      for (let k = 1; k <= 2; k++) {
+        const z = Z + k;
+        for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) {
+          const edge = x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1;
+          m.set(x, y, z, { ground: k === 1 ? 'wood' : 'paving', items: edge ? ['wall_temple'] : [] });
+          // arches all round the bell chamber; a few windows lower down
+          const corner = (x === bt.x0 || x === bt.x1) && (y === bt.y0 || y === bt.y1);
+          if (edge && !corner && (k === 2 || (x + y) % 3 === 0)) put(x, y, z, 'window');
+        }
+      }
+      for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) m.set(x, y, Z + 3, { ground: 'roof_green', items: [] });
+      put((bt.x0 + bt.x1) >> 1, (bt.y0 + bt.y1) >> 1, Z + 3, 'flagpole');
+      put(sx, sy, Z, 'stairs_up'); put(sx, sy, Z + 1, 'stairs_down');   // from the hall to the ringers' room...
+      put(ux, uy, Z + 1, 'stairs_up'); put(ux, uy, Z + 2, 'stairs_down'); // ...and on up to the bell
+      m.setMeta(sx, sy, Z, { look: 'Narrow steps up into the bell tower.' });
+      for (const x of [bt.x0 + 2, bt.x1 - 2]) put(x, bt.y0, Z + 1, 'wall_torch');
+      put(bt.x0 + 3, bt.y0 + 1, Z + 1, 'noticeboard'); // the ringers' rules
+      m.setMeta(bt.x0 + 3, bt.y0 + 1, Z + 1, { text: 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.' });
+      put(bt.x0 + 4, bt.y0 + 1, Z + 1, 'bench');
+      const parts = [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]];
+      for (const [id, ox, oy] of parts) { put(bx + ox, by + oy, Z + 2, id); m.setMeta(bx + ox, by + oy, Z + 2, { look: bt.look }); }
+    }
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // the terrace in front: paving, statues, lamps and flowers, with the steps down to the square
     const mt = T.mount;

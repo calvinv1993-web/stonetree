@@ -492,7 +492,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'temple_bell', 'bell_rope',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'bell_rope',
     'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -586,7 +586,42 @@ const Sprites = (() => {
       for (let i = 0; i < 6; i++) { const a = -0.4 + i * 0.55; line(g, 'rgba(210,232,255,0.7)', 1, tx + Math.cos(a) * 11, ty + Math.sin(a) * 11, bx + Math.cos(a) * 20, by + Math.sin(a) * 20 + j); }
     } },
   };
+  // The bell of Oakvale: a great bronze bell hanging upright (as figures stand upright) from the crossbeam of a
+  // heavy oak frame that stands in the tiles' slant, with its cut rope. Its frame reaches two-thirds of the way to the roof.
+  BIG.bell = { w: 2, h: 2, draw(g) {
+    shadow(g, 64 + 34, 64 + 36, 30, 24);
+    const oak = { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' };
+    prism(g, 2, 2, 62, 62, 0, 4, { top: '#7a7a82', south: '#5e5e66', east: '#46464e', edge: '#9a9aa2' }); // a stone plinth
+    for (const u of [4, 54]) { // the two A-frames, west and east
+      prism(g, u, 8, u + 7, 15, 4, 86, oak);
+      prism(g, u, 49, u + 7, 56, 4, 86, oak);
+      prism(g, u, 8, u + 7, 56, 80, 86, oak);
+    }
+    const [hx, hy] = P(32, 32, 88);
+    const grad = g.createLinearGradient(hx - 28, 0, hx + 28, 0);
+    grad.addColorStop(0, '#7a5218'); grad.addColorStop(0.28, '#f8d878'); grad.addColorStop(0.55, '#c8903a'); grad.addColorStop(1, '#4a2e08');
+    rect(g, '#3a2408', hx - 4, hy - 2, 8, 7); // the crown, bolted to the beam
+    g.fillStyle = grad;
+    g.beginPath();
+    g.moveTo(hx - 10, hy + 5);
+    g.quadraticCurveTo(hx - 16, hy + 7, hx - 17, hy + 22);
+    g.quadraticCurveTo(hx - 18, hy + 42, hx - 28, hy + 50);
+    g.lineTo(hx + 28, hy + 50);
+    g.quadraticCurveTo(hx + 18, hy + 42, hx + 17, hy + 22);
+    g.quadraticCurveTo(hx + 16, hy + 7, hx + 10, hy + 5);
+    g.closePath();
+    g.fill();
+    g.strokeStyle = '#3a2408'; g.lineWidth = 1.5; g.stroke();
+    for (const [y, w] of [[15, 16], [36, 20], [42, 22]]) rect(g, 'rgba(90,56,10,0.65)', hx - w + 1, hy + y, 2 * w - 2, 2); // bands
+    for (let i = 0; i < 5; i++) rect(g, 'rgba(90,56,10,0.5)', hx - 10 + i * 5, hy + 25, 2, 2); // a ring of letters round its waist
+    rect(g, 'rgba(255,240,190,0.55)', hx - 12, hy + 10, 3, 24); // light on its shoulder
+    ellipse(g, '#24160a', hx, hy + 50, 27, 4.5); // the empty mouth: no clapper
+    line(g, '#b89a68', 3, hx + 8, hy + 50, hx + 8, hy + 58); // the rope, cut
+    for (const d of [-2, 0, 2]) line(g, '#e0c898', 1, hx + 8, hy + 58, hx + 8 + d, hy + 61);
+    prism(g, 0, 26, 64, 38, 86, 94, oak); // the crossbeam, over both frames
+  } };
   const PARTS = {
+    bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],
     bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
     fountain_nw: ['fountain', 0, 0], fountain_ne: ['fountain', 1, 0], fountain_sw: ['fountain', 0, 1], fountain_se: ['fountain', 1, 1],
   };
@@ -1401,34 +1436,6 @@ const Sprites = (() => {
       prism(g, 2, 15, 30, 20, 34, 36, wood);
       const [rx, ry] = P(16, 18, 34); line(g, '#c0b090', 1, rx, ry, x, y);
       prism(g, 1, 15, 31, 20, 38, 40, { top: '#a03a2a', south: '#7a2a1e', east: '#5e1e14', edge: '#c85a44' }); // the little roof
-    },
-    // The bell of Oakvale in its wooden frame: the frame stands in the tiles' slant; the bronze bell hangs upright
-    // from its crossbeam (as figures stand upright), with no clapper and only a cut stub of rope.
-    temple_bell(g) {
-      floorShadow(g, 14, 3);
-      const wood = { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' };
-      prism(g, 3, 15, 6, 18, 0, 50, wood);
-      const [hx, hy] = P(16, 16.5, 48);
-      const grad = g.createLinearGradient(hx - 10, 0, hx + 10, 0);
-      grad.addColorStop(0, '#8a6020'); grad.addColorStop(0.3, '#f4d070'); grad.addColorStop(0.6, '#c08a30'); grad.addColorStop(1, '#5a3a0c');
-      rect(g, '#5a3a0c', hx - 1, hy, 2, 3); // the crown
-      g.fillStyle = grad;
-      g.beginPath();
-      g.moveTo(hx - 4, hy + 3);
-      g.quadraticCurveTo(hx - 6, hy + 4, hx - 6.5, hy + 10);
-      g.quadraticCurveTo(hx - 7, hy + 16, hx - 10, hy + 18);
-      g.lineTo(hx + 10, hy + 18);
-      g.quadraticCurveTo(hx + 7, hy + 16, hx + 6.5, hy + 10);
-      g.quadraticCurveTo(hx + 6, hy + 4, hx + 4, hy + 3);
-      g.closePath();
-      g.fill();
-      g.strokeStyle = '#4a2e08'; g.lineWidth = 1; g.stroke();
-      rect(g, 'rgba(90,58,12,0.7)', hx - 7, hy + 14, 14, 1); // a band round it
-      ellipse(g, '#2a1a06', hx, hy + 18, 9, 2); // the empty mouth: no clapper
-      line(g, '#b89a68', 2, hx + 3, hy + 18, hx + 3, hy + 23); // the cut rope
-      line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 1, hy + 25); line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 5, hy + 25);
-      prism(g, 26, 15, 29, 18, 0, 50, wood);
-      prism(g, 2, 14, 30, 19, 48, 52, wood); // the crossbeam
     },
     // A stone coffin, long from north to south, its lid carved with a sword.
     sarcophagus(g) {

@@ -1290,7 +1290,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
   const rope = map.get(141, 103, 7);
   assert(rope && rope.items.includes('bell_rope'), 'the bell rope hangs in the cellar under the temple bell');
-  assert(map.get(142, 103, 9).items.includes('temple_bell'), 'the bell stands in the temple above it');
+  assert(map.get(137, 102, 11).items.includes('bell_nw'), 'the bell hangs in the tower, high over the temple');
   const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
   talk(136, 102, 9, 'bell');
   assert.strictEqual(state.questState('bell_2'), 'none', 'not at level 1');
@@ -1309,7 +1309,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   talk(112, 103, 8, 'stone');
   assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the stone');
   assert(messages.some(m => /Bone Rocks/.test(m)), 'and sends you to Bone Rocks');
-  ctx.useThing(142, 103, 9);
+  ctx.useThing(138, 103, 11);
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
 });
 
@@ -1341,8 +1341,11 @@ test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bel
   talk(136, 102, 9, 'clapper');
   assert.strictEqual(state.questState('bell_3'), 'done', 'Sister Ama hangs it again');
   assert(messages.some(m => /rings again/.test(m)), 'and the bell rings out');
-  ctx.useThing(142, 103, 9);
-  assert(/rings out/.test(messages[messages.length - 1]), 'now the bell can be rung');
+  ctx.useThing(138, 103, 11);
+  assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after ringing');
+  state.now += 31000;
+  ctx.useThing(138, 103, 11);
+  assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it, and the whole isle hears');
   talk(110, 102, 9, 'destiny');
   assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
 });

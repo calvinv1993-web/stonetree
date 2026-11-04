@@ -498,20 +498,21 @@ function useThing(x, y, z) {
   return false;
 }
 
-// The Silent Bell is over: the bell rings out again, and everyone on the isle hears it.
-function ringTownBell() {
-  addSound('bell', player.x, player.y, player.z);
-  for (const p of players) asPlayer(p, () => log('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!', 'quest'));
+// The bell of Oakvale rings out: everyone in the world hears it, wherever they are. It hums for a while after.
+let bellRungAt = -Infinity;
+function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings out over the isle.') {
+  bellRungAt = now;
+  for (const p of players) asPlayer(p, () => { addSound('bell', p.x, p.y, p.z); log(text, 'quest'); });
 }
 
 // The level at which the oracle lets you choose a vocation: 10, or 8 once you have made the bell ring again.
 const vocationLevel = () => (questState('bell_3') === 'done' ? 8 : 10);
 
-// The temple bell of Oakvale: silent until its clapper is back (The Silent Bell).
+// Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
 function ringBell(x, y, z) {
   if (questState('bell_3') !== 'done') return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
-  addSound('bell', x, y, z);
-  log('Dong... dong... The bell of Oakvale rings out over the town.');
+  if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
+  ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
 }
 
 function showText(title, text) {
@@ -1223,7 +1224,7 @@ function advanceQuest(id) {
   if (r.gold) addItem('gold', r.gold);
   for (const [item, n] of r.items || []) giveItem(item, n);
   if (r.xp) gainXp(r.xp);
-  if (r.bell) ringTownBell();
+  if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
   uiDirty();
 }
 

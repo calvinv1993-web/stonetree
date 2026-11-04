@@ -177,7 +177,11 @@ const THINGS = {
   throne:      { name: 'throne', cat: 'Furniture', block: true, low: true },
   statue:      { name: 'old statue', cat: 'Furniture', block: true, tall: true },
   well:        { name: 'well', cat: 'Furniture', block: true, low: true },
-  temple_bell: { name: 'temple bell', cat: 'Furniture', block: true, low: true, bell: true },
+  // The bell of Oakvale, high in the bell tower over the temple: 2x2 tiles, each showing its part of the one big bell.
+  bell_nw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
+  bell_ne:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
+  bell_sw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
+  bell_se:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   anvil:       { name: 'anvil', cat: 'Furniture', block: true, low: true },
 
   // In and around towns. A fountain takes 2x2 tiles: the fountain on the bottom-right one, its rim on the others.
