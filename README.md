@@ -37,7 +37,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 
 ## The game
 
-> **The world is being rebuilt.** The built-in world is now **Oakvale Isle**, a new starter island, built in stages. So far there's the land: Oakvale's town site with Willow River beside it, Mirror Lake, the North Peaks, Eagle Peak, Bone Rocks and the Spider Hills (rocky mountains in tiers), the Old Tower hill and Hermit Rock, Wolf Woods, Deer Woods and smaller woods, Frog Marsh, Stony Field, Goblin Hill, Sunny Fields and Lighthouse Point. The town, the people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
+> **The world is being rebuilt.** The built-in world is now **Oakvale Isle**, a new starter island, built in stages. So far there's the land: Oakvale's town site with Willow River beside it, Mirror Lake, the North Peaks, Eagle Peak, Bone Rocks and the Spider Hills (rocky mountains in tiers), the Old Tower hill and Hermit Rock, Wolf Woods, Deer Woods and smaller woods, Frog Marsh, Stony Field, Goblin Hill, Sunny Fields and Lighthouse Point. Oakvale itself is built: a walled town with the Temple of the Dawn in the middle (where you wake up), the academy with the oracle upstairs, the depot, five shops, the Sleepy Boar inn, a watchtower, a training yard and six houses to rent. The people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
 
 - **Brightwater Isle** (starter island). You start in the temple next to Elder Maren. The island has:
   - a cellar full of rats

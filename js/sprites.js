@@ -1302,6 +1302,19 @@ const Sprites = (() => {
       }
       for (const x of [4, 10, 17, 24, 28]) ellipse(g, 'rgba(230,240,255,0.55)', x, keelY(x) + 2, 2.5, 1); // foam
     },
+    // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
+    dummy(g) {
+      shadow(g, 48, 61, 7, 2);
+      rect(g, '#5a3a1e', 46, 30, 4, 32);
+      rect(g, '#6a4422', 36, 34, 24, 3);
+      ellipse(g, '#c8a868', 48, 40, 8, 10);
+      ellipse(g, '#b89858', 49, 42, 6, 8);
+      for (let i = 0; i < 6; i++) line(g, '#a08048', 1, 42 + i * 2, 34, 41 + i * 2, 46);
+      ellipse(g, '#c03a2a', 48, 40, 4, 4); ellipse(g, '#e8d8b0', 48, 40, 2.5, 2.5); ellipse(g, '#c03a2a', 48, 40, 1, 1);
+      ellipse(g, '#d8b878', 48, 26, 5, 5);
+      rect(g, '#8a6a3a', 43, 22, 10, 2);
+      rect(g, '#6a4422', 44, 50, 8, 3); // the rope round its waist
+    },
     scarecrow(g) {
       shadow(g, 48, 61, 6, 2);
       rect(g, '#6a4422', 46, 24, 3, 38);
@@ -1575,6 +1588,16 @@ const Sprites = (() => {
     hole(g) {
       ellipse(g, '#3a2a1a', 16, 17, 13, 10);
       ellipse(g, '#0b0806', 16, 18, 11, 8);
+    },
+    // An open wooden hatch in the floor with the top of a ladder showing.
+    trapdoor(g) {
+      rect(g, '#2a1c10', 6, 8, 20, 18);
+      rect(g, '#0b0806', 8, 10, 16, 14);
+      rect(g, '#7a4f26', 10, 10, 2, 14); rect(g, '#7a4f26', 20, 10, 2, 14);
+      for (let y = 12; y < 24; y += 5) rect(g, '#9a6a38', 12, y, 8, 2);
+      rect(g, '#6a4422', 6, 2, 20, 7); // the lid, open against the floor
+      for (let x = 8; x < 26; x += 5) rect(g, '#4f3218', x, 2, 1, 7);
+      rect(g, '#3a3a40', 14, 4, 4, 2);
     },
   };
 

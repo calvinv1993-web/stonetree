@@ -147,7 +147,7 @@ class GameMap {
     m.meta = JSON.parse(JSON.stringify(o.meta || {}));
     m.houses = (o.houses || []).map(h => ({ ...h }));
     m.zones = (o.zones || []).map(r => ({ ...r }));
-    m.temples = (o.temples || []).filter(t => NPCS[t.npc]).map(t => ({ ...t }));
+    m.temples = (o.temples || []).filter(t => !t.npc || NPCS[t.npc]).map(t => ({ ...t })); // a temple without a priest yet is kept
     m.isle = o.isle ? { ...o.isle } : null;
     const tile = (ground, items) => ({ ground: THINGS[ground] ? ground : null, items: (items || []).filter(id => THINGS[id]) });
     if (o.runs) { // tilequest-map-4

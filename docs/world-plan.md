@@ -83,17 +83,27 @@ The island is the same size as map A's (about 25,000 walkable tiles). It's built
 
 These are targets for you to approve phase by phase. They're not built yet.
 
-### Phase 3: Oakvale
+### Phase 3: Oakvale (built, waiting for approval)
 
-- **Walls and gates:** a wall with four gates.
-- **Temple:** the temple (the protection zone where new characters wake up), with the priest.
-- **Public buildings:**
-  - a depot and mailbox
-  - an inn, with an upper storey
-  - a guard tower with stairs
-  - a training yard with dummies
-- **Shops:** weapons, armour, general goods, food, and a magic shop.
-- **Houses:** 6 to 8 rentable houses, with real interiors and roofs.
+The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`.
+
+| What | Where (x, y) | Notes |
+|---|---|---|
+| Town wall | 110–156, 101–147 | Stone, with gates (3 wide, lamps either side) north, south, west and east, and signposts outside them |
+| Temple of the Dawn | 126–140, 117–129 | Cross-shaped, marble (a protection zone). Carpet to the altar, pillars, benches, statues in the side chapels. **New characters wake at (133, 124)** |
+| The square | round the temple | Paving, a fountain, a statue, benches, lamps, flower boxes, a noticeboard |
+| Oakvale Academy | 113–124, 103–113 | L-shaped, 2 floors. A classroom below; stairs up to the oracle's hall (obelisk, pillars, books) |
+| Depot and Post | 136–143, 103–110 | Marble (a protection zone), lockers along the walls, a post counter |
+| Shops | | Moonpetal Magic (113–119, 116–121), The Dented Shield smithy (113–120, 127–133), Hide and Iron armour (147–154, 115–121), Pip's Provisions (136–142, 137–142), The Warm Loaf bakery (144–149, 140–145). Each has a sign by its door and a counter |
+| The Sleepy Boar inn | 145–155, 127–138 | L-shaped, 2 floors. The taproom below; three bedrooms off a corridor upstairs |
+| Watchtower | 151–155, 102–106 | A ladder up to the lookout, a trapdoor back down |
+| Training yard | 112–125, 142–146 | A fenced sandy yard with four training dummies |
+| Houses for rent | | Ivy Cottage, Millstone House, Lantern Lodge, Riverside Cottage, Bell Cottage, Thatch End (300–500 gold) |
+| Gardens and yards | | Fenced vegetable gardens, flower beds, a well, woodpiles, a haystack and scarecrow, a wagon, trees along the wall |
+
+Every building is a shelter (monsters keep out). All doors, stairs and ladders are checked by `tests/world.test.js`.
+
+**Still to come in phase 6:** the priest and other townsfolk, the shopkeepers' wares, the house-rent NPC, and the starting guide's new texts. The guide still talks about Brightwater Isle and Elder Maren.
 
 ### Phase 4: the wilderness
 

@@ -31,7 +31,14 @@ function test(name, fn) {
 
 const key = (x, y, z) => (z * H + y) * W + x;
 const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y, z: (r - y) / H }; };
-const walkable = (x, y, z) => map.isWalkable(x, y, z);
+// Walkable for this check: free ground, or a door someone can open (closed doors, house doors for
+// their owners). Roofs don't count: nobody walks on them.
+const opens = id => THINGS[id].toggle || THINGS[id].houseDoor;
+const walkable = (x, y, z) => {
+  const t = map.get(x, y, z);
+  if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;
+  return !t.items.some(id => THINGS[id].block && !opens(id));
+};
 const change = (x, y, z) => map.floorChange(x, y, z);
 const N8 = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
 
@@ -202,6 +209,7 @@ test('the world saves compactly and loads back tile for tile', () => {
     assert.strictEqual(JSON.stringify(b), JSON.stringify(a), `tile ${i % W},${Math.floor(i / W)},${z} differs`);
   }
   assert.strictEqual(JSON.stringify(copy.start), JSON.stringify(map.start));
+  for (const k of ['temples', 'houses', 'zones', 'meta', 'isle']) assert.strictEqual(JSON.stringify(copy[k]), JSON.stringify(map[k]), `${k} differ after loading`);
 });
 
 test('the world comes out the same every time', () => {

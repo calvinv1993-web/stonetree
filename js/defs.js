@@ -164,6 +164,7 @@ const THINGS = {
   boat:        { name: 'rowing boat', cat: 'Town', block: true, low: true, tall: true },
   wreck:       { name: 'old shipwreck', cat: 'Nature', block: true, low: true },
   scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
+  dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true },
   pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
   // Out in the wilds
   windmill:    { name: 'windmill', cat: 'Wilds', block: true, tall: true },
@@ -184,6 +185,7 @@ const THINGS = {
   ladder:      { name: 'ladder', cat: 'Floor change', change: 1 },
   stairs_down: { name: 'stairs leading down', cat: 'Floor change', change: -1 },
   hole:        { name: 'hole', cat: 'Floor change', change: -1 },
+  trapdoor:    { name: 'trapdoor', cat: 'Floor change', change: -1 }, // the top of a ladder
   // A path up a mountain side, in place of a cliff. The floor above gets ramp_top
   // (an invisible ground) right over it: step on it from above to walk down.
   ramp:        { name: 'mountain path', cat: 'Floor change', change: 1, tall: true },
