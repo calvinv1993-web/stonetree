@@ -378,27 +378,27 @@ const Sprites = (() => {
   // Trees, walls and things on walls are 64x64, drawn with their tile in the bottom-right quarter.
   const DRAW = {
     // Grass: soft light and dark patches, and blades everywhere, each lit at the tip.
+    // Grass: one clean green with a few tufts, each a small V of darker blades lit at the tips.
     grass(g, r) {
-      rect(g, '#4b8d39', 0, 0, TILE, TILE);
-      for (let i = 0; i < 5; i++) ellipse(g, r() < 0.5 ? 'rgba(98,160,70,0.35)' : 'rgba(40,96,34,0.3)', r() * 32, r() * 32, 4 + r() * 6, 3 + r() * 4);
-      for (let i = 0; i < 70; i++) {
-        const x = (r() * 32) | 0, y = (r() * 32) | 0, h = 2 + ((r() * 2) | 0);
-        rect(g, r() < 0.55 ? '#3b7a2d' : '#428536', x, y, 1, h);
-        rect(g, r() < 0.5 ? '#6aae4e' : '#5c9f45', x, y - 1, 1, 1);
+      rect(g, '#5a9c3e', 0, 0, TILE, TILE);
+      const spots = [];
+      for (let k = 0; k < 40 && spots.length < 7; k++) {
+        const x = 2 + ((r() * 27) | 0), y = 3 + ((r() * 26) | 0);
+        if (spots.some(([a, b]) => Math.abs(a - x) < 7 && Math.abs(b - y) < 6)) continue;
+        spots.push([x, y]);
+        rect(g, '#4b8a33', x, y, 1, 3); rect(g, '#4b8a33', x - 1, y + 1, 1, 2); rect(g, '#4b8a33', x + 1, y + 1, 1, 2);
+        rect(g, '#71b252', x, y - 1, 1, 1);
       }
-      for (let i = 0; i < 6; i++) rect(g, '#80c062', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
     },
     // Dirt: trodden earth with darker ruts, clods lit from the top-left, and a few small stones.
+    // Dirt: plain earth with a few small stones.
     dirt(g, r) {
-      rect(g, '#8a6a42', 0, 0, TILE, TILE);
-      for (let i = 0; i < 6; i++) ellipse(g, r() < 0.5 ? 'rgba(110,82,48,0.55)' : 'rgba(160,128,86,0.4)', r() * 32, r() * 32, 3 + r() * 6, 2 + r() * 3);
-      for (let i = 0; i < 14; i++) {
-        const x = (r() * 30) | 0, y = (r() * 30) | 0;
-        rect(g, '#6e5230', x, y + 1, 2, 1);
-        rect(g, '#a4845a', x, y, 2, 1);
+      rect(g, '#93714a', 0, 0, TILE, TILE);
+      for (let i = 0; i < 2; i++) ellipse(g, '#8a6943', 4 + r() * 24, 4 + r() * 24, 5 + r() * 3, 3);
+      for (let i = 0; i < 4; i++) {
+        const x = 2 + ((r() * 27) | 0), y = 2 + ((r() * 27) | 0);
+        rect(g, '#6f5236', x, y + 1, 3, 1); rect(g, '#b0916a', x, y, 2, 1);
       }
-      for (let i = 0; i < 4; i++) { const x = (r() * 30) | 0, y = (r() * 30) | 0; rect(g, '#7c7468', x, y, 2, 2); rect(g, '#aaa294', x, y, 1, 1); }
-      for (let i = 0; i < 40; i++) rect(g, r() < 0.5 ? '#7a5c38' : '#9c7a4e', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
     },
     sand(g, r) {
       noise(g, r, '#dcc98f', ['#cdb87a', '#e8d8a4', '#c4ad6f'], 90, 1);
@@ -441,20 +441,22 @@ const Sprites = (() => {
       }
       for (let i = 0; i < 3; i++) rect(g, '#5a1a08', (r() * 30) | 0, (r() * 30) | 0, 4, 2);
     },
+    // Rocky ground: grey-brown stone with a few loose stones on it.
     mountain(g, r) {
-      noise(g, r, '#857a6a', ['#776c5d', '#958a79', '#6c6254', '#a29784'], 150, 3);
-      for (let i = 0; i < 3; i++) ellipse(g, '#9c917f', 3 + r() * 26, 3 + r() * 26, 1.5, 1);
+      rect(g, '#8c8270', 0, 0, TILE, TILE);
+      for (let i = 0; i < 2; i++) ellipse(g, '#837968', 4 + r() * 24, 4 + r() * 24, 6, 3);
+      for (let i = 0; i < 4; i++) {
+        const x = 2 + ((r() * 26) | 0), y = 2 + ((r() * 26) | 0);
+        rect(g, '#6a6052', x, y + 2, 4, 1); rect(g, '#a49a86', x, y, 3, 2);
+      }
     },
     // A mountain top you can't walk on: broken rock, boulders and dark clefts.
+    // A mountain top you can't walk on: bare rock with a few clefts and loose stones.
     rock_top(g, r) {
-      noise(g, r, '#7a6f60', ['#6a6054', '#8c8170', '#5e5548', '#958a79'], 170, 3);
-      for (let i = 0; i < 3; i++) {
-        const x = 4 + r() * 24, y = 4 + r() * 24, rx = 3 + r() * 3, ry = 2 + r() * 2;
-        ellipse(g, '#4f473c', x + 1, y + 1.5, rx, ry);
-        ellipse(g, '#8c8170', x, y, rx, ry);
-        ellipse(g, '#a89c88', x - rx * 0.35, y - ry * 0.4, rx * 0.4, ry * 0.3);
-      }
-      for (let i = 0; i < 2; i++) line(g, 'rgba(35,30,24,0.7)', 1, r() * 32, r() * 32, r() * 32, r() * 32);
+      rect(g, '#857a67', 0, 0, TILE, TILE);
+      for (let i = 0; i < 2; i++) ellipse(g, '#7c715f', 4 + r() * 24, 4 + r() * 24, 7, 4);
+      for (let i = 0; i < 2; i++) { const x = 3 + r() * 22, y = 4 + r() * 22; line(g, '#5e5446', 1, x, y, x + 4 + r() * 4, y + 2 + r() * 3); line(g, '#a49983', 1, x, y - 1, x + 3, y + 1); }
+      for (let i = 0; i < 2; i++) { const x = 3 + ((r() * 24) | 0), y = 3 + ((r() * 24) | 0); rect(g, '#655b4c', x, y + 2, 4, 1); rect(g, '#a89d88', x, y, 3, 2); }
     },
     carpet(g) {
       rect(g, '#8a1a22', 0, 0, TILE, TILE);
@@ -463,9 +465,11 @@ const Sprites = (() => {
       rect(g, '#d0a030', 28, 0, 1, TILE);
       for (let y = 4; y < TILE; y += 8) rect(g, '#c08a28', 14, y, 4, 4);
     },
+    // Swamp: dark wet ground with a few pools of black water.
     swamp(g, r) {
-      noise(g, r, '#4a5a30', ['#3f4f28', '#56683a', '#3a4a2a'], 130);
-      for (let i = 0; i < 3; i++) ellipse(g, '#2f3f3a', 4 + r() * 24, 4 + r() * 24, 3 + r() * 2, 1.5);
+      rect(g, '#566636', 0, 0, TILE, TILE);
+      for (let i = 0; i < 2; i++) { const x = 6 + r() * 20, y = 6 + r() * 20; ellipse(g, '#3a4a2c', x, y, 4, 2); ellipse(g, '#2a3a32', x, y + 0.5, 2.5, 1); }
+      for (let i = 0; i < 3; i++) { const x = 2 + ((r() * 27) | 0), y = 3 + ((r() * 26) | 0); rect(g, '#465630', x, y, 1, 3); rect(g, '#6a7a44', x, y - 1, 1, 1); }
     },
     // Cobblestones: round stones of different greys set in dark mortar, each lit from the top-left.
     cobble(g, r) {
@@ -538,9 +542,14 @@ const Sprites = (() => {
       }
       for (let i = 0; i < TILE; i += 8) { rect(g, 'rgba(0,0,0,0.12)', i, 0, 1, TILE); rect(g, 'rgba(0,0,0,0.12)', 0, i, TILE, 1); }
     },
+    // Gravel: small rounded stones, evenly spread.
     gravel(g, r) {
-      noise(g, r, '#9a948a', ['#8a847a', '#aaa49a', '#7a746a', '#b8b2a6'], 120, 2);
-      for (let i = 0; i < 10; i++) ellipse(g, r() < 0.5 ? '#c4beb2' : '#6e685e', 2 + r() * 28, 2 + r() * 28, 1.2, 1);
+      rect(g, '#a49c8c', 0, 0, TILE, TILE);
+      for (let j = 0; j < 6; j++) for (let i = 0; i < 6; i++) {
+        if (r() < 0.35) continue;
+        const x = i * 5.3 + 2 + r() * 2, y = j * 5.3 + 2 + r() * 2;
+        rect(g, '#857d6e', x, y + 1, 2, 1); rect(g, '#c4bcac', x, y, 2, 1);
+      }
     },
     farmland(g, r) {
       rect(g, '#6a4a2a', 0, 0, TILE, TILE);
@@ -670,17 +679,15 @@ const Sprites = (() => {
       rect(g, dark, 13, 10, 7, 1);
     },
 
+    // A leafy tree: a trunk, and a round crown of three greens, lit from the top-left.
     tree(g, r) {
       shadow(g, 50, 61, 14, 4);
-      rect(g, '#5b3a1e', 45, 38, 7, 24);
-      rect(g, '#6f4826', 45, 38, 3, 24);
-      ellipse(g, '#2a5f25', 42, 26, 21, 18);
-      ellipse(g, '#347330', 38, 22, 16, 13);
-      ellipse(g, '#438a3b', 33, 17, 9, 7);
-      for (let i = 0; i < 34; i++) {
-        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 17;
-        rect(g, r() < 0.5 ? '#25541f' : '#52a047', 41 + Math.cos(a) * d * 1.1, 25 + Math.sin(a) * d * 0.9, 2, 2);
-      }
+      rect(g, '#5a3a1c', 45, 40, 7, 22); rect(g, '#74502a', 45, 40, 2, 22);
+      const lumps = [[40, 30, 13], [52, 27, 11], [44, 18, 12], [33, 22, 9], [54, 37, 8]];
+      for (const [x, y, rad] of lumps) ellipse(g, '#2e6a24', x + 1, y + 2, rad, rad * 0.9);
+      for (const [x, y, rad] of lumps) ellipse(g, '#3f8a30', x, y, rad - 1.5, rad * 0.9 - 1.5);
+      for (const [x, y, rad] of lumps) ellipse(g, '#5aa842', x - rad * 0.3, y - rad * 0.35, rad * 0.45, rad * 0.35);
+      for (let i = 0; i < 6; i++) { const [x, y, rad] = lumps[i % lumps.length]; rect(g, '#7cc25a', x - rad * 0.4 + ((r() * 3) | 0), y - rad * 0.5, 2, 1); }
     },
     // A crag: a pile of weathered boulders on a mountain top, rising up-left from its tile like a
     // tree, lit from the top-left.
@@ -698,13 +705,16 @@ const Sprites = (() => {
       }
       for (let i = 0; i < 5; i++) rect(g, ['#a29784', '#6c6254'][i % 2], 34 + r() * 26, 56 + r() * 6, 2, 1);
     },
+    // A fir: four tiers of branches, each lit on its left, darker on its right.
     pine(g, r) {
       shadow(g, 50, 61, 11, 3);
-      rect(g, '#5b3a1e', 46, 52, 5, 11);
-      poly(g, '#1f4a2a', [46, 2, 63, 54, 29, 54]);
-      poly(g, '#2a5e36', [46, 2, 58, 26, 34, 26]);
-      poly(g, '#2a5e36', [46, 16, 61, 44, 31, 44]);
-      for (let i = 0; i < 16; i++) rect(g, '#3a7a46', 36 + r() * 20, 12 + r() * 36, 2, 1);
+      rect(g, '#5a3a1c', 45, 52, 6, 10);
+      for (const [top, w, h] of [[2, 9, 16], [12, 13, 18], [24, 16, 20], [36, 18, 18]]) {
+        poly(g, '#245a2e', [47, top, 47 + w, top + h, 47 - w, top + h]);
+        poly(g, '#33783c', [47, top, 47, top + h, 47 - w, top + h]);
+        poly(g, '#4a9450', [47, top + 2, 47 - w * 0.35, top + h * 0.55, 47 - w * 0.15, top + h * 0.55]);
+        rect(g, '#1c4a26', 47 - w, top + h - 1, w * 2, 1);
+      }
     },
     palm(g, r) {
       shadow(g, 50, 61, 12, 3);
@@ -767,11 +777,13 @@ const Sprites = (() => {
         for (let k = 1; k < 4; k++) rect(g, '#4a9a3a', 16 + (x - 16) * k / 4 - 2, 27 + (y - 27) * k / 4, 4, 1);
       }
     },
+    // A round bush with a few red berries.
     bush(g, r) {
-      shadow(g, 17, 27, 11, 3);
-      ellipse(g, '#2f6a29', 16, 20, 12, 9);
-      ellipse(g, '#3d8235', 14, 18, 8, 6);
-      for (let i = 0; i < 5; i++) rect(g, '#c0303a', 8 + ((r() * 16) | 0), 15 + ((r() * 9) | 0), 2, 2);
+      shadow(g, 16, 28, 12, 3);
+      for (const [x, y, rad] of [[11, 20, 7], [21, 20, 7], [16, 15, 8]]) ellipse(g, '#2e6a24', x + 1, y + 1.5, rad, rad * 0.85);
+      for (const [x, y, rad] of [[11, 20, 7], [21, 20, 7], [16, 15, 8]]) ellipse(g, '#3f8a30', x, y, rad - 1, rad * 0.85 - 1);
+      for (const [x, y] of [[9, 17], [14, 11], [19, 17]]) ellipse(g, '#5aa842', x, y, 3, 2);
+      for (let i = 0; i < 4; i++) { const x = 8 + ((r() * 16) | 0), y = 14 + ((r() * 9) | 0); rect(g, '#c8303a', x, y, 2, 2); rect(g, '#f08080', x, y, 1, 1); }
     },
     rock(g) {
       shadow(g, 17, 26, 12, 4);
@@ -3576,7 +3588,7 @@ const Sprites = (() => {
         if (dir.length === 1) {
           for (let x = TILE; x >= 0; x -= 2) {
             const end = x === TILE || x === 0;
-            edge.push([x, end ? 5 : Math.max(2, Math.min(10, 5 + Math.sin(x * 0.35 + variant * 2.1) * 2 + (r() - 0.5) * 3))]);
+            edge.push([x, end ? 5 : 5 + Math.sin(x * 0.3 + variant * 2.1) * 1.5 + Math.sin(x * 0.9 + variant) * 0.6]);
           }
         } else { // an outer corner: the ground fills the top-right corner
           const rx = 9 + r() * 3, ry = 9 + r() * 3;
@@ -3613,16 +3625,6 @@ const Sprites = (() => {
         trace(0, 0.5);
         g.stroke();
         if (style.light) { g.strokeStyle = style.light; trace(0, -1); g.stroke(); }
-        // Tufts reaching over the edge, or pebbles lying along it.
-        for (let i = 2; i < edge.length - 2; i += 2) {
-          const [x, y] = edge[i], v = r();
-          if (style.tufts && v < 0.55) {
-            const h = 2 + ((r() * 3) | 0);
-            rect(g, style.tufts[(r() * style.tufts.length) | 0], Math.round(x), Math.round(y) - 1, 1, h);
-          } else if (style.pebbles && v < 0.22) {
-            rect(g, style.pebbles[(r() * style.pebbles.length) | 0], Math.round(x), Math.round(y) + 1, 2, 1);
-          }
-        }
       });
     },
     // The foot of a rock wall (cliff or cave wall) on side d of a ground tile (n, e, s, w; or ne,

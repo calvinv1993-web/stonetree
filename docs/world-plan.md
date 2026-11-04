@@ -83,29 +83,28 @@ The island is the same size as map A's (about 25,000 walkable tiles). It's built
 
 These are targets for you to approve phase by phase. They're not built yet.
 
-### Phase 3: Oakvale (second version, waiting for approval)
+### Phase 3: Oakvale (third version, waiting for approval)
 
-The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's laid out like the reference towns (map A and the classic starter town), not as a grid:
-- **Willow River runs through it**, with the fishermen's quarter on the west bank, a big bridge on the west street and a footbridge further north.
-- **The temple stands west of the square**, not in the middle.
-- **The streets from the gates are dirt roads** that jog on their way in.
-- **The buildings vary in size and shape**, and their doors face whichever way their street runs.
-- **A stone wall guards only the north and east.** A fence closes the south and west.
-- **A rocky outcrop** rises behind the inn.
+The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's closed in on every side, as the old starter towns were:
+- **West:** Willow River.
+- **South and east:** a moat.
+- **North:** rocky hills in two tiers.
+- **All round:** a stone wall inside the water.
+
+The only ways in are three bridges (west, east, south) and a cobbled pass through the hills in the north-west. More rocky hills stand inside the town by the training yard.
 
 | What | Where (x, y) | Notes |
 |---|---|---|
-| Town | 92–158, 96–150 | Gates: north (137–139), east (124–126), south (134–136), west (124–126), with lamps and signposts |
-| Temple of the Dawn | 111–125, 108–122 | Cross-shaped, marble (a protection zone): carpet aisles, the altar, pillars, benches, statues in the side chapels. **New characters wake at (118, 114)**, where the aisles cross |
-| The square | 108–137, 108–127 | Cobbles, a fountain, a statue, market stalls, benches, lamps, flower boxes, a noticeboard |
-| Oakvale Academy | 109–124, 97–105 | L-shaped, 2 floors. A classroom and the teacher's room below; stairs up to the oracle's hall |
-| Depot and Post | 126–133, 98–103 | Marble (a protection zone), lockers and a post counter |
-| Shops | | The Dented Shield smithy (in the fishermen's quarter), Moonpetal Magic, Hide and Iron (armour), Pip's Provisions, The Warm Loaf (bakery). Each has a sign by its door |
-| The Sleepy Boar inn | 148–157, 128–140 | L-shaped, 2 floors. The taproom and a store room below; three bedrooms off a corridor upstairs, and two more beds in the wing |
-| Watchtower | 153–157, 97–101 | In the north-east corner: a ladder up to the lookout, a trapdoor back down |
-| Training yard | 106–120, 141–148 | Fenced sand with four training dummies |
-| Houses for rent | | Fisher's Hut, Riverside Cottage, Ivy Cottage, Millstone House, Bell Cottage, Thatch End (300–500 gold) |
-| Gardens and yards | | Three fenced vegetable gardens, a flower bed by the temple, a well, a boat by the river, woodpiles, a haystack, a scarecrow, a wagon, trees along the fences |
+| Town | 98–156, 90–147 | Inside the wall: 105–150, 102–142 |
+| Temple of the Dawn | 123–131, 104–113 | Small, marble (a protection zone): carpet to the altar, banners, torches, pillars, benches. **New characters wake at (127, 111)** |
+| The square | 120–134, 114–126 | Cobbles, a fountain, the founder's statue, market stalls, benches, lamps, the well, a noticeboard |
+| Oakvale Academy | 115–121, 104–112 | 2 floors: a classroom below, the oracle's hall upstairs |
+| Depot and Post | 133–139, 104–111 | Marble (a protection zone), with lockers |
+| Shops | | Moonpetal Magic and The Dented Shield (west side), Hide and Iron (by the depot), Pip's Provisions and The Warm Loaf (south street) |
+| The Sleepy Boar inn | 137–148, 124–135 | 2 floors, with bedrooms upstairs |
+| Training yard | 113–120, 130–140 | Fenced sand with dummies |
+| Houses for rent | | Ivy Cottage, Riverside Cottage, Mill Lane House, Bell Cottage |
+| Graveyard and gardens | | South-east corner |
 
 **Things to discover, and signs that teach the game:**
 - Every shop hangs out a picture sign, so you can tell the trade at a glance: crossed swords for weapons, a shield for armour, a star for magic, bread for food, rope for the general store, an ale mug for the inn, a letter for the depot, a sun for the temple, a book for the academy.
@@ -114,8 +113,7 @@ The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It'
 - The old graveyard has seven gravestones with inscriptions, which you read by looking at them. Some are hints.
 - Sewer grates in the streets: "something squeaks down there". These are the sewer entrances, for phase 5.
 - The well and the founder's statue have stories when you look at them.
-- A pier, a boat and a fish rack in the fishermen's quarter.
-- A forgotten chest with 30 gold hidden behind the rocky outcrop.
+- A forgotten chest with 30 gold in a nook behind the magic shop.
 
 Every building is a shelter (monsters keep out). All doors, stairs and ladders are checked by `tests/world.test.js`.
 
