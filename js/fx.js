@@ -430,20 +430,37 @@ const Fx = (() => {
     g.globalAlpha = 1;
     const wet = (x, y) => groundOf(x, y) === 'water';
     const day = daylight();
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      if (!wet(x, y)) continue;
-      // Deeper the further from land (up to 4 tiles out), in small steps so the shelf fades out.
+    // Deeper the further from land (up to 4 tiles out). The shade is blended between the middles of the
+    // tiles in 8-pixel steps, so it fades smoothly instead of showing each tile as a square.
+    const depths = new Map(), SHADE = [0, 0.02, 0.08, 0.17, 0.26];
+    const depthAt = (x, y) => {
+      const k = x * 65536 + y;
+      if (depths.has(k)) return depths.get(k);
       let depth = 0;
-      while (depth < 4) {
+      if (wet(x, y)) while (depth < 4) {
         const d = depth + 1;
         let open = true;
         for (let i = -d; i <= d && open; i++) open = wet(x + i, y - d) && wet(x + i, y + d) && wet(x - d, y + i) && wet(x + d, y + i);
         if (!open) break;
         depth = d;
       }
-      if (depth > 1) {
-        g.fillStyle = `rgba(8,24,70,${[0, 0, 0.06, 0.16, 0.26][depth]})`;
-        g.fillRect(ox + x * TILE, oy + y * TILE, TILE, TILE);
+      depths.set(k, SHADE[depth]);
+      return SHADE[depth];
+    };
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      if (!wet(x, y)) continue;
+      const a = depthAt(x, y), aw = depthAt(x - 1, y), ae = depthAt(x + 1, y), an = depthAt(x, y - 1), as = depthAt(x, y + 1);
+      if (a + aw + ae + an + as > 0) {
+        const corner = (dx, dy) => (a + depthAt(x + dx, y) + depthAt(x, y + dy) + depthAt(x + dx, y + dy)) / 4;
+        const c = [[corner(-1, -1), corner(1, -1)], [corner(-1, 1), corner(1, 1)]]; // the shade at the tile's corners
+        for (let by = 0; by < 4; by++) for (let bx = 0; bx < 4; bx++) {
+          const u = (bx + 0.5) / 4, v = (by + 0.5) / 4;
+          // from the corners to the middle (where it is exactly this tile's shade)
+          const edge = (c[0][0] * (1 - u) + c[0][1] * u) * (1 - v) + (c[1][0] * (1 - u) + c[1][1] * u) * v;
+          const mid = 1 - Math.max(Math.abs(u - 0.5), Math.abs(v - 0.5)) * 2;
+          const alpha = a * mid + edge * (1 - mid);
+          if (alpha > 0.004) { g.fillStyle = `rgba(8,24,70,${alpha.toFixed(3)})`; g.fillRect(ox + x * TILE + bx * 8, oy + y * TILE + by * 8, 8, 8); }
+        }
       }
       if (day > 0.6) { // the sun glinting on the water
         const h = ((x * 73856093) ^ (y * 19349663)) >>> 0, phase = ((now / 900 + (h % 1000) / 100) % 6);

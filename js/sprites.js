@@ -444,17 +444,42 @@ const Sprites = (() => {
     g.putImageData(img, 0, 0);
   }
 
-  function bridge(g, r, eastWest, water = '#2d63b5') {
+  // shape: whether the bridge goes on past this tile on its left and right side (looking along it),
+  // '00' to '11': a wide bridge is one deck, with a beam and water only along its outer sides.
+  function bridge(g, r, eastWest, water = '#2d63b5', shape = '00') {
     if (eastWest) { g.translate(16, 16); g.rotate(Math.PI / 2); g.translate(-16, -16); }
+    const left = shape[0] === '1', right = shape[1] === '1', x0 = left ? 0 : 3, x1 = right ? TILE : 29;
     rect(g, water, 0, 0, TILE, TILE);
+    rect(g, '#4a2c12', x0, 0, x1 - x0, TILE); // dark wood in the gaps between the planks
     for (let y = 0; y < TILE; y += 5) {
       const v = (r() * 18) | 0;
-      rect(g, `rgb(${132 + v},${88 + v},${46 + v})`, 3, y, 26, 4);
-      rect(g, 'rgba(0,0,0,0.35)', 3, y + 4, 26, 1);
-      rect(g, 'rgba(255,255,255,0.12)', 3, y, 26, 1);
+      rect(g, `rgb(${132 + v},${88 + v},${46 + v})`, x0, y, x1 - x0, 4);
+      rect(g, 'rgba(0,0,0,0.35)', x0, y + 4, x1 - x0, 1);
+      rect(g, 'rgba(255,255,255,0.12)', x0, y, x1 - x0, 1);
+      if (left || right) rect(g, 'rgba(0,0,0,0.25)', 16 + ((y * 7) % 9) - 4, y, 1, 4); // the planks' joints, staggered
     }
-    for (const x of [1, 27]) { rect(g, '#4a2c12', x, 0, 4, TILE); rect(g, '#6a4422', x, 0, 4, 1); rect(g, '#7a5230', x + 1, 0, 1, TILE); }
+    for (const [x, open] of [[1, left], [27, right]]) if (!open) { rect(g, '#4a2c12', x, 0, 4, TILE); rect(g, '#6a4422', x, 0, 4, 1); rect(g, '#7a5230', x + 1, 0, 1, TILE); }
   }
+
+  // A field of grass size x size pixels that wraps round at its edges: soft lighter and darker patches
+  // and blades, spread so that no tile looks like the next.
+  function grassField(g, r, size) {
+    rect(g, '#3a7d22', 0, 0, size, size);
+    const wrapped = draw => { for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) draw(ox, oy); };
+    for (let i = 0; i < size / 6; i++) {
+      const x = r() * size, y = r() * size, rx = 6 + r() * 9, ry = 4 + r() * 5, c = i % 3 === 0 ? '#33711d' : i % 3 === 1 ? '#428a27' : '#3e8324';
+      wrapped((ox, oy) => ellipse(g, c, x + ox, y + oy, rx, ry));
+    }
+    for (let i = 0; i < size * size / 30; i++) {
+      const x = (r() * size) | 0, y = (r() * size) | 0, dark = r() < 0.55, c = dark ? '#255e16' : '#4f9a30';
+      wrapped((ox, oy) => {
+        rect(g, c, x + ox, y + oy, 1, 2);
+        rect(g, c, x + 1 + ox, y - 1 + oy, 1, 2);
+        if (!dark) rect(g, '#6cb84a', x + 1 + ox, y - 1 + oy, 1, 1);
+      });
+    }
+  }
+  const BRIDGES = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 
   // --- things in 2.5D --------------------------------------------------------------
   // Raised things stand up from their tile: on a 96x96 canvas with their tile in the bottom-right
@@ -614,7 +639,7 @@ const Sprites = (() => {
     // Grass: one clean green with a few tufts, each a small V of darker blades lit at the tips.
     // Grass: rich green, thick with blades in little clumps of dark and light green.
     // Grass: deep green, thick with blades in clumps of dark and light green.
-    grass(g, r) {
+    grass(g, r) { // (on the map grass is drawn seamless: grassField; this is a single tile of it)
       rect(g, '#3a7d22', 0, 0, TILE, TILE);
       for (let i = 0; i < 4; i++) ellipse(g, i % 2 ? '#428a27' : '#33711d', r() * 32, r() * 32, 5 + r() * 4, 3 + r() * 3);
       for (let i = 0; i < 34; i++) {
@@ -778,10 +803,10 @@ const Sprites = (() => {
       }
     },
     // Bridges: planks across the way you walk, a beam along each side.
-    bridge_ns(g, r) { bridge(g, r, false); },
-    bridge_ew(g, r) { bridge(g, r, true); },
-    sewer_bridge_ns(g, r) { bridge(g, r, false, '#2c4630'); },
-    sewer_bridge_ew(g, r) { bridge(g, r, true, '#2c4630'); },
+    bridge_ns(g, r, frame, shape) { bridge(g, r, false, undefined, shape); },
+    bridge_ew(g, r, frame, shape) { bridge(g, r, true, undefined, shape); },
+    sewer_bridge_ns(g, r, frame, shape) { bridge(g, r, false, '#2c4630', shape); },
+    sewer_bridge_ew(g, r, frame, shape) { bridge(g, r, true, '#2c4630', shape); },
     paving(g, r) {
       rect(g, '#6e6a62', 0, 0, TILE, TILE);
       for (const y of [0, 16]) {
@@ -2160,8 +2185,21 @@ const Sprites = (() => {
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
+  // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
+  // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   const SEAMLESS = {
-    rock_top: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132),
+    rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
+    grass: { tiles: 4, draw: g => grassField(g, makeRng(hashStr('grass')), 4 * TILE) },
+    mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it
+      const r = makeRng(hashStr('mountain')), size = 3 * TILE;
+      rockSurface(g, r, size, 134);
+      for (let i = 0; i < 40; i++) {
+        const x = 3 + r() * (size - 6), y = 3 + r() * (size - 6), rx = 1.5 + r() * 2;
+        ellipse(g, 'rgba(0,0,0,0.3)', x + 0.5, y + 1, rx + 0.5, rx * 0.7);
+        ellipse(g, gray(150 + ((r() * 30) | 0), 2), x, y, rx, rx * 0.7);
+        rect(g, gray(200, 2), x - rx * 0.4, y - rx * 0.4, 1, 1);
+      }
+    } },
   };
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 
@@ -3798,7 +3836,10 @@ const Sprites = (() => {
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
   const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
-  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sewer_water: 0, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
+  // Water lies lowest: paving meets it at a stone edge, like a quay. Bridges take and give no borders:
+  // they have their own beams.
+  const BORDER_PRIORITY = { ...PAVED, bridge_ns: undefined, bridge_ew: undefined, sewer_bridge_ns: undefined, sewer_bridge_ew: undefined,
+    water: -1, lava: -1, sewer_water: -1, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
@@ -3813,8 +3854,29 @@ const Sprites = (() => {
     ash: { shade: 'rgba(0,0,0,0.25)', rim: 'rgba(40,36,34,0.85)', pebbles: ['#5a5654', '#2e2a28'] },
     rock_top: { shade: 'rgba(0,0,0,0.45)', rim: '#1e1e20', light: 'rgba(230,230,224,0.6)' },
     cave: { shade: 'rgba(0,0,0,0.3)', rim: 'rgba(40,34,28,0.85)', pebbles: ['#5a5047', '#362f29', '#6a6056'] },
-    sewer: { shade: 'rgba(0,0,0,0.45)', lip: 2, rim: '#1a1c18', light: 'rgba(170,180,150,0.45)' }, // a stone kerb along the channel
+    sewer: { shade: 'rgba(0,0,0,0.45)', lip: 2, rim: '#1a1c18', light: 'rgba(170,180,150,0.45)', width: 3, wobble: 0 }, // a stone kerb along the channel
+    paved: { shade: 'rgba(0,0,0,0.4)', lip: 2, rim: '#2e2e30', light: 'rgba(255,255,255,0.3)', width: 3, wobble: 0 },   // paving over water: a quay's edge
   };
+  const edgeStyle = id => EDGE_STYLE[id] || (PAVED[id] !== undefined ? EDGE_STYLE.paved : EDGE_STYLE.default);
+  // The pixels of a ground's texture for the tile at (x, y): seamless grounds by position.
+  const texturePixels = (id, x, y) => {
+    const k = SEAMLESS[id], key = k ? `${id}:${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : id;
+    if (!texturePixels.cache.has(key)) {
+      const c = k ? seamlessPart(id, x, y) : groundTexture(id);
+      texturePixels.cache.set(key, c.getContext('2d').getImageData(0, 0, TILE, TILE).data);
+    }
+    return texturePixels.cache.get(key);
+  };
+  texturePixels.cache = new Map();
+  function seamlessPart(id, x, y) {
+    const k = SEAMLESS[id], n = k.tiles, px = ((x % n) + n) % n, py = ((y % n) + n) % n;
+    const big = cached(`big:${id}`, g => k.draw(g), n * TILE);
+    return cached(`${id}:part:${px}:${py}`, g => g.drawImage(big, -px * TILE, -py * TILE));
+  }
+  // Neighbour bits for edge(): n e s w, then the corners ne se sw nw.
+  const EDGE_BITS = { n: 1, e: 2, s: 4, w: 8, ne: 16, se: 32, sw: 64, nw: 128 };
+  const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
+    [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
@@ -3851,15 +3913,11 @@ const Sprites = (() => {
         const anim = ANIMATED[PARTS[sprite][0]];
         return bigPart(sprite, anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0);
       }
-      if (SEAMLESS[sprite]) { // a part of one big texture, by position, so neighbouring tiles always fit
-        const k = SEAMLESS[sprite], px = ((x % 3) + 3) % 3, py = ((y % 3) + 3) % 3;
-        const big = cached(`big:${sprite}`, g => k(g), 3 * TILE);
-        return cached(`${sprite}:part:${px}:${py}`, g => g.drawImage(big, -px * TILE, -py * TILE));
-      }
+      if (SEAMLESS[sprite]) return seamlessPart(sprite, x, y); // a part of one big texture, by position
       const variant = hashXY(x, y) % variantsOf(id);
       const anim = ANIMATED[sprite];
       const frame = anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0;
-      const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence';
+      const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence' || BRIDGES.has(id);
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
       const raised = RAISED.has(sprite), size = def.wall || def.tall || def.onWall || raised ? 2 * TILE : TILE;
       const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
@@ -3987,6 +4045,53 @@ const Sprites = (() => {
     // in one of three shapes (variant 0-2, so long edges don't repeat). The edge has a rim and a
     // soft shadow on the lower ground, and - by ground - tufts of grass or pebbles along it. The
     // ends of a straight edge are always 5 pixels in, so neighbouring tiles join up.
+    // The edge of a higher ground spilling into a tile from the neighbours in `mask` (EDGE_BITS), all at
+    // once: each pixel looks at how far it is from those neighbours, so straight edges, outer corners and
+    // inner corners are all one smooth line that runs on into the next tile without a seam. The line
+    // wobbles a little (variant 0-2 picks how), but always meets the tile's sides at the same width.
+    // Seamless grounds show their own texture for this place (x, y).
+    edge(ground, mask, variant, x, y) {
+      const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]];
+      for (const [c, a, b] of corners) if (mask & (a | b)) mask &= ~c; // a corner only counts on its own
+      const k = SEAMLESS[ground], pos = k ? `${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : '';
+      return cached(`edge:${ground}:${mask}:${variant}:${pos}`, g => {
+        const st = edgeStyle(ground), tex = texturePixels(ground, x, y);
+        const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble;
+        const k1 = [2, 3, 4][variant], k2 = [5, 7, 6][variant];
+        const wob = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t));
+        const rects = EDGE_RECTS.filter(([bit]) => mask & bit);
+        const img = g.createImageData(TILE, TILE), d = img.data;
+        // colours as [r, g, b, a] from CSS, via a 1-pixel canvas
+        const probe = document.createElement('canvas').getContext('2d');
+        const rgb = c => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = c; probe.fillRect(0, 0, 1, 1); return probe.getImageData(0, 0, 1, 1).data; };
+        const rim = rgb(st.rim), light = st.light && rgb(st.light), shade = rgb(st.shade), dots = st.tufts || st.pebbles;
+        const dotRgb = dots && dots.map(rgb);
+        const put = (i, c, a = c[3] / 255) => { // blend c over what's there
+          const o = d[i + 3] / 255, na = a + o * (1 - a);
+          if (!na) return;
+          for (let j = 0; j < 3; j++) d[i + j] = (c[j] * a + d[i + j] * o * (1 - a)) / na;
+          d[i + 3] = na * 255;
+        };
+        for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
+          const cx = px + 0.5, cy = py + 0.5;
+          let dist = 99;
+          for (const [, x0, y0, x1, y1] of rects) dist = Math.min(dist, Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1)));
+          const r = width + wob(cx / TILE) + wob(cy / TILE) * 0.8;
+          const i = (py * TILE + px) * 4;
+          if (dist < r - 1) {
+            for (let j = 0; j < 4; j++) d[i + j] = tex[i + j];
+            if (light && dist >= r - 2) put(i, light);
+          } else if (dist < r) {
+            d[i] = rim[0]; d[i + 1] = rim[1]; d[i + 2] = rim[2]; d[i + 3] = rim[3] || 255;
+          } else if (dist < r + (st.lip || 1.5)) put(i, shade);
+          if (dotRgb && dist > r - 2 && dist < r + 1.5) {
+            const h = (((px * 73856093) ^ (py * 19349663) ^ (variant * 83492791)) >>> 0) % 100;
+            if (h < 9) put(i, dotRgb[h % dotRgb.length], 1);
+          }
+        }
+        g.putImageData(img, 0, 0);
+      });
+    },
     border(ground, dir, variant = 0) {
       return cached(`border:${ground}:${dir}:${variant}`, g => {
         const r = makeRng(hashStr(`${ground}${dir}${variant}`));

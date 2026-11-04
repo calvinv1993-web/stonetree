@@ -5,6 +5,7 @@
 
 // Trees and grass that sway in the wind.
 const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'dead_tree', 'ancient_tree', 'tallgrass', 'reeds', 'fern', 'flowers', 'bush']);
+const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const Render = {
@@ -66,7 +67,8 @@ const Render = {
       // (On an upper floor there's often nothing on that side - open air - and then nothing shows.)
       const groundShown = (x, y, t) => {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
-        return wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
+        const beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
+        return beside && THINGS[beside].block ? t.ground : beside; // a wall on the water's edge stands on its own ground
       };
       // A roof tile's shape: how much further the roof reaches north, south, west and
       // east than towards its nearest edge (0, 1, or 2 for more), and whether the
@@ -87,13 +89,20 @@ const Render = {
         map.roofShapes.shapes.set(key, shape);
         return shape;
       };
+      // A bridge's shape: whether the same bridge goes on past its left and right side (west and east for one
+      // you cross north-south, north and south for one you cross east-west), so a wide bridge is one deck.
+      const bridgeShape = (x, y, id) => {
+        if (!id.endsWith('bridge_ns') && !id.endsWith('bridge_ew')) return undefined;
+        const [a, b] = id.endsWith('_ns') ? [groundAt(x - 1, y), groundAt(x + 1, y)] : [groundAt(x, y - 1), groundAt(x, y + 1)];
+        return `${a === id ? 1 : 0}${b === id ? 1 : 0}`;
+      };
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         const t = tileAt(x, y);
         if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) { g.drawImage(Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE); continue; }
         if (!t || !t.ground) continue;
         const id = groundShown(x, y, t);
         if (!id) continue;
-        const shape = THINGS[id].roof ? roofShape(x, y, id) : undefined;
+        const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
         g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
         if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
           g.globalAlpha = 0.95;
@@ -125,13 +134,18 @@ const Render = {
           if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
           if (w && w !== here && Sprites.paved(w)) g.drawImage(Sprites.kerb('w'), ox + x * TILE, oy + y * TILE);
         }
-        const above = n => n && n !== here && Sprites.borderPriority(n) > p;
-        const sides = { n: groundAt(x, y - 1), e: groundAt(x + 1, y), s: groundAt(x, y + 1), w: groundAt(x - 1, y) };
-        const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0; // which of the three shapes, fixed per tile
-        for (const [d, n] of Object.entries(sides)) if (above(n)) g.drawImage(Sprites.border(n, d, variant % 3), ox + x * TILE, oy + y * TILE);
-        for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          const n = groundAt(x + dx, y + dy);
-          if (above(n) && sides[a] !== n && sides[b] !== n) g.drawImage(Sprites.border(n, d, (variant >>> 3) % 3), ox + x * TILE, oy + y * TILE);
+        // Each higher ground around this tile spills its edge in, all its sides and corners at once (lowest first).
+        let higher = null;
+        for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
+          const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
+          if (q === undefined || !(q > p)) continue;
+          higher = higher || new Map();
+          higher.set(n, (higher.get(n) || 0) | bit);
+        }
+        if (!higher) continue;
+        const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
+        for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
+          g.drawImage(Sprites.edge(n, mask, variant, x, y), ox + x * TILE, oy + y * TILE);
         }
       }
 
