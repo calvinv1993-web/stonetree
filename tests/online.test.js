@@ -73,7 +73,7 @@ function startServer() {
     assert(alice.log.some(l => l.includes('hello there')), 'Alice hears Bob');
     alice.act('say', 'hi');
     await sleep(300);
-    assert(alice.log.some(l => l.includes('Elder Maren')), 'Maren answers Alice');
+    assert(alice.log.some(l => l.includes('Sister Ama')), 'Sister Ama answers Alice');
     assert(!bob.log.some(l => l.includes(`Welcome, Alice${tag}`)), 'but not to Bob');
 
     const intruder = client(`Alice${tag}`, { password: 'wrong' });
