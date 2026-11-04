@@ -699,20 +699,64 @@ function createDefaultMap() {
   buildCrypt(m, S);
   buildDeepSewers(m, S);
 
-  // ---- the first hunting grounds: [type, [[x, y], ...]], each on the nearest free tile outside town ----
+  // ---- hunting grounds: harder the further from town ----------------------------------------------------------
+  // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
+  // spawns were, each on the nearest free tile (outside town, off roads and bridges, on `ground` if given), at
+  // fixed places worked out from the coordinates.
   const huntingGrounds = [
-    ['rat', [[118, 156], [124, 160], [140, 158], [112, 168], [146, 170], [120, 176], [134, 182], [108, 160]]],   // Sunny Fields
-    ['wolf', [[56, 70], [66, 80], [50, 92], [70, 100], [60, 104], [46, 76]]],                                       // Wolf Woods
-    ['goblin', [[186, 66], [196, 70], [202, 80], [190, 84], [182, 74]]],                                             // Goblin Hill
+    ['rat', 24, [108, 150, 152, 186]],                       // Sunny Fields: the first fights
+    ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 102, 162]], // Owl Grove, Fox Copse
+    ['crab', 6, [148, 56, 178, 86], S, 'sand'],              // the shore of Mirror Lake
+    ['crab', 8, [110, 196, 156, 226], S, 'sand'],            // the beaches of Lighthouse Point
+    ['crab', 5, [30, 160, 60, 190], S, 'sand'],              // the beach by Fisher's Rest
+    ['slime', 12, [44, 114, 70, 144]],                       // Frog Marsh
+    ['wolf', 21, [42, 60, 84, 110]],                         // Wolf Woods
+    ['spider', 7, [140, 176, 158, 190]],                     // Thorn Thicket
+    ['spider', 10, [160, 162, 198, 204]],                    // round the foot of the Spider Hills
+    ['goblin', 6, [86, 64, 108, 82]],                        // Stony Field: goblin scouts
+    ['goblin', 15, [174, 58, 208, 88]],                      // Goblin Hill
+    ['wolf', 8, [154, 92, 214, 158]],                        // Deer Woods
+    ['skeleton', 6, [186, 110, 204, 126], S + 1],            // the top of the Old Tower hill
+    ['bear', 4, [180, 120, 212, 156]],                       // deep in Deer Woods
+    ['bear', 3, [192, 40, 212, 56], S + 1],                  // the top of Hermit Rock
   ];
-  const spot = (x, y, z) => {
+  const taken = new Set();
+  // Open ground: not a little pocket shut in between trees or rocks (at least 40 tiles to walk about in).
+  const open = (x, y, z) => {
+    const seen = new Set([`${x},${y}`]), todo = [[x, y]];
+    while (todo.length && seen.size < 40) {
+      const [a, b] = todo.pop();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const k = `${a + dx},${b + dy}`;
+        if (!seen.has(k) && m.isWalkable(a + dx, b + dy, z)) { seen.add(k); todo.push([a + dx, b + dy]); }
+      }
+    }
+    return seen.size >= 40;
+  };
+  const spot = (x, y, z, ground) => {
     for (let r = 0; r <= 4; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
-      const t = m.get(x + dx, y + dy, z);
-      if (m.isWalkable(x + dx, y + dy, z) && !m.floorChange(x + dx, y + dy, z) && !m.isShelter(x + dx, y + dy, z) && t.ground !== 'bridge_ns' && t.ground !== 'bridge_ew') return [x + dx, y + dy];
+      const px = x + dx, py = y + dy, t = m.get(px, py, z);
+      if (!t || taken.has(`${px},${py},${z}`) || (ground && t.ground !== ground)) continue;
+      if (px >= OAKVALE.bounds.x0 && px <= OAKVALE.bounds.x1 && py >= OAKVALE.bounds.y0 && py <= OAKVALE.bounds.y1) continue;
+      if (m.isWalkable(px, py, z) && !m.floorChange(px, py, z) && !m.isShelter(px, py, z) && !['bridge_ns', 'bridge_ew', 'dirt'].includes(t.ground) && open(px, py, z)) return [px, py];
     }
     return null;
   };
-  for (const [type, pts] of huntingGrounds) for (const [x, y] of pts) { const p = spot(x, y, S); if (p) m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
+  for (const [type, count, [x0, y0, x1, y1], z = S, ground] of huntingGrounds) {
+    let placed = 0, centre = 0, misses = 0;
+    for (let i = 0; placed < count && i < count * 20; i++) {
+      // a pack: a centre, and up to three round it; a new centre every third one, or when this one finds no room
+      if (misses > 3) { centre++; misses = 0; }
+      const cx = x0 + Math.floor(hash(centre, count, 71) * (x1 - x0 + 1)), cy = y0 + Math.floor(hash(count, centre, 73) * (y1 - y0 + 1));
+      const x = cx + Math.floor(hash(i, 5, 79) * 5) - 2, y = cy + Math.floor(hash(7, i, 89) * 5) - 2;
+      const p = spot(x, y, z, ground);
+      if (!p) { misses++; continue; }
+      if ((placed + 1) % 3 === 0) { centre++; misses = 0; }
+      taken.add(`${p[0]},${p[1]},${z}`);
+      m.spawns.push({ type, x: p[0], y: p[1], z });
+      placed++;
+    }
+  }
 
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount

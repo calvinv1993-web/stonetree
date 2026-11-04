@@ -131,6 +131,8 @@ Every building is a shelter (monsters keep out). All doors, stairs and ladders a
 - camps
 - the hunting grounds, from easy (near town) to hard (far out):
 
+**Built:** `huntingGrounds` in `js/default-map.js` places about 135 monsters on the surface in packs of up to three (20+ rats, 35 wolves, 21 goblins, 17 spiders, 13 crabs, 12 slimes, 6 skeletons, 7 bears), only on open ground (never in a pocket between trees).
+
 | Danger | Hunting grounds |
 |---|---|
 | Easiest | the sewers, Sunny Fields, the lakeside |

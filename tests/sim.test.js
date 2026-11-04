@@ -15,11 +15,12 @@ const SLOW_TICK_MS = 50;     // one update taking longer than this is a visible 
 const FREEZE_TICK_MS = 500;  // ...and this is a freeze
 
 // Places worth visiting, so a run covers the whole world rather than one field.
+// Where the random walker teleports to: places on Oakvale Isle, in town, in the wilds, up the bell tower and down
+// under the town and Bone Rocks (each must be free ground).
 const PLACES = [
-  [31, 31, 4], [40, 43, 3], [46, 48, 3], [26, 16, 4], [48, 27, 4], [12, 29, 4], [21, 58, 3], [21, 67, 3],
-  [31, 50, 5], [112, 47, 4], [112, 57, 4], [134, 33, 4], [134, 22, 4], [104, 88, 4], [84, 34, 4], [80, 42, 3],
-  [91, 47, 3], [143, 71, 4], [144, 70, 5], [144, 70, 6], [96, 49, 4], [28, 92, 4], [50, 94, 4], [42, 103, 4],
-  [28, 104, 3], [51, 102, 3], [57, 102, 3], [10, 94, 4],
+  [137, 102, 9], [128, 118, 8], [112, 103, 8], [110, 102, 9], [137, 103, 10], [137, 104, 11], [119, 135, 8], [147, 103, 8],
+  [126, 129, 7], [131, 113, 7], [146, 139, 7], [126, 137, 6], [126, 111, 6], [127, 111, 5], [141, 106, 5],
+  [80, 182, 7], [70, 184, 6], [81, 201, 8], [130, 160, 8], [70, 100, 8], [56, 128, 8], [190, 72, 8], [195, 118, 9], [176, 130, 8],
 ];
 const WORDS = ['hi', 'quest', 'mission', 'yes', 'no', 'trade', 'bye', 'destiny', 'knight', 'paladin', 'sorcerer', 'druid',
   'parcel', 'heal', 'job', 'xyz', 'deposit all', 'withdraw 50', 'balance', 'ashport', 'valoria', 'houses', 'elm cottage',
