@@ -479,13 +479,6 @@ const Sprites = (() => {
       });
     }
   }
-  // A hole through a floor, at height z (0: in the floor, 54: in the ceiling): dark, with a rim of broken stone.
-  function shaftHole(g, z) {
-    const ring = [[10, 9], [22, 9], [24, 15], [22, 23], [10, 23], [8, 16]];
-    poly(g, '#4a4440', ring.flatMap(([u, v]) => P(u - 1, v - 1, z)));
-    poly(g, '#050403', ring.flatMap(([u, v]) => P(u, v, z)));
-    if (!z) line(g, 'rgba(255,255,255,0.18)', 1, ...P(10, 23, 0), ...P(22, 23, 0));
-  }
   const BRIDGES = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 
   // --- things in 2.5D --------------------------------------------------------------
@@ -504,6 +497,29 @@ const Sprites = (() => {
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  const FLOOR_Z = 32 / HEIGHT; // one floor's height in P()'s heights: what reaches it meets the floor above
+  // An open hatch: the tile has no floor, only a frame of boards round a square opening in the middle, with its lid
+  // thrown open, flat on the boards to the east. middle() draws what stands in the opening (the rope): after the back
+  // of the frame and before its front, so it rises up in front of what is behind it.
+  function hatch(g, middle) {
+    const wood = { top: '#8a5a2c', south: '#6a4220', east: '#4e2e14', edge: '#a8743e' };
+    const lid = { top: '#9a6a38', south: '#7a4e26', east: '#5e3a1a', edge: '#c08a4e' };
+    prism(g, 0, 0, 32, 9, 0, 3, wood);   // the back of the frame
+    prism(g, 0, 9, 9, 23, 0, 3, wood);   // its west side
+    poly(g, 'rgba(0,0,0,0.35)', [...P(9, 9, 0), ...P(23, 9, 0), ...P(23, 10.5, 0), ...P(10.5, 10.5, 0), ...P(10.5, 23, 0), ...P(9, 23, 0)]); // shade inside its rim
+    middle();
+    prism(g, 23, 9, 32, 23, 0, 3, wood); // its east side
+    prism(g, 0, 23, 32, 32, 0, 3, wood); // and the front
+    prism(g, 24, 8, 31, 24, 3, 5, lid);  // the lid, thrown open on the boards
+    for (const v of [12, 16, 20]) line(g, 'rgba(40,24,10,0.5)', 1, ...P(24, v, 5), ...P(31, v, 5));
+    const [rx, ry] = P(26, 16, 5); rect(g, '#5a5a62', rx, ry - 1, 2, 2); // its iron ring
+  }
+  // The bell rope as a thin column standing in the middle of the tile, from height z0 to z1; grip: its striped sally.
+  function bellRope(g, z0, z1, grip) {
+    const rope = { top: '#d8b47a', south: '#c8a46a', east: '#9a7a48', edge: '#e8d0a0' };
+    prism(g, 15, 15, 17, 17, z0, z1, rope);
+    if (grip) for (let z = 18; z < 36; z += 3) prism(g, 14.5, 14.5, 17.5, 17.5, z, z + 3, (z / 3) % 2 ? { top: '#c03030', south: '#a82828', east: '#801c1c' } : { top: '#f0e8d8', south: '#e0d8c8', east: '#b8b0a0' });
+  }
   // The shadow on the floor: right under the thing's foot (the middle of its tile), shifted a little
   // down-right, away from the light, so the thing stands on it rather than floating above it.
   const floorShadow = (g, rx = 13, ry = 3) => ellipse(g, 'rgba(0,0,0,0.22)', 64 + 17, 64 + 18, rx + 1, Math.max(ry * 2.5, rx * 0.55));
@@ -594,7 +610,7 @@ const Sprites = (() => {
     } },
   };
   // The bell of Oakvale: a great bronze bell hanging upright (as figures stand upright) from the crossbeam of a
-  // heavy oak frame that stands in the tiles' slant, with its cut rope. Its frame reaches two-thirds of the way to the roof.
+  // heavy oak frame that stands in the tiles' slant (its rope runs from a wheel beside it: shaft_rope_top). Its frame reaches two-thirds of the way to the roof.
   BIG.bell = { w: 2, h: 2, draw(g) {
     shadow(g, 64 + 34, 64 + 36, 30, 24);
     const oak = { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' };
@@ -623,8 +639,6 @@ const Sprites = (() => {
     for (let i = 0; i < 5; i++) rect(g, 'rgba(90,56,10,0.5)', hx - 10 + i * 5, hy + 25, 2, 2); // a ring of letters round its waist
     rect(g, 'rgba(255,240,190,0.55)', hx - 12, hy + 10, 3, 24); // light on its shoulder
     ellipse(g, '#24160a', hx, hy + 50, 27, 4.5); // the empty mouth: no clapper
-    line(g, '#b89a68', 3, hx + 8, hy + 50, hx + 8, hy + 58); // the rope, cut
-    for (const d of [-2, 0, 2]) line(g, '#e0c898', 1, hx + 8, hy + 58, hx + 8 + d, hy + 61);
     prism(g, 0, 26, 64, 38, 86, 94, oak); // the crossbeam, over both frames
   } };
   const PARTS = {
@@ -728,6 +742,8 @@ const Sprites = (() => {
       for (let i = 0; i < 4; i++) ellipse(g, 'rgba(40,62,30,0.3)', 3 + r() * 26, 3 + r() * 26, 2 + r() * 4, 1 + r() * 2); // damp patches
       for (let i = 0; i < 14; i++) rect(g, r() < 0.5 ? 'rgba(20,24,18,0.5)' : 'rgba(130,150,110,0.3)', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
     },
+    // A drop into the dark: nearly black, a little rough rock catching the light.
+    pit(g, r) { noise(g, r, '#060504', ['#0e0c0a', '#14110e', '#0a0807'], 40, 2); },
     // The floor of a crypt: big dark grave slabs, cracked and dusty.
     crypt(g, r) {
       rect(g, '#1c1d22', 0, 0, TILE, TILE);
@@ -1465,37 +1481,34 @@ const Sprites = (() => {
       prism(g, 20, 6, 31, 31, 4, 7, { top: '#8e8e96', south: '#6e6e76', east: '#56565e', edge: '#b0b0b8' }); // the lid, pushed off, leaning on the step
       onSouth(g, 29, f => { rect(f, '#3a3a40', 12, 7, 4, 4); rect(f, '#9a9aa2', 13, 8, 1, 1); rect(f, '#9a9aa2', 14, 8, 1, 1); }); // a carved skull
     },
-    // The bell shaft: a dark hole through a floor, its rim of broken stone (on the floor, at height z).
-    // shaftHole(g, z) draws one centred on the tile; the rope runs through the middle of it.
-    // Beside the bell: the rope runs over a wheel on the bell's beam and down through a hole in the floor.
+    // The bell shaft: on every floor under the bell the rope's tile is open (no floor), framed as a hatch with its
+    // lid thrown back against the north edge; the rope runs up through it as a thin column, exactly one floor high
+    // in the tiles' slant, so the pieces on the floors above and below join into one rope.
+    // Beside the bell: the rope comes up through the hatch to a wheel on a beam joined to the bell's crossbeam.
     shaft_rope_top(g) {
-      shaftHole(g, 0);
-      prism(g, 0, 14, 22, 18, 82, 86, { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' });
-      const [wx, wy] = P(16, 16, 80);
-      g.strokeStyle = '#3e2610'; g.lineWidth = 2; g.beginPath(); g.arc(wx, wy, 5, 0, Math.PI * 2); g.stroke();
-      line(g, '#c8a46a', 2.5, wx + 5, wy, ...P(21, 16, 0)); // over the wheel and down the hole
-      line(g, '#e8d0a0', 1, wx + 4, wy, ...P(20, 16, 0));
+      hatch(g, () => {
+        bellRope(g, 0, 78);
+        const oak = { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' };
+        prism(g, 14, 13, 40, 17, 84, 88, oak); // a beam out to the bell's crossbeam
+        const [wx, wy] = P(16, 15, 80);
+        g.strokeStyle = '#3e2610'; g.lineWidth = 2; g.beginPath(); g.arc(wx, wy, 4, 0, Math.PI * 2); g.stroke(); // the wheel
+        rect(g, '#3e2610', wx - 1, wy - 1, 2, 2);
+      });
     },
-    // The ringers' room: the rope comes down through the ceiling, with its striped woollen grip, and on down.
-    shaft_rope(g) {
-      shaftHole(g, 0); shaftHole(g, 54);
-      line(g, '#c8a46a', 2.5, ...P(16, 16, 54), ...P(16, 16, 0));
-      line(g, '#e8d0a0', 1, ...P(15, 16, 54), ...P(15, 16, 0));
-      for (let z = 20; z < 34; z += 3) { const [x, y] = P(16, 16, z); rect(g, (z / 3) % 2 ? '#c03030' : '#f0e8d8', x - 2.5, y - 2, 5, 3); } // the sally
-    },
-    // The temple hall: the rope hangs down from the ceiling and ends, cut, over the hole in the floor.
+    // The ringers' room: the rope runs up through the floor and on up through the ceiling, with its striped grip.
+    shaft_rope(g) { hatch(g, () => bellRope(g, 0, FLOOR_Z, true)); },
+    // The temple hall: the rope comes down from the room above and ends, cut, halfway down.
     shaft_rope_cut(g) {
-      shaftHole(g, 0); shaftHole(g, 54);
-      line(g, '#c8a46a', 2.5, ...P(16, 16, 54), ...P(16, 16, 26));
-      line(g, '#e8d0a0', 1, ...P(15, 16, 54), ...P(15, 16, 26));
-      const [ex, ey] = P(16, 16, 26);
-      for (const d of [-2, -1, 1, 2]) line(g, '#e0c898', 1, ex, ey, ex + d, ey + 3 + Math.abs(d)); // frayed
+      hatch(g, () => {
+        bellRope(g, 30, FLOOR_Z);
+        const [ex, ey] = P(16, 16, 30);
+        for (const d of [-2, -1, 0, 1, 2]) line(g, '#e0c898', 1, ex, ey, ex + d, ey + 2 + Math.abs(d)); // frayed
+      });
     },
-    // Further down: the shaft's holes in the ceiling and the floor, and nothing in between.
-    shaft_hole(g) { shaftHole(g, 0); shaftHole(g, 54); },
+    // Further down: only the open hatch over the dark shaft.
+    shaft_hole(g) { hatch(g, () => {}); },
     // The temple bell's rope, hanging down through a hole in the cellar ceiling; its end lies gnawed on the floor.
     bell_rope(g) {
-      shaftHole(g, 54); // the bottom of the bell shaft: its hole in the ceiling, and the fallen rope below
       // the rope, fallen in a heap on the floor and chewed to threads
       ellipse(g, 'rgba(0,0,0,0.25)', 64 + 17, 64 + 19, 13, 6);
       for (const [rx, ry, dy, c] of [[12, 5.5, 2, '#8a6a42'], [10, 4.5, 0, '#a8865a'], [7, 3.5, -2, '#b8966a'], [4, 2.2, -4, '#c8a67a']]) {

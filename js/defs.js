@@ -43,6 +43,7 @@ const THINGS = {
   sewer:       { name: 'damp flagstones', cat: 'Ground', ground: true },             // the walkways of a sewer
   sewer_water: { name: 'sewer water', cat: 'Ground', ground: true, block: true },  // the channel between them
   crypt:       { name: 'worn grave slabs', cat: 'Ground', ground: true },          // the floor of a crypt
+  pit:         { name: 'deep shaft', cat: 'Ground', ground: true, block: true },   // a drop into the dark, through rock
   swamp:       { name: 'swamp', cat: 'Ground', ground: true },
   paving:      { name: 'paving stones', cat: 'Ground', ground: true },
   brick:       { name: 'brick road', cat: 'Ground', ground: true },

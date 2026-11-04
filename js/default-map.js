@@ -286,7 +286,7 @@ const SEWERS = {
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[144, 138], [148, 140], [146, 142]],
-  shaft: [136, 103, 'The bell shaft: the hole goes on down into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
+  shaft: [136, 103, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -782,7 +782,7 @@ function buildSewers(m, S) {
 function buildDeepSewers(m, S) {
   const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
   { const [x, y] = SEWERS.down; m.get(x, y, SEWERS.z).items = ['trapdoor']; }
-  { const [x, y, look] = SEWERS.shaft; m.get(x, y, SEWERS.z).items = ['shaft_hole']; m.setMeta(x, y, SEWERS.z, { look }); }
+  { const [x, y, look] = SEWERS.shaft; m.set(x, y, SEWERS.z, { ground: null, items: ['shaft_hole'] }); m.setMeta(x, y, SEWERS.z, { look }); }
   for (const L of DEEP_SEWERS) {
     const Z = L.z, wallOf = new Map();
     const carve = (x, y, ground, wall) => { m.set(x, y, Z, { ground, items: [] }); wallOf.set(`${x},${y}`, wall); };
@@ -1011,12 +1011,13 @@ function buildTown(m, S, runs, river) {
       // The bell shaft, one column through every floor: the rope over its wheel beside the bell, whole in the
       // ringers' room, cut off over the hole in the temple hall; it fell all the way down (see SEWERS, DEEP_SEWERS).
       const [hx, hy] = bt.shaft;
-      for (const [z, id, look] of [[Z + 2, 'shaft_rope_top', 'The bell rope runs over a wheel on the beam and down through a hole in the floor.'],
-        [Z + 1, 'shaft_rope', 'The bell rope comes down through the ceiling. Pull it and the bell would ring - but below this room it is cut through.'],
-        [Z, 'shaft_rope_cut', 'The bell rope hangs from a hole in the ceiling and ends here, cut clean through. The rest of it fell down the shaft, into the dark below.']]) {
-        put(hx, hy, z, id); m.setMeta(hx, hy, z, { look });
+      for (const [z, id, look] of [[Z + 2, 'shaft_rope_top', 'The bell rope runs from a wheel beside the bell down through an open hatch in the floor.'],
+        [Z + 1, 'shaft_rope', 'The bell rope runs up and down through an open hatch. Pull it and the bell would ring - but in the hall below, it is cut through.'],
+        [Z, 'shaft_rope_cut', 'The bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through. The rest of it fell down the shaft, into the dark.']]) {
+        m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, { look }); // an open hatch: no floor
       }
-      if (!m.isWalkable(hx + 1, hy + 1, Z + 2) || m.get(hx + 1, hy + 1, Z + 2).items.length === 0) m.get(hx + 1, hy + 1, Z + 2).items = ['pillar']; // no pocket shut in by the rope
+      for (const [x, y] of [[hx, hy], [hx - 1, hy - 1]]) m.set(x, y, Z - 1, { ground: 'pit', items: [] }); // the shaft through the mount below (what shows through the hatch)
+      for (const x of [hx, hx + 1]) m.get(x, bt.y1, Z + 2).items = []; // a wide opening in the colonnade before the bell (and clear of the hatch)
       const parts = [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]];
       for (const [id, ox, oy] of parts) { put(bx + ox, by + oy, Z + 2, id); m.setMeta(bx + ox, by + oy, Z + 2, { look: bt.look }); }
     }
