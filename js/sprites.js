@@ -447,11 +447,12 @@ const Sprites = (() => {
   // corner (so even tall ones have room and are never cut off), every point (u, v) on the tile at
   // height z is drawn z pixels up and z pixels to the left - the same slant as walls and roofs. So
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
-  // Figures (statues, dummies, the scarecrow) and gravestones are drawn standing upright, seen from the
-  // front, like the people and creatures that walk past them.
+  // Everything that stands on a tile is drawn in this one slant. Figures (statues, dummies, the scarecrow)
+  // stand on bases in the slant but are upright themselves, like the people and creatures walking past.
   const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
-    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil',
+    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
+    'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -1261,15 +1262,27 @@ const Sprites = (() => {
       }
     },
     // A statue on a plinth: a stone figure holding a sword.
+    // A statue of the town's founder on a plinth: legs, a long coat, arms, a head, and a sword held up -
+    // all in the same slant as the walls and pillars.
+    // A statue of the town's founder: a stone plinth in the tiles' slant, and on it, standing upright like
+    // the people who walk past, a bronze figure in a long coat holding a sword up.
     statue(g) {
-      shadow(g, 48, 61, 12, 3);
-      rect(g, '#8a8a90', 38, 52, 20, 10);
-      rect(g, '#a0a0a8', 38, 52, 20, 2);
-      rect(g, '#9a9aa2', 43, 26, 10, 26);
-      ellipse(g, '#a8a8b0', 48, 20, 6, 7);
-      rect(g, '#8a8a92', 40, 30, 3, 14);
-      line(g, '#8a8a92', 2, 54, 30, 60, 8);
-      rect(g, 'rgba(0,0,0,0.15)', 50, 26, 3, 26);
+      floorShadow(g, 13, 3);
+      prism(g, 4, 4, 28, 28, 0, 8, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
+      prism(g, 6, 6, 26, 26, 8, 12, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
+      const [x, y] = P(16, 18, 12); // where the figure stands
+      const L = '#8ab8a4', M = '#5e8c7a', D = '#3a5e50'; // old bronze, gone green
+      rect(g, D, x - 5, y - 14, 4, 14); rect(g, M, x + 1, y - 14, 4, 14);                     // legs
+      poly(g, M, [x - 8, y - 10, x + 8, y - 10, x + 6, y - 30, x - 6, y - 30]);                 // the coat
+      poly(g, L, [x - 8, y - 10, x - 1, y - 10, x - 1, y - 30, x - 6, y - 30]);
+      rect(g, D, x - 1, y - 30, 1, 20);
+      poly(g, L, [x - 6, y - 30, x - 10, y - 18, x - 7, y - 17, x - 4, y - 27]);                 // the left arm
+      poly(g, M, [x + 5, y - 29, x + 10, y - 33, x + 11, y - 30, x + 6, y - 26]);                // the right arm, raised
+      rect(g, '#7aa898', x + 10, y - 52, 2, 20); rect(g, '#b4dccb', x + 10, y - 52, 1, 20);    // the sword
+      rect(g, M, x + 7, y - 33, 8, 2);                                                          // its crossguard
+      rect(g, M, x - 2, y - 33, 4, 3);                                                          // the neck
+      ellipse(g, M, x, y - 37, 5, 5.5); ellipse(g, L, x - 1.5, y - 38.5, 3, 3.5);              // the head
+      poly(g, D, [x - 5, y - 40, x + 5, y - 40, x + 4, y - 43, x - 4, y - 43]);                // hair
     },
     rails(g) {
       for (let y = 2; y < TILE; y += 6) rect(g, '#5a3a1e', 6, y, 20, 3);
@@ -1653,30 +1666,36 @@ const Sprites = (() => {
     // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
     // A training dummy: a post, a straw-stuffed body with a painted target, arms and a head.
 // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
+    // A training dummy: a post, a straw-stuffed body with a painted target, a crossbar for arms, a head.
+    // A training dummy, upright: a post in the ground, a straw-stuffed body with a painted target, a
+    // crossbar for arms and a straw head.
     dummy(g) {
-      shadow(g, 48, 61, 7, 2);
-      rect(g, '#5a3a1e', 46, 30, 4, 32);
-      rect(g, '#6a4422', 36, 34, 24, 3);
-      ellipse(g, '#c8a868', 48, 40, 8, 10);
-      ellipse(g, '#b89858', 49, 42, 6, 8);
-      for (let i = 0; i < 6; i++) line(g, '#a08048', 1, 42 + i * 2, 34, 41 + i * 2, 46);
-      ellipse(g, '#c03a2a', 48, 40, 4, 4); ellipse(g, '#e8d8b0', 48, 40, 2.5, 2.5); ellipse(g, '#c03a2a', 48, 40, 1, 1);
-      ellipse(g, '#d8b878', 48, 26, 5, 5);
-      rect(g, '#8a6a3a', 43, 22, 10, 2);
-      rect(g, '#6a4422', 44, 50, 8, 3); // the rope round its waist
+      floorShadow(g, 9, 3);
+      const [x, y] = P(16, 18, 0);
+      rect(g, '#4a2c12', x - 2, y - 26, 4, 26); rect(g, '#6a4422', x - 2, y - 26, 1, 26);
+      rect(g, '#5a3618', x - 13, y - 32, 26, 3); rect(g, '#8a5a2c', x - 13, y - 32, 26, 1);
+      ellipse(g, '#a88848', x + 1, y - 21, 8, 10); ellipse(g, '#d0b070', x, y - 22, 7.5, 9.5); ellipse(g, '#e8d090', x - 3, y - 25, 3, 4);
+      for (let i = 0; i < 5; i++) line(g, '#a08048', 1, x - 5 + i * 2.5, y - 30, x - 6 + i * 2.5, y - 14);
+      ellipse(g, '#c03a2a', x, y - 22, 4, 4); ellipse(g, '#e8d8b0', x, y - 22, 2.6, 2.6); ellipse(g, '#c03a2a', x, y - 22, 1, 1);
+      rect(g, '#6a4422', x - 7, y - 15, 14, 2);
+      ellipse(g, '#c0a060', x + 0.5, y - 36, 5, 5); ellipse(g, '#e0c880', x - 1, y - 37, 3.5, 3.5);
     },
     // A scarecrow: a post and crossbar in old clothes, a straw head and a hat.
+    // A scarecrow: a tall post and crossbar in an old coat, straw hands, a sack head and a battered hat.
+    // A scarecrow, upright: a tall post and crossbar in an old coat, straw hands, a sack head, a hat.
     scarecrow(g) {
-      shadow(g, 48, 61, 6, 2);
-      rect(g, '#6a4422', 46, 24, 3, 38);
-      rect(g, '#6a4422', 34, 30, 28, 3);
-      poly(g, '#7a6a3a', [40, 31, 56, 31, 54, 48, 42, 48]);
-      for (const x of [33, 59]) rect(g, '#d8b040', x, 29, 4, 5);
-      ellipse(g, '#e0c890', 47.5, 21, 6, 6);
-      rect(g, '#2a2a2a', 44, 20, 2, 2);
-      rect(g, '#2a2a2a', 49, 20, 2, 2);
-      rect(g, '#2a2a2a', 45, 24, 5, 1);
-      poly(g, '#5a4a2a', [37, 17, 58, 17, 53, 14, 52, 8, 43, 8, 42, 14]);
+      floorShadow(g, 9, 3);
+      const [x, y] = P(16, 18, 0);
+      rect(g, '#4a2c12', x - 2, y - 40, 3, 40); rect(g, '#6a4422', x - 2, y - 40, 1, 40);
+      rect(g, '#5a3618', x - 15, y - 34, 30, 3);
+      poly(g, '#5a4a28', [x - 8, y - 34, x + 8, y - 34, x + 7, y - 14, x - 7, y - 14]);
+      poly(g, '#8a7a40', [x - 8, y - 34, x, y - 34, x, y - 14, x - 7, y - 14]);
+      rect(g, '#6a3a2a', x - 7, y - 24, 14, 2); // a patch
+      for (const dx of [-17, 13]) { rect(g, '#e0c050', x + dx, y - 35, 4, 5); rect(g, '#f4dc80', x + dx, y - 35, 2, 2); }
+      ellipse(g, '#c8b080', x + 0.5, y - 39, 6, 6); ellipse(g, '#e0c890', x - 1, y - 40, 4.5, 4.5);
+      rect(g, '#2a2a2a', x - 3, y - 41, 2, 2); rect(g, '#2a2a2a', x + 2, y - 41, 2, 2); rect(g, '#2a2a2a', x - 2, y - 37, 5, 1);
+      ellipse(g, '#3a2e1a', x, y - 44, 10, 2.5); poly(g, '#5a4a2a', [x - 5, y - 44, x + 5, y - 44, x + 4, y - 52, x - 4, y - 52]);
+      poly(g, '#7a6a44', [x - 5, y - 44, x - 1, y - 44, x - 1, y - 52, x - 4, y - 52]);
     },
     // A marble pillar: a square plinth, a round fluted shaft, a square capital.
     pillar(g) {
@@ -1739,13 +1758,18 @@ const Sprites = (() => {
       for (const u of [6, 26]) { column(g, u, 16, 1.5, 15, 22, { light: '#fffbe8', mid: '#f0e8c8', dark: '#c8bc98', top: '#fff' }); const [fx, fy] = P(u, 16, 24); ellipse(g, '#ffb030', fx, fy, 1.2, 2); }
     },
     // A gravestone: a stone slab with a rounded top and a cross cut into it.
+    // A gravestone: an upright slab with a rounded top and a cross cut into its face.
+    // A gravestone: a low foot in the tiles' slant, and on it an upright stone with a rounded top, its top
+    // edge showing, and a cross cut into its face.
     gravestone(g) {
-      shadow(g, 16, 28, 10, 3);
-      rect(g, '#8a8a90', 9, 10, 14, 18);
-      ellipse(g, '#8a8a90', 16, 10, 7, 6);
-      rect(g, '#6a6a70', 15, 9, 2, 10);
-      rect(g, '#6a6a70', 12, 12, 8, 2);
-      rect(g, '#a0a0a6', 9, 10, 1, 18);
+      floorShadow(g, 10, 3);
+      prism(g, 7, 13, 25, 21, 0, 4, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
+      const [x, y] = P(16, 19, 4);
+      const slab = (dy, c) => { g.fillStyle = c; g.beginPath(); g.moveTo(x - 8, y + dy); g.lineTo(x - 8, y + dy - 14); g.arc(x, y + dy - 14, 8, Math.PI, 0); g.lineTo(x + 8, y + dy); g.closePath(); g.fill(); };
+      slab(-3, '#c8c8c4');                 // its top edge (the back of the stone, seen from above)
+      slab(0, '#9a9a96');                  // its face
+      rect(g, '#b4b4b0', x - 8, y - 14, 1, 14);
+      rect(g, '#5e5e5a', x - 1, y - 18, 2, 13); rect(g, '#5e5e5a', x - 5, y - 14, 10, 2);
     },
     tent(g) {
       shadow(g, 16, 29, 15, 3);
