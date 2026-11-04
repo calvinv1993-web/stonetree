@@ -248,7 +248,12 @@ const THINGS = {
   loose_sand:  { name: 'loose sand', cat: 'Mechanisms', digSpot: true },
   cracked_rock:{ name: 'cracked rock', cat: 'Mechanisms', block: true, breakable: true },
 
-  // The Silent Bell: the bell rope hanging down into the old cellar under the temple, cut and gnawed.
+  // The bell shaft: one column of holes through every floor under the bell, where its rope runs down.
+  shaft_rope_top: { name: 'bell rope', cat: 'Town', block: true, low: true },   // beside the bell: the rope over its wheel, down a hole
+  shaft_rope:  { name: 'bell rope', cat: 'Town', block: true, low: true },        // the ringers' room: the rope and its woollen grip
+  shaft_rope_cut: { name: 'cut bell rope', cat: 'Town', block: true, low: true }, // the temple hall: its end hangs cut, over the hole
+  shaft_hole:  { name: 'bell shaft', cat: 'Town', block: true, low: true },       // a floor further down: holes in ceiling and floor
+  // The Silent Bell: what fell down the bell shaft, at the bottom of it, cut and gnawed.
   bell_rope: {
     name: 'bell rope', cat: 'Quest chests',
     chest: { flag: 'bell_rope', requires: 'bell_2', items: [['chewed_rope', 1], ['carved_stone', 1]],

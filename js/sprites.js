@@ -479,6 +479,13 @@ const Sprites = (() => {
       });
     }
   }
+  // A hole through a floor, at height z (0: in the floor, 54: in the ceiling): dark, with a rim of broken stone.
+  function shaftHole(g, z) {
+    const ring = [[10, 9], [22, 9], [24, 15], [22, 23], [10, 23], [8, 16]];
+    poly(g, '#4a4440', ring.flatMap(([u, v]) => P(u - 1, v - 1, z)));
+    poly(g, '#050403', ring.flatMap(([u, v]) => P(u, v, z)));
+    if (!z) line(g, 'rgba(255,255,255,0.18)', 1, ...P(10, 23, 0), ...P(22, 23, 0));
+  }
   const BRIDGES = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 
   // --- things in 2.5D --------------------------------------------------------------
@@ -492,7 +499,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -1458,20 +1465,46 @@ const Sprites = (() => {
       prism(g, 20, 6, 31, 31, 4, 7, { top: '#8e8e96', south: '#6e6e76', east: '#56565e', edge: '#b0b0b8' }); // the lid, pushed off, leaning on the step
       onSouth(g, 29, f => { rect(f, '#3a3a40', 12, 7, 4, 4); rect(f, '#9a9aa2', 13, 8, 1, 1); rect(f, '#9a9aa2', 14, 8, 1, 1); }); // a carved skull
     },
+    // The bell shaft: a dark hole through a floor, its rim of broken stone (on the floor, at height z).
+    // shaftHole(g, z) draws one centred on the tile; the rope runs through the middle of it.
+    // Beside the bell: the rope runs over a wheel on the bell's beam and down through a hole in the floor.
+    shaft_rope_top(g) {
+      shaftHole(g, 0);
+      prism(g, 0, 14, 22, 18, 82, 86, { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' });
+      const [wx, wy] = P(16, 16, 80);
+      g.strokeStyle = '#3e2610'; g.lineWidth = 2; g.beginPath(); g.arc(wx, wy, 5, 0, Math.PI * 2); g.stroke();
+      line(g, '#c8a46a', 2.5, wx + 5, wy, ...P(21, 16, 0)); // over the wheel and down the hole
+      line(g, '#e8d0a0', 1, wx + 4, wy, ...P(20, 16, 0));
+    },
+    // The ringers' room: the rope comes down through the ceiling, with its striped woollen grip, and on down.
+    shaft_rope(g) {
+      shaftHole(g, 0); shaftHole(g, 54);
+      line(g, '#c8a46a', 2.5, ...P(16, 16, 54), ...P(16, 16, 0));
+      line(g, '#e8d0a0', 1, ...P(15, 16, 54), ...P(15, 16, 0));
+      for (let z = 20; z < 34; z += 3) { const [x, y] = P(16, 16, z); rect(g, (z / 3) % 2 ? '#c03030' : '#f0e8d8', x - 2.5, y - 2, 5, 3); } // the sally
+    },
+    // The temple hall: the rope hangs down from the ceiling and ends, cut, over the hole in the floor.
+    shaft_rope_cut(g) {
+      shaftHole(g, 0); shaftHole(g, 54);
+      line(g, '#c8a46a', 2.5, ...P(16, 16, 54), ...P(16, 16, 26));
+      line(g, '#e8d0a0', 1, ...P(15, 16, 54), ...P(15, 16, 26));
+      const [ex, ey] = P(16, 16, 26);
+      for (const d of [-2, -1, 1, 2]) line(g, '#e0c898', 1, ex, ey, ex + d, ey + 3 + Math.abs(d)); // frayed
+    },
+    // Further down: the shaft's holes in the ceiling and the floor, and nothing in between.
+    shaft_hole(g) { shaftHole(g, 0); shaftHole(g, 54); },
     // The temple bell's rope, hanging down through a hole in the cellar ceiling; its end lies gnawed on the floor.
     bell_rope(g) {
-      const hole = [...P(11, 9, 54), ...P(21, 9, 54), ...P(21, 19, 54), ...P(11, 19, 54)];
-      poly(g, '#0a0806', hole);
-      const [tx, ty] = P(16, 14, 54), [bx, by] = P(16, 14, 4);
-      line(g, '#7a6040', 3, tx, ty, bx, by);
-      line(g, '#c0a070', 1, tx - 1, ty, bx - 1, by);
-      // the end, coiled on the floor and chewed to threads
-      ellipse(g, 'rgba(0,0,0,0.25)', 64 + 17, 64 + 18, 9, 4);
-      g.strokeStyle = '#a8865a'; g.lineWidth = 2.5;
-      g.beginPath(); g.ellipse(64 + 16, 64 + 17, 7, 3.5, 0, 0.3, Math.PI * 1.9); g.stroke();
-      g.strokeStyle = '#d0b080'; g.lineWidth = 1;
-      g.beginPath(); g.ellipse(64 + 16, 64 + 16.5, 7, 3.5, 0, 0.3, Math.PI * 1.2); g.stroke();
-      for (const [dx, dy] of [[0, 0], [3, 1], [5, -1], [2, 3]]) line(g, '#e0c898', 1, 64 + 22, 64 + 17, 64 + 24 + dx, 64 + 18 + dy);
+      shaftHole(g, 54); // the bottom of the bell shaft: its hole in the ceiling, and the fallen rope below
+      // the rope, fallen in a heap on the floor and chewed to threads
+      ellipse(g, 'rgba(0,0,0,0.25)', 64 + 17, 64 + 19, 13, 6);
+      for (const [rx, ry, dy, c] of [[12, 5.5, 2, '#8a6a42'], [10, 4.5, 0, '#a8865a'], [7, 3.5, -2, '#b8966a'], [4, 2.2, -4, '#c8a67a']]) {
+        g.strokeStyle = c; g.lineWidth = 2.5;
+        g.beginPath(); g.ellipse(64 + 16, 64 + 17 + dy, rx, ry, 0, 0, Math.PI * 2); g.stroke();
+      }
+      g.strokeStyle = '#e0c898'; g.lineWidth = 1;
+      g.beginPath(); g.ellipse(64 + 16, 64 + 16.5, 10, 4.5, 0, 0.4, Math.PI * 1.1); g.stroke();
+      for (const [dx, dy] of [[0, 0], [3, 1], [5, -1], [2, 3]]) line(g, '#e0c898', 1, 64 + 26, 64 + 19, 64 + 28 + dx, 64 + 20 + dy); // gnawed
     },
     tallgrass(g, r) {
       for (let i = 0; i < 9; i++) {

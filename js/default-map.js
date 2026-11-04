@@ -150,7 +150,7 @@ const OAKVALE = {
   // The bell tower over the back of the temple: the ringers' room above the hall, and above that the bell, open
   // to the sky between pillars that carry copper eaves. stairs: up from
   // the hall; up: on up from the ringers' room; bell: the north-west tile of the great bell (2x2).
-  belfry: { x0: 134, y0: 99, x1: 140, y1: 104, stairs: [139, 102], up: [135, 101], bell: [137, 102],
+  belfry: { x0: 134, y0: 99, x1: 140, y1: 104, stairs: [139, 102], up: [135, 101], bell: [137, 102], shaft: [136, 103],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
   // The temple mount: a block of rock north of the square, its top one floor up, with the temple on it and
   // a terrace in front; a broad flight of stone steps runs down from the terrace to the square.
@@ -280,13 +280,13 @@ const SEWERS = {
   props: [
     [103, 121, 'barrel'], [104, 121, 'barrel'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
     [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
-    [141, 103, 'rock'], [140, 104, 'rubble'], // the bell shaft, choked with fallen stone
+    [140, 104, 'rubble'], [134, 105, 'rubble'],
     [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[144, 138], [148, 140], [146, 142]],
-  shaft: [141, 103, 'The bell shaft goes on down here, but it is choked with fallen stone. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
+  shaft: [136, 103, 'The bell shaft: the hole goes on down into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -310,8 +310,8 @@ const DEEP_SEWERS = [
     caves: [{ cx: 127, cy: 111, rx: 8, ry: 6.5 }, { cx: 119, cy: 107, rx: 4, ry: 3.5 }, { cx: 131, cy: 117, rx: 4, ry: 3 }],
     pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
     drains: [[135, 108, 138, 108]], // the narrow way on, where the slime keeps
-    rooms: [[139, 103, 144, 109, 'paving']], // the bottom of the bell shaft
-    props: [[141, 104, 'bell_rope'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
+    rooms: [[139, 103, 144, 109, 'paving'], [135, 102, 138, 105, 'paving']], // the bottom of the bell shaft
+    props: [[136, 103, 'bell_rope'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
       ['giant_rat', [[121, 108], [124, 106], [127, 105], [131, 109], [133, 112], [130, 115], [126, 116], [122, 115], [119, 110], [118, 104], [132, 118], [129, 112]]],
       ['slime', [[136, 108]]],
@@ -781,7 +781,7 @@ function buildSewers(m, S) {
 function buildDeepSewers(m, S) {
   const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
   { const [x, y] = SEWERS.down; m.get(x, y, SEWERS.z).items = ['trapdoor']; }
-  { const [x, y, look] = SEWERS.shaft; m.setMeta(x, y, SEWERS.z, { look }); }
+  { const [x, y, look] = SEWERS.shaft; m.get(x, y, SEWERS.z).items = ['shaft_hole']; m.setMeta(x, y, SEWERS.z, { look }); }
   for (const L of DEEP_SEWERS) {
     const Z = L.z, wallOf = new Map();
     const carve = (x, y, ground, wall) => { m.set(x, y, Z, { ground, items: [] }); wallOf.set(`${x},${y}`, wall); };
@@ -1007,6 +1007,15 @@ function buildTown(m, S, runs, river) {
       put(bt.x0 + 3, bt.y0 + 1, Z + 1, 'noticeboard'); // the ringers' rules
       m.setMeta(bt.x0 + 3, bt.y0 + 1, Z + 1, { text: 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.' });
       put(bt.x0 + 4, bt.y0 + 1, Z + 1, 'bench');
+      // The bell shaft, one column through every floor: the rope over its wheel beside the bell, whole in the
+      // ringers' room, cut off over the hole in the temple hall; it fell all the way down (see SEWERS, DEEP_SEWERS).
+      const [hx, hy] = bt.shaft;
+      for (const [z, id, look] of [[Z + 2, 'shaft_rope_top', 'The bell rope runs over a wheel on the beam and down through a hole in the floor.'],
+        [Z + 1, 'shaft_rope', 'The bell rope comes down through the ceiling. Pull it and the bell would ring - but below this room it is cut through.'],
+        [Z, 'shaft_rope_cut', 'The bell rope hangs from a hole in the ceiling and ends here, cut clean through. The rest of it fell down the shaft, into the dark below.']]) {
+        put(hx, hy, z, id); m.setMeta(hx, hy, z, { look });
+      }
+      if (!m.isWalkable(hx + 1, hy + 1, Z + 2) || m.get(hx + 1, hy + 1, Z + 2).items.length === 0) m.get(hx + 1, hy + 1, Z + 2).items = ['pillar']; // no pocket shut in by the rope
       const parts = [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]];
       for (const [id, ox, oy] of parts) { put(bx + ox, by + oy, Z + 2, id); m.setMeta(bx + ox, by + oy, Z + 2, { look: bt.look }); }
     }
