@@ -183,7 +183,12 @@ const MAP_STORAGE_KEY = 'tilequest.map.v3';
 function loadStoredMap() {
   try {
     const json = localStorage.getItem(MAP_STORAGE_KEY);
-    if (json) return GameMap.fromJSON(JSON.parse(json));
+    if (json) {
+      const saved = JSON.parse(json);
+      // Do not let an old browser-local world silently replace the new Rookgaard world.
+      if (saved.width === 271 && saved.height === 301 && saved.depth === 16 && saved.surfaceZ === 8)
+        return GameMap.fromJSON(saved);
+    }
   } catch (e) {
     console.warn('Could not load the stored map:', e);
   }
