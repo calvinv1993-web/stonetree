@@ -447,10 +447,11 @@ const Sprites = (() => {
   // corner (so even tall ones have room and are never cut off), every point (u, v) on the tile at
   // height z is drawn z pixels up and z pixels to the left - the same slant as walls and roofs. So
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
-  // Round things and figures (barrels, sacks, the well, statues...) are drawn standing upright, seen from
+  // Round things and figures (barrels, sacks, the well, statues, gravestones, the chopping block...) are drawn standing upright, seen from
   // the front, as the classic games draw them: slanted, they would look as if they were lying down.
-  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'chair', 'bench',
-    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'gravestone', 'planter', 'apple_crate', 'anvil', 'firewood',
+  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'chair', 'chair_east',
+    'chair_west', 'chair_north', 'bench',
+    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -467,17 +468,45 @@ const Sprites = (() => {
     line(g, c.edge || 'rgba(255,255,255,0.35)', 1, ...P(u0, v1, z1), ...P(u1, v1, z1));
     line(g, 'rgba(0,0,0,0.35)', 1, ...P(u1, v1, z0), ...P(u1, v1, z1));
   }
+  // A chair facing `facing` (n, e, s, w): the back stands on the opposite edge.
+  function drawChair(g, facing) {
+    floorShadow(g, 9, 3);
+    const leg = { top: '#6a4220', south: '#5a3618', east: '#40260f', edge: '#8a5a2c' };
+    const wood = { top: '#b07a42', south: '#8a5a2c', east: '#6a4220', edge: '#d09a5e' };
+    const [u0, v0, u1, v1] = [10, 10, 22, 22], seat = 12, top = 38;
+    // the back: two posts and two rails on the edge behind the sitter
+    const back = { n: [u0, v1 - 2, u1, v1], s: [u0, v0, u1, v0 + 2], e: [u0, v0, u0 + 2, v1], w: [u1 - 2, v0, u1, v1] }[facing];
+    const alongU = facing === 'n' || facing === 's';
+    const posts = alongU ? [[back[0], back[1], back[0] + 2, back[3]], [back[2] - 2, back[1], back[2], back[3]]]
+      : [[back[0], back[1], back[2], back[1] + 2], [back[0], back[3] - 2, back[2], back[3]]];
+    const legs = [[u0, v0], [u1 - 2, v0], [u0, v1 - 2], [u1 - 2, v1 - 2]];
+    const behind = ([u, v]) => (facing === 's' ? v < 16 : facing === 'n' ? v > 16 : facing === 'e' ? u < 16 : u > 16);
+    // what's further back is drawn first: back legs and the back, then the seat, then the front legs
+    const far = ([u, v]) => u - v; // further up-left on screen = drawn earlier
+    for (const [u, v] of legs.filter(l => !behind(l) || true).sort((a, b) => (a[1] + a[0]) - (b[1] + b[0]))) {
+      if (v > 12 && u > 12) continue; // the front-right leg goes in front of the seat, below
+      prism(g, u, v, u + 2, v + 2, 0, seat, leg);
+    }
+    const drawBack = () => {
+      for (const [a, b, c, d] of posts) prism(g, a, b, c, d, seat, top, leg);
+      for (const z of [seat + 11, top - 4]) prism(g, back[0], back[1], back[2], back[3], z, z + 4, wood);
+    };
+    if (facing === 's' || facing === 'e') drawBack();
+    prism(g, u0, v0, u1, v1, seat, seat + 2, wood);
+    prism(g, u1 - 2, v1 - 2, u1, v1, 0, seat, leg);
+    if (facing === 'n' || facing === 'w') drawBack();
+  }
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.
   function streetLamp(g, lit) {
     floorShadow(g, 7, 2);
     const iron = { top: '#3a3a40', south: '#2a2a30', east: '#1e1e22', edge: '#5a5a62' };
     prism(g, 12, 13, 20, 21, 0, 4, { top: '#9a9a96', south: '#7a7a76', east: '#5e5e5a', edge: '#bcbcb8' });
     prism(g, 15, 16, 17, 18, 4, 40, iron);
-    prism(g, 11, 12, 21, 22, 40, 42, iron);
-    prism(g, 12, 13, 20, 21, 42, 52, { top: '#ffe090', south: lit ? '#ffe9a8' : '#59626e', east: lit ? '#e8c060' : '#3a4048', edge: '#fff4c8' });
+    prism(g, 12, 13, 20, 21, 40, 42, iron);
+    prism(g, 13, 14, 19, 20, 42, 52, { top: '#ffe090', south: lit ? '#ffe9a8' : '#59626e', east: lit ? '#e8c060' : '#3a4048', edge: '#fff4c8' });
     onSouth(g, 21, f => { rect(f, '#2a2a30', 15, 42, 1, 10); rect(f, '#2a2a30', 12, 47, 8, 1); });
-    prism(g, 10, 11, 22, 23, 52, 55, iron);
-    const [x, y] = P(16, 17, 55); poly(g, '#2a2a30', [x - 4, y, x + 4, y, x, y - 4]);
+    prism(g, 12, 13, 20, 21, 52, 54, { top: '#6a6a72', south: '#3a3a40', east: '#2a2a30', edge: '#8a8a92' });
+    prism(g, 15, 16, 17, 18, 54, 58, iron); // the finial
   }
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
   function onSouth(g, v, fn) {
@@ -1037,11 +1066,10 @@ const Sprites = (() => {
     // A chopping block with an axe in it and split logs.
     // A chopping block with an axe in it, and split logs beside it.
     firewood(g) {
-      floorShadow(g, 13, 3);
-      column(g, 11, 14, 7, 0, 10, { light: '#8a5a2c', mid: '#6a4220', dark: '#4a2c12', top: '#c8925a' });
-      const [tx, ty] = P(11, 14, 10); ellipse(g, '#a8703a', tx, ty, 4, 4);
-      line(g, '#5a3618', 2, tx, ty, tx + 6, ty - 12); prism(g, 14, 10, 19, 12, 18, 24, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
-      for (const [u, v] of [[20, 20], [24, 24], [19, 26]]) { prism(g, u, v, u + 8, v + 3, 0, 3, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' }); }
+      shadow(g, 16, 29, 13, 3);
+      ellipse(g, '#6a4220', 12, 22, 7, 5); rect(g, '#6a4220', 5, 15, 14, 7); ellipse(g, '#c8925a', 12, 15, 7, 3); ellipse(g, '#a8703a', 12, 15, 4, 1.6);
+      line(g, '#5a3618', 2, 13, 14, 20, 5); poly(g, '#a8acb4', [17, 4, 24, 4, 24, 9, 19, 9]);
+      for (const [x, y] of [[22, 22], [26, 25], [21, 27]]) { ellipse(g, '#8a5a2c', x, y, 4, 2); ellipse(g, '#d8a868', x - 2, y, 1.5, 1.5); }
     },
     // A wooden pier over water: planks on posts.
     pier(g, r) {
@@ -1621,12 +1649,12 @@ const Sprites = (() => {
     },
     // A gravestone: a stone slab with a rounded top and a cross cut into it.
     gravestone(g) {
-      floorShadow(g, 10, 2);
-      prism(g, 7, 14, 25, 19, 0, 20, { top: '#b8b8b4', south: '#8e8e8a', east: '#6e6e6a', edge: '#dcdcd8' });
-      const [lx, ly] = P(7, 19, 20), [rx, ry] = P(25, 19, 20), [ex, ey] = P(25, 14, 20);
-      g.fillStyle = '#8e8e8a'; g.beginPath(); g.arc((lx + rx) / 2, ly, (rx - lx) / 2, Math.PI, 0); g.fill();
-      g.fillStyle = '#b8b8b4'; g.beginPath(); g.arc((lx + rx) / 2 + (ex - rx), ey, (rx - lx) / 2, Math.PI, 0); g.fill();
-      onSouth(g, 19, f => { rect(f, '#5e5e5a', 15, 6, 2, 12); rect(f, '#5e5e5a', 11, 13, 10, 2); });
+      shadow(g, 16, 28, 10, 3);
+      rect(g, '#8a8a90', 9, 10, 14, 18);
+      ellipse(g, '#8a8a90', 16, 10, 7, 6);
+      rect(g, '#6a6a70', 15, 9, 2, 10);
+      rect(g, '#6a6a70', 12, 12, 8, 2);
+      rect(g, '#a0a0a6', 9, 10, 1, 18);
     },
     tent(g) {
       shadow(g, 16, 29, 15, 3);
@@ -1791,14 +1819,12 @@ const Sprites = (() => {
     door_sealed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false, true),
     // A chair: a slatted back, a seat lit from above, legs.
     // A chair: four legs, a seat, and a slatted back along its north edge.
-    chair(g) {
-      floorShadow(g, 8, 2);
-      prism(g, 9, 9, 11, 11, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' }); prism(g, 21, 9, 23, 11, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
-      prism(g, 9, 9, 23, 11, 10, 24, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
-      for (const z of [15, 20]) line(g, '#5e3a1a', 1, ...P(10, 11, z), ...P(22, 11, z));
-      prism(g, 9, 21, 11, 23, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' }); prism(g, 21, 21, 23, 23, 0, 10, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
-      prism(g, 8, 9, 24, 23, 10, 13, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
-    },
+    // A chair facing south (its back along the north edge); chair_east, chair_west and chair_north
+    // turn it. Four thin legs, a thin seat, and a back of two posts with two rails between them.
+    chair(g) { drawChair(g, 's'); },
+    chair_east(g) { drawChair(g, 'e'); },
+    chair_west(g) { drawChair(g, 'w'); },
+    chair_north(g) { drawChair(g, 'n'); },
     // A potted plant: a clay pot and a bushy plant in it.
     plant(g) {
       shadow(g, 16, 28, 8, 3);

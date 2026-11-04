@@ -700,7 +700,7 @@ function buildTown(m, S, runs, river) {
   {
     const a = B.academy, cx = (a.x0 + a.x1) >> 1;
     for (let x = a.x0 + 1; x < a.x1; x += 2) put(x, a.y0 + 1, S, 'bookshelf');
-    for (const y of [a.y0 + 3, a.y0 + 5]) { put(cx - 1, y, S, 'table'); inside(a, cx, y, 'chair'); }
+    for (const y of [a.y0 + 3, a.y0 + 5]) { put(cx - 1, y, S, 'table'); inside(a, cx, y, 'chair_west'); }
     put(a.x1 - 1, a.y1 - 1, S, 'bed'); put(a.x1 - 1, a.y1 - 2, S, 'chest');
     put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Lessons every morning: fighting, magic, and how not to get eaten by rats.' });
     put(a.x0 + 1, a.y1 - 1, S, 'stairs_up');
@@ -753,7 +753,7 @@ function buildTown(m, S, runs, river) {
     for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 2, 'counter');
     for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 1, 'barrel');
     put(n.x1 - 1, n.y1 - 1, S, 'campfire');
-    for (const [x, y] of [[n.x0 + 6, n.y0 + 3], [n.x0 + 6, n.y0 + 6], [n.x0 + 2, n.y0 + 3]]) { put(x, y, S, 'table'); inside(n, x - 1, y, 'chair'); inside(n, x + 1, y, 'chair'); }
+    for (const [x, y] of [[n.x0 + 6, n.y0 + 3], [n.x0 + 6, n.y0 + 6], [n.x0 + 2, n.y0 + 3]]) { put(x, y, S, 'table'); inside(n, x - 1, y, 'chair_east'); inside(n, x + 1, y, 'chair_west'); }
     put(n.x1 - 1, n.y0 + 1, S, 'stairs_up');
     put(n.x1 - 1, n.y0 + 1, S + 1, 'stairs_down');
     // three rooms off a corridor along the north wall
@@ -789,7 +789,7 @@ function buildTown(m, S, runs, river) {
     inside(h, h.x0 + 1, h.y0 + 1, 'bed');
     inside(h, h.x1 - 1, h.y0 + 1, 'chest');
     const tx = (h.x0 + h.x1) >> 1, ty = (h.y0 + h.y1 + 1) >> 1;
-    inside(h, tx, ty, 'table'); inside(h, tx + 1, ty, 'chair');
+    inside(h, tx, ty, 'table'); inside(h, tx + 1, ty, 'chair_west');
     inside(h, h.x0 + 1, h.y1 - 1, 'plant');
     m.houses.push({ id: `oak_${id}`, name: h.name, rent, x0: h.x0, y0: h.y0, x1: h.x1, y1: h.y1, z: S });
   }

@@ -145,6 +145,9 @@ const THINGS = {
 
   table:       { name: 'table', cat: 'Furniture', block: true, low: true, movable: true },
   chair:       { name: 'chair', cat: 'Furniture', movable: true },
+  chair_east:  { name: 'chair', cat: 'Furniture', movable: true }, // facing east
+  chair_west:  { name: 'chair', cat: 'Furniture', movable: true }, // facing west
+  chair_north: { name: 'chair', cat: 'Furniture', movable: true }, // facing north
   plant:       { name: 'potted plant', cat: 'Furniture', block: true, low: true, movable: true },
   bed:         { name: 'bed', cat: 'Furniture', block: true, low: true },
   counter:     { name: 'counter', cat: 'Furniture', block: true, low: true },
