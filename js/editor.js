@@ -678,6 +678,7 @@
       }
       const ratio = touchDistance(e.touches) / Math.max(1, g.distance);
       ed.zoom = ZOOMS.reduce((best, z) => Math.abs(z - g.zoom * ratio) < Math.abs(best - g.zoom * ratio) ? z : best, ZOOMS[0]);
+      updateStatus();
       return;
     }
     if (g.mode === 'pinch') return;

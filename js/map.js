@@ -185,8 +185,10 @@ function loadStoredMap() {
     const json = localStorage.getItem(MAP_STORAGE_KEY);
     if (json) {
       const saved = JSON.parse(json);
-      // Do not let an old browser-local world silently replace the new Rookgaard world.
-      if (saved.width === 271 && saved.height === 301 && saved.depth === 16 && saved.surfaceZ === 8)
+      // Only a map of the built-in world's size: an editor map of an older world would
+      // otherwise silently replace it.
+      const size = typeof WORLD_SIZE !== 'undefined' ? WORLD_SIZE : saved;
+      if (saved.width === size.width && saved.height === size.height && saved.depth === size.depth && saved.surfaceZ === size.surfaceZ)
         return GameMap.fromJSON(saved);
     }
   } catch (e) {

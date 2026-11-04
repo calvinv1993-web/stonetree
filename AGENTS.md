@@ -23,6 +23,9 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Online test (spawns its own server) | `node tests/online.test.js` |
 | Browser soak test | `node tests/browser.test.js [seconds] [seed]` |
 | Screenshot of the real page | `node tests/screenshot.js out.png [x y z] [--hour 22] [--mobile] [--view] [--eval "js"]` |
+| World validator: size, coast, floor changes, reachability | `node tests/world.test.js [--verbose]` |
+| Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
+| Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
 | Syntax check | `node --check js/<file>.js` |
 
 - **Node 22 or newer**: the online test uses the built-in `WebSocket`.
@@ -101,10 +104,15 @@ Some details of the online client:
 
 ### The world
 
-- **`default-map.js`** generates the whole 768×512 world, 8 floors deep, from a seeded RNG (`makeRng`).
-  - It's deterministic, so every browser and the server build the same world.
-  - Any change shifts the random calls after it, and with them the world further on. That's fine: nothing stores the generated world. But keep hand-placed things placed by coordinates.
-- **Coordinates**: `x, y, z`. `z` goes **up** with altitude, and `map.surfaceZ` is 4: below it is underground, above it upstairs and roofs.
+- **The built-in world is being rebuilt** as Thistlewick Isle, a hand-designed starter island, phase by phase with the owner's approval. The plan, with every coordinate and what's still open, is in `docs/world-plan.md`.
+- **`default-map.js`** draws the world from `ISLE_DESIGN`, plain data at its top: outlines (coast, lakes, forests, mountains, marshes) and lines (rivers, roads, paths).
+  - It's deterministic: a fixed hash of the coordinates only roughens edges and scatters trees inside the drawn areas. Nothing is generated at random, and editing one feature never moves another.
+  - Its size is `WORLD_SIZE`: 256×256 tiles, 16 floors. `loadStoredMap` only accepts an editor map of that size.
+- **Coordinates**: `x, y, z`. `z` goes **up** with altitude, and `map.surfaceZ` is 8: floors 0–7 are underground, 9–15 above ground (mountain tops, upper storeys, roofs).
+- **Floor changes** (`changeFloor` in `game-core.js`) move you exactly one floor, at the same x, y, or the first free tile next to it, and never onto another floor change. So every stair, ladder, hole and ramp needs free ground there on the other floor.
+  - Mountains are `cliff`s with their top on the floor above, at the same x, y.
+  - Paths up are a `ramp` with a `ramp_top` above it, on a south or east edge. Elsewhere the shifted top hides them.
+- **Check the world** with `node tests/world.test.js`. It runs every floor change through the game's own code, from every side, and checks that everything can be reached and walked back from. Run `node tests/editor.test.js` for the editor.
 - **A tile**: `null`, or `{ ground, items: [ids] }`.
   - The ids come from `THINGS` in `defs.js`, whose flags are documented at its top.
   - Per-tile settings live in `map.meta["x,y,z"]`: `to, target, lock, quest, level, text, look, ore`.
