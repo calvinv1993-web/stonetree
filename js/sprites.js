@@ -444,9 +444,9 @@ const Sprites = (() => {
     g.putImageData(img, 0, 0);
   }
 
-  function bridge(g, r, eastWest) {
+  function bridge(g, r, eastWest, water = '#2d63b5') {
     if (eastWest) { g.translate(16, 16); g.rotate(Math.PI / 2); g.translate(-16, -16); }
-    rect(g, '#2d63b5', 0, 0, TILE, TILE);
+    rect(g, water, 0, 0, TILE, TILE);
     for (let y = 0; y < TILE; y += 5) {
       const v = (r() * 18) | 0;
       rect(g, `rgb(${132 + v},${88 + v},${46 + v})`, 3, y, 26, 4);
@@ -467,7 +467,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack']);
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
@@ -648,6 +648,27 @@ const Sprites = (() => {
       }
     },
     cave(g, r) { noise(g, r, '#4d443b', ['#3f3730', '#5a5047', '#463d35', '#362f29'], 130); },
+    // The walkways of a sewer: big worn flagstones, damp, with dark joints.
+    sewer(g, r) {
+      rect(g, '#262a24', 0, 0, TILE, TILE);
+      for (const [x0, y0, w, h] of [[0, 0, 16, 16], [16, 0, 16, 11], [16, 11, 16, 21], [0, 16, 16, 16]]) {
+        const v = 84 + ((r() * 18) | 0);
+        rect(g, `rgb(${v},${v + 4},${v - 6})`, x0 + 1, y0 + 1, w - 1, h - 1);
+        rect(g, `rgb(${v + 14},${v + 18},${v + 6})`, x0 + 1, y0 + 1, w - 1, 1);
+        rect(g, `rgb(${v - 22},${v - 18},${v - 26})`, x0 + 1, y0 + h - 1, w - 1, 1);
+      }
+      for (let i = 0; i < 4; i++) ellipse(g, 'rgba(40,62,30,0.3)', 3 + r() * 26, 3 + r() * 26, 2 + r() * 4, 1 + r() * 2); // damp patches
+      for (let i = 0; i < 14; i++) rect(g, r() < 0.5 ? 'rgba(20,24,18,0.5)' : 'rgba(130,150,110,0.3)', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
+    },
+    // The channel down the middle of a sewer: murky green water with scum drifting on it.
+    sewer_water(g, r, frame) {
+      rect(g, '#2c4630', 0, 0, TILE, TILE);
+      for (let i = 0; i < 4; i++) ellipse(g, 'rgba(84,104,48,0.35)', 3 + r() * 26, 3 + r() * 26, 3 + r() * 5, 1.5 + r() * 2);
+      for (let i = 0; i < 8; i++) {
+        const x = ((r() * TILE) | 0) + frame * 2, y = 1 + ((r() * 30) | 0), w = 3 + ((r() * 5) | 0);
+        for (const wrap of [0, -TILE]) rect(g, i % 3 ? '#46663f' : '#7a9a60', x + wrap, y, w, 1);
+      }
+    },
     snow(g, r) {
       noise(g, r, '#e8eef4', ['#dce4ee', '#f4f8fc', '#d0dae6'], 70, 2);
       for (let i = 0; i < 3; i++) rect(g, '#c4d0de', (r() * 30) | 0, (r() * 30) | 0, 3, 1);
@@ -759,6 +780,8 @@ const Sprites = (() => {
     // Bridges: planks across the way you walk, a beam along each side.
     bridge_ns(g, r) { bridge(g, r, false); },
     bridge_ew(g, r) { bridge(g, r, true); },
+    sewer_bridge_ns(g, r) { bridge(g, r, false, '#2c4630'); },
+    sewer_bridge_ew(g, r) { bridge(g, r, true, '#2c4630'); },
     paving(g, r) {
       rect(g, '#6e6a62', 0, 0, TILE, TILE);
       for (const y of [0, 16]) {
@@ -835,6 +858,18 @@ const Sprites = (() => {
     wall_sandstone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_sandstone'),
     wall_block(g, r) {
       wallBlock(g, 'block', { south: () => bricks(g, r, 104, '#4f4f55'), east: () => bricks(g, r, 72, '#36363c'), top: '#8a8a92' });
+    },
+    // The brick walls of the sewers, green with slime at the foot.
+    wall_sewer(g, r) {
+      wallBlock(g, 'block', {
+        south: () => {
+          bricks(g, r, 74, '#262824');
+          for (let i = 0; i < 7; i++) rect(g, 'rgba(62,92,40,0.55)', r() * 30, 21 + r() * 5, 2 + r() * 4, 11); // slime
+          rect(g, 'rgba(24,34,20,0.55)', 0, 28, TILE, 4);
+        },
+        east: () => bricks(g, r, 52, '#1c1e1c'),
+        top: '#34362f',
+      });
     },
     wall_cave(g, r) {
       wallBlock(g, 'block', {
@@ -2035,6 +2070,26 @@ const Sprites = (() => {
       rect(g, '#3a3028', 28, 2, 2, 28);
       rect(g, '#3a3028', 2, 28, 28, 2);
     },
+    // A ladder up to a sewer grate: it stands against the tile's north edge and reaches the ceiling,
+    // in the daylight that falls through the grate, striped by its bars.
+    sewer_ladder(g) {
+      g.save();
+      g.beginPath();
+      g.rect(64 + 5, 64 + 6, 22, 22);
+      g.clip();
+      rect(g, 'rgba(255,240,190,0.14)', 64 + 5, 64 + 6, 22, 22);
+      for (let x = 64 + 7; x < 64 + 27; x += 4) rect(g, 'rgba(255,244,200,0.2)', x, 64 + 6, 2, 22);
+      g.restore();
+      // the grate overhead, seen from below: daylight through its bars, where the floor above is drawn
+      const sky = [...P(5, 5, 54), ...P(27, 5, 54), ...P(27, 27, 54), ...P(5, 27, 54)];
+      poly(g, 'rgba(255,244,205,0.55)', sky);
+      for (let u = 9; u < 27; u += 4) line(g, '#3a3a40', 2, ...P(u, 5, 54), ...P(u, 27, 54));
+      line(g, '#4a4a50', 2, ...P(5, 5, 54), ...P(27, 5, 54)); line(g, '#4a4a50', 2, ...P(5, 27, 54), ...P(27, 27, 54));
+      const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
+      prism(g, 8, 3, 11, 6, 0, 54, wood);
+      for (let z = 7; z < 54; z += 8) prism(g, 11, 4, 21, 5, z, z + 2, wood);
+      prism(g, 21, 3, 24, 6, 0, 54, wood);
+    },
     ladder(g) {
       rect(g, '#7a4f26', 8, 0, 3, 31);
       rect(g, '#7a4f26', 21, 0, 3, 31);
@@ -2056,7 +2111,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
@@ -3115,22 +3170,24 @@ const Sprites = (() => {
     }
   }
 
-  function rat(g, dir, frame) {
+  const RAT = { tail: '#d9939a', body: '#7a7068', back: '#8d847b', head: '#857b72', ear: '#e0a0a6', eye: '#111' };
+  const GIANT_RAT = { tail: '#c07a80', body: '#5a4434', back: '#6e5644', head: '#644c3a', ear: '#c88a8e', eye: '#e02a20' };
+  function rat(g, dir, frame, c = RAT) {
     const dx = DX[dir], dy = DY[dir], horiz = dx !== 0;
     const cx = 16, cy = 20 - (frame === 1 ? 1 : 0);
     shadow(g, 16, 26, 9, 3);
-    line(g, '#d9939a', 1.5, cx - dx * 7, cy - dy * 6, cx - dx * 13 + (horiz ? 0 : 3), cy - dy * 11 + (horiz ? 3 : 0));
-    ellipse(g, '#7a7068', cx, cy, horiz ? 8 : 6, horiz ? 5 : 7);
-    ellipse(g, '#8d847b', cx, cy - 1, horiz ? 6 : 4, horiz ? 3 : 5);
+    line(g, c.tail, 1.5, cx - dx * 7, cy - dy * 6, cx - dx * 13 + (horiz ? 0 : 3), cy - dy * 11 + (horiz ? 3 : 0));
+    ellipse(g, c.body, cx, cy, horiz ? 8 : 6, horiz ? 5 : 7);
+    ellipse(g, c.back, cx, cy - 1, horiz ? 6 : 4, horiz ? 3 : 5);
     const hx = cx + dx * 8, hy = cy + dy * 7;
-    ellipse(g, '#857b72', hx, hy, 4, 4);
-    ellipse(g, '#e0a0a6', hx - dx * 2 - dy * 3, hy - dy * 2 + dx * 3 - 2, 2, 2);
-    ellipse(g, '#e0a0a6', hx - dx * 2 + dy * 3, hy - dy * 2 - dx * 3 - 2, 2, 2);
+    ellipse(g, c.head, hx, hy, 4, 4);
+    ellipse(g, c.ear, hx - dx * 2 - dy * 3, hy - dy * 2 + dx * 3 - 2, 2, 2);
+    ellipse(g, c.ear, hx - dx * 2 + dy * 3, hy - dy * 2 - dx * 3 - 2, 2, 2);
     if (dir === 2) {
-      rect(g, '#111', hx - 2, hy, 1, 1);
-      rect(g, '#111', hx + 1, hy, 1, 1);
+      rect(g, c.eye, hx - 2, hy, 1, 1);
+      rect(g, c.eye, hx + 1, hy, 1, 1);
     } else if (horiz) {
-      rect(g, '#111', hx + dx, hy - 1, 1, 1);
+      rect(g, c.eye, hx + dx, hy - 1, 1, 1);
     }
     if (dir !== 0) rect(g, '#e0a0a6', hx + dx * 3, hy + dy * 3, 1, 1);
   }
@@ -3598,12 +3655,18 @@ const Sprites = (() => {
     if (key.startsWith('npc:')) return NPCS[key.slice(4)].look;
     return MONSTER_LOOKS[key] || null;
   }
-  const BIG_BEASTS = ['giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
+  const BIG_BEASTS = ['giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
   function creatureDrawer(key) {
     const look = lookFor(key);
     if (look) return (g, d, f) => humanoid(g, look, d, f);
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
+      giant_rat: (g, d, f) => { // a rat the size of a dog, with red eyes
+        g.translate(16, 26);
+        g.scale(1.45, 1.45);
+        g.translate(-16, -26);
+        rat(g, d, f, GIANT_RAT);
+      },
       ice_wolf: (g, d, f) => wolf(g, d, f, ICE_WOLF),
       polar_bear: polarBear,
       crocodile,
@@ -3674,8 +3737,8 @@ const Sprites = (() => {
 
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
-  const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, marble: 0, carpet: 0 };
-  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
+  const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
+  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sewer_water: 0, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
@@ -3690,6 +3753,7 @@ const Sprites = (() => {
     ash: { shade: 'rgba(0,0,0,0.25)', rim: 'rgba(40,36,34,0.85)', pebbles: ['#5a5654', '#2e2a28'] },
     rock_top: { shade: 'rgba(0,0,0,0.45)', rim: '#1e1e20', light: 'rgba(230,230,224,0.6)' },
     cave: { shade: 'rgba(0,0,0,0.3)', rim: 'rgba(40,34,28,0.85)', pebbles: ['#5a5047', '#362f29', '#6a6056'] },
+    sewer: { shade: 'rgba(0,0,0,0.45)', lip: 2, rim: '#1a1c18', light: 'rgba(170,180,150,0.45)' }, // a stone kerb along the channel
   };
   function groundTexture(id) {
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));

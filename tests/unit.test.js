@@ -1265,6 +1265,24 @@ test('save and load keep the character', () => {
   assert.strictEqual(p.name, 'Saved');
 });
 
+test('the sewers: a street grate takes you down to the rats, the ladder under it back up', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  ctx.teleport({ x: 131, y: 113, z: 8 });
+  A.walkTo(131, 111);
+  tick(game, 1500);
+  assert.strictEqual(p.z, 7, 'climbed down through the grate on the square');
+  assert(Math.abs(p.x - 131) <= 1 && Math.abs(p.y - 111) <= 1, 'landed beside the ladder under it');
+  assert(map.get(131, 111, 7).items.includes('sewer_ladder'), 'a ladder stands under the grate');
+  A.walkTo(131, 111);
+  tick(game, 1500);
+  assert.strictEqual(p.z, 8, 'climbed back up the ladder');
+  const below = map.spawns.filter(s => s.z === 7);
+  assert(below.filter(s => s.type === 'rat').length >= 8, 'rats live in the sewers');
+  assert(below.some(s => s.type === 'giant_rat'), 'and giant rats in their nest');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

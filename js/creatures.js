@@ -15,6 +15,10 @@ const MONSTERS = {
     name: 'rat', hp: 18, xp: 5, dmg: [0, 3], speed: 480, attackSpeed: 1600, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
+  giant_rat: { // the big rats of the Oakvale sewers
+    name: 'giant rat', hp: 42, xp: 16, dmg: [1, 6], speed: 440, attackSpeed: 1500, aggro: 5, corpse: 'blood',
+    loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
+  },
   spider: {
     name: 'spider', hp: 30, xp: 10, dmg: [1, 6], speed: 420, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],

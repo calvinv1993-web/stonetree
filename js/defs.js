@@ -39,6 +39,8 @@ const THINGS = {
   marble:      { name: 'marble floor', cat: 'Ground', ground: true },
   wood:        { name: 'wooden floor', cat: 'Ground', ground: true },
   cave:        { name: 'cave floor', cat: 'Ground', ground: true },
+  sewer:       { name: 'damp flagstones', cat: 'Ground', ground: true },             // the walkways of a sewer
+  sewer_water: { name: 'sewer water', cat: 'Ground', ground: true, block: true },  // the channel between them
   swamp:       { name: 'swamp', cat: 'Ground', ground: true },
   paving:      { name: 'paving stones', cat: 'Ground', ground: true },
   brick:       { name: 'brick road', cat: 'Ground', ground: true },
@@ -57,6 +59,8 @@ const THINGS = {
   water:       { name: 'water', cat: 'Ground', ground: true, block: true },
   bridge_ns:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing north-south
   bridge_ew:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing east-west
+  sewer_bridge_ns: { name: 'wooden planks', cat: 'Ground', ground: true }, // over a sewer channel, crossing north-south
+  sewer_bridge_ew: { name: 'wooden planks', cat: 'Ground', ground: true }, // ...and east-west
 
   roof:        { name: 'roof', cat: 'Roofs', ground: true, roof: true },
   roof_slate:  { name: 'slate roof', cat: 'Roofs', ground: true, roof: true },
@@ -72,6 +76,7 @@ const THINGS = {
   wall_secret: { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin', sprite: 'wall_stone' },
   wall_block:  { name: 'stone block', cat: 'Walls', block: true, wall: 'block' },
   wall_cave:   { name: 'rock wall', cat: 'Walls', block: true, wall: 'block' },
+  wall_sewer:  { name: 'old brickwork', cat: 'Walls', block: true, wall: 'block' },
   ore_vein:    { name: 'ore vein', cat: 'Walls', block: true, wall: 'block', oreVein: true },
   cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block' },
   door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
@@ -132,7 +137,7 @@ const THINGS = {
   rubble:      { name: 'rubble', cat: 'Nature' },
   crystal:     { name: 'glowing crystal', cat: 'Nature', block: true, low: true, light: 3 },
   puddle:      { name: 'puddle', cat: 'Nature' },
-  grate:       { name: 'sewer grate', cat: 'Town' },
+  grate:       { name: 'sewer grate', cat: 'Floor change', change: -1 }, // climb down into the sewers
   apple_crate: { name: 'crate of apples', cat: 'Town', block: true, low: true },
   fish_rack:   { name: 'fish drying rack', cat: 'Town', block: true, low: true },
   pier:        { name: 'wooden pier', cat: 'Ground', ground: true },
@@ -216,6 +221,7 @@ const THINGS = {
   stairs_down: { name: 'stairs leading down', cat: 'Floor change', change: -1 },
   hole:        { name: 'hole', cat: 'Floor change', change: -1 },
   trapdoor:    { name: 'trapdoor', cat: 'Floor change', change: -1 }, // the top of a ladder
+  sewer_ladder:{ name: 'ladder', cat: 'Floor change', change: 1, light: 2 }, // up to a grate, in the daylight falling through it
   // A path up a mountain side, in place of a cliff. The floor above gets ramp_top
   // (an invisible ground) right over it: step on it from above to walk down.
   ramp:        { name: 'mountain path', cat: 'Floor change', change: 1, tall: true },

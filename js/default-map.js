@@ -191,7 +191,7 @@ const OAKVALE = {
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[131, 111], [140, 129], [110, 128], [127, 141]],
-  grateLook: 'Something squeaks and scratches down there in the dark.',
+  grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Step onto it to climb down.',
   // Things with something to say when you look at them: [x, y, text]
   looks: [
     [124, 110, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
@@ -239,6 +239,47 @@ const OAKVALE = {
   ],
   notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
   firstSteps: [140, 107, 'Welcome to Oakvale Isle! Below you lies the town. Down the steps is the square; the depot is east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
+};
+
+// The sewers under Oakvale, one floor down: brick tunnels under the main streets, each with a channel of
+// murky water down the middle and a walkway on either side. You climb down through the grates in the
+// streets (OAKVALE.grates); a ladder under each one leads back up. The rats live here, and the big ones
+// nest where the brickwork has fallen in, under the graveyard. A dead end under the temple mount is the
+// old bell cellar, where the temple bell's rope comes down.
+//   z:        the floor they're on
+//   walks:    walkways and rooms, [x0, y0, x1, y1] (damp flagstones)
+//   channels: water, [x0, y0, x1, y1], laid over the walkways
+//   bridges:  [x, y] planks over a channel (they run across it)
+//   rooms:    old stone rooms { x0, y0, x1, y1, ground, wall }
+//   caves:    where the brickwork has fallen in: rough earth { cx, cy, rx, ry }
+//   torches:  wall torches on north walls, [x, y]
+//   props:    [x, y, id]; rats, bigRats: where they live, [x, y]
+const SEWERS = {
+  z: 7,
+  walks: [
+    [104, 128, 147, 132], // under the main street, from the west gate to the east side
+    [130, 108, 134, 127], // north, under the square, to the temple mount
+    [133, 107, 134, 107], // the way into the bell cellar
+    [124, 133, 128, 144], // south, under the street to the south gate
+    [105, 127, 106, 127], // the way into the old storeroom
+    [143, 133, 144, 135], // a hole in the wall, into the rats' nest
+  ],
+  channels: [[104, 130, 147, 130], [132, 108, 132, 129], [126, 131, 126, 144]],
+  bridges: [[112, 130], [120, 130], [138, 130], [145, 130], [132, 128], [132, 129], [132, 117], [126, 131], [126, 132], [126, 139]],
+  rooms: [
+    { x0: 133, y0: 101, x1: 140, y1: 106, ground: 'paving', wall: 'wall_sewer' }, // the bell cellar, under the temple
+    { x0: 103, y0: 121, x1: 108, y1: 126, ground: 'paving', wall: 'wall_sewer' }, // an old storeroom, under the river
+  ],
+  caves: [{ cx: 146, cy: 139.5, rx: 5.6, ry: 4.6 }],
+  torches: [[108, 127], [116, 127], [125, 127], [137, 127], [143, 127], [131, 107]],
+  props: [
+    [103, 121, 'barrel'], [104, 121, 'barrel'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
+    [133, 101, 'web'], [140, 101, 'web'], [140, 106, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
+    [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
+    [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
+  ],
+  rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
+  bigRats: [[144, 138], [148, 140], [146, 142]],
 };
 
 function createDefaultMap() {
@@ -571,6 +612,7 @@ function createDefaultMap() {
   }
 
   buildTown(m, S, runs, d.rivers[0]);
+  buildSewers(m, S);
 
   // ---- the first hunting grounds: [type, [[x, y], ...]], each on the nearest free tile outside town ----
   const huntingGrounds = [
@@ -593,6 +635,62 @@ function createDefaultMap() {
   const xs = d.coast.map(p => p[0]), ys = d.coast.map(p => p[1]);
   m.isle = { x0: Math.min(...xs) - 4, y0: Math.min(...ys) - 4, x1: Math.max(...xs) + 4, y1: Math.max(...ys) + 4 };
   return m;
+}
+
+// Builds the sewers under Oakvale (see SEWERS): the walkways, rooms and fallen-in parts, the channels and
+// their bridges, a wall round all of it, a ladder under every grate, and the rats.
+function buildSewers(m, S) {
+  const D = SEWERS, Z = D.z, put = (x, y, id) => m.addItem(x, y, Z, id);
+  const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  const fill = ([x0, y0, x1, y1], fn) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) fn(x, y); };
+  const wallOf = new Map(); // the wall each carved tile wants round it
+  const carve = (x, y, ground, wall) => { m.set(x, y, Z, { ground, items: [] }); wallOf.set(`${x},${y}`, wall); };
+  for (const r of D.walks) fill(r, (x, y) => carve(x, y, 'sewer', 'wall_sewer'));
+  for (const r of D.rooms) fill([r.x0, r.y0, r.x1, r.y1], (x, y) => carve(x, y, r.ground, r.wall));
+  for (const c of D.caves) {
+    fill([Math.floor(c.cx - c.rx - 1), Math.floor(c.cy - c.ry - 1), Math.ceil(c.cx + c.rx + 1), Math.ceil(c.cy + c.ry + 1)], (x, y) => {
+      const d = ((x - c.cx) / c.rx) ** 2 + ((y - c.cy) / c.ry) ** 2;
+      if (d < 0.75 + hash(x + 3, y + 7) * 0.4) carve(x, y, 'cave', 'wall_cave');
+    });
+  }
+  for (const r of D.channels) fill(r, (x, y) => m.setGround(x, y, Z, 'sewer_water'));
+  for (const [x, y] of D.bridges) {
+    const water = (dx, dy) => (m.get(x + dx, y + dy, Z) || {}).ground === 'sewer_water';
+    m.setGround(x, y, Z, water(-1, 0) || water(1, 0) ? 'sewer_bridge_ns' : 'sewer_bridge_ew'); // planks across the flow
+  }
+  // A wall round everything carved, of the kind its neighbour asks for (rock round the fallen-in parts).
+  for (const [k, wall] of wallOf) {
+    const [x, y] = k.split(',').map(Number);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (!m.get(x + dx, y + dy, Z)) m.set(x + dx, y + dy, Z, { ground: 'cave', items: [wall] });
+    }
+  }
+  // A ladder under every grate, and a puddle beside it where the rain comes through.
+  for (const [x, y] of OAKVALE.grates) {
+    m.get(x, y, Z).items = ['sewer_ladder'];
+    const wet = [[1, 0], [-1, 0], [0, 1]].find(([dx, dy]) => m.isWalkable(x + dx, y + dy, Z) && !(m.get(x + dx, y + dy, Z).items.length));
+    if (wet) put(x + wet[0], y + wet[1], 'puddle');
+  }
+  for (const [x, y] of D.torches) put(x, y, 'wall_torch');
+  for (const [x, y, id] of D.props) put(x, y, id);
+  // Puddles and pebbles here and there on the walkways.
+  for (const [k] of wallOf) {
+    const [x, y] = k.split(',').map(Number), t = m.get(x, y, Z), v = hash(x * 3 + 1, y * 5 + 2);
+    if (t.ground !== 'sewer' || t.items.length) continue;
+    if (v < 0.04) put(x, y, 'puddle');
+    else if (v < 0.07) put(x, y, 'pebbles');
+  }
+  // The rats, each on the nearest free tile to its spot.
+  const spot = (x, y) => {
+    for (let r = 0; r <= 2; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (m.isWalkable(x + dx, y + dy, Z) && !m.floorChange(x + dx, y + dy, Z)) return [x + dx, y + dy];
+    }
+    return null;
+  };
+  for (const [type, list] of [['rat', D.rats], ['giant_rat', D.bigRats]]) for (const [x, y] of list) {
+    const p = spot(x, y);
+    if (p) m.spawns.push({ type, x: p[0], y: p[1], z: Z });
+  }
 }
 
 // Builds Oakvale (see OAKVALE): the river through it, walls and fences, streets, the square, buildings

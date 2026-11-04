@@ -142,7 +142,11 @@ Every building is a shelter (monsters keep out). All doors, stairs and ladders a
 ### Phase 5: underground
 
 These caves are a design proposal, since there's no underground reference:
-- **Town sewers** under Oakvale (z 7)
+- **Town sewers** under Oakvale (z 7). **Built** (`SEWERS` and `buildSewers` in `js/default-map.js`):
+  - Brick tunnels with a channel of water and a walkway on each side: under the main street (x 104–147, y 128–132), north under the square to the temple mount (x 130–134), and south towards the south gate (x 124–128).
+  - The four street grates go down; a ladder under each one, at the same x, y, goes back up: (131,111), (140,129), (110,128), (127,141).
+  - Rooms: the bell cellar under the temple (133–140, 101–106, a dead end for "The Silent Bell"), an old storeroom (103–108, 121–126), and a rats' nest where the walls have fallen in, under the graveyard (around 146, 139).
+  - 12 rats, and 3 giant rats in the nest.
 - **North Peaks caves** (z 7 and 6)
 - **Bone Rocks crypt** (z 7 to 6)
 - **Spider Hills spider caves** (z 7 to 5): the hardest beginner area
