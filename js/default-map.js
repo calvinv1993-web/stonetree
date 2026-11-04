@@ -147,7 +147,8 @@ const OAKVALE = {
   wall: [[101, 96, 152, 96], [101, 146, 152, 146], [101, 96, 101, 146], [152, 96, 152, 146]],
   gaps: [[125, 96, 127, 96], [127, 146, 129, 146], [101, 129, 101, 131], [152, 115, 152, 117]],
   start: { x: 137, y: 102 }, // in the temple on the mount, before the altar (one floor up)
-  // The bell tower over the back of the temple: two storeys above the hall and a copper spire. stairs: up from
+  // The bell tower over the back of the temple: the ringers' room above the hall, and above that the bell, open
+  // to the sky between pillars that carry copper eaves. stairs: up from
   // the hall; up: on up from the ringers' room; bell: the north-west tile of the great bell (2x2).
   belfry: { x0: 134, y0: 99, x1: 140, y1: 104, stairs: [139, 102], up: [135, 101], bell: [137, 102],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
@@ -915,22 +916,27 @@ function buildTown(m, S, runs, river) {
     for (const y of [t.y0 + 2, t.y0 + 5]) for (const x of [cx - 4, cx + 4]) put(x, y, Z, 'pillar');
     for (const y of [t.y0 + 4, t.y0 + 6]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'bench');
     for (const y of [t.y0 + 2, t.y0 + 5]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
-    // The bell tower, rising from the back of the temple (see OAKVALE.belfry): the ringers' room, the bell
-    // chamber with its arches all round, and a copper spire with a banner, high over the town.
+    // The bell tower, rising from the back of the temple (see OAKVALE.belfry): the ringers' room, and over it
+    // the bell, open all round between pillars under copper eaves, high over the town.
     {
       const bt = T.belfry, [sx, sy] = bt.stairs, [ux, uy] = bt.up, [bx, by] = bt.bell;
       for (let k = 1; k <= 2; k++) {
         const z = Z + k;
         for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) {
           const edge = x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1;
-          m.set(x, y, z, { ground: k === 1 ? 'wood' : 'paving', items: edge ? ['wall_temple'] : [] });
-          // arches all round the bell chamber; a few windows lower down
           const corner = (x === bt.x0 || x === bt.x1) && (y === bt.y0 || y === bt.y1);
-          if (edge && !corner && (k === 2 || (x + y) % 3 === 0)) put(x, y, z, 'window');
+          if (k === 1) { // the ringers' room: walls, a few windows
+            m.set(x, y, z, { ground: 'wood', items: edge ? ['wall_temple'] : [] });
+            if (edge && !corner && (x + y) % 3 === 0) put(x, y, z, 'window');
+          } else { // the bell chamber: open all round, pillars carrying the eaves, so the bell can be seen
+            m.set(x, y, z, { ground: 'paving', items: edge && (corner || (x + y) % 2 === 0) ? ['pillar'] : [] });
+          }
         }
       }
-      for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) m.set(x, y, Z + 3, { ground: 'roof_green', items: [] });
-      put((bt.x0 + bt.x1) >> 1, (bt.y0 + bt.y1) >> 1, Z + 3, 'flagpole');
+      // the eaves: a copper roof all round on the pillars, open over the bell
+      for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) {
+        if (x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1) m.set(x, y, Z + 3, { ground: 'roof_green', items: [] });
+      }
       put(sx, sy, Z, 'stairs_up'); put(sx, sy, Z + 1, 'stairs_down');   // from the hall to the ringers' room...
       put(ux, uy, Z + 1, 'stairs_up'); put(ux, uy, Z + 2, 'stairs_down'); // ...and on up to the bell
       m.setMeta(sx, sy, Z, { look: 'Narrow steps up into the bell tower.' });

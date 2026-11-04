@@ -492,7 +492,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'bell_rope',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'bell_rope', 'chimney',
     'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -1760,16 +1760,18 @@ const Sprites = (() => {
         const [x, y] = P(u, 24, z + 3.5); ellipse(g, '#4a2c12', x, y, 3.6, 3.6); ellipse(g, '#d8a868', x, y, 2.8, 2.8); ellipse(g, '#a8703a', x, y, 1, 1);
       }
     },
+    // A brick chimney on a roof, in the tiles' slant like everything that stands on a tile, smoking from its top.
     chimney(g, r, frame) {
-      for (let i = 0; i < 3; i++) {
+      const brick = { top: '#8a4430', south: '#9a4a36', east: '#6e3424', edge: '#c06a50' };
+      prism(g, 11, 11, 21, 21, 0, 30, brick);
+      onSouth(g, 21, f => { for (let z = 4; z < 30; z += 5) rect(f, 'rgba(40,16,10,0.35)', 11, z, 10, 1); rect(f, 'rgba(255,200,170,0.25)', 11, 0, 2, 30); });
+      prism(g, 9, 9, 23, 23, 30, 34, { top: '#5a2a1e', south: '#6e3426', east: '#4e2418', edge: '#9a5a44' }); // the cap
+      poly(g, '#1e0e08', [...P(12, 12, 34), ...P(20, 12, 34), ...P(20, 20, 34), ...P(12, 20, 34)]); // its dark mouth
+      const [mx, my] = P(16, 16, 34);
+      for (let i = 0; i < 3; i++) { // smoke curling up from it
         const t = (frame + i * 1.4) % 4;
-        ellipse(g, `rgba(205,205,210,${0.55 - t * 0.12})`, 47 - t * 3, 27 - t * 6, 3 + t, 2.5 + t * 0.8);
+        ellipse(g, `rgba(215,215,220,${0.6 - t * 0.13})`, mx - t * 3, my - 5 - t * 6, 3 + t, 2.5 + t * 0.8);
       }
-      rect(g, '#7a3a2a', 42, 36, 12, 22);
-      rect(g, '#9a4a36', 42, 36, 4, 22);
-      for (let y = 40; y < 58; y += 5) rect(g, 'rgba(0,0,0,0.25)', 42, y, 12, 1);
-      rect(g, '#5a2a1e', 40, 33, 16, 4);
-      rect(g, '#2a1610', 43, 33, 10, 1);
     },
     // A wicker basket full of goods.
     // A wicker basket full of goods.
@@ -2920,7 +2922,7 @@ const Sprites = (() => {
   // Things standing on the ground get a dark ink line round them, as in the classic games, so they
   // read clearly against any ground. Their soft shadows (half see-through) get none.
   const NO_INK = new Set(['flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
-    'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate']);
+    'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate', 'chimney']);
   const inkable = (id, def) => !def.ground && !def.wall && !def.onWall && !def.roof && !def.change && !NO_INK.has(id);
   function inked(g, draw) {
     const { width, height } = g.canvas, layer = document.createElement('canvas');
