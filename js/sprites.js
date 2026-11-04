@@ -234,6 +234,15 @@ const Sprites = (() => {
     rect(g, '#fff6c8', cx - 1, by - 3, 2, 2);
     if (frame % 2) rect(g, '#ffd060', cx + sway * 2 + (frame === 1 ? -w * 0.6 : w * 0.6), by - h - 3 - lick, 1, 1); // a spark
   }
+  // A shop sign: an iron arm out from the wall with a board hanging from it, and its picture.
+  function hangingSign(g, board, picture) {
+    rect(g, '#2e2e34', 4, 3, 22, 2); rect(g, '#5a5a62', 4, 3, 22, 1); poly(g, '#2e2e34', [4, 5, 4, 9, 9, 5]);
+    for (const x of [9, 22]) rect(g, '#3a3a40', x, 5, 1, 3);
+    rect(g, '#2a1c10', 7, 7, 18, 17);
+    rect(g, board, 8, 8, 16, 15);
+    rect(g, 'rgba(255,255,255,0.18)', 8, 8, 16, 1); rect(g, 'rgba(0,0,0,0.25)', 8, 22, 16, 1);
+    picture();
+  }
   function onWall(g, shape, paint) {
     face(g, runsNorthSouth(wallSides(shape)) ? 'east' : 'south', 0, paint);
   }
@@ -368,11 +377,29 @@ const Sprites = (() => {
   // --- map tiles: draw(g, rng, animationFrame, shape, material) ---------------------
   // Trees, walls and things on walls are 64x64, drawn with their tile in the bottom-right quarter.
   const DRAW = {
+    // Grass: soft light and dark patches, and blades everywhere, each lit at the tip.
     grass(g, r) {
-      noise(g, r, '#4a8f3c', ['#3f7d33', '#57a046', '#437f37', '#62aa4f'], 140);
-      for (let i = 0; i < 6; i++) rect(g, '#35702b', (r() * 31) | 0, (r() * 29) | 0, 1, 3);
+      rect(g, '#4b8d39', 0, 0, TILE, TILE);
+      for (let i = 0; i < 5; i++) ellipse(g, r() < 0.5 ? 'rgba(98,160,70,0.35)' : 'rgba(40,96,34,0.3)', r() * 32, r() * 32, 4 + r() * 6, 3 + r() * 4);
+      for (let i = 0; i < 70; i++) {
+        const x = (r() * 32) | 0, y = (r() * 32) | 0, h = 2 + ((r() * 2) | 0);
+        rect(g, r() < 0.55 ? '#3b7a2d' : '#428536', x, y, 1, h);
+        rect(g, r() < 0.5 ? '#6aae4e' : '#5c9f45', x, y - 1, 1, 1);
+      }
+      for (let i = 0; i < 6; i++) rect(g, '#80c062', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
     },
-    dirt(g, r) { noise(g, r, '#8b6b42', ['#7a5c37', '#9c7a4e', '#6e5230', '#a3845a'], 110); },
+    // Dirt: trodden earth with darker ruts, clods lit from the top-left, and a few small stones.
+    dirt(g, r) {
+      rect(g, '#8a6a42', 0, 0, TILE, TILE);
+      for (let i = 0; i < 6; i++) ellipse(g, r() < 0.5 ? 'rgba(110,82,48,0.55)' : 'rgba(160,128,86,0.4)', r() * 32, r() * 32, 3 + r() * 6, 2 + r() * 3);
+      for (let i = 0; i < 14; i++) {
+        const x = (r() * 30) | 0, y = (r() * 30) | 0;
+        rect(g, '#6e5230', x, y + 1, 2, 1);
+        rect(g, '#a4845a', x, y, 2, 1);
+      }
+      for (let i = 0; i < 4; i++) { const x = (r() * 30) | 0, y = (r() * 30) | 0; rect(g, '#7c7468', x, y, 2, 2); rect(g, '#aaa294', x, y, 1, 1); }
+      for (let i = 0; i < 40; i++) rect(g, r() < 0.5 ? '#7a5c38' : '#9c7a4e', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
+    },
     sand(g, r) {
       noise(g, r, '#dcc98f', ['#cdb87a', '#e8d8a4', '#c4ad6f'], 90, 1);
       for (let i = 0; i < 3; i++) { // ripples the wind left
@@ -440,14 +467,19 @@ const Sprites = (() => {
       noise(g, r, '#4a5a30', ['#3f4f28', '#56683a', '#3a4a2a'], 130);
       for (let i = 0; i < 3; i++) ellipse(g, '#2f3f3a', 4 + r() * 24, 4 + r() * 24, 3 + r() * 2, 1.5);
     },
+    // Cobblestones: round stones of different greys set in dark mortar, each lit from the top-left.
     cobble(g, r) {
-      rect(g, '#4b4b50', 0, 0, TILE, TILE);
-      for (let j = 0; j < 4; j++) {
-        for (let x = -(j % 2) * 4; x < TILE; x += 8) {
-          const v = 100 + ((r() * 30) | 0);
-          rect(g, gray(v), x + 1, j * 8 + 1, 7, 7);
-          rect(g, gray(v + 25), x + 1, j * 8 + 1, 7, 1);
-        }
+      rect(g, '#3f3d3c', 0, 0, TILE, TILE);
+      for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) {
+        const cx = i * 8 + 4 + (j % 2 ? 2 : -1) + (r() - 0.5) * 2, cy = j * 8 + 4 + (r() - 0.5) * 2;
+        const v = 104 + ((r() * 36) | 0), rx = 3.3 + r() * 0.8, ry = 3 + r() * 0.8;
+        ellipse(g, gray(v - 30, 2), cx + 0.6, cy + 0.8, rx, ry);
+        ellipse(g, gray(v, 4), cx, cy, rx, ry);
+        ellipse(g, gray(v + 26, 4), cx - 1, cy - 1.2, rx * 0.5, ry * 0.35);
+      }
+      for (let i = 0; i < 4; i++) { // the ends of stones from the next tile, so rows join up
+        const x = i * 8 + 4 + (r() - 0.5) * 2;
+        ellipse(g, gray(110, 4), x, 0, 3, 1.2);
       }
     },
     marble(g, r) {
@@ -812,13 +844,62 @@ const Sprites = (() => {
       }
     },
 
+    // A sewer grate: iron bars over a dark drop.
+    grate(g) {
+      rect(g, '#141210', 7, 7, 18, 18);
+      rect(g, '#4a4a50', 6, 6, 20, 2); rect(g, '#4a4a50', 6, 24, 20, 2); rect(g, '#4a4a50', 6, 6, 2, 20); rect(g, '#4a4a50', 24, 6, 2, 20);
+      for (let x = 10; x < 24; x += 4) { rect(g, '#5a5a62', x, 8, 2, 16); rect(g, '#8a8a92', x, 8, 1, 16); }
+      rect(g, 'rgba(160,200,220,0.25)', 9, 20, 14, 2); // water far below
+    },
+    // A crate full of red and green apples.
+    apple_crate(g, r) {
+      shadow(g, 16, 29, 13, 3);
+      rect(g, '#8a6436', 4, 14, 24, 14); for (let y = 18; y < 28; y += 4) rect(g, '#6e4e28', 4, y, 24, 1);
+      rect(g, 'rgba(255,240,200,0.2)', 4, 14, 24, 1);
+      for (let i = 0; i < 14; i++) {
+        const x = 7 + (i % 7) * 3 + (r() - 0.5), y = 12 + Math.floor(i / 7) * 3 + (r() - 0.5);
+        ellipse(g, r() < 0.7 ? '#c8302a' : '#7ab040', x, y, 2, 2); rect(g, '#ffffff', x - 1, y - 1, 1, 1);
+      }
+    },
+    // Fish hung up to dry on a wooden frame.
+    fish_rack(g) {
+      shadow(g, 16, 29, 13, 3);
+      for (const x of [4, 26]) { rect(g, '#5a3618', x, 4, 2, 25); rect(g, '#7a4e26', x, 4, 1, 25); }
+      rect(g, '#6a4220', 3, 5, 26, 2);
+      for (const x of [8, 13, 18, 23]) {
+        rect(g, '#c8c0a8', x + 1, 7, 1, 3);
+        poly(g, '#8aa0b0', [x, 10, x + 3, 10, x + 3, 19, x + 1.5, 22, x, 19]);
+        rect(g, '#c0d0d8', x, 11, 1, 7);
+      }
+    },
+    // A chopping block with an axe in it and split logs.
+    firewood(g) {
+      shadow(g, 16, 29, 13, 3);
+      ellipse(g, '#6a4220', 12, 22, 7, 5); rect(g, '#6a4220', 5, 15, 14, 7); ellipse(g, '#c8925a', 12, 15, 7, 3); ellipse(g, '#a8703a', 12, 15, 4, 1.6);
+      line(g, '#5a3618', 2, 13, 14, 20, 5); poly(g, '#a8acb4', [17, 4, 24, 4, 24, 9, 19, 9]);
+      for (const [x, y] of [[22, 22], [26, 25], [21, 27]]) { ellipse(g, '#8a5a2c', x, y, 4, 2); ellipse(g, '#d8a868', x - 2, y, 1.5, 1.5); }
+    },
+    // A wooden pier over water: planks on posts.
+    pier(g, r) {
+      rect(g, '#2d63b5', 0, 0, TILE, TILE);
+      for (let y = 0; y < TILE; y += 5) {
+        const v = (r() * 16) | 0;
+        rect(g, `rgb(${120 + v},${84 + v},${48 + v})`, 0, y, TILE, 4);
+        rect(g, 'rgba(0,0,0,0.3)', 0, y + 4, TILE, 1);
+        rect(g, 'rgba(255,255,255,0.12)', 0, y, TILE, 1);
+        rect(g, '#3a3a40', 3 + ((r() * 26) | 0), y + 1, 1, 1);
+      }
+    },
+    // A sturdy table: a thick top lit from above, its front edge, four legs.
     table(g) {
-      shadow(g, 17, 27, 13, 3);
-      rect(g, '#5e3b1a', 6, 18, 3, 10);
-      rect(g, '#5e3b1a', 23, 18, 3, 10);
-      rect(g, '#9a6633', 3, 8, 26, 12);
-      rect(g, '#b07a44', 3, 8, 26, 2);
-      rect(g, '#6e4422', 3, 19, 26, 2);
+      shadow(g, 16, 29, 14, 3);
+      for (const x of [5, 25]) { rect(g, '#4e3016', x, 17, 3, 12); rect(g, '#6a4220', x, 17, 1, 12); }
+      for (const x of [8, 22]) rect(g, '#3e2410', x, 17, 2, 9); // the back legs
+      rect(g, '#a8703a', 2, 7, 28, 10);
+      for (let y = 9; y < 17; y += 3) rect(g, '#966232', 2, y, 28, 1);
+      rect(g, '#c8925a', 2, 7, 28, 1);
+      rect(g, '#6a4220', 2, 17, 28, 3);
+      rect(g, '#80522a', 2, 17, 28, 1);
     },
     counter(g) {
       rect(g, '#6e4422', 0, 12, TILE, 18);
@@ -827,31 +908,47 @@ const Sprites = (() => {
       rect(g, '#b07a44', 0, 6, TILE, 7);
       rect(g, '#c8925a', 0, 6, TILE, 1);
     },
+    // A chest with a rounded lid, iron bands and a brass lock.
     chest(g) {
-      shadow(g, 16, 28, 12, 3);
-      rect(g, '#6e4019', 5, 12, 22, 16);
-      rect(g, '#8a5526', 5, 12, 22, 6);
-      rect(g, '#4a2a0e', 5, 18, 22, 1);
-      rect(g, '#9a9aa0', 8, 12, 2, 16);
-      rect(g, '#9a9aa0', 22, 12, 2, 16);
-      rect(g, '#e0b030', 15, 17, 3, 4);
+      shadow(g, 16, 29, 13, 3);
+      rect(g, '#6a3e1a', 4, 15, 24, 13);                            // the body
+      for (let y = 18; y < 28; y += 4) rect(g, '#5a3214', 4, y, 24, 1);
+      ellipse(g, '#8a5428', 16, 14, 12, 6);                          // the lid
+      rect(g, '#8a5428', 4, 13, 24, 3);
+      ellipse(g, '#a86c38', 14, 11, 8, 3);
+      rect(g, '#3a2210', 4, 16, 24, 1);
+      for (const x of [7, 23]) { rect(g, '#5a5a62', x, 9, 3, 19); rect(g, '#a8a8b0', x, 9, 1, 19); }
+      rect(g, '#c89a30', 14, 15, 5, 6); rect(g, '#f0d070', 14, 15, 5, 1); rect(g, '#3a2a10', 16, 18, 1, 2);
     },
-    crate(g) {
-      shadow(g, 16, 28, 12, 3);
-      rect(g, '#a07a46', 5, 9, 22, 19);
-      rect(g, '#7a5a30', 5, 9, 22, 2);
-      rect(g, '#7a5a30', 5, 26, 22, 2);
-      line(g, '#7a5a30', 2, 6, 11, 26, 26);
-      line(g, '#7a5a30', 2, 26, 11, 6, 26);
+    // A crate seen from the front and a little above: a lit top, planked sides, a brace, nails.
+    crate(g, r) {
+      shadow(g, 16, 29, 13, 3);
+      poly(g, '#c8a068', [4, 9, 23, 9, 28, 5, 9, 5]);                 // the top
+      for (let x = 7; x < 26; x += 5) line(g, '#a07a46', 1, x, 5, x - 4, 9);
+      poly(g, '#8a6436', [23, 9, 28, 5, 28, 24, 23, 28]);             // the right side, in shade
+      rect(g, '#a8814c', 4, 9, 19, 19);                              // the front
+      for (let y = 13; y < 28; y += 5) rect(g, '#8e6a3a', 4, y, 19, 1);
+      rect(g, '#6e4e28', 4, 9, 2, 19); rect(g, '#6e4e28', 21, 9, 2, 19);
+      line(g, '#7a5830', 2, 6, 26, 21, 11);                           // the brace
+      for (const [x, y] of [[5, 10], [21, 10], [5, 26], [21, 26]]) rect(g, '#d8d0c0', x, y, 1, 1);
+      rect(g, 'rgba(255,240,200,0.25)', 4, 9, 19, 1);
     },
+    // A barrel: staves bulging at the middle, two iron hoops, the lid on top; lit from the top-left.
     barrel(g) {
-      shadow(g, 17, 28, 10, 3);
-      rect(g, '#7a4a1e', 8, 8, 16, 20);
-      rect(g, '#93602f', 10, 8, 4, 20);
-      ellipse(g, '#a87440', 16, 8, 8, 3);
-      ellipse(g, '#5a3410', 16, 8, 6, 2);
-      rect(g, '#555', 8, 13, 16, 2);
-      rect(g, '#555', 8, 23, 16, 2);
+      shadow(g, 17, 29, 11, 3);
+      const staves = ['#6a3e18', '#7e4c22', '#8e5a2a', '#9a6632', '#8a5628', '#7a4a20', '#64391a', '#57311a'];
+      for (let i = 0; i < 8; i++) { // each stave a little wider in the middle
+        const x = 6 + i * 2.6;
+        poly(g, staves[i], [x + 0.6, 7, x + 3.2, 7, x + 3.4, 17, x + 3.2, 28, x + 0.6, 28, x + 0.2, 17]);
+      }
+      rect(g, 'rgba(255,240,210,0.18)', 9, 8, 2, 19); // the shine
+      for (const y of [10, 24]) { rect(g, '#3e3a38', 6, y, 21, 2); rect(g, '#8a8680', 7, y, 19, 1); }
+      ellipse(g, '#5a3414', 16.5, 7, 10.5, 3.6);
+      ellipse(g, '#a87446', 16.5, 6.6, 9, 2.8);
+      for (let x = 10; x < 24; x += 3) rect(g, '#8a5a30', x, 4.5, 1, 4);
+      ellipse(g, '#3e3a38', 16.5, 6.6, 9, 2.8);
+      ellipse(g, '#a87446', 16.5, 6.6, 7.6, 2.1);
+      rect(g, '#7a4e24', 11, 6, 11, 1);
     },
     bookshelf(g, r) {
       rect(g, '#5a3618', 2, 0, 28, 31);
@@ -1174,16 +1271,13 @@ const Sprites = (() => {
       for (const x of [41, 47, 54]) rect(g, '#26262c', x, 8, 1, 12);
       rect(g, '#26262c', 41, 19, 14, 1);
     },
+    // A town bench: three planks for the seat, two for the back, iron ends.
     bench(g) {
-      shadow(g, 16, 27, 14, 3);
-      rect(g, '#3a3a40', 5, 20, 2, 7);
-      rect(g, '#3a3a40', 25, 20, 2, 7);
-      rect(g, '#7a4e26', 3, 8, 26, 3);
-      rect(g, '#7a4e26', 3, 12, 26, 2);
-      rect(g, '#3a3a40', 5, 8, 2, 12);
-      rect(g, '#3a3a40', 25, 8, 2, 12);
-      rect(g, '#8a5a2e', 3, 16, 26, 4);
-      rect(g, '#a8743e', 3, 16, 26, 1);
+      shadow(g, 16, 29, 15, 3);
+      for (const x of [3, 26]) { rect(g, '#2e2e34', x, 6, 3, 23); rect(g, '#5a5a62', x, 6, 1, 23); }
+      for (const y of [6, 10]) { rect(g, '#8a5a2c', 2, y, 28, 3); rect(g, '#a8743e', 2, y, 28, 1); }
+      for (const y of [15, 18]) { rect(g, '#9a6632', 1, y, 30, 3); rect(g, '#c08a52', 1, y, 30, 1); }
+      rect(g, '#5a3618', 1, 21, 30, 1);
     },
     stall(g, r) {
       const [a, b] = [['#c03a30', '#f0e6d0'], ['#2e6ab0', '#f0e6d0'], ['#3f8a3a', '#f4e8b0']][(r() * 3) | 0];
@@ -1267,12 +1361,17 @@ const Sprites = (() => {
       poly(g, '#a8783e', [6, 16, 26, 16, 23, 28, 9, 28]);
       for (let y = 18; y < 28; y += 3) rect(g, '#7a5426', 7, y, 18, 1);
     },
+    // A full sack, tied at the neck, sagging in folds.
     sack(g) {
-      shadow(g, 16, 28, 9, 3);
-      ellipse(g, '#c8b080', 16, 21, 9, 8);
-      ellipse(g, '#d8c494', 14, 19, 5, 4);
-      rect(g, '#a89060', 13, 11, 6, 4);
-      rect(g, '#7a6440', 12, 14, 8, 1);
+      shadow(g, 16, 29, 11, 3);
+      ellipse(g, '#a88a5a', 16, 21, 11, 8);
+      ellipse(g, '#c8ac78', 15, 20, 10, 7);
+      ellipse(g, '#dcc490', 12, 17, 5, 4);
+      line(g, '#a08050', 1, 9, 24, 13, 19);
+      line(g, '#a08050', 1, 22, 26, 20, 18);
+      poly(g, '#c0a070', [12, 13, 20, 13, 22, 7, 10, 7]);
+      rect(g, '#7a5a30', 11, 12, 10, 2);
+      rect(g, '#d8c08c', 12, 7, 3, 2);
     },
     boat(g) {
       ellipse(g, 'rgba(0,10,40,0.3)', 44, 56, 22, 5);
@@ -1486,6 +1585,75 @@ const Sprites = (() => {
       }
       ellipse(g, 'rgba(190,225,245,0.95)', 21, 26, 1.3, 1.8); // a drop
     }),
+    // Shop signs: a board hanging from an iron arm, with a picture of the trade.
+    sign_weapons: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#7a4a22', () => {
+      line(g, '#c8ccd4', 2, 11, 21, 21, 9); line(g, '#c8ccd4', 2, 21, 21, 11, 9);
+      rect(g, '#6a4220', 10, 19, 3, 3); rect(g, '#6a4220', 19, 19, 3, 3);
+    })),
+    sign_armour: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#5a4a3a', () => {
+      poly(g, '#9aa0aa', [11, 9, 21, 9, 21, 15, 16, 21, 11, 15]); poly(g, '#c8ccd4', [11, 9, 16, 9, 16, 21, 11, 15]);
+      rect(g, '#b03030', 15, 10, 2, 9);
+    })),
+    sign_magic: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#3a2a5a', () => {
+      poly(g, '#f0d050', [16, 8, 17.5, 13, 22, 13, 18.5, 16, 20, 21, 16, 18, 12, 21, 13.5, 16, 10, 13, 14.5, 13]);
+      rect(g, '#a0d0ff', 21, 9, 1, 1); rect(g, '#a0d0ff', 11, 19, 1, 1);
+    })),
+    sign_food: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#8a5a2a', () => {
+      ellipse(g, '#c88a40', 16, 15, 6, 4); ellipse(g, '#e0a858', 15, 14, 4.5, 2.5);
+      for (const x of [13, 16, 19]) rect(g, '#a86a2a', x, 13, 1, 3);
+    })),
+    sign_tools: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#6a5030', () => {
+      ellipse(g, '#c8a868', 16, 15, 5, 5); ellipse(g, '#6a5030', 16, 15, 2.5, 2.5); // a coil of rope
+      line(g, '#c8a868', 1, 20, 18, 23, 21);
+    })),
+    sign_inn: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#7a4a22', () => {
+      rect(g, '#e8d8a8', 12, 10, 8, 10); rect(g, '#c88a30', 12, 13, 8, 7); rect(g, '#f8f0d8', 12, 9, 8, 2); // a mug of ale
+      rect(g, '#e8d8a8', 20, 12, 3, 1); rect(g, '#e8d8a8', 22, 12, 1, 5); rect(g, '#e8d8a8', 20, 16, 3, 1);
+    })),
+    sign_depot: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#4a5a6a', () => {
+      rect(g, '#d8c8a0', 10, 10, 12, 9); poly(g, '#b8a880', [10, 10, 16, 15, 22, 10]); rect(g, '#c03030', 15, 14, 2, 2); // a letter
+    })),
+    sign_temple: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#e0d8c0', () => {
+      ellipse(g, '#f0c040', 16, 15, 4, 4); for (let a = 0; a < 8; a++) line(g, '#f0c040', 1, 16 + Math.cos(a * 0.785) * 5, 15 + Math.sin(a * 0.785) * 5, 16 + Math.cos(a * 0.785) * 7.5, 15 + Math.sin(a * 0.785) * 7.5);
+    })),
+    sign_school: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#2a5a3a', () => {
+      rect(g, '#f0e8d0', 10, 11, 6, 9); rect(g, '#e0d8c0', 16, 11, 6, 9); rect(g, '#8a6a3a', 15, 11, 2, 9); // an open book
+      for (const y of [13, 15, 17]) { rect(g, '#8a8070', 11, y, 4, 1); rect(g, '#8a8070', 17, y, 4, 1); }
+    })),
+    // A box of flowers under a window.
+    window_box: (g, r, frame, shape) => onWall(g, shape, () => {
+      for (let i = 0; i < 7; i++) {
+        const x = 8 + i * 2.5;
+        rect(g, '#3a7a30', x, 20, 1, 3);
+        rect(g, ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0], x - 1, 18 + ((r() * 2) | 0), 3, 2);
+      }
+      rect(g, '#7a4a22', 7, 23, 18, 4); rect(g, '#9a6632', 7, 23, 18, 1); rect(g, '#5a3418', 7, 26, 18, 1);
+    }),
+    // A lantern on a bracket, glowing.
+    lantern: (g, r, frame, shape) => onWall(g, shape, () => {
+      rect(g, '#2e2e34', 12, 6, 8, 2);
+      rect(g, '#2e2e34', 18, 6, 2, 4);
+      rect(g, '#3a3a40', 15, 9, 6, 2);
+      ellipse(g, 'rgba(255,210,120,0.35)', 18, 15, 7, 7);
+      rect(g, '#3a3a40', 15, 11, 6, 9);
+      rect(g, '#ffe090', 16, 12, 4, 7);
+      rect(g, '#fff4c8', 17, 13, 2, 3);
+      rect(g, '#3a3a40', 14, 20, 8, 2);
+    }),
+    // A shelf with jars and pots.
+    shelf: (g, r, frame, shape) => onWall(g, shape, () => {
+      for (const y of [13, 22]) { rect(g, '#6a4220', 5, y, 22, 2); rect(g, '#8a5a2c', 5, y, 22, 1); }
+      for (const y of [13, 22]) for (let x = 7; x < 25; x += 4 + ((r() * 2) | 0)) {
+        const c = ['#4a7ac0', '#c04a3a', '#d8c070', '#5aa050', '#e8e0d0'][(r() * 5) | 0], h = 4 + ((r() * 3) | 0);
+        rect(g, c, x, y - h, 3, h); rect(g, 'rgba(255,255,255,0.4)', x, y - h, 1, h);
+      }
+    }),
+    // Swords, an axe and a spear on a wooden rack.
+    weapon_rack: (g, r, frame, shape) => onWall(g, shape, () => {
+      rect(g, '#6a4220', 5, 8, 22, 2); rect(g, '#6a4220', 5, 22, 22, 2);
+      for (const x of [9, 14]) { rect(g, '#c8ccd4', x, 4, 2, 18); rect(g, '#ffffff', x, 4, 1, 18); rect(g, '#7a5a2a', x - 2, 18, 6, 2); rect(g, '#4a3018', x, 20, 2, 5); }
+      rect(g, '#6a4220', 20, 3, 2, 23); poly(g, '#c8ccd4', [22, 5, 27, 8, 27, 13, 22, 11]); // an axe
+    }),
     sign_wall: (g, r, frame, shape) => onWall(g, shape, () => {
       rect(g, '#9a6a38', 5, 8, 22, 11);
       rect(g, '#6e4422', 5, 18, 22, 1);
@@ -1493,14 +1661,14 @@ const Sprites = (() => {
       rect(g, '#4a2a10', 8, 14, 11, 1);
     }),
     door_sealed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false, true),
+    // A chair: a slatted back, a seat lit from above, legs.
     chair(g) {
-      shadow(g, 16, 27, 8, 3);
-      rect(g, '#6e4422', 10, 18, 2, 9);
-      rect(g, '#6e4422', 20, 18, 2, 9);
-      rect(g, '#9a6633', 9, 16, 14, 4);
-      rect(g, '#8a5a2a', 9, 4, 14, 3);
-      rect(g, '#6e4422', 10, 4, 2, 13);
-      rect(g, '#6e4422', 20, 4, 2, 13);
+      shadow(g, 16, 29, 9, 3);
+      for (const x of [9, 21]) { rect(g, '#5a3618', x, 3, 3, 26); rect(g, '#7a4e26', x, 3, 1, 26); }
+      for (const y of [5, 9]) rect(g, '#8a5a2c', 10, y, 13, 2);
+      rect(g, '#a8703a', 8, 16, 17, 4);
+      rect(g, '#c8925a', 8, 16, 17, 1);
+      rect(g, '#6a4220', 8, 20, 17, 2);
     },
     plant(g) {
       shadow(g, 16, 28, 8, 3);
@@ -1604,7 +1772,7 @@ const Sprites = (() => {
   const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
-  const VARIANTS = { crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, bookshelf: 2 };
+  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 
@@ -2250,6 +2418,28 @@ const Sprites = (() => {
     demon: { scale: 1.6, skin: '#a82020', hair: '#5a0a0a', eye: '#ffd020', body: '#8a1818', belt: '#3a0a0a', legs: '#6a1010', arms: '#a82020', horns: '#2a1a1a', wings: '#4a0a0a', held: 'axe' },
     drowned_king: { scale: 1.4, skin: '#5a8a8a', hair: '#2a4a4a', eye: '#a0ffff', beard: '#3a6a6a', body: '#2a4a5a', belt: '#c0a040', legs: '#1a3a4a', arms: '#5a8a8a', hat: { style: 'crown', color: '#d0b030' }, held: 'staff' },
   };
+
+  // Things standing on the ground get a dark ink line round them, as in the classic games, so they
+  // read clearly against any ground. Their soft shadows (half see-through) get none.
+  const NO_INK = new Set(['flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
+    'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate']);
+  const inkable = (id, def) => !def.ground && !def.wall && !def.onWall && !def.roof && !def.change && !NO_INK.has(id);
+  function inked(g, draw) {
+    const { width, height } = g.canvas, layer = document.createElement('canvas');
+    layer.width = width;
+    layer.height = height;
+    const f = layer.getContext('2d');
+    draw(f);
+    const src = f.getImageData(0, 0, width, height).data, out = g.createImageData(width, height), d = out.data;
+    const solid = (x, y) => x >= 0 && y >= 0 && x < width && y < height && src[(y * width + x) * 4 + 3] >= 200;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      if (solid(x, y) || !(solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1))) continue;
+      const i = (y * width + x) * 4;
+      d[i] = 22; d[i + 1] = 15; d[i + 2] = 10; d[i + 3] = 215;
+    }
+    g.putImageData(out, 0, 0);
+    g.drawImage(layer, 0, 0);
+  }
 
   // People get a dark outline, so they stand out from the ground as in the classic games.
   function outlined(g, draw) {
@@ -3248,8 +3438,8 @@ const Sprites = (() => {
       const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence';
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
       const size = def.wall || def.tall || def.onWall ? 2 * TILE : TILE;
-      return cached(`${sprite}:${form}:${variant}:${frame}`,
-        g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material), size);
+      const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
+      return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, size);
     },
     item(id) {
       return customImage(id) || cached(`item:${id}`, g => ITEM_DRAW[id](g));

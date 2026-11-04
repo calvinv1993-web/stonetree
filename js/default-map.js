@@ -142,15 +142,15 @@ const OAKVALE = {
   ],
   square: [[126, 108, 137, 122], [108, 123, 137, 127]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 113, y0: 108, x1: 123, y1: 122, wings: [[111, 112, 125, 115]], door: [118, 122], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 109, y0: 97, x1: 121, y1: 105, wings: [[121, 97, 124, 101]], door: [115, 105], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 126, y0: 98, x1: 133, y1: 103, door: [133, 100], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate' },
-    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 141, y0: 98, x1: 146, y1: 103, door: [144, 103], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Moonpetal Magic: runes, wands and potions.' },
-    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 106, x1: 145, y1: 113, door: [142, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof', sign: 'Hide and Iron: armour, helmets and shields.' },
-    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 93, y0: 107, x1: 98, y1: 114, door: [98, 110], floor: 'cobble', wall: 'wall_stone', roof: 'roof', sign: 'The Dented Shield: weapons, bought and sold.' },
-    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 148, y0: 128, x1: 157, y1: 135, wings: [[148, 136, 152, 140]], door: [152, 128], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 130, x1: 122, y1: 136, door: [119, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods.' },
-    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 108, y0: 130, x1: 113, y1: 135, door: [110, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', sign: 'The Warm Loaf: bread, cheese and ham.' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 113, y0: 108, x1: 123, y1: 122, wings: [[111, 112, 125, 115]], door: [118, 122], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 109, y0: 97, x1: 121, y1: 105, wings: [[121, 97, 124, 101]], door: [115, 105], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 126, y0: 98, x1: 133, y1: 103, door: [133, 100], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
+    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 141, y0: 98, x1: 146, y1: 103, door: [144, 103], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
+    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 106, x1: 145, y1: 113, door: [142, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
+    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 93, y0: 107, x1: 98, y1: 114, door: [98, 110], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
+    { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 148, y0: 128, x1: 157, y1: 135, wings: [[148, 136, 152, 140]], door: [152, 128], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
+    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 130, x1: 122, y1: 136, door: [119, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods. Every adventurer needs a rope and a shovel.' },
+    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 108, y0: 130, x1: 113, y1: 135, door: [110, 130], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread, cheese and ham. Eat to get your health and mana back faster.' },
     { id: 'tower', name: 'North-east watchtower', kind: 'tower', x0: 153, y0: 97, x1: 157, y1: 101, door: [153, 99], floor: 'cobble', wall: 'wall_stone', roof: null },
     { id: 'house1', name: 'Ivy Cottage', kind: 'house', x0: 148, y0: 98, x1: 151, y1: 102, door: [150, 102], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
     { id: 'house2', name: 'Millstone House', kind: 'house', x0: 149, y0: 105, x1: 155, y1: 110, door: [152, 110], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
@@ -167,6 +167,28 @@ const OAKVALE = {
     { x0: 93, y0: 135, x1: 100, y1: 141, kind: 'crops', gate: [100, 138] },
     { x0: 124, y0: 140, x1: 129, y1: 144, kind: 'crops', gate: [129, 142] },
   ],
+  // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
+  graveyard: { x0: 146, y0: 142, x1: 156, y1: 150, gate: [146, 145], stones: [
+    [148, 144, 'Here lies Old Wim, who went down the well for a bet.'],
+    [150, 144, 'Bertha Oakhart. She fed the town through the long winter.'],
+    [152, 144, 'An adventurer who never bought a rope.'],
+    [154, 144, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [148, 147, 'Taken by the spiders of the hills. Go well armed, friend.'],
+    [150, 147, 'Mara the fisher. The river gives, the river takes.'],
+    [154, 147, 'No name. Only the words: "the crag remembers".'],
+  ] },
+  // A pier into the river by the fishermen's quarter: [x0, y0, x1, y1]
+  pier: [103, 100, 104, 100],
+  // Grates over the sewers, and what you notice when you look at them.
+  grates: [[134, 107], [118, 126], [147, 120], [99, 112]],
+  grateLook: 'Something squeaks and scratches down there in the dark.',
+  // Things with something to say when you look at them: [x, y, text]
+  looks: [
+    [131, 104, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
+    [135, 112, 'Tamsin Oakhart, who built the first house by the river, and the bridge after it.'],
+  ],
+  // A forgotten chest for whoever explores behind the outcrop: [x, y, gold]
+  cache: [157, 113, 30],
   // A rocky outcrop: rock walls with a rugged top, as in the old towns.
   outcrop: [[149, 114], [154, 113], [157, 117], [155, 122], [150, 121]],
   // The training yard: a fenced sandy yard with dummies.
@@ -189,11 +211,11 @@ const OAKVALE = {
   ],
   // Things standing about: [x, y, id]
   props: [
-    [131, 104, 'well'], [147, 113, 'woodpile'], [147, 104, 'haystack'], [146, 105, 'barrel'], [135, 112, 'statue'],
-    [94, 104, 'boat'], [93, 115, 'woodpile'], [93, 116, 'barrel'], [98, 116, 'anvil'], [94, 122, 'barrel'], [100, 128, 'crate'],
+    [131, 104, 'well'], [147, 113, 'firewood'], [147, 104, 'haystack'], [146, 105, 'barrel'], [135, 112, 'statue'],
+    [93, 115, 'firewood'], [93, 116, 'barrel'], [98, 116, 'anvil'], [94, 122, 'barrel'], [100, 128, 'crate'],
     [125, 128, 'wagon'], [137, 128, 'barrel'], [137, 127, 'crate'], [146, 139, 'scarecrow'], [123, 104, 'barrel'], [155, 111, 'woodpile'],
     [147, 127, 'barrel'], [147, 126, 'crate'],
-    [133, 109, 'stall'], [134, 109, 'basket'], [136, 111, 'stall'], [136, 112, 'crate'], [127, 120, 'stall'], [127, 121, 'sack'],
+    [133, 109, 'stall'], [134, 109, 'apple_crate'], [136, 111, 'stall'], [136, 112, 'crate'], [127, 120, 'stall'], [127, 121, 'apple_crate'], [128, 121, 'sack'],
   ],
   lamps: [[136, 97], [140, 97], [157, 123], [157, 127], [133, 149], [137, 149], [93, 123], [93, 127], [126, 108], [137, 108], [126, 122], [137, 122], [108, 127], [104, 123], [104, 127], [108, 104]],
   benches: [[129, 111], [129, 119], [134, 119], [112, 126], [124, 126]],
@@ -206,6 +228,7 @@ const OAKVALE = {
     [90, 122, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
   ],
   notice: [128, 123, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  firstSteps: [116, 124, 'First steps: the depot is north-east of the square, the shops line the streets, and the academy is north. Fight rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
 function createDefaultMap() {
@@ -618,12 +641,20 @@ function buildTown(m, S, runs, river) {
       const across = out[0] === dx, sx = across ? dx + 1 : dx, sy = across ? dy : dy + 1;
       const t = m.get(sx, sy, S);
       t.items = t.items.filter(id => id !== 'window');
-      sign(sx, sy, S, 'sign_wall', b.sign);
+      sign(sx, sy, S, b.signId || 'sign_wall', b.sign);
+      // ...and a lantern on the other side of the door
+      const lx = across ? dx - 1 : dx, ly = across ? dy : dy - 1, lt = m.get(lx, ly, S);
+      if (lt && isWall(b, lx, ly)) { lt.items = lt.items.filter(id => id !== 'window'); put(lx, ly, S, 'lantern'); }
     }
     if (m.get(...out, S).ground === 'grass') m.setGround(...out, S, 'gravel');
     if (b.kind !== 'temple' && b.kind !== 'depot' && b.kind !== 'tower') for (let z = S; z < S + floors; z++) for (const [x0, y0, x1, y1] of partsOf(b)) m.zones.push({ x0, y0, x1, y1, z, shelter: true });
   };
   for (const b of T.buildings) building(b);
+  // Shelves or racks along the inside of the north wall; flower boxes under the windows of homes and the inn.
+  for (const b of T.buildings) {
+    if (b.shelves) for (let x = b.x0 + 1; x < b.x1; x++) { const t = m.get(x, b.y0, S); if (t.items.length === 1 && x % 2) put(x, b.y0, S, b.shelves); }
+    if (b.kind === 'house' || b.kind === 'inn') eachOf(b, (x, y) => { const t = m.get(x, y, S); if (t.items.includes('window') && (y === b.y1 || x === b.x1)) put(x, y, S, 'window_box'); });
+  }
   const B = Object.fromEntries(T.buildings.map(b => [b.id, b]));
   const inside = (b, x, y, id, z = S) => { if (free(x, y, z) && !(x === b.door[0] && Math.abs(y - b.door[1]) <= 1) && !(y === b.door[1] && Math.abs(x - b.door[0]) <= 1)) put(x, y, z, id); };
 
@@ -641,7 +672,6 @@ function buildTown(m, S, runs, river) {
     put(wx0 + 1, wy1 - 1, S, 'plant'); put(wx1 - 1, wy1 - 1, S, 'plant');
     for (const [x, y] of [[t.x0 + 1, t.y1 - 1], [t.x1 - 1, t.y1 - 1]]) put(x, y, S, 'plant');
     for (const y of [t.y0 + 2, t.y1 - 3]) { put(t.x0, y, S, 'wall_torch'); put(t.x1, y, S, 'wall_torch'); }
-    sign(cx + 1, t.y1, S, 'sign_wall', 'Temple of the Dawn. All who wake on Oakvale Isle wake here.');
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: S });
   }
 
@@ -670,7 +700,6 @@ function buildTown(m, S, runs, river) {
     for (let y = d.y0 + 3; y < d.y1; y += 2) put(d.x0 + 1, y, S, 'depot');
     for (let x = d.x0 + 3; x <= d.x0 + 5; x++) put(x, d.y1 - 1, S, 'counter');
     put(d.x1 - 1, d.y1 - 1, S, 'plant');
-    sign(d.x1, d.door[1] + 1, S, 'sign_wall', 'Depot and post. Your locker keeps your things safe in every town.');
   }
 
   // ---- shops: a counter across the back, goods on shelves and in barrels -----------------------------------
@@ -794,6 +823,27 @@ function buildTown(m, S, runs, river) {
   for (const [x, y, id] of T.props) put(x, y, S, id);
   for (const [x, y, text] of T.signs) { m.ensure(x, y, S).items = []; sign(x, y, S, 'signpost', text); }
   sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
+
+  // ---- the graveyard ---------------------------------------------------------------------------------------------
+  {
+    const gy = T.graveyard;
+    for (let y = gy.y0; y <= gy.y1; y++) for (let x = gy.x0; x <= gy.x1; x++) {
+      const t = m.get(x, y, S), edge = x === gy.x0 || x === gy.x1 || y === gy.y0 || y === gy.y1;
+      t.items = t.items.filter(id => id === 'fence');
+      if (edge && !(x === gy.gate[0] && y === gy.gate[1]) && !t.items.length) put(x, y, S, 'fence');
+      else if (!edge && hash(x, y) < 0.3) put(x, y, S, hash(x + 7, y) < 0.5 ? 'grass_tuft' : 'flowers');
+    }
+    for (const [x, y, text] of gy.stones) { m.get(x, y, S).items = ['gravestone']; m.setMeta(x, y, S, { look: text }); }
+    m.get(gy.x1 - 1, gy.y0 + 1, S).items = ['dead_tree'];
+    m.setGround(gy.gate[0] - 1, gy.gate[1], S, 'gravel'); m.setGround(gy.gate[0], gy.gate[1], S, 'gravel');
+  }
+  // ---- the pier, the grates, things to look at, a forgotten chest ----------------------------------------------------
+  { const [x0, y0, x1, y1] = T.pier; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, S, { ground: 'pier', items: [] }); }
+  put(99, 100, S, 'fish_rack'); m.get(105, 102, S).items = ['boat'];
+  for (const [x, y] of T.grates) { m.get(x, y, S).items = ['grate']; m.setMeta(x, y, S, { look: T.grateLook }); }
+  for (const [x, y, text] of T.looks) m.setMeta(x, y, S, { look: text });
+  { const [x, y, gold] = T.cache; m.set(x, y, S, { ground: 'grass', items: ['cache'] }); m.setMeta(x, y, S, { gold }); }
+  sign(...T.firstSteps.slice(0, 2), S, 'signpost', T.firstSteps[2]);
 
   // ---- trees, bushes and flowers in the open ground, thicker by the walls and fences ------------------------------
   const busy = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {

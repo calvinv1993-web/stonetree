@@ -107,6 +107,16 @@ The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It'
 | Houses for rent | | Fisher's Hut, Riverside Cottage, Ivy Cottage, Millstone House, Bell Cottage, Thatch End (300–500 gold) |
 | Gardens and yards | | Three fenced vegetable gardens, a flower bed by the temple, a well, a boat by the river, woodpiles, a haystack, a scarecrow, a wagon, trees along the fences |
 
+**Things to discover, and signs that teach the game:**
+- Every shop hangs out a picture sign, so you can tell the trade at a glance: crossed swords for weapons, a shield for armour, a star for magic, bread for food, rope for the general store, an ale mug for the inn, a letter for the depot, a sun for the temple, a book for the academy.
+- The signs say what each place is for: the temple (where you wake, no fighting inside), the depot (lockers), the academy (the oracle sends you on at level 10), and the shops (say hi, then ask to trade).
+- A "first steps" signpost outside the temple door points the way.
+- The old graveyard has seven gravestones with inscriptions, which you read by looking at them. Some are hints.
+- Sewer grates in the streets: "something squeaks down there". These are the sewer entrances, for phase 5.
+- The well and the founder's statue have stories when you look at them.
+- A pier, a boat and a fish rack in the fishermen's quarter.
+- A forgotten chest with 30 gold hidden behind the rocky outcrop.
+
 Every building is a shelter (monsters keep out). All doors, stairs and ladders are checked by `tests/world.test.js`.
 
 **Still to come in phase 6:** the priest and other townsfolk, the shopkeepers' wares, the house-rent NPC, and the starting guide's new texts. The guide still talks about Brightwater Isle and Elder Maren.
