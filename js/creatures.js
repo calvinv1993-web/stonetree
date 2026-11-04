@@ -19,6 +19,13 @@ const MONSTERS = {
     name: 'giant rat', hp: 42, xp: 16, dmg: [1, 6], speed: 440, attackSpeed: 1500, aggro: 5, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
+  gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
+    name: 'Gravewaker', proper: true, hp: 150, xp: 180, dmg: [2, 9], armor: 2, speed: 520, attackSpeed: 2000, aggro: 6, corpse: 'blood',
+    respawn: 300000, weak: { holy: 1.3 },
+    ranged: { range: 4, dmg: [5, 14], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
+    summon: { type: 'skeleton', max: 1, chance: 0.08 },
+    loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
+  },
   spider: {
     name: 'spider', hp: 30, xp: 10, dmg: [1, 6], speed: 420, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],

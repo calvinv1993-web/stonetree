@@ -1313,6 +1313,40 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
 });
 
+test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bell rings, and the oracle at level 8', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  for (const id of ['bell_1', 'bell_2']) p.quests[id] = { status: 'done', step: 9, kills: {} };
+  // the steps cut into the foot of Bone Rocks lead down, and on down to the tomb
+  ctx.teleport({ x: 81, y: 200, z: 8 });
+  A.walkTo(81, 198);
+  tick(game, 2000);
+  assert.strictEqual(p.z, 7, 'down the steps into the crypt');
+  assert(map.get(69, 176, 6).items.includes('founder_tomb'), 'the founder\'s tomb is two floors down');
+  assert(map.spawns.some(s => s.type === 'gravewaker' && s.z === 6) && map.spawns.filter(s => s.type === 'skeleton' && s.z <= 7).length >= 6, 'skeletons and the Gravewaker');
+  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  p.level = 5;
+  talk(112, 103, 8, 'crypt');
+  assert.strictEqual(state.questState('bell_3'), 'none', 'Corwin waits for level 6');
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 0, 'the tomb gives nothing before the quest');
+  p.level = 8;
+  talk(110, 102, 9, 'destiny');
+  assert(/level 10/.test(messages.slice(-4).join(' ')), 'the oracle wants level 10 while the bell is silent');
+  talk(112, 103, 8, 'crypt', 'yes');
+  assert.strictEqual(state.questState('bell_3'), 'active');
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 1, 'the clapper from the founder\'s tomb');
+  talk(136, 102, 9, 'clapper');
+  assert.strictEqual(state.questState('bell_3'), 'done', 'Sister Ama hangs it again');
+  assert(messages.some(m => /rings again/.test(m)), 'and the bell rings out');
+  ctx.useThing(142, 103, 9);
+  assert(/rings out/.test(messages[messages.length - 1]), 'now the bell can be rung');
+  talk(110, 102, 9, 'destiny');
+  assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

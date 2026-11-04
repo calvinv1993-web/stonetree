@@ -153,7 +153,7 @@ const Render = {
       const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = tileAt(x, y);
-        if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall)) continue;
+        if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall || THINGS[id].change)) continue; // nor over steps
         const variant = ((x * 83492791) ^ (y * 2654435761)) >>> 0, sides = {};
         for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
           sides[d] = rockAt(x + dx, y + dy);

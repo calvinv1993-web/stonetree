@@ -283,6 +283,51 @@ const SEWERS = {
   bigRats: [[144, 138], [148, 140], [146, 142]],
 };
 
+// The founders' crypt under Bone Rocks, two floors deep: a flight of steps cut into the foot of the crag
+// (on its south side, near the end of the bone trail) leads down to an antechamber, a corridor and the
+// hall of coffins (floor 7); steps at the west end of the hall lead down to the founder's tomb (floor 6),
+// where the bell's clapper lies and the Gravewaker waits. Skeletons walk both floors.
+//   door:     the steps down, cut into the crag [x, y] (on the surface); niche: tiles cleared beside them;
+//             path: the way there from the trail
+//   sign:     [x, y, text] beside the door
+//   floors:   per floor z: rooms [x0, y0, x1, y1] (worn grave slabs, carved walls round them), stairs
+//             [x, y, 'stairs_up' | 'stairs_down'], dais [x0, y0, x1, y1] (paved), torches on north walls,
+//             props [x, y, id], monsters [type, x, y]
+// Keep things off the row along a south wall and the column along an east wall: those walls hide them.
+const CRYPT = {
+  door: [81, 198],
+  niche: [[82, 198], [82, 199]], // the crag cut back beside the steps, so they show (the rock leans over the tile west of it)
+  path: [[77, 200], [81, 200], [81, 199]],
+  sign: [80, 199, 'The founders\' crypt. Sealed by order of the town in the year of the long winter. LET THEM SLEEP.'],
+  floors: [
+    {
+      z: 7,
+      rooms: [[78, 192, 84, 200], [80, 185, 81, 191], [72, 178, 88, 184], [66, 181, 71, 182]],
+      stairs: [[81, 198, 'stairs_up'], [66, 181, 'stairs_down']],
+      torches: [[76, 177], [84, 177], [79, 191]],
+      props: [
+        [74, 179, 'sarcophagus'], [77, 179, 'sarcophagus'], [83, 179, 'sarcophagus'], [86, 179, 'sarcophagus'],
+        [74, 182, 'sarcophagus'], [77, 182, 'sarcophagus'], [83, 182, 'sarcophagus'], [86, 182, 'sarcophagus'],
+        [78, 192, 'web'], [83, 192, 'rubble'], [79, 195, 'bones'], [72, 178, 'web'], [80, 180, 'bones'], [67, 181, 'bones'],
+      ],
+      monsters: [['skeleton', 75, 180], ['skeleton', 85, 181], ['skeleton', 80, 183], ['skeleton', 82, 194]],
+    },
+    {
+      z: 6,
+      rooms: [[62, 175, 76, 187]],
+      stairs: [[66, 181, 'stairs_up']],
+      dais: [67, 175, 71, 177],
+      torches: [[65, 174], [73, 174]],
+      props: [
+        [69, 176, 'founder_tomb'],
+        [64, 177, 'sarcophagus'], [64, 184, 'sarcophagus'], [74, 177, 'sarcophagus'], [74, 180, 'sarcophagus'], [74, 184, 'sarcophagus'],
+        [62, 175, 'web'], [70, 183, 'bones'], [63, 180, 'rubble'], [72, 186, 'bones'],
+      ],
+      monsters: [['skeleton', 67, 184], ['skeleton', 72, 182], ['skeleton', 70, 186], ['gravewaker', 69, 180]],
+    },
+  ],
+};
+
 function createDefaultMap() {
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;
   const m = new GameMap(W, H, D, S);
@@ -614,6 +659,7 @@ function createDefaultMap() {
 
   buildTown(m, S, runs, d.rivers[0]);
   buildSewers(m, S);
+  buildCrypt(m, S);
 
   // ---- the first hunting grounds: [type, [[x, y], ...]], each on the nearest free tile outside town ----
   const huntingGrounds = [
@@ -691,6 +737,39 @@ function buildSewers(m, S) {
   for (const [type, list] of [['rat', D.rats], ['giant_rat', D.bigRats]]) for (const [x, y] of list) {
     const p = spot(x, y);
     if (p) m.spawns.push({ type, x: p[0], y: p[1], z: Z });
+  }
+}
+
+// Builds the crypt under Bone Rocks (see CRYPT): the steps down from the crag, the way there and its sign,
+// and on each floor the rooms with carved walls round them, the stairs, the tombs and the dead.
+function buildCrypt(m, S) {
+  const C = CRYPT, [dx, dy] = C.door;
+  m.get(dx, dy, S).items = ['stairs_down']; // cut into the foot of the crag
+  for (const [x, y] of C.niche) { const t = m.get(x, y, S); t.items = []; if (t.ground === 'grass') t.ground = 'dirt'; }
+  for (const [x, y] of [[dx, dy], ...C.niche]) m.set(x, y, S + 1, null); // cut out of the crag: no rock overhead
+  for (let i = 0; i + 1 < C.path.length; i++) {
+    const [ax, ay] = C.path[i], [bx, by] = C.path[i + 1];
+    for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++) for (let y = Math.min(ay, by); y <= Math.max(ay, by); y++) {
+      const t = m.get(x, y, S);
+      t.ground = 'dirt';
+      t.items = t.items.filter(id => !THINGS[id].block);
+    }
+  }
+  { const [x, y, text] = C.sign; m.get(x, y, S).items = ['signpost']; m.setMeta(x, y, S, { text }); }
+  for (const f of C.floors) {
+    const Z = f.z, carved = [];
+    for (const [x0, y0, x1, y1] of f.rooms) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      m.set(x, y, Z, { ground: 'crypt', items: [] });
+      carved.push([x, y]);
+    }
+    for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+      if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'crypt', items: ['wall_crypt'] });
+    }
+    if (f.dais) { const [x0, y0, x1, y1] = f.dais; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.setGround(x, y, Z, 'paving'); }
+    for (const [x, y, id] of f.stairs) m.get(x, y, Z).items = [id];
+    for (const [x, y] of f.torches) m.addItem(x, y, Z, 'wall_torch');
+    for (const [x, y, id] of f.props) m.addItem(x, y, Z, id);
+    for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z });
   }
 }
 

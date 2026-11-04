@@ -1581,6 +1581,23 @@ Object.assign(QUESTS, {
       done: 'Master Corwin will know what that stone means. As for the bell... it still hangs silent.',
     },
   },
+  bell_3: {
+    name: 'The Silent Bell III: Under Bone Rocks', giver: 'corwin', level: 6,
+    reward: { xp: 700, gold: 150, items: [['health_potion', 3]], bell: true },
+    summary: 'Go down into the founders\' crypt under Bone Rocks, find what was taken from the temple bell, and bring it to Sister Ama.',
+    steps: [
+      { npc: 'ama', fetch: 'bell_clapper', summary: 'Find what was taken from the temple bell, deep in the founders\' crypt under Bone Rocks (south-west of town, at the end of the bone trail), and bring it to Sister Ama.',
+        progress: 'Master Corwin has sent you to the crypt under Bone Rocks? Then go with my blessing, $name - and come back alive.',
+        done: 'The clapper of our bell! Cold as the grave... A hooded figure took it down there? Then I understand. The founders cast this bell to keep their dead asleep, and while it was silent, they woke. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Thank you, $name. You are ready for what lies beyond this isle: the {oracle} upstairs in the academy will see you now, from level 8.' },
+    ],
+    text: {
+      offer: 'You have grown strong, $name. Someone broke the seal of the founders\' crypt under Bone Rocks and silenced our bell. Will you go down into the crypt and find out what was taken? ({yes}/{no})',
+      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks. At the foot of the crag, steps lead down into the crypt. Skeletons walk there - and something worse, I fear. Whatever you find, bring it to Sister Ama.',
+      tooWeak: 'The crypt under Bone Rocks is no place for you yet, $name. Come back when you are level 6.',
+      elsewhere: 'Master Corwin at the academy wants to see you about the bell.',
+      done: 'The bell rings again, thanks to you. Now go and see the oracle upstairs, $name: you are ready.',
+    },
+  },
 });
 
 Object.assign(NPCS, {
@@ -1591,7 +1608,8 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
-      'bell|quest|mission|task|help|rope|cellar': { quest: ['bell_1', 'bell_2'] },
+      'bell|quest|mission|task|help|rope|cellar|clapper': { quest: ['bell_1', 'bell_2', 'bell_3'] },
+      'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10 - or at level 8, once our bell rings again.',
       stone: 'Show the stone to Master Corwin at the academy. He knows old things.',
       sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, over the bridge west of the square.',
@@ -1605,9 +1623,9 @@ Object.assign(NPCS, {
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
-      'quest|mission|task|ama|bell|stone|seal': { quest: ['bell_1', 'bell_2'] },
+      'quest|mission|task|ama|bell|stone|seal|crypt': { quest: ['bell_1', 'bell_2', 'bell_3'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
-      'bone|rocks|crypt': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
+      'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',
       'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
       'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
@@ -1615,7 +1633,7 @@ Object.assign(NPCS, {
       spells: 'You learn your first spells as you grow: Torchlight at level 2, Light Heal at level 3. Your {vocation} teaches you more.',
       tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
       'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation and sends you to the mainland - and you never come back.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation and sends you to the mainland - and you never come back. Make our bell ring again, and she will see you from level 8.',
       'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate. The rats there are a good first fight.',
     },
   },

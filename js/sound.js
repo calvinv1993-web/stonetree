@@ -62,6 +62,7 @@ const Sound = (() => {
     level: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, 'triangle', 0.18, 0, i * 0.1)),
     potion: () => tone(400, 0.25, 'sine', 0.18, 300),
     door: () => noise(0.15, 0.35, 500),
+    bell: () => { for (let i = 0; i < 3; i++) for (const [f, v] of [[196, 0.2], [392, 0.1], [470, 0.06], [588, 0.05]]) tone(f, 2.4, 'sine', v, 0, i * 1.2); }, // dong, dong, dong
     equip: () => noise(0.06, 0.25, 2500),
     thunder: () => { noise(2.2, 0.7, 220); noise(0.4, 0.4, 900); tone(45, 1.6, 'sine', 0.25, -15); },
     flutter: () => { for (let i = 0; i < 4; i++) setTimeout(() => noise(0.05, 0.12, 2200), i * 60); },

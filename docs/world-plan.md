@@ -148,7 +148,10 @@ These caves are a design proposal, since there's no underground reference:
   - Rooms: the bell cellar under the temple (133–140, 101–106, a dead end for "The Silent Bell"), an old storeroom (103–108, 121–126), and a rats' nest where the walls have fallen in, under the graveyard (around 146, 139).
   - 12 rats, and 3 giant rats in the nest.
 - **North Peaks caves** (z 7 and 6)
-- **Bone Rocks crypt** (z 7 to 6)
+- **Bone Rocks crypt** (z 7 to 6). **Built** (`CRYPT` and `buildCrypt` in `js/default-map.js`):
+  - The way in: steps down cut into the south foot of the crag at (81,198), in a niche cleared of rock (also on the floor above, so the crag's rim doesn't hide them), with a short path from the bone trail and a warning sign.
+  - Floor 7: an antechamber, a corridor north and the hall of coffins (72–88, 178–184), 4 skeletons; steps down at (66,181).
+  - Floor 6: the founder's tomb (62–76, 175–187) with the bell's clapper in the open tomb at (69,176), 3 skeletons and the Gravewaker.
 - **Spider Hills spider caves** (z 7 to 5): the hardest beginner area
 
 Each entrance will be listed with its source and destination tiles, and checked by the validator.

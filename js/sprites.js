@@ -492,7 +492,8 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'temple_bell', 'bell_rope']);
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'temple_bell', 'bell_rope',
+    'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
@@ -684,6 +685,18 @@ const Sprites = (() => {
       }
       for (let i = 0; i < 4; i++) ellipse(g, 'rgba(40,62,30,0.3)', 3 + r() * 26, 3 + r() * 26, 2 + r() * 4, 1 + r() * 2); // damp patches
       for (let i = 0; i < 14; i++) rect(g, r() < 0.5 ? 'rgba(20,24,18,0.5)' : 'rgba(130,150,110,0.3)', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
+    },
+    // The floor of a crypt: big dark grave slabs, cracked and dusty.
+    crypt(g, r) {
+      rect(g, '#1c1d22', 0, 0, TILE, TILE);
+      for (const [x0, y0, w, h] of [[0, 0, 20, 14], [20, 0, 12, 14], [0, 14, 12, 18], [12, 14, 20, 18]]) {
+        const v = 72 + ((r() * 16) | 0);
+        rect(g, `rgb(${v},${v + 2},${v + 8})`, x0 + 1, y0 + 1, w - 1, h - 1);
+        rect(g, `rgb(${v + 16},${v + 18},${v + 24})`, x0 + 1, y0 + 1, w - 1, 1);
+        rect(g, `rgb(${v - 20},${v - 18},${v - 12})`, x0 + 1, y0 + h - 1, w - 1, 1);
+      }
+      for (let i = 0; i < 2; i++) { const x = 3 + r() * 24, y = 3 + r() * 24; line(g, '#26272c', 1, x, y, x + 3 + r() * 4, y + 2 + r() * 3); }
+      for (let i = 0; i < 16; i++) rect(g, r() < 0.5 ? 'rgba(10,10,14,0.45)' : 'rgba(160,160,170,0.25)', (r() * 32) | 0, (r() * 32) | 0, 1, 1);
     },
     // The channel down the middle of a sewer: murky green water with scum drifting on it.
     sewer_water(g, r, frame) {
@@ -883,6 +896,10 @@ const Sprites = (() => {
     wall_sandstone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_sandstone'),
     wall_block(g, r) {
       wallBlock(g, 'block', { south: () => bricks(g, r, 104, '#4f4f55'), east: () => bricks(g, r, 72, '#36363c'), top: '#8a8a92' });
+    },
+    // The walls of the crypt: big dark carved blocks.
+    wall_crypt(g, r) {
+      wallBlock(g, 'block', { south: () => stoneBlocks(g, r, 70, '#16161c'), east: () => stoneBlocks(g, r, 46, '#121216'), top: '#26262c' });
     },
     // The brick walls of the sewers, green with slime at the foot.
     wall_sewer(g, r) {
@@ -1412,6 +1429,27 @@ const Sprites = (() => {
       line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 1, hy + 25); line(g, '#e0c898', 1, hx + 3, hy + 23, hx + 5, hy + 25);
       prism(g, 26, 15, 29, 18, 0, 50, wood);
       prism(g, 2, 14, 30, 19, 48, 52, wood); // the crossbeam
+    },
+    // A stone coffin, long from north to south, its lid carved with a sword.
+    sarcophagus(g) {
+      floorShadow(g, 12, 4);
+      prism(g, 7, 3, 25, 29, 0, 13, { top: '#7a7a82', south: '#5e5e66', east: '#46464e', edge: '#9a9aa2' });
+      prism(g, 6, 2, 26, 30, 13, 16, { top: '#8e8e96', south: '#6e6e76', east: '#56565e', edge: '#b0b0b8' });
+      const a = P(16, 6, 16), b = P(16, 25, 16), c = P(11, 11, 16), d = P(21, 11, 16);
+      line(g, '#5a5a62', 2, ...a, ...b); line(g, '#5a5a62', 2, ...c, ...d); // the sword on the lid
+    },
+    // The founder's tomb: a bigger coffin on a step, its lid pushed half off, a glint of bronze inside.
+    founder_tomb(g) {
+      floorShadow(g, 14, 4);
+      prism(g, 3, 1, 29, 31, 0, 4, { top: '#5a5a62', south: '#46464e', east: '#36363c', edge: '#7a7a82' }); // the step
+      prism(g, 6, 3, 24, 29, 4, 17, { top: '#7a7a82', south: '#5e5e66', east: '#46464e', edge: '#9a9aa2' });
+      poly(g, '#0c0c10', [...P(8, 5, 17), ...P(22, 5, 17), ...P(22, 27, 17), ...P(8, 27, 17)]); // open: dark inside
+      const bone = (u0, v0, u1, v1) => line(g, '#b8b4a4', 2, ...P(u0, v0, 17), ...P(u1, v1, 17));
+      bone(11, 9, 11, 22); bone(14, 12, 18, 12); bone(14, 16, 18, 16); // old bones
+      const [sx, sy] = P(15, 8, 17); ellipse(g, '#c8c4b4', sx, sy, 3, 2.5); rect(g, '#0c0c10', sx - 2, sy - 1, 1, 1); rect(g, '#0c0c10', sx + 1, sy - 1, 1, 1);
+      const [gx, gy] = P(17, 22, 17); ellipse(g, '#d8a840', gx, gy, 3, 2); rect(g, '#fff0b0', gx - 1, gy - 1, 1, 1); // a glint of bronze
+      prism(g, 20, 6, 31, 31, 4, 7, { top: '#8e8e96', south: '#6e6e76', east: '#56565e', edge: '#b0b0b8' }); // the lid, pushed off, leaning on the step
+      onSouth(g, 29, f => { rect(f, '#3a3a40', 12, 7, 4, 4); rect(f, '#9a9aa2', 13, 8, 1, 1); rect(f, '#9a9aa2', 14, 8, 1, 1); }); // a carved skull
     },
     // The temple bell's rope, hanging down through a hole in the cellar ceiling; its end lies gnawed on the floor.
     bell_rope(g) {
@@ -2544,6 +2582,14 @@ const Sprites = (() => {
       poly(g, '#7a7a7a', [5, 10, 12, 6, 20, 7, 27, 11, 28, 20, 24, 27, 16, 25, 8, 27, 4, 20]);
       poly(g, '#9a9a9a', [9, 11, 16, 9, 23, 12, 22, 20, 12, 21]);
     },
+    bell_clapper(g) {
+      shadow(g, 16, 27, 11, 3);
+      line(g, '#6a4410', 3, 8, 8, 19, 19);
+      line(g, '#d8a840', 1, 8, 7, 19, 18);
+      ellipse(g, '#a87020', 21, 21, 6, 6);
+      ellipse(g, '#e8c060', 19.5, 19.5, 3, 3);
+      rect(g, '#5a3a0c', 5, 5, 5, 3); // the ring it hung by
+    },
     chewed_rope(g) {
       g.strokeStyle = '#a8865a';
       g.lineWidth = 3;
@@ -2859,6 +2905,7 @@ const Sprites = (() => {
     lizard_priest: { scale: 1.1, skin: '#3a7a3a', hair: '#2a5a2a', eye: '#e0d020', body: '#5a2a5a', belt: '#d0a030', legs: '#5a2a5a', arms: '#3a7a3a', tail: '#3a7a3a', robe: true, held: 'staff' },
     serpent_lord: { scale: 1.5, skin: '#2a6a5a', hair: '#1a4a3a', eye: '#ff3030', body: '#1a3a3a', belt: '#d0a030', legs: '#1a3a3a', arms: '#2a6a5a', tail: '#2a6a5a', robe: true, hat: { style: 'crown', color: '#d0a030' }, held: 'staff' },
     ashen_lord: { scale: 1.9, skin: '#3a302c', hair: '#140c0a', eye: '#ff7a10', body: '#241816', belt: '#ff5a10', legs: '#1c1210', arms: '#3a302c', horns: '#d06020', wings: '#2a0806', held: 'axe' },
+    gravewaker: { skin: '#c8d0c0', hair: '#2a2a2a', eye: '#60ff80', body: '#2a3a2e', belt: '#6a5a3a', legs: '#2a3a2e', arms: '#2a3a2e', robe: true, hat: { style: 'hood', color: '#1e2a22' }, held: 'staff' },
     demon: { scale: 1.6, skin: '#a82020', hair: '#5a0a0a', eye: '#ffd020', body: '#8a1818', belt: '#3a0a0a', legs: '#6a1010', arms: '#a82020', horns: '#2a1a1a', wings: '#4a0a0a', held: 'axe' },
     drowned_king: { scale: 1.4, skin: '#5a8a8a', hair: '#2a4a4a', eye: '#a0ffff', beard: '#3a6a6a', body: '#2a4a5a', belt: '#c0a040', legs: '#1a3a4a', arms: '#5a8a8a', hat: { style: 'crown', color: '#d0b030' }, held: 'staff' },
   };

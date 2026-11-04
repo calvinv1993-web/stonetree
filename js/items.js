@@ -176,6 +176,7 @@ const ITEMS = {
   parcel:        { name: "Hilda's parcel", quest: true, weight: 20 },
   old_sock:      { name: 'old sock', quest: true, weight: 1 },
   chewed_rope:   { name: 'chewed bell rope', quest: true, weight: 6 },   // The Silent Bell, from the bell cellar
+  bell_clapper:  { name: 'bronze bell clapper', quest: true, weight: 30 }, // The Silent Bell, from the crypt under Bone Rocks
   carved_stone:  { name: 'strange carved stone', quest: true, weight: 8,
     text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },

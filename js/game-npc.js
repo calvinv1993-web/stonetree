@@ -198,14 +198,14 @@ function questTalk(ids, npc) {
 
 function destinyTalk() {
   if (player.vocation !== 'none') return `You already walk the path of the ${player.vocation}.`;
-  if (player.level < 10) return `You are not ready yet. Come back when you are level 10 (you are level ${player.level}).`;
+  if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()} (you are level ${player.level}).`;
   return 'Your path lies before you. Will you be a {knight}, a {paladin}, a {sorcerer} or a {druid}? Ask about each before you decide.';
 }
 
 function vocationTalk(v) {
   if (player.vocation !== 'none') return `You already walk the path of the ${player.vocation}.`;
   return ask(`${VOCATIONS[v].desc} Do you want to become a ${v}? This cannot be undone, and you will leave the starter island for good. ({yes}/{no})`, () => {
-    if (player.level < 10) return 'You are not ready yet. Come back when you are level 10.';
+    if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()}.`;
     chooseVocation(v);
     return `So be it, ${v}! I will now send you across the sea to the mainland. Farewell, $name - and if you have not heard my {dream} yet, Grandmaster Orin in Valoria will tell it to you.`;
   }, () => 'Take your time.');

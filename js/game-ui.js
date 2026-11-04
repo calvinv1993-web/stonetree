@@ -999,10 +999,10 @@ const GROUND_COLORS = {
   bridge_ns: '#8a5a2e', bridge_ew: '#8a5a2e', paving: '#a8a49a', brick: '#9a4a3a', tiles: '#c8b8a0', gravel: '#9a968e', farmland: '#6a4a2a',
   roof_slate: '#5c6476', roof_thatch: '#c4a056', roof_shingle: '#785232', roof_green: '#46785c', roof_flat: '#d6ba82',
   snow: '#e8eef4', ice: '#b8d6e8', jungle: '#2f6a2a', sandstone: '#c8a868', ash: '#4a4644', lava: '#d04a18',
-  sewer: '#5e6458', sewer_water: '#2c4630', sewer_bridge_ns: '#8a5a2e', sewer_bridge_ew: '#8a5a2e',
+  crypt: '#4a4c54', sewer: '#5e6458', sewer_water: '#2c4630', sewer_bridge_ns: '#8a5a2e', sewer_bridge_ew: '#8a5a2e',
 };
 const WALL_COLORS = {
-  wall_stone: '#5a5a60', wall_temple: '#8a8478', wall_block: '#5a5a60', wall_secret: '#5a5a60', wall_wood: '#5e4026', wall_cave: '#3a322c', wall_sewer: '#3a3c36', wall_sandstone: '#9a7a48',
+  wall_stone: '#5a5a60', wall_temple: '#8a8478', wall_block: '#5a5a60', wall_secret: '#5a5a60', wall_wood: '#5e4026', wall_cave: '#3a322c', wall_sewer: '#3a3c36', wall_crypt: '#2e2e34', wall_sandstone: '#9a7a48',
   cliff: '#5e5446', tree: '#1f4f22', pine: '#1a4426', snow_pine: '#2a5a4a', jungle_tree: '#163a12', palm: '#3a7a2a', dead_tree: '#3a3028',
 };
 

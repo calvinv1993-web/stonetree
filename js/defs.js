@@ -42,6 +42,7 @@ const THINGS = {
   cave:        { name: 'cave floor', cat: 'Ground', ground: true },
   sewer:       { name: 'damp flagstones', cat: 'Ground', ground: true },             // the walkways of a sewer
   sewer_water: { name: 'sewer water', cat: 'Ground', ground: true, block: true },  // the channel between them
+  crypt:       { name: 'worn grave slabs', cat: 'Ground', ground: true },          // the floor of a crypt
   swamp:       { name: 'swamp', cat: 'Ground', ground: true },
   paving:      { name: 'paving stones', cat: 'Ground', ground: true },
   brick:       { name: 'brick road', cat: 'Ground', ground: true },
@@ -78,6 +79,7 @@ const THINGS = {
   wall_block:  { name: 'stone block', cat: 'Walls', block: true, wall: 'block' },
   wall_cave:   { name: 'rock wall', cat: 'Walls', block: true, wall: 'block' },
   wall_sewer:  { name: 'old brickwork', cat: 'Walls', block: true, wall: 'block' },
+  wall_crypt:  { name: 'carved crypt stone', cat: 'Walls', block: true, wall: 'block' },
   ore_vein:    { name: 'ore vein', cat: 'Walls', block: true, wall: 'block', oreVein: true },
   cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block' },
   door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
@@ -247,6 +249,14 @@ const THINGS = {
     chest: { flag: 'bell_rope', requires: 'bell_2', items: [['chewed_rope', 1], ['carved_stone', 1]],
       locked: 'A rope hangs down through a hole in the ceiling. Its end is gnawed to shreds. Rats, probably.',
       empty: 'The rest of the bell rope hangs from the hole in the ceiling, out of reach.' },
+  },
+  sarcophagus: { name: 'stone coffin', cat: 'Furniture', block: true, low: true },
+  // The Silent Bell: the founder's tomb in the crypt under Bone Rocks, its lid pushed aside; the bell's clapper inside.
+  founder_tomb: {
+    name: 'tomb of the founder', cat: 'Quest chests', block: true, low: true,
+    chest: { flag: 'bell_clapper', requires: 'bell_3', items: [['bell_clapper', 1]],
+      locked: 'The lid of the great tomb has been pushed aside. Something glints inside, but a cold dread holds you back. Not yet.',
+      empty: 'Only the founder\'s old bones lie in the tomb now. Let them sleep.' },
   },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',

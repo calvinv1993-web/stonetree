@@ -70,9 +70,21 @@ const GUIDE = [
     done: () => questState('bell_2') === 'done',
   },
   {
-    text: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
-    touch: 'That is all you need to know. Explore the island: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 10 the oracle, upstairs in the academy, lets you choose a vocation.',
-    target: [{ npc: 'oak_oracle', level: 10 }],
+    text: 'Grow stronger outside the walls: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
+    touch: 'Grow stronger outside the walls: wolves in Wolf Woods to the north-west, goblins on Goblin Hill to the north-east. At level 6, Master Corwin at the academy has a task about the crypt under Bone Rocks.',
+    target: [{ npc: 'corwin', level: 6 }],
+    done: () => questState('bell_3') !== 'none',
+  },
+  {
+    text: 'Take the bone trail from the south road to Bone Rocks, south-west of town. Steps at the foot of the crag lead down into the crypt; the tomb is two floors down. Bring what you find to Sister Ama.',
+    touch: 'Take the bone trail from the south road to Bone Rocks, south-west of town. Steps at the foot of the crag lead down into the crypt; the tomb is two floors down. Bring what you find to Sister Ama.',
+    target: [{ quest: 'bell_3' }, { at: [81, 198, 8] }, { at: [66, 181, 7] }, { at: [69, 176, 6] }],
+    done: () => questState('bell_3') === 'done',
+  },
+  {
+    text: 'The bell rings again! The oracle, upstairs in the academy, now lets you choose a vocation from level 8, and sends you on to the mainland. Until then, explore the island: many things have a story.',
+    touch: 'The bell rings again! The oracle, upstairs in the academy, now lets you choose a vocation from level 8, and sends you on to the mainland. Until then, explore the island: many things have a story.',
+    target: [{ npc: 'oak_oracle', level: 8 }],
   },
 ];
 
@@ -133,6 +145,6 @@ function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
   if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
-  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10.';
+  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10 (or 8, once the bell of Oakvale rings again).';
   return null;
 }
