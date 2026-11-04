@@ -620,25 +620,16 @@ const Sprites = (() => {
       prism(g, u, 49, u + 7, 56, 4, 86, oak);
       prism(g, u, 8, u + 7, 56, 80, 86, oak);
     }
-    const [hx, hy] = P(32, 32, 88);
-    const grad = g.createLinearGradient(hx - 28, 0, hx + 28, 0);
-    grad.addColorStop(0, '#7a5218'); grad.addColorStop(0.28, '#f8d878'); grad.addColorStop(0.55, '#c8903a'); grad.addColorStop(1, '#4a2e08');
-    rect(g, '#3a2408', hx - 4, hy - 2, 8, 7); // the crown, bolted to the beam
-    g.fillStyle = grad;
-    g.beginPath();
-    g.moveTo(hx - 10, hy + 5);
-    g.quadraticCurveTo(hx - 16, hy + 7, hx - 17, hy + 22);
-    g.quadraticCurveTo(hx - 18, hy + 42, hx - 28, hy + 50);
-    g.lineTo(hx + 28, hy + 50);
-    g.quadraticCurveTo(hx + 18, hy + 42, hx + 17, hy + 22);
-    g.quadraticCurveTo(hx + 16, hy + 7, hx + 10, hy + 5);
-    g.closePath();
-    g.fill();
-    g.strokeStyle = '#3a2408'; g.lineWidth = 1.5; g.stroke();
-    for (const [y, w] of [[15, 16], [36, 20], [42, 22]]) rect(g, 'rgba(90,56,10,0.65)', hx - w + 1, hy + y, 2 * w - 2, 2); // bands
-    for (let i = 0; i < 5; i++) rect(g, 'rgba(90,56,10,0.5)', hx - 10 + i * 5, hy + 25, 2, 2); // a ring of letters round its waist
-    rect(g, 'rgba(255,240,190,0.55)', hx - 12, hy + 10, 3, 24); // light on its shoulder
-    ellipse(g, '#24160a', hx, hy + 50, 27, 4.5); // the empty mouth: no clapper
+    // The bell itself, round, in the tiles' slant: built up in slices from its mouth to its crown (as the
+    // fountain and the well are), so it hangs straight down from the beam along the same slant as the frame.
+    const bronze = { edge: '#6a4410', light: '#f4d470', mid: '#c48a32', dark: '#5a3a0c' };
+    const mouth = 34, top = 78;
+    const profile = t => (t < 0.12 ? 24 - t * 40 : t < 0.8 ? 19.2 - (t - 0.12) * 11 : 11.7 * Math.sqrt(Math.max(0, 1 - ((t - 0.8) / 0.2) ** 2)) + 0.5);
+    drum(g, 32, 32, mouth, top, profile, bronze);
+    frontRing(g, 32, 32, mouth + 1, 24, 'rgba(70,44,8,0.85)', 2); // the lip
+    for (const [z, r] of [[mouth + 5, 19.5], [mouth + 22, 16.4], [mouth + 25, 16]]) frontRing(g, 32, 32, z, r, 'rgba(90,56,10,0.6)', 1.5); // bands
+    for (let i = 0; i < 5; i++) { const [x, y] = P(32, 32, mouth + 14); rect(g, 'rgba(90,56,10,0.55)', x - 10 + i * 5, y + 9, 2, 2); } // letters round its waist
+    drum(g, 32, 32, top, 86, () => 3, { edge: '#3a2408', light: '#7a5218', mid: '#5a3a10', dark: '#3a2408' }); // the crown, up to the beam
     prism(g, 0, 26, 64, 38, 86, 94, oak); // the crossbeam, over both frames
   } };
   const PARTS = {
