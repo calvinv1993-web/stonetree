@@ -31,10 +31,10 @@ const z0 = zArg === undefined ? map.surfaceZ : Number(zArg);
 const GROUND = {
   water: [38, 84, 160], grass: [86, 150, 62], sand: [222, 204, 140], dirt: [150, 112, 70], mountain: [128, 120, 110],
   swamp: [80, 98, 60], cave: [70, 62, 54], bridge_ns: [160, 110, 60], bridge_ew: [160, 110, 60], cobble: [140, 140, 140],
-  marble: [220, 220, 225], wood: [170, 120, 70], ramp_top: [190, 150, 90], farmland: [120, 90, 50],
+  marble: [220, 220, 225], wood: [170, 120, 70], ramp_top: [190, 150, 90], farmland: [120, 90, 50], rock_top: [104, 94, 80],
 };
 const ITEM = {
-  tree: [36, 92, 34], pine: [24, 74, 40], bush: [60, 120, 50], cliff: [92, 84, 76], rock: [112, 108, 100], reeds: [110, 140, 70],
+  crag: [140, 128, 110], tree: [36, 92, 34], pine: [24, 74, 40], bush: [60, 120, 50], cliff: [92, 84, 76], rock: [112, 108, 100], reeds: [110, 140, 70],
   dead_tree: [90, 80, 60], ramp: [230, 180, 90], wall_cave: [52, 46, 40], stairs_up: [255, 60, 200], stairs_down: [255, 60, 200],
   ladder: [255, 60, 200], hole: [255, 60, 200],
 };

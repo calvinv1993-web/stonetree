@@ -46,6 +46,7 @@ const THINGS = {
   gravel:      { name: 'gravel', cat: 'Ground', ground: true },
   farmland:    { name: 'farmland', cat: 'Ground', ground: true },
   mountain:    { name: 'rocky ground', cat: 'Ground', ground: true },
+  rock_top:    { name: 'rugged rock', cat: 'Ground', ground: true, block: true }, // a mountain top you can't walk on
   snow:        { name: 'snow', cat: 'Ground', ground: true },
   ice:         { name: 'ice', cat: 'Ground', ground: true },
   jungle:      { name: 'jungle floor', cat: 'Ground', ground: true },
@@ -101,6 +102,7 @@ const THINGS = {
   fern:        { name: 'fern', cat: 'Nature' },
   crops:       { name: 'crops', cat: 'Nature' },
   rock:        { name: 'boulder', cat: 'Nature', block: true, low: true },
+  crag:        { name: 'crag', cat: 'Nature', block: true, tall: true }, // rugged rock on a mountain top
   flowers:     { name: 'flowers', cat: 'Nature' },
   reeds:       { name: 'reeds', cat: 'Nature' },
   mushrooms:   { name: 'mushrooms', cat: 'Nature' },

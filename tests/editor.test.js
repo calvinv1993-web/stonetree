@@ -89,11 +89,11 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
   });
 
   await test('"Go to" takes you to a mountain top one floor up', async () => {
-    await page.selectOption('#goTo', { label: 'Highmoor' });
+    await page.selectOption('#goTo', { label: 'North Peaks' });
     assert.match(await status(page), /Floor 9 \(\+1\)/);
     assert.ok((await canvasLook(page)).colours > 8);
-    await shoot(page, 'editor-highmoor.png');
-    await page.selectOption('#goTo', { label: 'Thistlewick' });
+    await shoot(page, 'editor-peaks.png');
+    await page.selectOption('#goTo', { label: 'Oakvale' });
     assert.match(await status(page), /Floor 8 \(surface\)/);
   });
 
@@ -109,7 +109,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
     assert.match(await status(page), /zoom 1.5x/);
   });
 
-  // The middle of the canvas is the start tile after "Go to Thistlewick" (the camera centres on it).
+  // The middle of the canvas is the start tile after "Go to Oakvale" (the camera centres on it).
   const middle = async () => { const b = await page.locator('#canvas').boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
   const rocks = tiles => tiles.filter(t => t && t.items.includes('rock')).length;
 
@@ -145,7 +145,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
   });
 
   await test('erasing takes the thing off again', async () => {
-    await page.selectOption('#goTo', { label: 'Thistlewick' });
+    await page.selectOption('#goTo', { label: 'Oakvale' });
     const before = rocks(await storedTiles(page, START.x, START.y, START.z));
     const m = await middle();
     await page.mouse.click(m.x, m.y, { button: 'right' });

@@ -1,5 +1,5 @@
 'use strict';
-// The built-in world: Thistlewick Isle, a hand-designed starter island in the classic
+// The built-in world: Oakvale Isle, a hand-designed starter island in the classic
 // style (the plan, with every coordinate, is in docs/world-plan.md).
 //
 // Every feature is drawn from the coordinates in ISLE_DESIGN below: outlines (coast,
@@ -16,109 +16,100 @@
 const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
-const MAP_TOWNS = [['Thistlewick', 132, 119, 8]];
+const MAP_TOWNS = [['Oakvale', 129, 124, 8]];
 const MAP_SIGHTS = [
-  ['Highmoor', 108, 58, 9], ['Highmoor summit', 104, 46, 10], ['Glassmere', 160, 88, 8], ['Old Pinewood', 46, 80, 8],
-  ['Bramble Marsh', 44, 140, 8], ['Saltreed (fishing hamlet)', 36, 182, 8], ['Cragend', 70, 205, 9], ['Southfields', 124, 170, 8],
-  ['Lantern Cape', 132, 226, 8], ['Webbed Hills', 192, 196, 9], ['Eastwood', 190, 145, 8], ['Watch Hill', 214, 122, 9],
-  ['Redcap Hills (goblin camp)', 200, 76, 8], ['Hermit\'s Crag', 212, 52, 9], ['Stonefield', 86, 78, 8],
+  ['North Peaks', 100, 57, 9], ['Mirror Lake', 146, 88, 8], ['Willow River', 108, 92, 8], ['Wolf Woods', 60, 84, 8],
+  ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
+  ['Lighthouse Point', 128, 204, 8], ['Spider Hills', 178, 196, 9], ['Deer Woods', 176, 112, 8], ['Old Tower', 194, 118, 9],
+  ['Goblin Hill', 190, 74, 8], ['Hermit Rock', 202, 48, 9], ['Stony Field', 96, 74, 8],
 ];
 
-// The island as drawn. Outlines are [x, y] corners in order; lines are [x, y] points along them.
-// Town in the middle, the river Wick along its west side; hunting grounds get harder the
-// further they are from town: meadows and the lakeside first, then the woods and the marsh,
-// then the hills and crags at the edges of the island.
+// The island as drawn. Outlines are [x, y] corners in order. Roads and rivers are drawn the way
+// the classic maps draw them: straight runs, north-south or east-west, with turns and jogs;
+// [x, y, width] sets the width from that point on. Town in the middle, Willow River along its
+// west side; hunting grounds get harder the further they are from town.
 const ISLE_DESIGN = {
   coast: [
-    [36, 36], [48, 26], [66, 24], [78, 16], [96, 20], [112, 16], [130, 22], [146, 20], [156, 30], // north coast, under Highmoor
-    [158, 42], [164, 50], [174, 50], [178, 40], [186, 30], [196, 22], // Kittiwake Bay
-    [210, 18], [222, 26], [232, 24], [238, 38], [232, 50], [240, 62], // round Hermit's Crag
-    [236, 76], [226, 84], [236, 96], [240, 110], [232, 120], [238, 134], [232, 146], // east coast
-    [236, 158], [226, 164], [218, 170], [228, 178], [238, 186], // Hollow Brook's mouth
-    [232, 200], [220, 212], [206, 220], [194, 214], [184, 222], [170, 224], [160, 216], [150, 222], // south-east
-    [146, 232], [142, 244], [130, 246], [124, 236], [118, 224], // Lantern Cape
-    [110, 214], [102, 206], [94, 212], [90, 224], [76, 232], [60, 234], // Gull Cove
-    [46, 228], [34, 220], [28, 206], [32, 192], [22, 180], // round Cragend
-    [14, 174], [22, 166], [18, 156], // the Wick's mouth
-    [24, 146], [16, 134], [22, 122], [14, 110], [20, 98], [12, 86], [20, 74], [16, 60], [26, 48], // west coast
+    [52, 40], [70, 30], [96, 28], [120, 26], [140, 32], [160, 36], [178, 34], [198, 30], [214, 38], // north coast
+    [220, 56], [214, 72], [222, 90], [218, 110], [224, 130], [216, 150], [222, 170], [212, 190], // east coast
+    [200, 206], [184, 212], [166, 208], [150, 214], [142, 222], [124, 224], [116, 212], // south coast, Lighthouse Point
+    [100, 214], [84, 216], [66, 212], [52, 200], [46, 184], [36, 174], // south-west
+    [40, 158], [34, 140], [40, 120], [34, 100], [40, 80], [36, 60], // west coast
   ],
   islets: [],
   // Rocky shores: rocky ground and boulders (some out in the shallows) instead of a beach
   rocky: [
-    [[50, 10], [160, 10], [160, 36], [140, 40], [100, 34], [56, 40]],  // under Highmoor
-    [[196, 14], [246, 14], [246, 70], [214, 70], [196, 40]],           // Hermit's Crag
-    [[18, 196], [60, 196], [96, 214], [96, 244], [18, 244]],          // round Cragend
-    [[114, 222], [150, 222], [150, 248], [114, 248]],                  // Lantern Cape
+    [[40, 16], [140, 16], [136, 44], [56, 52], [40, 50]],   // under the North Peaks
+    [[186, 24], [232, 24], [232, 62], [188, 58]],            // Hermit Rock
+    [[40, 190], [96, 196], [96, 230], [40, 230]],            // below Bone Rocks
+    [[112, 204], [150, 204], [150, 232], [112, 232]],        // Lighthouse Point
   ],
-  town: { x0: 112, y0: 98, x1: 152, y1: 140 },  // Thistlewick: kept clear for its walls and streets (phase 3)
+  town: { x0: 110, y0: 106, x1: 148, y1: 142 },  // Oakvale: kept clear for its walls and streets (phase 3)
   clearings: [ // kept clear for buildings and camps (phase 4)
-    { name: 'Saltreed', x0: 34, y0: 174, x1: 48, y1: 190 },
-    { name: 'Southfields farm', x0: 108, y0: 156, x1: 124, y1: 168 },
-    { name: 'Lantern Cape lighthouse', x0: 126, y0: 226, x1: 136, y1: 234 },
-    { name: 'Redcap camp', x0: 192, y0: 68, x1: 208, y1: 84 },
-    { name: 'Lumber camp', x0: 60, y0: 98, x1: 70, y1: 106 },
+    { name: "Fisher's Rest", x0: 42, y0: 170, x1: 56, y1: 182 },
+    { name: 'Sunny Fields farm', x0: 112, y0: 150, x1: 126, y1: 160 },
+    { name: 'Lighthouse', x0: 122, y0: 200, x1: 134, y1: 210 },
+    { name: 'Goblin camp', x0: 184, y0: 66, x1: 198, y1: 78 },
+    { name: 'Lumber camp', x0: 56, y0: 96, x1: 66, y1: 104 },
   ],
   lakes: [
-    [[152, 60], [168, 56], [178, 64], [178, 78], [166, 86], [152, 82], [148, 70]], // Glassmere
-    [[76, 126], [86, 124], [88, 132], [80, 136], [74, 132]],                      // Frog Pond
-    [[116, 178], [124, 176], [126, 184], [118, 186]],                             // a pond in Southfields
-    [[190, 128], [198, 126], [200, 134], [192, 136]],                             // a pond in Eastwood
+    [[150, 62], [164, 58], [176, 64], [176, 78], [166, 84], [154, 82], [148, 72]], // Mirror Lake
+    [[136, 166], [144, 164], [146, 172], [138, 174]],                             // a pond in Sunny Fields
+    [[180, 136], [188, 134], [190, 142], [182, 144]],                             // a pond in Deer Woods
   ],
   rivers: [
-    { name: 'the Wick', width: 3, line: [[153, 79], [140, 86], [128, 91], [112, 97], [105, 108], [105, 122], [102, 136], [94, 150], [80, 160], [60, 166], [40, 170], [12, 174]] },
-    { name: 'Hollow Brook', width: 2, line: [[198, 134], [206, 150], [214, 162], [224, 168]] },
+    { name: 'Willow River', width: 3, line: [[150, 72, 4], [116, 72], [116, 86], [104, 86], [104, 106], [102, 106], [102, 132], [84, 132],
+      [84, 150], [60, 150], [60, 166, 4], [30, 166]] },
+    { name: 'Deer Brook', width: 2, line: [[186, 142], [186, 156], [204, 156], [204, 170], [228, 170]] },
   ],
-  // Mountains: cliffs on the surface, the top one floor up; a summit is a second step up.
-  // ramps: the columns of the mountain paths up, on the south side.
+  // Mountains: rock walls on the surface, rugged crags on top (one floor up), and on the big ones a
+  // second tier of rock and crags above that. You can only walk on a ledge where a path (ramp)
+  // leads up from the south, or across the whole top of a hill (walkable).
   mountains: [
-    { name: 'Highmoor', outline: [[58, 34], [80, 28], [110, 30], [140, 34], [150, 46], [142, 60], [120, 64], [96, 62], [74, 60], [58, 52]], ramps: [80, 108],
-      summit: { outline: [[86, 38], [110, 36], [126, 42], [118, 52], [92, 52]], ramps: [104] } },
-    { name: 'Cragend', outline: [[50, 186], [70, 180], [86, 188], [88, 206], [72, 216], [54, 208]], ramps: [70] },
-    { name: 'Webbed Hills', outline: [[176, 172], [196, 166], [214, 176], [212, 196], [194, 204], [178, 194]], ramps: [192] },
-    { name: "Hermit's Crag", outline: [[200, 36], [222, 40], [228, 56], [214, 62], [200, 54]], ramps: [212] },
-    { name: 'Watch Hill', outline: [[204, 112], [216, 108], [224, 118], [216, 128], [204, 124]], ramps: [214] },
+    { name: 'North Peaks', outline: [[62, 50], [78, 40], [94, 42], [106, 48], [105, 58], [92, 62], [76, 60]], tiers: 3, ramps: [99] },
+    { name: 'Eagle Peak', outline: [[114, 38], [126, 34], [136, 42], [130, 52], [116, 52]], tiers: 2, ramps: [] },
+    { name: 'Bone Rocks', outline: [[62, 178], [80, 174], [92, 182], [90, 198], [74, 202], [62, 194]], tiers: 2, ramps: [76] },
+    { name: 'Spider Hills', outline: [[164, 172], [180, 166], [194, 176], [192, 192], [176, 200], [166, 190]], tiers: 3, ramps: [178] },
+    { name: 'Old Tower', outline: [[186, 112], [198, 110], [204, 118], [198, 126], [186, 124]], tiers: 1, ramps: [194], walkable: true },
+    { name: 'Hermit Rock', outline: [[192, 40], [208, 40], [212, 52], [200, 56], [192, 50]], tiers: 1, ramps: [202], walkable: true },
   ],
   // Rocky ground with boulders: walkable, open, stony
   stonefields: [
-    { name: 'Stonefield', outline: [[76, 70], [92, 68], [96, 80], [84, 86], [74, 80]] },
-    { name: 'Redcap Hills', outline: [[184, 62], [212, 60], [218, 84], [198, 92], [182, 80]] },
-    { name: 'Cape rocks', outline: [[150, 196], [166, 192], [170, 206], [156, 210]] },
+    { name: 'Stony Field', outline: [[88, 64], [104, 66], [108, 78], [94, 82], [86, 74]] },
+    { name: 'Goblin Hill', outline: [[176, 58], [204, 58], [208, 84], [186, 88], [174, 78]] },
+    { name: 'Cape rocks', outline: [[140, 200], [152, 196], [156, 208], [144, 212]] },
   ],
   // Forests: kind (which trees), density (0-1, the thickest part), outline. Trees grow in clumps
   // with glades between them, bushes and ferns round their edges.
   forests: [
-    { name: 'Old Pinewood', kind: 'pine', density: 0.62, outline: [[26, 54], [50, 46], [64, 62], [72, 90], [64, 108], [40, 114], [26, 102], [24, 74]] },
-    { name: 'Eastwood', kind: 'oak', density: 0.55, outline: [[166, 92], [204, 90], [226, 104], [228, 150], [212, 164], [180, 162], [164, 140], [160, 112]] },
-    { name: 'Lakewood', kind: 'mixed', density: 0.45, outline: [[182, 46], [198, 42], [204, 56], [188, 60], [182, 56]] },
-    { name: 'Riverside thicket', kind: 'mixed', density: 0.4, outline: [[88, 92], [100, 90], [104, 100], [92, 104]] },
-    { name: 'Southfield grove', kind: 'oak', density: 0.42, outline: [[160, 150], [172, 148], [174, 160], [162, 162]] },
-    { name: 'Willow Bend', kind: 'oak', density: 0.4, outline: [[64, 170], [80, 168], [86, 178], [68, 182]] },
-    { name: 'Webfoot copse', kind: 'oak', density: 0.42, outline: [[156, 170], [170, 166], [172, 182], [158, 186]] },
-    { name: 'Thornbrake', kind: 'mixed', density: 0.38, outline: [[92, 70], [104, 72], [106, 84], [96, 86]] },
-    { name: 'Cove wood', kind: 'pine', density: 0.45, outline: [[60, 220], [76, 216], [84, 224], [66, 228]] },
+    { name: 'Wolf Woods', kind: 'pine', density: 0.62, outline: [[42, 64], [60, 58], [76, 68], [84, 90], [80, 108], [60, 112], [44, 104], [40, 84]] },
+    { name: 'Deer Woods', kind: 'oak', density: 0.55, outline: [[156, 92], [190, 88], [212, 100], [214, 140], [204, 160], [176, 160], [158, 140], [152, 112]] },
+    { name: 'Owl Grove', kind: 'mixed', density: 0.45, outline: [[132, 84], [144, 86], [146, 96], [134, 96]] },
+    { name: 'Fox Copse', kind: 'oak', density: 0.45, outline: [[86, 152], [100, 150], [102, 162], [88, 162]] },
+    { name: 'Thorn Thicket', kind: 'mixed', density: 0.45, outline: [[140, 176], [158, 176], [158, 190], [142, 190]] },
   ],
   marshes: [
-    { name: 'Bramble Marsh', outline: [[30, 122], [52, 118], [62, 132], [58, 156], [40, 162], [28, 150]] },
+    { name: 'Frog Marsh', outline: [[42, 114], [62, 112], [72, 124], [70, 144], [52, 146], [42, 136]] },
   ],
   meadows: [ // flowery meadows (no trees)
-    { name: 'Southfields', outline: [[98, 150], [150, 150], [154, 186], [100, 190]] },
-    { name: 'Lakeside meadow', outline: [[136, 66], [148, 64], [150, 96], [134, 100]] },
+    { name: 'Sunny Fields', outline: [[108, 146], [150, 146], [152, 184], [110, 186]] },
+    { name: 'Lakeside', outline: [[126, 58], [146, 56], [146, 69], [126, 69]] },
   ],
-  // Roads (2 wide) and paths (1 wide); where they cross water they become bridges.
+  // Roads and trails: straight runs and turns, 2 or 3 wide; where they cross water they become bridges.
   roads: [
-    { name: 'North road', width: 2, line: [[132, 98], [132, 86], [124, 76], [114, 68], [108, 66], [108, 64]] },
-    { name: 'West road', width: 2, line: [[112, 119], [98, 119], [84, 116], [70, 112], [56, 116]] },
-    { name: 'South road', width: 2, line: [[132, 140], [130, 166], [134, 196], [132, 224]] },
-    { name: 'East road', width: 2, line: [[152, 119], [170, 118], [190, 120], [210, 121], [214, 126], [214, 129]] },
+    { name: 'North road', width: 3, line: [[128, 106], [128, 92], [100, 92], [100, 63]] },
+    { name: 'West road', width: 3, line: [[110, 124], [90, 124], [90, 116], [70, 116]] },
+    { name: 'South road', width: 3, line: [[128, 142], [128, 199]] },
+    { name: 'East road', width: 3, line: [[148, 124], [176, 124], [176, 130], [194, 130], [194, 127]] },
   ],
   paths: [
-    { name: 'Stonefield path', line: [[70, 112], [74, 90], [80, 72], [80, 62]] },
-    { name: 'Marsh path', line: [[56, 116], [46, 132], [40, 148]] },
-    { name: 'Lake path', line: [[124, 76], [136, 74], [146, 86], [156, 90]] },
-    { name: 'Redcap path', line: [[176, 118], [180, 100], [188, 90], [198, 86], [208, 72], [212, 64], [212, 63]] },
-    { name: 'Webbed path', line: [[176, 118], [180, 140], [176, 160], [174, 184], [184, 208], [192, 207], [192, 205]] },
-    { name: 'Cragend path', line: [[130, 166], [110, 172], [94, 176], [96, 200], [84, 218], [70, 218]] },
-    { name: 'Saltreed path', line: [[94, 176], [70, 176], [48, 180], [40, 182]] },
+    { name: 'Lake trail', line: [[128, 98], [146, 98], [146, 86]] },
+    { name: 'Goblin trail', line: [[146, 90], [180, 90], [180, 80], [190, 80], [190, 62], [202, 62], [202, 57]] },
+    { name: 'Spider trail', line: [[170, 130], [170, 152], [152, 152], [152, 203], [178, 203], [178, 201]] },
+    { name: 'Bone trail', line: [[128, 164], [96, 164], [96, 205], [76, 205], [76, 203]] },
+    { name: 'Fisher trail', line: [[96, 172], [56, 172]] },
+    { name: 'Lumber trail', line: [[70, 116], [70, 100], [66, 100]] },
+    { name: 'Marsh trail', line: [[70, 116], [56, 116], [56, 130]] },
   ],
 };
 
@@ -159,18 +150,6 @@ function createDefaultMap() {
     const [x0, y0, x1, y1] = box(poly);
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) fn(x, y);
   };
-  // Distance from a tile's middle to a line of points, and the segment nearest it.
-  const lineDistance = (line, x, y) => {
-    let best = Infinity, seg = 0;
-    for (let i = 0; i + 1 < line.length; i++) {
-      const [ax, ay] = line[i], [bx, by] = line[i + 1], vx = bx - ax, vy = by - ay;
-      const t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy || 1)));
-      const dist = Math.hypot(x - (ax + t * vx), y - (ay + t * vy));
-      if (dist < best) { best = dist; seg = i; }
-    }
-    return { dist: best, seg };
-  };
-  const lineBox = (line, pad) => box(line).map((v, i) => (i < 2 ? Math.max(0, v - pad) : Math.min(i === 2 ? W - 1 : H - 1, v + pad)));
 
   const at = (x, y, z = S) => m.get(x, y, z);
   const ground = (x, y, z = S) => (at(x, y, z) || {}).ground;
@@ -232,10 +211,48 @@ function createDefaultMap() {
   const meadow = new Uint8Array(W * H);
   for (const field of d.meadows) eachIn(field.outline, (x, y) => { if (insideRough(field.outline, x, y, 2, 41)) meadow[y * W + x] = 1; });
   for (const lake of d.lakes) eachIn(lake, (x, y) => { if (land[y * W + x] && insideRough(lake, x, y, 1.5, 51)) m.setGround(x, y, S, 'water'); });
-  for (const river of d.rivers) {
-    const [x0, y0, x1, y1] = lineBox(river.line, river.width);
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      if (lineDistance(river.line, x + 0.5, y + 0.5).dist <= river.width / 2) m.setGround(x, y, S, 'water');
+  // A line of straight runs (each run north-south or east-west), `width` tiles wide; a point
+  // [x, y, w] changes the width from there on; pad widens it all by that much (for margins).
+  // fn(x, y, alongX) for every tile it covers.
+  const runs = (line, width, fn, pad = 0) => {
+    let base = width;
+    for (let i = 0; i + 1 < line.length; i++) {
+      const [ax, ay, aw] = line[i], [bx, by] = line[i + 1];
+      if (aw) base = aw;
+      const w = base + pad, lo = -Math.floor((w - 1) / 2), hi = lo + w - 1, alongX = ay === by;
+      // the run, and the square at its end so turns are filled
+      for (let t = Math.min(alongX ? ax : ay, alongX ? bx : by) + lo; t <= Math.max(alongX ? ax : ay, alongX ? bx : by) + hi; t++) {
+        for (let c = lo; c <= hi; c++) fn(alongX ? t : ax + c, alongX ? ay + c : t, alongX);
+      }
+    }
+  };
+  const riverBed = new Set(); // where bridges may go
+  for (const river of d.rivers) runs(river.line, river.width, (x, y) => { m.setGround(x, y, S, 'water'); riverBed.add(y * W + x); });
+  // Banks that step in and out a tile here and there, in short stretches (not where a road crosses).
+  const crossing = (x, y) => [...d.roads, ...d.paths].some(r => { let near = false; runs(r.line, r.width || 2, (rx, ry) => { if (rx === x && ry === y) near = true; }, 6); return near; });
+  for (const river of d.rivers) runs(river.line, river.width, (x, y) => {
+    if (ground(x, y) !== 'grass' || shore[y * W + x] <= 4 || crossing(x, y)) return; // not at the coast: that's the beach's
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => riverBed.has((y + dy) * W + x + dx));
+    if ((near && noise(x, y, 2.5, 37) > 0.52) || noise(x, y, 6, 38) > 0.8) m.setGround(x, y, S, 'water');
+  }, 4);
+
+  // No specks of water on land: pieces of fewer than six tiles not joined to the sea dry up.
+  {
+    const seen = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) {
+      if (seen[i] || !land[i] || ground(i % W, Math.floor(i / W)) !== 'water') continue;
+      const part = [i];
+      seen[i] = 1;
+      for (let k = 0; k < part.length; k++) { // the whole piece, so a long brook isn't taken for a speck
+        const j = part[k];
+        for (const o of [1, -1, W, -W]) if (!seen[j + o] && land[j + o] && ground((j + o) % W, Math.floor((j + o) / W)) === 'water') { seen[j + o] = 1; part.push(j + o); }
+      }
+      if (part.length < 6) for (const j of part) {
+        const x = j % W, y = Math.floor(j / W);
+        const swampy = [1, -1, W, -W].some(o => ground((j + o) % W, Math.floor((j + o) / W)) === 'swamp');
+        m.setGround(x, y, S, swampy ? 'swamp' : 'grass');
+        riverBed.delete(j);
+      }
     }
   }
 
@@ -251,18 +268,17 @@ function createDefaultMap() {
   // Tiles of an outline, without lone tiles sticking out (they'd look like pillars).
   const shape = (outline, seed) => {
     const raw = new Set(), set = new Set();
-    eachIn(outline, (x, y) => { if (insideRough(outline, x, y, 1, seed)) raw.add(y * W + x); });
+    eachIn(outline, (x, y) => { if (insideRough(outline, x, y, 1.5, seed)) raw.add(y * W + x); });
     for (const i of raw) if ([1, -1, W, -W].filter(o => raw.has(i + o)).length >= 3) set.add(i);
     return set;
   };
-  // The south edge tile of a shape in column x, if the edge is straight there.
   const southEdge = (set, x) => {
     let y = -1;
     for (const i of set) if (i % W === x) y = Math.max(y, Math.floor(i / W));
     return y;
   };
-  // A path up: a ramp on the lowest cliff of column x (or the nearest column whose
-  // neighbours are as low), with its top on the floor above.
+  // A path up: a ramp on the lowest rock of column x (or a nearby column where the edge is
+  // straight), with its top on the floor above.
   const ramp = (set, z, x0) => {
     const tries = [0, 1, -1, 2, -2, 3, -3].map(o => x0 + o);
     const x = tries.find(x => { const y = southEdge(set, x); return y >= 0 && southEdge(set, x - 1) === y && southEdge(set, x + 1) === y; }) ?? x0;
@@ -270,55 +286,94 @@ function createDefaultMap() {
     m.ensure(x, y, z).items = ['ramp'];
     m.setGround(x, y, z + 1, 'ramp_top');
     for (let dy = -1; dy <= 2; dy++) for (let dx = -1; dx <= 1; dx++) if (m.inBounds(x + dx, y + dy, S)) keep[(y + dy) * W + x + dx] = 1;
-    return { x, y };
+    return { x, y, z };
   };
-  const plateau = (set, z, top) => {
+  // Rock walls on floor z, with their top one floor up: rugged rock you can't walk on, or rocky
+  // ground where you can (ledges and walkable hilltops).
+  const rockBlock = (set, z, walk) => {
     for (const i of set) {
       const x = i % W, y = (i - x) / W;
-      m.set(x, y, z, { ground: z === S ? 'mountain' : top, items: ['cliff'] });
-      const grassy = noise(x, y, 4, 61) > 0.62;
-      m.set(x, y, z + 1, { ground: grassy ? 'grass' : 'mountain', items: [] });
+      m.set(x, y, z, { ground: 'mountain', items: ['cliff'] });
+      m.set(x, y, z + 1, { ground: walk(i) ? (noise(x, y, 4, 61) > 0.7 ? 'grass' : 'mountain') : 'rock_top', items: [] });
     }
   };
-  const ramps = []; // { x, y, z } of every mountain path
+  // The tiles of a set at least `d` tiles in from its edge, ragged (noise) and without stray tiles.
+  const inner = (set, d, seed, keepOut) => {
+    const deep = i => { for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) if (!set.has(i + dy * W + dx)) return false; return true; };
+    const raw = new Set([...set].filter(i => deep(i) && !keepOut(i) && noise(i % W, Math.floor(i / W), 5, seed) > 0.28));
+    return new Set([...raw].filter(i => [1, -1, W, -W].filter(o => raw.has(i + o)).length >= 3));
+  };
+  const ramps = [];
   for (const mount of d.mountains) {
     const base = shape(mount.outline, 71);
-    plateau(base, S, 'mountain');
-    for (const x of mount.ramps) ramps.push({ ...ramp(base, S, x), z: S });
-    if (mount.summit) {
-      // The summit stands back at least two tiles from the edge below, so there's a ledge to walk on.
-      const ledge = i => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (!base.has(i + dy * W + dx)) return false; return true; };
-      const top = new Set([...shape(mount.summit.outline, 72)].filter(ledge));
-      plateau(top, S + 1, 'mountain');
-      for (const x of mount.summit.ramps) ramps.push({ ...ramp(top, S + 1, x), z: S + 1 });
+    // Where the path up comes out: the bottom of the ramp column on the south edge.
+    const way = mount.ramps.length > 0; // a mountain without a path up is rugged rock all over
+    const tries = [0, 1, -1, 2, -2, 3, -3].map(o => (mount.ramps[0] || 0) + o);
+    const rx = way ? tries.find(x => { const y = southEdge(base, x); return y >= 0 && southEdge(base, x - 1) === y && southEdge(base, x + 1) === y; }) ?? mount.ramps[0] : -99;
+    const ry = way ? southEdge(base, rx) : -99;
+    // Where you can walk on top: the whole top of a hill, or a ledge in front of the path up.
+    const ledge = i => {
+      if (!way) return false;
+      if (mount.walkable) return true;
+      const x = i % W, y = (i - x) / W; // a rounded ledge, ragged at its edge
+      return y <= ry && Math.hypot(x - rx, (y - (ry - 3)) * 1.2) < 3.6 + noise(x, y, 2, 78) * 1.6;
+    };
+    rockBlock(base, S, ledge);
+    if (way) ramps.push(ramp(base, S, rx));
+    // Tiers: each stands back two or three tiles from the one below (and off the ledge), so the
+    // mountain rises in steps of rock.
+    let below = base;
+    for (let tier = 1; tier < (mount.tiers || 1); tier++) {
+      const z = S + tier, top = inner(below, tier === 1 ? 3 : 2, 74 + tier, ledge);
+      rockBlock(top, z, () => false);
+      below = top;
+      if (!top.size) break;
     }
-    // Boulders on the mountain top, not on the paths
+    // A few crags on the rugged tops, and boulders on the ledges.
+    for (let z = S + 1; z <= S + (mount.tiers || 1); z++) for (const i of base) {
+      const x = i % W, y = (i - x) / W, t = at(x, y, z);
+      if (!t || t.items.length || at(x, y, z - 1)?.items.includes('cliff') === false) continue;
+      if (t.ground === 'rock_top' && !(at(x, y, z + 1) && at(x, y, z + 1).ground)) {
+        if (hash(x, y, 75 + z) < (z === S + (mount.tiers || 1) ? 0.14 : 0.07)) put(x, y, z, 'crag');
+      } else if (t.ground !== 'rock_top' && t.ground !== 'ramp_top' && !(Math.abs(x - rx) <= 1 && y >= ry - 2)) {
+        const v = hash(x, y, 76);
+        const rim = [1, -1, W, -W].some(o => !base.has(i + o));
+        if (mount.walkable && rim && v < 0.3) put(x, y, z, 'crag');
+        else if (v < 0.08) put(x, y, z, v < 0.04 ? 'rock' : 'pebbles');
+      }
+    }
+    // Whatever can't be reached from the path up becomes rugged rock: no closed-off pockets.
+    const start = (ry - 1) * W + rx, seen = new Set(way ? [start] : []), queue = way ? [start] : [];
+    while (queue.length) {
+      const i = queue.pop();
+      for (const o of [1, -1, W, -W, W + 1, W - 1, -W + 1, -W - 1]) {
+        const j = i + o;
+        if (!base.has(j) || seen.has(j) || !m.isWalkable(j % W, Math.floor(j / W), S + 1)) continue;
+        seen.add(j);
+        queue.push(j);
+      }
+    }
     for (const i of base) {
-      const x = i % W, y = (i - x) / W, t = at(x, y, S + 1);
-      const nearRamp = ramps.some(r => Math.abs(r.x - x) <= 1 && Math.abs(r.y - y) <= 2);
-      if (t && !t.items.length && t.ground !== 'ramp_top' && !nearRamp && hash(x, y, 73) < 0.05) put(x, y, S + 1, 'rock');
+      const x = i % W, y = Math.floor(i / W), t = at(x, y, S + 1);
+      if (!seen.has(i) && m.isWalkable(x, y, S + 1) && t.ground !== 'ramp_top') { t.ground = 'rock_top'; t.items = []; }
     }
   }
 
-  // ---- roads, paths and bridges ------------------------------------------------------------
-  const paint = (line, width, isPath) => {
-    const reach = isPath ? 0.95 : width / 2 + 0.15; // wide enough that slanted lines stay joined
-    const [x0, y0, x1, y1] = lineBox(line, width + 1);
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      const { dist, seg } = lineDistance(line, x + 0.5, y + 0.5);
-      if (dist <= reach + 1.5) keep[y * W + x] = 1;
-      if (dist > reach + (noise(x, y, 3, 99) - 0.5) * 0.5) continue; // a little wider here and there
+  // ---- roads, trails and bridges ------------------------------------------------------------
+  const paint = (line, width) => {
+    runs(line, width, (x, y) => { if (m.inBounds(x, y, S)) keep[y * W + x] = 1; }, 3); // and a margin with no trees
+    runs(line, width, (x, y, alongX) => {
       const g = ground(x, y);
-      if (g === 'water') {
-        const [ax, ay] = line[seg], [bx, by] = line[seg + 1];
-        m.setGround(x, y, S, Math.abs(bx - ax) >= Math.abs(by - ay) ? 'bridge_ew' : 'bridge_ns');
-      } else if (['grass', 'sand', 'swamp', 'mountain'].includes(g) && !(at(x, y).items.includes('cliff'))) {
+      if (g === 'water' && riverBed.has(y * W + x)) m.setGround(x, y, S, alongX ? 'bridge_ew' : 'bridge_ns');
+      else if (g === 'water') m.setGround(x, y, S, 'dirt'); // a trail through a marsh pool is a causeway
+      else if (['grass', 'sand', 'swamp', 'mountain'].includes(g) && !at(x, y).items.includes('cliff')) {
         m.setGround(x, y, S, 'dirt');
+        at(x, y).items = at(x, y).items.filter(id => !THINGS[id].block);
       }
-    }
+    });
   };
-  for (const road of d.roads) paint(road.line, road.width, false);
-  for (const path of d.paths) paint(path.line, 1, true);
+  for (const road of d.roads) paint(road.line, road.width);
+  for (const path of d.paths) paint(path.line, 2);
 
   // ---- forests -------------------------------------------------------------------------------
   // Trees stand in clumps (where the noise is high) with glades between them, thinning out
@@ -370,6 +425,7 @@ function createDefaultMap() {
       else if (flowers > 0.72 && v < 0.12) put(x, y, S, 'flowers');
       else if (grassy > 0.68 && v < 0.14) put(x, y, S, v < 0.08 ? 'tallgrass' : 'grass_tuft');
       else if (!meadow[i] && grove > 0.7 && v < 0.26) put(x, y, S, v < 0.16 ? 'tree' : 'bush');
+      else if (!meadow[i] && v < 0.06 + grove * 0.12) put(x, y, S, v < 0.045 ? 'pine' : v < 0.075 ? 'bush' : 'tree'); // firs and bushes everywhere
       else if (v < 0.006) put(x, y, S, 'grass_tuft');
       else if (v < 0.008) put(x, y, S, 'rock');
     } else if (t.ground === 'mountain') {
@@ -384,7 +440,7 @@ function createDefaultMap() {
   }
 
   // ---- where you start: the middle of town (its temple comes in phase 3) ---------------------------
-  m.start = { x: 132, y: 119, z: S };
+  m.start = { x: 129, y: 124, z: S };
   m.mainStart = { ...m.start };
   const xs = d.coast.map(p => p[0]), ys = d.coast.map(p => p[1]);
   m.isle = { x0: Math.min(...xs) - 4, y0: Math.min(...ys) - 4, x1: Math.max(...xs) + 4, y1: Math.max(...ys) + 4 };

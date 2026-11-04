@@ -418,6 +418,17 @@ const Sprites = (() => {
       noise(g, r, '#857a6a', ['#776c5d', '#958a79', '#6c6254', '#a29784'], 150, 3);
       for (let i = 0; i < 3; i++) ellipse(g, '#9c917f', 3 + r() * 26, 3 + r() * 26, 1.5, 1);
     },
+    // A mountain top you can't walk on: broken rock, boulders and dark clefts.
+    rock_top(g, r) {
+      noise(g, r, '#7a6f60', ['#6a6054', '#8c8170', '#5e5548', '#958a79'], 170, 3);
+      for (let i = 0; i < 3; i++) {
+        const x = 4 + r() * 24, y = 4 + r() * 24, rx = 3 + r() * 3, ry = 2 + r() * 2;
+        ellipse(g, '#4f473c', x + 1, y + 1.5, rx, ry);
+        ellipse(g, '#8c8170', x, y, rx, ry);
+        ellipse(g, '#a89c88', x - rx * 0.35, y - ry * 0.4, rx * 0.4, ry * 0.3);
+      }
+      for (let i = 0; i < 2; i++) line(g, 'rgba(35,30,24,0.7)', 1, r() * 32, r() * 32, r() * 32, r() * 32);
+    },
     carpet(g) {
       rect(g, '#8a1a22', 0, 0, TILE, TILE);
       rect(g, '#a8262e', 3, 0, 26, TILE);
@@ -638,6 +649,22 @@ const Sprites = (() => {
         const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 17;
         rect(g, r() < 0.5 ? '#25541f' : '#52a047', 41 + Math.cos(a) * d * 1.1, 25 + Math.sin(a) * d * 0.9, 2, 2);
       }
+    },
+    // A crag: a pile of weathered boulders on a mountain top, rising up-left from its tile like a
+    // tree, lit from the top-left.
+    crag(g, r) {
+      shadow(g, 48, 60, 15, 3);
+      const lumps = [];
+      for (let k = 0; k < 5; k++) lumps.push([36 + r() * 22, 40 + r() * 18 - (k === 0 ? 12 : 0), 7 + r() * 6, 6 + r() * 5]);
+      lumps.sort((a, b) => a[1] - b[1]); // the back ones first
+      for (const [x, y, rx, ry] of lumps) {
+        ellipse(g, '#4f473c', x + 1, y + 2, rx, ry);           // its dark underside
+        ellipse(g, '#7d7262', x, y, rx, ry);
+        ellipse(g, '#958a78', x - rx * 0.2, y - ry * 0.25, rx * 0.75, ry * 0.65);
+        ellipse(g, '#b0a590', x - rx * 0.4, y - ry * 0.45, rx * 0.35, ry * 0.25); // where the light catches it
+        line(g, 'rgba(40,34,28,0.6)', 1, x - rx * 0.2, y + ry * 0.1, x + rx * 0.4, y + ry * 0.5); // a crack
+      }
+      for (let i = 0; i < 5; i++) rect(g, ['#a29784', '#6c6254'][i % 2], 34 + r() * 26, 56 + r() * 6, 2, 1);
     },
     pine(g, r) {
       shadow(g, 50, 61, 11, 3);
@@ -1554,7 +1581,7 @@ const Sprites = (() => {
   const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
-  const VARIANTS = { pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, bookshelf: 2 };
+  const VARIANTS = { crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   const variantsOf = id => VARIANTS[spriteOf(id)] || (THINGS[id].ground ? 4 : 1);
 
@@ -3144,7 +3171,7 @@ const Sprites = (() => {
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
   const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, marble: 0, carpet: 0 };
-  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 5 };
+  const BORDER_PRIORITY = { ...PAVED, water: 0, lava: 0, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 5, rock_top: 6 };
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
@@ -3157,6 +3184,7 @@ const Sprites = (() => {
     mountain: { shade: 'rgba(0,0,0,0.3)', rim: 'rgba(70,62,52,0.9)', light: 'rgba(190,180,160,0.4)', pebbles: ['#a29784', '#6c6254', '#958a79'] },
     snow: { shade: 'rgba(60,80,110,0.2)', rim: 'rgba(170,190,215,0.85)', light: 'rgba(255,255,255,0.8)' },
     ash: { shade: 'rgba(0,0,0,0.25)', rim: 'rgba(40,36,34,0.85)', pebbles: ['#5a5654', '#2e2a28'] },
+    rock_top: { shade: 'rgba(0,0,0,0.35)', rim: 'rgba(52,46,38,0.95)', light: 'rgba(200,190,170,0.45)', pebbles: ['#a29784', '#5a5145'] },
     cave: { shade: 'rgba(0,0,0,0.3)', rim: 'rgba(40,34,28,0.85)', pebbles: ['#5a5047', '#362f29', '#6a6056'] },
   };
   function groundTexture(id) {
@@ -3384,8 +3412,44 @@ const Sprites = (() => {
         }
       });
     },
+    // The foot of a rock wall (cliff or cave wall) on side d of a ground tile (n, e, s, w; or ne,
+    // se, sw, nw for a corner): scree and stones spilling out from the rock, with its shadow.
+    foot(d, variant = 0) {
+      return cached(`foot:${d}:${variant}`, g => {
+        const r = makeRng(hashStr(`foot${d}${variant}`));
+        const turn = { n: 0, e: 1, s: 2, w: 3, ne: 0, se: 1, sw: 2, nw: 3 }[d];
+        g.translate(16, 16);
+        g.rotate((turn * Math.PI) / 2);
+        g.translate(-16, -16);
+        const corner = d.length === 2; // the rock is off the top-right corner
+        const reach = (x, y) => (corner ? Math.hypot(TILE - x, y) : y);
+        const grad = corner ? g.createRadialGradient(TILE, 0, 0, TILE, 0, 14) : g.createLinearGradient(0, 0, 0, 12);
+        grad.addColorStop(0, 'rgba(20,16,12,0.45)');
+        grad.addColorStop(1, 'rgba(20,16,12,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, TILE, corner ? 16 : 12);
+        // a band of scree, ragged on its outer side
+        for (let x = 0; x < TILE; x += 2) {
+          const depth = 3 + ((r() * 4) | 0);
+          for (let y = 0; y < depth; y++) {
+            if (corner && reach(x, y) > 9) continue;
+            if (r() < 0.75) rect(g, ['#7a6f60', '#8f8472', '#6a6054', '#9c917f'][(r() * 4) | 0], x, y, 2, 1);
+          }
+        }
+        // stones of a few sizes, the larger ones nearer the rock
+        for (let i = 0; i < (corner ? 3 : 7); i++) {
+          const x = corner ? TILE - 2 - r() * 10 : 1 + r() * 30, y = corner ? 1 + r() * 8 : 2 + r() * 8, s = y < 5 ? 2.5 : 1.5;
+          if (corner && reach(x, y) > 12) continue;
+          ellipse(g, 'rgba(0,0,0,0.3)', x + 0.5, y + 1, s + 0.5, s * 0.6);
+          ellipse(g, ['#958a79', '#857a69', '#a29784'][i % 3], x, y, s, s * 0.75);
+          rect(g, '#b8ac96', x - s * 0.5, y - s * 0.5, 1, 1);
+        }
+      });
+    },
+    // Rock walls that get a foot of scree on the ground around them.
+    hasFoot: id => id === 'cliff' || id === 'wall_cave',
     // Natural ground that gets a rocky lip where it ends in the open (a mountain top's edge).
-    hasLip: id => ['grass', 'mountain', 'dirt', 'snow', 'sand', 'ash', 'jungle', 'swamp'].includes(id),
+    hasLip: id => ['rock_top', 'grass', 'mountain', 'dirt', 'snow', 'sand', 'ash', 'jungle', 'swamp'].includes(id),
     // The lip along side d (n, e, s, w) of a raised tile: a ragged band of rock, lit on top,
     // with a dark line where it drops away. variant 0-2.
     lip(d, variant = 0) {

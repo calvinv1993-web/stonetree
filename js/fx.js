@@ -442,7 +442,7 @@ const Fx = (() => {
         depth = d;
       }
       if (depth > 1) {
-        g.fillStyle = `rgba(8,24,70,${[0, 0, 0.1, 0.19, 0.28][depth]})`;
+        g.fillStyle = `rgba(8,24,70,${[0, 0, 0.06, 0.16, 0.26][depth]})`;
         g.fillRect(ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
       if (day > 0.6) { // the sun glinting on the water

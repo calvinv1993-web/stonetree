@@ -104,7 +104,7 @@ Some details of the online client:
 
 ### The world
 
-- **The built-in world is being rebuilt** as Thistlewick Isle, a hand-designed starter island, phase by phase with the owner's approval. The plan, with every coordinate and what's still open, is in `docs/world-plan.md`.
+- **The built-in world is being rebuilt** as Oakvale Isle, a hand-designed starter island, phase by phase with the owner's approval. The plan, with every coordinate and what's still open, is in `docs/world-plan.md`.
 - **`default-map.js`** draws the world from `ISLE_DESIGN`, plain data at its top: outlines (coast, lakes, forests, mountains, marshes) and lines (rivers, roads, paths).
   - It's deterministic: a fixed hash of the coordinates only roughens edges and scatters trees inside the drawn areas. Nothing is generated at random, and editing one feature never moves another.
   - Its size is `WORLD_SIZE`: 256×256 tiles, 16 floors. `loadStoredMap` only accepts an editor map of that size.

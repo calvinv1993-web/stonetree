@@ -135,6 +135,21 @@ const Render = {
         }
       }
 
+      // Around the foot of rock walls: scree on the ground next to them (not under walls themselves).
+      const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const t = tileAt(x, y);
+        if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall)) continue;
+        const variant = ((x * 83492791) ^ (y * 2654435761)) >>> 0, sides = {};
+        for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
+          sides[d] = rockAt(x + dx, y + dy);
+          if (sides[d]) g.drawImage(Sprites.foot(d, variant % 3), ox + x * TILE, oy + y * TILE);
+        }
+        for (const [d, dx, dy, a, b] of BORDER_DIRS) {
+          if (rockAt(x + dx, y + dy) && !sides[a] && !sides[b]) g.drawImage(Sprites.foot(d, (variant >>> 4) % 3), ox + x * TILE, oy + y * TILE);
+        }
+      }
+
       // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
       // straight line.
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {

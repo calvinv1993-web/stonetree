@@ -37,7 +37,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 
 ## The game
 
-> **The world is being rebuilt.** The built-in world is now **Thistlewick Isle**, a new starter island, built in stages. So far there's the land: rocky coasts, beaches and coves, the river Wick past the town site and Glassmere lake, Highmoor, Cragend, the Webbed Hills, Watch Hill and Hermit's Crag with paths up them, the Old Pinewood, Eastwood and smaller woods, Bramble Marsh, Stonefield and the Redcap Hills, and Lantern Cape. The town, the people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
+> **The world is being rebuilt.** The built-in world is now **Oakvale Isle**, a new starter island, built in stages. So far there's the land: Oakvale's town site with Willow River beside it, Mirror Lake, the North Peaks, Eagle Peak, Bone Rocks and the Spider Hills (rocky mountains in tiers), the Old Tower hill and Hermit Rock, Wolf Woods, Deer Woods and smaller woods, Frog Marsh, Stony Field, Goblin Hill, Sunny Fields and Lighthouse Point. The town, the people, the monsters and the caves come next. Until then, the places described below aren't in the built-in world.
 
 - **Brightwater Isle** (starter island). You start in the temple next to Elder Maren. The island has:
   - a cellar full of rats
@@ -175,7 +175,7 @@ What people say floats above their heads.
 | `js/npcs.js` | NPC dialogs, shops and services, quests, raids |
 | `js/sprites.js` | Procedurally drawn sprites |
 | `js/map.js` | Map data, save format, A* pathfinding |
-| `js/default-map.js` | The built-in world: Thistlewick Isle (256×256 tiles, 16 floors). Being rebuilt; see `docs/world-plan.md` |
+| `js/default-map.js` | The built-in world: Oakvale Isle (256×256 tiles, 16 floors). Being rebuilt; see `docs/world-plan.md` |
 | `js/render.js` | Floor-aware renderer (shared by game and editor) |
 | `js/game-core.js` | State, movement, inventory, quests, houses, cabs, saving |
 | `js/game-combat.js` | Combat, spells, runes, monster AI, loot, effects, raids |

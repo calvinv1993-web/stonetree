@@ -1,4 +1,4 @@
-# Thistlewick Isle: the world plan
+# Oakvale Isle: the world plan
 
 A new starter island for Tilequest, built from a blank map. It's in the classic style (a small
 walled town, a temple, a river, beginner hunting grounds that get harder further out, caves
@@ -19,7 +19,7 @@ Its scale and contents are those of a classic starter island:
 | Surface | z = 8. Floors 0–7 are underground, 9–15 above ground |
 | Axes | x goes east, y south, z **up** (the engine's own rule) |
 | Scale | 1 tile = 1 sqm. The island is about 190 × 215 tiles, in open sea with at least 20 tiles of water around it |
-| Start | (119, 129, 8): the middle of Thistlewick. The temple goes here in phase 3 |
+| Start | (119, 129, 8): the middle of Oakvale. The temple goes here in phase 3 |
 
 This is all in `WORLD_SIZE` and `ISLE_DESIGN` at the top of `js/default-map.js`.
 
@@ -35,41 +35,55 @@ This is all in `WORLD_SIZE` and `ISLE_DESIGN` at the top of `js/default-map.js`.
 - **Underground**, every cave floor is enclosed by rock walls. Tiles that haven't been dug out are empty (`null`), and nobody can walk on them. The validator also requires a wall between any cave floor and the void.
 - **Upper floors** exist only where there's something there: mountain tops, upper storeys, roofs.
 
-## 3. The island (phase 2: geography, second version)
+## 3. The island (phase 2: geography, third version)
 
-Built after studying map A (the imported map) and classic starter islands: see `docs/world-research.md`.
+The island is the same size as map A's (about 25,000 walkable tiles). It's built the way the classic maps are, after studying map A and Tibia's style (see `docs/world-research.md`):
+- **Roads and rivers** run straight, north-south or east-west, with right-angle turns and jogs.
+- **The river's banks** step in and out, and its width changes along the way.
+- **Mountains** are rock walls rising in two or three tiers. Their tops are rugged rock with boulder piles, and you can only walk on a ledge where a path leads up.
+- **Firs and bushes** are spread across the open land, with dense woods in places.
 
 | Place | Where (x, y) | What | Hunting (planned) |
 |---|---|---|---|
-| Thistlewick | 112–152, 98–140 | Town site in the middle, kept clear for walls, streets and buildings (phase 3). Start at (132, 119) | Sewers below: easiest |
-| The Wick | Glassmere → west coast | River 3 tiles wide, past the town's west side, out through an estuary in the west. Bridges on the north road, the west road and the lake path | |
-| Glassmere | 148–178, 56–86 | Lake in the north-east, source of the Wick | Lakeside: easiest |
-| Southfields | 98–154, 150–190 | Meadows south of town, with a pond and a farm clearing | Easiest |
-| Highmoor | 58–150, 28–64 | Mountain range across the north, with a summit two floors up. Paths up at x 80 and 108 (summit at 104) | Hard, with caves (phase 5) |
-| Stonefield | 74–96, 68–86 | Stony ground at Highmoor's foot | Middle |
-| Old Pinewood | 24–72, 46–114 | Dense fir forest in the north-west, with a lumber camp clearing | Easy to middle |
-| Bramble Marsh | 28–62, 118–162 | Swamp on the west coast | Easy |
-| Saltreed | 34–48, 174–190 | Fishing hamlet clearing at the Wick's mouth | |
-| Cragend | 50–88, 180–216 | Rocky crag in the south-west. Path up at x 70 | Hard, with caves (phase 5) |
-| Gull Cove, Cove wood | 60–118, 206–234 | A bay on the south coast, with a small fir wood | |
-| Lantern Cape | 118–150, 222–246 | Rocky cape in the south, with a lighthouse clearing | |
-| Webbed Hills | 176–214, 166–204 | Hills in the south-east. Path up at x 192 | Hardest: spider caves (phase 5) |
-| Eastwood | 160–228, 90–164 | Big oak forest east of town, with a pond and Hollow Brook | Easy to middle |
-| Watch Hill | 204–224, 108–128 | Hill in Eastwood, for a ruined watchtower. Path up at x 214 | Middle |
-| Redcap Hills | 182–218, 60–92 | Stony hills with a goblin camp clearing | Middle |
-| Hermit's Crag | 200–228, 36–62 | Rocky headland in the north-east. Path up at x 212 | Hard |
-| Kittiwake Bay | 156–186, 22–50 | Bay on the north coast | |
-| Small woods | Thornbrake, Riverside thicket, Willow Bend, Webfoot copse, Lakewood, Southfield grove | Between the big areas | |
+| Oakvale | 110–148, 106–142 | The town site in the middle, kept clear for walls, streets and buildings (phase 3). Start at (129, 124) | Sewers below: easiest |
+| Willow River | Mirror Lake → west coast | Past the town's west side, out to the west coast. Bridges on the north and west roads | |
+| Mirror Lake | 148–176, 58–84 | Lake in the north-east, source of the river | Lakeside: easiest |
+| Sunny Fields | 108–152, 146–186 | Meadows south of town, with a pond and a farm clearing | Easiest |
+| North Peaks | 62–106, 40–62 | Three-tier mountain. Path up at x 99 to a ledge | Hard, with a cave (phase 5) |
+| Eagle Peak | 114–136, 34–52 | Two-tier mountain with no way up | |
+| Stony Field | 86–108, 64–82 | Stony ground below the North Peaks | Middle |
+| Wolf Woods | 40–84, 58–112 | Dense fir forest in the north-west, with a lumber camp clearing | Easy to middle |
+| Frog Marsh | 42–72, 112–146 | Swamp with pools, crossed by a causeway trail | Easy |
+| Fisher's Rest | 42–56, 170–182 | Fishing hamlet clearing south of the river's mouth | |
+| Bone Rocks | 62–92, 174–202 | Two-tier crag in the south-west. Path up at x 76 | Hard, with a crypt (phase 5) |
+| Lighthouse Point | 116–150, 196–224 | Rocky cape in the south, with a lighthouse clearing | |
+| Spider Hills | 164–194, 166–200 | Three-tier hills in the south-east. Path up at x 178 | Hardest: spider caves (phase 5) |
+| Deer Woods | 152–214, 88–160 | Big oak wood east of town, with a pond and Deer Brook | Easy to middle |
+| Old Tower | 186–204, 110–126 | Hill in Deer Woods; its top is walkable, for a ruined tower | Middle |
+| Goblin Hill | 174–208, 58–88 | Stony hill with a goblin camp clearing | Middle |
+| Hermit Rock | 192–212, 40–56 | Rock in the north-east; its top is walkable | Hard |
+| Small woods | Owl Grove, Fox Copse, Thorn Thicket | Between the big areas | |
 
-Roads (2 tiles wide) leave the town north (to Highmoor), west (over the Wick to the Pinewood and the marsh), south
-(to Lantern Cape) and east (to Watch Hill). Paths (1 to 2 tiles wide) lead to Stonefield, the marsh, the lake,
-the Redcap Hills and Hermit's Crag, the Webbed Hills, Cragend and Saltreed.
+**Roads** (3 tiles wide) leave the town:
+- north, over the river, to the North Peaks
+- west, over the river, to Frog Marsh and Wolf Woods
+- south, to Lighthouse Point
+- east, to the Old Tower
+
+**Trails** (2 tiles wide) lead to:
+- Mirror Lake
+- Goblin Hill and Hermit Rock
+- the Spider Hills
+- Bone Rocks
+- Fisher's Rest
+- the lumber camp
+- the marsh
 
 ## 4. Later phases: what's planned
 
 These are targets for you to approve phase by phase. They're not built yet.
 
-### Phase 3: Thistlewick
+### Phase 3: Oakvale
 
 - **Walls and gates:** a wall with four gates.
 - **Temple:** the temple (the protection zone where new characters wake up), with the priest.
@@ -84,31 +98,31 @@ These are targets for you to approve phase by phase. They're not built yet.
 ### Phase 4: the wilderness
 
 - the Saltreed huts and a pier
-- the Southfields farm and mill
-- the ruined watchtower on Watch Hill
-- a hermit's hut on Hermit's Crag
-- a goblin camp in the Redcap Hills
-- a lumber camp in the Pinewood
-- a lighthouse on Lantern Cape
+- the Sunny Fields farm and mill
+- the ruined watchtower on Old Tower
+- a hermit's hut on Hermit Rock
+- a goblin camp in the Goblin Hill
+- a lumber camp in the Wolf Woods
+- a lighthouse on Lighthouse Point
 - signposts
 - camps
 - the hunting grounds, from easy (near town) to hard (far out):
 
 | Danger | Hunting grounds |
 |---|---|
-| Easiest | the sewers, Southfields, the lakeside |
-| Easy | Bramble Marsh, the edges of the Pinewood and Eastwood |
-| Middle | Stonefield, Watch Hill, the Redcap Hills, deep in the woods |
-| Hard | Highmoor, Cragend, Hermit's Crag |
-| Hardest | the Webbed Hills caves |
+| Easiest | the sewers, Sunny Fields, the lakeside |
+| Easy | Frog Marsh, the edges of the Wolf Woods and Deer Woods |
+| Middle | Stonefield, Old Tower, the Goblin Hill, deep in the woods |
+| Hard | North Peaks, Bone Rocks, Hermit Rock |
+| Hardest | the Spider Hills caves |
 
 ### Phase 5: underground
 
 These caves are a design proposal, since there's no underground reference:
-- **Town sewers** under Thistlewick (z 7)
-- **Highmoor caves** (z 7 and 6)
-- **Cragend crypt** (z 7 to 6)
-- **Webbed Hills spider caves** (z 7 to 5): the hardest beginner area
+- **Town sewers** under Oakvale (z 7)
+- **North Peaks caves** (z 7 and 6)
+- **Bone Rocks crypt** (z 7 to 6)
+- **Spider Hills spider caves** (z 7 to 5): the hardest beginner area
 
 Each entrance will be listed with its source and destination tiles, and checked by the validator.
 

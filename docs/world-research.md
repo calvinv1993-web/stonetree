@@ -1,6 +1,6 @@
 # Research: classic starter islands and the Tibia way of mapping
 
-Notes behind the Thistlewick Isle design, which is our own island in that style.
+Notes behind the Oakvale Isle design, which is our own island in that style.
 - The wiki and mapping-forum pages (tibia.fandom.com, otland.net) couldn't be opened from the build environment. Only search summaries came through.
 - The rest is general knowledge of how the genre's maps are built, and a study of map A (the imported map, kept on the `backup-before-rookgaard-world-2026-11-04` and `backup-before-new-island-2026-11-04` branches).
 
