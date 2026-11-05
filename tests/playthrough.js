@@ -125,13 +125,15 @@ function fightBack() {
   return true;
 }
 function kill(m) {
+  p._switched = p._switched || 0;
   A.setChase(true); // walking yourself turns chase off, as in Tibia: a fleeing wolf would get away
-  A.setTarget(m.id);
+  if (p.target !== m) A.setTarget(m.id); // (attacking your own target again would stop the attack)
   const end = state.now + 180000;
   while (!m.dead && !p.dead && state.now < end && m.z === p.z) {
     tick(); heal();
     if (!p.target && !m.dead && Math.max(Math.abs(m.x - p.x), Math.abs(m.y - p.y)) <= 8) A.setTarget(m.id);
     if (!p.target && !m.dead) break; // lost it
+    if (Math.max(Math.abs(m.x - p.x), Math.abs(m.y - p.y)) > 1 && near(null, 1).length && state.now - p._switched > 3000) { p._switched = state.now; m = near(null, 1)[0]; A.setTarget(m.id); } // one is biting you: that one first
   }
   if (m.dead) {
     killsTotal++;
@@ -215,6 +217,7 @@ function shop(potions = 5) {
   const pip = npc('pip');
   goTo(pip.x, pip.y, pip.z, 2, "to Pip's");
   A.say('hi'); wait(200); A.say('trade'); wait(300);
+  if (!run('player.shopNpc && player.shopNpc.def.trade')) { problem("Pip's shop did not open"); A.say('bye'); wait(200); return; }
   const g0 = p.gold; // sell the loot first
   for (const [id, , n] of run('sellableItems(player.shopNpc)')) if (!['health_potion', 'mana_potion', 'bread', 'apple', 'rope', 'shovel'].includes(id)) A.sell(id, n);
   if (p.gold > g0) note(`sold loot for ${p.gold - g0} gold`);
