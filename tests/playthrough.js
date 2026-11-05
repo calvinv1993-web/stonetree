@@ -207,6 +207,14 @@ function talk(id, ...words) {
   }
   if (said.some(m => /not sure what you mean/.test(m))) problem(`${n.name} did not understand "${words.join('", "')}"`);
 }
+// Talk until the quest is where it should be: taken ('active') or handed in ('done').
+function talkFor(quest, want, id, ...words) {
+  for (let tries = 0; tries < 3 && state.questState(quest) !== want && (want !== 'active' || state.questState(quest) === 'none'); tries++) {
+    talk(id, ...words);
+    if (state.questState(quest) !== want) wait(2000);
+  }
+  if (state.questState(quest) !== want && !(want === 'active' && state.questState(quest) === 'done')) problem(`${quest} is ${state.questState(quest)} after talking to ${id}, not ${want}`);
+}
 function use(x, y, z, what) {
   goTo(x, y, z, 1, `to ${what}`);
   const seen = messages.length;
@@ -269,31 +277,31 @@ const CRYPT = [80, 181, 7], DRAINS = [126, 125, 6], CISTERN = [125, 110, 5], TOM
 try {
   const step = (name, fn) => { const t0 = state.now; note(`== ${name}`); fn(); note(`   (${((state.now - t0) / 60000).toFixed(1)} min)`); };
   step('The Silent Bell I', () => {
-    talk('ama', 'bell', 'yes');
+    talkFor('bell_1', 'active', 'ama', 'bell', 'yes');
     talk('corwin', 'bell');
     huntFor('bell_1', 'rat', SUNNY);
     talk('corwin', 'bell'); talk('postmaster', 'locker'); talk('pip', 'letter'); talk('ama', 'bell');
   });
   step('the sewers: a cap', () => { use(105, 121, 7, 'the storeroom chest'); equipBest(); });
   step('to level 2', () => levelUp(2, 'rat', SUNNY));
-  step('Bram: wolves', () => { shop(3); talk('gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES); talk('gate_west', 'wolves'); equipBest(); });
+  step('Bram: wolves', () => { shop(3); talkFor('gate_west', 'active', 'gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES); talkFor('gate_west', 'done', 'gate_west', 'wolves'); equipBest(); });
   step('the rats\' nest: a shield', () => { shop(3); use(144, 140, 7, 'the chest in the rats\' nest'); equipBest(); });
-  step('Tilda: crabs', () => { levelUp(3, 'wolf', WOLVES); shop(3); talk('gate_south', 'crabs', 'yes'); huntFor('gate_south', 'crab', CRABS); talk('gate_south', 'crabs'); equipBest(); });
-  step('Hilde: spiders', () => { levelUp(4, 'wolf', WOLVES); shop(4); talk('gate_east', 'spiders', 'yes'); huntFor('gate_east', 'spider', SPIDERS); talk('gate_east', 'spiders'); equipBest(); });
-  step('Osric: goblins', () => { levelUp(5, 'spider', SPIDERS); shop(5); talk('gate_north', 'goblins', 'yes'); huntFor('gate_north', 'goblin', GOBLINS); talk('gate_north', 'goblins'); equipBest(); });
+  step('Tilda: crabs', () => { levelUp(3, 'wolf', WOLVES); shop(3); talkFor('gate_south', 'active', 'gate_south', 'crabs', 'yes'); huntFor('gate_south', 'crab', CRABS); talkFor('gate_south', 'done', 'gate_south', 'crabs'); equipBest(); });
+  step('Hilde: spiders', () => { levelUp(4, 'wolf', WOLVES); shop(4); talkFor('gate_east', 'active', 'gate_east', 'spiders', 'yes'); huntFor('gate_east', 'spider', SPIDERS); talkFor('gate_east', 'done', 'gate_east', 'spiders'); equipBest(); });
+  step('Osric: goblins', () => { levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes'); huntFor('gate_north', 'goblin', GOBLINS); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest(); });
   step('The Silent Bell II: the crypt', () => {
-    shop(6); talk('corwin', 'crypt', 'yes'); huntFor('bell_2', 'skeleton', CRYPT);
-    use(81, 178, 7, 'a weapon chest'); use(71, 181, 7, 'the torn note'); equipBest(); talk('corwin', 'note');
+    shop(6); talkFor('bell_2', 'active', 'corwin', 'crypt', 'yes'); huntFor('bell_2', 'skeleton', CRYPT);
+    use(81, 178, 7, 'a weapon chest'); use(71, 181, 7, 'the torn note'); equipBest(); talkFor('bell_2', 'done', 'corwin', 'note');
   });
   step('to level 6', () => levelUp(6, 'goblin', GOBLINS));
   step('The Silent Bell III: the rope', () => {
-    shop(8); talk('ama', 'rope', 'yes'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
-    use(148, 101, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talk('ama', 'rope');
+    shop(8); talkFor('bell_3', 'active', 'ama', 'rope', 'yes'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
+    use(148, 101, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talkFor('bell_3', 'done', 'ama', 'rope');
   });
   step('to level 8', () => levelUp(8, 'skeleton', CRYPT));
   step('The Silent Bell IV: the Gravewaker', () => {
-    shop(10); talk('ama', 'gravewaker', 'yes'); huntFor('bell_4', 'gravewaker', TOMB);
-    use(69, 176, 6, 'the founder\'s tomb'); talk('ama', 'clapper'); equipBest();
+    shop(10); talkFor('bell_4', 'active', 'ama', 'gravewaker', 'yes'); huntFor('bell_4', 'gravewaker', TOMB);
+    use(69, 176, 6, 'the founder\'s tomb'); talkFor('bell_4', 'done', 'ama', 'clapper'); equipBest();
   });
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));
   talk('oak_oracle', 'destiny');

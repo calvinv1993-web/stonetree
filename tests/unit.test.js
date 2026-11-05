@@ -1398,6 +1398,20 @@ test('hunting packs keep apart, and before a vocation a death costs half as much
   assert.strictEqual(p.xp, 9500, 'a twentieth of it, not a tenth');
 });
 
+test('in the deep cistern the giant rats lurk: they notice you only when you come near, not from across the cave', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const lurkers = state.map.spawns.filter(s => s.z === 5 && s.lurk);
+  assert(lurkers.length >= 10 && lurkers.some(s => s.type === 'cistern_slime'), 'the cistern\'s rats and its slime lurk');
+  assert(lurkers.every(s => Math.max(Math.abs(s.x - 128), Math.abs(s.y - 111)) >= 4), 'none waits by the ladder down');
+  ctx.teleport({ x: 128, y: 111, z: 5 });
+  const p = state.player;
+  const far = ctx.spawnMonster({ ...lurkers.find(s => s.type === 'giant_rat' && Math.max(Math.abs(s.x - p.x), Math.abs(s.y - p.y)) > 6) });
+  assert.strictEqual(ctx.monsterTarget(far), null, 'a rat across the cave has not seen you');
+  const near = ctx.spawnMonster({ ...lurkers[0], x: p.x + 3, y: p.y });
+  assert.strictEqual(ctx.monsterTarget(near), p, 'one three tiles off has');
+});
+
 test('weapon hits as in Tibia: skill counts most, at least level / 5, and a monster\'s defense and armor can block a hit', () => {
   const game = quietGame();
   const { ctx, state } = game;

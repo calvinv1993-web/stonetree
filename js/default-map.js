@@ -299,7 +299,8 @@ const SEWERS = {
 // bottom of the bell shaft under the temple, where the bell's rope lies.
 //   z: the floor; up: where the ladder up stands (under the trapdoor above); down: the trapdoor further down
 //   drains: brick tunnels [x0, y0, x1, y1]; caves: fallen-in parts { cx, cy, rx, ry }; rooms: [x0, y0, x1, y1, ground]
-//   pools: water in the caves { cx, cy, rx, ry }; props: [x, y, id, look?]; monsters: [type, [[x, y], ...]]
+//   pools: water in the caves { cx, cy, rx, ry }; props: [x, y, id, look?]; monsters: [type, [[x, y], ...], { lurk }?]
+//   (lurk: they notice you only within their own aggro range, not from anywhere on your screen)
 const DEEP_SEWERS = [
   {
     z: 6, up: [147, 139], down: [128, 111],
@@ -316,8 +317,10 @@ const DEEP_SEWERS = [
     rooms: [[139, 103, 144, 109, 'paving'], [145, 100, 149, 104, 'paving']], // the bottom of the bell shaft, under the tower
     props: [[148, 101, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
-      ['giant_rat', [[121, 108], [124, 106], [127, 105], [131, 109], [133, 112], [130, 115], [126, 116], [122, 115], [119, 110], [118, 104], [132, 118], [129, 112]]],
-      ['cistern_slime', [[136, 108]]],
+      // they lurk in the dark: each notices you only when you come near it (its aggro), not from across the cave,
+      // so you can fight your way through a pair at a time - none of them by the ladder
+      ['giant_rat', [[121, 107], [124, 105], [133, 112], [133, 115], [126, 116], [123, 116], [119, 110], [118, 104], [132, 118], [130, 119]], { lurk: true }],
+      ['cistern_slime', [[136, 108]], { lurk: true }],
     ],
   },
 ];
@@ -863,7 +866,7 @@ function buildDeepSewers(m, S) {
     m.get(...L.up, Z).items = ['cave_ladder'];
     if (L.down) m.get(...L.down, Z).items = ['trapdoor'];
     for (const [x, y, id] of L.props) m.addItem(x, y, Z, id);
-    for (const [type, spots] of L.monsters) for (const [x, y] of spots) if (m.isWalkable(x, y, Z) && !m.floorChange(x, y, Z)) m.spawns.push({ type, x, y, z: Z });
+    for (const [type, spots, how] of L.monsters) for (const [x, y] of spots) if (m.isWalkable(x, y, Z) && !m.floorChange(x, y, Z)) m.spawns.push({ type, x, y, z: Z, ...how });
   }
 }
 

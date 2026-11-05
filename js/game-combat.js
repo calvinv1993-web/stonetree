@@ -653,7 +653,7 @@ function monsterTarget(m) {
     if (p.dead || p.z !== m.z || p.ride) continue; // nobody attacks someone being picked up or on a ride
     if (map.isShelter(p.x, p.y, p.z)) continue; // nor anyone in a temple, a shop or an inn
     const d = dist(m, p), angry = m.angryAt === p.id && now < m.angryUntil;
-    const sees = m.def.aggro > 0 && (d <= m.def.aggro || inView(p, m));
+    const sees = m.def.aggro > 0 && (d <= m.def.aggro || (!(m.spawn && m.spawn.lurk) && inView(p, m))); // lurkers only see what's near
     if ((sees || (angry && d <= 12)) && (d < bestD || angry)) {
       best = p;
       bestD = angry ? -1 : d;
