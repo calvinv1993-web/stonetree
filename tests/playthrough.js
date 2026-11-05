@@ -146,7 +146,7 @@ function rest(to = 0.9) {
   const end = state.now + 600000;
   while (p.hp < p.maxHp * to && state.now < end) { wait(1000); }
 }
-// How many other hostile monsters are within r tiles of m: a careful player takes them one or two at a time.
+// How many other hostile monsters are within r tiles of m: a careful player takes on one pack at a time, not two.
 const crowd = (m, r = 4) => state.monsters.filter(o => o !== m && hostile(o) && Math.max(Math.abs(o.x - m.x), Math.abs(o.y - m.y)) <= r).length;
 // Hunt `n` of `type` round (cx, cy, cz).
 function hunt(type, n, [cx, cy, cz], why) {
@@ -156,13 +156,13 @@ function hunt(type, n, [cx, cy, cz], why) {
   while (got < n && state.now < end) {
     if (needShop || (!state.countItem('health_potion') && p.gold >= 40)) { shop(); needShop = false; }
     if (p.hp < p.maxHp * 0.8) rest(); // a fight only with most of your health
-    let m = near(type, 9).find(x => crowd(x) <= 1);
+    let m = near(type, 9).find(x => crowd(x) <= 2);
     if (!m) {
-      const far = state.monsters.filter(x => !x.dead && x.type === type && x.z === cz && Math.max(Math.abs(x.x - cx), Math.abs(x.y - cy)) <= 30 && crowd(x) <= 1)
+      const far = state.monsters.filter(x => !x.dead && x.type === type && x.z === cz && Math.max(Math.abs(x.x - cx), Math.abs(x.y - cy)) <= 30 && crowd(x) <= 2)
         .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
       if (!far) { goTo(cx, cy, cz, 3, `to the ${type}s`); wait(5000); continue; }
       goTo(far.x, far.y, far.z, 2, `to a ${type}`);
-      m = near(type, 9).find(x => crowd(x) <= 1) || near(type, 3)[0];
+      m = near(type, 9).find(x => crowd(x) <= 2) || near(type, 3)[0];
       if (!m) { wait(2000); continue; } // (always let time pass, or this could go round for ever)
     }
     const before = killsTotal, t0 = state.now; kill(m);
