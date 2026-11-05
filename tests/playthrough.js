@@ -93,6 +93,7 @@ function goTo(gx, gy, gz, near = 0, why = '') {
     let target = path[path.length - 1];
     for (let i = 1; i < path.length; i++) if (path[i][2] !== p.z) { target = path[i - 1]; break; }
     for (let i = 1; i < path.length && path[i][2] === p.z; i++) if (map.floorChange(...path[i])) { target = path[i]; break; }
+    const leg = path.indexOf(target); if (leg > 30) target = path[30]; // click ahead a stretch at a time, as a player does (a click can't plan the whole isle)
     const z0 = p.z;
     A.walkTo(target[0], target[1]);
     const end = state.now + 120000;
