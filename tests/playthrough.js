@@ -108,9 +108,12 @@ function goTo(gx, gy, gz, near = 0, why = '') {
 const hostile = m => !m.dead && m.z === p.z && m.def.aggro > 0;
 const near = (type, r) => state.monsters.filter(m => hostile(m) && (!type || m.type === type) && Math.max(Math.abs(m.x - p.x), Math.abs(m.y - p.y)) <= r)
   .sort((a, b) => Math.max(Math.abs(a.x - p.x), Math.abs(a.y - p.y)) - Math.max(Math.abs(b.x - p.x), Math.abs(b.y - p.y)));
+let healsCast = 0, eaten = 0;
+const canHeal = () => p.level >= 3 && p.mana >= state.SPELLS.light_heal.mana && state.now >= p.spellReady;
 function heal() {
+  if (p.hp < p.maxHp * 0.7 && canHeal()) { A.castSpell('light_heal'); healsCast++; }
   if (p.hp < p.maxHp * 0.4 && state.countItem('health_potion') && state.now - (p._drank || 0) > 1000) { A.hotkey('h'); p._drank = state.now; }
-  if (p.fedUntil < state.now + 5000 && (state.countItem('bread') || state.countItem('apple') || state.countItem('cheese') || state.countItem('meat'))) A.hotkey('f');
+  if (p.fedUntil < state.now + 5000 && (state.countItem('bread') || state.countItem('apple') || state.countItem('cheese') || state.countItem('meat'))) { A.hotkey('f'); eaten++; }
 }
 // Something attacking you, or right beside you: fight it to the end. Returns true if it fought.
 function fightBack() {
@@ -145,7 +148,7 @@ function kill(m) {
 // Rest until well (eating if you can), when nothing is about.
 function rest(to = 0.9) {
   const end = state.now + 600000;
-  while (p.hp < p.maxHp * to && state.now < end) { wait(1000); }
+  while (p.hp < p.maxHp * to && state.now < end) { heal(); wait(1000); } // Light Heal and food while you wait
 }
 // How many other hostile monsters are within r tiles of m: a careful player takes on one pack at a time, not two.
 const crowd = (m, r = 4) => state.monsters.filter(o => o !== m && hostile(o) && Math.max(Math.abs(o.x - m.x), Math.abs(o.y - m.y)) <= r).length;
@@ -209,11 +212,12 @@ function shop(potions = 5) {
   const g0 = p.gold; // sell the loot first
   for (const [id, , n] of run('sellableItems(player.shopNpc)')) if (!['health_potion', 'mana_potion', 'bread', 'apple', 'rope', 'shovel'].includes(id)) A.sell(id, n);
   if (p.gold > g0) note(`sold loot for ${p.gold - g0} gold`);
+  // food first: it is cheap and makes resting quick
+  if (state.countItem('bread') < 3 && p.gold >= 15) { const g = p.gold; A.buy('bread', 3); goldSpent += g - p.gold; }
   const price = run("NPCS.pip.trade.sells.find(s => s[0] === 'health_potion')[1]");
   const want = Math.max(0, potions - state.countItem('health_potion'));
   const n = Math.min(want, Math.floor(p.gold / price));
   if (n) { const g = p.gold; A.buy('health_potion', n); goldSpent += g - p.gold; potionsBought += state.countItem('health_potion') ? n : 0; }
-  if (state.countItem('bread') < 3 && p.gold >= 15) { const g = p.gold; A.buy('bread', 3); goldSpent += g - p.gold; }
   A.say('bye'); wait(200);
   note(`shopped: now ${state.countItem('health_potion')} potions, ${p.gold} gold`);
   if (want > n) note(`  (wanted ${want} potions, could pay for ${n})`);
@@ -287,7 +291,7 @@ try {
 }
 console.log(report.join('\n'));
 console.log(`\nSeed ${seed}: level ${p.level} after ${min()} minutes; levels at minute ${Object.entries(levelAt).map(([l, m]) => `${l}: ${m}`).join(', ')}`);
-console.log(`deaths ${deaths}, kills ${killsTotal}, potions bought ${potionsBought}, gold spent ${goldSpent}, gold now ${p.gold}`);
+console.log(`deaths ${deaths}, kills ${killsTotal}, potions bought ${potionsBought}, Light Heals ${healsCast}, meals ${eaten}, gold spent ${goldSpent}, gold now ${p.gold}`);
 console.log(`gear: ${Object.entries(p.equipment).filter(([s, i]) => i && s !== 'backpack').map(([s, i]) => i.id).join(', ')}; skills club ${p.skills.club.level}, shielding ${p.skills.shielding.level}`);
 console.log(`guide step ${p.tutorial} of ${run('GUIDE.length')}`);
 if (problems.length) console.log(`\nProblems:\n  ${problems.join('\n  ')}`);
