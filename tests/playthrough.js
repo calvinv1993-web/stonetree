@@ -160,7 +160,8 @@ function hunt(type, n, [cx, cy, cz], why) {
   note(`hunting ${n} ${type} (${why})`);
   const end = state.now + 45 * 60000;
   let got = 0;
-  while (got < n && state.now < end) {
+  const questDone = () => state.QUESTS[why] && state.questState(why) === 'active' && killsLeft(why, type) <= 0; // the quest log counts every kill
+  while (got < n && state.now < end && !questDone()) {
     if (needShop || (!state.countItem('health_potion') && p.gold >= 40)) { shop(); needShop = false; }
     if (p.hp < p.maxHp * 0.8) rest(); // a fight only with most of your health
     let m = near(type, 9).find(x => crowd(x) <= 2);
@@ -177,7 +178,7 @@ function hunt(type, n, [cx, cy, cz], why) {
     if (state.now === t0) wait(500);
     if (killsTotal > before) got++;
   }
-  if (got < n) problem(`found only ${got} of ${n} ${type}s in 45 minutes`);
+  if (got < n && !questDone()) problem(`found only ${got} of ${n} ${type}s in 45 minutes`);
 }
 // Make the kills a quest step wants, counted by the game.
 function killsLeft(id, type) {
