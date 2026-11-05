@@ -72,7 +72,7 @@ const GUIDE = [
   {
     text: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
     touch: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
-    target: [{ quest: 'bell_2' }, { at: [70, 182, 7] }, { at: [81, 198, 8] }],
+    target: [{ quest: 'bell_2' }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_2') === 'done',
   },
   {

@@ -1418,12 +1418,12 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   assert.strictEqual(state.questState('bell_2'), 'active');
   assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
   ctx.useThing(80, 178, 7);
-  ctx.useThing(70, 182, 7);
+  ctx.useThing(71, 181, 7);
   assert(state.countItem('hatchet') === 0 && state.countItem('torn_note') === 0, 'no weapon and no note while the dead still walk');
   kill('skeleton', 6);
   assert.strictEqual(p.quests.bell_2.step, 1, 'six skeletons: the hall is cleared, without going back');
   ctx.useThing(80, 178, 7);
-  ctx.useThing(70, 182, 7);
+  ctx.useThing(71, 181, 7);
   assert(state.countItem('hatchet') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
   assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
   talk(112, 103, 8, 'crypt');

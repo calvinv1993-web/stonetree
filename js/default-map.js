@@ -348,7 +348,7 @@ const CRYPT = {
         [74, 179, 'sarcophagus'], [77, 179, 'sarcophagus'], [83, 179, 'sarcophagus'], [86, 179, 'sarcophagus'],
         [74, 182, 'sarcophagus'], [77, 182, 'sarcophagus'], [83, 182, 'sarcophagus'], [86, 182, 'sarcophagus'],
         [79, 178, 'qchest_crypt_sword'], [80, 178, 'qchest_crypt_axe'], [81, 178, 'qchest_crypt_club'],
-        [69, 181, 'crypt_gate'], [69, 182, 'crypt_gate'], [70, 182, 'torn_note'], // the gate to the tomb stairs, and the note by it
+        [69, 181, 'crypt_gate'], [69, 182, 'wall_crypt'], [71, 181, 'torn_note'], // the gate to the tomb stairs (the way narrows to it), and the note by it
         [78, 192, 'web'], [83, 192, 'rubble'], [79, 195, 'bones'], [72, 178, 'web'], [80, 180, 'bones'], [67, 181, 'bones'],
       ],
       monsters: [['skeleton', 75, 180], ['skeleton', 85, 181], ['skeleton', 80, 183], ['skeleton', 82, 194]],
