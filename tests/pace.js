@@ -18,7 +18,7 @@ state.map.spawns.length = 0; // only the packs below
 Object.assign(p, { tutorial: 0, home: 'oakvale' });
 
 const ARENA = { x: 130, y: 172, z: 8 }; // open ground in Sunny Fields
-const WALK = 15000;                     // between one pack and the next
+const WALK = 25000;                     // between one pack and the next (walking as slow as in Tibia)
 let deaths = 0, potions = 0;
 const kills = {}, spent = {}; // per pack: [packs, minutes, potions, lowest health (share, summed)]
 const minutes = () => Math.round(state.now / 6000) / 10;

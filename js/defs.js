@@ -395,10 +395,11 @@ const THINGS = {
   },
 };
 
-// How slow each ground is to walk on, as in Tibia: roads, paving and floors are
-// quickest (1), grass and sand slower, deep snow and swamp slowest.
-const GROUND_SLOWNESS = { grass: 1.25, sand: 1.3, snow: 1.4, swamp: 1.55, jungle: 1.35, ash: 1.25, mountain: 1.25, ice: 1.15, farmland: 1.2, cave: 1.1 };
-const groundSlowness = id => GROUND_SLOWNESS[id] || 1;
+// Each ground's speed, as in Tibia: a step takes 1000 x this / your speed (in ms). Roads, paving and floors are
+// quickest (100), grass, sand and rough ground slower, deep snow and swamp slowest.
+const GROUND_SPEED = { grass: 150, farmland: 150, dirt: 120, sand: 160, mountain: 160, rock_top: 160, cave: 130, jungle: 170, ash: 150, snow: 180, ice: 120, swamp: 220 };
+const groundSpeed = id => GROUND_SPEED[id] || 100;
+const groundSlowness = id => groundSpeed(id) / 100; // against a road: what walking there costs, for finding the quickest way
 
 // Outfits, as in the outfit window: each comes in a male and a female cut, in four
 // colours of your choice (head, primary, secondary, detail), with two addons that

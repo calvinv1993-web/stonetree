@@ -1376,7 +1376,7 @@ test('monsters come for you once they could be on your screen, not only when the
   state.monsters.push(wolf);
   assert.strictEqual(wolf.x - p.x, 9, 'nine tiles off: beyond its own aggro range, at the edge of the screen');
   assert.strictEqual(ctx.monsterTarget(wolf), p, 'it has seen you');
-  tick(game, 5000);
+  tick(game, 8000);
   assert(Math.abs(wolf.x - p.x) <= 1, 'and comes straight for you');
 });
 
@@ -1543,6 +1543,21 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
+});
+
+test('walking as in Tibia: speed grows with your level, ground counts, a diagonal step takes three times as long', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, vm = require('vm'), run = code => vm.runInContext(code, ctx);
+  assert.strictEqual(run('speedOf(player)'), 220, 'level 1: speed 220');
+  assert.strictEqual(run('stepTime(player, "cobble", false)'), 500, 'a road: 1000 x 100 / 220, up to whole ticks of 50 ms');
+  assert.strictEqual(run('stepTime(player, "grass", false)'), 700, 'grass is slower');
+  assert.strictEqual(run('stepTime(player, "grass", true)'), 2050, 'a diagonal step three times as long');
+  p.level = 21;
+  assert.strictEqual(run('speedOf(player)'), 260, 'two more for every level');
+  const wolf = ctx.spawnMonster({ type: 'wolf', x: 130, y: 172, z: 8 }), rat = ctx.spawnMonster({ type: 'rat', x: 131, y: 172, z: 8 });
+  p.level = 1;
+  assert(run('speedOf(player)') < wolf.def.speed && run('speedOf(player)') > rat.def.speed, 'a wolf outruns a new character; a rat does not');
 });
 
 let failed = 0;

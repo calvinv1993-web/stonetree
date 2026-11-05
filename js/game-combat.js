@@ -734,7 +734,7 @@ function walkIn(m, i) {
 
 function walkToGoal(m) {
   if (now < m.nextMove) return;
-  m.nextMove = now + m.def.speed;
+  m.nextMove = now + 100;
   const path = findPath(freeAround(m, 45), m.x, m.y, m.goal.x, m.goal.y, { range: 1, maxNodes: 3000 }); // round a town's houses too
   if (!path || !path.length) return void (m.goal = null);
   step(m, path[0][0] - m.x, path[0][1] - m.y);

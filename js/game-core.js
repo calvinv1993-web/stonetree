@@ -230,16 +230,21 @@ function bumpDoor(x, y, z) {
 }
 
 // ---- movement ----------------------------------------------------------------------
-// ms per tile. Players get faster as they level, quickly at first and then less
-// and less: 230 at level 1, ~195 at 20, ~145 at 80, ~110 at 200.
+// Walking as in Tibia: everyone has a speed (players 220 at level 1 and 2 more each level; monsters their own,
+// so at a low level a wolf is quicker than you), and a step takes 1000 x the ground's speed / your speed in ms
+// (see GROUND_SPEED), three times as long on a diagonal, rounded up to whole ticks of 50 ms.
 function speedOf(c) {
-  let ms = c.type === 'player' ? Math.max(90, (230 * 110) / (109 + c.level)) : c.def.speed || 480; // NPCs stroll
+  let speed = c.type === 'player' ? 220 + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
   const cond = c.conditions || {};
-  if (cond.paralyze) ms *= CONDITIONS.paralyze.speed;
-  if (cond.haste) ms *= CONDITIONS.haste.speed;
+  if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
+  if (cond.haste) speed /= CONDITIONS.haste.speed;
   const ring = c.type === 'player' && c.equipment.ring && ITEMS[c.equipment.ring.id].ring;
-  if (ring && ring.speed) ms *= ring.speed;
-  return ms;
+  if (ring && ring.speed) speed /= ring.speed;
+  return speed;
+}
+const DIAGONAL_STEP = 3; // a diagonal step takes three times as long, as in Tibia: you go straight where you can
+function stepTime(c, ground, diagonal) {
+  return Math.ceil((1000 * groundSpeed(ground) / speedOf(c)) * (diagonal ? DIAGONAL_STEP : 1) / 50) * 50;
 }
 
 // The logical position changes immediately; `walk` animates the sprite from the old tile.
@@ -255,7 +260,7 @@ function step(c, dx, dy) {
   if (!isPlayer && fieldAt(nx, ny, c.z) && !(c.def.immune || []).includes(FIELDS[fieldAt(nx, ny, c.z).kind].condition)) return false;
   // quicker on roads and floors than on grass, sand, snow or swamp (rides keep their own pace)
   const ground = (map.get(nx, ny, c.z) || {}).ground;
-  c.walk = { fromX: c.x, fromY: c.y, start: now, dur: speedOf(c) * (dx && dy ? 1.5 : 1) * groundSlowness(ground) };
+  c.walk = { fromX: c.x, fromY: c.y, start: now, dur: stepTime(c, ground, dx && dy) };
   c.x = nx;
   c.y = ny;
   return true;
@@ -1069,7 +1074,7 @@ function moveThing(src, dst) {
   if (c && c.type === 'player' && c !== player) {
     if (src.z !== player.z || dist(player, src) > 1 || dist(src, dst) > 1 || dst.z !== src.z) return log('You can only push someone next to you, one tile.');
     if (c.walk || !isFreeNoStairs(dst.x, dst.y, dst.z)) return log('There is no room there.');
-    c.walk = { fromX: c.x, fromY: c.y, start: now, dur: speedOf(c) };
+    c.walk = { fromX: c.x, fromY: c.y, start: now, dur: stepTime(c, (map.get(dst.x, dst.y, dst.z) || {}).ground, false) };
     c.x = dst.x;
     c.y = dst.y;
     c.path = [];
