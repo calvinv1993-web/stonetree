@@ -19,6 +19,8 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Server | `node server/server.js [port=8080] [--test]` |
 | Dev server: restarts on changes, pages reload themselves | `node server/dev.js 8090 --test` |
 | Unit tests (about a minute) | `node tests/unit.test.js` |
+| Tests kept for later (the old world's rules and content, which wait for the mainland or a test area; they fail for now) | `node tests/later.test.js` |
+| Playthrough: a bot plays Oakvale from level 1 to 10 on the real world, careful or lazy | `node tests/playthrough.js [seed] [hours] [lazy]` |
 | Soak test: random play on the real logic | `node tests/sim.test.js [minutes=30] [runs=4] [seed=1]`; `npm test` runs unit + sim |
 | Online test (spawns its own server) | `node tests/online.test.js` |
 | Browser soak test | `node tests/browser.test.js [seconds] [seed]` |
@@ -231,7 +233,7 @@ What to keep as it is:
 
 ## Where things stand
 
-The game is full-featured and stable. All tests pass.
+The game is full-featured and stable. All unit tests pass. The old world's tests (33 of them: combat, PvP, doors, houses, the forge, rides, the mainland's story and more) wait in `tests/later.test.js`: they need places and NPCs the rebuilt world doesn't have yet. Bring them back into `unit.test.js` with a small test area of their own, or once the mainland is back.
 
 **Asked for but not done yet**: Tibia-like levelling to 100 and a review of the equipment.
 - The XP curve is quadratic now (`xpForLevel` in `creatures.js`). Tibia's is cubic.
