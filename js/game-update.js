@@ -222,15 +222,17 @@ function playerPassable(goalX, goalY) {
 // Walking somewhere takes the quickest way, not the shortest: roads over grass, round the swamp.
 const quickGround = (x, y) => groundSlowness((map.get(x, y, player.z) || {}).ground);
 
+// Your own way somewhere: only north, east, south and west if that can be done at all, even when a diagonal
+// would be shorter; if not, as few diagonal steps as will do (only where nothing else gets past).
+const playerRoute = (passable, gx, gy, opts = {}) =>
+  findPath(passable, player.x, player.y, gx, gy, { ...opts, orthogonalOnly: true }) ||
+  findPath(passable, player.x, player.y, gx, gy, { ...opts, diagonalCost: 40 });
+
 function walkTo(x, y, maxNodes = 4000) {
   player.action = null;
   if (x === player.x && y === player.y) return;
   const passable = playerPassable(x, y);
-  // Prefer cardinal-only routes for tap-to-walk; allow diagonals only when unavoidable.
-  const path = playerCanEnter(x, y, player.z) && (
-    findPath(passable, player.x, player.y, x, y, { maxNodes, stepCost: quickGround, orthogonalOnly: true }) ||
-    findPath(passable, player.x, player.y, x, y, { maxNodes, stepCost: quickGround })
-  );
+  const path = playerCanEnter(x, y, player.z) && playerRoute(passable, x, y, { maxNodes, stepCost: quickGround });
   if (path) {
     player.path = path;
     player.pathGoal = { x, y, range: 0 };
@@ -245,7 +247,7 @@ function interact(action) {
   player.action = action;
   player.path = [];
   if (dist(player, action) <= action.range) return;
-  const path = findPath(playerPassable(action.x, action.y), player.x, player.y, action.x, action.y, { range: action.range, stepCost: quickGround });
+  const path = playerRoute(playerPassable(action.x, action.y), action.x, action.y, { range: action.range, stepCost: quickGround });
   if (!path) {
     player.action = null;
     return log('There is no way.');
@@ -286,13 +288,13 @@ function followPath() {
   }
   // Something is in the way (or a door just opened): plan again.
   const g = player.pathGoal;
-  player.path = (g && findPath(playerPassable(g.x, g.y), player.x, player.y, g.x, g.y, { range: g.range, stepCost: quickGround })) || [];
+  player.path = (g && playerRoute(playerPassable(g.x, g.y), g.x, g.y, { range: g.range, stepCost: quickGround })) || [];
 }
 
 function chase() {
   if (now < player.nextChase) return;
   const t = player.target;
-  const path = findPath((x, y) => isFreeNoStairs(x, y, player.z), player.x, player.y, t.x, t.y, { adjacent: true, maxNodes: 1500 });
+  const path = playerRoute((x, y) => isFreeNoStairs(x, y, player.z), t.x, t.y, { adjacent: true, maxNodes: 1500 });
   if (path && path.length) step(player, path[0][0] - player.x, path[0][1] - player.y);
   else player.nextChase = now + 400;
 }
@@ -307,7 +309,7 @@ function followCreature() {
     return log('You lost track of them.');
   }
   if (dist(c, player) <= 1 || now < player.nextChase) return;
-  const path = findPath((x, y) => isFreeNoStairs(x, y, player.z), player.x, player.y, c.x, c.y, { adjacent: true, maxNodes: 1500, stepCost: quickGround });
+  const path = playerRoute((x, y) => isFreeNoStairs(x, y, player.z), c.x, c.y, { adjacent: true, maxNodes: 1500, stepCost: quickGround });
   if (path && path.length) step(player, path[0][0] - player.x, path[0][1] - player.y);
   else player.nextChase = now + 400;
 }

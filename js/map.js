@@ -244,7 +244,8 @@ class MinHeap {
 // It gives up after expanding `maxNodes` tiles.
 // stepCost(x, y): how much slower a step onto (x, y) is than the quickest step (>= 1), to
 // find the quickest way rather than the shortest.
-function findPath(passable, sx, sy, gx, gy, { adjacent = false, range = adjacent ? 1 : 0, maxNodes = 4000, stepCost = null, orthogonalOnly = false } = {}) {
+// diagonalCost: what a diagonal step costs against a straight one (1.5); high, and paths take diagonals only where they must.
+function findPath(passable, sx, sy, gx, gy, { adjacent = false, range = adjacent ? 1 : 0, maxNodes = 4000, stepCost = null, orthogonalOnly = false, diagonalCost = 1.5 } = {}) {
   const arrived = (x, y) => Math.max(Math.abs(x - gx), Math.abs(y - gy)) <= range;
   const h = (x, y) => {
     const dx = Math.abs(x - gx), dy = Math.abs(y - gy);
@@ -268,7 +269,7 @@ function findPath(passable, sx, sy, gx, gy, { adjacent = false, range = adjacent
       for (let dx = -1; dx <= 1; dx++) {
         const nx = x + dx, ny = y + dy;
         if ((!dx && !dy) || (orthogonalOnly && dx && dy) || !passable(nx, ny)) continue;
-        const nc = c + (dx && dy ? 1.5 : 1) * (stepCost ? stepCost(nx, ny) : 1), k = key(nx, ny);
+        const nc = c + (dx && dy ? diagonalCost : 1) * (stepCost ? stepCost(nx, ny) : 1), k = key(nx, ny);
         if (nc < (cost.get(k) ?? Infinity)) {
           cost.set(k, nc);
           cameFrom.set(k, key(x, y));

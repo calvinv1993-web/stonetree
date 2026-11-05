@@ -1480,7 +1480,7 @@ const Sprites = (() => {
       hatch(g, () => {
         bellRope(g, 0, 78);
         const oak = { top: '#6a4422', south: '#523418', east: '#3e2610', edge: '#8a5a2e' };
-        prism(g, 14, 13, 40, 17, 84, 88, oak); // a beam out to the bell's crossbeam
+        prism(g, -14, 13, 18, 17, 84, 88, oak); // a beam west, to the bell's crossbeam
         const [wx, wy] = P(16, 15, 80);
         g.strokeStyle = '#3e2610'; g.lineWidth = 2; g.beginPath(); g.arc(wx, wy, 4, 0, Math.PI * 2); g.stroke(); // the wheel
         rect(g, '#3e2610', wx - 1, wy - 1, 2, 2);

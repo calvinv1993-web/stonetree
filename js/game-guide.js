@@ -66,7 +66,7 @@ const GUIDE = [
   {
     text: 'Climb down the grate on the square. In the sewers, go east to the rats\' nest under the graveyard and down its trapdoor; then on down, past the great cistern slime, to the bottom of the bell shaft. Right-click the rope there. Say "lumen" for light.',
     touch: 'Step onto the grate on the square. In the sewers, go east to the rats\' nest under the graveyard and down its trapdoor; then on down, past the great cistern slime, to the bottom of the bell shaft. Long-press the rope there. Say "lumen" for light.',
-    target: [{ quest: 'bell_2' }, { at: [136, 103, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
+    target: [{ quest: 'bell_2' }, { at: [148, 101, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_2') === 'done',
   },
   {

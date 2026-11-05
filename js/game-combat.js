@@ -634,13 +634,16 @@ function spawnAll(spawns, each = m => m) {
 }
 
 // The player a monster goes after: the one it's angry at, or the nearest one it can see.
+// An aggressive monster notices you once you could see it on your screen, or 2-3 tiles beyond its edge
+// (inView): it comes for you then, not only when you're right next to it. Peaceful ones (aggro 0) never do.
 function monsterTarget(m) {
   let best = null, bestD = Infinity;
   for (const p of players) {
     if (p.dead || p.z !== m.z || p.ride) continue; // nobody attacks someone being picked up or on a ride
     if (map.isShelter(p.x, p.y, p.z)) continue; // nor anyone in a temple, a shop or an inn
     const d = dist(m, p), angry = m.angryAt === p.id && now < m.angryUntil;
-    if ((d <= m.def.aggro || (angry && d <= 12)) && (d < bestD || angry)) {
+    const sees = m.def.aggro > 0 && (d <= m.def.aggro || inView(p, m));
+    if ((sees || (angry && d <= 12)) && (d < bestD || angry)) {
       best = p;
       bestD = angry ? -1 : d;
     }
@@ -772,7 +775,7 @@ function monsterAct(m) {
   } else if (d <= 1) return;
   const free = freeAround(m, 20);
   const pass = (x, y) => free(x, y) && (!fieldAt(x, y, m.z) || (m.def.immune || []).includes(FIELDS[fieldAt(x, y, m.z).kind].condition));
-  const path = findPath(pass, m.x, m.y, player.x, player.y, { adjacent: true, maxNodes: 300 });
+  const path = findPath(pass, m.x, m.y, player.x, player.y, { adjacent: true, maxNodes: 900 }); // from the edge of your screen, round trees
   if (path && path.length) step(m, path[0][0] - m.x, path[0][1] - m.y);
   else m.nextMove = now + 1200 + Math.random() * 800; // no way through: try again in a while
 }

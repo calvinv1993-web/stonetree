@@ -1288,29 +1288,29 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions, map = state.map;
   p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
-  const rope = map.get(136, 103, 5);
+  const rope = map.get(148, 101, 5);
   assert(rope && rope.items.includes('bell_rope'), 'the bell rope lies at the bottom of the bell shaft, three floors down');
   assert(map.spawns.some(s => s.type === 'cistern_slime' && s.z === 5) && map.spawns.filter(s => s.type === 'giant_rat' && s.z === 6).length >= 8, 'giant rats in the drains, a slime by the shaft');
-  assert(map.get(137, 102, 11).items.includes('bell_nw'), 'the bell hangs in the tower, high over the temple');
+  assert(map.get(146, 101, 12).items.includes('bell_nw'), 'the bell hangs at the top of the bell tower, the highest in town');
   const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
   talk(136, 102, 9, 'bell');
   assert.strictEqual(state.questState('bell_2'), 'none', 'not at level 1');
-  ctx.useThing(136, 103, 5);
+  ctx.useThing(148, 101, 5);
   assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope gives nothing before the quest');
   p.level = 2;
   talk(136, 102, 9, 'bell', 'yes');
   assert.strictEqual(state.questState('bell_2'), 'active');
-  ctx.useThing(136, 103, 5);
+  ctx.useThing(148, 101, 5);
   assert(state.countItem('chewed_rope') === 1 && state.countItem('carved_stone') === 1, 'the cut rope and the strange stone');
   talk(136, 102, 9, 'rope');
   assert.strictEqual(p.quests.bell_2.step, 1, 'Ama takes the rope');
   assert.strictEqual(state.countItem('chewed_rope'), 0);
-  ctx.useThing(136, 103, 5);
+  ctx.useThing(148, 101, 5);
   assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope Ama keeps does not come back');
   talk(112, 103, 8, 'stone');
   assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the stone');
   assert(messages.some(m => /Bone Rocks/.test(m)), 'and sends you to Bone Rocks');
-  ctx.useThing(138, 103, 11);
+  ctx.useThing(147, 102, 12);
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
 });
 
@@ -1342,10 +1342,10 @@ test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bel
   talk(136, 102, 9, 'clapper');
   assert.strictEqual(state.questState('bell_3'), 'done', 'Sister Ama hangs it again');
   assert(messages.some(m => /rings again/.test(m)), 'and the bell rings out');
-  ctx.useThing(138, 103, 11);
+  ctx.useThing(147, 102, 12);
   assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after ringing');
   state.now += 31000;
-  ctx.useThing(138, 103, 11);
+  ctx.useThing(147, 102, 12);
   assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it, and the whole isle hears');
   talk(110, 102, 9, 'destiny');
   assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
@@ -1371,11 +1371,11 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
   ctx.teleport({ x: 112, y: 103, z: 8 }); A.say('hi'); A.say('bell'); A.say('bye');
   assert.strictEqual(ctx.questNews('postmaster').mark, 'report');
-  ctx.teleport({ x: 147, y: 104, z: 8 }); A.say('hi');
+  ctx.teleport({ x: 147, y: 107, z: 8 }); A.say('hi');
   assert(messages.some(m => /\{locker\}/.test(m)), 'the postmaster asks about the locker');
   A.say('locker'); A.say('bye');
   assert.strictEqual(p.quests.bell_1.step, 3, 'and the locker finishes his step');
-  ctx.teleport({ x: 147, y: 104, z: 8 }); A.say('hi'); A.say('locker');
+  ctx.teleport({ x: 147, y: 107, z: 8 }); A.say('hi'); A.say('locker');
   assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
 });
 
@@ -1416,6 +1416,49 @@ test('the gate watch: a task beyond each gate, gear for it, and each guard sends
     assert.strictEqual(state.countItem(item), 1, `${id} gives ${item}`);
     assert(next.test(messages.join(' ')), `${id} sends you on`);
   }
+});
+
+test('walking goes north, east, south and west; a diagonal step only where nothing else gets past', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  // open ground in Sunny Fields: four tiles east and four south is all straight steps, never a diagonal
+  const free = (x, y) => map.isWalkable(x, y, 8);
+  let sx = 0, sy = 0;
+  for (let y = 160; y < 180 && !sx; y++) for (let x = 112; x < 148 && !sx; x++) {
+    let ok = true;
+    for (let dy = -1; dy <= 6 && ok; dy++) for (let dx = -1; dx <= 6 && ok; dx++) ok = free(x + dx, y + dy);
+    if (ok) { sx = x; sy = y; }
+  }
+  assert(sx, 'found open ground');
+  ctx.teleport({ x: sx, y: sy, z: 8 });
+  A.walkTo(sx + 4, sy + 4);
+  assert.strictEqual(p.path.length, 8, 'eight straight steps');
+  for (let i = 0, [x, y] = [sx, sy]; i < p.path.length; i++) {
+    const [nx, ny] = p.path[i];
+    assert(nx === x || ny === y, `step ${i + 1} is straight`);
+    [x, y] = [nx, ny];
+  }
+  // only a diagonal gets past: walls everywhere round the corner but one diagonal gap
+  const pass = (x, y) => (x === 0 && y === 0) || (x === 1 && y === 1) || (x === 2 && y === 1);
+  const path = ctx.findPath(pass, 0, 0, 2, 1, { orthogonalOnly: true }) || ctx.findPath(pass, 0, 0, 2, 1, { diagonalCost: 40 });
+  assert.strictEqual(JSON.stringify(path), '[[1,1],[2,1]]', 'a diagonal when there is no other way');
+});
+
+test('monsters come for you once they could be on your screen, not only when they are close', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, map = state.map;
+  let spot = null;
+  for (let x = 112; x < 140 && !spot; x++) if ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].every(d => map.isWalkable(x + d, 170, 8))) spot = x;
+  assert(spot, 'found a straight run of open ground');
+  ctx.teleport({ x: spot, y: 170, z: 8 });
+  const wolf = ctx.spawnMonster({ type: 'wolf', x: spot + 9, y: 170, z: 8 });
+  state.monsters.push(wolf);
+  assert.strictEqual(wolf.x - p.x, 9, 'nine tiles off: beyond its own aggro range, at the edge of the screen');
+  assert.strictEqual(ctx.monsterTarget(wolf), p, 'it has seen you');
+  tick(game, 5000);
+  assert(Math.abs(wolf.x - p.x) <= 1, 'and comes straight for you');
 });
 
 let failed = 0;
