@@ -82,9 +82,9 @@ const GUIDE = [
     done: () => questState('bell_3') === 'done',
   },
   {
-    text: 'The bell rings again! The oracle, upstairs in the academy, now lets you choose a vocation from level 8, and sends you on to the mainland. Until then, explore the island: many things have a story.',
-    touch: 'The bell rings again! The oracle, upstairs in the academy, now lets you choose a vocation from level 8, and sends you on to the mainland. Until then, explore the island: many things have a story.',
-    target: [{ npc: 'oak_oracle', level: 8 }],
+    text: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
+    touch: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
+    target: [{ npc: 'oak_oracle', level: 10 }],
   },
 ];
 
@@ -145,6 +145,6 @@ function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
   if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
-  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10 (or 8, once the bell of Oakvale rings again).';
+  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10.';
   return null;
 }

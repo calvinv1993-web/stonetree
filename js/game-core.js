@@ -505,8 +505,8 @@ function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings 
   for (const p of players) asPlayer(p, () => { addSound('bell', p.x, p.y, p.z); log(text, 'quest'); });
 }
 
-// The level at which the oracle lets you choose a vocation: 10, or 8 once you have made the bell ring again.
-const vocationLevel = () => (questState('bell_3') === 'done' ? 8 : 10);
+// The level at which the oracle lets you choose a vocation (and sends you to the mainland).
+const vocationLevel = () => 10;
 
 // Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
 function ringBell(x, y, z) {

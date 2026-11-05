@@ -1314,7 +1314,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
 });
 
-test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bell rings, and the oracle at level 8', () => {
+test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bell rings, and the oracle only at level 10', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions, map = state.map;
@@ -1348,7 +1348,12 @@ test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bel
   ctx.useThing(147, 102, 13);
   assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it, and the whole isle hears');
   talk(110, 102, 9, 'destiny');
-  assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
+  assert(/level 10/.test(messages.slice(-4).join(' ')), 'the oracle still wants level 10');
+  talk(110, 102, 9, 'knight', 'yes');
+  assert.strictEqual(p.vocation, 'none', 'no vocation at level 8, even when asked straight out');
+  p.level = 10;
+  talk(110, 102, 9, 'destiny');
+  assert(/knight/.test(messages.slice(-4).join(' ')), 'at level 10 she sees you');
 });
 
 test('NPCs say which word to ask with, and show ! or ? when they have something for you', () => {
