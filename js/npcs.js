@@ -36,6 +36,8 @@ const BUYS = {
 // story: a chapter of a story (true: the Ember Seal; or the story's name), shown first in the Quests tab.
 // offers: { npc: { offer, accept } }: others who can offer it too, in their own words.
 // text.elsewhere: what anyone else in the chain says when asked before it is offered.
+// after: a quest that must be done before this one is offered (text.notYet: what the giver says till then).
+// word: the word to ask about it (or a step's own word), when the NPC's keyword has several.
 const QUESTS = {
   // ---- The Ember Seal: the main story, from the Seer's dream to the bottom of the demon pit ----
   // Long ago the first Grandmaster of the Order of the Seal bound Vharzul the Ashen beneath the
@@ -1559,7 +1561,7 @@ function gateGuard(quest, name, hair, word, gate, captain) {
 // once you've done them (requires 'quest@step'): nobody gets the gear by running past the monsters.
 Object.assign(QUESTS, {
   bell_1: {
-    name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1,
+    name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1, word: 'bell',
     reward: { xp: 120, gold: 40, items: [['rope', 1]] },
     summary: 'Sister Ama in the Temple of the Dawn wants you to learn the ways of Oakvale. Go to Master Corwin at the academy.',
     steps: [
@@ -1586,14 +1588,14 @@ Object.assign(QUESTS, {
     },
   },
   bell_2: {
-    name: 'The Silent Bell II: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 5,
+    name: 'The Silent Bell II: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 5, word: 'crypt',
     reward: { xp: 300, gold: 60, items: [['health_potion', 3]] },
     summary: 'Go down into the founders\' crypt under Bone Rocks and find out who broke in.',
     steps: [
       { auto: true, kill: { skeleton: 6 }, summary: 'Go down into the founders\' crypt under Bone Rocks (south-west, at the end of the bone trail) and clear the hall of coffins: kill 6 skeletons.',
         progress: 'The crypt lies under Bone Rocks, south-west of town: steps lead down at the foot of the crag. So far: $progress.',
         done: 'The hall of coffins falls quiet. By its north wall stand three stone chests - the founders\' arms, one for each who dares - and by the iron gate to the tomb stairs lies a torn scrap of paper.' },
-      { npc: 'corwin', fetch: 'torn_note', summary: 'Take one weapon from the stone chests in the hall of coffins, pick up the torn note by the iron gate, and bring the note to Master Corwin.',
+      { npc: 'corwin', fetch: 'torn_note', word: 'note', summary: 'Take one weapon from the stone chests in the hall of coffins, pick up the torn note by the iron gate, and bring the note to Master Corwin.',
         progress: 'A note, by the gate to the tomb? Bring it to me. And take a weapon from the founders\' chests while you are down there: they would want it used.',
         done: '"...the rope is cut, and down the shaft it went, to the rats. The clapper stays with me, below. When the bell is silent, the dead wake. - G." So it was no accident, $name. Someone silenced our bell to wake the dead of the crypt. Sister Ama must hear this: tell her about the {rope}.' },
     ],
@@ -1606,7 +1608,7 @@ Object.assign(QUESTS, {
     },
   },
   bell_3: {
-    name: 'The Silent Bell III: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 6,
+    name: 'The Silent Bell III: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 6, word: 'rope',
     reward: { xp: 300, gold: 80, items: [['health_potion', 3]] },
     summary: 'Find the bell\'s rope, at the bottom of the bell shaft deep under the town.',
     steps: [
@@ -1629,14 +1631,14 @@ Object.assign(QUESTS, {
     },
   },
   bell_4: {
-    name: 'The Silent Bell IV: The Gravewaker', story: 'The Silent Bell', giver: 'ama', level: 8,
+    name: 'The Silent Bell IV: The Gravewaker', story: 'The Silent Bell', giver: 'ama', level: 8, word: 'gravewaker',
     reward: { xp: 400, gold: 150, items: [['chain_armor', 1], ['health_potion', 3]], bell: true },
     summary: 'Go down to the founder\'s tomb under Bone Rocks, defeat the one who silenced the bell, and bring its clapper home.',
     steps: [
       { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
         progress: 'The tomb lies below the hall of coffins, past the iron gate. The Gravewaker waits there with the dead he woke.',
         done: 'The Gravewaker falls, and the tomb grows still. In the open coffin of the founder, something of bronze glints.' },
-      { npc: 'ama', fetch: 'bell_clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
+      { npc: 'ama', fetch: 'bell_clapper', word: 'clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
         progress: 'The clapper lies in the founder\'s open tomb.',
         done: 'The clapper of our bell! Cold as the grave... The founders cast this bell to keep their dead asleep, and while it was silent, they woke. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour, $name: you have earned it. Once you are level 10, the {oracle} upstairs in the academy will send you on to what lies beyond this isle.' },
     ],
@@ -1667,7 +1669,7 @@ Object.assign(QUESTS, {
     },
   },
   gate_south: {
-    name: 'The Gate Watch: Crabs on the Beach', giver: 'gate_south', level: 3, kill: { crab: 6 },
+    name: 'The Gate Watch: Crabs on the Beach', giver: 'gate_south', level: 3, after: 'gate_west', kill: { crab: 6 },
     reward: { xp: 300, gold: 30, items: [['leather_legs', 1]] },
     summary: 'Kill 6 crabs on the beaches of Lighthouse Point (down the south road) or by Fisher\'s Rest, and report to Guard Tilda at the south gate.',
     text: {
@@ -1676,11 +1678,12 @@ Object.assign(QUESTS, {
       progress: 'So far: $progress. The beaches are at the end of the south road.',
       reward: 'Six crabs, and you still have all your fingers! These leggings will keep the pincers off. Guard Hilde at the east gate keeps talking about {spiders} - see her next.',
       tooWeak: 'Those pincers would snap you in two. Come back at level 3.',
+      notYet: 'One thing at a time, friend. Sergeant Bram at the west gate has work for you first.',
       done: 'The nets are safe again. Guard Hilde at the east gate has trouble with {spiders}.',
     },
   },
   gate_east: {
-    name: 'The Gate Watch: Spiders in the East', giver: 'gate_east', level: 4, kill: { spider: 8 },
+    name: 'The Gate Watch: Spiders in the East', giver: 'gate_east', level: 4, after: 'gate_south', kill: { spider: 8 },
     reward: { xp: 450, gold: 40, items: [['chain_helmet', 1]] },
     summary: 'Kill 8 spiders in Thorn Thicket or round the Spider Hills (south-east), and report to Guard Hilde at the east gate.',
     text: {
@@ -1689,11 +1692,12 @@ Object.assign(QUESTS, {
       progress: 'So far: $progress. Thorn Thicket and the Spider Hills are south-east of town.',
       reward: 'Eight! You fight like a guard already. Take this helmet - it was mine, when I was younger. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.',
       tooWeak: 'Their poison would finish you. Come back at level 4.',
+      notYet: 'One thing at a time, friend. Guard Tilda at the south gate has work for you first.',
       done: 'The trails are clearer now. Captain Osric at the north gate wants to talk to you about {goblins}.',
     },
   },
   gate_north: {
-    name: 'The Gate Watch: Goblins in the North', giver: 'gate_north', level: 5, kill: { goblin: 8 },
+    name: 'The Gate Watch: Goblins in the North', giver: 'gate_north', level: 5, after: 'gate_east', kill: { goblin: 8 },
     reward: { xp: 700, gold: 60, items: [['studded_shield', 1], ['health_potion', 2]] },
     summary: 'Kill 8 goblins on Stony Field (up the north road) or on Goblin Hill (north-east), and report to Captain Osric at the north gate.',
     text: {
@@ -1702,6 +1706,7 @@ Object.assign(QUESTS, {
       progress: 'So far: $progress. Stony Field is up the north road; Goblin Hill is north-east.',
       reward: 'Eight goblins. You have earned this shield, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.',
       tooWeak: 'Goblins are no rats, friend. Come back at level 5.',
+      notYet: 'One thing at a time, friend. Guard Hilde at the east gate has work for you first.',
       done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
     },
   },

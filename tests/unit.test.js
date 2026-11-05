@@ -1481,6 +1481,66 @@ test('free gear in the sewers: a cap in the old storeroom and a shield in the ra
   }
 });
 
+test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  const vm = require('vm'), run = code => vm.runInContext(code, ctx);
+  p.tutorial = 1;
+  p.equipment.backpack = { id: 'backpack', count: 1, contents: [] };
+  const npc = id => state.npcs.find(n => n.npcId === id);
+  const talk = (id, ...words) => { const n = npc(id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); A.say('hi'); tick(game, 100); for (const w of words) { A.say(w); tick(game, 100); } A.say('bye'); tick(game, 200); };
+  const kill = (type, n) => { for (let i = 0; i < n; i++) { ctx.onMonsterKilled(type); run('guideDid("kill")'); } tick(game, 200); };
+  const levelTo = l => ctx.gainXp(run(`xpForLevel(${l})`) - p.xp);
+  const arrow = () => { tick(game, 200); const t = run('GUIDE[player.tutorial - 1] && guideTarget(GUIDE[player.tutorial - 1])'); return t ? t.npcId || `${t.x},${t.y},${t.z}` : null; };
+  const mark = id => (ctx.questNews(id) || {}).mark;
+  const on = (id, where) => { ctx.teleport(where); tick(game, 100); };
+  on(null, { x: 137, y: 103, z: 9 });
+  assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
+  assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
+  talk('ama'); talk('ama', 'bell', 'yes');
+  assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
+  talk('corwin', 'bell'); kill('rat', 5);
+  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; p.fedUntil = state.now + 99999;
+  assert.strictEqual(arrow(), 'corwin');
+  talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
+  talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');
+  talk('pip', 'letter'); assert.strictEqual(arrow(), 'ama');
+  talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
+  p.shopNpc = 'pip'; tick(game, 100); p.shopNpc = null;
+  levelTo(2); assert.strictEqual(arrow(), 'gate_west', 'on to the gate watch');
+  for (const [id, word, type, n, level, next] of [['gate_west', 'wolves', 'wolf', 8, 2, 'gate_south'], ['gate_south', 'crabs', 'crab', 6, 3, 'gate_east'],
+    ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {
+    levelTo(level);
+    assert.strictEqual(mark(id), 'offer', `${id} has a task`);
+    talk(id, word, 'yes'); kill(type, n);
+    assert.strictEqual(mark(id), 'report'); assert.strictEqual(arrow(), id, `the arrow goes back to ${id}`);
+    talk(id, word);
+    if (next) assert.strictEqual(arrow(), next, `and on to ${next}`);
+  }
+  assert.strictEqual(arrow(), 'corwin', 'then to Corwin and the crypt');
+  assert.strictEqual(ctx.questWord('corwin', 'bell_2'), 'crypt');
+  talk('corwin', 'crypt', 'yes'); on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), '81,198,8', 'to the crypt\'s steps');
+  kill('skeleton', 6); ctx.useThing(80, 178, 7); ctx.useThing(71, 181, 7);
+  assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(ctx.questWord('corwin', 'bell_2'), 'note');
+  talk('corwin', 'note'); assert.strictEqual(state.questState('bell_2'), 'done');
+  levelTo(6); assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
+  talk('ama', 'rope', 'yes'); on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), '131,111,8', 'to the grate on the square');
+  kill('giant_rat', 8); kill('cistern_slime', 1); ctx.useThing(148, 101, 5);
+  assert.strictEqual(arrow(), 'ama');
+  talk('ama', 'rope'); assert.strictEqual(state.questState('bell_3'), 'done');
+  assert.strictEqual(mark('ama'), 'later', 'the Gravewaker waits for level 8');
+  levelTo(8); assert.strictEqual(arrow(), 'ama');
+  talk('ama', 'gravewaker', 'yes'); on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), '81,198,8', 'back to Bone Rocks');
+  kill('gravewaker', 1); ctx.useThing(69, 176, 6);
+  assert.strictEqual(arrow(), 'ama'); assert.strictEqual(ctx.questWord('ama', 'bell_4'), 'clapper');
+  talk('ama', 'clapper'); assert.strictEqual(state.questState('bell_4'), 'done');
+  levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

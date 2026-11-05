@@ -1,12 +1,12 @@
 'use strict';
 // The guide for new adventurers on Oakvale Isle: one thing at a time, with an arrow
-// pointing the way (drawGuideArrow in game.js, renderGuide in game-ui.js), from a first
-// word with Elder Maren to the Seer's tower. You can put it away whenever you like.
+// pointing the way (drawGuideArrow in game.js, renderGuide in game-ui.js), through The Silent Bell
+// and the gate watch, to the oracle. You can put it away whenever you like.
 // player.tutorial is the step you're on (1 is the first), 0 when the guide is done.
 
 // text: what to do (touch: the same for a phone); target: what the arrow points at, the
 // first of these that is there - an NPC, the nearest monster of a kind, the nearest
-// corpse, or a spot ([x, y, z]) - see guideTarget; done: when the step is done (as the
+// corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget; done: when the step is done (as the
 // player), or on: the deed that does it (see guideDid). The last step waits for "Got it".
 const GUIDE = [
   {
@@ -60,31 +60,31 @@ const GUIDE = [
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
     touch: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
-    target: [{ quest: 'gate_north' }, { quest: 'gate_east' }, { quest: 'gate_south' }, { quest: 'gate_west' }, { npc: 'gate_west', level: 2 }],
+    target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { npc: 'gate_west', level: 2 }],
     done: () => questState('gate_north') === 'done' || questState('bell_2') !== 'none',
   },
   {
     text: 'At level 5, Master Corwin at the academy has a task about the crypt under Bone Rocks. Talk to him and ask about the crypt.',
     touch: 'At level 5, Master Corwin at the academy has a task about the crypt under Bone Rocks. Talk to him and ask about the crypt.',
-    target: [{ npc: 'corwin', level: 5 }],
+    target: [{ news: ['corwin'] }],
     done: () => questState('bell_2') !== 'none',
   },
   {
     text: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
     touch: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
-    target: [{ quest: 'bell_2' }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
+    target: [{ quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_2') === 'done',
   },
   {
     text: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
     touch: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
-    target: [{ quest: 'bell_3' }, { npc: 'ama', level: 6 }, { at: [148, 101, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }],
+    target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [148, 101, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_3') === 'done',
   },
   {
     text: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
     touch: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
-    target: [{ quest: 'bell_4' }, { npc: 'ama', level: 8 }, { at: [69, 176, 6] }, { at: [66, 181, 7] }],
+    target: [{ quest: 'bell_4' }, { news: ['ama'] }, { hunt: ['bell_4'] }, { at: [69, 176, 6] }, { at: [66, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_4') === 'done',
   },
   {
@@ -126,9 +126,18 @@ function guideTarget(step) {
       const n = npcs.find(c => c.npcId === t.npc);
       if (n) return n;
     }
+    if (t.news) { // the first of these NPCs who has a quest for you, or news to hear
+      const n = t.news.map(id => npcs.find(c => c.npcId === id)).find(c => c && ['offer', 'report'].includes((questNews(c.npcId) || {}).mark));
+      if (n) return n;
+    }
     const near = list => list.filter(c => c.z === player.z && dist(c, player) <= 12).sort((a, b) => dist(a, player) - dist(b, player))[0];
     if (t.monster) {
       const m = near(monsters.filter(c => !c.dead && c.type === t.monster));
+      if (m) return m;
+    }
+    if (t.hunt) { // the nearest monster that one of these quests still asks you to kill
+      const wanted = t.hunt.filter(id => questState(id) === 'active' && !stepReady(id)).flatMap(id => Object.keys(questStep(id).kill || {}));
+      const m = near(monsters.filter(c => !c.dead && wanted.includes(c.type)));
       if (m) return m;
     }
     if (t.corpse) {

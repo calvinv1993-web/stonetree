@@ -109,12 +109,13 @@ function questNews(npcId) {
   let best = null;
   for (const [keys, s] of Object.entries((def && def.keywords) || {})) {
     if (!s || !s.quest) continue;
-    const word = keys.split('|')[0];
     for (const id of s.quest) {
       const q = QUESTS[id], state = q ? questState(id) : 'done';
       if (state === 'done') continue;
+      const word = questWord(npcId, id);
       let news = null;
       if (state === 'none') {
+        if (questWaits(q)) break;
         if (q.giver === npcId || (q.offers && q.offers[npcId])) news = player.level >= (q.level || 0) ? { mark: 'offer', word, id } : { mark: 'later', word, id, level: q.level };
       } else if (!questStep(id).auto && (questStep(id).npc || q.giver) === npcId) news = { mark: stepReady(id) ? 'report' : 'busy', word, id };
       if (news && (!best || NEWS_ORDER[news.mark] < NEWS_ORDER[best.mark])) best = news;
@@ -124,11 +125,19 @@ function questNews(npcId) {
   return best;
 }
 
-// The word to ask an NPC with about a quest (null if that NPC has nothing to say about it).
+// The word to ask an NPC with about a quest (null if that NPC has nothing to say about it): the quest's (or its
+// current step's) own word if the NPC knows it, else the first word of the NPC's keyword for it.
 function questWord(npcId, id) {
-  for (const [keys, s] of Object.entries((NPCS[npcId] && NPCS[npcId].keywords) || {})) if (s && s.quest && s.quest.includes(id)) return keys.split('|')[0];
+  const q = QUESTS[id], st = q && player.quests[id] && player.quests[id].status === 'active' ? questStep(id) : null;
+  const own = (st && st.word) || (q && q.word);
+  for (const [keys, s] of Object.entries((NPCS[npcId] && NPCS[npcId].keywords) || {})) {
+    if (!s || !s.quest || !s.quest.includes(id)) continue;
+    return own && keys.split('|').includes(own) ? own : keys.split('|')[0];
+  }
   return null;
 }
+// A quest that only opens once another is done (after), and that one isn't yet.
+const questWaits = q => !!q.after && questState(q.after) !== 'done';
 
 // What an NPC adds to its greeting when it has something for you, with the word to ask about in blue.
 function questHint(npcId) {
@@ -229,6 +238,7 @@ function questTalk(ids, npc, otherwise) {
     if (state === 'none') {
       const own = q.giver === npc.npcId ? t : q.offers && q.offers[npc.npcId]; // the giver, or someone who may offer it too
       if (!own) return otherwise || t.elsewhere || 'I know nothing about that. Maybe someone else does.';
+      if (questWaits(q)) return otherwise || t.notYet || 'Not yet. Come back to me later.';
       if (q.level && player.level < q.level) return t.tooWeak;
       return ask(own.offer, () => {
         startQuest(id);
