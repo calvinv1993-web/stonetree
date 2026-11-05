@@ -193,14 +193,15 @@ const npc = id => state.npcs.find(n => n.npcId === id);
 function talk(id, ...words) {
   const n = npc(id);
   let said = [];
-  for (let tries = 0; tries < 3; tries++) { // a fight in between ends the talk: then start again
-    if (!goTo(n.x, n.y, n.z, 2, `to talk to ${n.name}`)) return;
+  for (let tries = 0; tries < 4; tries++) { // a fight in between, or a walk away, ends the talk: then start again
+    if (!goTo(n.x, n.y, n.z, 1, `to talk to ${n.name}`)) return;
     const seen = messages.length, k0 = killsTotal;
     A.say('hi'); wait(300);
     for (const w of words) { A.say(w); wait(300); }
     A.say('bye'); wait(200);
     said = messages.slice(seen).filter(m => m.startsWith(n.name) && !/Good bye|^.*: (Halt|Peace|Ah, a new|Good day|Hello)/.test(m));
-    if (killsTotal === k0 && !p.dead) break;
+    const heard = messages.slice(seen).some(m => m.startsWith(n.name));
+    if (heard && killsTotal === k0 && !p.dead) break;
   }
   if (said.some(m => /not sure what you mean/.test(m))) problem(`${n.name} did not understand "${words.join('", "')}"`);
 }
