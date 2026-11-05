@@ -45,14 +45,12 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
   - a goblin camp
   - a swamp boss
   - a crypt with a pick-one weapon armory
-- **The guide**: a new character gets one thing to do at a time, in a box at the top left, with a yellow arrow pointing the way:
-  - talk to Maren, then take her quest
-  - fight a rat, open its corpse and eat
-  - finish the quest and put on the cap it pays
-  - trade with Hilda, then meet Guard Tomas
-  - the last step: what the island holds, and the Seer
-  - click the box's title to fold it away; × puts it away for good
-- **There is no way back.** Once you choose a vocation, the Seer sends you to the mainland and you never return to Brightwater Isle: no balloon flies back. Without a vocation, nobody takes you off the island either.
+- **The guide**: a new character gets one thing to do at a time, in a box at the top left, with a yellow arrow pointing the way, from the first word with Sister Ama to the oracle:
+  - talk to Sister Ama and take The Silent Bell; Master Corwin, five rats, a corpse to open, something to eat, the depot, Pip
+  - the gate watch, one guard after the other; then the crypt, the rope under the town and the Gravewaker
+  - the arrow points to whoever has a task or news for you, to the monsters a task still wants, or to the way down
+  - the box can be folded away (▾, or click its title) and out again, but not put away: it goes once you've followed it to the end ("Got it")
+- **There is no way back.** Once you choose a vocation, the oracle sends you to the mainland and you never return to Oakvale Isle: no balloon flies back. Without a vocation, nobody takes you off the island either.
 - **Legends**: the islanders tell of a captain whose sword was never found. Whether there is anything to it, nobody knows. Ask around, look closely at things, and remember that once you leave the island, you leave it for good.
 - **The world** is generated the same for everyone: lands with ragged coasts, bays and capes, joined by winding necks of land, wooden bridges over the straits, and old portals (obelisks in stone rings) between far-apart regions. Rivers with bridges, lakes (frozen in the north) and mountains with paths up fill the lands, and so do around 30 kinds of places: castles and forts, mines, windmill farms, orchards, lumber camps, quarries, dragon nests, witch huts, shrines, battlefields, craters, fairy rings, ancient groves, caravans, igloos, totem camps, tombs, ghost villages, arenas and more.
 - **Islands:** every island out at sea has its own name and story (they're on the map): a dragon's perch, a pirate keep, a wizard's folly, a castaway, treasure buried where three stones point, the Isle of Echoes with a portal home, and many more. Greenhollow's windmills feed half the world, the Shattered Isles are what's left of a drowned kingdom, and the Seawall still keeps watch. Fly there by balloon.

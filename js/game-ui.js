@@ -117,9 +117,12 @@ function updateBars() {
 
 // ---- the guide for new adventurers (see game-guide.js) ---------------------------------------
 let guideKey = '', guideFolded = false;
+try { guideFolded = localStorage.getItem('tilequest.guideFolded') === '1'; } catch (e) { /* no storage: start unfolded */ }
 function renderGuide() {
   const step = player.tutorial ? GUIDE[player.tutorial - 1] : null;
-  const progress = player.quests.rat_problem && player.quests.rat_problem.status === 'active' ? questProgress('rat_problem') : '';
+  // $progress: how far the task you're on has come (the first active quest still asking you to kill something)
+  const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
+  const progress = hunting ? questProgress(hunting) : 'done';
   const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress) : '';
   const key = `${player.tutorial}|${text}|${guideFolded}`;
   if (key === guideKey) return;
@@ -130,6 +133,7 @@ function renderGuide() {
   box.hidden = !step;
   if (!step) return;
   box.classList.toggle('folded', guideFolded);
+  $('guideFold').textContent = guideFolded ? '▸' : '▾';
   // top left over the game; on a phone just under the health bars, in the margin if there is one
   box.style.left = `${touchScreen ? 4 : view.offsetLeft + 8}px`;
   box.style.top = `${touchScreen ? 44 : view.offsetTop + 8}px`;
@@ -1541,12 +1545,12 @@ function toggleWorldMap(ride = false) {
 
 // ---- static UI wiring --------------------------------------------------------------------------
 function initUI() {
-  $('guideHead').addEventListener('click', () => { guideFolded = !guideFolded; renderGuide(); });
-  $('guideDone').addEventListener('click', () => Actions.endGuide());
-  $('guideSkip').addEventListener('click', e => {
-    e.stopPropagation();
-    if (confirm('Put the guide away for good?')) Actions.endGuide();
+  $('guideHead').addEventListener('click', () => {
+    guideFolded = !guideFolded;
+    try { localStorage.setItem('tilequest.guideFolded', guideFolded ? '1' : '0'); } catch (e) { /* no storage: only for now */ }
+    renderGuide();
   });
+  $('guideDone').addEventListener('click', () => Actions.endGuide());
   $('battle').addEventListener('pointerleave', () => { battleHover = null; });
   document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('[data-tab]').forEach(o => o.classList.toggle('active', o === b));

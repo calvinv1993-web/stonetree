@@ -1497,6 +1497,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   const on = (id, where) => { ctx.teleport(where); tick(game, 100); };
   on(null, { x: 137, y: 103, z: 9 });
   assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
+  A.endGuide();
+  assert.strictEqual(p.tutorial, 1, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
   assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
@@ -1539,6 +1541,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(arrow(), 'ama'); assert.strictEqual(ctx.questWord('ama', 'bell_4'), 'clapper');
   talk('ama', 'clapper'); assert.strictEqual(state.questState('bell_4'), 'done');
   levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
+  A.endGuide();
+  assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
 });
 
 let failed = 0;

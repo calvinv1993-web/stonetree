@@ -148,7 +148,9 @@ const Actions = {
     uiDirty();
   },
   // Put the guide for new adventurers away (or, on its last step, finish it).
+  // The guide stays until its last step ("Got it"): it can be folded away, not put away, so newcomers follow it.
   endGuide() {
+    if (player.tutorial !== GUIDE.length) return;
     player.tutorial = 0;
     uiDirty();
   },
