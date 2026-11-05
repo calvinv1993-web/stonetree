@@ -1283,78 +1283,7 @@ test('the sewers: a street grate takes you down to the rats, the ladder under it
   assert(below.some(s => s.type === 'giant_rat'), 'and giant rats in their nest');
 });
 
-test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt seal for Corwin', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player, A = state.Actions, map = state.map;
-  p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
-  const rope = map.get(148, 101, 5);
-  assert(rope && rope.items.includes('bell_rope'), 'the bell rope lies at the bottom of the bell shaft, three floors down');
-  assert(map.spawns.some(s => s.type === 'cistern_slime' && s.z === 5) && map.spawns.filter(s => s.type === 'giant_rat' && s.z === 6).length >= 8, 'giant rats in the drains, a slime by the shaft');
-  assert(map.get(146, 101, 13).items.includes('bell_nw'), 'the bell hangs at the top of the bell tower, the highest in town');
-  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
-  talk(136, 102, 9, 'bell');
-  assert.strictEqual(state.questState('bell_2'), 'none', 'not at level 1');
-  ctx.useThing(148, 101, 5);
-  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope gives nothing before the quest');
-  p.level = 2;
-  talk(136, 102, 9, 'bell', 'yes');
-  assert.strictEqual(state.questState('bell_2'), 'active');
-  ctx.useThing(148, 101, 5);
-  assert(state.countItem('chewed_rope') === 1 && state.countItem('carved_stone') === 1, 'the cut rope and the strange stone');
-  talk(136, 102, 9, 'rope');
-  assert.strictEqual(p.quests.bell_2.step, 1, 'Ama takes the rope');
-  assert.strictEqual(state.countItem('chewed_rope'), 0);
-  ctx.useThing(148, 101, 5);
-  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope Ama keeps does not come back');
-  talk(112, 103, 8, 'stone');
-  assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the stone');
-  assert(messages.some(m => /Bone Rocks/.test(m)), 'and sends you to Bone Rocks');
-  ctx.useThing(147, 102, 13);
-  assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
-});
 
-test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bell rings, and the oracle only at level 10', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player, A = state.Actions, map = state.map;
-  for (const id of ['bell_1', 'bell_2']) p.quests[id] = { status: 'done', step: 9, kills: {} };
-  // the steps cut into the foot of Bone Rocks lead down, and on down to the tomb
-  ctx.teleport({ x: 81, y: 200, z: 8 });
-  A.walkTo(81, 198);
-  tick(game, 2000);
-  assert.strictEqual(p.z, 7, 'down the steps into the crypt');
-  assert(map.get(69, 176, 6).items.includes('founder_tomb'), 'the founder\'s tomb is two floors down');
-  assert(map.spawns.some(s => s.type === 'gravewaker' && s.z === 6) && map.spawns.filter(s => s.type === 'skeleton' && s.z <= 7).length >= 6, 'skeletons and the Gravewaker');
-  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
-  p.level = 5;
-  talk(112, 103, 8, 'crypt');
-  assert.strictEqual(state.questState('bell_3'), 'none', 'Corwin waits for level 6');
-  ctx.useThing(69, 176, 6);
-  assert.strictEqual(state.countItem('bell_clapper'), 0, 'the tomb gives nothing before the quest');
-  p.level = 8;
-  talk(110, 102, 9, 'destiny');
-  assert(/level 10/.test(messages.slice(-4).join(' ')), 'the oracle wants level 10 while the bell is silent');
-  talk(112, 103, 8, 'crypt', 'yes');
-  assert.strictEqual(state.questState('bell_3'), 'active');
-  ctx.useThing(69, 176, 6);
-  assert.strictEqual(state.countItem('bell_clapper'), 1, 'the clapper from the founder\'s tomb');
-  talk(136, 102, 9, 'clapper');
-  assert.strictEqual(state.questState('bell_3'), 'done', 'Sister Ama hangs it again');
-  assert(messages.some(m => /rings again/.test(m)), 'and the bell rings out');
-  ctx.useThing(147, 102, 13);
-  assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after ringing');
-  state.now += 31000;
-  ctx.useThing(147, 102, 13);
-  assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it, and the whole isle hears');
-  talk(110, 102, 9, 'destiny');
-  assert(/level 10/.test(messages.slice(-4).join(' ')), 'the oracle still wants level 10');
-  talk(110, 102, 9, 'knight', 'yes');
-  assert.strictEqual(p.vocation, 'none', 'no vocation at level 8, even when asked straight out');
-  p.level = 10;
-  talk(110, 102, 9, 'destiny');
-  assert(/knight/.test(messages.slice(-4).join(' ')), 'at level 10 she sees you');
-});
 
 test('NPCs say which word to ask with, and show ! or ? when they have something for you', () => {
   const game = quietGame();
@@ -1384,21 +1313,6 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
 });
 
-test('gear deep under Oakvale: a cap, a shield and leather armor, once each; one weapon of three in the crypt', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  for (const [x, y, z, item] of [[105, 121, 7, 'leather_cap'], [109, 128, 6, 'wooden_shield'], [142, 103, 5, 'leather_armor']]) {
-    ctx.useThing(x, y, z);
-    assert.strictEqual(state.countItem(item), 1, `the chest at ${x},${y},${z} gives ${item}`);
-    ctx.useThing(x, y, z);
-    assert.strictEqual(state.countItem(item), 1, 'but only once');
-  }
-  ctx.useThing(80, 178, 7);
-  assert.strictEqual(state.countItem('hatchet'), 1, 'a weapon from the crypt');
-  ctx.useThing(79, 178, 7);
-  assert.strictEqual(state.countItem('short_sword'), 0, 'and only one of the three');
-  assert(/already taken your pick/.test(messages[messages.length - 1]));
-});
 
 test('the gate watch: a task beyond each gate, gear for it, and each guard sends you on to the next', () => {
   const game = quietGame();
@@ -1410,7 +1324,7 @@ test('the gate watch: a task beyond each gate, gear for it, and each guard sends
   talk('gate_west', 'wolves', 'yes');
   assert.strictEqual(state.questState('gate_west'), 'none', 'not at level 1');
   p.level = 5;
-  for (const [id, word, kill, n, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'leather_boots', /Tilda/], ['gate_south', 'crabs', 'crab', 6, 'leather_legs', /Hilde/],
+  for (const [id, word, kill, n, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'leather_armor', /Tilda/], ['gate_south', 'crabs', 'crab', 6, 'leather_legs', /Hilde/],
     ['gate_east', 'spiders', 'spider', 8, 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'goblin', 8, 'studded_shield', /crypt/]]) {
     assert.strictEqual(ctx.questNews(id).mark, 'offer', `${id} has a task: !`);
     talk(id, word, 'yes');
@@ -1484,8 +1398,87 @@ test('weapon hits as in Tibia: skill counts most, at least level / 5, and a mons
   assert(mid > hits.length * 0.55, 'most of them round the middle');
   const wolf = ctx.spawnMonster({ type: 'wolf', x: 130, y: 172, z: 8 });
   const blocks = Array.from({ length: 200 }, () => state.blocked(wolf));
-  assert(Math.min(...blocks) >= 2 && Math.max(...blocks) <= 4, 'a wolf\'s defense blocks 2 to 4 of a hit');
+  assert(Math.min(...blocks) >= 1 && Math.max(...blocks) <= 2, 'a wolf\'s defense (2) blocks 1 to 2 of a hit');
   assert.strictEqual(state.blocked({ type: 'player' }), 0, 'players have no monster defense');
+});
+
+test('The Silent Bell in order of danger: the crypt hall, then the rope deep under town, then the Gravewaker', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
+  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  const kill = (type, n) => { for (let i = 0; i < n; i++) ctx.onMonsterKilled(type); };
+  // II: the crypt hall, from Master Corwin at level 5
+  p.level = 4;
+  talk(112, 103, 8, 'crypt', 'yes');
+  assert.strictEqual(state.questState('bell_2'), 'none', 'not before level 5');
+  p.level = 5;
+  talk(112, 103, 8, 'crypt', 'yes');
+  assert.strictEqual(state.questState('bell_2'), 'active');
+  assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
+  ctx.useThing(80, 178, 7);
+  ctx.useThing(70, 182, 7);
+  assert(state.countItem('hatchet') === 0 && state.countItem('torn_note') === 0, 'no weapon and no note while the dead still walk');
+  kill('skeleton', 6);
+  assert.strictEqual(p.quests.bell_2.step, 1, 'six skeletons: the hall is cleared, without going back');
+  ctx.useThing(80, 178, 7);
+  ctx.useThing(70, 182, 7);
+  assert(state.countItem('hatchet') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
+  assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
+  talk(112, 103, 8, 'crypt');
+  assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the note');
+  // III: the rope, from Ama at level 6, past the giant rats and the cistern slime
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_3'), 'none', 'not before level 6');
+  p.level = 6;
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_3'), 'active');
+  ctx.useThing(148, 101, 5);
+  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope waits until the way is cleared');
+  kill('giant_rat', 8);
+  kill('cistern_slime', 1);
+  assert.strictEqual(p.quests.bell_3.step, 2, 'the drains and the cistern slime');
+  ctx.useThing(148, 101, 5);
+  ctx.useThing(142, 103, 5);
+  assert(state.countItem('chewed_rope') === 1 && state.countItem('leather_boots') === 1, 'the rope, and boots in the rotting pack');
+  talk(136, 102, 9, 'bell');
+  assert.strictEqual(state.questState('bell_3'), 'done');
+  // IV: the Gravewaker, at level 8: the gate opens, the tomb gives the clapper, the bell rings
+  ctx.useThing(147, 102, 13);
+  assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell is still silent');
+  p.level = 8;
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_4'), 'active');
+  assert(ctx.playerCanEnter(69, 181, 7), 'the iron gate opens now');
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 0, 'the clapper waits for the Gravewaker');
+  kill('gravewaker', 1);
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 1);
+  talk(136, 102, 9, 'bell');
+  assert.strictEqual(state.questState('bell_4'), 'done');
+  assert(messages.some(m => /rings again/.test(m)), 'the bell rings out');
+  assert.strictEqual(state.countItem('chain_armor'), 1, 'and Ama gives chain armour');
+  ctx.useThing(147, 102, 13);
+  assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after');
+  state.now += 31000;
+  ctx.useThing(147, 102, 13);
+  assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it');
+  p.level = 9;
+  talk(110, 102, 9, 'knight', 'yes');
+  assert.strictEqual(p.vocation, 'none', 'the oracle wants level 10, bell or no bell');
+});
+
+test('free gear in the sewers: a cap in the old storeroom and a shield in the rats\' nest, once each', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  for (const [x, y, z, item] of [[105, 121, 7, 'leather_cap'], [144, 140, 7, 'wooden_shield']]) {
+    ctx.useThing(x, y, z);
+    assert.strictEqual(state.countItem(item), 1, `the chest at ${x},${y},${z} gives ${item}`);
+    ctx.useThing(x, y, z);
+    assert.strictEqual(state.countItem(item), 1, 'but only once');
+  }
 });
 
 let failed = 0;

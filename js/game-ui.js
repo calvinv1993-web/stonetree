@@ -691,6 +691,7 @@ function renderQuests() {
   // Where to go now in an active quest, and what to say there.
   const goTo = id => {
     const s = questStep(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);
+    if (s.auto) return '';
     return `${stepReady(id) ? 'Then go' : 'When it is done, go'} to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.`;
   };
   // The stories first (The Silent Bell on Oakvale Isle, The Ember Seal on the mainland): the chapters

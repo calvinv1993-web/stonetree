@@ -13,7 +13,8 @@ const DY = [-1, 0, 1, 0];
 //   change:   stepping here moves you one floor up (+1) or down (-1)
 //   light:    light radius in tiles (in the dark: underground and at night)
 //   chest:    a quest chest that gives its reward once per character:
-//             { flag, quest?, requires?, gold?, items: [[itemId, count]], locked?, empty? (what it says once taken) }
+//             { flag, quest?, requires? ('quest', or 'quest@step': only from that step on), gold?, items: [[itemId, count]],
+//               locked?, empty? (what it says once taken), choice? (one of several chests sharing a flag) }
 //   bell:     the temple bell: use it to ring it, once it has its clapper back (ringBell)
 //             Chests sharing a flag are a "pick one" choice.
 //   sprite:   draw with another thing's sprite
@@ -257,7 +258,7 @@ const THINGS = {
   // The Silent Bell: what fell down the bell shaft, at the bottom of it, cut and gnawed.
   bell_rope: {
     name: 'bell rope', cat: 'Quest chests',
-    chest: { flag: 'bell_rope', requires: 'bell_2', items: [['chewed_rope', 1], ['carved_stone', 1]],
+    chest: { flag: 'bell_rope', requires: 'bell_3@2', items: [['chewed_rope', 1]],
       locked: 'A rope hangs down through a hole in the ceiling. Its end is gnawed to shreds. Rats, probably.',
       empty: 'The rest of the bell rope hangs from the hole in the ceiling, out of reach.' },
   },
@@ -265,7 +266,7 @@ const THINGS = {
   // The Silent Bell: the founder's tomb in the crypt under Bone Rocks, its lid pushed aside; the bell's clapper inside.
   founder_tomb: {
     name: 'tomb of the founder', cat: 'Quest chests', block: true, low: true,
-    chest: { flag: 'bell_clapper', requires: 'bell_3', items: [['bell_clapper', 1]],
+    chest: { flag: 'bell_clapper', requires: 'bell_4@1', items: [['bell_clapper', 1]],
       locked: 'The lid of the great tomb has been pushed aside. Something glints inside, but a cold dread holds you back. Not yet.',
       empty: 'Only the founder\'s old bones lie in the tomb now. Let them sleep.' },
   },
@@ -280,20 +281,27 @@ const THINGS = {
   },
   qchest_oak_armor: {
     name: 'rotting pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_armor', gold: 25, items: [['leather_armor', 1]] },
+    chest: { flag: 'oak_boots', requires: 'bell_3@2', gold: 40, items: [['leather_boots', 1]],
+      locked: 'Something big moves in the dark. This is no time to rummage through old packs.' },
   },
+  // The crypt under Bone Rocks: the gate to the founder's tomb opens on The Silent Bell IV (meta quest: 'bell_4'),
+  // and the torn note by it can be picked up once the hall of coffins is cleared (The Silent Bell II).
+  crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, questDoor: true, meta: 'quest' },
+  torn_note:   { name: 'torn note', cat: 'Quest chests',
+    chest: { flag: 'crypt_note', requires: 'bell_2@1', items: [['torn_note', 1]],
+      locked: 'A scrap of paper lies by the gate. Skeletons are still walking the hall: clear it first.' } },
   // The crypt under Bone Rocks: three weapon chests, and you may take from only one.
   qchest_crypt_sword: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, items: [['short_sword', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['short_sword', 1]] },
   },
   qchest_crypt_axe: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, items: [['hatchet', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['hatchet', 1]] },
   },
   qchest_crypt_club: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, items: [['spiked_club', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['spiked_club', 1]] },
   },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',

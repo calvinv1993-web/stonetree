@@ -31,9 +31,9 @@ function test(name, fn) {
 
 const key = (x, y, z) => (z * H + y) * W + x;
 const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y, z: (r - y) / H }; };
-// Walkable for this check: free ground, or a door someone can open (closed doors, house doors for
+// Walkable for this check: free ground, or a door someone can open (closed doors, quest and level doors, house doors for
 // their owners). Roofs don't count: nobody walks on them.
-const opens = id => THINGS[id].toggle || THINGS[id].houseDoor;
+const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor; // (quest and level doors open for some)
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;

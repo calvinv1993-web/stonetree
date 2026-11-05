@@ -510,7 +510,7 @@ const vocationLevel = () => 10;
 
 // Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
 function ringBell(x, y, z) {
-  if (questState('bell_3') !== 'done') return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
+  if (questState('bell_4') !== 'done') return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
   if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
   ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
 }
@@ -1235,7 +1235,11 @@ function onMonsterKilled(type) {
     if (!st.kill || !st.kill[type]) continue;
     const before = stepReady(id);
     s.kills[type] = Math.min(st.kill[type], (s.kills[type] || 0) + 1);
-    if (!before && stepReady(id)) log(`${QUESTS[id].name}: done! Report to ${NPCS[st.npc || QUESTS[id].giver].name}.`, 'quest');
+    if (before || !stepReady(id)) continue;
+    if (st.auto) { // a task out in the wilds: done the moment it's done, and the quest goes on from there
+      if (st.done) log(st.done, 'quest');
+      advanceQuest(id);
+    } else log(`${QUESTS[id].name}: done! Report to ${NPCS[st.npc || QUESTS[id].giver].name}.`, 'quest');
   }
   uiDirty();
 }
@@ -1244,13 +1248,14 @@ function openChest(chest) {
   if (player.chests[chest.flag]) {
     // Lost what a quest still needs (an unblessed death, long ago)? It's back in the chest.
     // (only what the quest still asks for: not what you have already handed in)
-    const req = chest.requires, ahead = req && questState(req) === 'active' ? questSteps(QUESTS[req]).slice(player.quests[req].step || 0).map(st => st.fetch) : [];
+    const req = chest.requires && chest.requires.split('@')[0];
+    const ahead = req && questState(req) === 'active' ? questSteps(QUESTS[req]).slice(player.quests[req].step || 0).map(st => st.fetch) : [];
     const lost = (chest.items || []).filter(([id]) => ITEMS[id].quest && ahead.includes(id) && !countItem(id));
     if (!lost.length) return log(chest.empty || (chest.choice ? 'You have already taken your pick.' : 'It is empty.'));
     for (const [id, n] of lost) giveItem(id, n);
     return log(`You found ${lost.map(([id, n]) => itemName(id, n)).join(' and ')} again.`, 'quest');
   }
-  if (chest.requires && questState(chest.requires) === 'none') return log(chest.locked || 'It is locked.');
+  if (chest.requires && !questAllows(chest.requires)) return log(chest.locked || 'It is locked.'); // 'quest' or 'quest@step'
   player.chests[chest.flag] = true;
   const found = (chest.items || []).map(([id, n]) => itemName(id, n));
   if (chest.gold) found.push(`${chest.gold} gold`);

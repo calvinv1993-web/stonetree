@@ -116,7 +116,7 @@ function questNews(npcId) {
       let news = null;
       if (state === 'none') {
         if (q.giver === npcId || (q.offers && q.offers[npcId])) news = player.level >= (q.level || 0) ? { mark: 'offer', word, id } : { mark: 'later', word, id, level: q.level };
-      } else if ((questStep(id).npc || q.giver) === npcId) news = { mark: stepReady(id) ? 'report' : 'busy', word, id };
+      } else if (!questStep(id).auto && (questStep(id).npc || q.giver) === npcId) news = { mark: stepReady(id) ? 'report' : 'busy', word, id };
       if (news && (!best || NEWS_ORDER[news.mark] < NEWS_ORDER[best.mark])) best = news;
       break;
     }

@@ -31,7 +31,9 @@ const BUYS = {
 // Steps: each has the NPC you report to (npc, default the giver) and what to do
 // first: kill { type: n }, fetch an item (taken when you report), or nothing (just talk).
 // A quest without steps is a single step made from its own kill/fetch.
-// story: a chapter of the main story (the Ember Seal), shown first in the Quests tab.
+// auto: a kill step out in the wilds that is done the moment the last one falls (its done text is shown then),
+// with no NPC to report to; chests can wait for a step (requires 'quest@step' in defs.js).
+// story: a chapter of a story (true: the Ember Seal; or the story's name), shown first in the Quests tab.
 // offers: { npc: { offer, accept } }: others who can offer it too, in their own words.
 // text.elsewhere: what anyone else in the chain says when asked before it is offered.
 const QUESTS = {
@@ -1546,10 +1548,15 @@ function gateGuard(quest, name, hair, word, gate, captain) {
 }
 
 // ---- Oakvale Isle: the people of the starter town, and its beginner story --------------------------
-// "The Silent Bell": the temple bell of Oakvale has stopped ringing. The quest walks a newcomer through the
-// town and the game: the priestess, the teacher at the academy, the first fight outside the walls, the
-// depot, trading at Pip's, and back to the temple. Part II sends them into the sewers to the old bell cellar
-// under the temple, where they find the bell rope cut through and a seal from the crypt under Bone Rocks.
+// "The Silent Bell": the bell of Oakvale has stopped ringing. Its chapters climb in danger with the player:
+//   I (level 1)   a newcomer learns the town and the game: the priestess, the academy, rats, the depot, Pip
+//   (the gate watch, level 2-5, gives the gear for what comes next: see below)
+//   II (level 5)  the crypt under Bone Rocks: clear the hall of coffins, take one of the founders' weapons,
+//                 and find a note: someone cut the bell's rope, threw it down the shaft, and keeps its clapper
+//   III (level 6) after the rope, deep under the town: the drains full of giant rats, the cistern slime
+//   IV (level 8)  the Gravewaker, in the founder's tomb below the crypt: the clapper, and the bell rings again
+// Kill steps out in the wilds are done as soon as they're done (auto), and the chests along the way only open
+// once you've done them (requires 'quest@step'): nobody gets the gear by running past the monsters.
 Object.assign(QUESTS, {
   bell_1: {
     name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1,
@@ -1574,62 +1581,88 @@ Object.assign(QUESTS, {
     text: {
       offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} has not rung for three days. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})',
       accept: 'Good. Go down the steps, cross the square to the west and over the bridge to the academy. Master Corwin teaches there: tell him about the {bell}, and that I sent you.',
-      reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the bell... I fear something is down in the dark beneath us. Come back at level 2 and ask me about the {bell} again.',
-      done: 'Thank you for your help, $name. The bell is still silent... but not for long, I hope.',
+      reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the bell... I fear something is down in the dark beneath us, and you are not ready for it yet. Grow stronger first: the guards at the town gates have work for you, and good gear to give. Start with Sergeant Bram at the west gate, and ask him about the {wolves}.',
+      done: 'The bell is still silent, $name. Grow stronger at the town gates; Master Corwin will send for you when you are ready.',
     },
   },
   bell_2: {
-    name: 'The Silent Bell II: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 2,
-    reward: { xp: 200, gold: 50, items: [['health_potion', 2]] },
-    summary: 'Find out what became of the temple bell\'s rope, deep under the town at the bottom of the bell shaft.',
+    name: 'The Silent Bell II: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 5,
+    reward: { xp: 300, gold: 60, items: [['health_potion', 3]] },
+    summary: 'Go down into the founders\' crypt under Bone Rocks and find out who broke in.',
     steps: [
-      { npc: 'ama', fetch: 'chewed_rope', summary: 'Go down through the sewers (a grate on the square), through the rats\' nest under the graveyard into the old drains, and on down to the deep cistern. Past it, at the bottom of the bell shaft, find what is left of the bell rope and bring it to Sister Ama.',
-        progress: 'The rope fell down the bell shaft, deep under the town. The old cellar is choked with stone - but the rats have dug their own way down, from their nest under the graveyard. Go down, and down again.',
-        done: 'This is our bell rope... Look at the end, $name. Rats gnawed it, yes - but first it was cut. Clean, with a blade. Someone silenced our bell on purpose. And you found a stone down there too? Show Master Corwin at the academy the {stone}. He knows old things.' },
-      { npc: 'corwin', fetch: 'carved_stone', summary: 'Show the strange carved stone to Master Corwin at the academy.',
-        progress: 'Sister Ama says you found a strange stone under the temple. If you have lost it, look in the bell cellar again.',
-        done: 'Spirals round a skull... This is a seal from the old crypt under {Bone Rocks}, south-west of town. The founders laid their dead there and sealed it, a hundred years ago. If this seal lay under our temple, someone has broken into the crypt - and the same someone cut our bell. Come back to me at level 6 and ask me about the {crypt}: the dead down there do not sleep lightly. Until then, grow stronger: the guards at the town gates have work for you. Start with Sergeant Bram at the west gate, at level 3.' },
+      { auto: true, kill: { skeleton: 6 }, summary: 'Go down into the founders\' crypt under Bone Rocks (south-west, at the end of the bone trail) and clear the hall of coffins: kill 6 skeletons.',
+        progress: 'The crypt lies under Bone Rocks, south-west of town: steps lead down at the foot of the crag. So far: $progress.',
+        done: 'The hall of coffins falls quiet. By its north wall stand three stone chests - the founders\' arms, one for each who dares - and by the iron gate to the tomb stairs lies a torn scrap of paper.' },
+      { npc: 'corwin', fetch: 'torn_note', summary: 'Take one weapon from the stone chests in the hall of coffins, pick up the torn note by the iron gate, and bring the note to Master Corwin.',
+        progress: 'A note, by the gate to the tomb? Bring it to me. And take a weapon from the founders\' chests while you are down there: they would want it used.',
+        done: '"...the rope is cut, and down the shaft it went, to the rats. The clapper stays with me, below. When the bell is silent, the dead wake. - G." So it was no accident, $name. Someone silenced our bell to wake the dead of the crypt. Sister Ama must hear this: tell her about the {rope}.' },
     ],
     text: {
-      offer: 'You are back, $name, and a little stronger. Our bell has lost its rope: it fell down the old bell shaft, deep under the town, and people say the rats chewed it through. I do not believe it. Will you go down and find it? ({yes}/{no})',
-      accept: 'Thank you. Climb down the grate on the square into the sewers. The old cellar under this temple fell in long ago, but the rats have dug deep from their nest under the graveyard: follow them down, past the old drains, to the cistern at the bottom. It is dark and full of rats as big as dogs - take potions, and say "lumen" for light. Bring me what is left of the rope, and tell me about the {rope}.',
-      tooWeak: 'Something is wrong with our bell, $name, but the sewers are no place for you yet. Come back when you are level 2.',
-      elsewhere: 'Sister Ama was asking about the bell again. Go and see her in the temple.',
-      done: 'Master Corwin will know what that stone means. As for the bell... it still hangs silent.',
+      offer: 'You have grown strong at the gates, $name. Now listen: lights have been seen at Bone Rocks at night, and the seal of the founders\' crypt beneath it is broken. Someone went down there - and our bell fell silent the same night. Will you go and see? ({yes}/{no})',
+      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks; steps at the foot of the crag lead down. Skeletons walk the hall of coffins. Before you go: Armourer Brenna at Hide and Iron sells armour, Pip sells health potions - take five at least - and Sister Ama heals anyone who comes back hurt. When you have something to show me, tell me about the {crypt}.',
+      tooWeak: 'The crypt is no place for you yet, $name. Grow stronger at the town gates - the guards have work for you - and come back at level 5.',
+      elsewhere: 'Master Corwin at the academy wants to see you about the crypt under Bone Rocks.',
+      done: 'The note named the rope and the clapper. Sister Ama will know what to do.',
     },
   },
   bell_3: {
-    name: 'The Silent Bell III: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 6,
-    reward: { xp: 700, gold: 150, items: [['health_potion', 3]], bell: true },
-    summary: 'Go down into the founders\' crypt under Bone Rocks, find what was taken from the temple bell, and bring it to Sister Ama.',
+    name: 'The Silent Bell III: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 6,
+    reward: { xp: 300, gold: 80, items: [['health_potion', 3]] },
+    summary: 'Find the bell\'s rope, at the bottom of the bell shaft deep under the town.',
     steps: [
-      { npc: 'ama', fetch: 'bell_clapper', summary: 'Find what was taken from the temple bell, deep in the founders\' crypt under Bone Rocks (south-west of town, at the end of the bone trail), and bring it to Sister Ama.',
-        progress: 'Master Corwin has sent you to the crypt under Bone Rocks? Then go with my blessing, $name - and come back alive.',
-        done: 'The clapper of our bell! Cold as the grave... A hooded figure took it down there? Then I understand. The founders cast this bell to keep their dead asleep, and while it was silent, they woke. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Thank you, $name. Once you are level 10, the {oracle} upstairs in the academy will send you on to what lies beyond this isle.' },
+      { auto: true, kill: { giant_rat: 8 }, summary: 'Climb down a sewer grate, find the rats\' nest under the graveyard and its trapdoor down, and clear the old drains below: kill 8 giant rats.',
+        progress: 'The rats\' nest is under the graveyard, at the east end of the sewers; a trapdoor in it leads down to the old drains. So far: $progress.',
+        done: 'The old drains fall quiet. A trapdoor leads on down, and from the dark below comes the sound of something big moving in water.' },
+      { auto: true, kill: { cistern_slime: 1 }, summary: 'Go down the trapdoor in the old drains to the deep cistern, and kill the great slime that keeps the narrow way east.',
+        progress: 'The cistern slime keeps the narrow way east, at the bottom of the sewers. It poisons: take potions.',
+        done: 'The great slime bursts and seeps away into the cracks. The narrow way east is open: beyond it lies the bottom of the bell shaft.' },
+      { npc: 'ama', fetch: 'chewed_rope', summary: 'At the bottom of the bell shaft, east of the cistern, find the bell\'s rope and bring it to Sister Ama.',
+        progress: 'The rope lies at the bottom of the bell shaft, east of the deep cistern.',
+        done: 'Our rope... cut clean with a blade, then gnawed by the rats. So the note spoke true. And the clapper "stays with me, below": below the crypt, $name, in the founder\'s tomb itself. Whoever this G is, he waits down there for the dead to wake. He will be stronger than anything you have faced. When you are level 8, ask me about the {gravewaker}.' },
     ],
     text: {
-      offer: 'You have grown strong, $name. Someone broke the seal of the founders\' crypt under Bone Rocks and silenced our bell. Will you go down into the crypt and find out what was taken? ({yes}/{no})',
-      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks. At the foot of the crag, steps lead down into the crypt. Skeletons walk there - and something worse, I fear. Whatever you find, show it to Sister Ama: tell her about the {clapper}.',
-      tooWeak: 'The crypt under Bone Rocks is no place for you yet, $name. Come back when you are level 6.',
-      elsewhere: 'Master Corwin at the academy wants to see you about the bell.',
+      offer: 'Master Corwin told me about the note. So our rope lies at the bottom of the bell shaft, under the town... The rats have dug their way down there, $name, and worse lives in the deep cistern. Will you bring our rope home? ({yes}/{no})',
+      accept: 'Go down a grate into the sewers and east to the rats\' nest under the graveyard: a trapdoor there leads down to the old drains, and another to the cistern. This is the most dangerous place on the isle for one of your strength. Eat well, carry health potions from Pip, get the best armour Brenna has, and come back to me if you are hurt: I will {heal} you. Bring me the {rope}.',
+      tooWeak: 'Under the town is no place for you yet, $name. Come back at level 6.',
+      elsewhere: 'Sister Ama in the temple wants to know what you found in the crypt.',
+      done: 'We have our rope again. But the bell is still silent without its clapper.',
+    },
+  },
+  bell_4: {
+    name: 'The Silent Bell IV: The Gravewaker', story: 'The Silent Bell', giver: 'ama', level: 8,
+    reward: { xp: 400, gold: 150, items: [['chain_armor', 1], ['health_potion', 3]], bell: true },
+    summary: 'Go down to the founder\'s tomb under Bone Rocks, defeat the one who silenced the bell, and bring its clapper home.',
+    steps: [
+      { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
+        progress: 'The tomb lies below the hall of coffins, past the iron gate. The Gravewaker waits there with the dead he woke.',
+        done: 'The Gravewaker falls, and the tomb grows still. In the open coffin of the founder, something of bronze glints.' },
+      { npc: 'ama', fetch: 'bell_clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
+        progress: 'The clapper lies in the founder\'s open tomb.',
+        done: 'The clapper of our bell! Cold as the grave... The founders cast this bell to keep their dead asleep, and while it was silent, they woke. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour, $name: you have earned it. Once you are level 10, the {oracle} upstairs in the academy will send you on to what lies beyond this isle.' },
+    ],
+    text: {
+      offer: 'The rope is home, $name, but the bell is dumb without its clapper - and the one who took it waits in the founder\'s tomb. The Gravewaker, the old stories call such a one. Will you face him? ({yes}/{no})',
+      accept: 'The iron gate to the tomb stairs, in the crypt, will open for you now. He throws poison and raises the dead around him: fight the dead first, keep your health high, and bring many potions - ten would not be too many. Brenna\'s best armour, and food. Then bring me the {clapper}.',
+      tooWeak: 'The Gravewaker would kill you, $name. Grow stronger - come back at level 8.',
+      elsewhere: 'Sister Ama in the temple wants to see you about the bell.',
       done: 'The bell rings again, thanks to you. At level 10, go and see the oracle upstairs, $name.',
     },
   },
 });
 
 // The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
-// sends you on to the next gate. Together they lead a newcomer from level 3 to the crypt at level 6.
+// sends you on to the next gate. Together they lead a newcomer from level 2 to the crypt at level 5.
 Object.assign(QUESTS, {
   gate_west: {
-    name: 'The Gate Watch: Wolves at the West Gate', giver: 'gate_west', level: 3, kill: { wolf: 8 },
-    reward: { xp: 250, gold: 30, items: [['leather_boots', 1]] },
+    name: 'The Gate Watch: Wolves at the West Gate', giver: 'gate_west', level: 2, kill: { wolf: 8 },
+    reward: { xp: 250, gold: 30, items: [['leather_armor', 1]] },
     summary: 'Kill 8 wolves in Wolf Woods, out of the west gate and north-west, and report to Sergeant Bram at the west gate.',
     text: {
       offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold - they come right up to the west road at night. Thin them out for me? Eight will do. ({yes}/{no})',
-      accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it. Come back and tell me about the {wolves}.',
+      accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it, and carry a health potion or two from Pip. Come back and tell me about the {wolves}.',
       progress: 'So far: $progress. Wolf Woods lies north-west of the west gate.',
-      reward: 'Eight wolves! The road will be quieter tonight. Here - good boots, for a good pair of legs. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
-      tooWeak: 'Wolves would tear you apart, friend. Come back at level 3.',
+      reward: 'Eight wolves! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      tooWeak: 'Wolves would tear you apart, friend. Come back at level 2.',
       done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
     },
   },
@@ -1682,7 +1715,7 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
-      'bell|quest|mission|task|help|rope|cellar|clapper': { quest: ['bell_1', 'bell_2', 'bell_3'] },
+      'bell|quest|mission|task|help|rope|cellar|clapper|gravewaker': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
       'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
       'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10.',
       sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
@@ -1697,7 +1730,7 @@ Object.assign(NPCS, {
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
-      'bell|quest|mission|task|ama|stone|seal|crypt': { quest: ['bell_1', 'bell_2', 'bell_3'] },
+      'bell|quest|mission|task|ama|crypt|note': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
       'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',

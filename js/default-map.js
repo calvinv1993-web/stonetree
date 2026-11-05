@@ -284,7 +284,7 @@ const SEWERS = {
     [103, 121, 'barrel'], [104, 121, 'barrel'], [105, 121, 'qchest_oak_cap'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
     [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
     [140, 104, 'rubble'], [134, 105, 'rubble'],
-    [142, 137, 'bones'], [149, 138, 'bones'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
+    [142, 137, 'bones'], [149, 138, 'bones'], [144, 140, 'qchest_oak_shield'], // a shield the rats dragged into their nest [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
@@ -305,7 +305,7 @@ const DEEP_SEWERS = [
     z: 6, up: [147, 139], down: [128, 111],
     drains: [[129, 139, 143, 140], [125, 115, 126, 135], [113, 128, 124, 129]],
     caves: [{ cx: 147, cy: 139, rx: 4.5, ry: 3.5 }, { cx: 126, cy: 138, rx: 4, ry: 3.6 }, { cx: 126, cy: 111, rx: 5.5, ry: 4.2 }, { cx: 110, cy: 128.5, rx: 3.6, ry: 3.2 }],
-    props: [[109, 128, 'qchest_oak_shield'], [145, 137, 'bones'], [132, 140, 'rubble'], [124, 136, 'bones'], [126, 124, 'rubble'], [109, 127, 'bones'], [123, 109, 'bones'], [130, 112, 'rubble']],
+    props: [[145, 137, 'bones'], [132, 140, 'rubble'], [124, 136, 'bones'], [126, 124, 'rubble'], [109, 127, 'bones'], [123, 109, 'bones'], [130, 112, 'rubble']],
     monsters: [['giant_rat', [[148, 141], [137, 139], [127, 139], [124, 137], [125, 128], [126, 120], [111, 129], [123, 112], [127, 109], [130, 110]]]],
   },
   {
@@ -348,6 +348,7 @@ const CRYPT = {
         [74, 179, 'sarcophagus'], [77, 179, 'sarcophagus'], [83, 179, 'sarcophagus'], [86, 179, 'sarcophagus'],
         [74, 182, 'sarcophagus'], [77, 182, 'sarcophagus'], [83, 182, 'sarcophagus'], [86, 182, 'sarcophagus'],
         [79, 178, 'qchest_crypt_sword'], [80, 178, 'qchest_crypt_axe'], [81, 178, 'qchest_crypt_club'],
+        [69, 181, 'crypt_gate'], [69, 182, 'crypt_gate'], [70, 182, 'torn_note'], // the gate to the tomb stairs, and the note by it
         [78, 192, 'web'], [83, 192, 'rubble'], [79, 195, 'bones'], [72, 178, 'web'], [80, 180, 'bones'], [67, 181, 'bones'],
       ],
       monsters: [['skeleton', 75, 180], ['skeleton', 85, 181], ['skeleton', 80, 183], ['skeleton', 82, 194]],
@@ -885,6 +886,7 @@ function buildCrypt(m, S) {
     for (const [x, y, id] of f.stairs) m.get(x, y, Z).items = [id];
     for (const [x, y] of f.torches) m.addItem(x, y, Z, 'wall_torch');
     for (const [x, y, id] of f.props) m.addItem(x, y, Z, id);
+    for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { quest: 'bell_4', look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb.' });
     for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z });
   }
 }

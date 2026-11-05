@@ -492,7 +492,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -1450,6 +1450,21 @@ const Sprites = (() => {
       prism(g, 2, 15, 30, 20, 34, 36, wood);
       const [rx, ry] = P(16, 18, 34); line(g, '#c0b090', 1, rx, ry, x, y);
       prism(g, 1, 15, 31, 20, 38, 40, { top: '#a03a2a', south: '#7a2a1e', east: '#5e1e14', edge: '#c85a44' }); // the little roof
+    },
+    // An iron gate across a corridor running east-west: bars standing up from the floor in the tiles' slant, from the
+    // north edge of the tile to the south, with crossbars and a heavy lock.
+    crypt_gate(g) {
+      floorShadow(g, 4, 8);
+      const iron = { top: '#5a5a62', south: '#46464e', east: '#2e2e34', edge: '#7a7a84' };
+      for (let v = 1; v <= 31; v += 5) prism(g, 15, v, 17, v + 2, 0, 44, iron);   // the bars
+      for (const z of [6, 24, 40]) prism(g, 15, 0, 17, 32, z, z + 3, iron);         // crossbars
+      prism(g, 13, 14, 19, 19, 20, 27, { top: '#8a6a2a', south: '#6a4e1a', east: '#4a3410', edge: '#b08a3e' }); // the lock
+    },
+    // A torn scrap of paper on the floor.
+    torn_note(g) {
+      shadow(g, 16, 22, 8, 2);
+      poly(g, '#e8dcc0', [9, 15, 22, 13, 24, 21, 19, 24, 11, 23]);
+      for (const y of [16, 18, 20]) line(g, '#8a7a5a', 1, 12, y, 21, y - 1);
     },
     // A stone coffin, long from north to south, its lid carved with a sword.
     sarcophagus(g) {
@@ -2636,6 +2651,11 @@ const Sprites = (() => {
     wolf_pelt(g) {
       poly(g, '#7a7a7a', [5, 10, 12, 6, 20, 7, 27, 11, 28, 20, 24, 27, 16, 25, 8, 27, 4, 20]);
       poly(g, '#9a9a9a', [9, 11, 16, 9, 23, 12, 22, 20, 12, 21]);
+    },
+    torn_note(g) {
+      poly(g, '#e8dcc0', [7, 9, 24, 7, 26, 23, 18, 26, 9, 25]);
+      for (const y of [12, 15, 18, 21]) line(g, '#6a5a3a', 1, 10, y, 23, y - 1);
+      line(g, '#a08a5a', 1, 24, 7, 26, 23);
     },
     bell_clapper(g) {
       shadow(g, 16, 27, 11, 3);

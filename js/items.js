@@ -178,6 +178,8 @@ const ITEMS = {
   old_sock:      { name: 'old sock', quest: true, weight: 1 },
   chewed_rope:   { name: 'chewed bell rope', quest: true, weight: 6 },   // The Silent Bell, from the bell cellar
   bell_clapper:  { name: 'bronze bell clapper', quest: true, weight: 30 }, // The Silent Bell, from the crypt under Bone Rocks
+  torn_note:     { name: 'torn note', quest: true, weight: 1, // The Silent Bell II, by the gate to the founder's tomb
+    text: '...the rope is cut, and down the shaft it went, to the rats. The clapper stays with me, below. When the bell is silent, the dead wake. - G.' },
   carved_stone:  { name: 'strange carved stone', quest: true, weight: 8,
     text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },
