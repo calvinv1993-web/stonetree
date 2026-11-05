@@ -147,7 +147,9 @@ function kill(m) {
         const d = state.ITEMS[pile.items[i].id];
         const bag = p.equipment.backpack, room = state.ITEMS[bag.id].container - (bag.contents || []).length;
         const stacks = (bag.contents || []).some(x => x.id === pile.items[i].id) && d && d.stack;
-        if (d && (d.value || d.use) && !d.slot && (stacks || room > 2)) A.takeFromPile(pile.id, i); // keep two places free for what a quest gives
+        const it = pile.items[i], heavy = d && (d.weight || 0) * (it.count || 1);
+        const worthIt = d && (it.id === 'gold' || (d.value || 0) >= (d.weight || 0) / 4 || (d.use && d.use.heal)); // not a pile of cheap meat
+        if (d && (d.value || d.use) && !d.slot && worthIt && (stacks || room > 2) && run('freeCapacity()') - heavy > 80) A.takeFromPile(pile.id, i); // keep room for what a quest gives
       }
       A.closePile();
     }
