@@ -84,7 +84,7 @@ function goTo(gx, gy, gz, near = 0, why = '') {
   for (let tries = 0; tries < 60; tries++) {
     if (p.z === gz && Math.max(Math.abs(p.x - gx), Math.abs(p.y - gy)) <= near) return true;
     const path = route(gx, gy, gz, near);
-    if (!path) { problem(`no way to ${gx},${gy},${gz} ${why} from ${p.x},${p.y},${p.z}`); return false; }
+    if (!path) { problem(`no way to ${gx},${gy},${gz} ${why} from ${p.x},${p.y},${p.z}`); wait(5000); return false; }
     // the last tile on this floor before the next floor change (or the goal)
     let target = path[path.length - 1];
     for (let i = 1; i < path.length; i++) if (path[i][2] !== p.z) { target = path[i - 1]; break; }
@@ -156,9 +156,10 @@ function hunt(type, n, [cx, cy, cz], why) {
       if (!far) { goTo(cx, cy, cz, 3, `to the ${type}s`); wait(5000); continue; }
       goTo(far.x, far.y, far.z, 2, `to a ${type}`);
       m = near(type, 9)[0];
-      if (!m) continue;
+      if (!m) { wait(2000); continue; } // (always let time pass, or this could go round for ever)
     }
-    const before = killsTotal; kill(m);
+    const before = killsTotal, t0 = state.now; kill(m);
+    if (state.now === t0) wait(500);
     if (killsTotal > before) got++;
   }
   if (got < n) problem(`found only ${got} of ${n} ${type}s in 45 minutes`);
