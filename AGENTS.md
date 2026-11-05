@@ -24,6 +24,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Browser soak test | `node tests/browser.test.js [seconds] [seed]` |
 | Screenshot of the real page | `node tests/screenshot.js out.png [x y z] [--hour 22] [--mobile] [--view] [--eval "js"]` |
 | Balance along the Oakvale route: fights with the real combat code | `node tests/balance.js [name]` |
+| Pace: how long the Oakvale route takes to level 10, played with the real combat code (aim: about 150 minutes) | `node tests/pace.js [seed]` |
 | World validator: size, coast, floor changes, reachability | `node tests/world.test.js [--verbose]` |
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |

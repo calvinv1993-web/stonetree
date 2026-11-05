@@ -11,7 +11,8 @@ const SKULL_TIME = 3 * 60000;     // a white skull fades this long after you las
 const PZ_LOCK = 60000;            // after attacking any player, no temples for a minute
 const RED_SKULL_TIME = 6 * 3600000;
 const FRAG_LIMITS = [[3, 24 * 3600000], [6, 7 * 24 * 3600000]]; // unjustified kills within a day, a week -> red skull       // ms before a killed monster can come back (unless it says otherwise)
-const FIGHT_MODES = { offensive: { attack: 1.2, defense: 0.6 }, balanced: { attack: 1, defense: 1 }, defensive: { attack: 0.7, defense: 1.4 } };
+// How hard you hit and how well you block in each fight mode, as in Tibia (full attack 1, balanced 0.75, defensive 0.5).
+const FIGHT_MODES = { offensive: { attack: 1, defense: 0.6 }, balanced: { attack: 0.75, defense: 1 }, defensive: { attack: 0.5, defense: 1.4 } };
 let nextRaidAt = 0;
 
 // ---- visual effects and sounds (drawn and played by the browser) ---------------------
@@ -63,7 +64,16 @@ function playerWeapon() {
 }
 
 const fightMode = () => FIGHT_MODES[player.fightMode] || FIGHT_MODES.balanced;
-const physicalMax = w => Math.floor(((w.attack * (player.skills[w.skill].level + 10)) / 16 + player.level / 3) * fightMode().attack);
+// A weapon hit, as in Tibia: at most 0.085 x fight mode x attack x skill + level / 5, at least level / 5, most hits
+// round the middle (the mean of two rolls), so the big ones are rare. The skill counts most; the level only a little.
+const physicalMax = w => Math.floor(0.085 * fightMode().attack * w.attack * player.skills[w.skill].level + player.level / 5);
+const physicalHit = w => {
+  const min = Math.floor(player.level / 5), max = Math.max(min, physicalMax(w));
+  return Math.round(min + (max - min) * (Math.random() + Math.random()) / 2);
+};
+// What a monster's defense blocks of a weapon hit (half its defense to all of it), as in Tibia: with its armor
+// (in damageMonster) this can block a hit completely, and a weak hit often is.
+const blocked = t => (t.def && t.def.defense ? randInt(Math.floor(t.def.defense / 2), t.def.defense) : 0);
 const inAttackRange = (w, t) => (w.kind === 'melee' ? inMelee(player, t) : t.z === player.z && dist(player, t) <= w.range && sightClear(player, t));
 const canSee = c => !(c.def && c.def.invisible) || dist(c, player) <= 1;
 
@@ -155,19 +165,19 @@ function playerCombat() {
   if (w.kind === 'melee') {
     addSkillTries(w.skill);
     addSound('hit', t.x, t.y, t.z);
-    hurt(t, randInt(0, physicalMax(w)), 'physical');
+    hurt(t, physicalHit(w) - blocked(t), 'physical');
   } else if (w.kind === 'distance') {
     useAmmo(w);
     addMissile(player, t, w.missile);
     addSkillTries('distance');
     const hitChance = Math.min(0.95, 0.6 + player.skills.distance.level / 150);
-    if (Math.random() < hitChance) hurt(t, randInt(0, physicalMax(w)), 'physical');
+    if (Math.random() < hitChance) hurt(t, physicalHit(w) - blocked(t), 'physical');
     else addBurst(t.x, t.y, t.z, '#9cf');
   } else {
     player.mana -= w.mana;
     addSkillTries('magic', w.mana);
     addMissile(player, t, w.element);
-    hurt(t, Math.round(randInt(...w.dmg) * (1 + player.skills.magic.level * 0.03) * fightMode().attack), w.element);
+    hurt(t, Math.round(randInt(...w.dmg) * (1 + player.skills.magic.level * 0.03) * fightMode().attack / FIGHT_MODES.balanced.attack), w.element);
   }
 }
 
@@ -191,13 +201,14 @@ function damageMonster(m, dmg, element) {
     addBurst(m.x, m.y, m.z, '#9cf');
     return;
   }
-  if (element === 'physical') dmg -= randInt(0, m.def.armor || 0);
+  const before = dmg; // what got past its defense (see blocked)
+  if (element === 'physical' && m.def.armor) dmg -= randInt(Math.floor(m.def.armor * 0.475), Math.floor(m.def.armor * 0.95)); // armor, as in Tibia
   dmg = Math.round(dmg * ((m.def.weak && m.def.weak[element]) || 1));
   m.angryAt = player.id;
   m.angryUntil = now + 15000; // whatever hits a monster gets hunted, even from afar
   player.foughtAt = now; // for the party's shared experience
-  if (dmg <= 0) {
-    addBurst(m.x, m.y, m.z, '#9cf');
+  if (dmg <= 0) { // blocked: a blue puff where its defense stopped it, a grey spark where its armor did
+    addBurst(m.x, m.y, m.z, before > 0 ? '#b8b8b8' : '#9cf');
     return;
   }
   m.hits = m.hits || {}; // who did how much, and when, to share the experience

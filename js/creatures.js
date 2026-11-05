@@ -2,7 +2,8 @@
 // Monsters, conditions, fields, vocations, skills and spells.
 
 // dmg: melee [min, max]; speed: ms per tile; attackSpeed: ms between attacks;
-// aggro: tiles at which it notices you; armor: absorbs physical damage;
+// aggro: tiles at which it notices you (and anything on your screen sees you, see monsterTarget);
+// defense: blocks weapon hits (half of it to all of it); armor: absorbs physical damage (about half of it to all);
 // weak: damage multipliers per element; immune: elements/conditions it ignores;
 // ranged: { range, dmg, missile, element, chance, keepDistance };
 // hitCondition: { kind, chance, power } applied by its melee hits;
@@ -12,43 +13,42 @@
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 const MONSTERS = {
   rat: {
-    name: 'rat', hp: 18, xp: 5, dmg: [0, 3], speed: 480, attackSpeed: 1600, aggro: 4, corpse: 'blood',
+    name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 480, attackSpeed: 1600, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
   giant_rat: { // the big rats of the Oakvale sewers
-    name: 'giant rat', hp: 55, xp: 22, dmg: [2, 11], speed: 420, attackSpeed: 1400, aggro: 6, corpse: 'blood',
+    name: 'giant rat', hp: 40, xp: 15, dmg: [1, 8], defense: 2, armor: 2, speed: 420, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
-    name: 'Gravewaker', proper: true, hp: 380, xp: 450, dmg: [6, 18], armor: 4, speed: 500, attackSpeed: 1800, aggro: 7, corpse: 'blood',
+    name: 'Gravewaker', proper: true, hp: 160, xp: 250, dmg: [4, 14], defense: 4, armor: 4, speed: 500, attackSpeed: 1800, aggro: 7, corpse: 'blood',
     respawn: 300000, weak: { holy: 1.3 },
-    ranged: { range: 4, dmg: [12, 30], missile: 'poison', element: 'earth', chance: 0.6, keepDistance: true },
+    ranged: { range: 4, dmg: [8, 20], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
     summon: { type: 'skeleton', max: 2, chance: 0.12 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
   },
   spider: {
-    name: 'spider', hp: 30, xp: 10, dmg: [1, 6], speed: 420, attackSpeed: 1400, aggro: 5, corpse: 'slime',
+    name: 'spider', hp: 22, xp: 12, dmg: [1, 6], defense: 2, armor: 2, speed: 420, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],
     loot: { items: [['spider_silk', 0.3]] },
   },
   wolf: {
-    name: 'wolf', hp: 40, xp: 15, dmg: [2, 8], speed: 320, attackSpeed: 1400, aggro: 6, corpse: 'blood', flee: 0.15,
+    name: 'wolf', hp: 25, xp: 18, dmg: [2, 8], defense: 4, armor: 2, speed: 320, attackSpeed: 1400, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.2]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
-    name: 'cistern slime', hp: 160, xp: 140, dmg: [3, 12], armor: 2, speed: 900, attackSpeed: 1700, aggro: 4, corpse: 'slime',
+    name: 'cistern slime', hp: 80, xp: 110, dmg: [3, 11], defense: 1, armor: 2, speed: 900, attackSpeed: 1700, aggro: 4, corpse: 'slime',
     respawn: 180000, immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.3, power: 3 },
-    summon: { type: 'slime', max: 2, chance: 0.1 },
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
   },
   slime: {
-    name: 'slime', hp: 40, xp: 12, dmg: [1, 7], speed: 800, attackSpeed: 1800, aggro: 4, corpse: 'slime',
+    name: 'slime', hp: 40, xp: 14, dmg: [1, 7], defense: 1, armor: 2, speed: 800, attackSpeed: 1800, aggro: 4, corpse: 'slime',
     immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.2, power: 3 },
     loot: { gold: [0, 8] },
   },
   skeleton: {
-    name: 'skeleton', hp: 50, xp: 20, dmg: [1, 9], armor: 2, speed: 560, attackSpeed: 1600, aggro: 6, corpse: 'bones',
+    name: 'skeleton', hp: 50, xp: 35, dmg: [1, 9], defense: 4, armor: 3, speed: 560, attackSpeed: 1600, aggro: 6, corpse: 'bones',
     weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
     loot: { gold: [0, 10], items: [['bone', 0.5], ['dagger', 0.06], ['short_sword', 0.03], ['leather_legs', 0.05]] },
   },
@@ -59,7 +59,7 @@ const MONSTERS = {
     loot: { gold: [5, 30], items: [['book_lore', 0.05], ['ring_life', 0.02]] },
   },
   goblin: {
-    name: 'goblin', hp: 55, xp: 25, dmg: [2, 10], armor: 2, speed: 400, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
+    name: 'goblin', hp: 50, xp: 30, dmg: [2, 10], defense: 4, armor: 3, speed: 400, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
     loot: { gold: [0, 15], items: [['goblin_charm', 0.2], ['bread', 0.3], ['hatchet', 0.06], ['spear', 0.1, 1, 3], ['wooden_shield', 0.06], ['leather_armor', 0.04], ['bone_whistle', 0.01]] },
   },
   gnarl: {
@@ -69,7 +69,7 @@ const MONSTERS = {
     loot: { gold: [40, 80], items: [['chain_helmet', 1], ['health_potion', 1, 2, 3], ['leather_boots', 0.5]] },
   },
   crab: {
-    name: 'crab', hp: 45, xp: 18, dmg: [2, 9], armor: 6, speed: 600, attackSpeed: 1500, aggro: 4, corpse: 'blood',
+    name: 'crab', hp: 55, xp: 28, dmg: [2, 9], defense: 2, armor: 4, speed: 600, attackSpeed: 1500, aggro: 4, corpse: 'blood',
     loot: { items: [['crab_claw', 0.4], ['fish', 0.2], ['pearl', 0.02]] },
   },
   orc: {
@@ -193,7 +193,7 @@ const MONSTERS = {
     loot: { gold: [100, 300], items: [['frost_scale', 0.4], ['meat', 0.5, 1, 3], ['frost_blade', 0.04], ['rod_glacier', 0.03], ['crown_helmet', 0.02]] },
   },
   bear: {
-    name: 'bear', hp: 140, xp: 60, dmg: [6, 26], armor: 4, speed: 460, attackSpeed: 1500, aggro: 5, corpse: 'big',
+    name: 'bear', hp: 90, xp: 60, dmg: [3, 16], defense: 4, armor: 3, speed: 460, attackSpeed: 1500, aggro: 5, corpse: 'big',
     loot: { items: [['meat', 0.6, 1, 3], ['bear_paw', 0.3]] },
   },
   stone_golem: {

@@ -1466,6 +1466,28 @@ test('monsters come for you once they could be on your screen, not only when the
   assert(Math.abs(wolf.x - p.x) <= 1, 'and comes straight for you');
 });
 
+test('weapon hits as in Tibia: skill counts most, at least level / 5, and a monster\'s defense and armor can block a hit', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  const club = state.playerWeapon();
+  assert.strictEqual(club.attack, 7, 'a new character fights with a wooden club');
+  assert.strictEqual(state.physicalMax(club), 4, 'level 1, skill 10, balanced: at most 0.085 x 0.75 x 7 x 10 + 0.2');
+  p.fightMode = 'offensive';
+  assert.strictEqual(state.physicalMax(club), 6, 'full attack hits harder');
+  p.fightMode = 'balanced';
+  p.skills.club.level = 30; p.level = 10;
+  assert.strictEqual(state.physicalMax(club), 15, 'skill 30, level 10: 0.085 x 0.75 x 7 x 30 + 2');
+  const hits = Array.from({ length: 400 }, () => state.physicalHit(club));
+  assert(Math.min(...hits) >= 2 && Math.max(...hits) <= 15, 'between level / 5 and the most');
+  const mid = hits.filter(h => h >= 6 && h <= 11).length;
+  assert(mid > hits.length * 0.55, 'most of them round the middle');
+  const wolf = ctx.spawnMonster({ type: 'wolf', x: 130, y: 172, z: 8 });
+  const blocks = Array.from({ length: 200 }, () => state.blocked(wolf));
+  assert(Math.min(...blocks) >= 2 && Math.max(...blocks) <= 4, 'a wolf\'s defense blocks 2 to 4 of a hit');
+  assert.strictEqual(state.blocked({ type: 'player' }), 0, 'players have no monster defense');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {
