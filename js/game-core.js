@@ -765,7 +765,7 @@ function itemWeight(item) {
   return w + (item.contents || []).reduce((s, it) => s + itemWeight(it), 0);
 }
 const carriedWeight = () => SLOTS.reduce((s, slot) => s + (player.equipment[slot] ? itemWeight(player.equipment[slot]) : 0), 0);
-const capacity = () => 300 + player.level * VOCATIONS[player.vocation].cap;
+const capacity = () => 400 + player.level * VOCATIONS[player.vocation].cap;
 const freeCapacity = () => Math.round((capacity() - carriedWeight()) * 10) / 10;
 
 // All items inside the bag, including inside bags in the bag.
