@@ -121,6 +121,7 @@ function fightBack() {
   return true;
 }
 function kill(m) {
+  A.setChase(true); // walking yourself turns chase off, as in Tibia: a fleeing wolf would get away
   A.setTarget(m.id);
   const end = state.now + 180000;
   while (!m.dead && !p.dead && state.now < end && m.z === p.z) {
