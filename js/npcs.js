@@ -1788,15 +1788,15 @@ Object.assign(NPCS, {
     name: 'Smith Dunstan',
     look: { skin: '#d89868', hair: '#2a1a0a', beard: '#2a1a0a', body: '#5a3a1a', arms: '#d89868', legs: '#3a3a40', belt: '#2a1a0a' },
     greet: 'Welcome to the Dented Shield, $name. Weapons, bought and sold - want to {trade}?',
-    keywords: { job: 'I make weapons, and I buy the ones you find.' },
-    trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8]], buys: ['gear', 'distance'] },
+    keywords: { job: 'I make weapons, and I buy the ones you find.', 'mace|best': 'My mace is the best weapon on the isle: heavy, honest iron. Four hundred and fifty gold, and worth every coin if you mean to go down into the crypt.' },
+    trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8], ['mace', 450]], buys: ['gear', 'distance'] }, // the mace: for those who save up
   },
   oak_armourer: {
     name: 'Armourer Brenna',
     look: { skin: '#e8b890', hair: '#a83a1a', body: '#6a6a72', arms: '#e8b890', legs: '#4a4a52', belt: '#2a1a0a' },
     greet: 'Hide and Iron, at your service, $name. Helmets, armour and shields - shall we {trade}?',
     keywords: { job: 'I make armour that keeps young adventurers in one piece.' },
-    trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15]], buys: ['gear'] },
+    trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15], ['chain_helmet', 180], ['chain_legs', 300], ['chain_armor', 500]], buys: ['gear'] },
   },
   oak_mage: {
     name: 'Moonpetal',

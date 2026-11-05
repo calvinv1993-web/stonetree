@@ -21,21 +21,21 @@ const MONSTERS = {
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
-    name: 'Gravewaker', proper: true, hp: 300, xp: 250, dmg: [6, 16], defense: 4, armor: 4, speed: 220, attackSpeed: 1800, aggro: 7, corpse: 'blood',
+    name: 'Gravewaker', proper: true, hp: 380, xp: 250, dmg: [6, 16], defense: 4, armor: 4, speed: 220, attackSpeed: 1800, aggro: 7, corpse: 'blood',
     respawn: 300000, weak: { holy: 1.3 },
     ranged: { range: 4, dmg: [8, 18], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
-    summon: { type: 'skeleton', max: 1, chance: 0.1 },
+    summon: { type: 'skeleton', max: 2, chance: 0.12 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
   },
   spider: {
     name: 'spider', hp: 22, xp: 12, dmg: [2, 7], defense: 2, armor: 2, speed: 200, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],
-    loot: { gold: [0, 5], items: [['spider_silk', 0.3]] },
+    loot: { gold: [0, 3], items: [['spider_silk', 0.3]] },
   },
   wolf: {
     name: 'wolf', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 240, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
-    loot: { gold: [0, 4], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
+    loot: { gold: [0, 3], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
     name: 'cistern slime', hp: 200, xp: 110, dmg: [7, 20], defense: 1, armor: 2, speed: 130, attackSpeed: 1700, aggro: 4, corpse: 'slime',
@@ -61,7 +61,7 @@ const MONSTERS = {
   },
   goblin: {
     name: 'goblin', hp: 50, xp: 30, dmg: [3, 10], defense: 3, armor: 2, speed: 220, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
-    loot: { gold: [0, 15], items: [['goblin_charm', 0.2], ['bread', 0.3], ['hatchet', 0.06], ['spear', 0.1, 1, 3], ['wooden_shield', 0.06], ['leather_armor', 0.04], ['bone_whistle', 0.01]] },
+    loot: { gold: [0, 10], items: [['goblin_charm', 0.2], ['bread', 0.3], ['hatchet', 0.06], ['spear', 0.1, 1, 3], ['wooden_shield', 0.06], ['leather_armor', 0.04], ['bone_whistle', 0.01]] },
   },
   gnarl: {
     name: 'Old Gnarl', proper: true, hp: 260, xp: 150, dmg: [5, 18], armor: 4, speed: 79, attackSpeed: 1600, aggro: 6,
@@ -71,7 +71,7 @@ const MONSTERS = {
   },
   crab: {
     name: 'crab', hp: 45, xp: 28, dmg: [2, 8], defense: 2, armor: 4, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
-    loot: { gold: [0, 6], items: [['crab_claw', 0.5], ['fish', 0.2], ['pearl', 0.02]] },
+    loot: { gold: [0, 4], items: [['crab_claw', 0.5], ['fish', 0.2], ['pearl', 0.02]] },
   },
   orc: {
     name: 'orc', hp: 90, xp: 40, dmg: [4, 18], armor: 4, speed: 120, attackSpeed: 1500, aggro: 7, corpse: 'blood',

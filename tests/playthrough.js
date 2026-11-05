@@ -6,12 +6,14 @@
 // most one other close by (and looks for a quieter spot otherwise), goes back to town for potions when it runs out
 // or after dying, and does The Silent Bell and the gate watch: as a careful player would. It reports when things happen, how
 // long each part took, deaths, money, and anything it got stuck on.
-//   node tests/playthrough.js [seed=1] [hours=5]
+//   node tests/playthrough.js [seed=1] [hours=5] [lazy]
 
 const { loadGame } = require('./harness');
 const vm = require('vm');
 
 const seed = +(process.argv[2] || 1), hours = +(process.argv[3] || 5);
+// lazy: plays as someone who doesn't bother: buys nothing, never rests or heals with spells, fights whatever is there
+const lazy = process.argv[4] === 'lazy';
 const game = loadGame({ seed });
 const { ctx, state, messages } = game;
 const run = code => vm.runInContext(code, ctx);
@@ -113,7 +115,7 @@ const near = (type, r) => state.monsters.filter(m => hostile(m) && (!type || m.t
 let healsCast = 0, eaten = 0;
 const canHeal = () => p.level >= 3 && p.mana >= state.SPELLS.light_heal.mana && state.now >= p.spellReady;
 function heal() {
-  if (p.hp < p.maxHp * 0.7 && canHeal()) { A.castSpell('light_heal'); healsCast++; }
+  if (!lazy && p.hp < p.maxHp * 0.7 && canHeal()) { A.castSpell('light_heal'); healsCast++; }
   if (p.hp < p.maxHp * 0.4 && state.countItem('health_potion') && state.now - (p._drank || 0) > 1000) { A.hotkey('h'); p._drank = state.now; }
   if (p.fedUntil < state.now + 5000 && (state.countItem('bread') || state.countItem('apple') || state.countItem('cheese') || state.countItem('meat'))) { A.hotkey('f'); eaten++; }
 }
@@ -166,15 +168,15 @@ function hunt(type, n, [cx, cy, cz], why) {
   const questDone = () => state.QUESTS[why] && state.questState(why) === 'active' && killsLeft(why, type) <= 0; // the quest log counts every kill
   while (got < n && state.now < end && !questDone()) {
     if (needShop || (!state.countItem('health_potion') && p.gold >= 40)) { shop(); needShop = false; }
-    if (p.hp < p.maxHp * 0.8) rest(); // a fight only with most of your health
-    let m = near(type, 9).find(x => crowd(x) <= 2);
+    if (!lazy && p.hp < p.maxHp * 0.8) rest(); // a fight only with most of your health
+    let m = near(type, 9).find(x => lazy || crowd(x) <= 2);
     if (!m) {
       const far = state.monsters.filter(x => !x.dead && x.type === type && x.z === cz && Math.max(Math.abs(x.x - cx), Math.abs(x.y - cy)) <= 30 && crowd(x) <= 2)
         .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
       if (!far) { goTo(cx, cy, cz, 3, `to the ${type}s`); wait(5000); continue; }
       if (far.z === p.z && Math.max(Math.abs(far.x - p.x), Math.abs(far.y - p.y)) <= 10) m = far; // in sight: attack, chase does the walking
       else goTo(far.x, far.y, far.z, 2, `to a ${type}`);
-      m = m || near(type, 9).find(x => crowd(x) <= 2) || near(type, 3)[0];
+      m = m || near(type, 9).find(x => lazy || crowd(x) <= 2) || near(type, 3)[0];
       if (!m) { wait(2000); continue; } // (always let time pass, or this could go round for ever)
     }
     const before = killsTotal, t0 = state.now; kill(m);
@@ -227,6 +229,7 @@ function use(x, y, z, what) {
 }
 // Before going out: potions and food from Pip, as far as the money goes; and a heal from Ama if hurt.
 function shop(potions = 5) {
+  if (lazy) return;
   const pip = npc('pip');
   goTo(pip.x, pip.y, pip.z, 2, "to Pip's");
   A.say('hi'); wait(200); A.say('trade'); wait(300);
@@ -246,22 +249,26 @@ function shop(potions = 5) {
   armour(price * 2);
 }
 // Better armour at Brenna's (Hide and Iron), with what's left over after keeping `keep` gold for potions.
-function armour(keep) {
-  const brenna = npc('oak_armourer'), worth = d => (d.armor || 0) + (d.defense || 0);
-  const offers = run('NPCS.oak_armourer.trade.sells').filter(([id, price]) => {
-    const d = state.ITEMS[id], cur = p.equipment[d.slot];
-    return price <= p.gold - keep && worth(d) > (cur ? worth(state.ITEMS[cur.id]) : 0);
-  }).sort((a, b) => worth(state.ITEMS[b[0]]) / b[1] - worth(state.ITEMS[a[0]]) / a[1]);
-  if (!offers.length) return;
-  goTo(brenna.x, brenna.y, brenna.z, 2, 'to Hide and Iron');
-  A.say('hi'); wait(200); A.say('trade'); wait(300);
-  for (const [id, price] of offers) {
-    if (p.gold - price < keep) continue;
-    const g = p.gold; A.buy(id, 1);
-    if (p.gold < g) { goldSpent += g - p.gold; note(`bought ${id} for ${price} gold`); }
+function armour(keep) { // better armour at Brenna's and a better club at the smithy, with what's left over
+  const shops = [['oak_armourer', d => (d.armor || 0) + (d.defense || 0), 'to Hide and Iron'],
+    ['oak_smith', d => (d.weapon && d.weapon.type === 'club' ? d.weapon.attack : 0), 'to the smithy']]; // clubs: it trains club
+  for (const [id, worth, why] of shops) {
+    const offers = run(`NPCS.${id}.trade.sells`).filter(([item, price]) => {
+      const d = state.ITEMS[item], cur = p.equipment[d.slot];
+      return price <= p.gold - keep && worth(d) > (cur ? worth(state.ITEMS[cur.id]) : 0) && !(d.level > p.level);
+    }).sort((a, b) => worth(state.ITEMS[b[0]]) / b[1] - worth(state.ITEMS[a[0]]) / a[1]);
+    if (!offers.length) continue;
+    const n = npc(id);
+    goTo(n.x, n.y, n.z, 1, why);
+    A.say('hi'); wait(200); A.say('trade'); wait(300);
+    for (const [item, price] of offers) {
+      if (p.gold - price < keep) continue;
+      const g = p.gold; A.buy(item, 1);
+      if (p.gold < g) { goldSpent += g - p.gold; note(`bought ${item} for ${price} gold`); }
+    }
+    A.say('bye'); wait(200);
+    equipBest();
   }
-  A.say('bye'); wait(200);
-  equipBest();
 }
 function equipBest() { // put on whatever good gear is in the bag
   for (const it of [...(p.equipment.backpack.contents || [])]) {
