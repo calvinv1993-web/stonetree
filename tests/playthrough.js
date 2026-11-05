@@ -165,7 +165,11 @@ function hunt(type, n, [cx, cy, cz], why) {
   if (got < n) problem(`found only ${got} of ${n} ${type}s in 45 minutes`);
 }
 // Make the kills a quest step wants, counted by the game.
-const killsLeft = (id, type) => { const s = run(`questStep('${id}')`); return (s.kill && s.kill[type] || 0) - (p.quests[id].kills[type] || 0); };
+function killsLeft(id, type) {
+  if (state.questState(id) !== 'active') { problem(`${id} is not active (${state.questState(id)}): the bot could not take it`); return 0; }
+  const s = run(`questStep('${id}')`);
+  return (s.kill && s.kill[type] || 0) - (p.quests[id].kills[type] || 0);
+}
 function huntFor(id, type, where) { let left; while ((left = killsLeft(id, type)) > 0 && state.now < END) hunt(type, left, where, id); }
 function levelUp(level, type, where) { while (p.level < level) hunt(type, 3, where, `to reach level ${level}`); }
 
@@ -250,8 +254,8 @@ try {
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));
   talk('oak_oracle', 'destiny');
 } catch (e) {
-  if (!(e instanceof Timeout)) throw e;
-  problem(`ran out of time (${hours} hours)`);
+  if (e instanceof Timeout) problem(`ran out of time (${hours} hours)`);
+  else problem(`the bot broke: ${e.stack.split('\n').slice(0, 3).join(' | ')}`);
 }
 console.log(report.join('\n'));
 console.log(`\nSeed ${seed}: level ${p.level} after ${min()} minutes; levels at minute ${Object.entries(levelAt).map(([l, m]) => `${l}: ${m}`).join(', ')}`);
