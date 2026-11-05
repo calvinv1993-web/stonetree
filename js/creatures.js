@@ -49,7 +49,7 @@ const MONSTERS = {
     loot: { gold: [0, 8] },
   },
   skeleton: {
-    name: 'skeleton', hp: 50, xp: 35, dmg: [2, 12], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
+    name: 'skeleton', hp: 50, xp: 35, dmg: [2, 10], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
     weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
     loot: { gold: [0, 10], items: [['bone', 0.5], ['dagger', 0.06], ['short_sword', 0.03], ['leather_legs', 0.05]] },
   },
