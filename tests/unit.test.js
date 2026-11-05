@@ -1291,7 +1291,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   const rope = map.get(148, 101, 5);
   assert(rope && rope.items.includes('bell_rope'), 'the bell rope lies at the bottom of the bell shaft, three floors down');
   assert(map.spawns.some(s => s.type === 'cistern_slime' && s.z === 5) && map.spawns.filter(s => s.type === 'giant_rat' && s.z === 6).length >= 8, 'giant rats in the drains, a slime by the shaft');
-  assert(map.get(146, 101, 12).items.includes('bell_nw'), 'the bell hangs at the top of the bell tower, the highest in town');
+  assert(map.get(146, 101, 13).items.includes('bell_nw'), 'the bell hangs at the top of the bell tower, the highest in town');
   const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
   talk(136, 102, 9, 'bell');
   assert.strictEqual(state.questState('bell_2'), 'none', 'not at level 1');
@@ -1310,7 +1310,7 @@ test('The Silent Bell II: the cut bell rope in the cellar, Ama, and the crypt se
   talk(112, 103, 8, 'stone');
   assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the stone');
   assert(messages.some(m => /Bone Rocks/.test(m)), 'and sends you to Bone Rocks');
-  ctx.useThing(147, 102, 12);
+  ctx.useThing(147, 102, 13);
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell stays silent for now');
 });
 
@@ -1342,10 +1342,10 @@ test('The Silent Bell III: down the crypt under Bone Rocks, the clapper, the bel
   talk(136, 102, 9, 'clapper');
   assert.strictEqual(state.questState('bell_3'), 'done', 'Sister Ama hangs it again');
   assert(messages.some(m => /rings again/.test(m)), 'and the bell rings out');
-  ctx.useThing(147, 102, 12);
+  ctx.useThing(147, 102, 13);
   assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after ringing');
   state.now += 31000;
-  ctx.useThing(147, 102, 12);
+  ctx.useThing(147, 102, 13);
   assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it, and the whole isle hears');
   talk(110, 102, 9, 'destiny');
   assert(/knight/.test(messages.slice(-4).join(' ')), 'the oracle sees you at level 8 now');
@@ -1371,11 +1371,11 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
   ctx.teleport({ x: 112, y: 103, z: 8 }); A.say('hi'); A.say('bell'); A.say('bye');
   assert.strictEqual(ctx.questNews('postmaster').mark, 'report');
-  ctx.teleport({ x: 147, y: 107, z: 8 }); A.say('hi');
+  ctx.teleport({ x: 147, y: 108, z: 8 }); A.say('hi');
   assert(messages.some(m => /\{locker\}/.test(m)), 'the postmaster asks about the locker');
   A.say('locker'); A.say('bye');
   assert.strictEqual(p.quests.bell_1.step, 3, 'and the locker finishes his step');
-  ctx.teleport({ x: 147, y: 107, z: 8 }); A.say('hi'); A.say('locker');
+  ctx.teleport({ x: 147, y: 108, z: 8 }); A.say('hi'); A.say('locker');
   assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
 });
 
