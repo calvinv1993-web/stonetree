@@ -237,7 +237,8 @@ function shop(potions = 5) {
   A.say('hi'); wait(200); A.say('trade'); wait(300);
   if (!run('player.shopNpc && player.shopNpc.def.trade')) { problem("Pip's shop did not open"); A.say('bye'); wait(200); return; }
   const g0 = p.gold; // sell the loot first
-  for (const [id, , n] of run('sellableItems(player.shopNpc)')) if (!['health_potion', 'mana_potion', 'bread', 'apple', 'rope', 'shovel'].includes(id)) A.sell(id, n);
+  equipBest(); // (never sell what you'd rather wear)
+  for (const [id, , n] of run('sellableItems(player.shopNpc)')) if (!['health_potion', 'mana_potion', 'bread', 'apple', 'rope', 'shovel'].includes(id) && !state.ITEMS[id].slot) A.sell(id, n);
   if (p.gold > g0) note(`sold loot for ${p.gold - g0} gold`);
   // food first: it is cheap and makes resting quick
   if (state.countItem('bread') < 3 && p.gold >= 15) { const g = p.gold; A.buy('bread', 3); goldSpent += g - p.gold; }
@@ -273,12 +274,16 @@ function armour(keep) { // better armour at Brenna's and a better club at the sm
   }
 }
 function equipBest() { // put on whatever good gear is in the bag
-  for (const it of [...(p.equipment.backpack.contents || [])]) {
+  for (const it of [...state.bagItems()]) { // everything carried, bags inside the backpack too
     const d = state.ITEMS[it.id];
     if (!d.slot || d.slot === 'backpack') continue;
     const cur = p.equipment[d.slot], cd = cur && state.ITEMS[cur.id];
     const better = !cur || (d.armor || 0) + (d.defense || 0) + ((d.weapon && d.weapon.attack) || 0) > ((cd && cd.armor) || 0) + ((cd && cd.defense) || 0) + ((cd && cd.weapon && cd.weapon.attack) || 0);
-    if (better) { const ref = state.findInBag(x => x === it); if (ref) A.useItem(ref); }
+    if (better) {
+      const ref = state.findInBag(x => x === it);
+      if (ref) A.useItem(ref);
+      if (p.equipment[d.slot] && p.equipment[d.slot].id === it.id) note(`put on ${it.id}`); else problem(`could not put on ${it.id} (${ref ? 'it stayed in the bag' : 'not found in the bag'})`);
+    }
   }
 }
 
