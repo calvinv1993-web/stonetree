@@ -284,11 +284,11 @@ const SEWERS = {
     [103, 121, 'barrel'], [104, 121, 'barrel'], [105, 121, 'qchest_oak_cap'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
     [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
     [140, 104, 'rubble'], [134, 105, 'rubble'],
-    [142, 137, 'bones'], [149, 138, 'bones'], [144, 140, 'qchest_oak_shield'], // a shield the rats dragged into their nest [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'],
+    [142, 137, 'bones'], [149, 138, 'bones'], [144, 140, 'qchest_oak_shield'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'], // a shield the rats dragged into their nest
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
-  bigRats: [[144, 138], [148, 140], [146, 142]],
+  bigRats: [[148, 140], [146, 142]], // two: a pair a level 4 can take on with care
   shaft: [148, 101, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
@@ -708,20 +708,20 @@ function createDefaultMap() {
   // spawns were, each on the nearest free tile (outside town, off roads and bridges, on `ground` if given), at
   // fixed places worked out from the coordinates.
   const huntingGrounds = [
-    ['rat', 24, [108, 150, 152, 186]],                       // Sunny Fields: the first fights
+    ['rat', 24, [108, 148, 136, 186]],                       // Sunny Fields: the first fights
     ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 102, 162]], // Owl Grove, Fox Copse
     ['crab', 6, [148, 56, 178, 86], S, 'sand'],              // the shore of Mirror Lake
-    ['crab', 8, [110, 196, 156, 226], S, 'sand'],            // the beaches of Lighthouse Point
+    ['crab', 8, [110, 200, 148, 226], S, 'sand'],            // the beaches of Lighthouse Point (away from the spiders)
     ['crab', 5, [30, 160, 60, 190], S, 'sand'],              // the beach by Fisher's Rest
     ['slime', 12, [44, 114, 70, 144]],                       // Frog Marsh
     ['wolf', 21, [42, 60, 84, 110]],                         // Wolf Woods
-    ['spider', 7, [140, 176, 158, 190]],                     // Thorn Thicket
-    ['spider', 10, [160, 162, 198, 204]],                    // round the foot of the Spider Hills
+    ['spider', 7, [146, 178, 158, 190]],                     // Thorn Thicket (a walk past Sunny Fields)
+    ['spider', 10, [164, 168, 198, 204]],                    // round the foot of the Spider Hills (south of Deer Woods)
     ['goblin', 6, [86, 64, 108, 82]],                        // Stony Field: goblin scouts
     ['goblin', 15, [174, 58, 208, 88]],                      // Goblin Hill
     ['wolf', 8, [154, 92, 214, 158]],                        // Deer Woods
     ['skeleton', 6, [186, 110, 204, 126], S + 1],            // the top of the Old Tower hill
-    ['bear', 4, [180, 120, 212, 156]],                       // deep in Deer Woods
+    ['bear', 4, [184, 120, 212, 150]],                       // deep in Deer Woods
     ['bear', 3, [192, 40, 212, 56], S + 1],                  // the top of Hermit Rock
   ];
   const taken = new Set();
@@ -746,16 +746,26 @@ function createDefaultMap() {
     }
     return null;
   };
+  // Packs keep apart (PACK_GAP tiles between their centres, whatever their kind), so a careful hunter can take on
+  // one at a time; walk carelessly and you'll still have the next one on you.
+  const PACK_GAP = 8, centres = [], placedAt = [], PACK = { crab: 2 }; // crabs are tough: two at a time
+  let packs = 0; // which pack is being placed
+  const roomy = (x, y, z) => centres.every(c => c.z !== z || Math.max(Math.abs(c.x - x), Math.abs(c.y - y)) >= PACK_GAP);
   for (const [type, count, [x0, y0, x1, y1], z = S, ground] of huntingGrounds) {
-    let placed = 0, centre = 0, misses = 0;
-    for (let i = 0; placed < count && i < count * 20; i++) {
+    let placed = 0, centre = 0, misses = 0, at = null;
+    for (let i = 0; placed < count && i < count * 60; i++) {
       // a pack: a centre, and up to three round it; a new centre every third one, or when this one finds no room
-      if (misses > 3) { centre++; misses = 0; }
+      if (misses > 3) { centre++; misses = 0; at = null; }
       const cx = x0 + Math.floor(hash(centre, count, 71) * (x1 - x0 + 1)), cy = y0 + Math.floor(hash(count, centre, 73) * (y1 - y0 + 1));
+      if (at !== centre) {
+        if (!roomy(cx, cy, z)) { centre++; continue; } // too near another pack
+        at = centre; packs++; centres.push({ x: cx, y: cy, z });
+      }
       const x = cx + Math.floor(hash(i, 5, 79) * 5) - 2, y = cy + Math.floor(hash(7, i, 89) * 5) - 2;
       const p = spot(x, y, z, ground);
-      if (!p) { misses++; continue; }
-      if ((placed + 1) % 3 === 0) { centre++; misses = 0; }
+      if (!p || placedAt.some(o => o.pack !== packs && o.z === z && Math.max(Math.abs(o.x - p[0]), Math.abs(o.y - p[1])) <= 5)) { misses++; continue; }
+      placedAt.push({ x: p[0], y: p[1], z, pack: packs });
+      if ((placed + 1) % (PACK[type] || 3) === 0) { centre++; misses = 0; at = null; }
       taken.add(`${p[0]},${p[1]},${z}`);
       m.spawns.push({ type, x: p[0], y: p[1], z });
       placed++;

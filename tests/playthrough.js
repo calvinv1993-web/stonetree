@@ -98,6 +98,7 @@ function goTo(gx, gy, gz, near = 0, why = '') {
     const end = state.now + 120000;
     while (state.now < end && (p.path.length || p.walk)) { tick(); if (fightBack()) break; }
     if (p.z !== z0) continue;
+    if (!p.path.length && !p.walk) wait(300); // (always let time pass)
     if (!p.path.length && !p.walk && !(p.x === target[0] && p.y === target[1]) && !map.floorChange(target[0], target[1], p.z)) wait(300);
   }
   problem(`gave up walking to ${gx},${gy},${gz} ${why}`);
@@ -165,8 +166,9 @@ function hunt(type, n, [cx, cy, cz], why) {
       const far = state.monsters.filter(x => !x.dead && x.type === type && x.z === cz && Math.max(Math.abs(x.x - cx), Math.abs(x.y - cy)) <= 30 && crowd(x) <= 2)
         .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
       if (!far) { goTo(cx, cy, cz, 3, `to the ${type}s`); wait(5000); continue; }
-      goTo(far.x, far.y, far.z, 2, `to a ${type}`);
-      m = near(type, 9).find(x => crowd(x) <= 2) || near(type, 3)[0];
+      if (far.z === p.z && Math.max(Math.abs(far.x - p.x), Math.abs(far.y - p.y)) <= 10) m = far; // in sight: attack, chase does the walking
+      else goTo(far.x, far.y, far.z, 2, `to a ${type}`);
+      m = m || near(type, 9).find(x => crowd(x) <= 2) || near(type, 3)[0];
       if (!m) { wait(2000); continue; } // (always let time pass, or this could go round for ever)
     }
     const before = killsTotal, t0 = state.now; kill(m);
@@ -188,12 +190,16 @@ function levelUp(level, type, where) { while (p.level < level) hunt(type, 3, whe
 const npc = id => state.npcs.find(n => n.npcId === id);
 function talk(id, ...words) {
   const n = npc(id);
-  if (!goTo(n.x, n.y, n.z, 2, `to talk to ${n.name}`)) return;
-  const seen = messages.length;
-  A.say('hi'); wait(300);
-  for (const w of words) { A.say(w); wait(300); }
-  A.say('bye'); wait(200);
-  const said = messages.slice(seen).filter(m => m.startsWith(n.name) && !/Good bye|^.*: (Halt|Peace|Ah, a new|Good day|Hello)/.test(m));
+  let said = [];
+  for (let tries = 0; tries < 3; tries++) { // a fight in between ends the talk: then start again
+    if (!goTo(n.x, n.y, n.z, 2, `to talk to ${n.name}`)) return;
+    const seen = messages.length, k0 = killsTotal;
+    A.say('hi'); wait(300);
+    for (const w of words) { A.say(w); wait(300); }
+    A.say('bye'); wait(200);
+    said = messages.slice(seen).filter(m => m.startsWith(n.name) && !/Good bye|^.*: (Halt|Peace|Ah, a new|Good day|Hello)/.test(m));
+    if (killsTotal === k0 && !p.dead) break;
+  }
   if (said.some(m => /not sure what you mean/.test(m))) problem(`${n.name} did not understand "${words.join('", "')}"`);
 }
 function use(x, y, z, what) {

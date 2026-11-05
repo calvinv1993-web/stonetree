@@ -734,7 +734,7 @@ const NPCS = {
       'sword|captain|varrow|legend|bell|well': 'Old Pim swore he once heard a bell ringing down in the village well, on a still night, after someone said something into it. Pim had had a few, mind you.',
     },
     trade: {
-      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 40], ['mana_potion', 50], ['backpack', 60],
+      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['backpack', 60],
         ['rope', 50], ['shovel', 50], ['pick', 50], ['fishing_rod', 120], ['book_guide', 20]],
       buys: ['loot'],
     },
@@ -848,7 +848,7 @@ const NPCS = {
       furniture: 'Furniture kits are for your house. Use one, then click a tile inside your house.',
     },
     trade: {
-      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 40], ['mana_potion', 50], ['backpack', 60],
+      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['backpack', 60],
         ['rope', 50], ['shovel', 50], ['pick', 50], ['fishing_rod', 120], ['kit_table', 60], ['kit_chair', 30], ['kit_plant', 45], ['kit_bed', 120]],
       buys: ['loot', 'jewelry', 'tools'],
     },
@@ -901,7 +901,7 @@ const NPCS = {
     greet: "Ahoy $name. Fish, tools, runes, whatever you need. Let's {trade}.",
     keywords: { job: 'I sell everything a sailor needs.' },
     trade: {
-      sells: [['fish', 6], ['bread', 5], ['health_potion', 40], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['pick', 50],
+      sells: [['fish', 6], ['bread', 5], ['health_potion', 25], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['pick', 50],
         ['fishing_rod', 120], ['blank_rune', 10], ['rune_missile', 12], ['rune_heal', 40], ['arrow', 3], ['kit_chair', 30], ['kit_plant', 45]],
       buys: ['loot', 'jewelry'],
     },
@@ -1022,7 +1022,7 @@ const NPCS = {
     greet: 'Cold out there, $name? Let\'s {trade}. Good steel and warm meat.',
     keywords: { job: 'I trade in everything a northerner needs.' },
     trade: {
-      sells: [['meat', 8], ['health_potion', 40], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['steel_helmet', 500], ['plate_armor', 1000], ['plate_legs', 700], ['battle_axe', 450], ['iron_shield', 280]],
+      sells: [['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['steel_helmet', 500], ['plate_armor', 1000], ['plate_legs', 700], ['battle_axe', 450], ['iron_shield', 280]],
       buys: ['gear', 'loot'],
     },
   },
@@ -1046,7 +1046,7 @@ const NPCS = {
     greet: 'Well met, $name. Elven bows, arrows and runes. Let\'s {trade}.',
     keywords: { job: 'I sell what the forest gives.' },
     trade: {
-      sells: [['bow', 150], ['elven_bow', 2400], ['arrow', 3], ['spear', 8], ['ranger_cloak', 450], ['health_potion', 40], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40], ['apple', 3]],
+      sells: [['bow', 150], ['elven_bow', 2400], ['arrow', 3], ['spear', 8], ['ranger_cloak', 450], ['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40], ['apple', 3]],
       buys: ['distance', 'magic', 'loot'],
     },
   },
@@ -1101,7 +1101,7 @@ const NPCS = {
     greet: 'Welcome to my stall, $name! Everything a traveller needs. Let\'s {trade}.',
     keywords: { job: 'I am the best merchant in all of Kesh.' },
     trade: {
-      sells: [['health_potion', 40], ['mana_potion', 50], ['bread', 5], ['fish', 6], ['rope', 50], ['shovel', 50], ['blank_rune', 10], ['rune_fireball', 30], ['rune_heal', 40], ['rune_missile', 12], ['wand_flames', 800], ['rod_thorns', 800]],
+      sells: [['health_potion', 25], ['mana_potion', 50], ['bread', 5], ['fish', 6], ['rope', 50], ['shovel', 50], ['blank_rune', 10], ['rune_fireball', 30], ['rune_heal', 40], ['rune_missile', 12], ['wand_flames', 800], ['rod_thorns', 800]],
       buys: ['loot', 'jewelry', 'magic'],
     },
   },
@@ -1131,7 +1131,7 @@ const NPCS = {
     greet: 'Fish, potions, rope! What\'ll it be, $name? Let\'s {trade}.',
     keywords: { job: 'I sell and I buy. Mostly fish.' },
     trade: {
-      sells: [['fish', 5], ['health_potion', 40], ['mana_potion', 50], ['rope', 50], ['fishing_rod', 120], ['spear', 8], ['leather_armor', 35], ['leather_boots', 15]],
+      sells: [['fish', 5], ['health_potion', 25], ['mana_potion', 50], ['rope', 50], ['fishing_rod', 120], ['spear', 8], ['leather_armor', 35], ['leather_boots', 15]],
       buys: ['loot', 'tools'],
     },
   },
@@ -1155,7 +1155,7 @@ const NPCS = {
     greet: 'Potions! Rope! Runes! You\'ll need them out there, $name. Let\'s {trade}.',
     keywords: { job: 'I sell what keeps you alive in the jungle.' },
     trade: {
-      sells: [['health_potion', 40], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['apple', 3], ['bread', 5], ['blank_rune', 10], ['rune_heal', 40], ['bolt', 4], ['arrow', 3]],
+      sells: [['health_potion', 25], ['mana_potion', 50], ['rope', 50], ['shovel', 50], ['apple', 3], ['bread', 5], ['blank_rune', 10], ['rune_heal', 40], ['bolt', 4], ['arrow', 3]],
       buys: ['loot', 'jewelry'],
     },
   },
@@ -1779,7 +1779,7 @@ Object.assign(NPCS, {
       'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
     },
     trade: {
-      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 40], ['mana_potion', 50], ['backpack', 60], ['rope', 50], ['shovel', 50],
+      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['backpack', 60], ['rope', 50], ['shovel', 50],
         ['pick', 50], ['fishing_rod', 120]],
       buys: ['loot', 'tools'],
     },
@@ -1803,7 +1803,7 @@ Object.assign(NPCS, {
     look: { skin: '#f0d8c0', hair: '#d8d8f0', body: '#5a3a8a', arms: '#5a3a8a', legs: '#5a3a8a', belt: '#c0a0e0', robe: true, hat: { style: 'pointy', color: '#4a2a7a' } },
     greet: 'Welcome to my little shop, $name. Potions, runes and wands - would you like to {trade}?',
     keywords: { job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.' },
-    trade: { sells: [['health_potion', 40], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
+    trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
   gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),

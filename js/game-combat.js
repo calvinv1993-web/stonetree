@@ -346,10 +346,10 @@ function playerDies(killer) {
   const eq = player.equipment;
   const protection = red ? null : player.vocation === 'none' ? 'starter' : player.blessed ? 'blessing'
     : eq.neck && ITEMS[eq.neck.id].keeping ? 'amulet' : null;
-  // As in Tibia, death costs a tenth of all your experience (a blessing spares 30% of
-  // that), so it can cost levels too - and the health and mana they gave you.
+  // As in Tibia, death costs a tenth of all your experience (a blessing spares 30% of that, and before a vocation
+  // you lose only half), so it can cost levels too - and the health and mana they gave you.
   player.xp = Math.max(player.xp, xpForLevel(player.level));
-  const lost = Math.floor(player.xp * DEATH_XP_LOSS * (protection === 'blessing' ? 0.7 : 1));
+  const lost = Math.floor(player.xp * DEATH_XP_LOSS * (protection === 'blessing' ? 0.7 : protection === 'starter' ? 0.5 : 1));
   const xpBefore = player.xp, levelBefore = player.level;
   player.xp = Math.max(0, player.xp - lost);
   while (player.level > 1 && player.xp < xpForLevel(player.level)) {

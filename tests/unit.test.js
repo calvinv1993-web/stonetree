@@ -1380,6 +1380,24 @@ test('monsters come for you once they could be on your screen, not only when the
   assert(Math.abs(wolf.x - p.x) <= 1, 'and comes straight for you');
 });
 
+test('hunting packs keep apart, and before a vocation a death costs half as much experience', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const ground = state.map.spawns.filter(s => s.z === 8 && ['wolf', 'spider', 'crab', 'goblin', 'bear'].includes(s.type));
+  // a pack: monsters within 4 tiles of each other; no pack of more than three
+  for (const s of ground) {
+    const round = ground.filter(o => Math.max(Math.abs(o.x - s.x), Math.abs(o.y - s.y)) <= 4);
+    assert(round.length <= 3, `at most a pack of three round ${s.type} at ${s.x},${s.y} (${round.map(o => o.type).join(', ')})`);
+  }
+  const rats = state.map.spawns.filter(s => s.z === 8 && s.type === 'rat');
+  assert(!ground.some(s => s.type === 'spider' && rats.some(r => Math.max(Math.abs(r.x - s.x), Math.abs(r.y - s.y)) <= 10)), 'no spiders in sight of the first rats');
+  const p = state.player;
+  Object.assign(p, { tutorial: 0, xp: 10000 });
+  ctx.gainXp(0);
+  ctx.playerDies(null);
+  assert.strictEqual(p.xp, 9500, 'a twentieth of it, not a tenth');
+});
+
 test('weapon hits as in Tibia: skill counts most, at least level / 5, and a monster\'s defense and armor can block a hit', () => {
   const game = quietGame();
   const { ctx, state } = game;

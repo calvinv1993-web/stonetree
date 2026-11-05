@@ -31,11 +31,11 @@ const MONSTERS = {
   spider: {
     name: 'spider', hp: 22, xp: 12, dmg: [2, 7], defense: 2, armor: 2, speed: 200, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],
-    loot: { items: [['spider_silk', 0.3]] },
+    loot: { gold: [0, 5], items: [['spider_silk', 0.3]] },
   },
   wolf: {
     name: 'wolf', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 240, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
-    loot: { items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.2]] },
+    loot: { gold: [0, 4], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
     name: 'cistern slime', hp: 200, xp: 110, dmg: [7, 20], defense: 1, armor: 2, speed: 130, attackSpeed: 1700, aggro: 4, corpse: 'slime',
@@ -71,7 +71,7 @@ const MONSTERS = {
   },
   crab: {
     name: 'crab', hp: 45, xp: 28, dmg: [2, 8], defense: 2, armor: 4, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
-    loot: { items: [['crab_claw', 0.4], ['fish', 0.2], ['pearl', 0.02]] },
+    loot: { gold: [0, 6], items: [['crab_claw', 0.5], ['fish', 0.2], ['pearl', 0.02]] },
   },
   orc: {
     name: 'orc', hp: 90, xp: 40, dmg: [4, 18], armor: 4, speed: 120, attackSpeed: 1500, aggro: 7, corpse: 'blood',
