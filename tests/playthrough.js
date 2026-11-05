@@ -19,8 +19,8 @@ const p = state.player, A = state.Actions, map = state.map, THINGS = state.THING
 p.tutorial = 1;
 const END = hours * 3600000;
 const min = () => (state.now / 60000).toFixed(1);
-const report = [], problems = [];
-const note = text => { report.push(`${min().padStart(6)}  L${p.level}  ${text}`); };
+const problems = [];
+const note = text => { console.log(`${min().padStart(6)}  L${p.level}  ${text}`); }; // as it happens, so a long run can be followed
 const problem = text => { problems.push(`${min()} min, level ${p.level}: ${text}`); note(`!! ${text}`); };
 let deaths = 0, potionsBought = 0, goldSpent = 0, killsTotal = 0;
 const levelAt = {};
@@ -289,7 +289,7 @@ try {
   if (e instanceof Timeout) problem(`ran out of time (${hours} hours)`);
   else problem(`the bot broke: ${e.stack.split('\n').slice(0, 3).join(' | ')}`);
 }
-console.log(report.join('\n'));
+console.log();
 console.log(`\nSeed ${seed}: level ${p.level} after ${min()} minutes; levels at minute ${Object.entries(levelAt).map(([l, m]) => `${l}: ${m}`).join(', ')}`);
 console.log(`deaths ${deaths}, kills ${killsTotal}, potions bought ${potionsBought}, Light Heals ${healsCast}, meals ${eaten}, gold spent ${goldSpent}, gold now ${p.gold}`);
 console.log(`gear: ${Object.entries(p.equipment).filter(([s, i]) => i && s !== 'backpack').map(([s, i]) => i.id).join(', ')}; skills club ${p.skills.club.level}, shielding ${p.skills.shielding.level}`);
