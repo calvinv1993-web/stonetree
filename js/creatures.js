@@ -9,7 +9,7 @@
 // hitCondition: { kind, chance, power } applied by its melee hits;
 // spells: [{ kind: bolt|area|heal|condition, chance, element, dmg, radius, range, condition, power, missile }];
 // summon: { type, max, chance }; flee: run away below this share of health;
-// invisible: hard to see and can't be targeted from afar;
+// invisible: hard to see and can't be targeted from afar; plural: the name for more than one, if not name + 's';
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 const MONSTERS = {
   rat: {
@@ -34,7 +34,7 @@ const MONSTERS = {
     loot: { gold: [0, 3], items: [['spider_silk', 0.3]] },
   },
   wolf: {
-    name: 'wolf', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
+    name: 'wolf', plural: 'wolves', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { gold: [0, 3], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
@@ -171,7 +171,7 @@ const MONSTERS = {
   },
   // ---- the wider world: frost, forest, mountains, desert, swamp, jungle, volcano ----
   ice_wolf: {
-    name: 'ice wolf', hp: 110, xp: 60, dmg: [6, 22], armor: 3, speed: 169, attackSpeed: 1400, aggro: 7, corpse: 'blood', immune: ['ice'], weak: { fire: 1.2 },
+    name: 'ice wolf', plural: 'ice wolves', hp: 110, xp: 60, dmg: [6, 22], armor: 3, speed: 169, attackSpeed: 1400, aggro: 7, corpse: 'blood', immune: ['ice'], weak: { fire: 1.2 },
     loot: { gold: [0, 20], items: [['fur', 0.3], ['meat', 0.4]] },
   },
   yeti: {

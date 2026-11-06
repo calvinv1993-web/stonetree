@@ -135,10 +135,12 @@ function guideTarget(step) {
       const m = near(monsters.filter(c => !c.dead && c.type === t.monster));
       if (m) return m;
     }
-    if (t.hunt) { // the nearest monster that one of these quests still asks you to kill
+    if (t.hunt) { // the nearest monster that one of these quests still asks you to kill, or else where they live
       const wanted = t.hunt.filter(id => questState(id) === 'active' && !stepReady(id)).flatMap(id => Object.keys(questStep(id).kill || {}));
       const m = near(monsters.filter(c => !c.dead && wanted.includes(c.type)));
       if (m) return m;
+      const home = map.spawns.filter(s => s.z === player.z && wanted.includes(s.type)).sort((a, b) => dist(a, player) - dist(b, player))[0];
+      if (home) return { x: home.x, y: home.y, z: home.z };
     }
     if (t.corpse) {
       const c = near(piles.filter(p => p.corpse));

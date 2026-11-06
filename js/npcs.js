@@ -1562,7 +1562,7 @@ function gateGuard(quest, name, hair, word, gate, captain) {
 Object.assign(QUESTS, {
   bell_1: {
     name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1, word: 'bell',
-    reward: { xp: 120, gold: 40, items: [['rope', 1]] },
+    reward: { xp: 120, gold: 40, items: [['backpack', 1], ['rope', 1]] }, // a backpack: 20 places instead of the bag's 8
     summary: 'Sister Ama in the Temple of the Dawn wants you to learn the ways of Oakvale. Go to Master Corwin at the academy.',
     steps: [
       { npc: 'corwin', summary: 'Visit Master Corwin at the academy, over the bridge west of the square.',

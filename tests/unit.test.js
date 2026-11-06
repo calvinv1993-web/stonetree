@@ -563,6 +563,20 @@ test('picking a target while walking: with chase on you stop and go for it, with
   }
 });
 
+test('a kill task you just took: the guide points to where those monsters live, not back at whoever gave it', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  const step = state.GUIDE.findIndex(st => (st.target || []).some(t => t.hunt && t.hunt.includes('gate_west')));
+  Object.assign(p, { tutorial: step + 1, level: 3 });
+  p.quests.bell_1 = { status: 'done', step: 0, kills: {} };
+  p.quests.gate_west = { status: 'active', step: 0, kills: {} };
+  const bram = state.npcs.find(n => n.npcId === 'gate_west');
+  ctx.teleport({ x: bram.x + 1, y: bram.y, z: bram.z });
+  const t = ctx.guideTarget(state.GUIDE[step]);
+  assert(t && t !== bram && state.map.spawns.some(s => s.type === 'wolf' && s.x === t.x && s.y === t.y), 'the arrow points at the wolves');
+});
+
 test('weapon hits as in Tibia: skill counts most, at least level / 5, and a monster\'s defense and armor can block a hit', () => {
   const game = quietGame();
   const { ctx, state } = game;

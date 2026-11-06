@@ -765,7 +765,7 @@ function startOffline() {
   showCharacterCreation(() => {
     paused = false;
     saveGame();
-    log(`Welcome to Brightwater Isle, ${player.name}!`, 'quest');
+    log(`Welcome to Oakvale Isle, ${player.name}!`, 'quest');
     startWorld();
   });
 }

@@ -116,6 +116,15 @@ function updateBars() {
 }
 
 // ---- the guide for new adventurers (see game-guide.js) ---------------------------------------
+// The task you're on, of the quests this guide step is about: what to do, how far you are, and where to go then.
+function guideNow(step) {
+  const ids = ((step && step.target) || []).flatMap(t => [t.quest, ...(t.hunt || [])]).filter(Boolean);
+  const id = ids.find(q => QUESTS[q] && questState(q) === 'active');
+  if (!id) return '';
+  const s = questStep(id), progress = questProgress(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);
+  const then = s.auto ? '' : stepReady(id) ? ` Now go to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.` : '';
+  return `Now: ${s.summary || QUESTS[id].summary}${progress ? ` (${progress})` : ''}${then}`;
+}
 let guideKey = '', guideFolded = false;
 try { guideFolded = localStorage.getItem('tilequest.guideFolded') === '1'; } catch (e) { /* no storage: start unfolded */ }
 function renderGuide() {
@@ -124,7 +133,8 @@ function renderGuide() {
   const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
   const progress = hunting ? questProgress(hunting) : 'done';
   const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress) : '';
-  const key = `${player.tutorial}|${text}|${guideFolded}`;
+  const now = guideNow(step);
+  const key = `${player.tutorial}|${text}|${now}|${guideFolded}`;
   if (key === guideKey) return;
   const before = +guideKey.split('|')[0];
   if (step && before && before !== player.tutorial) Sound.play('coin'); // a step done
@@ -139,6 +149,8 @@ function renderGuide() {
   box.style.top = `${touchScreen ? 44 : view.offsetTop + 8}px`;
   $('guideStep').textContent = `${player.tutorial} / ${GUIDE.length}`;
   $('guideText').textContent = text;
+  $('guideNow').textContent = now;
+  $('guideNow').hidden = !now;
   $('guideDone').hidden = !!(step.done || step.on);
 }
 
@@ -538,6 +550,19 @@ function containerWindow(root, path, heading, closable) {
     }));
   }
   box.append(h, grid);
+  // A bigger bag in your bag (a backpack): one tap to carry everything in it instead (the old one goes inside).
+  // Dragging it onto the bag slot does the same, but on a phone that slot is rarely in sight.
+  if (root === 'bag' && path.length === 1 && ITEMS[c.id].slot === 'backpack' && capacityOf(c) > capacityOf(bag())) {
+    const swap = document.createElement('button');
+    swap.className = 'bag-swap';
+    swap.textContent = `Carry my things in this ${ITEMS[c.id].name}`;
+    swap.addEventListener('click', () => {
+      Actions.moveItem({ root, path }, { root: 'equip', slot: 'backpack' });
+      openContainers = openContainers.filter(o => !(o.root === root && String(o.path) === String(path)));
+      uiDirty();
+    });
+    box.insertBefore(swap, grid); // above its slots, where it's in sight
+  }
   return box;
 }
 

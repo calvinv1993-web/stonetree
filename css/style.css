@@ -444,6 +444,9 @@ body.touch-ui .swatch-color { width: auto; height: 17px; }
 .guide #guideDone { margin-top: 6px; }
 .guide.folded { width: auto; }
 .guide.folded p, .guide.folded #guideDone { display: none; }
+.guide #guideNow { color: #ffd84a; }
+.container .bag-swap { display: block; width: 100%; margin-top: 4px; }
+.guide.folded #guideNow:not([hidden]) { display: block; max-width: 220px; } /* folded, it still shows the task you're on */
 body.touch-ui .guide { font-size: 11px; line-height: 1.35; width: min(205px, 32%); padding: 4px 7px 5px; }
 .toasts {
   position: absolute; left: 50%; top: 92px; transform: translateX(-50%); width: min(calc(100% - 140px), 420px);

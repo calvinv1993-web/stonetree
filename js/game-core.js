@@ -308,7 +308,7 @@ function changeFloor(dz, dx = 0, dy = 0) {
 
 // Where you wake up: the starter island's temple, or the temple of the town you're a citizen of.
 const homePos = () => (player.home === 'start' ? map.start : map.temples.find(t => t.home === player.home) || map.mainStart);
-const homeTown = () => (player.home === 'start' ? 'Brightwater' : (map.temples.find(t => t.home === player.home) || { town: 'Valoria' }).town);
+const homeTown = () => (player.home === 'start' ? 'Oakvale' : (map.temples.find(t => t.home === player.home) || { town: 'Valoria' }).town);
 
 function teleport(pos) {
   const p = findFreeTile(pos.x, pos.y, pos.z, 6) || pos;
@@ -1173,7 +1173,7 @@ function gainXp(amount, shared) {
       }
     });
     if (player.level === 10 && player.vocation === 'none') {
-      log('You are ready to choose a vocation! Visit the Seer, upstairs in the tower south of the village square.', 'quest');
+      log('You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
     }
     if (player.level === 20 && player.vocation !== 'none' && !player.promoted) {
       log('You can now be promoted. Visit Grandmaster Orin in the temple of Valoria.', 'quest');
@@ -1198,7 +1198,7 @@ function questProgress(id) {
   const s = questStep(id), kills = player.quests[id].kills;
   if (s.kill) {
     return Object.entries(s.kill)
-      .map(([type, n]) => `${Math.min(n, kills[type] || 0)}/${n} ${MONSTERS[type].proper ? MONSTERS[type].name : MONSTERS[type].name + 's'}`)
+      .map(([type, n]) => `${Math.min(n, kills[type] || 0)}/${n} ${MONSTERS[type].proper ? MONSTERS[type].name : MONSTERS[type].plural || MONSTERS[type].name + 's'}`)
       .join(', ');
   }
   if (s.fetch) return countItem(s.fetch) ? 'found' : 'not found yet';
@@ -1228,6 +1228,8 @@ function advanceQuest(id) {
   addSound('level', player.x, player.y, player.z);
   if (r.gold) addItem('gold', r.gold);
   for (const [item, n] of r.items || []) giveItem(item, n);
+  if ((r.items || []).length) log(`You received ${r.items.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest');
+  if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
   if (r.xp) gainXp(r.xp);
   if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
   uiDirty();
@@ -1288,7 +1290,7 @@ function arriveOnMainland() {
   teleport(map.mainStart);
   for (const [id, n] of VOCATIONS[player.vocation].kit || []) giveItem(id, n);
   addSparkle(player, '#c58cff');
-  log(`You are now a ${player.vocation}! Welcome to the mainland. Check your bag for a gift from the Seer, and the spell buttons below the map.`, 'quest');
+  log(`You are now a ${player.vocation}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
 }
 
 // ---- saving ------------------------------------------------------------------------
