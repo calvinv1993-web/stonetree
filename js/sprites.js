@@ -3984,9 +3984,146 @@ const Sprites = (() => {
     return MONSTER_LOOKS[key] || null;
   }
   const BIG_BEASTS = ['greyfang', 'old_snapper', 'thornmother', 'cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
+
+  // ---- dolls: people and beasts built in 3D -------------------------------------------------------------
+  // A figure is put together from parts in space (blocks, round limbs, balls), each in the figure's own frame (a: to
+  // its right, b: forwards, z: up), turned to face its way, seen from the same angle as the world (from above the
+  // south, the light from the top left: tops lit, south faces in light, east faces in shade), and drawn from the back
+  // to the front. Its feet stand at (16, 29) on a 32x32 picture.
+  const DOLL_DEPTH = 0.5; // how much of the ground a figure's depth takes up on screen (as seen from above)
+  const turn = (dir, a, b) => (dir === 2 ? [-a, b] : dir === 0 ? [a, -b] : dir === 1 ? [b, a] : [-b, -a]); // -> (u, v)
+  const Q = (u, v, z) => [16 + u, 29 + v * DOLL_DEPTH - z];
+  function dollParts(g, dir, parts) {
+    const at = p => turn(dir, p.a || 0, p.b || 0);
+    const depth = p => { const [u, v] = at(p); return v + u * 0.35 + (p.z || 0) * 0.002 + (p.over || 0); };
+    for (const p of parts.slice().sort((x, y) => depth(x) - depth(y))) p.draw(...at(p));
+  }
+  // a block a wide (across the figure), b deep and from z0 to z1, its centre at (u, v), turned with the figure
+  function dollBox(g, dir, u, v, a, b, z0, z1, c) {
+    const [w, d] = dir === 1 || dir === 3 ? [b, a] : [a, b];
+    const u0 = u - w / 2, u1 = u + w / 2, v0 = v - d / 2, v1 = v + d / 2;
+    poly(g, c.east || shade(c.south, 0.72), [...Q(u1, v0, z0), ...Q(u1, v1, z0), ...Q(u1, v1, z1), ...Q(u1, v0, z1)]);
+    poly(g, c.south, [...Q(u0, v1, z0), ...Q(u1, v1, z0), ...Q(u1, v1, z1), ...Q(u0, v1, z1)]);
+    poly(g, c.top || shade(c.south, 1.18), [...Q(u0, v0, z1), ...Q(u1, v0, z1), ...Q(u1, v1, z1), ...Q(u0, v1, z1)]);
+    line(g, shade(c.south, 1.3), 1, ...Q(u0, v1, z1), ...Q(u1, v1, z1));
+  }
+  // a round limb from (u, v0, z0) to (u, v1, z1), r thick: lit on its left, shaded on its right
+  function dollLimb(g, u0, v0, z0, u1, v1, z1, r, colour) {
+    const [x0, y0] = Q(u0, v0, z0), [x1, y1] = Q(u1, v1, z1);
+    line(g, shade(colour, 0.6), r * 2 + 1, x0 + 0.5, y0, x1 + 0.5, y1);
+    line(g, colour, r * 2, x0, y0, x1, y1);
+    line(g, shade(colour, 1.25), Math.max(1, r * 0.6), x0 - r * 0.45, y0, x1 - r * 0.45, y1);
+  }
+  function dollBall(g, u, v, z, r, colour) {
+    const [x, y] = Q(u, v, z);
+    ellipse(g, shade(colour, 0.6), x + 0.5, y + 0.5, r + 0.5, r + 0.5);
+    const gr = g.createRadialGradient(x - r * 0.4, y - r * 0.45, r * 0.15, x, y, r);
+    gr.addColorStop(0, shade(colour, 1.28)); gr.addColorStop(0.55, colour); gr.addColorStop(1, shade(colour, 0.72));
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), body, arms, legs, feet, and
+  // robe, armor, belt, beard, hat, held.
+  function doll(g0, p, dir, frame) {
+    const s = p.scale || 1;
+    if (s !== 1) { g0.translate(16, 29); g0.scale(s, s); g0.translate(-16, -29); }
+    shadow(g0, 16, 29, 8, 3);
+    outlined(g0, g => { // (a dark outline round the whole figure, as the pixel figures have)
+    const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, skin = p.skin, hair = p.hair || p.skin, hs = p.hairStyle || 'short';
+    const body = p.armor || p.body, arms = p.armor || p.arms || p.body, legs = p.legs || p.body, feet = p.feet || shade(legs, 0.6);
+    const fwd = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] }[dir];
+    const parts = [];
+    const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+    // legs (hidden under a robe), stepping
+    if (!p.robe) for (const side of [-1, 1]) {
+      const sw = step * side * 2;
+      part(side * 2.3, sw, 4, (u, v) => {
+        dollLimb(g, u, v, 1, u, v * 0.5, 9, 1.9, legs);
+        const [fu, fv] = [u + fwd[0] * 1.2, v + fwd[1] * 1.2];
+        dollBox(g, dir, fu, fv, 3.2, 4.5, 0, 1.8, { south: feet });
+      });
+    }
+    // the body: a block, wider at the hem for a robe
+    part(0, 0, 12, (u, v) => {
+      if (p.robe) dollBox(g, dir, u, v, 10.5, 6.5, 0, 10, { south: body });
+      dollBox(g, dir, u, v, 9.8, 5.8, p.robe ? 9 : 8, 17.5, { south: body });
+      if (p.belt) dollBox(g, dir, u, v, 10.1, 6.1, 8.6, 10, { south: p.belt });
+      if (p.tabard && dir !== 0) dollBox(g, dir, u + fwd[0] * 0.2, v + fwd[1] * 0.2, 4.5, 6, 8, 17, { south: p.tabard });
+    });
+    // arms, swinging opposite the legs; a hand at the end of each
+    for (const side of [-1, 1]) {
+      const sw = -step * side * 2.2, [au, av] = turn(dir, side * 6, 0), [hu, hv] = turn(dir, side * 6.3, sw);
+      part(side * 6, sw * 0.5, 15, (u, v) => {
+        dollLimb(g, au, av, 16.8, hu, hv, 9.8, 1.7, arms);
+        dollBall(g, hu, hv, 9, 1.6, skin);
+        if (p.held && side === 1) { // what the right hand holds: a blade, a staff, an axe, a club or a bow
+          const [tu, tv] = [hu + fwd[0] * 2, hv + fwd[1] * 2];
+          const steel = p.held === 'staff' ? '#7a5030' : p.held === 'club' ? '#6a4422' : '#c8ccd4';
+          dollLimb(g, hu, hv, 8.8, tu, tv, p.held === 'staff' ? 25 : 18, p.held === 'club' ? 1.2 : 0.7, steel);
+          if (p.held === 'axe') dollBox(g, dir, tu, tv, 3, 1, 15, 18, { south: '#b8bcc4' });
+        }
+      }, side === 1 ? 0.01 : 0);
+    }
+    // the neck and the head: a ball, its hair a cap on top (and down the back), its face on the front
+    part(0, 0, 22, (u, v) => {
+      dollLimb(g, u, v, 17, u, v, 18.5, 1.4, skin);
+      const hz = 22.8, r = 5.6;
+      if (hs === 'long' && dir !== 2) dollBox(g, dir, u - fwd[0] * 1.8, v - fwd[1] * 1.8, 9.5, 3, 13, 23, { south: hair });
+      dollBall(g, u, v, hz, r, skin);
+      const [x, y] = Q(u, v, hz);
+      if (hs !== 'bald') { // hair: the top of the head, and all of it from behind
+        g.save(); g.beginPath(); g.arc(x, y, r + 0.3, 0, Math.PI * 2); g.clip();
+        g.fillStyle = hair;
+        if (dir === 0) g.fillRect(x - r - 1, y - r - 1, 2 * r + 2, 2 * r + 2);
+        else if (dir === 2) { g.beginPath(); g.ellipse(x, y - r * 0.8, r + 0.6, r * 0.62, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - r - 0.5, y - r * 0.6, 1.6, r * 0.9); g.fillRect(x + r - 1.1, y - r * 0.6, 1.6, r * 0.9); }
+        else { g.beginPath(); g.ellipse(x - fwd[0] * r * 0.45, y - r * 0.6, r + 0.4, r * 0.7, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - fwd[0] * r * 0.7 - 1.5, y - r * 0.3, 3, r); }
+        g.fillStyle = shade(hair, 1.3); g.fillRect(x - r * 0.7, y - r * 0.95, r * 0.8, 1);
+        g.restore();
+      }
+      if (dir === 2) { // the face
+        for (const ex of [-2, 2]) { rect(g, p.eye || '#1e1410', x + ex - 0.8, y + 0.2, 1.7, 2); if (!p.eye) rect(g, '#ffffff', x + ex - 0.8, y + 0.2, 0.8, 0.8); rect(g, shade(hair, 0.7), x + ex - 0.9, y - 0.9, 1.9, 0.7); }
+        rect(g, shade(skin, 0.82), x - 0.3, y + 1.8, 0.8, 1.2); rect(g, shade(skin, 0.6), x - 0.8, y + 3.6, 1.8, 0.7);
+        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x, y + 3.2, 3.6, 2, 0, 0, Math.PI); g.fill(); }
+      } else if (dir === 1 || dir === 3) { // in profile: one eye and the nose
+        const fx = x + fwd[0] * (r - 1.6);
+        rect(g, p.eye || '#1e1410', fx - 0.6, y + 0.2, 1.6, 2); if (!p.eye) rect(g, '#ffffff', fx - 0.6, y + 0.2, 0.7, 0.7);
+        rect(g, shade(skin, 0.85), x + fwd[0] * r - (fwd[0] < 0 ? 1 : 0), y + 1.2, 1, 1.4);
+        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x + fwd[0] * 2, y + 3, 2.6, 1.8, 0, 0, Math.PI); g.fill(); }
+      }
+      if (p.hat) { // a helmet or a hood over the head
+        const c = p.hat.color || '#8a8a92';
+        g.save(); g.beginPath(); g.arc(x, y, r + 0.8, Math.PI * 1.02, Math.PI * 1.98); g.lineTo(x + r + 0.8, y + (p.hat.style === 'hood' ? 2 : 0)); g.lineTo(x - r - 0.8, y + (p.hat.style === 'hood' ? 2 : 0)); g.closePath();
+        g.fillStyle = c; g.fill(); g.restore();
+        rect(g, shade(c, 1.3), x - r * 0.6, y - r - 0.2, r, 1);
+        if (p.hat.style === 'crown') for (const k of [-3, 0, 3]) rect(g, '#f0d040', x + k - 0.5, y - r - 2, 1, 2);
+      }
+    }, 0.02);
+    dollParts(g, dir, parts);
+    });
+  }
+  // A wolf as a doll: a body of two balls (chest and haunches), four legs trotting, a head with a snout and ears, a tail.
+  function wolfDoll(g, dir, frame, c = WOLF) {
+    ellipse(g, 'rgba(0,0,0,0.25)', 17, 29.5, 10, 3);
+    const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] }[dir];
+    const parts = [], part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+    for (const [a, b, ph] of [[-2, 3.5, 1], [2, 3.5, -1], [-2, -3.5, -1], [2, -3.5, 1]]) {
+      part(a, b, 3, (u, v) => { const [su, sv] = turn(dir, 0, step * ph * 1.4); dollLimb(g, u + su, v + sv, 0.5, u, v, 7, 1.2, c.leg); });
+    }
+    part(0, -3, 9, (u, v) => { dollBall(g, u, v, 9, 4.2, c.body); const [tu, tv] = turn(dir, 0, -9); dollLimb(g, u, v, 10, u + tu * 0.6, v + tv * 0.6, 7, 1.2, c.tail); });
+    part(0, 2.5, 9.5, (u, v) => { dollBall(g, u, v, 9.6, 4.6, c.body); const [x, y] = Q(u, v, 8); ellipse(g, c.light, x, y + 2, 3, 1.4); });
+    part(0, 7, 12, (u, v) => {
+      dollBall(g, u, v, 12.5, 3.3, c.head);
+      const [su, sv] = [u + fwd[0] * 3, v + fwd[1] * 3];
+      dollBox(g, dir, su, sv, 2.6, 3.4, 10.2, 12.4, { south: c.head });
+      const [nx, ny] = Q(su + fwd[0] * 1.6, sv + fwd[1] * 1.6, 11.6); rect(g, '#1a1a1a', nx - 0.6, ny - 0.6, 1.4, 1.2);
+      for (const side of [-1, 1]) { const [eu, ev] = turn(dir, side * 1.6, 0.5); const [x, y] = Q(u + eu, v + ev, 16); poly(g, c.ear, [x - 1.2, y + 1.8, x + 1.2, y + 1.8, x, y - 1.6]); }
+      if (dir !== 0) for (const side of dir === 2 ? [-1, 1] : [0]) { const [eu, ev] = turn(dir, side * 1.4, 2.2); const [x, y] = Q(u + eu, v + ev, 13.4); rect(g, c.eye, x - 0.5, y - 0.5, 1.2, 1); }
+    }, 0.01);
+    dollParts(g, dir, parts);
+  }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => humanoid(g, look, d, f);
+    if (look) return (g, d, f) => (Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (Sprites.DOLLS && key === 'wolf') return wolfDoll;
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -4209,7 +4346,7 @@ const Sprites = (() => {
         return cached(`own:${base}:${dir}:${frame}`, g => g.drawImage(own, frame * TILE, dir * TILE, TILE, TILE, 0, 0, TILE, TILE));
       }
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key);
-      return cached(`c:${key}:${dir}:${frame}`, g => {
+      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}`, g => {
         if (big) g.translate(TILE, TILE);
         creatureDrawer(key)(g, dir, frame);
       }, big ? 2 * TILE : TILE);
