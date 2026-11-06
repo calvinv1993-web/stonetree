@@ -9,6 +9,23 @@ const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const Render = {
+  DEEPEST: 0.45, // the floors far below you never get darker than this
+  // The shadow an edge casts, a tile long, fading out over 0.6 tile: one going down, one going right (made once).
+  shadowStrips() {
+    if (this.strips) return this.strips;
+    const S = Math.round(TILE * 0.6);
+    this.strips = [[TILE, S, 0, 0, 0, S], [S, TILE, 0, 0, S, 0]].map(([w, h, ax, ay, bx, by]) => {
+      const c = document.createElement('canvas');
+      Object.assign(c, { width: w, height: h });
+      const g = c.getContext('2d'), gr = g.createLinearGradient(ax, ay, bx, by);
+      gr.addColorStop(0, 'rgba(0,0,0,0.45)');
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, w, h);
+      return c;
+    });
+    return this.strips;
+  },
   // v = {
   //   cx, cy:     world pixel (on floor v.z) at the center of the view
   //   z:          camera floor; minZ..maxZ: floors to draw
@@ -18,6 +35,9 @@ const Render = {
   //               tile (x, y), at the visual position (vx, vy) if given (walking
   //               creatures), raised `lift` pixels up-left, see-through with alpha
   //   dimLower:   darken the floors below the camera floor (editor)
+  //   depth:      how much darker each floor below the camera floor gets (0..1; the game: they lie deeper, in shadow)
+  //   edgeShadow: where a floor above the lowest one ends (a cliff, a roof, a balcony), a soft shadow falls
+  //               down-right onto what lies below, as if the light came from the top left
   //   afterGround(g, ox, oy, z, x0, x1, y0, y1, groundAt): drawn over each floor's ground,
   //               under everything on it (footprints, deep water)
   //   beyond(z):  the ground shown past the edge of the map on floor z (the open sea), or
@@ -39,9 +59,16 @@ const Render = {
       tiles.get(k).push(o);
     }
 
+    let lit = 1; // how bright what's drawn so far still is, after the floors above it darkened it
     for (let z = v.minZ; z <= v.maxZ; z++) {
-      if (v.dimLower && z === v.z && z > v.minZ) {
-        g.fillStyle = 'rgba(0,0,0,0.5)';
+      // what's drawn so far lies below this floor: darker, a floor at a time down to the camera floor
+      let shade = z > v.minZ && z <= v.z ? (v.dimLower ? (z === v.z ? 0.5 : 0) : v.depth || 0) : 0;
+      if (shade && !v.dimLower) { // however deep, what's below stays at least DEEPEST lit: not night under a tower
+        shade = Math.max(0, Math.min(shade, 1 - Render.DEEPEST / lit));
+        lit *= 1 - shade;
+      }
+      if (shade) {
+        g.fillStyle = `rgba(0,0,0,${shade})`;
         g.fillRect(0, 0, v.w, v.h);
       }
       const shift = (z - v.z) * TILE;
@@ -65,6 +92,21 @@ const Render = {
       // arm going north only), so what shows of the tile past the end of the wall or
       // through a doorway is the ground on the north (west) side of the wall.
       // (On an upper floor there's often nothing on that side - open air - and then nothing shows.)
+      // The shadow this floor casts on the floors below, along its south and east edges (drawn before its
+      // own tiles, so only what reaches past the edge shows).
+      if (v.edgeShadow && z > v.minZ) {
+        const [down, right] = Render.shadowStrips(), S = down.height;
+        const solid = (x, y) => { const t = tileAt(x, y); return !!(t && t.ground); };
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            if (!solid(x, y)) continue;
+            const px = ox + x * TILE, py = oy + y * TILE;
+            // (where the edge turns a corner, the shadow starts half a strip in, so corners don't double up)
+            if (!solid(x, y + 1)) g.drawImage(down, px + (solid(x - 1, y + 1) ? 0 : S / 2), py + TILE);
+            if (!solid(x + 1, y)) g.drawImage(right, px + TILE, py + (solid(x + 1, y - 1) ? 0 : S / 2));
+          }
+        }
+      }
       const groundShown = (x, y, t) => {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
         const beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);

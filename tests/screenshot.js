@@ -2,12 +2,13 @@
 // A screenshot of the real game page, to see how a change looks without playing (handy
 // for an AI working on the game, too). Plays offline as a new character, then shoots.
 //
-//   node tests/screenshot.js out.png [x y z] [--hour 22] [--mobile] [--view] [--eval "<js>"]
+//   node tests/screenshot.js out.png [x y z] [--hour 22] [--mobile] [--view] [--zoom 2] [--eval "<js>"]
 //
 //   x y z     go there first (default: the start, in the temple on Brightwater Isle)
 //   --hour    the in-game hour (0-23): night, dawn, dusk...
 //   --mobile  a phone held sideways, with the touch controls
 //   --view    just the game view, not the whole page
+//   --zoom    pixels per screen pixel, e.g. 2 for a sharp 2x picture (a phone is always 2)
 //   --eval    JavaScript run in the page before the shot, e.g. "player.tutorial = 0; monsters.length = 0"
 //
 // Needs playwright-core and its Chromium (npm install, then npx playwright install chromium).
@@ -29,14 +30,14 @@ const option = name => {
   const i = args.indexOf(name);
   return i < 0 ? undefined : args.splice(i, name === '--mobile' || name === '--view' ? 1 : 2)[1] ?? true;
 };
-const mobile = !!option('--mobile'), viewOnly = !!option('--view'), hour = option('--hour'), code = option('--eval');
+const mobile = !!option('--mobile'), viewOnly = !!option('--view'), hour = option('--hour'), code = option('--eval'), zoom = +(option('--zoom') || 1);
 const [out = 'screenshot.png', x, y, z] = args;
 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage(mobile
     ? { viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }
-    : { viewport: { width: 1300, height: 950 } });
+    : { viewport: { width: 1300, height: 950 }, deviceScaleFactor: zoom });
   const errors = [];
   page.on('pageerror', e => errors.push(e.stack || e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });

@@ -282,6 +282,7 @@ function draw() {
     minZ: z >= map.surfaceZ ? map.surfaceZ : Math.max(0, z - 2),
     maxZ: z < map.surfaceZ ? z : map.visibleMaxZ(player.x, player.y, z), // underground there's rock above you
     w: VIEW_W * TILE, h: VIEW_H * TILE, time: now, objects: [],
+    depth: 0.3, edgeShadow: true, // what lies below you is darker, and the edge you stand on casts a shadow down onto it
   };
   Fx.frame(view);
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
