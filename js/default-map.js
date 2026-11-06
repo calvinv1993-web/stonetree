@@ -135,7 +135,7 @@ const ISLE_DESIGN = {
 //   streets:   { line, width, ground }, drawn like the roads outside; bridges where they cross water
 //   square:    the town square, as rectangles [x0, y0, x1, y1]
 //   buildings: { id, name, kind, x0, y0, x1, y1, wings, door: [x, y], floors, floor, wall, roof, sign,
-//                signId, shelves }; kind says how it's furnished: temple, academy, depot, shop, smithy, inn, house
+//                signId, shelves, arch (a wide open archway, three tiles across, instead of a door) }; kind says how it's furnished: temple, academy, depot, shop, smithy, inn, house
 //   houses:    the buildings players can rent, with their rent
 //   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
@@ -167,7 +167,7 @@ const OAKVALE = {
   ],
   square: [[123, 110, 146, 121]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 131, y0: 99, x1: 143, y1: 106, level: 1, door: [137, 106], floor: 'marble', wall: 'wall_temple', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 131, y0: 99, x1: 143, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 145, y0: 99, x1: 149, y1: 103, door: [147, 103], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 106, x1: 149, y1: 111, door: [147, 111], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
@@ -1013,17 +1013,18 @@ function buildTown(m, S, runs, river) {
     }
     const [dx, dy] = b.door;
     m.ensure(dx, dy, S).items = [b.kind === 'house' ? 'door_house' : 'door'];
+    if (b.arch) for (const [k, id] of [[-1, 'arch_w'], [0, 'arch_m'], [1, 'arch_e']]) m.ensure(dx + k, dy, S).items = [id]; // in a south wall
     if (b.roof) eachOf(b, (x, y) => m.set(x, y, S + floors, { ground: b.roof, items: [] }));
     if (b.roof && b.kind !== 'temple' && b.kind !== 'depot') put(b.x1 - 1, b.y0 + 1, S + floors, 'chimney');
     const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
     // A sign on the wall beside the door, and a step of gravel in front of it.
     if (b.sign) {
-      const across = out[0] === dx, sx = across ? dx + 1 : dx, sy = across ? dy : dy + 1;
+      const across = out[0] === dx, wide = b.arch ? 2 : 1, sx = across ? dx + wide : dx, sy = across ? dy : dy + 1;
       const t = m.get(sx, sy, S);
       t.items = t.items.filter(id => id !== 'window');
       sign(sx, sy, S, b.signId || 'sign_wall', b.sign);
       // ...and a lantern on the other side of the door
-      const lx = across ? dx - 1 : dx, ly = across ? dy : dy - 1, lt = m.get(lx, ly, S);
+      const lx = across ? dx - wide : dx, ly = across ? dy : dy - 1, lt = m.get(lx, ly, S);
       if (lt && isWall(b, lx, ly)) { lt.items = lt.items.filter(id => id !== 'window'); put(lx, ly, S, 'lantern'); }
     }
     if (m.get(...out, S).ground === 'grass') m.setGround(...out, S, 'gravel');

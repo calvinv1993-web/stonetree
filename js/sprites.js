@@ -494,7 +494,8 @@ const Sprites = (() => {
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
-    'fallen_pillar', 'fence', 'cauldron', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
+    'fallen_pillar', 'fence', 'cauldron', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
+    'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
@@ -650,7 +651,55 @@ const Sprites = (() => {
     drum(g, 32, 32, top, 86, () => 3, { edge: '#3a2408', light: '#7a5218', mid: '#5a3a10', dark: '#3a2408' }); // the crown, up to the beam
     prism(g, 0, 26, 64, 38, 86, 94, oak); // the crossbeam, over both frames
   } };
+  // The temple's archway: three tiles of carved stone wall along their south edge, as thin walls stand, with a round
+  // arch nearly two tiles wide cut through it, on piers with capitals; a keystone, and the temple's golden sun above it.
+  // The wall's own textures are laid on its faces, so it joins the walls either side without a seam.
+  BIG.arch = { w: 3, h: 1, draw(g) {
+    const FZ = FLOOR_Z, v0 = W0, v1 = TILE, a0 = 12, a1 = 84, zs = 20, rise = 20, mid = (a0 + a1) / 2, half = (a1 - a0) / 2;
+    const arcZ = u => zs + rise * Math.sqrt(Math.max(0, 1 - ((u - mid) / half) ** 2));
+    const arc = (v, from, to) => { const pts = []; for (let i = 0; i <= 24; i++) { const u = from + ((to - from) * i) / 24; pts.push(...P(u, v, arcZ(u))); } return pts; };
+    const st = WALL_STYLES.wall_temple, rnd = makeRng(4242);
+    // the arch's underside, seen through the opening's top: a dark band between its back and front edges
+    poly(g, 'rgba(60,54,44,0.85)', [...arc(v0, a0, a1), ...arc(v1, a1, a0)]);
+    // the inner face of the west pier (it faces east, into the opening)
+    poly(g, '#8a8476', [...P(a0, v0, 0), ...P(a0, v1, 0), ...P(a0, v1, zs), ...P(a0, v0, zs)]);
+    // the front (south) face, the wall's own carved stone, with the arch cut out of it
+    g.save();
+    g.beginPath();
+    g.moveTo(...P(0, v1, 0)); g.lineTo(...P(a0, v1, 0));
+    for (let i = 0; i < arc(v1, a0, a1).length; i += 2) g.lineTo(arc(v1, a0, a1)[i], arc(v1, a0, a1)[i + 1]);
+    g.lineTo(...P(a1, v1, 0)); g.lineTo(...P(96, v1, 0)); g.lineTo(...P(96, v1, FZ)); g.lineTo(...P(0, v1, FZ));
+    g.closePath(); g.clip();
+    g.setTransform(1, 0, 1, 1, 32, 64); // texture (x along the wall, y down from its top) onto the face
+    for (let k = 0; k < 3; k++) { g.save(); g.translate(k * TILE, 0); st.south(g, rnd); g.restore(); }
+    g.restore();
+    // the east end's face, where the arch meets the wall beyond
+    g.save();
+    g.beginPath(); for (const [v, z] of [[v0, 0], [v1, 0], [v1, FZ], [v0, FZ]]) g.lineTo(...P(96, v, z)); g.closePath(); g.clip();
+    g.setTransform(0, 1, 1, 1, 128, 32); st.east(g, rnd);
+    g.restore();
+    // the wall's cap along the top
+    g.save();
+    g.beginPath(); for (const [u, v] of [[0, v0], [96, v0], [96, v1], [0, v1]]) g.lineTo(...P(u, v, FZ)); g.closePath(); g.clip();
+    g.translate(32, 32); for (let k = 0; k < 3; k++) { g.save(); g.translate(k * TILE, 0); st.top(g, rnd); g.restore(); }
+    g.restore();
+    // a ring of voussoirs round the arch, a keystone at its top, the capitals it springs from
+    for (let i = 0; i <= 12; i++) {
+      const t = i / 12, ang = Math.PI * (1 - t), u = mid + Math.cos(ang) * half, z = zs + Math.sin(ang) * rise;
+      const uo = mid + Math.cos(ang) * (half + 5), zo = zs + Math.sin(ang) * (rise + 5);
+      line(g, 'rgba(90,82,66,0.75)', 1, ...P(u, v1, z), ...P(uo, v1, zo));
+    }
+    line(g, 'rgba(255,248,228,0.6)', 1, ...arc(v1, a0, a1));
+    const cap = { top: '#e8e0cc', south: '#cfc6b0', east: '#a69e8a', edge: '#fff8e4' };
+    prism(g, mid - 4, v1 - 0.5, mid + 4, v1 + 1, zs + rise - 1, zs + rise + 6, cap); // the keystone
+    for (const [u0, u1] of [[a0 - 6, a0], [a1, a1 + 6]]) { line(g, 'rgba(255,248,228,0.7)', 1, ...P(u0, v1, zs), ...P(u1, v1, zs)); line(g, 'rgba(90,82,66,0.8)', 1, ...P(u0, v1, zs - 1.5), ...P(u1, v1, zs - 1.5)); } // the impost mouldings it springs from
+    // the temple's golden sun over the keystone
+    const [sx, sy] = P(mid + 22, v1, zs + rise + 4); // (to the keystone's side: the roof's eaves hide the wall's top)
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, '#d8a830', 1.5, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7.5, sy + Math.sin(a) * 7.5); }
+    ellipse(g, '#d8a830', sx, sy, 4.2, 4.2); ellipse(g, '#f8dc70', sx - 0.6, sy - 0.6, 3, 3);
+  } };
   const PARTS = {
+    arch_w: ['arch', 0, 0], arch_m: ['arch', 1, 0], arch_e: ['arch', 2, 0],
     bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],
     bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
     fountain_nw: ['fountain', 0, 0], fountain_ne: ['fountain', 1, 0], fountain_sw: ['fountain', 0, 1], fountain_se: ['fountain', 1, 1],
@@ -698,6 +747,48 @@ const Sprites = (() => {
     ellipse(g, c.top, tx, ty, rad, rad);
   }
 
+  // --- growing things, in the tiles' slant: a trunk is a round column, a crown a ball of leaves round a point high
+  // over the tile, blades and stalks lines through space. Their parts are drawn from the back to the front.
+  // A line through space: points [u, v, z, ...] joined, w wide.
+  function line3(g, colour, w, ...pts) {
+    const flat = [];
+    for (let i = 0; i < pts.length; i += 3) flat.push(...P(pts[i], pts[i + 1], pts[i + 2]));
+    line(g, colour, w, ...flat);
+  }
+  // A crown of leaves: n clusters in a ball round (cu, cv, cz), ru across and rz high, lit from the top left:
+  // shade (the dark under each cluster), leaf colours from the shaded side to the lit side, and highlights.
+  function leafCrown(g, r, cu, cv, cz, ru, rz, n, c) {
+    const leaves = [];
+    for (let i = 0; i < n; i++) {
+      const a = r() * Math.PI * 2, d = Math.sqrt(r()), h = r() * 2 - 1, k = Math.sqrt(Math.max(0, 1 - h * h));
+      leaves.push([cu + Math.cos(a) * d * ru * k, cv + Math.sin(a) * d * ru * k, cz + h * rz]);
+    }
+    leaves.sort((p, q) => (p[0] + p[1] + p[2] * 1.2) - (q[0] + q[1] + q[2] * 1.2)); // back to front
+    const size = c.size || 5;
+    for (const [u, v, z] of leaves) { const [x, y] = P(u, v, z); ellipse(g, c.shade, x + 0.6, y + 1, size + 1, size); }
+    for (const [u, v, z] of leaves) {
+      const [x, y] = P(u, v, z), lit = (z - cz) / rz - ((u - cu) + (v - cv)) / (2 * ru); // high and to the west/north: lit
+      ellipse(g, lit > 0.25 ? c.light : lit > -0.35 ? c.mid : c.dark, x, y, size, size - 1);
+      if (lit > 0.5) ellipse(g, c.glint, x - 1.5, y - 1.5, size / 2, size / 2 - 0.5);
+    }
+  }
+  // A fir's crown: tiers of branches, each a skirt (a cone) narrower than the one under it, needles along their
+  // rims, from (cu, cv) between heights z0 and z1. c: { dark, mid, light, edge, needle, snow? }.
+  function firCrown(g, r, cu, cv, z0, z1, w, c) {
+    const tiers = 4, h = (z1 - z0) / tiers;
+    for (let i = 0; i < tiers; i++) {
+      const zb = z0 + i * h * 0.92, zt = zb + h * 1.25, wb = w * (1 - i / (tiers + 0.6));
+      drum(g, cu, cv, zb, zt, t => wb * (1 - t) + 0.6, c);
+      // needles along the rim of the skirt, on the sides you see (south and east), and snow on its top
+      for (let k = 0; k < 9; k++) {
+        const a = -Math.PI / 4 + (k / 8) * Math.PI, [x, y] = P(cu + Math.cos(a) * wb, cv + Math.sin(a) * wb, zb + 1);
+        poly(g, c.needle, [x - 2, y, x, y + 3 + r() * 2, x + 2, y]);
+      }
+      if (c.snow) { const [x, y] = P(cu, cv, zt - 1); ellipse(g, c.snow, x - wb * 0.25, y + wb * 0.15, wb * 0.55, wb * 0.4); }
+    }
+  }
+  const BARK = { light: '#7a5030', mid: '#5b3a1e', dark: '#3a2410', top: '#c8a070' };
+  const LEAVES = { shade: '#163e16', dark: '#2a6a22', mid: '#358230', light: '#4a9a3a', glint: '#80c860' };
   // --- map tiles: draw(g, rng, animationFrame, shape, material) ---------------------
   // Trees, walls and things on walls are 64x64, drawn with their tile in the bottom-right quarter.
   const DRAW = {
@@ -1076,20 +1167,13 @@ const Sprites = (() => {
       if (n.s) rails(15, 18, 17, 32);
     },
 
-    // A leafy tree: a trunk, and a round crown of three greens, lit from the top-left.
-    // A leafy tree: a thick round crown of leaf clusters, dark beneath and bright on top, on a trunk.
-    // A leafy tree: a thick round crown of leaf clusters, dark beneath and bright on top, on a trunk.
+    // A broad-leaved tree: a round trunk forking into two boughs, under a ball of leaves.
     tree(g, r) {
-      shadow(g, 48, 61, 15, 4);
-      rect(g, '#4a2e14', 44, 40, 8, 22); rect(g, '#6a4422', 44, 40, 3, 22);
-      line(g, '#4a2e14', 2, 46, 44, 38, 36); line(g, '#4a2e14', 2, 50, 42, 55, 36);
-      const leaves = [];
-      for (let i = 0; i < 30; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 15; leaves.push([42 + Math.cos(a) * d * 1.1, 26 + Math.sin(a) * d * 0.9]); }
-      leaves.sort((p, q) => p[1] - q[1]);
-      for (const [x, y] of leaves) ellipse(g, '#163e16', x + 0.5, y + 1, 6, 5);
-      for (const [x, y] of leaves) ellipse(g, y > 30 ? '#2a6a22' : '#358230', x, y, 5, 4);
-      for (const [x, y] of leaves) if (y < 28 && x < 46) ellipse(g, '#55a43e', x - 1.5, y - 1.5, 2.5, 2);
-      for (let i = 0; i < 7; i++) { const [x, y] = leaves[(r() * leaves.length) | 0]; rect(g, '#80c860', x - 2, y - 2, 2, 1); }
+      floorShadow(g, 15, 5);
+      column(g, 16, 16, 3, 0, 32, BARK);
+      line3(g, BARK.mid, 2, 16, 16, 22, 12, 13, 32);
+      line3(g, BARK.mid, 2, 16, 16, 24, 20, 17, 33);
+      leafCrown(g, r, 16, 16, 42, 13, 11, 34, LEAVES);
     },
     // A crag: a pile of weathered boulders on a mountain top, rising up-left from its tile like a
     // tree, lit from the top-left.
@@ -1101,90 +1185,81 @@ const Sprites = (() => {
       lumps.sort((a, b) => a[1] - b[1]);
       lumps.forEach(([x, y, rx, ry], i) => boulder(g, x, y, rx, ry, ROCK.top, i));
     },
-    // A fir: four tiers of branches, each lit on its left, darker on its right.
-    // A big fir: a dark, ragged cone of needle clusters, lit on its left, with a short trunk.
-    // A big fir: a full, ragged cone of needle clusters, lit on its left, with a short trunk.
+    // A fir: a short trunk under tiers of branches, each a skirt narrower than the one below it.
     pine(g, r) {
-      shadow(g, 46, 61, 15, 3);
-      rect(g, '#4a2e14', 43, 52, 6, 10); rect(g, '#6a4422', 43, 52, 2, 10);
-      for (let ty = 1; ty < 54; ty += 2.5) {
-        const w = 2 + (ty / 54) * 19;
-        for (let k = 0; k < 6; k++) {
-          const x = 46 + (r() - 0.5) * 2 * w, y = ty + r() * 4, left = x < 44;
-          poly(g, '#123816', [x - 4, y + 5, x, y - 2, x + 4, y + 5]);                    // its outline
-          poly(g, left ? '#2f7a2a' : '#205a22', [x - 3, y + 4, x, y - 1, x + 3, y + 4]);
-          if (left && r() < 0.5) rect(g, '#55a440', x - 1, y + 1, 1, 2);
-        }
-      }
+      floorShadow(g, 14, 5);
+      column(g, 16, 16, 2.5, 0, 12, { ...BARK, top: BARK.dark });
+      firCrown(g, r, 16, 16, 8, 60, 14 + r() * 2, { edge: '#123816', dark: '#1a4a1c', mid: '#246a24', light: '#3a8a32', needle: '#173f18' });
     },
+    // A palm: a ringed trunk curving up through the air, fronds drooping all round its top, coconuts under them.
     palm(g, r) {
-      shadow(g, 50, 61, 12, 3);
-      line(g, '#8a6a3a', 5, 47, 62, 45, 40, 40, 20);
-      for (let y = 26; y < 60; y += 5) line(g, '#6a4a2a', 1, 41 + (y - 20) * 0.15, y, 48, y + 1);
-      for (const [dx, dy] of [[-18, 4], [16, 2], [-12, -10], [12, -12], [0, -16], [-20, -4], [20, -6]]) {
-        poly(g, '#3a8a2a', [40, 20, 40 + dx, 20 + dy, 40 + dx * 0.6, 22 + dy + 4]);
-        line(g, '#2a6a1e', 1, 40, 20, 40 + dx, 20 + dy);
+      floorShadow(g, 12, 4);
+      const lean = r() < 0.5 ? 1 : -1, at = t => [16 + lean * 6 * t * t, 16 - 2 * t * t, 56 * t];
+      for (let i = 0; i < 14; i++) { const [u0, v0, z0] = at(i / 14), [u1, v1, z1] = at((i + 1) / 14); line3(g, i % 2 ? '#8a6a3a' : '#7a5a30', 4, u0, v0, z0, u1, v1, z1); }
+      const [tu, tv, tz] = at(1);
+      const fronds = [[-1, 0], [1, 0.2], [-0.6, -0.8], [0.6, -0.9], [0.1, -1], [-0.8, 0.6], [0.7, 0.8], [0, 1]]
+        .sort((a, b) => (a[0] + a[1]) - (b[0] + b[1])); // the ones at the back first
+      for (const [du, dv] of fronds) {
+        const pt = k => [tu + du * 15 * k, tv + dv * 15 * k, tz + 6 * k - 16 * k * k];
+        const pts = [0, 0.35, 0.7, 1].map(pt);
+        for (let i = 0; i < 3; i++) {
+          const [a, b] = [P(...pts[i]), P(...pts[i + 1])], wdt = 3 - i * 0.8;
+          poly(g, '#3a8a2a', [a[0], a[1] - wdt, b[0], b[1] - wdt * 0.6, b[0], b[1] + wdt * 0.6, a[0], a[1] + wdt]);
+        }
+        line3(g, '#2a6a1e', 1, ...pts.flat());
       }
-      ellipse(g, '#6a4a2a', 38, 23, 3, 2);
-      ellipse(g, '#6a4a2a', 42, 24, 3, 2);
+      for (const [du, dv] of [[-1.5, 1], [1.5, 1.5]]) { const [x, y] = P(tu + du, tv + dv, tz - 3); ellipse(g, '#6a4a2a', x, y, 2.5, 2); }
     },
+    // A cactus: a ribbed round stem with an arm bending up either side, spines catching the light.
     cactus(g) {
-      shadow(g, 16, 28, 8, 3);
-      rect(g, '#3a7a3a', 13, 6, 7, 22);
-      rect(g, '#3a7a3a', 6, 12, 4, 9);
-      rect(g, '#3a7a3a', 6, 19, 8, 3);
-      rect(g, '#3a7a3a', 23, 9, 4, 8);
-      rect(g, '#3a7a3a', 19, 15, 8, 3);
-      rect(g, '#5aa05a', 14, 7, 2, 20);
-      for (const [x, y] of [[12, 9], [20, 13], [12, 20], [20, 23], [7, 14], [25, 11]]) rect(g, '#e8e0a0', x, y, 1, 1);
+      floorShadow(g, 8, 3);
+      const green = { light: '#5aa05a', mid: '#3a7a3a', dark: '#245a24', top: '#6ab86a' };
+      column(g, 9, 16, 2, 10, 22, green);      // the west arm, behind
+      line3(g, green.mid, 4, 16, 16, 12, 9, 16, 12);
+      column(g, 16, 16, 3.5, 0, 34, green);   // the stem
+      line3(g, green.mid, 4, 16, 16, 16, 23, 16, 16);
+      column(g, 23, 16, 2, 16, 28, green);    // the east arm, in front
+      for (const [u, z] of [[14, 8], [17, 14], [14, 22], [17, 30], [9, 18], [23, 24]]) { const [x, y] = P(u, 19, z); rect(g, '#e8e0a0', x, y, 1, 1); }
     },
+    // A snowy fir: as a fir, with snow lying on each tier.
     snow_pine(g, r) {
-      shadow(g, 50, 61, 11, 3);
-      rect(g, '#5b3a1e', 46, 52, 5, 11);
-      poly(g, '#1f4a3a', [46, 2, 63, 54, 29, 54]);
-      poly(g, '#2a5e4a', [46, 16, 61, 44, 31, 44]);
-      poly(g, '#f0f4f8', [46, 2, 52, 14, 40, 14]);
-      for (const y of [26, 44, 54]) poly(g, '#e8eef4', [30 + (54 - y) * 0.2, y, 62 - (54 - y) * 0.2, y, 46, y - 5]);
-      for (let i = 0; i < 10; i++) rect(g, '#ffffff', 36 + r() * 20, 16 + r() * 34, 2, 1);
+      floorShadow(g, 13, 5);
+      column(g, 16, 16, 2.5, 0, 12, { ...BARK, top: BARK.dark });
+      firCrown(g, r, 16, 16, 8, 58, 13, { edge: '#14302a', dark: '#1a3e32', mid: '#24584a', light: '#3a7a64', needle: '#16342c', snow: '#f0f4f8' });
     },
+    // A jungle tree: a thick trunk on spreading roots, a wide flat crown, vines hanging from it.
     jungle_tree(g, r) {
-      shadow(g, 50, 61, 16, 4);
-      rect(g, '#4a3a22', 44, 34, 8, 28);
-      line(g, '#3a2a18', 2, 44, 62, 38, 60);
-      line(g, '#3a2a18', 2, 52, 62, 58, 60);
-      ellipse(g, '#1e4a1a', 42, 24, 24, 20);
-      ellipse(g, '#2a5e22', 36, 18, 17, 13);
-      ellipse(g, '#3a7a2e', 30, 13, 9, 7);
-      for (let i = 0; i < 30; i++) {
-        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 20;
-        rect(g, r() < 0.5 ? '#163a12' : '#4a8a3a', 42 + Math.cos(a) * d, 24 + Math.sin(a) * d * 0.8, 2, 2);
-      }
-      line(g, '#2a5a1e', 1, 30, 30, 28, 52);
-      line(g, '#2a5a1e', 1, 56, 28, 57, 48);
+      floorShadow(g, 17, 6);
+      for (const [du, dv] of [[-7, 3], [7, 2], [-3, 8], [5, -5]]) line3(g, '#3a2a18', 2.5, 16, 16, 8, 16 + du, 16 + dv, 0);
+      column(g, 16, 16, 4, 0, 34, { light: '#6a5232', mid: '#4a3a22', dark: '#2e2414', top: '#a88a5a' });
+      leafCrown(g, r, 16, 16, 42, 17, 8, 46, { shade: '#122e10', dark: '#1e4a1a', mid: '#2a5e22', light: '#3a7a2e', glint: '#5a9a48' });
+      for (const [u, v] of [[6, 22], [26, 14], [14, 27]]) line3(g, '#2a5a1e', 1, u, v, 38, u, v, 18);
     },
+    // A dead tree: a bare trunk and crooked branches reaching out through the air.
     dead_tree(g) {
-      shadow(g, 50, 61, 10, 3);
-      line(g, '#3a3028', 5, 47, 62, 46, 24);
-      line(g, '#3a3028', 3, 46, 36, 34, 22, 30, 12);
-      line(g, '#3a3028', 3, 46, 30, 56, 18);
-      line(g, '#3a3028', 2, 46, 24, 44, 8);
-      line(g, '#3a3028', 2, 34, 22, 26, 20);
-      line(g, '#3a3028', 2, 56, 18, 60, 10);
+      floorShadow(g, 10, 4);
+      const c = '#3a3028';
+      column(g, 16, 16, 2.5, 0, 46, { light: '#5a4a3a', mid: '#3a3028', dark: '#241c16', top: '#6a5a48' });
+      line3(g, c, 3, 16, 16, 26, 9, 12, 38, 6, 8, 50);
+      line3(g, c, 3, 16, 16, 32, 25, 19, 44);
+      line3(g, c, 2, 16, 16, 40, 18, 12, 58);
+      line3(g, c, 2, 9, 12, 38, 4, 18, 42);
+      line3(g, c, 2, 25, 19, 44, 29, 14, 52);
     },
+    // A fern: fronds arching up and out from its middle, leaflets along each.
     fern(g, r) {
-      for (let i = 0; i < 5; i++) {
-        const a = -Math.PI / 2 + (i - 2) * 0.5, x = 16 + Math.cos(a) * 12, y = 26 + Math.sin(a) * 12;
-        line(g, '#2f7a2a', 2, 16, 27, x, y);
-        for (let k = 1; k < 4; k++) rect(g, '#4a9a3a', 16 + (x - 16) * k / 4 - 2, 27 + (y - 27) * k / 4, 4, 1);
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2 + 0.3, end = [16 + Math.cos(a) * 12, 17 + Math.sin(a) * 10, 3];
+        const mid = [16 + Math.cos(a) * 6, 17 + Math.sin(a) * 5, 9];
+        line3(g, '#2f7a2a', 2, 16, 17, 0, ...mid, ...end);
+        for (const k of [0.35, 0.6, 0.85]) { const [x, y] = P(16 + Math.cos(a) * 12 * k, 17 + Math.sin(a) * 10 * k, 9 * Math.sin(k * Math.PI) + 3 * k); rect(g, '#4a9a3a', x - 2, y, 4, 1); }
       }
     },
-    // A round bush with a few red berries.
+    // A bush: a low ball of leaves on the ground, with red berries on its sunny side.
     bush(g, r) {
-      shadow(g, 16, 28, 12, 3);
-      for (const [x, y, rad] of [[11, 20, 7], [21, 20, 7], [16, 15, 8]]) ellipse(g, '#2e6a24', x + 1, y + 1.5, rad, rad * 0.85);
-      for (const [x, y, rad] of [[11, 20, 7], [21, 20, 7], [16, 15, 8]]) ellipse(g, '#3f8a30', x, y, rad - 1, rad * 0.85 - 1);
-      for (const [x, y] of [[9, 17], [14, 11], [19, 17]]) ellipse(g, '#5aa842', x, y, 3, 2);
-      for (let i = 0; i < 4; i++) { const x = 8 + ((r() * 16) | 0), y = 14 + ((r() * 9) | 0); rect(g, '#c8303a', x, y, 2, 2); rect(g, '#f08080', x, y, 1, 1); }
+      floorShadow(g, 12, 4);
+      leafCrown(g, r, 16, 17, 8, 11, 7, 22, { shade: '#1e4a18', dark: '#2e6a24', mid: '#3f8a30', light: '#4f9a3a', glint: '#5aa842', size: 4.5 });
+      for (let i = 0; i < 4; i++) { const [x, y] = P(10 + r() * 12, 22 + r() * 4, 6 + r() * 6); rect(g, '#c8303a', x, y, 2, 2); rect(g, '#f08080', x, y, 1, 1); }
     },
     // A boulder: two or three big grey rocks heaped together, in the style of the mountains.
     rock(g, r) {
@@ -1192,13 +1267,15 @@ const Sprites = (() => {
       const n = 2 + ((r() * 2) | 0);
       for (let i = 0; i < n; i++) boulder(g, 10 + i * 6 + r() * 3, 22 - (i % 2) * 5 - r() * 2, 6 + r() * 2.5, 5 + r() * 2, ROCK.top, i);
     },
+    // Wild flowers: short stems with their blossoms held up.
     flowers(g, r) {
       const colors = ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'];
       for (let i = 0; i < 7; i++) {
-        const x = 3 + ((r() * 25) | 0), y = 4 + ((r() * 23) | 0);
-        rect(g, '#2f6a29', x + 1, y + 2, 1, 3);
-        rect(g, colors[(r() * colors.length) | 0], x, y, 3, 3);
-        rect(g, '#f5d547', x + 1, y + 1, 1, 1);
+        const u = 3 + r() * 25, v = 4 + r() * 25, h = 4 + r() * 4;
+        line3(g, '#2f6a29', 1, u, v, 0, u, v, h);
+        const [x, y] = P(u, v, h);
+        rect(g, colors[(r() * colors.length) | 0], x - 1, y - 1, 3, 3);
+        rect(g, '#f5d547', x, y, 1, 1);
       }
     },
     // Small things lying about (you walk over them): they break up plain ground.
@@ -1226,12 +1303,13 @@ const Sprites = (() => {
         rect(g, colors[(r() * colors.length) | 0], x, y, 2, 1 + ((r() * 2) | 0));
       }
     },
+    // A tuft of grass: a few blades standing up together.
     grass_tuft(g, r) {
-      const x0 = 10 + r() * 10, y0 = 18 + r() * 8;
-      ellipse(g, 'rgba(0,0,0,0.15)', x0 + 3, y0 + 1, 5, 1.5);
+      const u0 = 10 + r() * 10, v0 = 12 + r() * 10, [sx, sy] = P(u0, v0, 0);
+      ellipse(g, 'rgba(0,0,0,0.15)', sx + 3, sy + 1, 5, 1.5);
       for (let i = 0; i < 9; i++) {
-        const x = x0 + (r() - 0.2) * 8;
-        line(g, ['#3f7d33', '#57a046', '#2f6a26', '#6ab452'][i % 4], 1, x, y0, x + (r() - 0.5) * 5, y0 - 4 - r() * 6);
+        const u = u0 + (r() - 0.4) * 7, v = v0 + (r() - 0.5) * 3;
+        line3(g, ['#3f7d33', '#57a046', '#2f6a26', '#6ab452'][i % 4], 1, u, v, 0, u + (r() - 0.5) * 5, v + (r() - 0.5) * 3, 6 + r() * 9);
       }
     },
     driftwood(g, r) {
@@ -1240,20 +1318,23 @@ const Sprites = (() => {
       line(g, '#a8947a', 1, 7, 18, 25, 16 + r() * 3);
       line(g, '#8a7458', 2, 19, 18, 23, 13);
     },
+    // Reeds: tall stalks standing up from the water's edge, some with a brown seed head.
     reeds(g, r) {
       for (let i = 0; i < 8; i++) {
-        const x = 4 + r() * 24, top = 6 + r() * 10;
-        line(g, '#5a7a3a', 1, x, 30, x + (r() - 0.5) * 4, top);
-        if (i % 2) rect(g, '#6a4422', x - 1, top - 1, 2, 5);
+        const u = 4 + r() * 24, v = 6 + r() * 22, h = 16 + r() * 14;
+        line3(g, '#5a7a3a', 1, u, v, 0, u + (r() - 0.5) * 3, v, h);
+        if (i % 2) { const [x, y] = P(u, v, h - 2); rect(g, '#6a4422', x - 1, y - 2, 2, 5); }
       }
     },
+    // Mushrooms: pale stalks under round caps, red or brown, flecked with white.
     mushrooms(g, r) {
-      for (let i = 0; i < 3; i++) {
-        const x = 6 + r() * 18, y = 12 + r() * 12;
-        rect(g, '#efe6d0', x - 1, y, 3, 5);
-        ellipse(g, i % 2 ? '#c03030' : '#a0703a', x + 0.5, y, 5, 3);
-        rect(g, '#fff', x - 2, y - 1, 1, 1);
-        rect(g, '#fff', x + 2, y - 2, 1, 1);
+      const caps = [];
+      for (let i = 0; i < 3; i++) caps.push([6 + r() * 18, 10 + r() * 14, i]);
+      caps.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
+      for (const [u, v, i] of caps) {
+        column(g, u, v, 1.3, 0, 7, { light: '#fffaf0', mid: '#efe6d0', dark: '#c8bca0', top: '#efe6d0' });
+        drum(g, u, v, 7, 10, t => 4.5 - t * 2.5, i % 2 ? { edge: '#801818', light: '#e05050', mid: '#c03030', dark: '#801818' } : { edge: '#6a4420', light: '#c08a50', mid: '#a0703a', dark: '#6a4420' });
+        const [x, y] = P(u, v, 10); rect(g, '#fff', x - 2, y, 1, 1); rect(g, '#fff', x + 1, y - 1, 1, 1);
       }
     },
 
@@ -1393,10 +1474,12 @@ const Sprites = (() => {
       onSouth(g, 24, f => { rect(f, '#d8b040', 14, 7, 4, 4); rect(f, '#3a2210', 15, 8, 2, 2); });
       const [sx, sy] = P(27, 24, 13); rect(g, '#e8e0d0', sx, sy, 3, 6); rect(g, '#c8c0b0', sx, sy + 5, 4, 2); // the sock
     },
+    // Crops: rows of stalks standing up, heavy with grain.
     crops(g, r) {
-      for (let x = 3; x < TILE; x += 6) {
-        line(g, '#8a7a3a', 1, x, 30, x + 1, 12);
-        for (let y = 12; y < 26; y += 4) { ellipse(g, '#d8b040', x + 2, y, 2, 1.5); ellipse(g, '#c8a030', x, y + 2, 2, 1.5); }
+      for (let v = 4; v < TILE; v += 7) for (let u = 3; u < TILE; u += 6) {
+        const h = 16 + r() * 4;
+        line3(g, '#8a7a3a', 1, u, v, 0, u + 0.5, v, h);
+        for (let z = h - 9; z <= h; z += 3) { const [x, y] = P(u, v, z); ellipse(g, '#d8b040', x + 1.5, y, 2, 1.5); ellipse(g, '#c8a030', x - 0.5, y + 1.5, 2, 1.5); }
       }
     },
     // A statue on a plinth: a bronze figure gone green, in a long coat, holding a sword straight up. Built in the
@@ -1538,36 +1621,35 @@ const Sprites = (() => {
       g.beginPath(); g.ellipse(64 + 16, 64 + 16.5, 10, 4.5, 0, 0.4, Math.PI * 1.1); g.stroke();
       for (const [dx, dy] of [[0, 0], [3, 1], [5, -1], [2, 3]]) line(g, '#e0c898', 1, 64 + 26, 64 + 19, 64 + 28 + dx, 64 + 20 + dy); // gnawed
     },
+    // Tall grass: blades standing up through the air, leaning this way and that.
     tallgrass(g, r) {
       for (let i = 0; i < 9; i++) {
-        const x = 6 + r() * 20, h = 6 + r() * 9, lean = (r() - 0.5) * 6;
-        line(g, r() < 0.5 ? '#3a7a2e' : '#5aa046', 1, x, 27, x + lean, 27 - h);
+        const u = 6 + r() * 20, v = 8 + r() * 18, h = 8 + r() * 12;
+        line3(g, r() < 0.5 ? '#3a7a2e' : '#5aa046', 1, u, v, 0, u + (r() - 0.5) * 6, v + (r() - 0.5) * 4, h);
       }
-      if (r() < 0.4) ellipse(g, '#e8d870', 10 + r() * 12, 14 + r() * 4, 1.5, 1.5);
+      if (r() < 0.4) { const [x, y] = P(10 + r() * 12, 12 + r() * 10, 16); ellipse(g, '#e8d870', x, y, 1.5, 1.5); }
     },
+    // A tree stump: a short round trunk, its cut top showing the rings, roots running into the ground.
     stump(g) {
-      shadow(g, 16, 26, 10, 3);
-      rect(g, '#5b3a1e', 9, 15, 14, 10);
-      rect(g, '#6f4826', 9, 15, 4, 10);
-      ellipse(g, '#c8a070', 16, 15, 7, 3);
-      ellipse(g, '#a87a48', 16, 15, 4.5, 2);
-      ellipse(g, '#8a5a30', 16, 15, 2, 1);
-      line(g, '#5b3a1e', 2, 9, 24, 5, 27);
-      line(g, '#5b3a1e', 2, 22, 24, 26, 27);
+      floorShadow(g, 10, 4);
+      for (const [du, dv] of [[-8, 3], [8, 2], [-2, 8]]) line3(g, '#5b3a1e', 2, 16, 16, 4, 16 + du, 16 + dv, 0);
+      column(g, 16, 16, 6, 0, 10, { light: '#7a5030', mid: '#5b3a1e', dark: '#3a2410', top: '#c8a070' });
+      const [x, y] = P(16, 16, 10);
+      ellipse(g, '#a87a48', x, y, 4, 4); ellipse(g, '#8a5a30', x, y, 1.8, 1.8);
     },
+    // A fallen log, lying east to west: its bark, and its cut east end showing the rings.
     log(g, r) {
-      shadow(g, 16, 26, 15, 3);
-      rect(g, '#5b3a1e', 2, 16, 26, 9);
-      rect(g, '#6f4826', 2, 16, 26, 3);
-      for (let i = 0; i < 6; i++) rect(g, '#4a2e16', 4 + r() * 22, 18 + r() * 5, 3, 1);
-      ellipse(g, '#c8a070', 28, 20.5, 3, 4.5);
-      ellipse(g, '#a87a48', 28, 20.5, 1.5, 2.5);
-      if (r() < 0.5) { ellipse(g, '#3a7a2e', 10, 16, 3, 1.5); ellipse(g, '#4a8a3c', 18, 16, 2, 1); } // moss
+      floorShadow(g, 15, 4);
+      prism(g, 2, 13, 27, 22, 0, 9, { top: '#6f4826', south: '#5b3a1e', east: '#4a2e16', edge: '#8a5a30' });
+      for (let i = 0; i < 6; i++) { const [x, y] = P(4 + r() * 22, 22, 2 + r() * 6); rect(g, '#4a2e16', x, y, 3, 1); }
+      const [ex, ey] = P(27, 17.5, 4.5); ellipse(g, '#c8a070', ex, ey, 3.5, 4.5); ellipse(g, '#a87a48', ex, ey, 1.6, 2.4);
+      if (r() < 0.5) { const [mx, my] = P(10, 15, 9); ellipse(g, '#3a7a2e', mx, my, 3, 1.5); ellipse(g, '#4a8a3c', mx + 7, my, 2, 1); } // moss
     },
+    // A dry bush: bare twigs spreading up and out from one root.
     dry_bush(g, r) {
       for (let i = 0; i < 10; i++) {
-        const a = -Math.PI * (0.15 + r() * 0.7), len = 5 + r() * 7;
-        line(g, r() < 0.5 ? '#8a6a3a' : '#a8844a', 1, 16, 26, 16 + Math.cos(a) * len, 26 + Math.sin(a) * len);
+        const a = r() * Math.PI * 2, len = 4 + r() * 6;
+        line3(g, r() < 0.5 ? '#8a6a3a' : '#a8844a', 1, 16, 17, 0, 16 + Math.cos(a) * len, 17 + Math.sin(a) * len, 5 + r() * 9);
       }
     },
     lilypad(g, r) {
@@ -1716,18 +1798,12 @@ const Sprites = (() => {
       poly(g, c, [...P(16.5, 16, 84), ...P(30, 16, 82), ...P(27, 16, 76), ...P(31, 16, 69), ...P(16.5, 16, 68)]);
       poly(g, 'rgba(255,255,255,0.25)', [...P(19, 16, 80), ...P(24, 16, 79), ...P(24, 16, 75), ...P(19, 16, 76)]);
     },
+    // An ancient tree: a massive trunk on great roots, a huge old crown.
     ancient_tree(g, r) {
-      shadow(g, 40, 60, 24, 5);
-      for (const [x0, x1] of [[30, 22], [52, 62], [40, 34], [46, 54]]) line(g, '#4a2e16', 4, (x0 + x1) / 2, 50, x1, 60);
-      poly(g, '#5b3a1e', [32, 62, 52, 62, 48, 26, 36, 26]);
-      poly(g, '#6f4826', [32, 62, 40, 62, 40, 26, 36, 26]);
-      ellipse(g, '#1f4a1c', 38, 22, 26, 20);
-      ellipse(g, '#2a5f25', 34, 18, 22, 16);
-      ellipse(g, '#347330', 30, 13, 15, 10);
-      for (let i = 0; i < 60; i++) {
-        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 22;
-        rect(g, r() < 0.5 ? '#1c4019' : '#4a8a3c', 36 + Math.cos(a) * d * 1.1, 19 + Math.sin(a) * d * 0.8, 2, 2);
-      }
+      floorShadow(g, 22, 8);
+      for (const [du, dv] of [[-10, 4], [10, 2], [-4, 11], [8, -7], [-9, -6]]) line3(g, '#4a2e16', 4, 16, 16, 9, 16 + du, 16 + dv, 0);
+      column(g, 16, 16, 6, 0, 36, { light: '#7a5432', mid: '#5b3a1e', dark: '#3a2410', top: '#c8a070' });
+      leafCrown(g, r, 16, 16, 50, 20, 13, 70, { shade: '#122e10', dark: '#1f4a1c', mid: '#2a5f25', light: '#347330', glint: '#4a8a3c', size: 6 });
     },
     ice_spike(g, r) {
       shadow(g, 16, 28, 11, 3);

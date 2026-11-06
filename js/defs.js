@@ -180,6 +180,10 @@ const THINGS = {
   statue:      { name: 'old statue', cat: 'Furniture', block: true, tall: true },
   well:        { name: 'well', cat: 'Furniture', block: true, low: true },
   // The bell of Oakvale, high in the bell tower over the temple: 2x2 tiles, each showing its part of the one big bell.
+  // A wide archway in a wall, three tiles across, with no door: you walk straight through (drawn as one, see BIG.arch).
+  arch_w:      { name: 'archway', cat: 'Walls', wall: 'thin' },
+  arch_m:      { name: 'archway', cat: 'Walls', wall: 'thin' },
+  arch_e:      { name: 'archway', cat: 'Walls', wall: 'thin' },
   bell_nw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_ne:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_sw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
