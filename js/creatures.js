@@ -80,7 +80,7 @@ const MONSTERS = {
     loot: { gold: [10, 25], items: [['wolf_pelt', 1, 1, 2], ['meat', 0.8, 1, 3], ['health_potion', 0.3]] },
   },
   old_snapper: { // the oldest crab on Lighthouse Point: a shell like a cart wheel
-    name: 'Old Snapper', proper: true, hp: 170, xp: 100, dmg: [2, 22], defense: 4, armor: 9, speed: 150, attackSpeed: 1700, aggro: 5, corpse: 'blood',
+    name: 'Old Snapper', proper: true, hp: 150, xp: 100, dmg: [2, 20], defense: 4, armor: 5, speed: 150, attackSpeed: 1700, aggro: 5, corpse: 'blood',
     respawn: 300000,
     loot: { gold: [15, 35], items: [['crab_claw', 1, 2, 3], ['pearl', 0.3], ['health_potion', 0.4]] },
   },
