@@ -11,21 +11,41 @@ const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1,
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
-  CREATURE_LEAN: 1, // 1: exactly the walls' slant
+  CREATURE_LEAN: 0.2, // a touch of the walls' slant (1 would be exactly the walls' 45 degrees: too much for a figure)
   // It has some depth too: a darker copy of it a few pixels behind (north of) it, which shows along its top and
   // its east side, as a block's top and east face do.
-  CREATURE_DEPTH: 3,
+  CREATURE_DEPTH: 2,
   slanted(g, img, px, py, draw) {
     const foot = py + img.height - 2;
     g.save();
     g.transform(1, 0, Render.CREATURE_LEAN, 1, -foot * Render.CREATURE_LEAN, 0); // x' = x + lean * (y - foot)
     if (Render.CREATURE_DEPTH) {
       const back = Render.shadeOf(img), a = g.globalAlpha;
-      for (let d = Render.CREATURE_DEPTH; d >= 1; d--) g.drawImage(back, px + d * 0.5, py - d); // further back: up (north), a little east
+      for (let d = Render.CREATURE_DEPTH; d >= 1; d--) g.drawImage(back, px + d * 0.8, py - d * 0.6); // its shaded east side and top, behind it
       g.globalAlpha = a;
     }
     draw();
     g.restore();
+  },
+  // A picture made round: lit on its left, in shade on its right, so a body, arms and a head look round, not flat.
+  roundOf(img) {
+    const cache = Render.rounds || (Render.rounds = new WeakMap());
+    let c = cache.get(img);
+    if (!c) {
+      c = document.createElement('canvas');
+      Object.assign(c, { width: img.width, height: img.height });
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      g.globalCompositeOperation = 'source-atop';
+      const gr = g.createLinearGradient(img.width * 0.15, 0, img.width * 0.85, 0);
+      gr.addColorStop(0, 'rgba(255,250,235,0.16)');
+      gr.addColorStop(0.45, 'rgba(255,255,255,0)');
+      gr.addColorStop(1, 'rgba(10,8,20,0.32)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, img.width, img.height);
+      cache.set(img, c);
+    }
+    return c;
   },
   // A darker copy of a picture (its sides in shade), made once per picture.
   shadeOf(img) {
@@ -294,8 +314,8 @@ const Render = {
           const lift = o.img.width - TILE + (o.lift || 0);
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
           const px = Math.round(ox + (o.vx ?? o.x) * TILE - lift), py = Math.round(oy + (o.vy ?? o.y) * TILE - lift);
-          if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures stand in the walls' slant too
-            g.drawImage(o.img, px, py);
+          if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant
+            g.drawImage(Render.roundOf(o.img), px, py);
             if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
           });
           else {
