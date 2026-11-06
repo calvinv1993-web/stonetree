@@ -43,6 +43,8 @@ if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fitView).observe($
 fitView();
 
 // ---- keyboard --------------------------------------------------------------------------
+// A clicked button keeps the keyboard's focus, so Space (target the next monster) would press it again: let go of it.
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b && !b.closest('.dialog')) b.blur(); });
 window.addEventListener('keydown', e => {
   if (paused || !player || e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
   const k = e.key.toLowerCase();

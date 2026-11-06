@@ -152,7 +152,7 @@ function renderGuide() {
   $('guideFold').textContent = guideFolded ? '▸' : '▾';
   // top left over the game; on a phone just under the health bars, in the margin if there is one
   box.style.left = `${touchScreen ? 4 : view.offsetLeft + 8}px`;
-  box.style.top = `${touchScreen ? 44 : view.offsetTop + 8}px`;
+  box.style.top = `${touchScreen ? 44 : Math.max(view.getBoundingClientRect().top, 0) + 8}px`; // (never above the window)
   $('guideStep').textContent = `${player.tutorial} / ${GUIDE.length}`;
   $('guideText').textContent = text;
   $('guideNow').textContent = now;
@@ -1569,7 +1569,9 @@ function setRideMode(on) {
 function toggleWorldMap(ride = false) {
   const w = $('worldmap');
   w.hidden = !w.hidden;
-  worldMap.z = null;
+  // upstairs in a building (a temple, a tower), its own floor is mostly empty: open on the ground outside instead
+  const indoors = player.z > map.surfaceZ && map.get(player.x, player.y, player.z + 1) && THINGS[(map.get(player.x, player.y, player.z + 1).ground) || 'grass'].roof;
+  worldMap.z = indoors || map.isShelter(player.x, player.y, player.z) && player.z > map.surfaceZ ? map.surfaceZ : null;
   worldMap.center = null;
   setRideMode(!w.hidden && ride);
   document.body.classList.remove('panel-open'); // on a phone, the drawer would cover it

@@ -770,7 +770,7 @@ function createDefaultMap() {
       placedAt.push({ x: p[0], y: p[1], z, pack: packs });
       if ((placed + 1) % (PACK[type] || 3) === 0) { centre++; misses = 0; at = null; }
       taken.add(`${p[0]},${p[1]},${z}`);
-      m.spawns.push({ type, x: p[0], y: p[1], z });
+      m.spawns.push({ type, x: p[0], y: p[1], z, ...(type === 'rat' ? { lurk: true } : {}) }); // (rats only see you up close: a newcomer meets them a few at a time)
       placed++;
     }
   }
