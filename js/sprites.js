@@ -486,15 +486,15 @@ const Sprites = (() => {
   // corner (so even tall ones have room and are never cut off), every point (u, v) on the tile at
   // height z is drawn z pixels up and z pixels to the left - the same slant as walls and roofs. So
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
-  // Everything that stands on a tile is drawn in this one slant. Figures (statues, dummies, the scarecrow)
-  // stand on bases in the slant but are upright themselves, like the people and creatures walking past.
+  // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
+  // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
   const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
-    'fallen_pillar', 'cauldron', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
+    'fallen_pillar', 'fence', 'cauldron', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
@@ -1059,39 +1059,21 @@ const Sprites = (() => {
     steps_top() {},
     door: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, true),
     door_closed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false),
-    // A fence joins the fences next to it ('wnse' flags, as for walls): a post on its
-    // tile, two rails towards each neighbouring fence. A lone fence is a short stretch
-    // east-west. Rails running north-south are seen from above, as two parallel bars.
+    // A fence joins the fences next to it ('wnse' flags, as for walls): a post in the middle of its tile and two rails
+    // towards each neighbouring fence, all in the walls' slant. A lone fence is a short stretch east-west.
     fence(g, r, frame, shape) {
       const n = wallSides(/^[01]{4}$/.test(shape) ? shape : '0000'), lone = !n.w && !n.e && !n.n && !n.s;
-      const rail = '#8a5a2a', lit = '#b07a42', dark = '#4a2c12', post = '#6a4422';
-      const vertical = (y0, y1) => { // two rails along the north-south run, from y0 to y1
-        rect(g, 'rgba(0,0,0,0.22)', 12, y0 + 2, 10, y1 - y0);
-        for (const x of [11, 18]) {
-          rect(g, dark, x - 1, y0, 5, y1 - y0);
-          rect(g, rail, x, y0, 3, y1 - y0);
-          rect(g, lit, x, y0, 1, y1 - y0);
-        }
-      };
-      const across = (x0, x1) => { // two rails east-west, at knee and hip height
-        rect(g, 'rgba(0,0,0,0.22)', x0, 26, x1 - x0, 2);
-        for (const y of [13, 20]) {
-          rect(g, dark, x0, y - 1, x1 - x0, 5);
-          rect(g, rail, x0, y, x1 - x0, 3);
-          rect(g, lit, x0, y, x1 - x0, 1);
-        }
-      };
-      if (n.n) vertical(0, 16);
-      if (n.w || lone) across(0, 16);
-      if (n.e || lone) across(16, TILE);
-      if (n.s) vertical(16, TILE);
-      // the post
-      shadow(g, 16, 28, 5, 2);
-      rect(g, dark, 12, 7, 9, 22);
-      rect(g, post, 13, 8, 7, 20);
-      rect(g, '#7e5230', 13, 8, 2, 20);
-      rect(g, lit, 13, 8, 7, 2);
-      rect(g, dark, 13, 10, 7, 1);
+      const rail = { top: '#b07a42', south: '#8a5a2a', east: '#5e3a18', edge: '#c88e52' };
+      const post = { top: '#8a5a30', south: '#6a4422', east: '#4a2c12', edge: '#a8743e' };
+      floorShadow(g, 6, 2);
+      const rails = (u0, v0, u1, v1) => { for (const z of [9, 18]) prism(g, u0, v0, u1, v1, z, z + 3, rail); };
+      // what lies behind the post (north and west) first, then the post, then what lies in front of it
+      if (n.n) rails(15, 0, 17, 15);
+      if (n.w || lone) rails(0, 15, 15, 17);
+      prism(g, 14, 14, 18, 18, 0, 24, post);
+      prism(g, 13.5, 13.5, 18.5, 18.5, 24, 25.5, post); // its cap
+      if (n.e || lone) rails(18, 15, 32, 17);
+      if (n.s) rails(15, 18, 17, 32);
     },
 
     // A leafy tree: a trunk, and a round crown of three greens, lit from the top-left.
@@ -1417,28 +1399,35 @@ const Sprites = (() => {
         for (let y = 12; y < 26; y += 4) { ellipse(g, '#d8b040', x + 2, y, 2, 1.5); ellipse(g, '#c8a030', x, y + 2, 2, 1.5); }
       }
     },
-    // A statue on a plinth: a stone figure holding a sword.
-    // A statue of the town's founder on a plinth: legs, a long coat, arms, a head, and a sword held up -
-    // all in the same slant as the walls and pillars.
-    // A statue of the town's founder: a stone plinth in the tiles' slant, and on it, standing upright like
-    // the people who walk past, a bronze figure in a long coat holding a sword up.
+    // A statue on a plinth: a bronze figure gone green, in a long coat, holding a sword straight up. Built in the
+    // tiles' slant, as a pillar is: every part a block or a round body standing on the plinth.
     statue(g) {
       floorShadow(g, 13, 3);
-      prism(g, 4, 4, 28, 28, 0, 8, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
-      prism(g, 6, 6, 26, 26, 8, 12, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
-      const [x, y] = P(16, 18, 12); // where the figure stands
-      const L = '#8ab8a4', M = '#5e8c7a', D = '#3a5e50'; // old bronze, gone green
-      rect(g, D, x - 5, y - 14, 4, 14); rect(g, M, x + 1, y - 14, 4, 14);                     // legs
-      poly(g, M, [x - 8, y - 10, x + 8, y - 10, x + 6, y - 30, x - 6, y - 30]);                 // the coat
-      poly(g, L, [x - 8, y - 10, x - 1, y - 10, x - 1, y - 30, x - 6, y - 30]);
-      rect(g, D, x - 1, y - 30, 1, 20);
-      poly(g, L, [x - 6, y - 30, x - 10, y - 18, x - 7, y - 17, x - 4, y - 27]);                 // the left arm
-      poly(g, M, [x + 5, y - 29, x + 10, y - 33, x + 11, y - 30, x + 6, y - 26]);                // the right arm, raised
-      rect(g, '#7aa898', x + 10, y - 52, 2, 20); rect(g, '#b4dccb', x + 10, y - 52, 1, 20);    // the sword
-      rect(g, M, x + 7, y - 33, 8, 2);                                                          // its crossguard
-      rect(g, M, x - 2, y - 33, 4, 3);                                                          // the neck
-      ellipse(g, M, x, y - 37, 5, 5.5); ellipse(g, L, x - 1.5, y - 38.5, 3, 3.5);              // the head
-      poly(g, D, [x - 5, y - 40, x + 5, y - 40, x + 4, y - 43, x - 4, y - 43]);                // hair
+      const stone = { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' };
+      prism(g, 4, 4, 28, 28, 0, 8, stone);
+      prism(g, 6, 6, 26, 26, 8, 12, stone);
+      const bronze = { top: '#a8d4c0', south: '#6a9a86', east: '#3e6656', edge: '#c8ecdc' };
+      const dark = { top: '#5e8c7a', south: '#3e6656', east: '#2a4a3e', edge: '#7aa898' };
+      const round = { edge: '#2a4a3e', light: '#b4dccb', mid: '#6a9a86', dark: '#3e6656' };
+      prism(g, 11, 14, 15, 19, 12, 22, dark);                  // boots
+      prism(g, 17, 14, 21, 19, 12, 22, dark);
+      prism(g, 9, 12, 23, 22, 20, 34, bronze);                 // the coat's skirt, wide
+      onSouth(g, 22, f => rect(f, 'rgba(30,54,44,0.7)', 15.5, 20, 1, 14)); // its opening
+      prism(g, 10, 13, 22, 21, 34, 46, bronze);                // the chest
+      prism(g, 9.5, 12.5, 22.5, 21.5, 33, 35, dark);           // the belt
+      onSouth(g, 21.5, f => { rect(f, '#d8c070', 14.5, 33, 3, 2); for (const z of [38, 42]) rect(f, '#3e6656', 15.5, z, 1, 1); }); // buckle, buttons
+      prism(g, 6.5, 13, 25.5, 20.5, 45, 49, bronze);           // broad shoulders
+      prism(g, 6.5, 14, 9.5, 19, 30, 45, bronze);              // the left arm, hanging
+      prism(g, 6.5, 14.5, 9.5, 18.5, 27, 30, dark);            // its fist
+      prism(g, 22.5, 14, 25.5, 19, 49, 60, bronze);            // the right arm, raised
+      prism(g, 14, 15, 18, 19, 49, 51, dark);                  // the neck
+      const [hx, hy] = drum(g, 16, 17, 51, 61, t => 4.2 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1.4, round); // the head
+      drum(g, 16, 16.5, 58, 62, t => 4.6 - t * 2, { edge: '#22382f', light: '#5e8c7a', mid: '#3e6656', dark: '#22382f' }); // hair
+      const [fx, fy] = [hx, hy + 6]; // the face, on the head's front
+      rect(g, '#22382f', fx - 2.5, fy - 0.5, 1.5, 1); rect(g, '#22382f', fx + 1, fy - 0.5, 1.5, 1); rect(g, '#2a4a3e', fx - 0.5, fy + 1, 1, 1.5);
+      prism(g, 22.5, 15, 25.5, 18, 60, 62, dark);              // the hilt in the fist
+      prism(g, 20.5, 15.8, 27.5, 17.2, 62, 64, bronze);        // the crossguard
+      prism(g, 23.3, 16, 24.7, 17, 64, 86, { top: '#d4f4e8', south: '#9ac8b4', east: '#6a9a86', edge: '#f0fff8' }); // the blade
     },
     rails(g) {
       for (let y = 2; y < TILE; y += 6) rect(g, '#5a3a1e', 6, y, 20, 3);
@@ -1912,36 +1901,35 @@ const Sprites = (() => {
     // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
     // A training dummy: a post, a straw-stuffed body with a painted target, arms and a head.
 // A straw-stuffed sack on a post, a crossbar for arms and a painted target: for practice.
-    // A training dummy: a post, a straw-stuffed body with a painted target, a crossbar for arms, a head.
-    // A training dummy, upright: a post in the ground, a straw-stuffed body with a painted target, a
-    // crossbar for arms and a straw head.
+    // A training dummy in the tiles' slant: a post, a straw-stuffed body with a target on its front, a crossbar for
+    // arms and a straw head.
     dummy(g) {
       floorShadow(g, 9, 3);
-      const [x, y] = P(16, 18, 0);
-      rect(g, '#4a2c12', x - 2, y - 26, 4, 26); rect(g, '#6a4422', x - 2, y - 26, 1, 26);
-      rect(g, '#5a3618', x - 13, y - 32, 26, 3); rect(g, '#8a5a2c', x - 13, y - 32, 26, 1);
-      ellipse(g, '#a88848', x + 1, y - 21, 8, 10); ellipse(g, '#d0b070', x, y - 22, 7.5, 9.5); ellipse(g, '#e8d090', x - 3, y - 25, 3, 4);
-      for (let i = 0; i < 5; i++) line(g, '#a08048', 1, x - 5 + i * 2.5, y - 30, x - 6 + i * 2.5, y - 14);
-      ellipse(g, '#c03a2a', x, y - 22, 4, 4); ellipse(g, '#e8d8b0', x, y - 22, 2.6, 2.6); ellipse(g, '#c03a2a', x, y - 22, 1, 1);
-      rect(g, '#6a4422', x - 7, y - 15, 14, 2);
-      ellipse(g, '#c0a060', x + 0.5, y - 36, 5, 5); ellipse(g, '#e0c880', x - 1, y - 37, 3.5, 3.5);
+      const wood = { top: '#7a4e28', south: '#5a3618', east: '#3e2410', edge: '#8a5a2e' };
+      prism(g, 15, 16, 17, 18, 0, 16, wood);                   // the post
+      const straw = { edge: '#8a6a30', light: '#e8d090', mid: '#d0b070', dark: '#a08048' };
+      const [bx, by] = drum(g, 16, 17, 14, 34, t => 6 + 1.5 * Math.sin(t * Math.PI), straw); // the body
+      for (const z of [18, 30]) frontRing(g, 16, 17, z, 7.2, 'rgba(110,80,30,0.7)', 1.5);   // its cords
+      const [tx, ty] = P(16, 17, 24); // the target, on its front
+      ellipse(g, '#c03a2a', tx, ty + 7.5, 3.8, 3); ellipse(g, '#e8d8b0', tx, ty + 7.5, 2.4, 1.9); ellipse(g, '#c03a2a', tx, ty + 7.5, 1, 0.8);
+      prism(g, 4, 16, 28, 18, 30, 33, wood);                   // the crossbar
+      prism(g, 15, 16, 17, 18, 34, 37, wood);
+      drum(g, 16, 17, 37, 45, t => 3.8 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1, straw); // the head
+      void bx; void by;
     },
-    // A scarecrow: a post and crossbar in old clothes, a straw head and a hat.
-    // A scarecrow: a tall post and crossbar in an old coat, straw hands, a sack head and a battered hat.
-    // A scarecrow, upright: a tall post and crossbar in an old coat, straw hands, a sack head, a hat.
+    // A scarecrow in the tiles' slant: a post and a crossbar, an old patched coat, straw hands, a sack head and a hat.
     scarecrow(g) {
       floorShadow(g, 9, 3);
-      const [x, y] = P(16, 18, 0);
-      rect(g, '#4a2c12', x - 2, y - 40, 3, 40); rect(g, '#6a4422', x - 2, y - 40, 1, 40);
-      rect(g, '#5a3618', x - 15, y - 34, 30, 3);
-      poly(g, '#5a4a28', [x - 8, y - 34, x + 8, y - 34, x + 7, y - 14, x - 7, y - 14]);
-      poly(g, '#8a7a40', [x - 8, y - 34, x, y - 34, x, y - 14, x - 7, y - 14]);
-      rect(g, '#6a3a2a', x - 7, y - 24, 14, 2); // a patch
-      for (const dx of [-17, 13]) { rect(g, '#e0c050', x + dx, y - 35, 4, 5); rect(g, '#f4dc80', x + dx, y - 35, 2, 2); }
-      ellipse(g, '#c8b080', x + 0.5, y - 39, 6, 6); ellipse(g, '#e0c890', x - 1, y - 40, 4.5, 4.5);
-      rect(g, '#2a2a2a', x - 3, y - 41, 2, 2); rect(g, '#2a2a2a', x + 2, y - 41, 2, 2); rect(g, '#2a2a2a', x - 2, y - 37, 5, 1);
-      ellipse(g, '#3a2e1a', x, y - 44, 10, 2.5); poly(g, '#5a4a2a', [x - 5, y - 44, x + 5, y - 44, x + 4, y - 52, x - 4, y - 52]);
-      poly(g, '#7a6a44', [x - 5, y - 44, x - 1, y - 44, x - 1, y - 52, x - 4, y - 52]);
+      const wood = { top: '#7a4e28', south: '#5a3618', east: '#3e2410', edge: '#8a5a2e' };
+      prism(g, 15, 16, 17, 18, 0, 44, wood);                   // the post
+      prism(g, 3, 16, 29, 18, 36, 39, wood);                   // the crossbar
+      taper(g, 10, 14, 22, 20, 16, 38, 1, { top: '#8a7a40', south: '#5a4a28', east: '#40341c', edge: '#a89a58' }); // the coat
+      onSouth(g, 19, f => { rect(f, '#6a3a2a', 12, 26, 8, 4); rect(f, '#3a2e1a', 15.5, 16, 1, 20); }); // a patch, the coat's opening
+      for (const u of [2, 27]) prism(g, u, 15.5, u + 3, 18.5, 33, 38, { top: '#f4dc80', south: '#e0c050', east: '#b89a30', edge: '#fff0a0' }); // straw hands
+      const [hx, hy] = drum(g, 16, 17, 38, 47, t => 4.6 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1, { edge: '#a89060', light: '#e0c890', mid: '#c8b080', dark: '#8a7448' }); // the sack head
+      rect(g, '#2a2a2a', hx - 3, hy + 5, 2, 2); rect(g, '#2a2a2a', hx + 1.5, hy + 5, 2, 2); rect(g, '#2a2a2a', hx - 2, hy + 8.5, 5, 1);
+      drum(g, 16, 17, 47, 48, () => 8, { edge: '#2a2010', light: '#5a4a2a', mid: '#3a2e1a', dark: '#2a2010' });    // the hat's brim
+      drum(g, 16, 17, 48, 55, t => 4.2 - t, { edge: '#3a2e1a', light: '#7a6a44', mid: '#5a4a2a', dark: '#3a2e1a' }); // its crown
     },
     // A marble pillar: a square plinth, a round fluted shaft, a square capital.
     pillar(g) {
