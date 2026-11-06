@@ -1,7 +1,7 @@
 'use strict';
 // Monsters, conditions, fields, vocations, skills and spells.
 
-// dmg: melee [min, max]; speed: how fast it walks, as a player's speed (220 at level 1; see stepTime); attackSpeed: ms between attacks;
+// dmg: melee [min, max]; speed: how fast it walks, as a player's speed (240 at level 1; see stepTime); attackSpeed: ms between attacks;
 // aggro: tiles at which it notices you (and anything on your screen sees you, see monsterTarget);
 // defense: blocks weapon hits (half of it to all of it); armor: absorbs physical damage (about half of it to all);
 // weak: damage multipliers per element; immune: elements/conditions it ignores;
@@ -34,7 +34,7 @@ const MONSTERS = {
     loot: { gold: [0, 3], items: [['spider_silk', 0.3]] },
   },
   wolf: {
-    name: 'wolf', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 240, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
+    name: 'wolf', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { gold: [0, 3], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale

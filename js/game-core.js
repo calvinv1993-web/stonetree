@@ -234,7 +234,7 @@ function bumpDoor(x, y, z) {
 // so at a low level a wolf is quicker than you), and a step takes 1000 x the ground's speed / your speed in ms
 // (see GROUND_SPEED), three times as long on a diagonal, rounded up to whole ticks of 50 ms.
 function speedOf(c) {
-  let speed = c.type === 'player' ? 220 + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
+  let speed = c.type === 'player' ? 240 + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
   const cond = c.conditions || {};
   if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
   if (cond.haste) speed /= CONDITIONS.haste.speed;
@@ -242,7 +242,7 @@ function speedOf(c) {
   if (ring && ring.speed) speed /= ring.speed;
   return speed;
 }
-const DIAGONAL_STEP = 3; // a diagonal step takes three times as long, as in Tibia: you go straight where you can
+const DIAGONAL_STEP = 2; // a diagonal step takes twice as long: you go straight where you can
 function stepTime(c, ground, diagonal) {
   return Math.ceil((1000 * groundSpeed(ground) / speedOf(c)) * (diagonal ? DIAGONAL_STEP : 1) / 50) * 50;
 }

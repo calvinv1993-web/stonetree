@@ -543,6 +543,26 @@ test('in the deep cistern the giant rats lurk: they notice you only when you com
   assert.strictEqual(ctx.monsterTarget(near), p, 'one three tiles off has');
 });
 
+test('picking a target while walking: with chase on you stop and go for it, with chase off you walk on', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 120, y: 170, z: 8 });
+  for (const chase of [true, false]) {
+    ctx.teleport({ x: 120, y: 170, z: 8 });
+    A.setChase(chase);
+    A.walkTo(132, 170);
+    tick(game, 300);
+    assert(p.path.length > 3, 'on the way');
+    const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 2, y: p.y + 3, z: 8 });
+    state.monsters.push(rat);
+    A.setTarget(rat.id);
+    assert.strictEqual(p.path.length > 0, !chase, chase ? 'chase on: the walk stops' : 'chase off: the walk goes on');
+    A.setTarget(rat.id); // (again: untarget)
+    state.monsters = [];
+  }
+});
+
 test('weapon hits as in Tibia: skill counts most, at least level / 5, and a monster\'s defense and armor can block a hit', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -708,16 +728,16 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
 });
 
-test('walking as in Tibia: speed grows with your level, ground counts, a diagonal step takes three times as long', () => {
+test('walking: speed grows with your level, ground counts, a diagonal step takes twice as long', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, vm = require('vm'), run = code => vm.runInContext(code, ctx);
-  assert.strictEqual(run('speedOf(player)'), 220, 'level 1: speed 220');
-  assert.strictEqual(run('stepTime(player, "cobble", false)'), 500, 'a road: 1000 x 100 / 220, up to whole ticks of 50 ms');
-  assert.strictEqual(run('stepTime(player, "grass", false)'), 700, 'grass is slower');
-  assert.strictEqual(run('stepTime(player, "grass", true)'), 2050, 'a diagonal step three times as long');
+  assert.strictEqual(run('speedOf(player)'), 240, 'level 1: speed 240');
+  assert.strictEqual(run('stepTime(player, "cobble", false)'), 450, 'a road: 1000 x 100 / 240, up to whole ticks of 50 ms');
+  assert.strictEqual(run('stepTime(player, "grass", false)'), 650, 'grass is slower');
+  assert.strictEqual(run('stepTime(player, "grass", true)'), 1250, 'a diagonal step twice as long');
   p.level = 21;
-  assert.strictEqual(run('speedOf(player)'), 260, 'two more for every level');
+  assert.strictEqual(run('speedOf(player)'), 280, 'two more for every level');
   const wolf = ctx.spawnMonster({ type: 'wolf', x: 130, y: 172, z: 8 }), rat = ctx.spawnMonster({ type: 'rat', x: 131, y: 172, z: 8 });
   p.level = 1;
   assert(run('speedOf(player)') < wolf.def.speed && run('speedOf(player)') > rat.def.speed, 'a wolf outruns a new character; a rat does not');

@@ -81,6 +81,8 @@ const Actions = {
     player.target = c && player.target !== c && !spared && (c.type !== 'player' || pvpAllowed(c)) ? c : null;
     if (spared) log(sameParty(player, c) ? 'They are in your party. Switch secure mode off to attack them anyway.' : 'Secure mode is on: switch it off to attack players without a skull.');
     else if (c && c.type === 'player' && !pvpAllowed(c)) log('You cannot attack this player here.');
+    // Picked a target while walking somewhere? With chase on, stop walking and go for it (the step under way ends first).
+    if (player.target && player.chase) Object.assign(player, { path: [], pathGoal: null, action: null, follow: null });
   },
   targetNext,
   targetNearest,
