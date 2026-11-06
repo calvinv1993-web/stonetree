@@ -3501,6 +3501,7 @@ const Sprites = (() => {
   const RAT = { tail: '#d9939a', body: '#7a7068', back: '#8d847b', head: '#857b72', ear: '#e0a0a6', eye: '#111' };
   const GIANT_RAT = { tail: '#c07a80', body: '#5a4434', back: '#6e5644', head: '#644c3a', ear: '#c88a8e', eye: '#e02a20' };
   function rat(g, dir, frame, c = RAT) {
+    if (Sprites.DOLLS) return ratDoll(g, dir, frame, c);
     const dx = DX[dir], dy = DY[dir], horiz = dx !== 0;
     const cx = 16, cy = 20 - (frame === 1 ? 1 : 0);
     shadow(g, 16, 26, 9, 3);
@@ -3521,6 +3522,7 @@ const Sprites = (() => {
   }
 
   function slime(g, dir, frame) {
+    if (Sprites.DOLLS) return slimeDoll(g, dir, frame);
     const sq = frame === 1 ? 1 : frame === 2 ? -1 : 0;
     shadow(g, 16, 27, 11, 3);
     ellipse(g, '#2f8f2c', 16, 20 + sq, 11 + sq, 8 - sq);
@@ -3535,6 +3537,7 @@ const Sprites = (() => {
   const SPIDER = { legs: '#1a1a1a', body: '#2a2a2a', mark: '#b02020', head: '#3a3030' };
   const GIANT_SPIDER = { legs: '#2a1a0e', body: '#4a3222', mark: '#e0b030', head: '#5a3c28', hairy: true };
   function spider(g, dir, frame, c = SPIDER) {
+    if (Sprites.DOLLS) return spiderDoll(g, dir, frame, c);
     const k = frame === 1 ? 1.5 : frame === 2 ? -1.5 : 0;
     shadow(g, 16, 25, 11, 3);
     for (let i = 0; i < 4; i++) {
@@ -3557,6 +3560,7 @@ const Sprites = (() => {
   const WOLF = { leg: '#5a5a5a', tail: '#6a6a6a', body: '#7a7a7a', light: '#a0a0a0', head: '#808080', ear: '#606060', eye: '#ffd040' };
   const ICE_WOLF = { leg: '#a8bccc', tail: '#c0d0dc', body: '#d0dce6', light: '#f0f6fa', head: '#dce6ee', ear: '#a8bccc', eye: '#40a0ff' };
   function wolf(g, dir, frame, c = WOLF) {
+    if (Sprites.DOLLS) return wolfDoll(g, dir, frame, c);
     const dx = DX[dir], lift = frame === 1 ? 2 : frame === 2 ? -2 : 0;
     shadow(g, 16, 27, 11, 3);
     if (dx !== 0) {
@@ -3673,6 +3677,7 @@ const Sprites = (() => {
   }
 
   function bear(g, dir, frame, c = { fur: '#6a4428', dark: '#4a2e18', snout: '#8a6a4a' }) {
+    if (Sprites.DOLLS) return bearDoll(g, dir, frame, c);
     const dx = DX[dir], lift = frame === 1 ? 2 : frame === 2 ? -2 : 0;
     shadow(g, 16, 28, 13, 3);
     if (dx !== 0) {
@@ -3963,6 +3968,7 @@ const Sprites = (() => {
   }
 
   function crab(g, dir, frame) {
+    if (Sprites.DOLLS) return crabDoll(g, dir, frame);
     const k = frame === 1 ? 1 : frame === 2 ? -1 : 0;
     shadow(g, 16, 25, 11, 3);
     for (const s of [-1, 1]) for (let i = 0; i < 3; i++) line(g, '#a8401f', 1.5, 16 + s * 6, 19 + i * 2, 16 + s * 13, 22 + i * 3 + (i % 2 ? k : -k));
@@ -4214,10 +4220,127 @@ const Sprites = (() => {
     }, 0.01);
     dollParts(g, dir, parts);
   }
+
+  // ---- beasts as dolls (group 2: the monsters of Oakvale) -------------------------------------------------
+  const FWD = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] };
+  // A rat: a long round body of two balls, a pointed head with ears and whiskers, four little legs, a bare tail.
+  function ratDoll(g0, dir, frame, c = RAT) {
+    shadow(g0, 16, 28, 9, 3);
+    outlined(g0, g => {
+      const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = FWD[dir], parts = [];
+      const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+      for (const [a, b, ph] of [[-2, 3, 1], [2, 3, -1], [-2, -2.5, -1], [2, -2.5, 1]]) part(a, b, 1, (u, v) => { const [su, sv] = turn(dir, 0, step * ph); dollLimb(g, u + su, v + sv, 0.3, u, v, 2.6, 0.9, shade(c.body, 0.8)); });
+      part(0, -5, 3, (u, v) => { const [tu, tv] = turn(dir, step * 1.5, -10); line(g, c.tail, 1.2, ...Q(u, v, 3), ...Q(u + tu * 0.5, v + tv * 0.5, 2), ...Q(u + tu, v + tv, 0.5)); }, -0.5);
+      part(0, -2, 4, (u, v) => dollBall(g, u, v, 4.2, 3.6, c.body));
+      part(0, 1.5, 4.4, (u, v) => { dollBall(g, u, v, 4.6, 3.4, c.back); });
+      part(0, 5, 4.5, (u, v) => {
+        dollBall(g, u, v, 4.6, 2.5, c.head);
+        const [su, sv] = [u + fwd[0] * 2.4, v + fwd[1] * 2.4]; dollBall(g, su, sv, 4, 1.5, c.head); // the snout
+        const [nx, ny] = Q(su + fwd[0] * 1.2, sv + fwd[1] * 1.2, 4); rect(g, '#e0a0a6', nx - 0.5, ny - 0.5, 1.2, 1);
+        for (const side of [-1, 1]) { const [eu, ev] = turn(dir, side * 1.8, -0.5); dollBall(g, u + eu, v + ev, 7, 1.3, c.ear); }
+        if (dir !== 0) for (const side of dir === 2 ? [-1, 1] : [0]) { const [eu, ev] = turn(dir, side * 1.2, 1.4); const [x, y] = Q(u + eu, v + ev, 5.4); rect(g, c.eye, x - 0.5, y - 0.5, 1.1, 1.1); }
+        if (dir !== 0) for (const k of [-1, 1]) line(g, 'rgba(230,230,230,0.6)', 0.5, nx, ny + 0.3, nx + k * 3, ny + k * 0.6);
+      }, 0.01);
+      dollParts(g, dir, parts);
+    });
+  }
+  // A spider: a round abdomen with its mark, a smaller head with fangs and eyes, eight jointed legs walking.
+  function spiderDoll(g0, dir, frame, c = SPIDER) {
+    shadow(g0, 16, 28, 11, 3);
+    outlined(g0, g => {
+      const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = FWD[dir], parts = [];
+      const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+      const legs = (u, v) => { // all eight legs, the far ones first
+        const list = [];
+        for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
+          const b0 = 2.6 - i * 1.9, ph = (i % 2 ? 1 : -1) * side * step * 1.2; // the four legs a side spread from front to back
+          const [ru, rv] = turn(dir, side * 2, b0 * 0.6), [ku, kv] = turn(dir, side * 6.5, b0 * 2.2 + ph), [fu, fv] = turn(dir, side * 10, b0 * 3.4 + ph);
+          list.push([[u + ru, v + rv, 4], [u + ku, v + kv, 6.5], [u + fu, v + fv, 0]]);
+        }
+        list.sort((x, y) => (x[1][1] + x[1][0] * 0.35) - (y[1][1] + y[1][0] * 0.35));
+        return list;
+      };
+      part(0, 0, 0, (u, v) => { for (const leg of legs(u, v).slice(0, 4)) { line(g, c.legs, 1.6, ...leg.flatMap(([a, b, z]) => Q(a, b, z))); } }, -0.4);
+      part(0, -3, 4, (u, v) => {
+        dollBall(g, u, v, 4.6, 4.4, c.body);
+        if (dir !== 2) { const [x, y] = Q(u, v, 7.4); poly(g, c.mark, [x, y - 1.6, x + 1.4, y, x, y + 1.6, x - 1.4, y]); }
+        if (c.hairy) for (let k = 0; k < 6; k++) { const [x, y] = Q(u + (k - 2.5) * 1.3, v, 6 + (k % 3)); rect(g, shade(c.body, 1.3), x, y, 1, 1); }
+      });
+      part(0, 2.5, 4, (u, v) => {
+        dollBall(g, u, v, 4, 2.6, c.head);
+        if (dir !== 0) { const [x, y] = Q(u + fwd[0] * 2, v + fwd[1] * 2, 4.4); for (const k of [-1, 1]) rect(g, '#ff3030', x + k * 1 - 0.5, y - 1, 1, 1); for (const k of [-0.8, 0.8]) line(g, '#d8d0c0', 0.8, x + k, y + 1, x + k * 1.2, y + 2.5); }
+      }, 0.01);
+      part(0, 0, 0, (u, v) => { for (const leg of legs(u, v).slice(4)) { line(g, c.legs, 1.6, ...leg.flatMap(([a, b, z]) => Q(a, b, z))); const [x, y] = Q(...leg[1]); rect(g, shade(c.legs, 1.6), x - 0.5, y - 0.5, 1, 1); } }, 0.4);
+      dollParts(g, dir, parts);
+    });
+  }
+  // A crab: a wide flat shell, two big claws held up in front, eyes on stalks, three legs a side.
+  function crabDoll(g0, dir, frame) {
+    shadow(g0, 16, 28, 11, 3);
+    outlined(g0, g => {
+      const k = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = FWD[dir], parts = [], shell = '#d0582a', dark = '#a8401f';
+      const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+      for (const side of [-1, 1]) for (let i = 0; i < 3; i++) part(side * 7, -1 + i * 1.5, 1, (u, v) => {
+        const [ru, rv] = turn(dir, side * 4.5, -1.5 + i * 1.6), [ku, kv] = turn(dir, side * 8, -2 + i * 2 + (i % 2 ? k : -k) * 0.6), [fu, fv] = turn(dir, side * 9.5, -2.5 + i * 2.3);
+        const [cu, cv] = [u - turn(dir, side * 7, -1 + i * 1.5)[0], v - turn(dir, side * 7, -1 + i * 1.5)[1]];
+        line(g, dark, 1.4, ...Q(cu + ru, cv + rv, 3), ...Q(cu + ku, cv + kv, 5), ...Q(cu + fu, cv + fv, 0));
+      });
+      part(0, 0, 3, (u, v) => {
+        dollBox(g, dir, u, v, 11, 8, 1.5, 4.5, { south: dark, top: shell });
+        const [x, y] = Q(u, v, 4.5); ellipse(g, shell, x, y, 6.3, 3.2); ellipse(g, shade(shell, 1.25), x - 1.5, y - 0.8, 3, 1.4);
+      });
+      for (const side of [-1, 1]) part(side * 4.5, 5.5, 5, (u, v) => { // the claws, raised and snapping
+        const [au, av] = [u - turn(dir, side * 4.5, 5.5)[0] + turn(dir, side * 3.5, 3.5)[0], v - turn(dir, side * 4.5, 5.5)[1] + turn(dir, side * 3.5, 3.5)[1]];
+        dollLimb(g, au, av, 3.5, u, v, 5 + k, 1, dark);
+        dollBall(g, u, v, 5.5 + k, 2.4, shell);
+        const [x, y] = Q(u + fwd[0] * 1.5, v + fwd[1] * 1.5, 6.2 + k); line(g, shade(shell, 0.6), 1, x - 1.5, y, x + 1.5, y - (k > 0 ? 1 : 0));
+      }, 0.02);
+      part(0, 3, 6, (u, v) => { if (dir === 0) return; for (const side of dir === 2 ? [-1, 1] : [0]) { const [eu, ev] = turn(dir, side * 1.6, 3); dollLimb(g, u + eu, v + ev, 4.5, u + eu, v + ev, 7.2, 0.5, dark); const [x, y] = Q(u + eu, v + ev, 7.6); ellipse(g, '#111', x, y, 1, 1); rect(g, '#fff', x - 0.6, y - 0.6, 0.6, 0.6); } }, 0.03);
+      dollParts(g, dir, parts);
+    });
+  }
+  // A slime: a wobbling dome of goo, see-through at its edge, with a glint on top and two dark eyes.
+  function slimeDoll(g0, dir, frame) {
+    shadow(g0, 16, 28, 11, 3);
+    outlined(g0, g => {
+      const sq = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = FWD[dir], h = 10 - sq * 1.5, w = 10 + sq;
+      for (let z = 0; z <= h; z += 0.5) { // a dome, slice by slice
+        const r = w * Math.sqrt(Math.max(0, 1 - (z / h) ** 2)) + 0.4, [x, y] = Q(0, 0, z);
+        const gr = g.createLinearGradient(x - r, y, x + r, y);
+        gr.addColorStop(0, '#62d058'); gr.addColorStop(0.35, '#3ea83a'); gr.addColorStop(1, '#1a5a18');
+        g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, r, r * DOLL_DEPTH, 0, 0, Math.PI * 2); g.fill();
+      }
+      const [tx, ty] = Q(-2.5, -1, h - 1.5); ellipse(g, 'rgba(220,255,210,0.75)', tx, ty, 2.2, 1.2); // a glint
+      if (dir !== 0) { const [ex, ey] = Q(fwd[0] * 4, fwd[1] * 4, h * 0.55); for (const k of dir === 2 ? [-2, 2] : [0]) ellipse(g, '#0e2a0c', ex + k, ey, 1, 1.4); }
+      for (const [a, b] of [[-6, 3], [5, 4], [1, -5]]) { const [x, y] = Q(a, b, 0.5); ellipse(g, 'rgba(60,170,55,0.55)', x, y, 1.6, 0.8); } // drips
+    });
+  }
+
+  // A bear: a big round body on four thick legs, a hump at the shoulders, a round head with small ears and a snout.
+  function bearDoll(g0, dir, frame, c = { fur: '#6a4428', dark: '#4a2e18', snout: '#8a6a4a' }) {
+    shadow(g0, 16, 28, 13, 4);
+    outlined(g0, g => {
+      g.translate(16, 29); g.scale(1.2, 1.2); g.translate(-16, -29);
+      const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = FWD[dir], parts = [];
+      const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
+      for (const [a, b, ph] of [[-3, 3.5, 1], [3, 3.5, -1], [-3, -4, -1], [3, -4, 1]]) part(a, b, 3, (u, v) => { const [su, sv] = turn(dir, 0, step * ph * 1.3); dollLimb(g, u + su, v + sv, 0.8, u, v, 7, 2, c.dark); dollBall(g, u + su, v + sv, 0.8, 1.6, c.dark); });
+      part(0, -3, 8, (u, v) => dollBall(g, u, v, 8, 5.4, c.fur));
+      part(0, 2, 8.5, (u, v) => { dollBall(g, u, v, 9, 5.6, c.fur); const [x, y] = Q(u, v, 13.5); ellipse(g, shade(c.fur, 1.25), x - 1, y, 3, 1.2); }); // the hump
+      part(0, 7, 10, (u, v) => {
+        dollBall(g, u, v, 10, 3.8, c.fur);
+        for (const side of [-1, 1]) { const [eu, ev] = turn(dir, side * 2.6, -0.5); dollBall(g, u + eu, v + ev, 13.4, 1.3, c.dark); }
+        if (dir !== 0) {
+          const [su, sv] = [u + fwd[0] * 3, v + fwd[1] * 3]; dollBall(g, su, sv, 9, 1.9, c.snout);
+          const [nx, ny] = Q(su + fwd[0] * 1.5, sv + fwd[1] * 1.5, 9.5); ellipse(g, '#1a1010', nx, ny, 1, 0.8);
+          for (const side of dir === 2 ? [-1, 1] : [0]) { const [eu, ev] = turn(dir, side * 1.6, 2.6); const [x, y] = Q(u + eu, v + ev, 11.2); rect(g, '#120a06', x - 0.5, y - 0.5, 1.1, 1.1); }
+        }
+      }, 0.01);
+      dollParts(g, dir, parts);
+    });
+  }
   function creatureDrawer(key) {
     const look = lookFor(key);
     if (look) return (g, d, f) => (Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
-    if (Sprites.DOLLS && key === 'wolf') return wolfDoll;
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
