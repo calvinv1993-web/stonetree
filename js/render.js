@@ -12,12 +12,34 @@ const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
   CREATURE_LEAN: 1, // 1: exactly the walls' slant
+  // It has some depth too: a darker copy of it a few pixels behind (north of) it, which shows along its top and
+  // its east side, as a block's top and east face do.
+  CREATURE_DEPTH: 3,
   slanted(g, img, px, py, draw) {
     const foot = py + img.height - 2;
     g.save();
     g.transform(1, 0, Render.CREATURE_LEAN, 1, -foot * Render.CREATURE_LEAN, 0); // x' = x + lean * (y - foot)
+    if (Render.CREATURE_DEPTH) {
+      const back = Render.shadeOf(img), a = g.globalAlpha;
+      for (let d = Render.CREATURE_DEPTH; d >= 1; d--) g.drawImage(back, px + d * 0.5, py - d); // further back: up (north), a little east
+      g.globalAlpha = a;
+    }
     draw();
     g.restore();
+  },
+  // A darker copy of a picture (its sides in shade), made once per picture.
+  shadeOf(img) {
+    const cache = Render.shades || (Render.shades = new WeakMap());
+    let c = cache.get(img);
+    if (!c) {
+      c = document.createElement('canvas');
+      Object.assign(c, { width: img.width, height: img.height });
+      const g = c.getContext('2d');
+      g.filter = 'brightness(0.45) saturate(0.8)';
+      g.drawImage(img, 0, 0);
+      cache.set(img, c);
+    }
+    return c;
   },
   DEEPEST: 0.75, // the floors far below you never get darker than this (25% darker at most)
   // The shadow an edge casts, a tile long, fading out over 0.6 tile: one going down, one going right (made once).
