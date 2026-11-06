@@ -111,10 +111,6 @@ const Render = {
       tiles.get(k).push(o);
     }
 
-    const temple = OAKVALE.buildings.find(b => b.id === 'temple');
-    const oakvale = map.start.x === OAKVALE.start.x && map.start.y === OAKVALE.start.y;
-    const inCorner = (x, y, z) => oakvale && z === map.surfaceZ + temple.level &&
-      x >= temple.x0 && x <= temple.x0 + 4 && y >= temple.y0 && y <= temple.y0 + 3;
     let lit = 1; // how bright what's drawn so far still is, after the floors above it darkened it
     for (let z = v.minZ; z <= v.maxZ; z++) {
       // what's drawn so far lies below this floor: darker, a floor at a time down to the camera floor
@@ -201,7 +197,7 @@ const Render = {
         const id = groundShown(x, y, t);
         if (!id) continue;
         const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
-        g.drawImage((inCorner(x, y, z) && Sprites.sanctuaryTile(id, x, y, v.time, shape)) || Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+        g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
         if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
           g.globalAlpha = 0.95;
           g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
@@ -297,7 +293,7 @@ const Render = {
               const fenceAt = (fx, fy) => { const n = tileAt(fx, fy); return n && n.items.includes('fence') ? '1' : '0'; };
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);
             }
-            const img = (inCorner(x, y, z) && Sprites.sanctuaryTile(id, x, y, v.time, shape)) || Sprites.thing(id, x, y, v.time, shape, material), lift = img.width - TILE, rise = img.height - TILE; // tall things rise up-left
+            const img = Sprites.thing(id, x, y, v.time, shape, material), lift = img.width - TILE, rise = img.height - TILE; // tall things rise up-left
             const st = v.seeThrough, hides = def.tall && !def.wall && st && st.z === z && st.x >= x - 1 && st.x <= x && st.y >= y - 1 && st.y <= y && !(st.x === x && st.y === y);
             if (hides) g.globalAlpha = 0.45;
             if (v.wind && SWAYING.has(id)) { // anchored at its foot, its top sways
