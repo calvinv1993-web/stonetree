@@ -413,7 +413,7 @@ body.touch-ui .swatch-color { width: auto; height: 17px; }
 .ride-options { display: flex; flex-direction: column; gap: 6px; }
 .ride-options .hot { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 12px; font-size: 15px; text-align: left; }
 /* holding a favourite: it fills up until you can choose what goes there */
-.touch .fav.holding { background: #c89a48ee; transition: background 5s linear; }
+.touch .fav.holding { background: #c89a48ee; transition: background 0.65s linear; }
 .tb-status { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .tb-status:empty { display: none; }
 .tb-status .status {
@@ -725,3 +725,47 @@ body.touch-ui .radial-controls .fav-page-label{bottom:8px;font-size:10px}
   .mobile-map-controls button { min-width: 42px; min-height: 44px; background: #262420ee; }
   .editor .statusbar { min-height: 24px; }
 }
+
+/* ---- phones and tablets: what the UI test round found ------------------------------------------------
+   Every window keeps clear of the guide (it steps aside while one is open), the side panel has a close button,
+   and everything you tap is big enough for a thumb. */
+.panel-close { display: none; }
+body.touch-ui .panel-close {
+  display: block; position: sticky; top: 0; margin: 0 0 4px auto; z-index: 2;
+  width: 44px; height: 40px; font-size: 24px; line-height: 1; padding: 0;
+}
+body.touch-ui .desk-only { display: none !important; }
+/* the guide steps aside while a window, the side panel, the bag, the chat or the extra buttons are open */
+body.touch-ui.panel-open .guide, body.touch-ui.chat-open .guide, body.touch-ui.bag-open .guide,
+body.touch-ui:has(.touch.more-open) .guide,
+body.touch-ui:has(#shop:not([hidden])) .guide, body.touch-ui:has(#read:not([hidden])) .guide,
+body.touch-ui:has(#hotkeys:not([hidden])) .guide, body.touch-ui:has(#outfit:not([hidden])) .guide,
+body.touch-ui:has(#guild:not([hidden])) .guide, body.touch-ui:has(#forge:not([hidden])) .guide,
+body.touch-ui:has(#favPicker:not([hidden])) .guide, body.touch-ui:has(#rideChoice:not([hidden])) .guide,
+body.touch-ui:has(#markDialog:not([hidden])) .guide, body.touch-ui:has(#worldmap:not([hidden])) .guide, body.touch-ui:has(#lootBox:not([hidden])) .guide { display: none; }
+/* big enough for a thumb */
+body.touch-ui .dialog header button, body.touch-ui #shopClose, body.touch-ui #lootClose { min-width: 44px; min-height: 40px; font-size: 20px; }
+body.touch-ui .dialog-buttons button, body.touch-ui #createStart, body.touch-ui #outfitDone { min-height: 42px; min-width: 76px; font-size: 16px; }
+body.touch-ui #createName { min-height: 40px; font-size: 16px; }
+body.touch-ui .tabs button { min-height: 38px; padding: 4px 12px; }
+body.touch-ui .panel .button-row button, body.touch-ui .panel .actions > button, body.touch-ui .panel .actions > .button { min-height: 40px; }
+body.touch-ui .minimap-box button { min-width: 38px; min-height: 34px; }
+body.touch-ui [data-mode], body.touch-ui #chaseMode, body.touch-ui #secureMode { min-height: 32px; min-width: 40px; font-size: 13px; }
+body.touch-ui .swatch-color { height: 22px; } /* (they fill the width; 19 a row don't fit wider on a phone) */
+body.touch-ui .dialog button:not(.swatch-color) { min-height: 36px; min-width: 40px; }
+body.touch-ui .shop button { min-height: 36px; min-width: 40px; }
+body.touch-ui .log .kw { display: inline-block; padding: 4px 2px; margin: -4px 0; }
+body.touch-ui .radial-controls .fav-page { width: 38px; height: 38px; }
+body.touch-ui input[type=checkbox] { width: 22px; height: 22px; }
+body.touch-ui #hotkeyList select { min-height: 34px; }
+body.touch-ui .guide header button { min-width: 34px; min-height: 30px; }
+/* favourites: a picture for potions and food, a short word for spells, a plain + where nothing is pinned */
+body.touch-ui .fav span img { width: 28px; height: 28px; image-rendering: pixelated; display: block; margin: 0 auto; }
+body.touch-ui .radial-controls .fav small { font-size: 10px; color: #f0e0b0; }
+body.touch-ui .radial-controls .fav span:only-child, body.touch-ui .radial-controls .fav span { font-size: 11px; }
+/* a sign's text: on a dark card, readable over any ground */
+.look-text { background: #1c1a16e6; border: 1px solid #8a7a5a; border-radius: 6px; padding: 8px 10px; }
+/* a sign being read in its window: not its words over the map too */
+body:has(#read:not([hidden])) .look-text { display: none; }
+body.touch-ui .panel section > h2 { flex-wrap: wrap; row-gap: 4px; }
+body.touch-ui .panel h2 { flex-wrap: wrap; row-gap: 4px; } body.touch-ui .panel h2 > span { display: flex; flex-wrap: wrap; gap: 3px; }

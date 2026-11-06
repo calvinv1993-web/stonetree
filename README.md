@@ -135,7 +135,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 On a touch screen:
 - **Walking:** use the joystick at the bottom left, or swipe on the map. A short swipe walks one tile, diagonals too; keep your finger down to keep walking.
 - **The map:** a tap walks, attacks, talks or opens a corpse. A long press uses something.
-- **Bottom right:** the big ⚔ attacks the closest monster (again: the next one), and 🎒 left of it opens your backpack over the map. Next to them are 3 favourites: tap one to cast it, hold one for 5 seconds (it fills up) to choose which spell or potion goes there.
+- **Bottom right:** the big ⚔ attacks the closest monster (again: the next one), and 🎒 left of it opens your backpack over the map. Next to them are 3 favourites: tap one to cast it, hold one for a moment (it fills up) to choose which spell or potion goes there.
 - **The top strip:** health and mana, countdowns for haste, skull and the like, plus ✖ stop, ✋ use and 👁 look (then tap the thing), potions, 💬 chat, 🗺 map, 🐴 ride, ☰ character panel and fullscreen.
 - **Top right:** the fight mode (attack, balanced or defend: tap to switch) and chase or stand.
 - **Map marks:** hold a spot on the world map to mark it.

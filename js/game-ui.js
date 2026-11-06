@@ -3,6 +3,11 @@
 // skills and quests, spell bar, hotkeys, outfit, world map, message log, minimap,
 // and dragging items around. Player actions always go through Actions.
 
+// A touch screen (a phone or tablet, or anywhere with ?mobile in the address): touch.js shows its controls.
+const touchScreen = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('mobile');
+// what the chat line says while empty: shorter on a phone, where there's no Enter key to press
+const CHAT_HINT = touchScreen ? 'Say something, e.g. "hi"' : 'Press Enter to talk, e.g. "hi" - or say spell words like "lumen"';
+
 const $ = id => document.getElementById(id);
 let uiNeedsRender = true;
 function uiDirty() { uiNeedsRender = true; }
@@ -122,8 +127,9 @@ function guideNow(step) {
   const id = ids.find(q => QUESTS[q] && questState(q) === 'active');
   if (!id) return '';
   const s = questStep(id), progress = questProgress(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);
-  const then = s.auto ? '' : stepReady(id) ? ` Now go to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.` : '';
-  return `Now: ${s.summary || QUESTS[id].summary}${progress ? ` (${progress})` : ''}${then}`;
+  const summary = s.summary || QUESTS[id].summary;
+  const then = s.auto || summary.includes(NPCS[who].name) ? '' : stepReady(id) ? ` Now go to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.` : ''; // (not twice)
+  return `Now: ${summary}${progress ? ` (${progress})` : ''}${then}`;
 }
 let guideKey = '', guideFolded = false;
 try { guideFolded = localStorage.getItem('tilequest.guideFolded') === '1'; } catch (e) { /* no storage: start unfolded */ }
@@ -1587,11 +1593,12 @@ function initUI() {
   $('guildBtn').addEventListener('click', () => toggleGuild());
   $('guildClose').addEventListener('click', () => toggleGuild(false));
   $('forgeClose').addEventListener('click', closeForge);
+  $('chat').placeholder = CHAT_HINT;
   document.querySelectorAll('[data-logtab]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('[data-logtab]').forEach(o => o.classList.toggle('active', o === b));
     $('log').dataset.filter = b.dataset.logtab;
     $('chat').placeholder = { party: 'Talk to your party', guild: 'Talk to your guild' }[b.dataset.logtab]
-      || 'Press Enter to talk, e.g. "hi" - or say spell words like "lumen"';
+      || CHAT_HINT;
     $('log').scrollTop = $('log').scrollHeight;
   }));
   document.querySelectorAll('[data-shoptab]').forEach(b => b.addEventListener('click', () => {

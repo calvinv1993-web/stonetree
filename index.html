@@ -147,6 +147,7 @@
     </main>
 
     <aside class="panel">
+      <button id="panelClose" class="panel-close" title="Close">&times;</button>
       <section>
         <div id="charLine" class="charline"></div>
         <div class="bar hp"><div id="hpFill"></div><span id="hpText"></span></div>
@@ -233,10 +234,10 @@
       <section class="actions">
         <span class="muted small" id="mapSource"></span>
         <div class="button-row"><button id="hotkeysBtn">Hotkeys</button><button id="outfitBtn">Outfit</button><button id="guildBtn">Guild</button></div>
-        <div class="button-row"><button id="soundBtn">Sound</button><button id="musicBtn">Music</button><button id="rightBtn" title="What a right-click on a monster or player does">Right-click</button></div>
+        <div class="button-row"><button id="soundBtn">Sound</button><button id="musicBtn">Music</button><button id="rightBtn" class="desk-only" title="What a right-click on a monster or player does">Right-click</button></div>
         <button id="fullscreen">Fullscreen</button>
-        <a class="button" href="editor.html">Map editor</a>
-        <a class="button" href="data.html">Data editor</a>
+        <a class="button desk-only" href="editor.html">Map editor</a>
+        <a class="button desk-only" href="data.html">Data editor</a>
         <button id="newChar">New character</button>
         <button id="resetMap">Use built-in map</button>
       </section>

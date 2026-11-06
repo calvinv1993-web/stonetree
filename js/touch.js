@@ -6,7 +6,7 @@
 // button and the side panel as a drawer.
 // Shown on touch screens, or anywhere with ?mobile in the address.
 
-const touchScreen = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('mobile');
+// (touchScreen: whether this is a touch screen, is defined in game-ui.js, which loads first and needs it from the first frame)
 
 // Browser storage can be missing (private mode): then favourites just aren't remembered.
 const touchStorage = {
@@ -55,8 +55,8 @@ function setChat(open, focus) {
 }
 
 // ---- favourites: three pinned spells or potions -------------------------------------------
-// Tap to use; hold for 5 seconds (the button fills up) to choose what goes there.
-const FAV_HOLD = 5000;
+// Tap to use; hold for a moment (the button fills up) to choose what goes there.
+const FAV_HOLD = 650;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
 const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 2;
@@ -109,8 +109,11 @@ function renderFavs() {
     const b = document.createElement('button');
     b.className = `fav${e && e.locked ? ' locked' : ''}`;
     b.innerHTML = '<span></span><small></small>';
-    b.querySelector('span').textContent = e ? e.name : '+';
-    b.querySelector('small').textContent = e ? e.sub : 'hold to pin';
+    const icon = e && { h: 'health_potion', m: 'mana_potion', f: 'bread' }[e.id]; // potions and food: their picture, not a cut-off name
+    if (icon) b.querySelector('span').innerHTML = `<img src="${Sprites.itemURL(icon)}" alt="">`;
+    else b.querySelector('span').textContent = e ? e.name : '+';
+    b.querySelector('small').textContent = e ? e.sub : 'hold';
+    b.title = e ? e.name : 'Hold to choose a spell or potion for this button';
     b.addEventListener('pointerdown', ev => {
       ev.preventDefault();
       if (favHold) clearTimeout(favHold.timer);
@@ -281,6 +284,7 @@ function initTouch() {
     else setRideMode(true);
   });
   tap('tPanel', () => document.body.classList.toggle('panel-open'));
+  tap('panelClose', () => document.body.classList.remove('panel-open'));
   tap('tBag', () => document.body.classList.toggle('bag-open'));
   const MODES = ['offensive', 'balanced', 'defensive'];
   tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));

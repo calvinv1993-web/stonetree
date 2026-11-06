@@ -47,7 +47,7 @@ const GUIDE = [
   },
   {
     text: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Drink a health potion with H.',
-    touch: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Tap the heart for a health potion.',
+    touch: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Tap the red potion button, bottom right, for a health potion.',
     target: [{ quest: 'bell_1' }, { monster: 'rat' }],
     done: () => questState('bell_1') === 'done',
   },
