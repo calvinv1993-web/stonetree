@@ -9,7 +9,7 @@ const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const Render = {
-  DEEPEST: 0.45, // the floors far below you never get darker than this
+  DEEPEST: 0.75, // the floors far below you never get darker than this (25% darker at most)
   // The shadow an edge casts, a tile long, fading out over 0.6 tile: one going down, one going right (made once).
   shadowStrips() {
     if (this.strips) return this.strips;
@@ -18,7 +18,7 @@ const Render = {
       const c = document.createElement('canvas');
       Object.assign(c, { width: w, height: h });
       const g = c.getContext('2d'), gr = g.createLinearGradient(ax, ay, bx, by);
-      gr.addColorStop(0, 'rgba(0,0,0,0.45)');
+      gr.addColorStop(0, 'rgba(0,0,0,0.25)');
       gr.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = gr;
       g.fillRect(0, 0, w, h);
