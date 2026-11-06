@@ -9,6 +9,16 @@ const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const Render = {
+  // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
+  // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
+  CREATURE_LEAN: 1, // 1: exactly the walls' slant
+  slanted(g, img, px, py, draw) {
+    const foot = py + img.height - 2;
+    g.save();
+    g.transform(1, 0, Render.CREATURE_LEAN, 1, -foot * Render.CREATURE_LEAN, 0); // x' = x + lean * (y - foot)
+    draw();
+    g.restore();
+  },
   DEEPEST: 0.75, // the floors far below you never get darker than this (25% darker at most)
   // The shadow an edge casts, a tile long, fading out over 0.6 tile: one going down, one going right (made once).
   shadowStrips() {
@@ -31,7 +41,7 @@ const Render = {
   //   z:          camera floor; minZ..maxZ: floors to draw
   //   w, h:       view size in world pixels
   //   time:       for animated tiles
-  //   objects:    [{ x, y, z, vx?, vy?, img, lift?, alpha? }] drawn after the items of
+  //   objects:    [{ x, y, z, vx?, vy?, img, lift?, alpha?, slant? }] drawn after the items of
   //               tile (x, y), at the visual position (vx, vy) if given (walking
   //               creatures), raised `lift` pixels up-left, see-through with alpha
   //   dimLower:   darken the floors below the camera floor (editor)
@@ -262,8 +272,14 @@ const Render = {
           const lift = o.img.width - TILE + (o.lift || 0);
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
           const px = Math.round(ox + (o.vx ?? o.x) * TILE - lift), py = Math.round(oy + (o.vy ?? o.y) * TILE - lift);
-          g.drawImage(o.img, px, py);
-          if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
+          if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures stand in the walls' slant too
+            g.drawImage(o.img, px, py);
+            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
+          });
+          else {
+            g.drawImage(o.img, px, py);
+            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
+          }
           g.globalAlpha = 1;
         }
       }

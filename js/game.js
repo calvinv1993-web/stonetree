@@ -10,6 +10,9 @@ dark.width = canvas.width;
 dark.height = canvas.height;
 const dctx = dark.getContext('2d');
 const LIFT = 4; // creatures stand a little raised, like on a 3D floor
+// Creatures lean into the walls' slant (see Render.slanted): their heads are this far left of their feet, so
+// what hangs over a head (a name, a health bar, words) moves along; a frame round them sits half way.
+const HEAD_LEAN = 26; // (times Render.CREATURE_LEAN)
 let paused = false;
 const online = () => typeof Net !== 'undefined' && Net.online;
 
@@ -302,7 +305,7 @@ function draw() {
     const v = visual(c);
     const alpha = c.def && c.def.invisible ? (canSee(c) ? 0.6 : 0.15) : undefined;
     const img = Sprites.creature(creatureKey(c), c.dir, v.frame), hit = Fx.creature(c, img); // a hit flashes and knocks it back
-    view.objects.push({ x: c.x, y: c.y, z: c.z, vx: v.x + hit.dx, vy: v.y + hit.dy, lift: LIFT, alpha, flash: hit.flash, img });
+    view.objects.push({ x: c.x, y: c.y, z: c.z, vx: v.x + hit.dx, vy: v.y + hit.dy, lift: LIFT, alpha, flash: hit.flash, img, slant: true });
   }
   Fx.settle(new Set(creatures.map(c => c.id)));
 
@@ -313,7 +316,8 @@ function draw() {
   if (!player.dead && !riding(player)) {
     // Walls can hide you; a faint silhouette on top keeps you visible behind them.
     ctx.globalAlpha = 0.35;
-    ctx.drawImage(Sprites.creature(creatureKey(player), player.dir, pv.frame), Math.round(ox + pv.x * TILE - LIFT), Math.round(oy + pv.y * TILE - LIFT));
+    const img = Sprites.creature(creatureKey(player), player.dir, pv.frame), px = Math.round(ox + pv.x * TILE - LIFT), py = Math.round(oy + pv.y * TILE - LIFT);
+    Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py));
     ctx.globalAlpha = 1;
   }
   for (const p of players) if (riding(p) && p.z === z) {
@@ -508,13 +512,13 @@ function outlinedText(text, x, y, color, font) {
 // flash around whoever just hit you.
 function drawCreatureInfo(c, screen, struck) {
   const v = visual(c);
-  const [sx0, sy0] = screen(v.x, v.y), sx = sx0 - LIFT * SCALE, sy = sy0 - LIFT * SCALE;
-  const size = TILE * SCALE;
+  const [sx0, sy0] = screen(v.x, v.y), sx = sx0 - (LIFT + HEAD_LEAN * Render.CREATURE_LEAN) * SCALE, sy = sy0 - LIFT * SCALE;
+  const size = TILE * SCALE, fx = sx + (HEAD_LEAN * Render.CREATURE_LEAN / 2) * SCALE; // (the frame half way between feet and head)
   const frame = (color, inset, alpha = 1) => {
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.strokeRect(sx + inset, sy + inset, size - 2 * inset, size - 2 * inset);
+    ctx.strokeRect(fx + inset, sy + inset, size - 2 * inset, size - 2 * inset);
     ctx.globalAlpha = 1;
   };
   if (player.follow === c.id && c !== player.target) frame('#30e040', 1);
@@ -614,7 +618,7 @@ function drawGuideArrow(screen) {
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();
   if (t.z === player.z && sx > m && sy > m + 30 && sx < canvas.width - m && sy < canvas.height - m) {
-    ctx.translate(sx - LIFT * SCALE, sy - 38 + bob); // above the name
+    ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 + bob); // above the name (and a creature's head)
     ctx.rotate(Math.PI / 2);
   } else {
     const cx = canvas.width / 2, cy = canvas.height / 2, a = Math.atan2(sy - cy, sx - cx);
@@ -671,7 +675,7 @@ function drawTexts(screen, z) {
       const [sx, sy] = screen(v.x, v.y);
       const lines = wrapText(fx.text, 30);
       if (fx.name) lines.unshift(`${fx.name} says:`);
-      const x = Math.max(110, Math.min(canvas.width - 110, sx + half)), color = fx.name ? '#ffd84a' : '#ff9a30';
+      const x = Math.max(110, Math.min(canvas.width - 110, sx + half - HEAD_LEAN * Render.CREATURE_LEAN * SCALE)), color = fx.name ? '#ffd84a' : '#ff9a30';
       lines.forEach((line, i) => outlinedText(line, x, sy - 28 - (lines.length - 1 - i) * 15, color, 'bold 13px sans-serif'));
     }
   }

@@ -106,8 +106,8 @@
     ctx.imageSmoothingEnabled = false;
 
     const objects = [
-      ...map.spawns.map(sp => ({ x: sp.x, y: sp.y, z: sp.z, img: Sprites.creature(sp.type, 2, 0) })),
-      ...map.npcs.map(n => ({ x: n.x, y: n.y, z: n.z, img: Sprites.creature(`npc:${n.type}`, 2, 0) })),
+      ...map.spawns.map(sp => ({ x: sp.x, y: sp.y, z: sp.z, img: Sprites.creature(sp.type, 2, 0), slant: true })),
+      ...map.npcs.map(n => ({ x: n.x, y: n.y, z: n.z, img: Sprites.creature(`npc:${n.type}`, 2, 0), slant: true })),
       { ...map.start, img: Sprites.startMarker() },
       { ...map.mainStart, img: Sprites.startMarker(MAIN_START_COLOR) },
     ];
