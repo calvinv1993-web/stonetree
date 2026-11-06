@@ -4021,87 +4021,181 @@ const Sprites = (() => {
     gr.addColorStop(0, shade(colour, 1.28)); gr.addColorStop(0.55, colour); gr.addColorStop(1, shade(colour, 0.72));
     g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
   }
-  // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), body, arms, legs, feet, and
-  // robe, armor, belt, beard, hat, held.
+  // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
+  // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
+  // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
   function doll(g0, p, dir, frame) {
     const s = p.scale || 1;
     if (s !== 1) { g0.translate(16, 29); g0.scale(s, s); g0.translate(-16, -29); }
+    if (p.hat && ['pointy', 'wide', 'antlers', 'horned', 'crown'].includes(p.hat.style)) g0.translate(0, 1);
     shadow(g0, 16, 29, 8, 3);
     outlined(g0, g => { // (a dark outline round the whole figure, as the pixel figures have)
     const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, skin = p.skin, hair = p.hair || p.skin, hs = p.hairStyle || 'short';
-    const body = p.armor || p.body, arms = p.armor || p.arms || p.body, legs = p.legs || p.body, feet = p.feet || shade(legs, 0.6);
-    const fwd = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] }[dir];
+    const bony = !!p.ribs, thin = bony ? 0.65 : 1; // a skeleton: bones for limbs
+    const body = p.body, arms = p.arms || p.body, legs = p.legs || p.body, feet = p.feet || shade(legs, 0.6);
+    const fwd = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] }[dir], front = dir === 2, back = dir === 0, side = !front && !back;
     const parts = [];
     const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
-    // legs (hidden under a robe), stepping
-    if (!p.robe) for (const side of [-1, 1]) {
+    const at = (u, v, a, b) => { const [du, dv] = turn(dir, a, b); return [u + du, v + dv]; }; // a point on the figure
+    const W = p.female ? 8.6 : 9.8, D = 5.6; // the torso's width and depth
+    // ---- behind: a cape, wings, a tail
+    if (p.cape) part(0, -3.6, 12, (u, v) => {
+      const [cu, cv] = at(u, v, 0, -0.4);
+      dollBox(g, dir, cu, cv, W + 1.6, 1.2, 2.5 - Math.abs(step) * 0.5, 17.8, { south: back ? p.cape : shade(p.cape, 0.8) });
+    }, -0.5);
+    if (p.wings) for (const side of [-1, 1]) part(side * 4, -4, 16, (u, v) => {
+      const [w0u, w0v] = at(u, v, side * 1, -1), [w1u, w1v] = at(u, v, side * 9, -3), [w2u, w2v] = at(u, v, side * 7, -2);
+      poly(g, p.wings, [...Q(w0u, w0v, 17), ...Q(w1u, w1v, 25 + frame), ...Q(w2u, w2v, 10), ...Q(w0u, w0v, 11)]);
+      poly(g, shade(p.wings, 0.75), [...Q(w0u, w0v, 14), ...Q(w2u, w2v, 10), ...Q(w0u, w0v, 11)]);
+    }, -0.6);
+    if (p.tail) part(0, -4, 8, (u, v) => { const [tu, tv] = at(u, v, 0, -3), [eu, ev] = at(u, v, 1.5, -8); dollLimb(g, tu, tv, 9, eu, ev, 3, 1.1, p.tail); }, -0.6);
+    // ---- legs (under a robe, only the feet show), stepping
+    for (const side of [-1, 1]) {
       const sw = step * side * 2;
       part(side * 2.3, sw, 4, (u, v) => {
-        dollLimb(g, u, v, 1, u, v * 0.5, 9, 1.9, legs);
         const [fu, fv] = [u + fwd[0] * 1.2, v + fwd[1] * 1.2];
-        dollBox(g, dir, fu, fv, 3.2, 4.5, 0, 1.8, { south: feet });
+        if (!p.robe) {
+          dollLimb(g, u, v, 1.4, u, v * 0.5, 9, 1.9 * thin, legs);
+          if (bony) dollBall(g, u, v * 0.7, 5, 1.3, shade(legs, 1.1)); // a knee
+          if (p.wraps) for (const z of [3, 6]) { const [x, y] = Q(u, v * 0.8, z); rect(g, p.wraps, x - 2, y, 4, 1); }
+        }
+        if (!p.robe) dollBox(g, dir, fu, fv, bony ? 2.6 : 3.4, 4.8, 0, 1.9, { south: feet }); // (a robe hides the feet)
       });
     }
-    // the body: a block, wider at the hem for a robe
+    // ---- the body
     part(0, 0, 12, (u, v) => {
-      if (p.robe) dollBox(g, dir, u, v, 10.5, 6.5, 0, 10, { south: body });
-      dollBox(g, dir, u, v, 9.8, 5.8, p.robe ? 9 : 8, 17.5, { south: body });
-      if (p.belt) dollBox(g, dir, u, v, 10.1, 6.1, 8.6, 10, { south: p.belt });
-      if (p.tabard && dir !== 0) dollBox(g, dir, u + fwd[0] * 0.2, v + fwd[1] * 0.2, 4.5, 6, 8, 17, { south: p.tabard });
+      const hem = p.robe ? 0 : p.coat ? 4.5 : p.skirt ? 5 : 8;
+      if (p.robe || p.coat) dollBox(g, dir, u, v, W + 1, D + 0.8, hem, 10, { south: body }); // a robe's or a coat's skirts
+      if (p.skirt) dollBox(g, dir, u, v, W + 1.4, D + 1.2, hem, 9.4, { south: p.skirt });
+      if (p.trim && p.robe) dollBox(g, dir, u, v, W + 1.15, D + 0.95, 0, 1.4, { south: p.trim });
+      // the chest, a little wider at the shoulders than at the waist
+      if (bony) { // a spine and ribs, with the pelvis under them
+        dollBox(g, dir, u, v, 6, 3.4, 7.5, 9.8, { south: body });
+        dollLimb(g, u, v, 9.5, u, v, 17, 0.9, body);
+        dollBox(g, dir, u, v, 6.6, 3.2, 10.6, 17, { south: p.ribs === true ? '#3a342c' : shade(p.ribs, 0.55) }); // the dark inside of the ribcage
+        for (const z of [11, 13, 15, 16.6]) dollBox(g, dir, u, v, 8 - (z - 11) * 0.3, 4.2, z, z + 1, { south: body });
+      } else {
+        dollBox(g, dir, u, v, W - 0.6, D, 8, 13, { south: body });
+        dollBox(g, dir, u, v, W, D + 0.2, 12.5, 17.6, { south: body });
+      }
+      const face = (fn, z0 = 8, z1 = 17.6) => { if (back) return; const [fu, fv] = at(u, v, 0, (D + 0.2) / 2 + 0.05); fn(fu, fv, z0, z1); };
+      if (p.vest) dollBox(g, dir, u, v, W + 0.3, D + 0.5, 9, 17.4, { south: p.vest });
+      if (p.vest && front) face((fu, fv) => dollBox(g, dir, fu, fv, 3.4, 0.3, 9, 17.2, { south: body }));
+      if (p.stripes) for (const z of [10, 12, 14, 16]) dollBox(g, dir, u, v, W + 0.1, D + 0.3, z, z + 0.8, { south: p.stripes });
+      if (p.fur) for (const z of [9, 12, 15]) { const [x, y] = Q(u, v + (front ? 2.8 : 0), z); rect(g, shade(body, 1.25), x - 3, y, 6, 1); }
+      if (p.armor) { // a breastplate, and shoulder plates
+        dollBox(g, dir, u, v, W + 0.4, D + 0.6, 11, 17.8, { south: p.armor });
+        for (const side of [-1, 1]) { const [su, sv] = at(u, v, side * (W / 2 + 0.4), 0); dollBall(g, su, sv, 17, 2.4, p.armor); }
+      }
+      if (p.tabard && !side) face((fu, fv) => dollBox(g, dir, fu, fv, 4.6, 0.5, 4.5, 17, { south: p.tabard }));
+      else if (p.tabard) { const [tu, tv] = at(u, v, 0, 0); dollBox(g, dir, tu, tv, 0.6, D + 1, 4.5, 17, { south: p.tabard }); }
+      if (p.tabard && front) face((fu, fv) => { dollBox(g, dir, fu, fv + 0.3, 0.9, 0.2, 9.5, 15, { south: shade(p.tabard, 1.4) }); dollBox(g, dir, fu, fv + 0.3, 3, 0.2, 12.5, 13.4, { south: shade(p.tabard, 1.4) }); });
+      if (p.collar && !back) face((fu, fv) => dollBox(g, dir, fu, fv, 5, 0.6, 16, 17.9, { south: p.collar }));
+      if (p.buttons && front) face((fu, fv) => { for (const z of [10, 12.5, 15]) { const [x, y] = Q(fu, fv + 0.4, z); rect(g, p.buttons, x - 0.5, y - 0.5, 1, 1); } });
+      if (p.belt) {
+        dollBox(g, dir, u, v, W - 0.2, D + 0.5, 8.6, 10, { south: p.belt });
+        if (front) face((fu, fv) => { const [x, y] = Q(fu, fv + 0.4, 9.3); rect(g, GOLD, x - 1, y - 0.8, 2, 1.6); });
+      }
+      if (p.wraps) for (const z of [10, 13, 16]) { const [x, y] = Q(u, v + (front ? 2.9 : 0), z); line(g, p.wraps, 1, x - 4.5, y, x + 4.5, y - 1.5); }
     });
-    // arms, swinging opposite the legs; a hand at the end of each
+    // ---- arms, swinging opposite the legs; a hand at the end of each, and what it holds
     for (const side of [-1, 1]) {
-      const sw = -step * side * 2.2, [au, av] = turn(dir, side * 6, 0), [hu, hv] = turn(dir, side * 6.3, sw);
+      const sw = -step * side * 2.2, [au, av] = turn(dir, side * (W / 2 + 1), 0), [eu, ev] = turn(dir, side * (W / 2 + 1.3), sw * 0.5), [hu, hv] = turn(dir, side * (W / 2 + 1.4), sw);
       part(side * 6, sw * 0.5, 15, (u, v) => {
-        dollLimb(g, au, av, 16.8, hu, hv, 9.8, 1.7, arms);
+        dollLimb(g, au, av, 17, eu, ev, 13, 1.7 * thin, arms);
+        dollLimb(g, eu, ev, 13, hu, hv, 9.8, 1.6 * thin, p.armor && !bony ? shade(arms, 1.05) : arms);
+        if (bony) dollBall(g, eu, ev, 13, 1.1, shade(arms, 1.1)); // an elbow
         dollBall(g, hu, hv, 9, 1.6, skin);
-        if (p.held && side === 1) { // what the right hand holds: a blade, a staff, an axe, a club or a bow
-          const [tu, tv] = [hu + fwd[0] * 2, hv + fwd[1] * 2];
-          const steel = p.held === 'staff' ? '#7a5030' : p.held === 'club' ? '#6a4422' : '#c8ccd4';
-          dollLimb(g, hu, hv, 8.8, tu, tv, p.held === 'staff' ? 25 : 18, p.held === 'club' ? 1.2 : 0.7, steel);
-          if (p.held === 'axe') dollBox(g, dir, tu, tv, 3, 1, 15, 18, { south: '#b8bcc4' });
-        }
+        if (p.held && side === 1) dollHeld(g, dir, p.held, hu, hv, fwd);
       }, side === 1 ? 0.01 : 0);
     }
-    // the neck and the head: a ball, its hair a cap on top (and down the back), its face on the front
+    // ---- the neck and the head: a ball, with hair, a face, ears, horns, a hat
     part(0, 0, 22, (u, v) => {
-      dollLimb(g, u, v, 17, u, v, 18.5, 1.4, skin);
+      dollLimb(g, u, v, 17, u, v, 18.6, 1.4 * thin, skin);
       const hz = 22.8, r = 5.6;
-      if (hs === 'long' && dir !== 2) dollBox(g, dir, u - fwd[0] * 1.8, v - fwd[1] * 1.8, 9.5, 3, 13, 23, { south: hair });
+      // long hair, a ponytail and braids hang behind the head
+      if ((hs === 'long' || hs === 'braids') && !front) { const [bu, bv] = at(u, v, 0, -1.8); dollBox(g, dir, bu, bv, 9.5, 3, 13, 23, { south: hair }); }
+      if (hs === 'ponytail' && !front) { const [bu, bv] = at(u, v, 0, -r); dollLimb(g, bu, bv, 22, bu, bv, 14, 1.3, hair); }
+      if (p.ears && !back) for (const side of front ? [-1, 1] : [-fwd[0] || 1]) { const [eu, ev] = at(u, v, side * (r - 0.5), 0); const [x, y] = Q(eu, ev, hz + 0.5); poly(g, skin, [x, y + 1.5, x + side * 4, y - 2.5, x, y - 1]); }
       dollBall(g, u, v, hz, r, skin);
       const [x, y] = Q(u, v, hz);
-      if (hs !== 'bald') { // hair: the top of the head, and all of it from behind
+      if (hs !== 'bald' && !(p.hat && p.hat.style === 'hood')) { // hair: a cap over the top, all of it from behind
         g.save(); g.beginPath(); g.arc(x, y, r + 0.3, 0, Math.PI * 2); g.clip();
         g.fillStyle = hair;
-        if (dir === 0) g.fillRect(x - r - 1, y - r - 1, 2 * r + 2, 2 * r + 2);
-        else if (dir === 2) { g.beginPath(); g.ellipse(x, y - r * 0.8, r + 0.6, r * 0.62, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - r - 0.5, y - r * 0.6, 1.6, r * 0.9); g.fillRect(x + r - 1.1, y - r * 0.6, 1.6, r * 0.9); }
+        if (back) g.fillRect(x - r - 1, y - r - 1, 2 * r + 2, 2 * r + 2);
+        else if (front) { g.beginPath(); g.ellipse(x, y - r * 0.8, r + 0.6, r * 0.62, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - r - 0.5, y - r * 0.6, 1.6, r * 0.9); g.fillRect(x + r - 1.1, y - r * 0.6, 1.6, r * 0.9); }
         else { g.beginPath(); g.ellipse(x - fwd[0] * r * 0.45, y - r * 0.6, r + 0.4, r * 0.7, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - fwd[0] * r * 0.7 - 1.5, y - r * 0.3, 3, r); }
         g.fillStyle = shade(hair, 1.3); g.fillRect(x - r * 0.7, y - r * 0.95, r * 0.8, 1);
         g.restore();
       }
-      if (dir === 2) { // the face
-        for (const ex of [-2, 2]) { rect(g, p.eye || '#1e1410', x + ex - 0.8, y + 0.2, 1.7, 2); if (!p.eye) rect(g, '#ffffff', x + ex - 0.8, y + 0.2, 0.8, 0.8); rect(g, shade(hair, 0.7), x + ex - 0.9, y - 0.9, 1.9, 0.7); }
-        rect(g, shade(skin, 0.82), x - 0.3, y + 1.8, 0.8, 1.2); rect(g, shade(skin, 0.6), x - 0.8, y + 3.6, 1.8, 0.7);
-        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x, y + 3.2, 3.6, 2, 0, 0, Math.PI); g.fill(); }
-      } else if (dir === 1 || dir === 3) { // in profile: one eye and the nose
+      if ((hs === 'long' || hs === 'braids') && front) for (const side of [-1, 1]) { const [bu, bv] = at(u, v, side * (r - 0.6), 0.5); dollLimb(g, bu, bv, 22, bu, bv, hs === 'braids' ? 12 : 15, 1.2, hair); }
+      const hood = p.hat && p.hat.style === 'hood';
+      if (hood) { // a hood first, the face looking out of its opening
+        dollHat(g, p.hat, x, y, r, dir, fwd);
+        if (front) { ellipse(g, shade(p.hat.color || '#888', 0.45), x, y + 1.4, r * 0.7, r * 0.8); ellipse(g, skin, x, y + 1.8, r * 0.58, r * 0.66); }
+        else if (side) { const fx = x + fwd[0] * (r - 2.2); ellipse(g, skin, fx, y + 1.6, 2.2, 3); }
+      }
+      // the face
+      const eyes = (ex, ey, sz = 1) => { if (bony) { ellipse(g, '#1a1410', ex, ey + 1, 1.3 * sz, 1.4 * sz); return; } rect(g, p.eye || '#1e1410', ex - 0.8 * sz, ey + 0.2, 1.7 * sz, 2 * sz); if (!p.eye) rect(g, '#ffffff', ex - 0.8, ey + 0.2, 0.8, 0.8); };
+      if (front) {
+        if (p.oneEye) { ellipse(g, '#f4f0e0', x, y + 1, 2.4, 2); eyes(x, y - 0.2, 1.1); }
+        else for (const ex of [-2, 2]) { if (p.bigEyes) ellipse(g, '#f4f0e0', x + ex, y + 1.2, 1.8, 1.8); eyes(x + ex, y); if (!bony && !p.hat) rect(g, shade(hair, 0.7), x + ex - 0.9, y - 0.9, 1.9, 0.7); }
+        if (bony) { rect(g, '#1a1410', x - 0.5, y + 2.6, 1, 1); for (let k = -2; k <= 2; k++) rect(g, '#2a2420', x + k - 0.3, y + 4, 0.6, 1); }
+        else { rect(g, shade(skin, 0.82), x - 0.3, y + 1.8, 0.8, 1.2); rect(g, p.female ? '#c05858' : shade(skin, 0.6), x - 0.8, y + 3.6, 1.8, 0.7); }
+        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x, y + 3.6, 3.8, 2.6, 0, 0, Math.PI); g.fill(); g.fillRect(x - 3.8, y + 1.5, 1.2, 2.2); g.fillRect(x + 2.6, y + 1.5, 1.2, 2.2); }
+      } else if (side) {
         const fx = x + fwd[0] * (r - 1.6);
-        rect(g, p.eye || '#1e1410', fx - 0.6, y + 0.2, 1.6, 2); if (!p.eye) rect(g, '#ffffff', fx - 0.6, y + 0.2, 0.7, 0.7);
-        rect(g, shade(skin, 0.85), x + fwd[0] * r - (fwd[0] < 0 ? 1 : 0), y + 1.2, 1, 1.4);
-        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x + fwd[0] * 2, y + 3, 2.6, 1.8, 0, 0, Math.PI); g.fill(); }
+        eyes(fx, y);
+        if (!bony) rect(g, shade(skin, 0.85), x + fwd[0] * r - (fwd[0] < 0 ? 1 : 0), y + 1.2, 1, 1.4);
+        if (p.beard) { g.fillStyle = p.beard; g.beginPath(); g.ellipse(x + fwd[0] * 2.2, y + 3.4, 2.8, 2, 0, 0, Math.PI); g.fill(); }
       }
-      if (p.hat) { // a helmet or a hood over the head
-        const c = p.hat.color || '#8a8a92';
-        g.save(); g.beginPath(); g.arc(x, y, r + 0.8, Math.PI * 1.02, Math.PI * 1.98); g.lineTo(x + r + 0.8, y + (p.hat.style === 'hood' ? 2 : 0)); g.lineTo(x - r - 0.8, y + (p.hat.style === 'hood' ? 2 : 0)); g.closePath();
-        g.fillStyle = c; g.fill(); g.restore();
-        rect(g, shade(c, 1.3), x - r * 0.6, y - r - 0.2, r, 1);
-        if (p.hat.style === 'crown') for (const k of [-3, 0, 3]) rect(g, '#f0d040', x + k - 0.5, y - r - 2, 1, 2);
-      }
+      if (p.horns) for (const side of [-1, 1]) { const [hu2, hv2] = at(u, v, side * (r - 1), 0); const [x2, y2] = Q(hu2, hv2, hz + 3); line(g, p.horns === true ? '#e8dcc0' : p.horns, 1.8, x2, y2, x2 + side * 2.5, y2 - 2, x2 + side * 2, y2 - 5); }
+      if (p.hat && !hood) dollHat(g, p.hat, x, y, r, dir, fwd);
     }, 0.02);
     dollParts(g, dir, parts);
     });
   }
+  // What a doll holds in its right hand, at (hu, hv), pointing its way.
+  function dollHeld(g, dir, kind, hu, hv, fwd) {
+    const [tu, tv] = [hu + fwd[0] * 2.2, hv + fwd[1] * 2.2];
+    if (kind === 'sword') {
+      dollLimb(g, hu, hv, 8.2, hu, hv, 10, 0.6, '#5a3a1e');                          // the grip
+      dollBox(g, dir, hu, hv, 3.4, 0.9, 10, 10.9, { south: '#c8a040' });              // the crossguard
+      dollLimb(g, hu, hv, 10.9, tu, tv, 19, 0.7, '#d8dce4');                          // the blade
+    } else if (kind === 'axe') {
+      dollLimb(g, hu, hv, 7.5, tu, tv, 17, 0.7, '#6a4422');
+      const [bu, bv] = [tu + fwd[0] * 0.5, tv + fwd[1] * 0.5];
+      dollBox(g, dir, bu, bv, 0.8, 3.4, 14, 18.5, { south: '#b8bcc4' });
+    } else if (kind === 'staff') {
+      dollLimb(g, hu, hv, 1, hu, hv, 25, 0.8, '#7a5030');
+      dollBall(g, hu, hv, 26.2, 1.6, '#80d0ff');
+    } else if (kind === 'bow') {
+      const [bu, bv] = [hu + fwd[0], hv + fwd[1]];
+      line(g, '#8a5a2e', 1.4, ...Q(bu, bv, 18), ...Q(bu + fwd[0] * 2, bv + fwd[1] * 2, 13), ...Q(bu, bv, 4));
+      line(g, '#e8e0d0', 0.5, ...Q(bu, bv, 18), ...Q(bu, bv, 4));
+    } else dollLimb(g, hu, hv, 8.8, tu, tv, 17, 1.2, '#6a4422');                     // a club
+  }
+  // A hat on a doll's head, at (x, y) on screen, r round.
+  function dollHat(g, hat, x, y, r, dir, fwd) {
+    const c = hat.color || '#8a8a92', lit = shade(c, 1.3), dk = shade(c, 0.72), st = hat.style;
+    const cap = (h, down) => { // a dome over the head, down to `down` below its middle
+      g.beginPath(); g.ellipse(x, y - r * 0.15, r + 0.8, r + h, 0, Math.PI, 0); g.lineTo(x + r + 0.8, y + down); g.lineTo(x - r - 0.8, y + down); g.closePath();
+      g.fillStyle = c; g.fill(); rect(g, lit, x - r * 0.6, y - r - h + 0.6, r, 1); rect(g, dk, x + r * 0.2, y - r * 0.4, r * 0.6, r * 0.5);
+    };
+    if (st === 'helmet') { cap(0.4, -0.3); rect(g, dk, x - r - 0.8, y - 0.8, 2 * r + 1.6, 1.4); if (dir === 2) rect(g, dk, x - 0.6, y - 0.6, 1.2, 3.2); }
+    else if (st === 'hood') { cap(0.8, 3.5); if (dir === 0) rect(g, dk, x - r, y + 2, 2 * r, 2); }
+    else if (st === 'crown') { rect(g, '#d8a830', x - r + 0.5, y - r - 0.5, 2 * r - 1, 2.4); for (const k of [-3.5, 0, 3.5]) poly(g, '#f0d040', [x + k - 1.2, y - r - 0.5, x + k + 1.2, y - r - 0.5, x + k, y - r - 3]); rect(g, '#e04040', x - 0.6, y - r + 0.3, 1.2, 1); }
+    else if (st === 'pointy') { ellipse(g, dk, x, y - r * 0.55, r + 2.5, 1.6); poly(g, c, [x - r, y - r * 0.6, x + r, y - r * 0.6, x + 1.5, y - r - 9]); poly(g, dk, [x + 1, y - r * 0.6, x + r, y - r * 0.6, x + 1.5, y - r - 9]); }
+    else if (st === 'wide') { ellipse(g, dk, x, y - r * 0.5, r + 4, 2); ellipse(g, c, x, y - r * 0.6, r + 3.5, 1.6); cap(0.2, -r * 0.6); }
+    else if (st === 'bandana') { cap(0.1, -1); if (dir !== 2) line(g, c, 1.2, x - fwd[0] * r, y - 1, x - fwd[0] * (r + 2.5), y + 2); }
+    else if (st === 'tricorn') { poly(g, dk, [x - r - 3, y - r * 0.4, x + r + 3, y - r * 0.4, x, y - r * 0.4 + 2.5]); cap(0.6, -r * 0.4); }
+    else if (st === 'feather') { cap(0.2, -1); line(g, '#e04040', 1.4, x + 2, y - r, x + 5, y - r - 5); }
+    else if (st === 'antlers' || st === 'horned') { for (const side of [-1, 1]) line(g, st === 'antlers' ? '#8a6a3a' : '#e8dcc0', 1.4, x + side * 3, y - r + 1, x + side * 5, y - r - 4, x + side * 7, y - r - 5); if (st === 'horned') cap(0.3, -0.5); }
+    else cap(0.3, 0);
+  }
   // A wolf as a doll: a body of two balls (chest and haunches), four legs trotting, a head with a snout and ears, a tail.
   function wolfDoll(g, dir, frame, c = WOLF) {
+    g.translate(16, 29); g.scale(1.25, 1.25); g.translate(-16, -29);
     ellipse(g, 'rgba(0,0,0,0.25)', 17, 29.5, 10, 3);
     const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, fwd = { 2: [0, 1], 0: [0, -1], 1: [1, 0], 3: [-1, 0] }[dir];
     const parts = [], part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
@@ -4300,6 +4394,8 @@ const Sprites = (() => {
   const hashStr = s => [...s].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261);
   const hashXY = (x, y) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0;
 
+  // People and the beasts done so far are built in 3D (dolls); the rest are still drawn as pictures.
+  const DOLLS_ON = true;
   return {
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
@@ -4327,6 +4423,7 @@ const Sprites = (() => {
       return customImage(id) || cached(`item:${id}`, g => ITEM_DRAW[id](g));
     },
     // URL of an item icon, for <img> tags in the UI.
+    DOLLS: DOLLS_ON,
     itemURL(id) {
       if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}`;
       if (!urls.has(id)) urls.set(id, this.item(id).toDataURL());

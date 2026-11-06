@@ -11,10 +11,10 @@ const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1,
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
-  CREATURE_LEAN: 0.2, // a touch of the walls' slant (1 would be exactly the walls' 45 degrees: too much for a figure)
+  CREATURE_LEAN: 0, // creatures are built in 3D now (Sprites' dolls): they stand upright, as in the world they would
   // It has some depth too: a darker copy of it a few pixels behind (north of) it, which shows along its top and
   // its east side, as a block's top and east face do.
-  CREATURE_DEPTH: 2,
+  CREATURE_DEPTH: 0, // (a darker copy behind a flat picture, for depth; not needed for dolls)
   slanted(g, img, px, py, draw) {
     const foot = py + img.height - 2;
     g.save();
@@ -315,7 +315,7 @@ const Render = {
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
           const px = Math.round(ox + (o.vx ?? o.x) * TILE - lift), py = Math.round(oy + (o.vy ?? o.y) * TILE - lift);
           if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant
-            g.drawImage(Render.roundOf(o.img), px, py);
+            g.drawImage(Render.CREATURE_DEPTH ? Render.roundOf(o.img) : o.img, px, py);
             if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
           });
           else {
