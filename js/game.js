@@ -156,6 +156,9 @@ function openCreatureMenu(e, c, t) {
   }
   if (c.type === 'player') socialItems(c, item);
   item('Look', () => look(t.x, t.y, c));
+  // a corpse (or anything dropped) under them: open it from here too
+  const pile = piles.find(p => p.x === t.x && p.y === t.y && p.z === t.z && p.items.length);
+  if (pile) item(`Open ${pile.name || 'what lies here'}`, () => Actions.lootNearest(pile.id));
   item('Use what is here', () => Actions.interact('use', t.x, t.y, t.z));
   menu.hidden = false;
   const r = menu.getBoundingClientRect();

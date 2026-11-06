@@ -555,6 +555,12 @@ function containerWindow(root, path, heading, closable) {
       hint: 'Click: use · drag: move · Shift: look · Ctrl: drop',
     }));
   }
+  if (touchScreen && root === 'bag' && !path.length) { // on a phone the bag floats over the map: a close button on it
+    const x = document.createElement('button');
+    x.className = 'bag-close'; x.textContent = '×'; x.title = 'Close';
+    x.addEventListener('click', () => document.body.classList.remove('bag-open'));
+    h.appendChild(x);
+  }
   box.append(h, grid);
   // A bigger bag in your bag (a backpack): one tap to carry everything in it instead (the old one goes inside).
   // Dragging it onto the bag slot does the same, but on a phone that slot is rarely in sight.

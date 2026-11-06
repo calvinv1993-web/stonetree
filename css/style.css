@@ -769,3 +769,18 @@ body.touch-ui .radial-controls .fav span:only-child, body.touch-ui .radial-contr
 body:has(#read:not([hidden])) .look-text { display: none; }
 body.touch-ui .panel section > h2 { flex-wrap: wrap; row-gap: 4px; }
 body.touch-ui .panel h2 { flex-wrap: wrap; row-gap: 4px; } body.touch-ui .panel h2 > span { display: flex; flex-wrap: wrap; gap: 3px; }
+.bag-close { display: none; }
+body.touch-ui .bag-close { display: inline-block; float: right; min-width: 40px; min-height: 34px; font-size: 20px; padding: 0; margin: -4px -2px 0 0; }
+/* a shop opened while talking: above the chat, the whole height of the screen beside it */
+body.touch-ui .shop { z-index: 50; max-height: calc(100% - 8px); }
+@media (max-height: 500px) {
+  /* phones on their side: the fight modes in a row at the top right, clear of the potion buttons below;
+     messages small and high, out of the way of the fight */
+  body.touch-ui .touch-corner { top: 44px; flex-direction: row; display: flex; gap: 4px; }
+  body.touch-ui .touch-corner button { width: 64px; height: 36px; }
+  body.touch-ui .toasts { top: 40px; width: min(50%, 360px); }
+  body.touch-ui .toast { font-size: 11px; padding: 2px 8px; }
+  body.touch-ui.chat-open:has(#shop:not([hidden])) .console { right: 340px; }
+  body.touch-ui .swatch-color { height: 13px; }
+  body.touch-ui #outfitPreview canvas, body.touch-ui .outfit-preview { max-height: 56px; }
+}
