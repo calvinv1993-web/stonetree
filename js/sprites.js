@@ -4518,12 +4518,43 @@ const Sprites = (() => {
   const hashXY = (x, y) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0;
 
   // People and the beasts done so far are built in 3D (dolls); the rest are still drawn as pictures.
+  // Painted limestone faces from the sanctuary study. The normal wall mesh supplies
+  // the projection and the joints, including the short cap at a corner.
+  const dawnStone = new Image();
+  dawnStone.src = 'sprites/dawn-stone.png';
+  function sanctuaryTile(id, x, y, time, shape) {
+    if (!dawnStone.complete || !dawnStone.naturalWidth) return null;
+    const variant = (x + y) & 1;
+    const sample = (g, column) => g.drawImage(dawnStone, column * TILE, 0, TILE, TILE, 0, 0, TILE, TILE);
+    if (id === 'marble') return cached('dawn-floor:' + variant, g => sample(g, variant));
+    if (id === 'wall_temple') return cached('dawn-wall:' + shape + variant, g => wallBlock(g, shape, {
+      south: () => sample(g, 2 + variant),
+      east: () => { sample(g, 2 + variant); rect(g, 'rgba(31,36,38,0.3)', 0, 0, TILE, TILE); },
+      top: () => sample(g, 4),
+    }), TILE * 2);
+    if (id !== 'wall_torch') return null;
+    const frame = Math.floor(time / 130) % 4;
+    return cached('dawn-sconce:' + shape + frame, g => onWall(g, shape, () => {
+      const glow = g.createRadialGradient(16, 11, 1, 16, 11, 16);
+      glow.addColorStop(0, 'rgba(255,181,65,.55)');
+      glow.addColorStop(1, 'rgba(252,156,40,0)');
+      g.fillStyle = glow;
+      g.fillRect(0, 0, TILE, TILE);
+      ellipse(g, '#514233', 16, 21, 4, 5);
+      rect(g, '#bb9457', 15, 16, 2, 9);
+      rect(g, '#513b29', 10, 14, 12, 3);
+      rect(g, '#e8bc72', 11, 14, 10, 1);
+      flame(g, 16, 14, 4, 9, frame);
+    }), TILE * 2);
+  }
+
   const DOLLS_ON = true;
   return {
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
+    sanctuaryTile,
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       const own = customImage(id);
       if (own) return own;
