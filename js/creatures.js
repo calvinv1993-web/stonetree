@@ -17,7 +17,7 @@ const MONSTERS = {
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
   giant_rat: { // the big rats of the Oakvale sewers
-    name: 'giant rat', hp: 50, xp: 15, dmg: [2, 12], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
+    name: 'giant rat', hp: 50, xp: 15, dmg: [0, 16], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
@@ -29,27 +29,27 @@ const MONSTERS = {
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
   },
   spider: {
-    name: 'spider', hp: 22, xp: 12, dmg: [2, 7], defense: 2, armor: 2, speed: 200, attackSpeed: 1400, aggro: 5, corpse: 'slime',
+    name: 'spider', hp: 22, xp: 12, dmg: [0, 14], defense: 2, armor: 2, speed: 200, attackSpeed: 1400, aggro: 5, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.3, power: 4 }, immune: ['poison'],
     loot: { gold: [0, 3], items: [['spider_silk', 0.3]] },
   },
   wolf: {
-    name: 'wolf', plural: 'wolves', hp: 25, xp: 18, dmg: [1, 5], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
+    name: 'wolf', plural: 'wolves', hp: 25, xp: 18, dmg: [0, 12], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { gold: [0, 3], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
-    name: 'cistern slime', hp: 200, xp: 110, dmg: [7, 20], defense: 1, armor: 2, speed: 130, attackSpeed: 1700, aggro: 4, corpse: 'slime',
+    name: 'cistern slime', hp: 320, xp: 150, dmg: [5, 28], defense: 1, armor: 2, speed: 130, attackSpeed: 1700, aggro: 4, corpse: 'slime',
     respawn: 180000, immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.3, power: 3 },
-    summon: { type: 'slime', max: 2, chance: 0.08 },
+    summon: { type: 'slime', max: 3, chance: 0.12 },
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
   },
   slime: {
-    name: 'slime', hp: 40, xp: 14, dmg: [1, 7], defense: 1, armor: 2, speed: 120, attackSpeed: 1800, aggro: 4, corpse: 'slime',
+    name: 'slime', hp: 40, xp: 14, dmg: [0, 12], defense: 1, armor: 2, speed: 120, attackSpeed: 1800, aggro: 4, corpse: 'slime',
     immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.2, power: 3 },
     loot: { gold: [0, 8] },
   },
   skeleton: {
-    name: 'skeleton', hp: 50, xp: 35, dmg: [2, 10], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
+    name: 'skeleton', hp: 50, xp: 35, dmg: [0, 20], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
     weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
     loot: { gold: [0, 10], items: [['bone', 0.5], ['dagger', 0.06], ['short_sword', 0.03], ['leather_legs', 0.05]] },
   },
@@ -60,7 +60,7 @@ const MONSTERS = {
     loot: { gold: [5, 30], items: [['book_lore', 0.05], ['ring_life', 0.02]] },
   },
   goblin: {
-    name: 'goblin', hp: 50, xp: 30, dmg: [3, 10], defense: 3, armor: 2, speed: 220, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
+    name: 'goblin', hp: 50, xp: 30, dmg: [0, 18], defense: 3, armor: 2, speed: 220, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
     loot: { gold: [0, 10], items: [['goblin_charm', 0.2], ['bread', 0.3], ['hatchet', 0.06], ['spear', 0.1, 1, 3], ['wooden_shield', 0.06], ['leather_armor', 0.04], ['bone_whistle', 0.01]] },
   },
   gnarl: {
@@ -70,8 +70,29 @@ const MONSTERS = {
     loot: { gold: [40, 80], items: [['chain_helmet', 1], ['health_potion', 1, 2, 3], ['leather_boots', 0.5]] },
   },
   crab: {
-    name: 'crab', hp: 45, xp: 28, dmg: [2, 8], defense: 2, armor: 4, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
+    name: 'crab', hp: 45, xp: 28, dmg: [0, 15], defense: 2, armor: 4, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['crab_claw', 0.5], ['fish', 0.2], ['pearl', 0.02]] },
+  },
+  // The gate watch's bosses on Oakvale Isle: each task ends with the one who leads them (respawn: 5 minutes).
+  greyfang: { // the alpha of Wolf Woods: grey, scarred, and twice the size of the pack
+    name: 'Greyfang', proper: true, hp: 110, xp: 70, dmg: [2, 18], defense: 4, armor: 2, speed: 260, attackSpeed: 1500, aggro: 7, corpse: 'blood',
+    respawn: 300000, summon: { type: 'wolf', max: 2, chance: 0.06 },
+    loot: { gold: [10, 25], items: [['wolf_pelt', 1, 1, 2], ['meat', 0.8, 1, 3], ['health_potion', 0.3]] },
+  },
+  old_snapper: { // the oldest crab on Lighthouse Point: a shell like a cart wheel
+    name: 'Old Snapper', proper: true, hp: 170, xp: 100, dmg: [2, 22], defense: 4, armor: 9, speed: 150, attackSpeed: 1700, aggro: 5, corpse: 'blood',
+    respawn: 300000,
+    loot: { gold: [15, 35], items: [['crab_claw', 1, 2, 3], ['pearl', 0.3], ['health_potion', 0.4]] },
+  },
+  thornmother: { // the spider queen of the Spider Hills, who lays the webs over the trails
+    name: 'the Thornmother', proper: true, hp: 150, xp: 120, dmg: [2, 18], defense: 4, armor: 3, speed: 200, attackSpeed: 1400, aggro: 6, corpse: 'slime',
+    respawn: 300000, hitCondition: { kind: 'poison', chance: 0.35, power: 4 }, summon: { type: 'spider', max: 2, chance: 0.08 },
+    loot: { gold: [15, 40], items: [['spider_silk', 1, 2, 4], ['health_potion', 0.5]] },
+  },
+  gnash: { // the chief of the goblin camp on Goblin Hill
+    name: 'Chief Gnash', proper: true, hp: 220, xp: 160, dmg: [2, 26], defense: 6, armor: 4, speed: 220, attackSpeed: 1500, aggro: 7, corpse: 'blood',
+    respawn: 300000, summon: { type: 'goblin', max: 2, chance: 0.07 },
+    loot: { gold: [25, 60], items: [['goblin_charm', 1, 1, 2], ['bread', 0.5], ['health_potion', 0.6]] },
   },
   orc: {
     name: 'orc', hp: 90, xp: 40, dmg: [4, 18], armor: 4, speed: 120, attackSpeed: 1500, aggro: 7, corpse: 'blood',
@@ -194,7 +215,7 @@ const MONSTERS = {
     loot: { gold: [100, 300], items: [['frost_scale', 0.4], ['meat', 0.5, 1, 3], ['frost_blade', 0.04], ['rod_glacier', 0.03], ['crown_helmet', 0.02]] },
   },
   bear: {
-    name: 'bear', hp: 90, xp: 60, dmg: [3, 14], defense: 4, armor: 3, speed: 230, attackSpeed: 1500, aggro: 5, corpse: 'big',
+    name: 'bear', hp: 90, xp: 60, dmg: [0, 25], defense: 4, armor: 3, speed: 230, attackSpeed: 1500, aggro: 5, corpse: 'big',
     loot: { items: [['meat', 0.6, 1, 3], ['bear_paw', 0.3]] },
   },
   stone_golem: {

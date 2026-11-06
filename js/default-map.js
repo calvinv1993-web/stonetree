@@ -740,8 +740,8 @@ function createDefaultMap() {
     }
     return seen.size >= 40;
   };
-  const spot = (x, y, z, ground) => {
-    for (let r = 0; r <= 4; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+  const spot = (x, y, z, ground, far = 4) => {
+    for (let r = 0; r <= far; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
       const px = x + dx, py = y + dy, t = m.get(px, py, z);
       if (!t || taken.has(`${px},${py},${z}`) || (ground && t.ground !== ground)) continue;
       if (px >= OAKVALE.bounds.x0 && px <= OAKVALE.bounds.x1 && py >= OAKVALE.bounds.y0 && py <= OAKVALE.bounds.y1) continue;
@@ -773,6 +773,12 @@ function createDefaultMap() {
       m.spawns.push({ type, x: p[0], y: p[1], z });
       placed++;
     }
+  }
+
+  // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
+  for (const [type, x, y, ground] of [['greyfang', 62, 84], ['old_snapper', 157, 211, 'sand'], ['thornmother', 184, 190], ['gnash', 196, 70]]) {
+    const p = spot(x, y, S, ground, 12);
+    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
   }
 
   // ---- where you start: in the temple ------------------------------------------------------------

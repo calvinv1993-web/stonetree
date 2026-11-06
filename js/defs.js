@@ -290,18 +290,18 @@ const THINGS = {
   torn_note:   { name: 'torn note', cat: 'Quest chests',
     chest: { flag: 'crypt_note', requires: 'bell_2@1', items: [['torn_note', 1]],
       locked: 'A scrap of paper lies by the gate. Skeletons are still walking the hall: clear it first.' } },
-  // The crypt under Bone Rocks: three weapon chests, and you may take from only one.
+  // The crypt under Bone Rocks: three weapon chests, and you may take from only one: the founders' arms, the best on the isle.
   qchest_crypt_sword: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['short_sword', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['longsword', 1]] },
   },
   qchest_crypt_axe: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['hatchet', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['war_axe', 1]] },
   },
   qchest_crypt_club: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['spiked_club', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['mace', 1]] },
   },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',

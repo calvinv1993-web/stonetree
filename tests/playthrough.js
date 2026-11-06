@@ -193,7 +193,13 @@ function killsLeft(id, type) {
   const s = run(`questStep('${id}')`);
   return (s.kill && s.kill[type] || 0) - (p.quests[id].kills[type] || 0);
 }
-function huntFor(id, type, where) { let left; while ((left = killsLeft(id, type)) > 0 && state.now < END) hunt(type, left, where, id); }
+function huntFor(id, type, where) { // the kills a quest step wants: `type` first, then the rest it asks for (a boss)
+  const types = () => state.questState(id) === 'active' ? Object.keys(run(`questStep('${id}')`).kill || {}) : [];
+  for (const t of [type, ...types().filter(t => t !== type)]) {
+    let left;
+    while ((left = killsLeft(id, t)) > 0 && state.now < END) hunt(t, left, where, id);
+  }
+}
 function levelUp(level, type, where) { while (p.level < level) hunt(type, 3, where, `to reach level ${level}`); }
 
 // ---- the town -----------------------------------------------------------------------------------------------------

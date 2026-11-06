@@ -2950,6 +2950,7 @@ const Sprites = (() => {
   }
   const MONSTER_LOOKS = {
     skeleton: { skin: '#e6e2d3', hair: '#e6e2d3', eye: '#111', body: '#d6d1c0', belt: '#8a8574', legs: '#d0cbb9', arms: '#d0cbb9', ribs: '#8a8574' },
+    gnash: { scale: 0.95, skin: '#5a8a34', hair: '#2a1a0a', eye: '#ff4020', body: '#6a2a1a', belt: '#d0a030', legs: '#3a2a1a', arms: '#5a8a34', hat: { style: 'helmet', color: '#8a8070' }, held: 'axe' }, // Chief Gnash
     goblin: { scale: 0.8, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a2a', arms: '#6aa040', held: 'axe' },
     gnarl: { scale: 1.3, skin: '#4a6a3a', hair: '#4a6a3a', eye: '#e04040', body: '#5a4a3a', belt: '#2a2a1a', legs: '#3a3a2a', arms: '#4a6a3a', held: 'club' },
     orc: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e04040', body: '#6a5a3a', belt: '#2a1a0a', legs: '#4a3a2a', arms: '#7a9a5a', held: 'axe' },
@@ -3875,7 +3876,7 @@ const Sprites = (() => {
     if (key.startsWith('npc:')) return NPCS[key.slice(4)].look;
     return MONSTER_LOOKS[key] || null;
   }
-  const BIG_BEASTS = ['cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
+  const BIG_BEASTS = ['greyfang', 'old_snapper', 'thornmother', 'cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
   function creatureDrawer(key) {
     const look = lookFor(key);
     if (look) return (g, d, f) => humanoid(g, look, d, f);
@@ -3896,6 +3897,31 @@ const Sprites = (() => {
         rat(g, d, f, GIANT_RAT);
       },
       ice_wolf: (g, d, f) => wolf(g, d, f, ICE_WOLF),
+      // the gate watch's bosses: the beast they lead, bigger and darker
+      greyfang: (g, d, f) => { // the alpha: grey and scarred, a head taller than the pack
+        g.translate(16, 27);
+        g.scale(1.35, 1.35);
+        g.translate(-16, -27);
+        g.filter = 'grayscale(0.7) brightness(0.8) contrast(1.2)';
+        wolf(g, d, f);
+        g.filter = 'none';
+      },
+      old_snapper: (g, d, f) => { // a crab with a shell like a cart wheel, dark with age
+        g.translate(16, 26);
+        g.scale(1.6, 1.6);
+        g.translate(-16, -26);
+        g.filter = 'brightness(0.75) saturate(1.4) hue-rotate(-12deg)';
+        crab(g, d, f);
+        g.filter = 'none';
+      },
+      thornmother: (g, d, f) => { // the spider queen: purple-black, bigger than a dog
+        g.translate(16, 26);
+        g.scale(1.5, 1.5);
+        g.translate(-16, -26);
+        g.filter = 'hue-rotate(250deg) brightness(0.7) saturate(1.6)';
+        spider(g, d, f);
+        g.filter = 'none';
+      },
       polar_bear: polarBear,
       crocodile,
       fire_elemental: fireElemental,

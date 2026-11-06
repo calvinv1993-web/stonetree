@@ -455,11 +455,15 @@ test('the gate watch: a task beyond each gate, gear for it, and each guard sends
   talk('gate_west', 'wolves', 'yes');
   assert.strictEqual(state.questState('gate_west'), 'none', 'not at level 1');
   p.level = 5;
-  for (const [id, word, kill, n, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'leather_armor', /Tilda/], ['gate_south', 'crabs', 'crab', 6, 'leather_legs', /Hilde/],
-    ['gate_east', 'spiders', 'spider', 8, 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'goblin', 8, 'studded_shield', /crypt/]]) {
+  for (const [id, word, kill, n, boss, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'greyfang', 'leather_armor', /Tilda/],
+    ['gate_south', 'crabs', 'crab', 6, 'old_snapper', 'leather_legs', /Hilde/], ['gate_east', 'spiders', 'spider', 8, 'thornmother', 'chain_helmet', /Osric/],
+    ['gate_north', 'goblins', 'goblin', 8, 'gnash', 'studded_shield', /crypt/]]) {
     assert.strictEqual(ctx.questNews(id).mark, 'offer', `${id} has a task: !`);
     talk(id, word, 'yes');
     for (let i = 0; i < n; i++) ctx.onMonsterKilled(kill);
+    assert.strictEqual(ctx.questNews(id).mark, 'busy', `${id}: the pack alone is not enough`);
+    ctx.onMonsterKilled(boss);
+    assert(state.map.spawns.some(s => s.type === boss), `${boss} lives in the hunting ground`);
     assert.strictEqual(ctx.questNews(id).mark, 'report', `${id} waits for the news: ?`);
     talk(id, word);
     assert.strictEqual(state.questState(id), 'done', `${id} is done`);
@@ -616,12 +620,12 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
   ctx.useThing(80, 178, 7);
   ctx.useThing(71, 181, 7);
-  assert(state.countItem('hatchet') === 0 && state.countItem('torn_note') === 0, 'no weapon and no note while the dead still walk');
+  assert(state.countItem('war_axe') === 0 && state.countItem('torn_note') === 0, 'no weapon and no note while the dead still walk');
   kill('skeleton', 6);
   assert.strictEqual(p.quests.bell_2.step, 1, 'six skeletons: the hall is cleared, without going back');
   ctx.useThing(80, 178, 7);
   ctx.useThing(71, 181, 7);
-  assert(state.countItem('hatchet') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
+  assert(state.countItem('war_axe') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
   assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
   talk(112, 103, 8, 'crypt');
   assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the note');
@@ -712,7 +716,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {
     levelTo(level);
     assert.strictEqual(mark(id), 'offer', `${id} has a task`);
-    talk(id, word, 'yes'); kill(type, n);
+    talk(id, word, 'yes'); kill(type, n); kill({ gate_west: 'greyfang', gate_south: 'old_snapper', gate_east: 'thornmother', gate_north: 'gnash' }[id], 1);
     assert.strictEqual(mark(id), 'report'); assert.strictEqual(arrow(), id, `the arrow goes back to ${id}`);
     talk(id, word);
     if (next) assert.strictEqual(arrow(), next, `and on to ${next}`);

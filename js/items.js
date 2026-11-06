@@ -63,7 +63,7 @@ const ITEMS = {
   dagger:        { name: 'dagger', slot: 'weapon', weapon: { type: 'sword', attack: 8 }, defense: 4, value: 5, weight: 9.5 },
   hatchet:       { name: 'hatchet', slot: 'weapon', weapon: { type: 'axe', attack: 10 }, defense: 4, value: 8, weight: 20 },
   short_sword:   { name: 'short sword', slot: 'weapon', weapon: { type: 'sword', attack: 11 }, defense: 6, value: 12, weight: 35 },
-  spiked_club:   { name: 'spiked club', slot: 'weapon', weapon: { type: 'club', attack: 11 }, defense: 5, value: 12, weight: 36 }, // from the crypt under Bone Rocks
+  spiked_club:   { name: 'spiked club', slot: 'weapon', weapon: { type: 'club', attack: 11 }, defense: 5, value: 12, weight: 36 }, // the best club Smith Dunstan makes
   mace:          { name: 'mace', slot: 'weapon', weapon: { type: 'club', attack: 15 }, defense: 8, value: 30, weight: 38 },
   longsword:     { name: 'longsword', slot: 'weapon', weapon: { type: 'sword', attack: 15 }, defense: 10, value: 35, weight: 42 },
   war_axe:       { name: 'war axe', slot: 'weapon', weapon: { type: 'axe', attack: 17 }, defense: 6, value: 35, weight: 50 },
