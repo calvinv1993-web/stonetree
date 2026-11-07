@@ -242,11 +242,30 @@ const Sprites = (() => {
       rect(g, 'rgba(0,0,0,0.4)', 0, y + 7, TILE, 1);
     }
   }
+  function templeStone(g, r, shade) {
+    // Retain the temple's original carved frieze and its existing projection.
+    carvedStone(g, r, shade);
+    const image = customImage('temple_wall_texture');
+    if (!image) return;
+    const texture = cached('temple-wall:atlas', ctx => ctx.drawImage(image, 0, 0), 128);
+    const column = Math.floor(r() * 2), row = Math.floor(r() * 2);
+    g.save();
+    g.beginPath(); g.rect(0, 11, TILE, TILE - 11); g.clip();
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    // Two small blocks across, with three courses below the ornamental band.
+    g.drawImage(texture, column * 64, row * 64, 64, 64, 0, 11, TILE, TILE);
+    rect(g, 'rgba(143,139,127,0.26)', 0, 11, TILE, TILE - 11);
+    rect(g, shade ? 'rgba(30,27,22,0.30)' : 'rgba(30,27,22,0.12)', 0, 11, TILE, TILE - 11);
+    // Recessed seam beneath the frieze.
+    rect(g, shade ? '#686154' : '#817867', 0, 11, TILE, 1);
+    g.restore();
+  }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
   const WALL_STYLES = {
     wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
     wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
-    wall_temple: { south: (g, r) => carvedStone(g, r, 0), east: (g, r) => carvedStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
+    wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
   // The tops of walls: dressed stone with a bevel, or a wooden beam.
@@ -4532,7 +4551,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'grass' || id === 'marble') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
+      if (id === 'grass' || id === 'marble' || id === 'temple_wall_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4858,4 +4877,5 @@ const Sprites = (() => {
     },
   };
 })();
+
 
