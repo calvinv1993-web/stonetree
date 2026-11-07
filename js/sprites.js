@@ -2404,29 +2404,21 @@ const Sprites = (() => {
   const SEAMLESS = {
     marble: { tiles: 4, draw: g => {
       const image = customImage('marble');
-      // Average fine grain before sampling the stone interiors. The joints are
-      // drawn on the final pixel grid, never sampled from the painted atlas.
-      const stone = image && cached('marble:soft-stone', ctx => {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(image, 0, 0, 64, 64);
-      }, 64);
-      for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (image) {
+        g.imageSmoothingEnabled = false; g.drawImage(image, 0, 0);
+        for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+          const px = x * TILE, py = y * TILE;
+          g.fillStyle = '#e8dfcd';
+          g.fillRect(px, py, TILE - 1, 1);
+          g.fillRect(px, py + 1, 1, TILE - 2);
+          g.fillStyle = '#b9ae98';
+          g.fillRect(px + TILE - 1, py, 1, TILE);
+          g.fillRect(px, py + TILE - 1, TILE, 1);
+        }
+      }
+      else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
         g.save(); g.translate(x * TILE, y * TILE);
-        if (stone) {
-          rect(g, '#d9d0bc', 0, 0, TILE, TILE);
-          g.imageSmoothingEnabled = true;
-          g.imageSmoothingQuality = 'high';
-          g.drawImage(stone, x * 16 + 1, y * 16 + 1, 14, 14, 1, 1, TILE - 2, TILE - 2);
-          // A quiet inset edge and a continuous single-pixel grout line.
-          rect(g, '#e9e1cf', 0, 0, TILE - 1, 1);
-          rect(g, '#e9e1cf', 0, 1, 1, TILE - 2);
-          rect(g, '#c9bfaa', TILE - 2, 1, 1, TILE - 2);
-          rect(g, '#c9bfaa', 1, TILE - 2, TILE - 2, 1);
-          rect(g, '#b5aa95', TILE - 1, 0, 1, TILE);
-          rect(g, '#b5aa95', 0, TILE - 1, TILE, 1);
-        } else DRAW.marble(g, makeRng(hashStr('marble') + y * 4 + x));
-        g.restore();
+        DRAW.marble(g, makeRng(hashStr('marble') + y * 4 + x)); g.restore();
       }
     } },
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
