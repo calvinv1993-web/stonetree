@@ -794,7 +794,7 @@ body:not(.touch-ui) #lootBox {
 /* a laptop (wide, not very tall): the side panel in two columns, so the bag and the tabs aren't below the screen */
 @media (min-width: 1180px) and (max-height: 920px) {
   body.game:not(.touch-ui) .panel { width: 520px; column-count: 2; column-gap: 8px; }
-  body.game:not(.touch-ui) .panel > section { break-inside: avoid; }
+  body.game:not(.touch-ui) .panel > section, body.game:not(.touch-ui) .panel > #containers, body.game:not(.touch-ui) #containers > * { break-inside: avoid; }
 }
 
 /* ==== the phone layout: a status bar on top, five buttons along the bottom, the controls under your thumbs =====
@@ -938,3 +938,5 @@ body.touch-ui .panel .bag-close { display: none; } /* (in the Character sheet th
 /* a shop: above the tab bar, and the whole height beside it on a phone held sideways */
 body.touch-ui .shop { bottom: calc(var(--tabbar) + 6px); max-height: calc(100% - var(--tabbar) - 12px) !important; }
 @media (orientation: landscape) { body.touch-ui .shop { right: calc(var(--rail) + 4px) !important; } }
+/* a window (hotkeys, outfit, guild, a sign, the favourite picker...) puts the talk card away */
+body.touch-ui:has(.dialog:not([hidden])) .talk-card { display: none !important; }
