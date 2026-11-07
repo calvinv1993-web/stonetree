@@ -796,3 +796,145 @@ body:not(.touch-ui) #lootBox {
   body.game:not(.touch-ui) .panel { width: 520px; column-count: 2; column-gap: 8px; }
   body.game:not(.touch-ui) .panel > section { break-inside: avoid; }
 }
+
+/* ==== the phone layout: a status bar on top, five buttons along the bottom, the controls under your thumbs =====
+   (the UI rework; earlier touch rules above still apply where these don't say otherwise) */
+body.touch-ui { --tabbar: 64px; }
+/* the status bar: level, health and mana, experience, gold */
+body.touch-ui .touch-top { padding: 6px 8px 0; }
+body.touch-ui .hud {
+  display: grid; grid-template-columns: 42px 1fr auto; grid-template-rows: 16px 16px 5px; gap: 3px 7px; align-items: center;
+  width: 100%; padding: 5px 7px 6px; border-radius: 14px;
+  background: linear-gradient(#1c1a16f0, #1c1a16cc); border: 1px solid #5a4a30; box-shadow: 0 3px 10px #0008;
+}
+body.touch-ui .hud-lvl {
+  grid-row: 1 / 4; width: 42px; height: 42px; border-radius: 50%; position: relative; text-align: center;
+  background: radial-gradient(circle at 40% 35%, #d8b050, #8a6420); border: 2px solid #f0d88a; box-shadow: 0 2px 6px #000a;
+}
+body.touch-ui .hud-lvl small { position: absolute; left: 0; right: 0; top: 3px; font: bold 8px/1 sans-serif; color: #3a2808; }
+body.touch-ui .hud-lvl b { display: block; font: 900 17px/42px Georgia, serif; color: #1a1208; margin-top: 2px; }
+body.touch-ui .hud .tbar { height: 16px; border-radius: 8px; overflow: hidden; border-color: #5a4a30; }
+body.touch-ui .hud .tbar div { border-radius: 8px; }
+body.touch-ui .hud .tbar.hp div { background: linear-gradient(#e04848, #a82020); }
+body.touch-ui .hud .tbar.mana div { background: linear-gradient(#4a78e0, #2040a0); }
+body.touch-ui .hud .tbar span { line-height: 15px; font-weight: bold; }
+body.touch-ui .hud .tbar.mana { grid-column: 2; grid-row: 2; }
+body.touch-ui .hud-gold {
+  grid-column: 3; grid-row: 1 / 3; display: flex; align-items: center; gap: 2px; padding: 2px 8px; border-radius: 10px;
+  background: #0008; color: #ffd84a; font: bold 13px sans-serif;
+}
+body.touch-ui .hud-gold img { width: 20px; height: 20px; image-rendering: pixelated; }
+body.touch-ui .hud-xp { grid-column: 2 / 4; grid-row: 3; height: 5px; border-radius: 3px; background: #0a0a0acc; overflow: hidden; }
+body.touch-ui .hud-xp div { height: 100%; background: #e8c050; border-radius: 3px; }
+body.touch-ui.low-hp .viewport::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 40px 12px #c0202088; animation: lowhp 1s ease-in-out infinite alternate; }
+@keyframes lowhp { from { opacity: 0.4; } to { opacity: 1; } }
+/* what goes: the extra button row, the fight-mode buttons, the bag button, the favourite pages */
+body.touch-ui .touch-buttons, body.touch-ui .touch-corner, body.touch-ui #tBag,
+body.touch-ui .radial-controls .fav-page, body.touch-ui .radial-controls .fav-page-label { display: none !important; }
+body.touch-ui .tb-status { position: absolute; top: 72px; right: 8px; }
+/* the guide's task: a slim card under the status bar */
+body.touch-ui .guide { top: 74px !important; left: 8px !important; width: min(270px, 70%); border-left: 4px solid #ffd84a; border-radius: 10px; background: #1c1a16e8; }
+body.touch-ui .guide:not(.folded) #guideText { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+/* the five buttons along the bottom */
+body.touch-ui .tabbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar) + env(safe-area-inset-bottom)); z-index: 55;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 5px 5px calc(5px + env(safe-area-inset-bottom));
+  background: linear-gradient(#2a2620, #1a1814); border-top: 1px solid #5a4a30;
+}
+body.touch-ui .tabbar button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0;
+  background: none; border: 0; box-shadow: none; border-radius: 12px; color: #c8b890; font: 600 11px sans-serif;
+}
+body.touch-ui .tabbar button span { font-size: 22px; line-height: 24px; }
+body.touch-ui .tabbar button.active { color: #ffd84a; background: #ffd84a18; }
+.tabbar { display: none; }
+/* the controls sit above the bottom buttons */
+body.touch-ui .joystick { bottom: calc(var(--tabbar) + 18px) !important; }
+body.touch-ui .radial-controls { bottom: calc(var(--tabbar) + 8px) !important; width: 190px; height: 190px; }
+body.touch-ui .attack-btn { right: calc(max(7px, env(safe-area-inset-right)) + 62px) !important; bottom: calc(var(--tabbar) + 30px) !important; width: 82px !important; height: 82px !important; font-size: 34px; }
+/* four round quick buttons round it: the two potions on its left, your two below the top and right */
+body.touch-ui .radial-controls .fav { width: 52px !important; height: 52px !important; border-radius: 50% !important; padding: 2px !important; }
+body.touch-ui .radial-controls .fav:nth-child(1) { left: auto !important; right: 76px !important; top: 6px !important; }
+body.touch-ui .radial-controls .fav:nth-child(2) { left: auto !important; right: 6px !important; top: 34px !important; }
+body.touch-ui .radial-controls .fav:nth-child(3) { left: 4px !important; right: auto !important; top: 96px !important; }
+body.touch-ui .radial-controls .fav:nth-child(4) { left: 16px !important; right: auto !important; top: 36px !important; }
+body.touch-ui .radial-controls .fav small { position: absolute; right: -3px; bottom: -3px; background: #1a1814; border: 1px solid #b99b69; border-radius: 8px; padding: 0 4px; line-height: 14px; }
+/* sheets: the panel comes up from the bottom, showing only what belongs to the sheet */
+body.touch-ui .panel { top: auto !important; bottom: var(--tabbar) !important; left: 0 !important; right: 0 !important; width: auto !important;
+  height: calc(100% - var(--tabbar) - 92px) !important; border-radius: 18px 18px 0 0; border-width: 2px 0 0; border-color: #8a6a30;
+  transform: translateY(105%); transition: transform 0.18s ease-out; z-index: 52; padding: 10px 12px; }
+body.touch-ui.panel-open .panel { transform: none; }
+body.touch-ui .panel-close { position: absolute; top: 8px; right: 10px; margin: 0; z-index: 3; }
+.sheet-head, .menu-sec { display: none; }
+body.touch-ui .sheet-head { display: block; margin: 0 0 8px; padding-right: 54px; }
+body.touch-ui .sheet-head b { display: block; color: #ffd84a; font: bold 18px/36px Georgia, serif; }
+body.touch-ui .seg { display: flex; gap: 3px; padding: 3px; margin-top: 6px; border-radius: 12px; background: #0006; }
+body.touch-ui .seg:empty { display: none; }
+body.touch-ui .seg button { flex: 1; min-height: 38px; border: 0; border-radius: 9px; background: none; box-shadow: none; color: #c8b890; font: 600 13px sans-serif; }
+body.touch-ui .seg button.active { background: #8a6420; color: #fff; }
+body.touch-ui .panel > section, body.touch-ui .panel > #containers { display: none; }
+body.touch-ui[data-sheet="character"] .panel .sec-equip,
+body.touch-ui[data-sheet="character"][data-seg="equipment"] .panel #containers,
+body.touch-ui[data-sheet="character"][data-seg="bag"] .panel #containers,
+body.touch-ui[data-sheet="character"][data-seg="skills"] .panel .sec-tabs,
+body.touch-ui[data-sheet="quests"] .panel .sec-tabs,
+body.touch-ui[data-sheet="menu"][data-seg="help"] .panel .sec-tabs,
+body.touch-ui[data-sheet="menu"][data-seg="settings"] .panel .menu-sec { display: block; }
+body.touch-ui[data-sheet="character"]:not([data-seg="equipment"]) .panel .sec-equip { display: none; }
+body.touch-ui .panel .sec-tabs .tabs { display: none; }
+body.touch-ui.panel-open .panel #containers { position: static !important; max-height: none; width: auto; transform: none; background: none; border: 0; box-shadow: none; }
+body.touch-ui .panel .sec-equip h2 { display: none; }
+body.touch-ui .panel .equipment { transform: scale(1.3); transform-origin: top center; margin: 4px auto 50px; }
+body.touch-ui .panel #gearStats { text-align: center; font-size: 13px; padding: 6px; border-radius: 10px; background: #0005; }
+/* the Menu */
+body.touch-ui .menu-head { color: #ffd84a; font: bold 11px sans-serif; letter-spacing: 1px; text-transform: uppercase; margin: 12px 0 4px; }
+body.touch-ui .menu-row { display: flex; width: 100%; justify-content: space-between; align-items: center; min-height: 46px; padding: 6px 4px;
+  background: none; border: 0; border-bottom: 1px solid #3e3528; box-shadow: none; border-radius: 0; color: #f0e6d0; font: 15px sans-serif; text-align: left; }
+body.touch-ui .menu-row small { display: block; color: #a8987a; font-size: 11px; }
+body.touch-ui .menu-row small.warn { color: #e8a050; }
+body.touch-ui .menu-row.danger { color: #e08080; }
+body.touch-ui .toggle { width: 46px; height: 26px; border-radius: 13px; background: #555; position: relative; flex-shrink: 0; }
+body.touch-ui .toggle::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+body.touch-ui .toggle.on { background: #5a8a3a; }
+body.touch-ui .toggle.on::after { left: 23px; }
+/* the talk card */
+.talk-card { display: none; }
+body.touch-ui .talk-card:not([hidden]) {
+  display: block; position: absolute; left: 8px; right: 8px; bottom: calc(var(--tabbar) + 10px); z-index: 54;
+  padding: 12px; border-radius: 16px; border: 2px solid #8a6a30; background: linear-gradient(#2d2923f6, #1d1a16f6); color: #f0e6d0; box-shadow: 0 -4px 24px #000c;
+}
+body.touch-ui .talk-who { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+body.touch-ui .talk-who canvas { width: 56px; height: 56px; border-radius: 12px; background: #0006; border: 1px solid #8a6a30; image-rendering: pixelated; }
+body.touch-ui .talk-who div { flex: 1; min-width: 0; }
+body.touch-ui .talk-who b { color: #8fd0ff; font: bold 16px Georgia, serif; }
+body.touch-ui .talk-who small { display: block; color: #a8987a; font-size: 12px; }
+body.touch-ui .talk-who button { width: 42px; height: 38px; font-size: 20px; padding: 0; }
+body.touch-ui .talk-card p { margin: 0 0 10px; font: 14px/1.45 sans-serif; max-height: 30vh; overflow-y: auto; }
+body.touch-ui .talk-card p u { color: #8fd0ff; text-decoration: none; font-weight: 600; }
+body.touch-ui .talk-words { display: flex; flex-wrap: wrap; gap: 7px; }
+body.touch-ui .talk-words button { min-height: 40px; padding: 0 16px; border-radius: 20px; background: #20406a; border: 1px solid #6aa0e0; color: #e0f0ff; font: 600 14px sans-serif; }
+body.touch-ui .talk-words button.bye { background: #3a342c; border-color: #6e5c40; color: #c8b890; }
+/* while talking, the controls make room for the card */
+body.touch-ui:has(#talk:not([hidden])) .radial-controls, body.touch-ui:has(#talk:not([hidden])) .attack-btn, body.touch-ui:has(#talk:not([hidden])) .joystick { visibility: hidden; }
+/* windows and the chat keep clear of the bottom buttons */
+body.touch-ui.chat-open .console { bottom: var(--tabbar) !important; }
+body.touch-ui.bag-open #containers { bottom: calc(var(--tabbar) + 10px) !important; }
+/* phones on their side: the bottom buttons become a column on the right edge */
+@media (orientation: landscape) {
+  body.touch-ui { --tabbar: 0px; --rail: 68px; }
+  body.touch-ui .tabbar { left: auto; top: 0; width: calc(var(--rail) + env(safe-area-inset-right)); height: auto; grid-template-columns: 1fr; grid-template-rows: repeat(5, 1fr);
+    padding: 6px calc(4px + env(safe-area-inset-right)) 6px 4px; border-top: 0; border-left: 1px solid #5a4a30; }
+  body.touch-ui .tabbar button span { font-size: 20px; }
+  body.touch-ui .touch-top { right: var(--rail); }
+  body.touch-ui .hud { width: 330px; }
+  body.touch-ui .radial-controls { right: calc(var(--rail) + 4px) !important; }
+  body.touch-ui .attack-btn { right: calc(var(--rail) + 62px) !important; }
+  body.touch-ui .panel { left: auto !important; right: var(--rail) !important; bottom: 0 !important; top: 0 !important; width: min(420px, 60%) !important; height: auto !important; border-radius: 18px 0 0 18px; border-width: 0 0 0 2px; transform: translateX(105%); }
+  body.touch-ui .talk-card:not([hidden]) { left: auto; right: calc(var(--rail) + 8px); width: min(460px, 60%); bottom: 8px; }
+  body.touch-ui.chat-open .console { right: var(--rail) !important; }
+}
+
+body.touch-ui .panel .bag-close { display: none; } /* (in the Character sheet the sheet has its own) */
+/* a shop: above the tab bar, and the whole height beside it on a phone held sideways */
+body.touch-ui .shop { bottom: calc(var(--tabbar) + 6px); max-height: calc(100% - var(--tabbar) - 12px) !important; }
+@media (orientation: landscape) { body.touch-ui .shop { right: calc(var(--rail) + 4px) !important; } }

@@ -45,6 +45,7 @@ function toggleFullscreen() {
 
 function setChat(open, focus) {
   document.body.classList.toggle('chat-open', open);
+  if (open && typeof hideTalk === 'function') hideTalk(); // (the chat shows the talk too)
   if (open && focus) $('chat').focus();
   if (!open) {
     $('chat').blur();
@@ -54,12 +55,12 @@ function setChat(open, focus) {
   }
 }
 
-// ---- favourites: three pinned spells or potions -------------------------------------------
+// ---- favourites: round the action button, two pinned spells (or potions, or food) and the two potions ------------
 // Tap to use; hold for a moment (the button fills up) to choose what goes there.
 const FAV_HOLD = 650;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
-const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 2;
+const FAV_SLOTS = 2, FAV_PAGES = 1, FAV_FIXED = 2; // two of your own (spells), and the two potions
 const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + slot - FAV_SLOTS;
 
 function favourites() {
@@ -67,17 +68,15 @@ function favourites() {
   if (Array.isArray(saved) && saved.length === FAV_SLOTS * FAV_PAGES + FAV_FIXED) return saved;
   const slots = Array(FAV_SLOTS * FAV_PAGES + FAV_FIXED).fill(null);
   if (Array.isArray(saved)) {
-    // Migrate the old 4-slot pages without losing the user's pinned spells.
-    for (let page = 0; page < FAV_PAGES; page++)
-      for (let slot = 0; slot < FAV_SLOTS; slot++)
-        slots[page * FAV_SLOTS + slot] = saved[page * 4 + slot] || null;
+    // From an older layout (more pages, more slots): keep the first spells the player pinned.
+    saved.filter(id => id && !['h', 'm'].includes(id)).slice(0, FAV_SLOTS).forEach((id, i) => { slots[i] = id; });
   } else {
     const known = hotbarEntries().filter(e => !e.locked).map(e => e.id);
     known.filter(id => !['h', 'm', 'f'].includes(id)).slice(0, 3)
       .forEach((id, i) => { slots[i] = id; });
   }
-  slots[9] = 'h';
-  slots[10] = 'm';
+  slots[FAV_SLOTS * FAV_PAGES] = 'h';
+  slots[FAV_SLOTS * FAV_PAGES + 1] = 'm';
   return slots;
 }
 function changeFavPage(delta) {
@@ -261,6 +260,17 @@ function initTouch() {
   // The loot window and the backpack float over the map, so you needn't open the drawer for them.
   $('viewport').appendChild($('lootBox'));
   $('viewport').appendChild($('containers'));
+  // Help for a phone, not for a keyboard
+  $('tab-help').innerHTML = `<ul class="help">
+    <li><b>Walk</b>: the joystick, bottom left, or tap where to go.</li>
+    <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, or opens a corpse.</li>
+    <li><b>Tap</b> a monster to attack it, someone to talk to them. <b>Hold</b> them for more (follow, look, open a corpse under them).</li>
+    <li><b>Round buttons</b> by the big one: your potions and two spells or foods. Hold one to choose what goes there.</li>
+    <li><b>Talking</b>: tap the blue words, or Chat to type. Say "hi" to someone to start.</li>
+    <li><b>Character</b>: your equipment, bag and skills. Drag things between them.</li>
+    <li><b>Quests</b>: what you are doing and where to go. <b>Map</b>: tap a spot to walk there.</li>
+    <li><b>Menu</b>: how you fight (attack, balanced, defend), chase, secure mode, sound and more.</li>
+  </ul>`;
 
   const tap = (id, fn) => $(id).addEventListener('click', e => {
     e.preventDefault();
@@ -284,7 +294,11 @@ function initTouch() {
     else setRideMode(true);
   });
   tap('tPanel', () => document.body.classList.toggle('panel-open'));
-  tap('panelClose', () => document.body.classList.remove('panel-open'));
+  tap('panelClose', () => closeSheet());
+  for (const id of ['tabChar', 'tabQuests', 'tabMenu']) tap(id, () => toggleSheet($(id).dataset.sheet));
+  tap('tabMap', () => { closeSheet(); toggleWorldMap(); });
+  tap('tabChat', () => { closeSheet(); setChat(!document.body.classList.contains('chat-open'), true); });
+  tap('talkClose', () => { if (player.conversation) Actions.say('bye'); hideTalk(); });
   tap('tBag', () => document.body.classList.toggle('bag-open'));
   const MODES = ['offensive', 'balanced', 'defensive'];
   tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));
@@ -322,7 +336,135 @@ function initTouch() {
       $(`tb${bar}`).style.width = `${(100 * v) / max}%`;
       $(`tb${bar}Text`).textContent = `${v} / ${max}`;
     }
+    // the status bar: level, experience to the next one, gold, and a red edge when you're nearly dead
+    $('hudLvl').textContent = player.level;
+    const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
+    $('hudXp').style.width = `${Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)))}%`;
+    $('hudGold').innerHTML = `<img src="${Sprites.itemURL('gold')}" alt="">${player.gold}`;
+    document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
+    if (document.body.dataset.sheet === 'menu') renderMenu();
+    if (!$('talk').hidden && ((!player.conversation && now > talkShownAt + 1500) || player.shopNpc)) hideTalk(); // the talk is over, or a shop opened
   }, 250);
 }
+
+// ---- sheets: Character, Quests and Menu come up from the bottom, over the map ----------------------------------
+// They are the side panel, showing only what belongs to them (body[data-sheet], body[data-seg]; see style.css).
+const SHEETS = {
+  character: { title: () => `${player.name} · level ${player.level}`, segs: [['equipment', 'Equipment'], ['bag', 'Bag'], ['skills', 'Skills']] },
+  quests: { title: () => 'Quests' },
+  menu: { title: () => 'Menu', segs: [['settings', 'Settings'], ['help', 'Help']] },
+};
+function openSheet(kind, seg) {
+  const sheet = SHEETS[kind];
+  setChat(false);
+  document.body.classList.add('panel-open');
+  document.body.classList.remove('bag-open');
+  document.body.dataset.sheet = kind;
+  // the bag shows in the Character sheet; otherwise it floats over the map (bag-open)
+  if (kind === 'character') $('panel').insertBefore($('containers'), document.querySelector('.panel .sec-tabs'));
+  else $('viewport').appendChild($('containers'));
+  $('sheetTitle').textContent = sheet.title();
+  const seg0 = seg || (sheet.segs ? sheet.segs[0][0] : '');
+  document.body.dataset.seg = seg0;
+  $('sheetSeg').replaceChildren(...(sheet.segs || []).map(([id, label]) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.classList.toggle('active', id === seg0);
+    b.addEventListener('click', () => openSheet(kind, id));
+    return b;
+  }));
+  const tab = kind === 'quests' ? 'quests' : document.body.dataset.seg === 'skills' ? 'skills' : document.body.dataset.seg === 'help' ? 'help' : null;
+  if (tab) { const b = document.querySelector(`[data-tab="${tab}"]`); if (b) b.click(); }
+  if (kind === 'menu') { menuShown = ''; renderMenu(); }
+  for (const b of document.querySelectorAll('.tabbar button')) b.classList.toggle('active', b.dataset.sheet === kind);
+  $('panel').scrollTop = 0;
+}
+function closeSheet() {
+  document.body.classList.remove('panel-open');
+  $('viewport').appendChild($('containers'));
+  delete document.body.dataset.sheet;
+  for (const b of document.querySelectorAll('.tabbar button')) b.classList.remove('active');
+}
+function toggleSheet(kind) {
+  if (document.body.classList.contains('panel-open') && document.body.dataset.sheet === kind) closeSheet();
+  else openSheet(kind);
+}
+
+// The Menu: how you fight, and the settings.
+let menuShown = '';
+function renderMenu() {
+  if (document.body.dataset.seg !== 'settings') return;
+  const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
+  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}`;
+  if (key === menuShown) return;
+  menuShown = key;
+  const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
+  const row = (label, right, onTap, extra) => {
+    const r = h('button', { className: `menu-row${extra ? ` ${extra}` : ''}` }, h('span', {}, ...[].concat(label)), right);
+    if (onTap) r.addEventListener('click', onTap);
+    return r;
+  };
+  const toggle = on => h('span', { className: `toggle${on ? ' on' : ''}` });
+  const modes = h('div', { className: 'seg' }, ...[['offensive', 'Attack'], ['balanced', 'Balanced'], ['defensive', 'Defend']].map(([m, label]) => {
+    const b = h('button', { className: player.fightMode === m ? 'active' : '' }, label);
+    b.addEventListener('click', () => Actions.setFightMode(m));
+    return b;
+  }));
+  const secureOn = player.secure !== false;
+  root.replaceChildren(
+    h('div', { className: 'menu-head' }, 'Fighting'), modes,
+    row('Chase your target', toggle(player.chase), () => Actions.setChase(!player.chase)),
+    row(['Secure mode', h('small', { className: secureOn ? '' : 'warn' }, secureOn ? 'On: you can\'t hurt players without a skull' : 'Off: your attacks can hurt other players')],
+      toggle(secureOn), () => Actions.setSecure(!secureOn)),
+    h('div', { className: 'menu-head' }, 'Game'),
+    row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
+    row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
+    row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
+    row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
+    row('Order a ride', h('span', {}, '›'), () => { closeSheet(); if ($('worldmap').hidden) toggleWorldMap(true); else setRideMode(true); }),
+    row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
+    row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
+  );
+}
+
+// ---- the talk card: what an NPC says to you, its keywords as buttons -------------------------------------------
+let talkShownAt = 0;
+let talkSpeaker = '', talkLines = [];
+function showTalk(speaker, text) {
+  // lines that come together (a greeting, then what they have for you) show together
+  talkLines = speaker === talkSpeaker && !$('talk').hidden && now - talkShownAt < 800 ? [...talkLines, text] : [text];
+  talkSpeaker = speaker;
+  text = talkLines.join(' ');
+  const npc = npcs.find(n => n.name === speaker);
+  $('talkName').textContent = speaker;
+  $('talkWhere').textContent = npc && map.labels ? (map.labels.find(l => l.z === npc.z && Math.abs(l.x - npc.x) < 25 && Math.abs(l.y - npc.y) < 25) || {}).text || '' : '';
+  const p = $('talkText'), words = $('talkWords');
+  p.replaceChildren();
+  const seen = [];
+  for (const part of String(text).split(/(\{[^}]+\})/)) {
+    const m = /^\{(.+)\}$/.exec(part);
+    if (!m) { p.append(part); continue; }
+    const u = document.createElement('u');
+    u.textContent = m[1];
+    p.appendChild(u);
+    if (!seen.includes(m[1].toLowerCase())) seen.push(m[1].toLowerCase());
+  }
+  words.replaceChildren(...seen.map(w => {
+    const b = document.createElement('button');
+    b.textContent = w;
+    b.addEventListener('click', () => Actions.say(w));
+    return b;
+  }), Object.assign(document.createElement('button'), { className: 'bye', textContent: 'Good bye', onclick: () => { Actions.say('bye'); hideTalk(); } }));
+  const face = $('talkFace').getContext('2d');
+  face.clearRect(0, 0, 56, 56);
+  if (npc) { // its head and shoulders, big
+    const img = Sprites.creature(creatureKey(npc), 2, 0), big = img.width > TILE;
+    face.imageSmoothingEnabled = false;
+    face.drawImage(img, big ? TILE + 4 : 4, big ? TILE - 4 : -4, 24, 24, 0, 0, 56, 56);
+  }
+  $('talk').hidden = !!player.shopNpc; // (trading: the shop is open, the card would cover it)
+  talkShownAt = now;
+}
+function hideTalk() { $('talk').hidden = true; }
 
 initTouch();

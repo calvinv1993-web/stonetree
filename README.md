@@ -135,7 +135,10 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 On a touch screen:
 - **Walking:** use the joystick at the bottom left, or swipe on the map. A short swipe walks one tile, diagonals too; keep your finger down to keep walking.
 - **The map:** a tap walks, attacks, talks or opens a corpse. A long press uses something.
-- **Bottom right:** the big ⚔ attacks the closest monster (again: the next one), and 🎒 left of it opens your backpack over the map. Next to them are 3 favourites: tap one to cast it, hold one for a moment (it fills up) to choose which spell or potion goes there.
+- **The layout on a phone:** a status bar on top (your level, health, mana, experience and gold), five buttons along the bottom (Character, Quests, Map, Chat and Menu; on a phone held sideways, a column on the right), the joystick bottom left and the big action button bottom right with four round quick buttons round it.
+- **The big button** attacks the nearest monster, talks to someone next to you or opens a corpse. Its round quick buttons: your health and mana potions, and two of your own (spells or food): tap to use, hold one to choose what goes there.
+- **Character** shows your equipment, bag and skills; **Quests** what you are doing and where to go; **Menu** how you fight (attack, balanced, defend), chase, secure mode, sound, outfit, party and guild, rides and fullscreen.
+- **Talking:** what someone says comes up as a card with their face, the blue words as buttons, and Good bye to end it.
 - **The top strip:** health and mana, countdowns for haste, skull and the like, plus ✖ stop, ✋ use and 👁 look (then tap the thing), potions, 💬 chat, 🗺 map, 🐴 ride, ☰ character panel and fullscreen.
 - **Top right:** the fight mode (attack, balanced or defend: tap to switch) and chase or stand.
 - **Map marks:** hold a spot on the world map to mark it.
