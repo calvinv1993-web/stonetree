@@ -2403,7 +2403,13 @@ const Sprites = (() => {
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   const SEAMLESS = {
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
-    grass: { tiles: 4, draw: g => grassField(g, makeRng(hashStr('grass')), 4 * TILE) },
+    grass: { tiles: 4, draw: g => {
+      const image = customImage('grass');
+      if (image) {
+        g.imageSmoothingEnabled = false;
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else grassField(g, makeRng(hashStr('grass')), 4 * TILE);
+    } },
     mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it
       const r = makeRng(hashStr('mountain')), size = 3 * TILE;
       rockSurface(g, r, size, 134);
@@ -4495,6 +4501,7 @@ const Sprites = (() => {
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
+    if (id === 'grass') return seamlessPart(id, 0, 0);
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
@@ -4505,6 +4512,8 @@ const Sprites = (() => {
   if (typeof CUSTOM_SPRITES !== 'undefined') {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
+      // Replace cached fallback ground and its edge pixels when the atlas arrives.
+      if (id === 'grass') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4526,6 +4535,7 @@ const Sprites = (() => {
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       const own = customImage(id);
+      if (id === 'grass') return seamlessPart(id, x, y);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
@@ -4829,3 +4839,4 @@ const Sprites = (() => {
     },
   };
 })();
+
