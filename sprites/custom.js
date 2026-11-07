@@ -9,5 +9,6 @@
 // south, west down. Run the game from a local web server to use your own PNGs.
 const CUSTOM_SPRITES = {
   grass: 'grass-atlas.png',
+  marble: 'marble-atlas.png',
 };
 

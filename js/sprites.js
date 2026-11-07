@@ -2402,6 +2402,18 @@ const Sprites = (() => {
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   const SEAMLESS = {
+    marble: { tiles: 4, draw: g => {
+      const image = customImage('marble');
+      if (image) {
+        g.imageSmoothingEnabled = false;
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else {
+        for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+          g.save(); g.translate(x * TILE, y * TILE);
+          DRAW.marble(g, makeRng(hashStr('marble') + y * 4 + x)); g.restore();
+        }
+      }
+    } },
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
     grass: { tiles: 4, draw: g => {
       const image = customImage('grass');
@@ -4501,7 +4513,7 @@ const Sprites = (() => {
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
-    if (id === 'grass') return seamlessPart(id, 0, 0);
+    if (id === 'grass' || id === 'marble') return seamlessPart(id, 0, 0);
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
@@ -4513,7 +4525,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'grass') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
+      if (id === 'grass' || id === 'marble') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4535,7 +4547,7 @@ const Sprites = (() => {
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       const own = customImage(id);
-      if (id === 'grass') return seamlessPart(id, x, y);
+      if (id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
