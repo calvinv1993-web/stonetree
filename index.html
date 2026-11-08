@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#1b1a17">
   <link rel="manifest" href="manifest.json">
   <title>Tilequest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap">
   <link rel="stylesheet" href="css/style.css?v=ui3">
 </head>
 <body class="game">
@@ -29,7 +30,8 @@
         <div id="touch" class="touch" hidden>
           <div class="touch-top">
             <div class="touch-bars hud">
-              <div class="hud-lvl"><small>LV</small><b id="hudLvl">1</b></div>
+              <div class="hud-lvl"><canvas id="hudFace" width="64" height="64"></canvas><b id="hudLvl">1</b></div>
+              <div class="hud-name"><b id="hudName"></b><small id="hudTitle"></small></div>
               <div class="tbar hp"><div id="tbHp"></div><span id="tbHpText"></span></div>
               <div class="hud-gold" id="hudGold"></div>
               <div class="tbar mana"><div id="tbMana"></div><span id="tbManaText"></span></div>

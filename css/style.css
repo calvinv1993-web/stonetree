@@ -1127,3 +1127,122 @@ body.touch-ui .talk-words button {
 body.touch-ui .talk-words button:active { transform: translateY(1px); }
 body.touch-ui .talk-words button.bye { background: linear-gradient(#4a4238, #24201a) !important; color: #d8c49a !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #8a6a3a, 0 2px 4px #000a; }
 body.touch-ui .tabbar button span img { width: 36px; height: 36px; }
+
+/* ==== the dark, gold-lined look (after the owner's own earlier design) ==============================================
+   Near-black panels with a hair-thin line of old gold and a corner ornament; titles in small capitals between rules;
+   icons of worn metal, dimmed until they're the one you're on, which glows gold with a diamond under it. */
+body.touch-ui {
+  --gold: #c9a259; --gold-hi: #f0d898; --gold-lo: #6a5226; --night: #0d0c0b; --night-2: #16140f; --rule: #4a3c22;
+  --title: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --frame: inset 0 0 0 1px #000, inset 0 0 0 2px #6a5226aa, inset 0 0 0 3px #000c;
+  --corners:
+    linear-gradient(135deg, #c9a259 0 4px, transparent 4.5px) top left / 14px 14px no-repeat,
+    linear-gradient(225deg, #c9a259 0 4px, transparent 4.5px) top right / 14px 14px no-repeat,
+    linear-gradient(45deg, #c9a259 0 4px, transparent 4.5px) bottom left / 14px 14px no-repeat,
+    linear-gradient(315deg, #c9a259 0 4px, transparent 4.5px) bottom right / 14px 14px no-repeat;
+}
+/* -- the top: a portrait in a gold ring, name and level, slim bars, gold in a pill -- */
+body.touch-ui .hud {
+  grid-template-columns: 54px 1fr auto !important; grid-template-rows: auto 11px 11px 4px !important; gap: 3px 9px !important;
+  padding: 7px 10px 8px !important; border-radius: 6px !important;
+  background: var(--corners), linear-gradient(#17150fef, #0d0c0bf2) !important;
+  box-shadow: var(--frame), 0 6px 18px #000c !important;
+}
+body.touch-ui .hud-lvl {
+  grid-row: 1 / 5 !important; width: 54px !important; height: 54px !important; border-radius: 50%; overflow: visible;
+  background: radial-gradient(circle at 50% 40%, #2a2620, #0c0a08) !important;
+  box-shadow: 0 0 0 1.5px #000, 0 0 0 3px var(--gold), 0 0 0 4px #000, 0 0 0 5px #6a5226, 0 3px 10px #000c !important;
+}
+body.touch-ui .hud-lvl::before { display: none; }
+body.touch-ui .hud-lvl canvas { width: 54px; height: 54px; border-radius: 50%; image-rendering: pixelated; display: block; }
+body.touch-ui .hud-lvl b {
+  position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); min-width: 22px; height: 18px; padding: 0 4px; margin: 0 !important;
+  border-radius: 9px; background: linear-gradient(#2a2418, #0d0b08); box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold);
+  color: var(--gold-hi) !important; font: 700 11px/18px var(--title) !important; text-shadow: none !important; text-align: center;
+}
+body.touch-ui .hud-name { grid-column: 2; grid-row: 1; display: flex; align-items: baseline; gap: 8px; min-width: 0; line-height: 1.1; }
+body.touch-ui .hud-name b { color: #efe4c8; font: 700 15px var(--title); letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.touch-ui .hud-name small { color: #a8977a; font: 11px Georgia, serif; white-space: nowrap; }
+body.touch-ui .hud .tbar.hp { grid-column: 2; grid-row: 2; }
+body.touch-ui .hud .tbar.mana { grid-column: 2; grid-row: 3 !important; }
+body.touch-ui .hud .tbar { height: 11px !important; border-radius: 2px !important; background: #050404 !important; box-shadow: 0 0 0 1px #000, 0 0 0 2px #3a3020 !important; }
+body.touch-ui .hud .tbar div { border-radius: 1px !important; }
+body.touch-ui .hud .tbar.hp div { background: linear-gradient(#e0574a, #9a1e18 60%, #5a0c08) !important; }
+body.touch-ui .hud .tbar.mana div { background: linear-gradient(#5a8ae8, #2448a8 60%, #102058) !important; }
+body.touch-ui .hud .tbar span { font: 700 9px/11px Georgia, serif !important; letter-spacing: 0.5px; }
+body.touch-ui .hud-xp { grid-column: 2 / 4 !important; grid-row: 4 !important; height: 3px !important; background: #050404 !important; }
+body.touch-ui .hud-xp div { background: linear-gradient(90deg, #8a6630, var(--gold-hi)) !important; box-shadow: 0 0 6px #f0c86888 !important; }
+body.touch-ui .hud-gold {
+  grid-column: 3 !important; grid-row: 1 / 4 !important; align-self: center; padding: 4px 10px 4px 6px !important; border-radius: 20px !important;
+  background: linear-gradient(#1a1712, #0a0908) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important;
+  color: #efe4c8 !important; font: 700 13px var(--title) !important;
+}
+body.touch-ui .hud-gold img { width: 22px !important; height: 22px !important; image-rendering: auto !important; }
+/* -- the guide: a dark card with a gold rule -- */
+body.touch-ui .guide { background: linear-gradient(#17150fee, #0d0c0bee) !important; border: 0 !important; border-left: 2px solid var(--gold) !important; box-shadow: var(--frame), 0 4px 14px #000a !important; border-radius: 4px !important; top: 86px !important; }
+body.touch-ui .guide header b { font: 700 12px var(--title); letter-spacing: 1px; color: var(--gold-hi); }
+/* -- the bottom bar: near black, hair-thin gold dividers; icons dimmed until chosen -- */
+body.touch-ui .tabbar {
+  background: linear-gradient(#0000, #0000), linear-gradient(90deg, #0000 0, #6a5226 30%, #c9a259 50%, #6a5226 70%, #0000 100%) top / 100% 1px no-repeat,
+    linear-gradient(#141210, #0a0908) !important;
+  box-shadow: 0 -1px 0 #000, 0 -8px 24px #000c !important; gap: 0 !important; padding-top: 4px !important;
+}
+body.touch-ui .tabbar button { font: 500 10px var(--title) !important; letter-spacing: 1px; text-transform: uppercase; color: #8a7a5e !important; border-radius: 0 !important; }
+body.touch-ui .tabbar button + button { box-shadow: -1px 0 0 #2a2418; }
+body.touch-ui .tabbar button span { background: none !important; box-shadow: none !important; width: 44px !important; height: 38px !important; }
+body.touch-ui .tabbar button span img { width: 34px !important; height: 34px !important; filter: grayscale(0.55) brightness(0.72) drop-shadow(0 2px 2px #000) !important; transition: filter 0.15s; }
+body.touch-ui .tabbar button.active { color: var(--gold-hi) !important; background: radial-gradient(ellipse at 50% 40%, #c9a25922, #0000 70%) !important; }
+body.touch-ui .tabbar button.active span img { filter: drop-shadow(0 0 6px #f0c86888) drop-shadow(0 2px 2px #000) !important; }
+body.touch-ui .tabbar button.active::after { top: auto !important; bottom: 2px !important; width: 6px !important; height: 6px !important; background: var(--gold-hi) !important; box-shadow: 0 0 8px #f0c868 !important; }
+/* -- the controls: dark discs ringed in old gold -- */
+body.touch-ui .radial-controls .fav {
+  background: radial-gradient(circle at 50% 35%, #24201a, #0b0a08 70%) !important;
+  box-shadow: 0 0 0 1px #000, 0 0 0 2.5px #8a6a34, 0 0 0 3.5px #000, inset 0 2px 6px #000c, 0 4px 10px #000c !important;
+}
+body.touch-ui .radial-controls .fav small { background: #0b0a08 !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold) !important; color: var(--gold-hi) !important; font: 700 10px/14px var(--title) !important; }
+body.touch-ui .radial-controls .fav.empty { box-shadow: 0 0 0 1px #0008, 0 0 0 2px #8a6a3466 !important; background: #0b0a0899 !important; }
+body.touch-ui .attack-btn {
+  background:
+    radial-gradient(circle at 50% 38%, #ffffff22 0 10%, #0000 30%),
+    radial-gradient(circle, var(--gem, #7a1612) 0 50%, var(--gem-lo, #2a0604) 62%, #0000 63%),
+    conic-gradient(from 0deg, #f0d898, #8a6630, #f0d898, #6a4a20, #f0d898, #8a6630, #f0d898) !important;
+  box-shadow: 0 0 0 1.5px #000, inset 0 0 0 3px #0000, 0 0 0 4px #0b0a08, 0 0 0 5px #6a5226, 0 6px 18px #000e, 0 0 22px var(--gem-glow, #c0302a55) !important;
+}
+body.touch-ui .attack-btn[data-action="talk"] { --gem: #1e4a6e; --gem-lo: #08182a; }
+body.touch-ui .attack-btn[data-action="loot"] { --gem: #7a5a1a; --gem-lo: #2a1c04; }
+body.touch-ui .attack-btn[data-action="use"] { --gem: #2e5a2a; --gem-lo: #0c200a; }
+body.touch-ui .attack-btn[data-action="idle"] { --gem: #2a2620; --gem-lo: #0b0a08; }
+body.touch-ui .joystick {
+  background: radial-gradient(circle, #0000 0 57%, #c9a25944 58% 59%, #0000 60%), radial-gradient(circle at 50% 40%, #1a1712cc, #0b0a08dd 70%) !important;
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 2px #6a5226aa, 0 4px 12px #000a !important;
+}
+body.touch-ui .joystick .knob {
+  background: radial-gradient(circle at 38% 30%, #fff1c0 0 8%, #0000 20%), radial-gradient(circle, #b8904c 0 46%, #4a3416 50% 56%, #d8b870 58% 62%, #2a1c08 64%) !important;
+}
+/* -- sheets and the talk card: near-black, a gold hairline frame with corner ornaments, titles between rules -- */
+body.touch-ui .panel { background: var(--corners), linear-gradient(#15130f, #0b0a08) !important; box-shadow: inset 0 1px 0 #000, inset 0 2px 0 var(--gold), inset 0 3px 0 #000, 0 -10px 30px #000e !important; }
+body.touch-ui .sheet-head b { font: 700 20px/36px var(--title) !important; color: var(--gold-hi) !important; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 2px 0 #000 !important; }
+body.touch-ui .sheet-head b::after { width: 100% !important; height: 1px !important; background: linear-gradient(90deg, var(--gold), #0000 80%) !important; }
+body.touch-ui .panel-close, body.touch-ui .talk-who button, body.touch-ui .viewport .bag-close {
+  background: linear-gradient(#1a1712, #0b0a08) !important; border-radius: 4px !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important;
+}
+body.touch-ui .seg { background: #070605 !important; border-radius: 4px !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #2a2418 !important; }
+body.touch-ui .seg button { font: 700 12px var(--title) !important; letter-spacing: 1px; text-transform: uppercase; border-radius: 3px !important; color: #8a7a5e !important; }
+body.touch-ui .seg button.active { background: linear-gradient(#2a2418, #14110c) !important; color: var(--gold-hi) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold) !important; }
+body.touch-ui .menu-head { font: 700 11px var(--title) !important; letter-spacing: 2px !important; color: var(--gold) !important; text-align: center; display: flex; align-items: center; gap: 10px; }
+body.touch-ui .menu-head::before, body.touch-ui .menu-head::after { content: ''; flex: 1; height: 1px; width: auto !important; margin: 0 !important; background: linear-gradient(90deg, #0000, var(--rule)) !important; }
+body.touch-ui .menu-head::after { background: linear-gradient(90deg, var(--rule), #0000) !important; }
+body.touch-ui .menu-row { border-bottom-color: #221d14 !important; font-family: Georgia, serif !important; color: #e6dcc4 !important; }
+body.touch-ui .toggle { background: #070605 !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #3a3020 !important; }
+body.touch-ui .toggle::after { background: radial-gradient(circle at 40% 35%, #f0d898, #6a5226) !important; }
+body.touch-ui .toggle.on { background: linear-gradient(#1e3a1a, #0e200c) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #4a7a3a !important; }
+body.touch-ui .talk-card:not([hidden]) { background: var(--corners), linear-gradient(#17150ff6, #0b0a08f6) !important; box-shadow: var(--frame), 0 -6px 26px #000e !important; border-radius: 6px !important; }
+body.touch-ui .talk-who canvas { border-radius: 50% !important; box-shadow: 0 0 0 1px #000, 0 0 0 2.5px var(--gold), 0 0 0 3.5px #000 !important; }
+body.touch-ui .talk-who b { font: 700 16px var(--title) !important; color: var(--gold-hi) !important; letter-spacing: 0.5px; }
+body.touch-ui .talk-card p { font-family: Georgia, serif !important; color: #e6dcc4; }
+body.touch-ui .talk-card p u { color: #8cc4f0 !important; }
+body.touch-ui .talk-words button { background: linear-gradient(#162a40, #0a1420) !important; border-radius: 4px !important; font: 700 13px var(--title) !important; letter-spacing: 0.5px; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #3a6a9a !important; color: #d8ecff !important; }
+body.touch-ui .talk-words button.bye { background: linear-gradient(#1a1712, #0b0a08) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important; color: #c8b890 !important; }
+body.touch-ui .panel .equipment .slot, body.touch-ui .panel .grid .slot { background: #070605 !important; border-color: #2a2418 !important; box-shadow: inset 0 0 0 1px #000; border-radius: 3px; }
+body.touch-ui .panel section { background: none !important; border-color: #221d14 !important; }
+body.touch-ui .panel h2 { font-family: var(--title) !important; letter-spacing: 2px; color: var(--gold) !important; }

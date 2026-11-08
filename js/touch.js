@@ -341,9 +341,19 @@ function initTouch() {
     }
     // the status bar: level, experience to the next one, gold, and a red edge when you're nearly dead
     $('hudLvl').textContent = player.level;
+    $('hudName').textContent = player.name;
+    $('hudTitle').textContent = `Level ${player.level} · ${player.vocation === 'none' ? 'Adventurer' : capitalize(player.vocation)}`;
+    const faceKey = creatureKey(player) + player.dir;
+    if (faceKey !== hudFaceKey) { // the portrait: your own head and shoulders, big
+      hudFaceKey = faceKey;
+      const img = Sprites.creature(creatureKey(player), 2, 0), big = img.width > TILE, f = $('hudFace').getContext('2d');
+      f.clearRect(0, 0, 64, 64);
+      f.imageSmoothingEnabled = false;
+      f.drawImage(img, big ? TILE + 5 : 5, big ? TILE - 6 : -6, 22, 22, 0, 0, 64, 64);
+    }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
     $('hudXp').style.width = `${Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)))}%`;
-    $('hudGold').innerHTML = `<img src="${Sprites.itemURL('gold')}" alt="">${player.gold}`;
+    $('hudGold').innerHTML = `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`;
     document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
     if (document.body.dataset.sheet === 'menu') renderMenu();
     if (!$('talk').hidden && ((!player.conversation && now > talkShownAt + 1500) || player.shopNpc)) hideTalk(); // the talk is over, or a shop opened
@@ -431,7 +441,7 @@ function renderMenu() {
 }
 
 // ---- the talk card: what an NPC says to you, its keywords as buttons -------------------------------------------
-let talkShownAt = 0;
+let talkShownAt = 0, hudFaceKey = '';
 let talkSpeaker = '', talkLines = [];
 function showTalk(speaker, text) {
   // lines that come together (a greeting, then what they have for you) show together
