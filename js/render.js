@@ -164,6 +164,7 @@ const Render = {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
         let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
         // a building's corner on its terrace or street: the wall stands on that paving, not on the grass beside it
+        if (!beside) beside = groundAt(x + 1, y) || groundAt(x - 1, y) || groundAt(x, y + 1); // (at the edge of a raised floor)
         const below = groundAt(x, y + 1);
         if (below && !wallAt(x, y + 1) && Sprites.paved(below) && !(beside && Sprites.paved(beside))) beside = below;
         return beside && THINGS[beside].block ? t.ground : beside; // a wall on the water's edge stands on its own ground
