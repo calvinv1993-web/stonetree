@@ -206,8 +206,33 @@ function clickTile(e, t, wx, wy) {
     const d = THINGS[id];
     return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb;
   }));
-  if (e.button === 2 || usable) Actions.interact('use', t.x, t.y, t.z);
-  else if (e.button === 0) Actions.walkTo(t.x, t.y);
+  if (e.button === 2 || usable) markWalk(t), Actions.interact('use', t.x, t.y, t.z);
+  else if (e.button === 0) markWalk(t), Actions.walkTo(t.x, t.y);
+}
+
+// Where you tapped (or clicked) to go: a gold mark on that tile until you're there, or stop walking, or go elsewhere.
+let walkMark = null;
+const markWalk = t => { walkMark = { x: t.x, y: t.y, z: t.z, at: now, moved: now }; };
+function drawWalkMark(screen) {
+  const m = walkMark;
+  if (!m) return;
+  if (player.walk) m.moved = now;
+  if (player.z !== m.z || (player.x === m.x && player.y === m.y) || now - m.at > 20000 || now - m.moved > 700) return void (walkMark = null);
+  const [sx, sy] = screen(m.x, m.y), size = TILE * SCALE, pulse = (Math.sin(now / 160) + 1) / 2, inset = 3 + pulse * 3, arm = size * 0.28;
+  ctx.fillStyle = `rgba(232, 181, 74, ${0.12 + pulse * 0.1})`;
+  ctx.fillRect(sx + 2, sy + 2, size - 4, size - 4);
+  ctx.strokeStyle = '#e8b54a';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (const [cx, cy, dx, dy] of [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]]) { // the four corners, pointing in
+    const x = sx + cx * size + dx * inset, y = sy + cy * size + dy * inset;
+    ctx.moveTo(x, y + dy * arm);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + dx * arm, y);
+  }
+  ctx.stroke();
+  ctx.lineCap = 'butt';
 }
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -341,6 +366,7 @@ function draw() {
   const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
   Fx.overlay(screen);
+  drawWalkMark(screen);
   // Who just hit you: 1 right after the hit, fading to 0.
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);

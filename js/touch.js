@@ -24,6 +24,14 @@ const touchStorage = {
   },
 };
 
+// The joystick can be put away (Menu, Game): then you walk by tapping the map or swiping. Remembered per browser.
+const joystickOn = () => touchStorage.get('tilequest.joystick') !== false;
+function setJoystick(on) {
+  touchStorage.set('tilequest.joystick', !!on);
+  document.body.classList.toggle('no-joystick', !on);
+  renderMenu();
+}
+
 function setTouchMode(mode) {
   touchMode = mode;
   $('tUse').classList.toggle('active', mode === 'use');
@@ -262,6 +270,7 @@ function initTouch() {
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
   for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests'], ['tabMap', 'map'], ['tabChat', 'chat'], ['tabMenu', 'menu']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
+  document.body.classList.toggle('no-joystick', !joystickOn());
   // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
   const hud = document.querySelector('#touch .hud');
   let hudH = -1;
@@ -420,7 +429,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}`;
+  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -444,6 +453,7 @@ function renderMenu() {
     h('div', { className: 'menu-head' }, 'Game'),
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
+    row(['Joystick', h('small', {}, joystickOn() ? 'On: walk with the stick, bottom left' : 'Off: tap where to go, or swipe the map')], toggle(joystickOn()), () => setJoystick(!joystickOn())),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
     row('Order a ride', h('span', {}, '›'), () => { closeSheet(); if ($('worldmap').hidden) toggleWorldMap(true); else setRideMode(true); }),

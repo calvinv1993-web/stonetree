@@ -1286,3 +1286,5 @@ body.touch-ui #view { border: 0; }
   body.touch-ui .hud { grid-template-columns: 46px minmax(0, 380px) auto; justify-content: start; }
 }
 @media (max-height: 500px) { body.touch-ui .toasts { top: calc(var(--hud-h) + 8px); } }
+/* the joystick put away (Menu, Game) */
+body.touch-ui.no-joystick .joystick { display: none !important; }

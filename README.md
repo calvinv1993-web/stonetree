@@ -133,7 +133,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 | Drag | Move items between bags, equipment, corpses and the map |
 
 On a touch screen:
-- **Walking:** use the joystick at the bottom left, or swipe on the map. A short swipe walks one tile, diagonals too; keep your finger down to keep walking.
+- **Walking:** use the joystick at the bottom left, or swipe on the map. A short swipe walks one tile, diagonals too; keep your finger down to keep walking. Or tap a tile to walk there: a gold mark shows where you're going. Don't want the joystick? Turn it off under Menu, Game.
 - **The map:** a tap walks, attacks, talks or opens a corpse. A long press uses something.
 - **The layout on a phone:** a status bar on top (your level, health, mana, experience and gold), five buttons along the bottom (Character, Quests, Map, Chat and Menu; on a phone held sideways, a column on the right), the joystick bottom left and the big action button bottom right with four round quick buttons round it.
 - **The big button** attacks the nearest monster, talks to someone next to you or opens a corpse. Its round quick buttons: your health and mana potions, and two of your own (spells or food): tap to use, hold one to choose what goes there.
