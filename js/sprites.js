@@ -393,6 +393,16 @@ const Sprites = (() => {
   }
   // A shop sign: a board on two chains under an iron arm, parallel to the wall and out in front of it, with its
   // trade's picture on its face (drawn for a board at 8..24 x 8..23).
+  // A picture in a frame hanging flat on the wall: the frame's thickness, its shadow, the picture on its face
+  // (x, y, w, h in the face's 32x32 coordinates, y down from the wall's top).
+  function framed(g, shape, x, y, w, h, frameColor, picture) {
+    wallPoly(g, shape, 0, 'rgba(15,10,5,0.3)', [x + 1, 31 - y - h, x + w + 1, 31 - y - h, x + w + 1, 31 - y, x + 1, 31 - y]);
+    wallBox(g, shape, x, x + w, 0, 1.2, 32 - y - h, 32 - y, { top: shade(frameColor, 1.3), south: shade(frameColor, 0.75), east: shade(frameColor, 0.55) });
+    onWallPlane(g, shape, 1.2, () => {
+      rect(g, frameColor, x, y, w, h); rect(g, shade(frameColor, 1.35), x, y, w, 1); rect(g, shade(frameColor, 1.15), x, y, 1, h);
+      picture();
+    });
+  }
   function shopSign(g, shape, board, picture) {
     const at = wallSpot(shape), out = 6;
     wallPoly(g, shape, 0, 'rgba(15,10,5,0.25)', [10, 23, 25, 23, 25, 9, 10, 9]); // its shadow on the wall
@@ -2243,16 +2253,12 @@ const Sprites = (() => {
       wallBox(g, shape, 9, 23, 0, 1.6, 28, 29.6, IRON);                                       // the rod
       for (const u of [8.5, 23.5]) wallBox(g, shape, u - 1, u + 1, 0, 2, 27.8, 29.8, { top: '#f0d060', south: '#c8a030', east: '#8a6a18' });
     },
-    painting: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, 'rgba(15,10,5,0.3)', 7, 6, 21, 16); rect(g, '#7a5a18', 6, 5, 21, 16); // its shadow, the frame's edge
-      rect(g, '#c8a030', 6, 5, 20, 15); rect(g, '#f0d070', 6, 5, 20, 1);
+    painting: (g, r, frame, shape) => framed(g, shape, 6, 5, 20, 15, '#c8a030', () => {
       rect(g, '#7ab0e0', 8, 7, 16, 6);
       rect(g, '#4a8a3c', 8, 13, 16, 5);
       ellipse(g, '#f0e060', 19, 9, 2, 2);
     }),
-    painting_ship: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, 'rgba(15,10,5,0.3)', 6, 5, 23, 18); rect(g, '#5a4418', 5, 4, 23, 18);
-      rect(g, '#8a6a28', 5, 4, 22, 17); rect(g, '#b8964a', 5, 4, 22, 1);
+    painting_ship: (g, r, frame, shape) => framed(g, shape, 5, 4, 22, 17, '#8a6a28', () => {
       rect(g, '#a8382a', 7, 6, 18, 6); // a red sky
       rect(g, '#d8703a', 7, 11, 18, 2);
       rect(g, '#2a4a6a', 7, 13, 18, 6); // the sea
@@ -2331,25 +2337,41 @@ const Sprites = (() => {
       wallBox(g, shape, 15.3, 16.7, 4.3, 5.7, 22.5, 23.5, IRON);
     },
     // A shelf with jars and pots.
-    shelf: (g, r, frame, shape) => onWall(g, shape, () => {
-      for (const y of [13, 22]) { rect(g, '#6a4220', 5, y, 22, 2); rect(g, '#8a5a2c', 5, y, 22, 1); }
-      for (const y of [13, 22]) for (let x = 7; x < 25; x += 4 + ((r() * 2) | 0)) {
-        const c = ['#4a7ac0', '#c04a3a', '#d8c070', '#5aa050', '#e8e0d0'][(r() * 5) | 0], h = 4 + ((r() * 3) | 0);
-        rect(g, c, x, y - h, 3, h); rect(g, 'rgba(255,255,255,0.4)', x, y - h, 1, h);
+    // A shelf: two boards standing out from the wall, with jars and pots standing on them.
+    shelf: (g, r, frame, shape) => {
+      const wood = { top: '#9a6632', south: '#6a4220', east: '#4a2c14', edge: '#b07a42' };
+      for (const h of [19, 10]) {
+        wallPoly(g, shape, 0, 'rgba(15,10,5,0.28)', [6, h - 1, 28, h - 1, 28, h - 3, 6, h - 3]); // its shadow
+        wallBox(g, shape, 5, 27, 0, 4, h - 1.5, h, wood);
+        for (let u = 7; u < 25; u += 4 + ((r() * 2) | 0)) {
+          const c = ['#4a7ac0', '#c04a3a', '#d8c070', '#5aa050', '#e8e0d0'][(r() * 5) | 0], hh = 3 + ((r() * 3) | 0);
+          wallBox(g, shape, u, u + 2.5, 1, 3.2, h, h + hh, { top: shade(c, 1.25), south: c, east: shade(c, 0.7) });
+        }
       }
-    }),
-    // Swords, an axe and a spear on a wooden rack.
-    weapon_rack: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#6a4220', 5, 8, 22, 2); rect(g, '#6a4220', 5, 22, 22, 2);
-      for (const x of [9, 14]) { rect(g, '#c8ccd4', x, 4, 2, 18); rect(g, '#ffffff', x, 4, 1, 18); rect(g, '#7a5a2a', x - 2, 18, 6, 2); rect(g, '#4a3018', x, 20, 2, 5); }
-      rect(g, '#6a4220', 20, 3, 2, 23); poly(g, '#c8ccd4', [22, 5, 27, 8, 27, 13, 22, 11]); // an axe
-    }),
-    sign_wall: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#9a6a38', 5, 8, 22, 11);
-      rect(g, '#6e4422', 5, 18, 22, 1);
-      rect(g, '#4a2a10', 8, 11, 15, 1);
-      rect(g, '#4a2a10', 8, 14, 11, 1);
-    }),
+    },
+    // Swords, an axe and a spear on a wooden rack against the wall.
+    weapon_rack: (g, r, frame, shape) => {
+      const wood = { top: '#8a5a2c', south: '#6a4220', east: '#4a2c14', edge: '#a8743e' };
+      const steel = { top: '#ffffff', south: '#c8ccd4', east: '#8a909a' };
+      wallPoly(g, shape, 0, 'rgba(15,10,5,0.28)', [6, 22, 28, 22, 28, 20, 6, 20]);
+      for (const u of [9, 14]) { // two swords, point up
+        wallBox(g, shape, u, u + 1.6, 1, 1.8, 10, 28, steel);
+        wallBox(g, shape, u - 2, u + 3.6, 0.6, 2.2, 10, 11.5, { top: '#a07a3a', south: '#7a5a2a', east: '#5a4018' });
+        wallBox(g, shape, u, u + 1.6, 1, 1.8, 5, 10, { top: '#6a4a28', south: '#4a3018', east: '#30200e' });
+      }
+      wallBox(g, shape, 20, 21.6, 1, 2, 4, 29, wood);                                          // the axe's haft
+      wallPoly(g, shape, 1.5, '#c8ccd4', [21.6, 27, 27, 25, 27, 20, 21.6, 22]); wallPoly(g, shape, 1.5, '#ffffff', [21.6, 27, 27, 25, 27, 24.5, 21.6, 26.4]);
+      wallBox(g, shape, 5, 27, 0, 2.5, 23, 24.5, wood); wallBox(g, shape, 5, 27, 0, 2.5, 8, 9.5, wood); // the rails
+    },
+    // A plaque on the wall: a board with thickness and its shadow.
+    sign_wall: (g, r, frame, shape) => {
+      wallPoly(g, shape, 0, 'rgba(15,10,5,0.28)', [6, 13, 28, 13, 28, 23, 6, 23]);
+      wallBox(g, shape, 5, 27, 0, 1.2, 13, 24, { top: '#c08a50', south: '#6e4422', east: '#4e3018' });
+      onWallPlane(g, shape, 1.2, () => {
+        rect(g, '#9a6a38', 5, 8, 22, 11); rect(g, 'rgba(255,255,255,0.2)', 5, 8, 22, 1);
+        rect(g, '#4a2a10', 8, 11, 15, 1); rect(g, '#4a2a10', 8, 14, 11, 1);
+      });
+    },
     door_sealed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false, true),
     // A chair: a slatted back, a seat lit from above, legs.
     // A chair: four legs, a seat, and a slatted back along its north edge.
