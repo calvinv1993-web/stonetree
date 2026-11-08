@@ -278,10 +278,8 @@ const Render = {
       // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
       // straight line.
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-        const here = groundAt(x, y);
+        const lt = tileAt(x, y), here = lt && lt.items.some(id => THINGS[id].wall === 'thin') ? groundShown(x, y, lt) : groundAt(x, y); // (a wall at the edge stands on the ground beside it, rocks and all)
         if (!Sprites.hasLip(here)) continue;
-        const wallBeside = [[-1, 0], [1, 0]].some(([dx, dy]) => { const t = tileAt(x + dx, y + dy); return !!t && t.items.some(id => THINGS[id].wall); });
-        if (wallBeside) continue; // (a narrow way between buildings just ends: no rubble)
         const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
         for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
           if (!tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height) {
