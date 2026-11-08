@@ -332,10 +332,10 @@ function initTouch() {
   const MODES = ['offensive', 'balanced', 'defensive'];
   tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));
   for (const b of document.querySelectorAll('#fightModes button')) {
-    b.replaceChildren(Icons.img({ offensive: 'attack', balanced: 'balanced', defensive: 'defend' }[b.dataset.mode], 20));
+    b.replaceChildren(Icons.img({ offensive: 'mode-attack', balanced: 'mode-balanced', defensive: 'mode-defend' }[b.dataset.mode], 24));
     tap(b, () => Actions.setFightMode(b.dataset.mode));
   }
-  $('fightFollow').replaceChildren(Icons.img('follow', 20));
+  $('fightFollow').replaceChildren(Icons.img('mode-follow', 24));
   tap('fightFollow', () => Actions.setChase(!player.chase));
   tap('tChase', () => Actions.setChase(!player.chase));
   tap('tSecure', () => Actions.setSecure(player.secure === false));
