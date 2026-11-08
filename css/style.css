@@ -972,7 +972,7 @@ body.touch-ui {
             radial-gradient(circle at 8px calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
             radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px);
 }
-body.touch-ui img.icon { image-rendering: pixelated; display: block; pointer-events: none; filter: drop-shadow(0 1px 0 #000a); }
+body.touch-ui img.icon { display: block; pointer-events: none; filter: drop-shadow(0 2px 2px #000b); }
 
 /* -- the status bar: a riveted bronze frame; the level a gold medallion in a laurel; bars cut into stone -- */
 body.touch-ui .hud {
@@ -1064,7 +1064,7 @@ body.touch-ui .attack-btn {
     repeating-conic-gradient(#f4d27a 0 3deg, #8a5e1c 3deg 10deg, #c8943a 10deg 12deg, #6e4a18 12deg 22.5deg) !important;
   box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000a, 0 0 0 4px #c8943a, 0 0 0 6px #000, 0 6px 16px #000d, 0 0 18px var(--gem-glow, #ff503055) !important;
 }
-body.touch-ui .attack-btn img.icon { width: 42px; height: 42px; filter: drop-shadow(0 2px 0 #000c); }
+body.touch-ui .attack-btn img.icon { width: 48px; height: 48px; filter: drop-shadow(0 3px 3px #000d); }
 body.touch-ui .attack-btn:active { transform: scale(0.95); }
 body.touch-ui .attack-btn[data-action="talk"] { --gem: #2f78a8; --gem-lo: #0c2a44; --gem-glow: #4ab8ff66; }
 body.touch-ui .attack-btn[data-action="loot"] { --gem: #c8902a; --gem-lo: #4a2a06; --gem-glow: #ffc84a66; }
@@ -1078,7 +1078,7 @@ body.touch-ui .radial-controls .fav {
   box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000, inset 0 0 0 3px #8a5e1c, inset 0 0 0 4px #e8c068aa, inset 0 3px 6px #0009, 0 4px 10px #000b !important;
   color: #a8d8ff; font: 700 10px/1.1 Georgia, serif; text-align: center;
 }
-body.touch-ui .radial-controls .fav span img { width: 30px; height: 30px; }
+body.touch-ui .radial-controls .fav span img { width: 34px; height: 34px; }
 body.touch-ui .radial-controls .fav small {
   background: linear-gradient(#c8943a, #6e4a18) !important; border: 0 !important; border-radius: 4px !important;
   box-shadow: 0 0 0 1px #000, inset 0 1px 0 #f4d27a; color: #fff6d8 !important; font: 800 10px/14px sans-serif !important; text-shadow: 0 1px 0 #000;
