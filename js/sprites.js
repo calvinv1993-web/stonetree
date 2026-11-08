@@ -335,17 +335,55 @@ const Sprites = (() => {
     rect(g, '#fff6c8', cx - 1, by - 3, 2, 2);
     if (frame % 2) rect(g, '#ffd060', cx + sway * 2 + (frame === 1 ? -w * 0.6 : w * 0.6), by - h - 3 - lick, 1, 1); // a spark
   }
-  // A shop sign: an iron arm out from the wall with a board hanging from it, and its picture.
-  function hangingSign(g, board, picture) {
-    rect(g, '#2e2e34', 4, 3, 22, 2); rect(g, '#5a5a62', 4, 3, 22, 1); poly(g, '#2e2e34', [4, 5, 4, 9, 9, 5]);
-    for (const x of [9, 22]) rect(g, '#3a3a40', x, 5, 1, 3);
-    rect(g, '#2a1c10', 7, 7, 18, 17);
-    rect(g, board, 8, 8, 16, 15);
-    rect(g, 'rgba(255,255,255,0.18)', 8, 8, 16, 1); rect(g, 'rgba(0,0,0,0.25)', 8, 22, 16, 1);
-    picture();
-  }
   function onWall(g, shape, paint) {
     face(g, runsNorthSouth(wallSides(shape)) ? 'east' : 'south', 0, paint);
+  }
+  // ---- Things on walls, in the camera's view (docs/art-style.md) ---------------------------------------------------
+  // What's part of the wall (a window, a plaque) is painted in its face, with depth: a frame, a sill, a shadow inside.
+  // What hangs or burns (a torch, a banner, a lantern, a sign) is drawn upright, as the figures are, on an iron
+  // bracket out of the wall. wallSpot(shape)(u, out, h): where a point on the wall's face lands in the 64x64 picture
+  // of its tile: u along the wall (west to east; north to south on an east face), out in front of it, h above the floor.
+  const wallSpot = shape => (runsNorthSouth(wallSides(shape))
+    ? (u, out, h) => [64 + out - h, 32 + u - h]
+    : (u, out, h) => [32 + u - h, 64 + out - h]);
+  const IRON = ['#6a655e', '#3a3632', '#1c1a18']; // lit, base, shade
+  // An iron bracket out of the wall at (u, h): a plate on the wall and an arm reaching out; returns the arm's end.
+  function bracket(g, at, u, h, reach) {
+    const [x0, y0] = at(u, 0, h), [x1, y1] = at(u, reach, h + 1);
+    rect(g, IRON[2], x0 - 2, y0 - 2.5, 4, 5); rect(g, IRON[1], x0 - 2, y0 - 2.5, 3, 4); rect(g, IRON[0], x0 - 2, y0 - 2.5, 3, 1);
+    line(g, IRON[2], 2, x0 + 0.5, y0 + 0.5, x1 + 0.5, y1 + 0.5);
+    line(g, IRON[0], 1, x0, y0, x1, y1);
+    return [x1, y1];
+  }
+  // A board hanging upright on two chains from a bracket, its top middle at (x, y), w x h; the picture is drawn
+  // in its own 32x32 frame (the board at 8..24 x 8..23), moved onto the board.
+  function hangingBoard(g, x, y, board, picture) {
+    poly(g, 'rgba(15,10,5,0.28)', [x - 6, y + 4, x + 10, y + 4, x + 10, y + 19, x - 6, y + 19]); // its shadow on the wall
+    line(g, IRON[1], 1, x - 5, y - 1, x - 5, y + 3); line(g, IRON[1], 1, x + 5, y - 1, x + 5, y + 3); // the chains
+    rect(g, IRON[1], x - 7, y - 2, 14, 2); rect(g, IRON[0], x - 7, y - 2, 14, 1); // the bar
+    g.save();
+    g.translate(x - 16, y + 3 - 8);
+    rect(g, '#2a1c10', 8, 8, 16, 15);                                  // the edge of the board (its thickness, in shade)
+    rect(g, board, 8, 8, 15, 14);
+    rect(g, 'rgba(255,255,255,0.22)', 8, 8, 15, 1); rect(g, 'rgba(255,255,255,0.1)', 8, 8, 1, 14); // lit from the north-west
+    rect(g, 'rgba(0,0,0,0.22)', 8, 21, 15, 1);
+    picture();
+    g.restore();
+  }
+  function wallTorch(g, shape, frame, lit) {
+    const at = wallSpot(shape), [sx, sy] = at(16, 0, 28);
+    if (lit) ellipse(g, 'rgba(20,14,8,0.25)', sx, sy, 3.5, 5); // soot on the wall above it
+    const [ex, ey] = bracket(g, at, 16, 15, 4);
+    rect(g, '#3e2410', ex - 1.5, ey - 7, 3, 11); rect(g, '#7a4c26', ex - 1.5, ey - 7, 1, 11); // the torch, lit on its west
+    rect(g, IRON[1], ex - 2.5, ey - 1, 5, 2); rect(g, IRON[0], ex - 2.5, ey - 1, 5, 0.8);   // its ring
+    rect(g, '#24160c', ex - 2, ey - 9.5, 4, 3);                                              // the pitch-wound head
+    if (lit) flame(g, ex, ey - 9, 2.6, 8, frame);
+    else rect(g, '#141010', ex - 1.5, ey - 10.5, 3, 1.5);
+  }
+  // A shop sign: a board on chains under an iron bracket, upright, with its trade's picture.
+  function shopSign(g, shape, board, picture) {
+    const at = wallSpot(shape), [ex, ey] = bracket(g, at, 16, 27, 3);
+    hangingBoard(g, ex, ey + 1, board, picture);
   }
   function drawLever(g, on) {
     shadow(g, 16, 27, 8, 3);
@@ -517,7 +555,19 @@ const Sprites = (() => {
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
-  const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  // Things that stand on their own (statues, poles, standing torches: UPRIGHT) rise nearly straight up, as the
+  // figures do, rather than up-left as walls lean: only a sliver of their east side shows (docs/art-style.md).
+  const UPRIGHT = new Set(['statue', 'torch', 'torch_out', 'lamppost', 'lamppost_off', 'signpost', 'flagpole', 'totem', 'obelisk',
+    'pillar', 'dummy', 'scarecrow']);
+  const UPRIGHT_LEAN = 0.22, UPRIGHT_RISE = 0.82; // (its height grows a little, so it isn't shorter than before)
+  let leanNow = LEAN, riseNow = HEIGHT;
+  const P = (u, v, z) => [64 + u - z * HEIGHT * leanNow, 64 + v - z * riseNow];
+  // Draw with the projection for upright things, then back.
+  function upright(draw) {
+    const was = [leanNow, riseNow];
+    leanNow = UPRIGHT_LEAN; riseNow = UPRIGHT_RISE;
+    try { draw(); } finally { [leanNow, riseNow] = was; }
+  }
   const FLOOR_Z = 32 / HEIGHT; // one floor's height in P()'s heights: what reaches it meets the floor above
   // An open hatch: the tile has no floor, only a frame of boards round a square opening in the middle, with its lid
   // thrown open, flat on the boards to the east. middle() draws what stands in the opening (the rope): after the back
@@ -750,14 +800,14 @@ const Sprites = (() => {
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
   function onSouth(g, v, fn) {
     g.save();
-    g.setTransform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); // (u, z) -> P(u, v, z)
+    g.setTransform(1, 0, -leanNow * HEIGHT, -riseNow, 64, 64 + v); // (u, z) -> P(u, v, z)
     fn(g);
     g.restore();
   }
   // A round column standing at (cu, cv), radius rad, from z0 up to z1: lit on its left, dark on its right.
   function column(g, cu, cv, rad, z0, z1, c) {
     const [bx, by] = P(cu, cv, z0), [tx, ty] = P(cu, cv, z1);
-    const n = Math.hypot(1, LEAN), kx = rad / n, ky = (rad * LEAN) / n; // across the column's axis
+    const n = Math.hypot(1, leanNow), kx = rad / n, ky = (rad * leanNow) / n; // across the column's axis
     const grad = g.createLinearGradient(bx - kx, by + ky, bx + kx, by - ky);
     grad.addColorStop(0, c.light); grad.addColorStop(0.45, c.mid); grad.addColorStop(1, c.dark);
     g.fillStyle = grad;
@@ -2143,39 +2193,58 @@ const Sprites = (() => {
       rect(g, '#a03a10', 17, 22, 1, 1); // one last ember
     },
 
-    window: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#4a3018', 8, 5, 16, 16);
-      rect(g, '#9fd0f0', 10, 7, 12, 12);
-      rect(g, '#cfe8ff', 11, 8, 4, 3);
-      rect(g, '#4a3018', 15, 7, 2, 12);
-      rect(g, '#4a3018', 10, 12, 12, 2);
-      rect(g, '#6a4a28', 7, 21, 18, 2);
-    }),
-    wall_torch: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#3a3a3a', 13, 15, 6, 2);
-      rect(g, '#5b3a1e', 15, 8, 2, 8);
-      flame(g, 16, 9, 3, 8, frame);
-    }),
-    wall_torch_out: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#3a3a3a', 13, 15, 6, 2);
-      rect(g, '#5b3a1e', 15, 8, 2, 8);
-      rect(g, '#2a2420', 14, 6, 4, 3);
-    }),
-    banner: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#6a4a22', 8, 3, 16, 2);
-      poly(g, '#8a1a22', [10, 5, 22, 5, 22, 24, 16, 20, 10, 24]);
-      rect(g, '#d0a030', 10, 5, 1, 18);
-      rect(g, '#d0a030', 21, 5, 1, 18);
-      poly(g, '#e0c040', [16, 8, 19, 12, 16, 16, 13, 12]);
-    }),
+    // A window set into the wall: a stone frame, glass deep in its recess (in the frame's shadow on its north-west),
+    // leaded panes catching the light, and a sill sticking out below it.
+    window: (g, r, frame, shape) => {
+      onWall(g, shape, () => {
+        rect(g, '#8e8676', 7, 3, 18, 19); rect(g, '#c8bfa8', 7, 3, 17, 18); rect(g, '#e4dcc6', 7, 3, 17, 1); // the frame
+        rect(g, '#1c2630', 9, 5, 14, 15);                                  // the recess
+        rect(g, '#5a8cb0', 11, 7, 12, 13);                                 // glass
+        rect(g, '#8cc0e0', 15, 8, 3, 4); rect(g, '#b8e0f8', 19, 13, 2, 3);  // the sky in it
+        rect(g, '#22303c', 9, 5, 14, 2); rect(g, '#22303c', 9, 5, 2, 15);  // the frame's shadow inside
+        rect(g, '#3a2818', 16, 7, 1, 13); rect(g, '#3a2818', 11, 13, 12, 1); // the leading
+        rect(g, 'rgba(255,255,255,0.35)', 12, 8, 1, 4);
+      });
+      const at = wallSpot(shape), box = (u0, u1, o0, o1, h0, h1, top, front, end) => {
+        const P = (u, o, h) => at(u, o, h);
+        poly(g, front, [...P(u0, o1, h1), ...P(u1, o1, h1), ...P(u1, o1, h0), ...P(u0, o1, h0)]);
+        poly(g, end, [...P(u1, o0, h1), ...P(u1, o1, h1), ...P(u1, o1, h0), ...P(u1, o0, h0)]);
+        poly(g, top, [...P(u0, o0, h1), ...P(u1, o0, h1), ...P(u1, o1, h1), ...P(u0, o1, h1)]);
+      };
+      box(6, 26, 0, 3, 8, 10, '#e4dcc6', '#a89e88', '#8a8272'); // the sill
+    },
+    // A torch in an iron ring on a bracket, upright, soot on the wall above it.
+    wall_torch: (g, r, frame, shape) => wallTorch(g, shape, frame, true),
+    wall_torch_out: (g, r, frame, shape) => wallTorch(g, shape, frame, false),
+    // A banner on a rod along the top of the wall, hanging straight down in folds, with a swallowtail and the
+    // temple's gold diamond; its shadow on the wall behind.
+    banner: (g, r, frame, shape) => {
+      const at = wallSpot(shape), [ax, ay] = at(8, 1.5, 29), [bx, by] = at(24, 1.5, 29), L = 18;
+      const cloth = (dx, dy) => [ax + dx, ay + dy, bx + dx, by + dy, bx + dx, by + L + dy, (ax + bx) / 2 + dx, (ay + by) / 2 + L - 5 + dy, ax + dx, ay + L + dy];
+      poly(g, 'rgba(15,10,5,0.3)', cloth(1.5, 1.5));
+      poly(g, '#7a1820', cloth(0, 0));
+      for (let k = 1; k < 4; k++) { // folds: shaded on their east side
+        const t = k / 4, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+        poly(g, 'rgba(0,0,0,0.22)', [x, y, x + 1.6, y + (by - ay) / 10, x + 1.6, y + L - 2, x, y + L - 3]);
+        rect(g, 'rgba(255,140,140,0.18)', x - 1.2, y + 1, 1, L - 5);
+      }
+      const gold = '#d8b040';
+      line(g, gold, 1, ax + 1.5, ay + 1, ax + 1.5, ay + L - 1); line(g, gold, 1, bx - 1.5, by + 1, bx - 1.5, by + L - 1);
+      const mx = (ax + bx) / 2, my = (ay + by) / 2 + 7;
+      poly(g, '#8a6a18', [mx, my - 4, mx + 3, my, mx, my + 4, mx - 3, my]); poly(g, '#f0d060', [mx, my - 4, mx + 2, my - 0.5, mx, my + 2, mx - 2, my]);
+      line(g, IRON[2], 2, ax - 1.5, ay + 0.5, bx + 1.5, by + 0.5); line(g, IRON[0], 1, ax - 1.5, ay, bx + 1.5, by); // the rod
+      ellipse(g, gold, ax - 2, ay, 1.5, 1.5); ellipse(g, gold, bx + 2, by, 1.5, 1.5);
+    },
     painting: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#c8a030', 6, 5, 20, 15);
+      rect(g, 'rgba(15,10,5,0.3)', 7, 6, 21, 16); rect(g, '#7a5a18', 6, 5, 21, 16); // its shadow, the frame's edge
+      rect(g, '#c8a030', 6, 5, 20, 15); rect(g, '#f0d070', 6, 5, 20, 1);
       rect(g, '#7ab0e0', 8, 7, 16, 6);
       rect(g, '#4a8a3c', 8, 13, 16, 5);
       ellipse(g, '#f0e060', 19, 9, 2, 2);
     }),
     painting_ship: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#8a6a28', 5, 4, 22, 17);
+      rect(g, 'rgba(15,10,5,0.3)', 6, 5, 23, 18); rect(g, '#5a4418', 5, 4, 23, 18);
+      rect(g, '#8a6a28', 5, 4, 22, 17); rect(g, '#b8964a', 5, 4, 22, 1);
       rect(g, '#a8382a', 7, 6, 18, 6); // a red sky
       rect(g, '#d8703a', 7, 11, 18, 2);
       rect(g, '#2a4a6a', 7, 13, 18, 6); // the sea
@@ -2195,60 +2264,66 @@ const Sprites = (() => {
       ellipse(g, 'rgba(190,225,245,0.95)', 21, 26, 1.3, 1.8); // a drop
     }),
     // Shop signs: a board hanging from an iron arm, with a picture of the trade.
-    sign_weapons: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#7a4a22', () => {
+    sign_weapons: (g, r, frame, shape) => shopSign(g, shape, '#7a4a22', () => {
       line(g, '#c8ccd4', 2, 11, 21, 21, 9); line(g, '#c8ccd4', 2, 21, 21, 11, 9);
       rect(g, '#6a4220', 10, 19, 3, 3); rect(g, '#6a4220', 19, 19, 3, 3);
-    })),
-    sign_armour: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#5a4a3a', () => {
+    }),
+    sign_armour: (g, r, frame, shape) => shopSign(g, shape, '#5a4a3a', () => {
       poly(g, '#9aa0aa', [11, 9, 21, 9, 21, 15, 16, 21, 11, 15]); poly(g, '#c8ccd4', [11, 9, 16, 9, 16, 21, 11, 15]);
       rect(g, '#b03030', 15, 10, 2, 9);
-    })),
-    sign_magic: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#3a2a5a', () => {
+    }),
+    sign_magic: (g, r, frame, shape) => shopSign(g, shape, '#3a2a5a', () => {
       poly(g, '#f0d050', [16, 8, 17.5, 13, 22, 13, 18.5, 16, 20, 21, 16, 18, 12, 21, 13.5, 16, 10, 13, 14.5, 13]);
       rect(g, '#a0d0ff', 21, 9, 1, 1); rect(g, '#a0d0ff', 11, 19, 1, 1);
-    })),
-    sign_food: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#8a5a2a', () => {
+    }),
+    sign_food: (g, r, frame, shape) => shopSign(g, shape, '#8a5a2a', () => {
       ellipse(g, '#c88a40', 16, 15, 6, 4); ellipse(g, '#e0a858', 15, 14, 4.5, 2.5);
       for (const x of [13, 16, 19]) rect(g, '#a86a2a', x, 13, 1, 3);
-    })),
-    sign_tools: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#6a5030', () => {
+    }),
+    sign_tools: (g, r, frame, shape) => shopSign(g, shape, '#6a5030', () => {
       ellipse(g, '#c8a868', 16, 15, 5, 5); ellipse(g, '#6a5030', 16, 15, 2.5, 2.5); // a coil of rope
       line(g, '#c8a868', 1, 20, 18, 23, 21);
-    })),
-    sign_inn: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#7a4a22', () => {
+    }),
+    sign_inn: (g, r, frame, shape) => shopSign(g, shape, '#7a4a22', () => {
       rect(g, '#e8d8a8', 12, 10, 8, 10); rect(g, '#c88a30', 12, 13, 8, 7); rect(g, '#f8f0d8', 12, 9, 8, 2); // a mug of ale
       rect(g, '#e8d8a8', 20, 12, 3, 1); rect(g, '#e8d8a8', 22, 12, 1, 5); rect(g, '#e8d8a8', 20, 16, 3, 1);
-    })),
-    sign_depot: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#4a5a6a', () => {
+    }),
+    sign_depot: (g, r, frame, shape) => shopSign(g, shape, '#4a5a6a', () => {
       rect(g, '#d8c8a0', 10, 10, 12, 9); poly(g, '#b8a880', [10, 10, 16, 15, 22, 10]); rect(g, '#c03030', 15, 14, 2, 2); // a letter
-    })),
-    sign_temple: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#e0d8c0', () => {
+    }),
+    sign_temple: (g, r, frame, shape) => shopSign(g, shape, '#e0d8c0', () => {
       ellipse(g, '#f0c040', 16, 15, 4, 4); for (let a = 0; a < 8; a++) line(g, '#f0c040', 1, 16 + Math.cos(a * 0.785) * 5, 15 + Math.sin(a * 0.785) * 5, 16 + Math.cos(a * 0.785) * 7.5, 15 + Math.sin(a * 0.785) * 7.5);
-    })),
-    sign_school: (g, r, frame, shape) => onWall(g, shape, () => hangingSign(g, '#2a5a3a', () => {
+    }),
+    sign_school: (g, r, frame, shape) => shopSign(g, shape, '#2a5a3a', () => {
       rect(g, '#f0e8d0', 10, 11, 6, 9); rect(g, '#e0d8c0', 16, 11, 6, 9); rect(g, '#8a6a3a', 15, 11, 2, 9); // an open book
       for (const y of [13, 15, 17]) { rect(g, '#8a8070', 11, y, 4, 1); rect(g, '#8a8070', 17, y, 4, 1); }
-    })),
+    }),
     // A box of flowers under a window.
-    window_box: (g, r, frame, shape) => onWall(g, shape, () => {
-      for (let i = 0; i < 7; i++) {
-        const x = 8 + i * 2.5;
-        rect(g, '#3a7a30', x, 20, 1, 3);
-        rect(g, ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0], x - 1, 18 + ((r() * 2) | 0), 3, 2);
+    window_box: (g, r, frame, shape) => {
+      const at = wallSpot(shape), P = (u, o, h) => at(u, o, h);
+      poly(g, 'rgba(15,10,5,0.3)', [...P(7, 0, 5), ...P(25, 0, 5), ...P(25, 0, 9), ...P(7, 0, 9)].map((v, i) => v + 1.5)); // its shadow
+      poly(g, '#3a2614', [...P(7, 0, 10), ...P(25, 0, 10), ...P(25, 4, 10), ...P(7, 4, 10)]);             // the soil
+      poly(g, '#6a4220', [...P(7, 4, 10), ...P(25, 4, 10), ...P(25, 4, 6), ...P(7, 4, 6)]);               // the front
+      poly(g, '#4a2c14', [...P(25, 0, 10), ...P(25, 4, 10), ...P(25, 4, 6), ...P(25, 0, 6)]);             // the east end
+      line(g, '#8e5c2e', 1, ...P(7, 4, 10), ...P(25, 4, 10));                                               // its lit rim
+      for (let i = 0; i < 8; i++) { // flowers, upright
+        const [x, y] = P(8.5 + i * 2.2, 2 + (i % 2), 10);
+        line(g, '#3a7a30', 1, x, y, x, y - 3 - (i % 3));
+        const c = ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0];
+        rect(g, c, x - 1, y - 5 - (i % 3), 2.5, 2); rect(g, 'rgba(255,255,255,0.5)', x - 1, y - 5 - (i % 3), 1, 1);
       }
-      rect(g, '#7a4a22', 7, 23, 18, 4); rect(g, '#9a6632', 7, 23, 18, 1); rect(g, '#5a3418', 7, 26, 18, 1);
-    }),
-    // A lantern on a bracket, glowing.
-    lantern: (g, r, frame, shape) => onWall(g, shape, () => {
-      rect(g, '#2e2e34', 12, 6, 8, 2);
-      rect(g, '#2e2e34', 18, 6, 2, 4);
-      rect(g, '#3a3a40', 15, 9, 6, 2);
-      ellipse(g, 'rgba(255,210,120,0.35)', 18, 15, 7, 7);
-      rect(g, '#3a3a40', 15, 11, 6, 9);
-      rect(g, '#ffe090', 16, 12, 4, 7);
-      rect(g, '#fff4c8', 17, 13, 2, 3);
-      rect(g, '#3a3a40', 14, 20, 8, 2);
-    }),
+    },
+    // A lantern hanging from a bracket, glowing.
+    lantern: (g, r, frame, shape) => {
+      const at = wallSpot(shape), [ex, ey] = bracket(g, at, 16, 25, 5);
+      line(g, IRON[1], 1, ex, ey, ex, ey + 3); // its hook
+      ellipse(g, 'rgba(255,210,120,0.28)', ex, ey + 9, 7, 7);
+      poly(g, IRON[1], [ex - 3.5, ey + 5, ex, ey + 2.5, ex + 3.5, ey + 5]);       // its roof
+      rect(g, IRON[2], ex - 3, ey + 5, 6, 8);                                     // its cage
+      rect(g, '#ffd880', ex - 2, ey + 6, 4, 6); rect(g, '#fff4c8', ex - 1, ey + 7, 2, 3);
+      rect(g, IRON[0], ex - 3, ey + 5, 1, 8);                                     // lit on the west
+      rect(g, IRON[1], ex - 3.5, ey + 13, 7, 1.5);                                // its base
+    },
     // A shelf with jars and pots.
     shelf: (g, r, frame, shape) => onWall(g, shape, () => {
       for (const y of [13, 22]) { rect(g, '#6a4220', 5, y, 22, 2); rect(g, '#8a5a2c', 5, y, 22, 1); }
@@ -4507,13 +4582,21 @@ const Sprites = (() => {
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
     default: { shade: 'rgba(0,0,0,0.16)', rim: 'rgba(0,0,0,0.28)' },
-    grass: { shade: '#5a3c1e', lip: 3, rim: '#2a5e1c', light: 'rgba(120,200,90,0.5)' },
-    jungle: { shade: 'rgba(10,20,8,0.25)', rim: 'rgba(20,50,18,0.75)', tufts: ['#275a22', '#3a7a32', '#1e4a1a'] },
-    dirt: { shade: 'rgba(30,20,8,0.2)', rim: 'rgba(78,56,30,0.75)', pebbles: ['#a3845a', '#6e5230', '#b89a70'] },
-    sand: { shade: 'rgba(60,45,10,0.14)', rim: 'rgba(176,150,96,0.8)', light: 'rgba(248,238,200,0.55)', pebbles: ['#c4ad6f', '#f0e4c0'] },
-    swamp: { shade: 'rgba(10,15,8,0.25)', rim: 'rgba(36,46,26,0.8)', tufts: ['#56683a', '#3f4f28'] },
+    // raised grounds (raise: how many pixels high their edge stands): side = [facing south, facing east, roots/stones],
+    // rim = the darker south-east edge of the top, light = its lit north-west lip, blades = what hangs over the edge
+    grass: { raise: 3, clumps: 1.6, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
+      side: ['#7a5430', '#5a3c1e', '#3c2812'], blades: ['#4f8a2c', '#3e7424', '#62a034'] },
+    jungle: { raise: 3, clumps: 1.6, shade: 'rgba(10,20,8,0.35)', rim: '#1e4a1a', light: 'rgba(90,150,70,0.6)',
+      side: ['#5a4228', '#3e2c18', '#241a0e'], blades: ['#275a22', '#3a7a32', '#1e4a1a'] },
+    snow: { raise: 3, clumps: 1, shade: 'rgba(60,80,110,0.28)', rim: '#b8c8dc', light: 'rgba(255,255,255,0.9)',
+      side: ['#d6e2ee', '#a8b8cc', '#8a9ab0'] },
+    dirt: { raise: 2, clumps: 0.8, shade: 'rgba(30,20,8,0.28)', rim: '#6e4e2a', light: 'rgba(200,160,110,0.55)',
+      side: ['#6a4a28', '#4e3418', '#3a2610'], pebbles: ['#a3845a', '#6e5230', '#b89a70'] },
+    sand: { raise: 1, clumps: 0.6, shade: 'rgba(60,45,10,0.2)', rim: '#b8a070', light: 'rgba(250,240,205,0.75)',
+      side: ['#c2a66a', '#a08550', '#8a7040'] },
+    swamp: { raise: 1, clumps: 1, shade: 'rgba(10,15,8,0.3)', rim: '#36462a', light: 'rgba(120,140,80,0.5)',
+      side: ['#3e3a22', '#2a2816', '#1a180c'], blades: ['#56683a', '#3f4f28'] },
     mountain: { shade: 'rgba(0,0,0,0.4)', rim: '#2a2a2a', light: 'rgba(220,220,214,0.6)' },
-    snow: { shade: 'rgba(60,80,110,0.2)', rim: 'rgba(170,190,215,0.85)', light: 'rgba(255,255,255,0.8)' },
     ash: { shade: 'rgba(0,0,0,0.25)', rim: 'rgba(40,36,34,0.85)', pebbles: ['#5a5654', '#2e2a28'] },
     rock_top: { shade: 'rgba(0,0,0,0.45)', rim: '#1e1e20', light: 'rgba(230,230,224,0.6)' },
     cave: { shade: 'rgba(0,0,0,0.3)', rim: 'rgba(40,34,28,0.85)', pebbles: ['#5a5047', '#362f29', '#6a6056'] },
@@ -4623,7 +4706,8 @@ const Sprites = (() => {
       const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence' || BRIDGES.has(id);
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
       const raised = RAISED.has(sprite), size = def.wall || def.tall || def.onWall || raised ? 2 * TILE : TILE;
-      const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
+      const draw = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
+      const paint = UPRIGHT.has(sprite) ? g => upright(() => draw(g)) : draw;
       return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, raised ? 3 * TILE : size);
     },
     item(id) {
@@ -4767,11 +4851,15 @@ const Sprites = (() => {
       const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]];
       for (const [c, a, b] of corners) if (mask & (a | b)) mask &= ~c; // a corner only counts on its own
       const k = SEAMLESS[ground], pos = k ? `${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : '';
-      return cached(`edge:${ground}:${mask}:${variant}:${pos}`, g => {
+      return cached(`edge2:${ground}:${mask}:${variant}:${pos}`, g => {
         const st = edgeStyle(ground), tex = texturePixels(ground, x, y);
-        const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble;
+        const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble, lift = st.raise || 0;
         const k1 = [2, 3, 4][variant], k2 = [5, 7, 6][variant];
-        const wob = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t));
+        // border jitter: a slow wander of the line, never a repeating zigzag
+        // (a raised ground's edge also has clumps: shorter bumps, zero at the tile's sides so neighbours still meet)
+        const clump = st.clumps || 0, k3 = [9, 11, 13][variant], k4 = [15, 17, 19][variant];
+        const wob = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t))
+          + clump * Math.sin(Math.PI * t) * (0.7 * Math.sin(k3 * Math.PI * t + variant) + 0.45 * Math.sin(k4 * Math.PI * t + 2 * variant));
         const rects = EDGE_RECTS.filter(([bit]) => mask & bit);
         const img = g.createImageData(TILE, TILE), d = img.data;
         // colours as [r, g, b, a] from CSS, via a 1-pixel canvas
@@ -4779,26 +4867,53 @@ const Sprites = (() => {
         const rgb = c => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = c; probe.fillRect(0, 0, 1, 1); return probe.getImageData(0, 0, 1, 1).data; };
         const rim = rgb(st.rim), light = st.light && rgb(st.light), shade = rgb(st.shade), dots = st.tufts || st.pebbles;
         const dotRgb = dots && dots.map(rgb);
+        const side = st.side && st.side.map(rgb), blades = st.blades && st.blades.map(rgb);
         const put = (i, c, a = c[3] / 255) => { // blend c over what's there
           const o = d[i + 3] / 255, na = a + o * (1 - a);
           if (!na) return;
           for (let j = 0; j < 3; j++) d[i + j] = (c[j] * a + d[i + j] * o * (1 - a)) / na;
           d[i + 3] = na * 255;
         };
-        for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
-          const cx = px + 0.5, cy = py + 0.5;
+        const hash = (px, py, s = 0) => (((px * 73856093) ^ (py * 19349663) ^ ((variant + s) * 83492791)) >>> 0) % 100;
+        // how far a point lies outside the higher ground's top (negative: on it)
+        const out = (cx, cy) => {
           let dist = 99;
           for (const [, x0, y0, x1, y1] of rects) dist = Math.min(dist, Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1)));
-          const r = width + wob(cx / TILE) + wob(cy / TILE) * 0.8;
-          const i = (py * TILE + px) * 4;
-          if (dist < r - 1) {
+          return dist - (width + wob(cx / TILE) + wob(cy / TILE) * 0.8);
+        };
+        for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
+          const cx = px + 0.5, cy = py + 0.5, i = (py * TILE + px) * 4, e = out(cx, cy);
+          if (lift) {
+            // A raised ground (PixelLab's transition layer): its top, lit on the north-west and edged darker on the
+            // south-east, then its side showing below it on the south and east (it stands lift pixels high, and
+            // height goes up-left), then its shadow on the lower ground.
+            if (e < 0) {
+              for (let j = 0; j < 4; j++) d[i + j] = tex[i + j];
+              if (out(cx - 1, cy - 1) >= 0) put(i, light || rim, hash(px, py, 9) < 60 ? 0.8 : 0.3); // the lit north-west lip, blade by blade
+              else if (out(cx + 1, cy + 1) >= 0) put(i, rim);                     // its darker south-east edge
+              continue;
+            }
+            const below = out(cx - lift, cy - lift) < 0, under = out(cx, cy - lift) < 0;
+            if (below) { // the side: facing south (where the top is straight above) a little lit, facing east in shade
+              const c = side[under ? 0 : 1];
+              d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+              if (out(cx - lift + 1, cy - lift + 1) < 0 && out(cx, cy - 1) < 0) put(i, side[2]); // roots, just under the top
+              else if (hash(px, py) < 12) put(i, side[2], 0.6); // stones and roots in the soil
+            } else if (out(cx - lift - 1.5, cy - lift - 1.5) < 0) put(i, shade); // the soft shadow it casts south-east
+            // blades of grass hanging over its edge, here and there
+            if (blades && e < 3 && hash(px >> 1, py, 7) < 22 && out(cx, cy - 1 - (hash(px, py, 3) % 2)) < 0) put(i, blades[hash(px, py, 5) % blades.length], 1);
+            continue;
+          }
+          const dist = e + width; // (the older flat edge, for grounds that lie flat on the lower one)
+          const r = width;
+          if (e < -1) {
             for (let j = 0; j < 4; j++) d[i + j] = tex[i + j];
-            if (light && dist >= r - 2) put(i, light);
-          } else if (dist < r) {
+            if (light && e >= -2) put(i, light);
+          } else if (e < 0) {
             d[i] = rim[0]; d[i + 1] = rim[1]; d[i + 2] = rim[2]; d[i + 3] = rim[3] || 255;
-          } else if (dist < r + (st.lip || 1.5)) put(i, shade);
+          } else if (e < (st.lip || 1.5)) put(i, shade);
           if (dotRgb && dist > r - 2 && dist < r + 1.5) {
-            const h = (((px * 73856093) ^ (py * 19349663) ^ (variant * 83492791)) >>> 0) % 100;
+            const h = hash(px, py);
             if (h < 9) put(i, dotRgb[h % dotRgb.length], 1);
           }
         }

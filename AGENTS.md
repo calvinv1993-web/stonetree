@@ -154,6 +154,7 @@ Some details of the online client:
 | `touch.js` | Phone controls. |
 | `sound.js` | Synthesized sounds and music. Sound names are used by `addSound`. |
 
+- **The art style** (camera, light, outline, shading, ground transitions, what stands upright) is in `docs/art-style.md`. Every new sprite follows it.
 - **Every item needs an `ITEM_DRAW` entry, and every thing a `DRAW` entry.** A missing one crashes drawing. The browser soak test draws them all.
 - **Custom PNGs** can replace any sprite: see `sprites/custom.js`.
 
