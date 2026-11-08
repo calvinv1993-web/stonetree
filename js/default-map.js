@@ -1090,6 +1090,8 @@ function buildTown(m, S, runs, river) {
   {
     const bt = T.buildings.find(b => b.id === 'belltower'), BT = T.belltower, base = S + (bt.level || 0), top = base + bt.floors, [hx, hy] = BT.shaft;
     BT.stairs.forEach(([x, y], k) => { put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
+    // nothing hangs on the wall a flight of stairs climbs against (it would show through the steps)
+    BT.stairs.forEach(([x, y], k) => { const w = m.get(x, y - 1, base + k); if (w) w.items = w.items.filter(id => !THINGS[id].onWall); });
     for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) {
       const edge = x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1, corner = (x === bt.x0 || x === bt.x1) && (y === bt.y0 || y === bt.y1);
       const pillar = corner && y === bt.y1; // on the two front corners: the sides stay open to walk round the bell
