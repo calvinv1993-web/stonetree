@@ -218,7 +218,21 @@ function drawWalkMark(screen) {
   if (!m) return;
   if (player.walk) m.moved = now;
   if (player.z !== m.z || (player.x === m.x && player.y === m.y) || now - m.at > 20000 || now - m.moved > 700) return void (walkMark = null);
-  const [sx, sy] = screen(m.x, m.y), size = TILE * SCALE, pulse = (Math.sin(now / 160) + 1) / 2, inset = 3 + pulse * 3, arm = size * 0.28;
+  const [sx, sy] = screen(m.x, m.y), size = TILE * SCALE;
+  // first a quick ring where you tapped, so a tap always answers
+  const t = (now - m.at) / 350;
+  if (t < 1) {
+    ctx.strokeStyle = `rgba(232, 181, 74, ${1 - t})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(sx + size / 2, sy + size / 2, size * (0.15 + t * 0.4), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // Under a roof or an upper floor you're not under (inside a building), the mark would seem to lie on the roof:
+  // it waits until the roof lifts as you walk in. (A floor d up is drawn d tiles up-left: (x+d, y+d) covers (x, y).)
+  const top = player.z < map.surfaceZ ? player.z : map.visibleMaxZ(player.x, player.y, player.z);
+  for (let d = 1; m.z + d <= top; d++) if (map.get(m.x + d, m.y + d, m.z + d)) return;
+  const pulse = (Math.sin(now / 160) + 1) / 2, inset = 3 + pulse * 3, arm = size * 0.28;
   ctx.fillStyle = `rgba(232, 181, 74, ${0.12 + pulse * 0.1})`;
   ctx.fillRect(sx + 2, sy + 2, size - 4, size - 4);
   ctx.strokeStyle = '#e8b54a';
