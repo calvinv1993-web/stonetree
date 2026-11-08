@@ -1306,3 +1306,20 @@ body.touch-ui #lootAll { min-height: 34px; padding: 0 14px; border: 0; border-ra
 body.touch-ui #lootClose { width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important; }
 body.touch-ui #lootBox .grid { gap: 6px; }
 body.touch-ui .radial-controls .fav span:not(:has(svg)) { font: 600 9px/1.1 var(--ui); white-space: normal; text-align: center; padding: 0 3px; overflow: hidden; max-height: 22px; } /* (spell names wrap; icons keep their size) */
+
+/* ---- while you fight: the fight mode and Follow, above the joystick ------------------------------------------------- */
+.fight-bar { display: none; }
+body.touch-ui.fighting .fight-bar {
+  display: flex; position: absolute; left: max(8px, env(safe-area-inset-left)); bottom: calc(var(--tabbar) + 150px); z-index: 3;
+  flex-direction: column-reverse; gap: 6px; align-items: flex-start; pointer-events: auto; /* (Follow over the modes: clear of the quick buttons) */
+}
+body.touch-ui .fight-bar .seg { margin: 0; padding: 3px; border-radius: 11px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--line-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+body.touch-ui .fight-bar .seg button { min-height: 30px; padding: 0 9px; font: 600 12px var(--ui); }
+body.touch-ui .fight-bar .follow {
+  min-height: 36px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 11px; background: var(--glass); color: var(--muted);
+  font: 600 12px var(--ui); box-shadow: none; text-shadow: none; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+body.touch-ui .fight-bar .follow.active { border-color: var(--accent-line); background: rgba(40, 32, 14, 0.85); color: var(--accent); }
+body.touch-ui.no-joystick.fighting .fight-bar { bottom: calc(var(--tabbar) + 16px); }
+@media (orientation: landscape) { body.touch-ui.fighting .fight-bar { bottom: 150px; } }
+body.touch-ui:has(#talk:not([hidden])) .fight-bar { display: none !important; }

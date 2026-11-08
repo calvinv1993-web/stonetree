@@ -262,6 +262,7 @@ function step(c, dx, dy) {
   const free = isFree(nx, ny, c.z) || (isPlayer && passThroughDoor(nx, ny, c.z) && !creatureAt(nx, ny, c.z));
   if (!free) return false;
   if (!isPlayer && c.type !== 'npc' && map.isShelter(nx, ny, c.z)) return false; // monsters keep out of temples, shops and inns
+  if (!isPlayer && c.type !== 'npc' && !c.raid && map.isTown(nx, ny, c.z) && !map.isTown(c.x, c.y, c.z)) return false; // nor do they come into town
   if (!isPlayer && fieldAt(nx, ny, c.z) && !(c.def.immune || []).includes(FIELDS[fieldAt(nx, ny, c.z).kind].condition)) return false;
   // quicker on roads and floors than on grass, sand, snow or swamp (rides keep their own pace)
   const ground = (map.get(nx, ny, c.z) || {}).ground;

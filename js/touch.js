@@ -295,13 +295,13 @@ function initTouch() {
     <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, or opens a corpse.</li>
     <li><b>Tap</b> a monster to attack it, someone to talk to them. <b>Hold</b> them for more (follow, look, open a corpse under them).</li>
     <li><b>Round buttons</b> by the big one: your potions and two spells or foods. Hold one to choose what goes there.</li>
-    <li><b>Talking</b>: tap the blue words, or Chat to type. Say "hi" to someone to start.</li>
+    <li><b>Talking</b>: tap the gold words, or Chat to type. Say "hi" to someone to start.</li>
     <li><b>Character</b>: your equipment, bag and skills. Drag things between them.</li>
     <li><b>Quests</b>: what you are doing and where to go. <b>Map</b>: tap a spot to walk there.</li>
     <li><b>Menu</b>: how you fight (attack, balanced, defend), chase, secure mode, sound and more.</li>
   </ul>`;
 
-  const tap = (id, fn) => $(id).addEventListener('click', e => {
+  const tap = (id, fn) => (typeof id === 'string' ? $(id) : id).addEventListener('click', e => {
     e.preventDefault();
     if (player && !paused) fn();
   });
@@ -331,6 +331,8 @@ function initTouch() {
   tap('tBag', () => document.body.classList.toggle('bag-open'));
   const MODES = ['offensive', 'balanced', 'defensive'];
   tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));
+  for (const b of document.querySelectorAll('#fightModes button')) tap(b, () => Actions.setFightMode(b.dataset.mode));
+  tap('fightFollow', () => Actions.setChase(!player.chase));
   tap('tChase', () => Actions.setChase(!player.chase));
   tap('tSecure', () => Actions.setSecure(player.secure === false));
   $('tFull').addEventListener('click', toggleFullscreen);
@@ -347,7 +349,7 @@ function initTouch() {
   fitView();
   // Health and mana stay in sight while the panel is put away, and so do the fight settings.
   const FIGHT_ICONS = { offensive: ['&#9876;', 'Attack'], balanced: ['&#9878;', 'Balanced'], defensive: ['&#128737;', 'Defend'] };
-  let fightShown = '';
+  let fightShown = '', fightingUntil = 0, lastHp = 0;
   setInterval(() => {
     if (!player) return;
     updateSmartAction();
@@ -360,7 +362,13 @@ function initTouch() {
       $('tChase').classList.toggle('active', player.chase);
       $('tSecure').innerHTML = player.secure !== false ? '&#128330;<small>Secure</small>' : '&#9760;<small>PvP</small>';
       $('tSecure').classList.toggle('active', player.secure !== false);
+      for (const b of document.querySelectorAll('#fightModes button')) b.classList.toggle('active', b.dataset.mode === player.fightMode);
+      $('fightFollow').classList.toggle('active', !!player.chase);
     }
+    // the fight bar shows while you fight: with a target, or for a while after something hit you
+    if (player.target || player.hp < lastHp) fightingUntil = now + 6000;
+    lastHp = player.hp;
+    document.body.classList.toggle('fighting', now < fightingUntil && !player.dead);
     for (const [bar, v, max] of [['Hp', player.hp, player.maxHp], ['Mana', player.mana, player.maxMana]]) {
       $(`tb${bar}`).style.width = `${(100 * v) / max}%`;
       $(`tb${bar}Text`).textContent = `${v} / ${max}`;

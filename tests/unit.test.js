@@ -553,6 +553,39 @@ test('in the deep cistern the giant rats lurk: they notice you only when you com
   assert.strictEqual(ctx.monsterTarget(near), p, 'one three tiles off has');
 });
 
+test('rats in Sunny Fields come for you once they could be on your screen, not only up close', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const s = state.map.spawns.find(o => o.type === 'rat' && o.z === 8);
+  assert(!s.lurk, 'field rats don\'t lurk');
+  ctx.teleport({ x: s.x + 6, y: s.y, z: 8 });
+  const rat = ctx.spawnMonster({ ...s });
+  rat.x = s.x; rat.y = s.y;
+  assert.strictEqual(ctx.monsterTarget(rat), state.player, 'a rat six tiles off has seen you');
+});
+
+test('monsters keep to their territory: they follow you a while, then amble home, and never come into town', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, s = state.map.spawns.find(o => o.type === 'rat' && o.z === 8);
+  const rat = ctx.spawnMonster({ ...s });
+  Object.assign(rat, { x: s.x + 11, y: s.y }); // led far from home
+  state.monsters.push(rat);
+  ctx.teleport({ x: s.x + 22, y: s.y, z: 8 });
+  Object.assign(p, { hp: 999, maxHp: 999 });
+  assert(ctx.leftTerritory(rat, p), 'too far from home with you beyond its territory: it gives up');
+  assert(rat.returning && rat.goal.x === s.x, 'and walks back to its spawn');
+  tick(game, 30000);
+  assert(Math.max(Math.abs(rat.x - s.x), Math.abs(rat.y - s.y)) <= 3, 'it got home');
+  assert(!rat.returning, 'and minds you again');
+  assert(state.map.isTown(130, 120, 8) && !state.map.isTown(130, 120, 7), 'the town\'s streets are town, the sewers below aren\'t');
+  const r2 = ctx.spawnMonster({ ...s });
+  Object.assign(r2, { x: 126, y: 151 }); // just outside the south gate
+  state.monsters.push(r2);
+  assert(state.map.isTown(126, 150, 8) && !state.map.isTown(126, 151, 8));
+  assert(!ctx.step(r2, 0, -1), 'a monster can\'t step into town');
+});
+
 test('picking a target while walking: with chase on you stop and go for it, with chase off you walk on', () => {
   const game = quietGame();
   const { ctx, state } = game;

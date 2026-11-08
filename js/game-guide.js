@@ -16,8 +16,8 @@ const GUIDE = [
     done: () => talkingTo('ama'),
   },
   {
-    text: 'Words in blue are things you can ask about: click them, or type them. Ask Sister Ama about the bell, and say yes.',
-    touch: 'Words in blue are things you can ask about: tap them. Ask Sister Ama about the bell, and say yes.',
+    text: 'Words in gold are things you can ask about: click them, or type them. Ask Sister Ama about the bell, and say yes.',
+    touch: 'Words in gold are things you can ask about: tap them. Ask Sister Ama about the bell, and say yes.',
     target: [{ npc: 'ama' }],
     done: () => questState('bell_1') !== 'none',
   },

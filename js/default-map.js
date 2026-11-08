@@ -156,7 +156,7 @@ const OAKVALE = {
   // The temple mount: a block of rock north of the square, its top one floor up, with the temple on it and
   // a terrace in front; a broad flight of stone steps runs down from the terrace to the square.
   mount: { x0: 128, y0: 99, x1: 143, y1: 109, steps: [136, 137, 138],
-    wings: [[144, 99, 149, 104], [144, 105, 144, 108]] }, // its east end, under the bell tower, and a ledge back to the terrace
+    wings: [[144, 99, 149, 105], [144, 106, 144, 109]] }, // its east end, under the bell tower (up to the depot), and a ledge back to the terrace
   streets: [
     { line: [[126, 92], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
     { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
@@ -770,7 +770,7 @@ function createDefaultMap() {
       placedAt.push({ x: p[0], y: p[1], z, pack: packs });
       if ((placed + 1) % (PACK[type] || 3) === 0) { centre++; misses = 0; at = null; }
       taken.add(`${p[0]},${p[1]},${z}`);
-      m.spawns.push({ type, x: p[0], y: p[1], z, ...(type === 'rat' ? { lurk: true } : {}) }); // (rats only see you up close: a newcomer meets them a few at a time)
+      m.spawns.push({ type, x: p[0], y: p[1], z });
       placed++;
     }
   }
@@ -920,6 +920,8 @@ function buildTown(m, S, runs, river) {
   const sign = (x, y, z, id, text) => { put(x, y, z, id); m.setMeta(x, y, z, { text }); };
   const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
   const bd = T.bounds, inTown = (x, y) => x >= bd.x0 && x <= bd.x1 && y >= bd.y0 && y <= bd.y1;
+  // Monsters don't come into the town (its streets and everything above them); the sewers below are theirs.
+  for (let z = S; z < m.depth; z++) m.zones.push({ ...bd, z, town: true });
   // A smooth noise from the hash (0..1), for natural edges.
   const smooth = (x, y, scale, seed) => {
     const fx = x / scale, fy = y / scale, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
@@ -955,7 +957,7 @@ function buildTown(m, S, runs, river) {
   {
     const t = T.mount;
     for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
-      if ((x === t.x0 || x === t.x1) && (y === t.y1)) continue; // rounded front corners
+      if (x === t.x0 && y === t.y1) continue; // a rounded front corner (the east one meets the ledge to the depot)
       m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
       m.set(x, y, S + 1, { ground: 'grass', items: [] });
     }

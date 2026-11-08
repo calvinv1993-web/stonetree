@@ -139,7 +139,7 @@ function questWord(npcId, id) {
 // A quest that only opens once another is done (after), and that one isn't yet.
 const questWaits = q => !!q.after && questState(q.after) !== 'done';
 
-// What an NPC adds to its greeting when it has something for you, with the word to ask about in blue.
+// What an NPC adds to its greeting when it has something for you, with the word to ask about in gold.
 function questHint(npcId) {
   const n = questNews(npcId);
   if (!n) return null;

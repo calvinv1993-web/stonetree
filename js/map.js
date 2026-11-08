@@ -14,7 +14,8 @@ class GameMap {
     this.meta = {};   // per-tile settings, "x,y,z" -> { to, target, lock, quest, level, text, look }
     this.houses = []; // rentable houses: { id, name, rent, x0, y0, x1, y1, z }
     this.zones = [];  // protection zones besides temples and depots (marble floors): { x0, y0, x1, y1, z },
-                      // and shelters, where monsters keep out: { ..., shelter: true }
+                      // and shelters, where monsters keep out: { ..., shelter: true }, and towns, where
+                      // monsters don't come (but players may fight): { ..., town: true }
     this.temples = []; // where citizens wake up when they die: { home, town, npc (its priest), x, y, z }
     this.isle = null;  // the starter island { x0, y0, x1, y1 }: who has chosen a vocation can't go back there
     this.version = GameMap.edits = (GameMap.edits || 0) + 1; // changes with every ground set, on any map
@@ -40,6 +41,12 @@ class GameMap {
   isShelter(x, y, z) {
     return this.isProtected(x, y, z) || this.zoneAt(x, y, z) === 1;
   }
+  // A town's streets: monsters don't come in (their hunting grounds are outside).
+  isTown(x, y, z) {
+    this.zoneAt(x, y, z); // (builds the grid)
+    const g = this.inBounds(x, y, z) && this.zoneIndex.grid[z];
+    return !!g && (g[y * this.width + x] & 4) !== 0;
+  }
   // 2 in a protection zone, 1 in a shelter, else 0. The zones are put on a grid the first
   // time they're asked about, and again when there are more or fewer of them.
   zoneAt(x, y, z) {
@@ -50,13 +57,14 @@ class GameMap {
         if (!this.inBounds(0, 0, r.z)) continue;
         const g = grid[r.z] || (grid[r.z] = new Uint8Array(this.width * this.height));
         for (let y = Math.max(0, r.y0); y <= Math.min(this.height - 1, r.y1); y++) for (let x = Math.max(0, r.x0); x <= Math.min(this.width - 1, r.x1); x++) {
-          g[y * this.width + x] = Math.max(g[y * this.width + x], r.shelter ? 1 : 2);
+          const i = y * this.width + x, v = g[i];
+          g[i] = r.town ? v | 4 : Math.max(v & 3, r.shelter ? 1 : 2) | (v & 4); // (bit 4: a town; below it, the zone's level)
         }
       }
       this.zoneIndex = { zones: this.zones, count: this.zones.length, grid };
     }
     const g = this.inBounds(x, y, z) && this.zoneIndex.grid[z];
-    return g ? g[y * this.width + x] : 0;
+    return g ? g[y * this.width + x] & 3 : 0;
   }
 
   inBounds(x, y, z) {

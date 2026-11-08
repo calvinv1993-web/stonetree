@@ -692,10 +692,11 @@ function updateMonster(m, i) {
   }
   finishWalk(m);
   if (m.walk) return;
-  const target = monsterTarget(m);
-  if (m.goal && (m.def.comesBack || !target)) return walkToGoal(m); // walking back home; Kenny minds nobody on the way
+  const target = m.returning ? null : monsterTarget(m);
+  if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Kenny minds nobody on the way
   m.goal = null;
   if (!target) return wander(m);
+  if (leftTerritory(m, target)) return; // led too far from home: it gives up and walks back
   asPlayer(target, () => monsterAct(m));
 }
 
@@ -732,11 +733,27 @@ function walkIn(m, i) {
   return false;
 }
 
+// A monster's territory: TERRITORY tiles round its spawn. It follows you out of it for a while, but once you've led
+// it CHASE tiles from home and you're beyond its territory (or in town, where it can't come), it gives up and walks
+// slowly back, minding nobody until it's home. (Raiders and summons have no home to go back to.)
+const TERRITORY = 8, CHASE = 10;
+function leftTerritory(m, target) {
+  const home = m.spawn;
+  if (!home || m.raid || m.summoner || home.z !== m.z) return false;
+  const away = dist(m, home), targetAway = dist(target, home);
+  if (!(map.isTown(target.x, target.y, target.z) && away > 2) && !(away >= CHASE && targetAway > TERRITORY)) return false;
+  m.returning = true;
+  m.goal = { x: home.x, y: home.y };
+  m.angryUntil = 0;
+  return true;
+}
+
 function walkToGoal(m) {
   if (now < m.nextMove) return;
-  m.nextMove = now + 100;
+  if (m.returning && dist(m, m.goal) <= 2) { m.returning = false; m.goal = null; return; } // home again
+  m.nextMove = now + (m.returning ? 650 : 100); // (going home it ambles)
   const path = findPath(freeAround(m, 45), m.x, m.y, m.goal.x, m.goal.y, { range: 1, maxNodes: 3000 }); // round a town's houses too
-  if (!path || !path.length) return void (m.goal = null);
+  if (!path || !path.length) { m.returning = false; return void (m.goal = null); }
   step(m, path[0][0] - m.x, path[0][1] - m.y);
 }
 
