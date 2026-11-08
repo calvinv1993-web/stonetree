@@ -746,7 +746,7 @@ function leftTerritory(m, target) {
   if (!home || m.raid || m.summoner || home.z !== m.z) return false;
   const away = dist(m, home), targetAway = dist(target, home);
   if (!(map.isTown(target.x, target.y, target.z) && away > 2) && !(away >= CHASE && targetAway > TERRITORY)) return false;
-  m.returning = now;
+  m.returning = now || 1; // (when it gave up: a time, never 0)
   m.goal = { x: home.x, y: home.y };
   m.angryUntil = 0;
   return true;

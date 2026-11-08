@@ -38,7 +38,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
   - no shell-specific commands in the scripts
   - stop the server through its `'stop'` IPC message, not a signal: on Windows a kill can't be caught, so the server couldn't save first. `dev.js` and the online test already do this.
   - the project's owner plays on Windows
-- **Browser tests and screenshots** need `npm install` and `npx playwright install chromium`, or point `PLAYWRIGHT_CORE` at an existing playwright-core.
+- **Browser tests and screenshots** need `npm install` and `npx playwright install chromium`, or point `PLAYWRIGHT_CORE` at an existing playwright-core. They serve the pages over a tiny local http server (`tests/serve.js`): over `file://` the custom PNG sprites make canvases unreadable.
 - **`--test` mode**: new characters start at level 20 in Valoria with gear, unless they pick "Start fresh on Brightwater Isle" at login.
 
 ## How the code is put together
@@ -116,6 +116,7 @@ Some details of the online client:
 - **Floor changes** (`changeFloor` in `game-core.js`) move you exactly one floor, at the same x, y, or the first free tile next to it, and never onto another floor change. So every stair, ladder, hole and ramp needs free ground there on the other floor.
   - Mountains are `cliff`s with their top on the floor above, at the same x, y.
   - Paths up are a `ramp` with a `ramp_top` above it, on a south or east edge. Elsewhere the shifted top hides them.
+- **`tidyWorld()`** (end of `createDefaultMap`) applies rules over the whole world at once (nothing hangs on a wall behind stairs, no lone grass tile in a trail). Put a rule there, and a check in `world.test.js`, instead of fixing one spot.
 - **Check the world** with `node tests/world.test.js`. It runs every floor change through the game's own code, from every side, and checks that everything can be reached and walked back from. Run `node tests/editor.test.js` for the editor.
 - **A tile**: `null`, or `{ ground, items: [ids] }`.
   - The ids come from `THINGS` in `defs.js`, whose flags are documented at its top.

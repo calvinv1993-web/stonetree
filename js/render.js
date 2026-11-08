@@ -62,22 +62,6 @@ const Render = {
     return c;
   },
   DEEPEST: 0.75, // the floors far below you never get darker than this (25% darker at most)
-  // The shadow an edge casts, a tile long, fading out over 0.6 tile: one going down, one going right (made once).
-  shadowStrips() {
-    if (this.strips) return this.strips;
-    const S = Math.round(TILE * 0.6);
-    this.strips = [[TILE, S, 0, 0, 0, S], [S, TILE, 0, 0, S, 0]].map(([w, h, ax, ay, bx, by]) => {
-      const c = document.createElement('canvas');
-      Object.assign(c, { width: w, height: h });
-      const g = c.getContext('2d'), gr = g.createLinearGradient(ax, ay, bx, by);
-      gr.addColorStop(0, 'rgba(0,0,0,0.25)');
-      gr.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = gr;
-      g.fillRect(0, 0, w, h);
-      return c;
-    });
-    return this.strips;
-  },
   // v = {
   //   cx, cy:     world pixel (on floor v.z) at the center of the view
   //   z:          camera floor; minZ..maxZ: floors to draw
@@ -88,8 +72,6 @@ const Render = {
   //               creatures), raised `lift` pixels up-left, see-through with alpha
   //   dimLower:   darken the floors below the camera floor (editor)
   //   depth:      how much darker each floor below the camera floor gets (0..1; the game: they lie deeper, in shadow)
-  //   edgeShadow: where a floor above the lowest one ends (a cliff, a roof, a balcony), a soft shadow falls
-  //               down-right onto what lies below, as if the light came from the top left
   //   onFloor(g, ox, oy, z): drawn on each floor after its ground and rugs, before anything standing on it
   //   afterGround(g, ox, oy, z, x0, x1, y0, y1, groundAt): drawn over each floor's ground,
   //               under everything on it (footprints, deep water)
@@ -145,21 +127,6 @@ const Render = {
       // arm going north only), so what shows of the tile past the end of the wall or
       // through a doorway is the ground on the north (west) side of the wall.
       // (On an upper floor there's often nothing on that side - open air - and then nothing shows.)
-      // The shadow this floor casts on the floors below, along its south and east edges (drawn before its
-      // own tiles, so only what reaches past the edge shows).
-      if (v.edgeShadow && z > v.minZ) {
-        const [down, right] = Render.shadowStrips(), S = down.height;
-        const solid = (x, y) => { const t = tileAt(x, y); return !!(t && t.ground); };
-        for (let y = y0; y <= y1; y++) {
-          for (let x = x0; x <= x1; x++) {
-            if (!solid(x, y) || wallAt(x, y)) continue; // (a building's wall needs no strip: its own faces reach down)
-            const px = ox + x * TILE, py = oy + y * TILE;
-            // (where the edge turns a corner, the shadow starts half a strip in, so corners don't double up)
-            if (!solid(x, y + 1)) g.drawImage(down, px + (solid(x - 1, y + 1) ? 0 : S / 2), py + TILE);
-            if (!solid(x + 1, y)) g.drawImage(right, px + TILE, py + (solid(x + 1, y - 1) ? 0 : S / 2));
-          }
-        }
-      }
       const groundShown = (x, y, t) => {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
         let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
