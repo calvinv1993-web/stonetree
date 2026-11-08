@@ -961,3 +961,169 @@ body.touch-ui .guide { font-size: 12px !important; width: min(250px, 66%) !impor
 body.touch-ui .guide header button { min-width: 38px !important; min-height: 32px !important; font-size: 14px; }
 /* messages (welcome, loot, damage) in the middle of the map, clear of the guide and the status bar */
 @media (orientation: portrait) { body.touch-ui .toasts { top: 38% !important; } }
+
+/* ==== Tilequest's own look for the buttons ==========================================================================
+   Bronze set in dark stone, riveted; carved oak along the bottom; gold for what matters. The icons are pixel art
+   drawn in code (js/icons.js), like every sprite. */
+body.touch-ui {
+  --bronze-hi: #f4d27a; --bronze: #c8943a; --bronze-lo: #6e4a18; --stone: #2a2620; --stone-hi: #3e3830; --ink: #120c06;
+  --rivets: radial-gradient(circle at 8px 8px, #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
+            radial-gradient(circle at calc(100% - 8px) 8px, #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
+            radial-gradient(circle at 8px calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
+            radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px);
+}
+body.touch-ui img.icon { image-rendering: pixelated; display: block; pointer-events: none; filter: drop-shadow(0 1px 0 #000a); }
+
+/* -- the status bar: a riveted bronze frame; the level a gold medallion in a laurel; bars cut into stone -- */
+body.touch-ui .hud {
+  border: 0; border-radius: 12px; padding: 7px 9px 8px;
+  background: var(--rivets), linear-gradient(#3a332a, #221e18 60%, #1a1712);
+  box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 3px var(--bronze-lo), inset 0 0 0 4px var(--bronze), inset 0 1px 0 5px #ffffff10, 0 4px 14px #000b;
+}
+body.touch-ui .hud-lvl {
+  border: 0; background:
+    radial-gradient(circle at 38% 30%, #fff3c0 0 8%, transparent 9%),
+    radial-gradient(circle at 50% 50%, #e8b850 0 52%, #a87420 53% 60%, #f4d27a 61% 64%, #6e4a18 65% 100%);
+  box-shadow: 0 0 0 2px var(--ink), 0 3px 8px #000c, inset 0 -2px 3px #0006;
+}
+body.touch-ui .hud-lvl::before { /* the laurel round it */
+  content: ''; position: absolute; inset: -5px; border-radius: 50%;
+  background: repeating-conic-gradient(from -60deg, #6a9a3a 0 7deg, transparent 7deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 62%, #000 63% 72%, transparent 73%); mask: radial-gradient(circle, transparent 62%, #000 63% 72%, transparent 73%);
+  clip-path: polygon(0 35%, 50% 50%, 100% 35%, 100% 100%, 0 100%);
+}
+body.touch-ui .hud-lvl small { color: #5a3a08; letter-spacing: 1px; top: 5px; }
+body.touch-ui .hud-lvl b { color: #3a2404; text-shadow: 0 1px 0 #ffe9a0; }
+body.touch-ui .hud .tbar { background: #0c0a08; border: 0; box-shadow: inset 0 0 0 1px #000, inset 0 2px 3px #000c, 0 1px 0 #ffffff14; }
+body.touch-ui .hud .tbar div { position: relative; }
+body.touch-ui .hud .tbar div::after { /* a glassy shine, and notches every tenth */
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(#ffffff40, #ffffff08 45%, #0000 55%), repeating-linear-gradient(90deg, transparent 0 9.6%, #0005 9.6% 10%);
+}
+body.touch-ui .hud .tbar.hp div { background: linear-gradient(#ff6a5a, #c42a22 55%, #7a1410); }
+body.touch-ui .hud .tbar.mana div { background: linear-gradient(#7aa8ff, #2f5ad0 55%, #182c78); }
+body.touch-ui .hud .tbar span { font: 800 11px/16px sans-serif; letter-spacing: 0.3px; text-shadow: 0 0 2px #000, 0 1px 1px #000; }
+body.touch-ui .hud-xp { background: #0c0a08; box-shadow: inset 0 1px 2px #000; }
+body.touch-ui .hud-xp div { background: linear-gradient(#ffe69a, #d8a830 60%, #8a6418); box-shadow: 0 0 6px #ffd84a88; }
+body.touch-ui .hud-gold {
+  background: linear-gradient(#2a241c, #14110d); border-radius: 8px; color: #ffd84a; font: 800 14px Georgia, serif;
+  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px var(--bronze-lo), 0 1px 0 #ffffff14; text-shadow: 0 1px 0 #000;
+}
+
+/* -- the bottom bar: carved oak, a bronze rail on top; the open tab lit, a gem under it -- */
+body.touch-ui .tabbar {
+  border-top: 0;
+  background:
+    linear-gradient(#f4d27a, #c8943a 40%, #6e4a18) top / 100% 3px no-repeat,
+    linear-gradient(#000a, #000a) 0 3px / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, #0000 0 19.5%, #00000055 19.5% 20%),
+    repeating-linear-gradient(0deg, #ffffff06 0 2px, #0000 2px 5px),
+    linear-gradient(#4a3420, #2e2014 55%, #1e150c);
+  box-shadow: 0 -4px 14px #000b;
+}
+body.touch-ui .tabbar button { color: #cdb27a; font: 700 11px Georgia, serif; letter-spacing: 0.4px; text-shadow: 0 1px 0 #000; position: relative; }
+body.touch-ui .tabbar button span { display: flex; align-items: center; justify-content: center; width: 40px; height: 34px; border-radius: 10px; transition: transform 0.12s; }
+body.touch-ui .tabbar button:active span { transform: translateY(1px) scale(0.94); }
+body.touch-ui .tabbar button.active { color: #ffe08a; background: none; }
+body.touch-ui .tabbar button.active span {
+  background: radial-gradient(circle at 50% 40%, #ffd84a33, #0000 70%);
+  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px #c8943a88;
+}
+body.touch-ui .tabbar button.active::after { /* a little gem under the open tab */
+  content: ''; position: absolute; top: -1px; left: 50%; width: 7px; height: 7px; transform: translateX(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #fff3a0, #ffb82a 50%, #a86a08); box-shadow: 0 0 6px #ffd84a, 0 0 0 1px #000;
+}
+
+/* -- the joystick: a carved stone wheel with a compass rose, a bronze knob -- */
+body.touch-ui .joystick {
+  border: 0; background:
+    conic-gradient(from 0deg, #0000 0 43deg, #c8943a44 43deg 47deg, #0000 47deg 133deg, #c8943a44 133deg 137deg, #0000 137deg 223deg, #c8943a44 223deg 227deg, #0000 227deg 313deg, #c8943a44 313deg 317deg, #0000 317deg),
+    radial-gradient(circle, #0000 0 56%, #c8943a55 57% 58%, #0000 59%),
+    radial-gradient(circle at 50% 40%, #3a342cb8, #14110dc8 70%);
+  box-shadow: inset 0 0 0 2px #000c, inset 0 0 0 3px #8a6a3a99, inset 0 0 0 5px #0006, 0 4px 12px #0009;
+}
+body.touch-ui .joystick::before { /* N E S W marks */
+  content: ''; position: absolute; inset: 6px; border-radius: 50%; pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 3%, #ffd84a 0 3px, #0000 3.5px), radial-gradient(circle at 97% 50%, #c8943a 0 2.5px, #0000 3px),
+    radial-gradient(circle at 50% 97%, #c8943a 0 2.5px, #0000 3px), radial-gradient(circle at 3% 50%, #c8943a 0 2.5px, #0000 3px);
+}
+body.touch-ui .joystick .knob {
+  border: 0; background:
+    radial-gradient(circle at 36% 30%, #fff1b8 0 10%, #0000 22%),
+    radial-gradient(circle, #d8a848 0 45%, #8a5e1c 46% 52%, #e8c068 53% 58%, #5a3a10 59% 100%);
+  box-shadow: 0 0 0 2px #000, 0 4px 8px #000c, inset 0 -3px 4px #0007;
+}
+
+/* -- the big action button: a bronze ring engraved with runes round a gem whose colour says what it does -- */
+body.touch-ui .attack-btn {
+  border: 0 !important; display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(circle at 38% 30%, #ffffff55 0 7%, #0000 22%),
+    radial-gradient(circle, var(--gem, #b8302a) 0 52%, var(--gem-lo, #5a0e0a) 62%, #0000 63%),
+    repeating-conic-gradient(#f4d27a 0 3deg, #8a5e1c 3deg 10deg, #c8943a 10deg 12deg, #6e4a18 12deg 22.5deg) !important;
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000a, 0 0 0 4px #c8943a, 0 0 0 6px #000, 0 6px 16px #000d, 0 0 18px var(--gem-glow, #ff503055) !important;
+}
+body.touch-ui .attack-btn img.icon { width: 42px; height: 42px; filter: drop-shadow(0 2px 0 #000c); }
+body.touch-ui .attack-btn:active { transform: scale(0.95); }
+body.touch-ui .attack-btn[data-action="talk"] { --gem: #2f78a8; --gem-lo: #0c2a44; --gem-glow: #4ab8ff66; }
+body.touch-ui .attack-btn[data-action="loot"] { --gem: #c8902a; --gem-lo: #4a2a06; --gem-glow: #ffc84a66; }
+body.touch-ui .attack-btn[data-action="use"] { --gem: #5a8a3a; --gem-lo: #1a3a0c; --gem-glow: #8ae05a55; }
+body.touch-ui .attack-btn[data-action="idle"] { --gem: #4a443a; --gem-lo: #1a1712; --gem-glow: #0000; }
+
+/* -- the quick buttons: bronze rings set in dark stone; the count on a little bronze plaque -- */
+body.touch-ui .radial-controls .fav {
+  border: 0 !important; opacity: 1 !important; display: flex; align-items: center; justify-content: center; flex-direction: column;
+  background: radial-gradient(circle at 40% 30%, #4a4238, #1e1b16 70%) !important;
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000, inset 0 0 0 3px #8a5e1c, inset 0 0 0 4px #e8c068aa, inset 0 3px 6px #0009, 0 4px 10px #000b !important;
+  color: #a8d8ff; font: 700 10px/1.1 Georgia, serif; text-align: center;
+}
+body.touch-ui .radial-controls .fav span img { width: 30px; height: 30px; }
+body.touch-ui .radial-controls .fav small {
+  background: linear-gradient(#c8943a, #6e4a18) !important; border: 0 !important; border-radius: 4px !important;
+  box-shadow: 0 0 0 1px #000, inset 0 1px 0 #f4d27a; color: #fff6d8 !important; font: 800 10px/14px sans-serif !important; text-shadow: 0 1px 0 #000;
+}
+body.touch-ui .radial-controls .fav.empty {
+  background: radial-gradient(circle, #1e1b16aa, #0e0c0aaa) !important; opacity: 0.8 !important;
+  box-shadow: 0 0 0 2px #0008, inset 0 0 0 2px #c8943a55 !important; border: 0 !important;
+}
+body.touch-ui .radial-controls .fav.empty span img { width: 28px; height: 28px; opacity: 0.8; }
+body.touch-ui .radial-controls .fav.holding { box-shadow: 0 0 0 2px #000, inset 0 0 0 4px #ffd84a, 0 0 16px #ffd84a !important; }
+
+/* -- sheets and the talk card: parchment-dark stone in a bronze frame, a bronze title plate, iron close buttons -- */
+body.touch-ui .panel {
+  background: linear-gradient(#ffffff06, #0000 120px), repeating-linear-gradient(0deg, #ffffff03 0 2px, #0000 2px 6px), linear-gradient(#2e2922, #1a1713) !important;
+  box-shadow: inset 0 3px 0 #000, inset 0 4px 0 #c8943a, inset 0 5px 0 #f4d27a66, 0 -8px 30px #000d !important; border: 0 !important;
+}
+body.touch-ui .sheet-head b { font: bold 20px/36px Georgia, serif; color: #ffd84a; text-shadow: 0 2px 0 #000, 0 0 10px #ffb82a44; letter-spacing: 0.5px; }
+body.touch-ui .sheet-head b::after { content: ''; display: block; height: 2px; width: 120px; margin-top: -2px; background: linear-gradient(90deg, #c8943a, #0000); }
+body.touch-ui .panel-close, body.touch-ui .talk-who button, body.touch-ui .viewport .bag-close {
+  display: flex !important; align-items: center; justify-content: center; padding: 0 !important; border: 0 !important; border-radius: 8px !important;
+  background: var(--rivets), linear-gradient(#4a4238, #24201a) !important;
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #8a6a3a, inset 0 1px 0 #ffffff22, 0 2px 4px #000a !important;
+}
+body.touch-ui .panel-close img, body.touch-ui .talk-who button img { width: 22px; height: 22px; }
+body.touch-ui .seg { background: #0c0a08; box-shadow: inset 0 0 0 1px #000, inset 0 2px 4px #000c, 0 1px 0 #ffffff12; }
+body.touch-ui .seg button { font: 700 13px Georgia, serif !important; color: #b8a074 !important; }
+body.touch-ui .seg button.active {
+  background: linear-gradient(#d8a848, #8a5e1c) !important; color: #fff6d8 !important; text-shadow: 0 1px 0 #000;
+  box-shadow: 0 0 0 1px #000, inset 0 1px 0 #ffe9a0 !important;
+}
+body.touch-ui .toggle { background: #1a1712; box-shadow: inset 0 0 0 1px #000, inset 0 2px 4px #000c, 0 1px 0 #ffffff14; }
+body.touch-ui .toggle::after { background: radial-gradient(circle at 40% 35%, #f4d27a, #8a5e1c); box-shadow: 0 0 0 1px #000, 0 2px 3px #000a; }
+body.touch-ui .toggle.on { background: linear-gradient(#3a6a2a, #2a4a1c); }
+body.touch-ui .menu-head { font-family: Georgia, serif; }
+body.touch-ui .menu-head::after { content: ''; display: inline-block; vertical-align: middle; width: 60%; height: 1px; margin-left: 8px; background: linear-gradient(90deg, #c8943a88, #0000); }
+body.touch-ui .talk-card:not([hidden]) {
+  border: 0; background: var(--rivets), linear-gradient(#ffffff08, #0000 40px), linear-gradient(#2e2922f8, #1a1713f8);
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 1px #000, inset 0 0 0 2px #8a5e1c, inset 0 0 0 3px #e8c06888, 0 -6px 26px #000d;
+}
+body.touch-ui .talk-who canvas { box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #c8943a; border: 0; background: radial-gradient(circle at 50% 40%, #3a342c, #14110d); }
+body.touch-ui .talk-who b { color: #ffd84a; text-shadow: 0 1px 0 #000; }
+body.touch-ui .talk-words button {
+  background: linear-gradient(#2c5a8a, #163454) !important; border: 0 !important; color: #e8f4ff !important; font: 700 14px Georgia, serif !important;
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6aa0e0, inset 0 1px 0 #a8d0ff88, 0 2px 4px #000a;
+}
+body.touch-ui .talk-words button:active { transform: translateY(1px); }
+body.touch-ui .talk-words button.bye { background: linear-gradient(#4a4238, #24201a) !important; color: #d8c49a !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #8a6a3a, 0 2px 4px #000a; }
+body.touch-ui .tabbar button span img { width: 36px; height: 36px; }

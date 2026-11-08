@@ -110,7 +110,8 @@ function renderFavs() {
     b.innerHTML = '<span></span><small></small>';
     const icon = e && { h: 'health_potion', m: 'mana_potion', f: 'bread' }[e.id]; // potions and food: their picture, not a cut-off name
     if (icon) b.querySelector('span').innerHTML = `<img src="${Sprites.itemURL(icon)}" alt="">`;
-    else b.querySelector('span').textContent = e ? e.name : '+';
+    else if (!e) b.querySelector('span').replaceChildren(Icons.img('plus', 2));
+    else b.querySelector('span').textContent = e.name;
     b.querySelector('small').textContent = e ? e.sub : ''; // (an empty one: just a +; hold it to choose)
     b.title = e ? e.name : 'Hold to choose a spell or potion for this button';
     b.addEventListener('pointerdown', ev => {
@@ -244,10 +245,9 @@ function pressSmartAction() {
 }
 function updateSmartAction() {
   const action = smartActionContext(), button = $('tAttack');
-  const icon = { attack: '⚔', talk: '💬', loot: '▣', use: '✋', idle: '•' };
   if (button.dataset.action !== action.kind) {
     button.dataset.action = action.kind;
-    button.textContent = icon[action.kind];
+    button.replaceChildren(Icons.img(action.kind in { attack: 1, talk: 1, loot: 1, use: 1 } ? action.kind : 'idle', 3));
     button.title = action.label;
     button.setAttribute('aria-label', action.label);
   }
@@ -260,6 +260,9 @@ function initTouch() {
   // The loot window and the backpack float over the map, so you needn't open the drawer for them.
   $('viewport').appendChild($('lootBox'));
   $('viewport').appendChild($('containers'));
+  // the game's own icons on the bottom buttons and the close buttons
+  for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests'], ['tabMap', 'map'], ['tabChat', 'chat'], ['tabMenu', 'menu']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 3));
+  for (const id of ['panelClose', 'talkClose']) $(id).replaceChildren(Icons.img('close', 2));
   // Help for a phone, not for a keyboard
   $('tab-help').innerHTML = `<ul class="help">
     <li><b>Walk</b>: the joystick, bottom left, or tap where to go.</li>
