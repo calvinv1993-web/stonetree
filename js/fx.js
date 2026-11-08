@@ -583,7 +583,9 @@ const Fx = (() => {
         dctx.fillStyle = grad;
         dctx.fillRect(sx - r, sy - r, r * 2, r * 2);
       }
+      ctx.imageSmoothingEnabled = true; // (the night is soft: no blocks when it's spread over a finer canvas)
       ctx.drawImage(dark, 0, 0);
+      ctx.imageSmoothingEnabled = false;
     }
     // warm and cold glows, stronger the darker it is
     const glow = Math.max(0.12, amount);
@@ -603,7 +605,7 @@ const Fx = (() => {
   // Over everything, in canvas pixels: clouds, the colours of dawn and dusk and of the
   // season, the weather's tint, lightning, and the name of the place you arrive at.
   function overlay(screen) {
-    const W = canvas.width, H = canvas.height, w = weather(), h = worldMinutes() / 60;
+    const W = viewPxW(), H = viewPxH(), w = weather(), h = worldMinutes() / 60;
     if (!climate.underground) {
       // clouds drifting over the land (the sky is the same for everyone: it follows the clock)
       if (daylight() > 0.5) for (let i = 0; i < 4; i++) {

@@ -16,26 +16,46 @@ const HEAD_LEAN = 26; // (times Render.CREATURE_LEAN)
 let paused = false;
 const online = () => typeof Net !== 'undefined' && Net.online;
 
-function setViewSize(w, h) {
-  if (w === VIEW_W && h === VIEW_H) return;
+// ZOOM: canvas pixels per overlay pixel. Everything over the map (names, bars, words, the light) is laid out as if
+// the canvas had SCALE pixels per world pixel; on a phone the canvas has the screen's own pixels (SCALE * ZOOM per
+// world pixel), so nothing is blown up afterwards and the map is as sharp as the screen.
+let ZOOM = 1;
+const viewPxW = () => canvas.width / ZOOM, viewPxH = () => canvas.height / ZOOM; // the canvas in overlay pixels
+function setViewSize(w, h, zoom = ZOOM) {
+  if (w === VIEW_W && h === VIEW_H && zoom === ZOOM) return;
   VIEW_W = w;
   VIEW_H = h;
-  canvas.width = dark.width = VIEW_W * TILE * SCALE;
-  canvas.height = dark.height = VIEW_H * TILE * SCALE;
+  ZOOM = zoom;
+  canvas.width = VIEW_W * TILE * SCALE * ZOOM;
+  canvas.height = VIEW_H * TILE * SCALE * ZOOM;
+  dark.width = VIEW_W * TILE * SCALE;
+  dark.height = VIEW_H * TILE * SCALE;
 }
 
-// Scale the map to the largest rectangle that fits the space left for it. On a
-// phone the view itself adapts to the screen (see below).
+// Scale the map to the largest rectangle that fits the space left for it. On a phone the view itself adapts to
+// the screen (see below).
 function fitView() {
   // (on a phone the status bar and the bottom buttons sit in the viewport's padding: the map goes between them)
   const vp = $('viewport'), r = vp.getBoundingClientRect(), pad = getComputedStyle(vp), px = k => parseFloat(pad[k]) || 0;
   const box = { width: r.width - px('paddingLeft') - px('paddingRight'), height: r.height - px('paddingTop') - px('paddingBottom') };
   if (document.body.classList.contains('touch-ui') && box.width > 0 && box.height > 0) {
-    // upright: 11 tiles across and as many rows as fit; on its side: 9 rows and as many across as fit (up to 23,
-    // what the server sends round you)
-    if (box.height > box.width) setViewSize(11, Math.max(9, Math.min(19, Math.round((11 * box.height) / box.width))));
-    else setViewSize(Math.max(15, Math.min(23, Math.round((9 * box.width) / box.height))), 9);
+    // A whole number of screen pixels per world pixel (p: 3 on most iPhones), so every pixel of a tile is as big as
+    // the next: as many tiles as cover the space (the last ones may be cut a little at the edges), up to what the
+    // server sends round you (25 across, 21 down); fewer, bigger pixels if that's not enough.
+    const dpr = window.devicePixelRatio || 1, W = box.width * dpr, H = box.height * dpr;
+    let p = Math.max(2, Math.round(dpr)), cols, rows;
+    for (;; p++) {
+      cols = Math.ceil(W / (TILE * p));
+      rows = Math.ceil(H / (TILE * p));
+      if (cols <= 25 && rows <= 21) break;
+    }
+    Sprites.CREATURE_RES = Math.max(2, p); // (figures drawn just as finely)
+    setViewSize(Math.max(7, cols), Math.max(7, rows), p / SCALE);
+    canvas.style.width = `${canvas.width / dpr}px`;
+    canvas.style.height = `${canvas.height / dpr}px`;
+    return;
   }
+  setViewSize(VIEW_W, VIEW_H, 1);
   const s = Math.max(1, Math.min((box.width - 4) / VIEW_W, (box.height - 4) / VIEW_H));
   canvas.style.width = `${Math.floor(VIEW_W * s)}px`;
   canvas.style.height = `${Math.floor(VIEW_H * s)}px`;
@@ -343,7 +363,7 @@ function draw() {
   }
   Fx.settle(new Set(creatures.map(c => c.id)));
 
-  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  ctx.setTransform(SCALE * ZOOM, 0, 0, SCALE * ZOOM, 0, 0);
   ctx.imageSmoothingEnabled = false;
   Render.world(ctx, map, view);
   const ox = Math.round(view.w / 2 - view.cx), oy = Math.round(view.h / 2 - view.cy);
@@ -362,7 +382,7 @@ function draw() {
   Fx.world(ctx, ox, oy, z);
 
   // Overlays are drawn in canvas pixels so text stays crisp.
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.setTransform(ZOOM, 0, 0, ZOOM, 0, 0);
   const screen = (tx, ty) => [(ox + tx * TILE) * SCALE, (oy + ty * TILE) * SCALE];
   const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
@@ -373,15 +393,15 @@ function draw() {
   for (const c of shown) if (c.z === z && (!c.def || !c.def.invisible || canSee(c))) drawCreatureInfo(c, screen, struck.get(c.id));
   drawTexts(screen, z);
   drawGuideArrow(screen);
-  if (useWith) outlinedText(`Use ${useWith.name} on...`, canvas.width / 2, 24, '#ffe080', 'bold 14px sans-serif');
+  if (useWith) outlinedText(`Use ${useWith.name} on...`, viewPxW() / 2, 24, '#ffe080', 'bold 14px sans-serif');
   if (raidBanner && now < raidBanner.until) {
-    wrapText(raidBanner.text, Math.floor(canvas.width / 13)).forEach((line, i) => outlinedText(line, canvas.width / 2, 60 + i * 28, raidBanner.color, '700 22px Inter, system-ui, sans-serif'));
+    wrapText(raidBanner.text, Math.floor(viewPxW() / 13)).forEach((line, i) => outlinedText(line, viewPxW() / 2, 60 + i * 28, raidBanner.color, '700 22px Inter, system-ui, sans-serif'));
   }
 
   if (player.dead) {
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    outlinedText('You are dead', canvas.width / 2, canvas.height / 2, '#e5484d', '800 40px Inter, system-ui, sans-serif');
+    ctx.fillRect(0, 0, viewPxW(), viewPxH());
+    outlinedText('You are dead', viewPxW() / 2, viewPxH() / 2, '#e5484d', '800 40px Inter, system-ui, sans-serif');
   }
   Fx.ambience();
 }
@@ -652,11 +672,11 @@ function drawGuideArrow(screen) {
   if (!t) return;
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();
-  if (t.z === player.z && sx > m && sy > m + 30 && sx < canvas.width - m && sy < canvas.height - m) {
+  if (t.z === player.z && sx > m && sy > m + 30 && sx < viewPxW() - m && sy < viewPxH() - m) {
     ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 + bob); // above the name (and a creature's head)
     ctx.rotate(Math.PI / 2);
   } else {
-    const cx = canvas.width / 2, cy = canvas.height / 2, a = Math.atan2(sy - cy, sx - cx);
+    const cx = viewPxW() / 2, cy = viewPxH() / 2, a = Math.atan2(sy - cy, sx - cx);
     const reach = Math.min((cx - m) / Math.max(1e-6, Math.abs(Math.cos(a))), (cy - m) / Math.max(1e-6, Math.abs(Math.sin(a)))) + bob;
     ctx.translate(cx + Math.cos(a) * reach, cy + Math.sin(a) * reach);
     ctx.rotate(a);
@@ -704,13 +724,13 @@ function drawTexts(screen, z) {
     } else if (fx.kind === 'flyby' && age < 1) {
       const [who, line] = FLYBY_LINES[Math.min(FLYBY_LINES.length - 1, Math.floor(age * FLYBY_LINES.length))];
       const [sx, sy] = screen(flybyX(fx, 0), fx.y);
-      outlinedText(`${who}: ${line}`, Math.max(140, Math.min(canvas.width - 140, sx + half)), sy - 40, '#ffd84a', 'bold 14px sans-serif');
+      outlinedText(`${who}: ${line}`, Math.max(140, Math.min(viewPxW() - 140, sx + half)), sy - 40, '#ffd84a', 'bold 14px sans-serif');
     } else if (fx.kind === 'speech' && latest.get(fx.cid) === fx && age < 1) {
       const c = creatureById(fx.cid), v = c ? visual(c) : fx;
       const [sx, sy] = screen(v.x, v.y);
       const lines = wrapText(fx.text, 30);
       if (fx.name) lines.unshift(`${fx.name} says:`);
-      const x = Math.max(110, Math.min(canvas.width - 110, sx + half - HEAD_LEAN * Render.CREATURE_LEAN * SCALE)), color = fx.name ? '#ffd84a' : '#ff9a30';
+      const x = Math.max(110, Math.min(viewPxW() - 110, sx + half - HEAD_LEAN * Render.CREATURE_LEAN * SCALE)), color = fx.name ? '#ffd84a' : '#ff9a30';
       lines.forEach((line, i) => outlinedText(line, x, sy - 28 - (lines.length - 1 - i) * 15, color, 'bold 13px sans-serif'));
     }
   }

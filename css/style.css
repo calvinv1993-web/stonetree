@@ -1288,3 +1288,5 @@ body.touch-ui #view { border: 0; }
 @media (max-height: 500px) { body.touch-ui .toasts { top: calc(var(--hud-h) + 8px); } }
 /* the joystick put away (Menu, Game) */
 body.touch-ui.no-joystick .joystick { display: none !important; }
+/* the map may be a little wider than its space (whole tiles at the screen's own pixels): its edges are cut */
+body.touch-ui .viewport { overflow: hidden; }
