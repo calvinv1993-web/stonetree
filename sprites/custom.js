@@ -8,5 +8,8 @@
 // sheet: 3 frames (standing, step, step) across and the directions north, east,
 // south, west down. Run the game from a local web server to use your own PNGs.
 const CUSTOM_SPRITES = {
-  // rat: 'rat.png',
+  temple_wall_texture: 'temple-wall-atlas.png',
+  grass: 'grass-atlas.png',
+  marble: 'marble-original-v2.png',
 };
+

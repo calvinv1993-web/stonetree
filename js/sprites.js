@@ -242,11 +242,30 @@ const Sprites = (() => {
       rect(g, 'rgba(0,0,0,0.4)', 0, y + 7, TILE, 1);
     }
   }
+  function templeStone(g, r, shade) {
+    // Retain the temple's original carved frieze and its existing projection.
+    carvedStone(g, r, shade);
+    const image = customImage('temple_wall_texture');
+    if (!image) return;
+    const texture = cached('temple-wall:atlas', ctx => ctx.drawImage(image, 0, 0), 128);
+    const column = Math.floor(r() * 2), row = Math.floor(r() * 2);
+    g.save();
+    g.beginPath(); g.rect(0, 11, TILE, TILE - 11); g.clip();
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    // Two small blocks across, with three courses below the ornamental band.
+    g.drawImage(texture, column * 64, row * 64, 64, 64, 0, 11, TILE, TILE);
+    rect(g, 'rgba(143,139,127,0.26)', 0, 11, TILE, TILE - 11);
+    rect(g, shade ? 'rgba(30,27,22,0.30)' : 'rgba(30,27,22,0.12)', 0, 11, TILE, TILE - 11);
+    // Recessed seam beneath the frieze.
+    rect(g, shade ? '#686154' : '#817867', 0, 11, TILE, 1);
+    g.restore();
+  }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
   const WALL_STYLES = {
     wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
     wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
-    wall_temple: { south: (g, r) => carvedStone(g, r, 0), east: (g, r) => carvedStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
+    wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
   // The tops of walls: dressed stone with a bevel, or a wooden beam.
@@ -2402,8 +2421,33 @@ const Sprites = (() => {
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   const SEAMLESS = {
+    marble: { tiles: 4, draw: g => {
+      const image = customImage('marble');
+      if (image) {
+        g.imageSmoothingEnabled = false; g.drawImage(image, 0, 0);
+        for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+          const px = x * TILE, py = y * TILE;
+          g.fillStyle = '#e8dfcd';
+          g.fillRect(px, py, TILE - 1, 1);
+          g.fillRect(px, py + 1, 1, TILE - 2);
+          g.fillStyle = '#b9ae98';
+          g.fillRect(px + TILE - 1, py, 1, TILE);
+          g.fillRect(px, py + TILE - 1, TILE, 1);
+        }
+      }
+      else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.marble(g, makeRng(hashStr('marble') + y * 4 + x)); g.restore();
+      }
+    } },
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
-    grass: { tiles: 4, draw: g => grassField(g, makeRng(hashStr('grass')), 4 * TILE) },
+    grass: { tiles: 4, draw: g => {
+      const image = customImage('grass');
+      if (image) {
+        g.imageSmoothingEnabled = false;
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else grassField(g, makeRng(hashStr('grass')), 4 * TILE);
+    } },
     mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it
       const r = makeRng(hashStr('mountain')), size = 3 * TILE;
       rockSurface(g, r, size, 134);
@@ -4495,6 +4539,7 @@ const Sprites = (() => {
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
+    if (id === 'grass' || id === 'marble') return seamlessPart(id, 0, 0);
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
@@ -4505,6 +4550,8 @@ const Sprites = (() => {
   if (typeof CUSTOM_SPRITES !== 'undefined') {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
+      // Replace cached fallback ground and its edge pixels when the atlas arrives.
+      if (id === 'grass' || id === 'marble' || id === 'temple_wall_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4526,6 +4573,7 @@ const Sprites = (() => {
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       const own = customImage(id);
+      if (id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
@@ -4829,3 +4877,5 @@ const Sprites = (() => {
     },
   };
 })();
+
+
