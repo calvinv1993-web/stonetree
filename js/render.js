@@ -162,7 +162,10 @@ const Render = {
       }
       const groundShown = (x, y, t) => {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
-        const beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
+        let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
+        // a building's corner on its terrace or street: the wall stands on that paving, not on the grass beside it
+        const below = groundAt(x, y + 1);
+        if (below && !wallAt(x, y + 1) && Sprites.paved(below) && !(beside && Sprites.paved(beside))) beside = below;
         return beside && THINGS[beside].block ? t.ground : beside; // a wall on the water's edge stands on its own ground
       };
       // A roof tile's shape: how much further the roof reaches north, south, west and
@@ -222,11 +225,13 @@ const Render = {
       // Ground borders: a higher neighbour (grass over dirt over sand over water, and any
       // of those over paving) spills over the edge. Two kinds of paving meet at a kerb.
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-        const here = groundAt(x, y), p = Sprites.borderPriority(here);
-        if (p === undefined) continue;
-        // a wall stands on this tile: the ground round it meets the wall; nothing spills under it
+        // a wall stands on this tile: the ground round it meets the wall; nothing spills under it, unless the wall
+        // stands on paving (a building's corner on its terrace), whose edge then runs on as the paving's beside it
         const walled = (wx, wy) => { const t = tileAt(wx, wy); return !!t && t.items.some(id => THINGS[id].wall); };
-        if (walled(x, y)) continue;
+        const wt = tileAt(x, y), onWall = walled(x, y), shown = onWall && wt ? groundShown(x, y, wt) : null;
+        if (onWall && !(shown && Sprites.paved(shown))) continue;
+        const here = onWall ? shown : groundAt(x, y), p = Sprites.borderPriority(here);
+        if (p === undefined) continue;
         if (Sprites.paved(here)) {
           const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
           if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
