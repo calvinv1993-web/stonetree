@@ -106,12 +106,12 @@ function renderFavs() {
   current.forEach((id, slot) => {
     const e = entries.find(x => x.id === id);
     const b = document.createElement('button');
-    b.className = `fav${e && e.locked ? ' locked' : ''}`;
+    b.className = `fav${e && e.locked ? ' locked' : ''}${e ? '' : ' empty'}`;
     b.innerHTML = '<span></span><small></small>';
     const icon = e && { h: 'health_potion', m: 'mana_potion', f: 'bread' }[e.id]; // potions and food: their picture, not a cut-off name
     if (icon) b.querySelector('span').innerHTML = `<img src="${Sprites.itemURL(icon)}" alt="">`;
     else b.querySelector('span').textContent = e ? e.name : '+';
-    b.querySelector('small').textContent = e ? e.sub : 'hold';
+    b.querySelector('small').textContent = e ? e.sub : ''; // (an empty one: just a +; hold it to choose)
     b.title = e ? e.name : 'Hold to choose a spell or potion for this button';
     b.addEventListener('pointerdown', ev => {
       ev.preventDefault();

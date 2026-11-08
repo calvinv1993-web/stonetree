@@ -940,3 +940,24 @@ body.touch-ui .shop { bottom: calc(var(--tabbar) + 6px); max-height: calc(100% -
 @media (orientation: landscape) { body.touch-ui .shop { right: calc(var(--rail) + 4px) !important; } }
 /* a window (hotkeys, outfit, guild, a sign, the favourite picker...) puts the talk card away */
 body.touch-ui:has(.dialog:not([hidden])) .talk-card { display: none !important; }
+
+/* ---- fixes from playing it on an iPhone ------------------------------------------------------------------
+   The put-away sheet peeked out under the bottom buttons (Safari's page is taller than what shows): hidden for real
+   until it's opened. The quick buttons stood on top of each other and of the big button: now an even arc round it. */
+body.touch-ui .panel { visibility: hidden; transition: transform 0.18s ease-out, visibility 0s linear 0.18s; }
+body.touch-ui.panel-open .panel { visibility: visible; transition: transform 0.18s ease-out, visibility 0s; }
+body.touch-ui .radial-controls { width: 220px !important; height: 180px !important; }
+body.touch-ui .radial-controls .fav { top: auto !important; left: auto !important; overflow: visible; }
+body.touch-ui .radial-controls .fav:nth-child(3) { right: 157px !important; bottom: 37px !important; } /* health potion: left of the big button */
+body.touch-ui .radial-controls .fav:nth-child(4) { right: 134px !important; bottom: 94px !important; } /* mana potion: up and left */
+body.touch-ui .radial-controls .fav:nth-child(1) { right: 77px !important; bottom: 117px !important; }  /* yours: above */
+body.touch-ui .radial-controls .fav:nth-child(2) { right: 20px !important; bottom: 94px !important; }  /* yours: up and right */
+body.touch-ui .radial-controls .fav small:empty { display: none; }
+body.touch-ui .radial-controls .fav small { z-index: 1; right: -4px !important; bottom: -4px !important; font-size: 11px !important; }
+body.touch-ui .radial-controls .fav.empty { border-style: dashed !important; opacity: 0.55; background: #1a1814aa !important; }
+body.touch-ui .radial-controls .fav.empty span { font-size: 22px; color: #e8d8b0; }
+/* the guide: a slimmer card, its fold button big enough to hit */
+body.touch-ui .guide { font-size: 12px !important; width: min(250px, 66%) !important; }
+body.touch-ui .guide header button { min-width: 38px !important; min-height: 32px !important; font-size: 14px; }
+/* messages (welcome, loot, damage) in the middle of the map, clear of the guide and the status bar */
+@media (orientation: portrait) { body.touch-ui .toasts { top: 38% !important; } }
