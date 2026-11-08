@@ -962,287 +962,218 @@ body.touch-ui .guide header button { min-width: 38px !important; min-height: 32p
 /* messages (welcome, loot, damage) in the middle of the map, clear of the guide and the status bar */
 @media (orientation: portrait) { body.touch-ui .toasts { top: 38% !important; } }
 
-/* ==== Tilequest's own look for the buttons ==========================================================================
-   Bronze set in dark stone, riveted; carved oak along the bottom; gold for what matters. The icons are pixel art
-   drawn in code (js/icons.js), like every sprite. */
-body.touch-ui {
-  --bronze-hi: #f4d27a; --bronze: #c8943a; --bronze-lo: #6e4a18; --stone: #2a2620; --stone-hi: #3e3830; --ink: #120c06;
-  --rivets: radial-gradient(circle at 8px 8px, #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
-            radial-gradient(circle at calc(100% - 8px) 8px, #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
-            radial-gradient(circle at 8px calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px),
-            radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), #f4d27a 0 1.5px, #6e4a18 2px, transparent 2.6px);
-}
-body.touch-ui img.icon { display: block; pointer-events: none; filter: drop-shadow(0 2px 2px #000b); }
 
-/* -- the status bar: a riveted bronze frame; the level a gold medallion in a laurel; bars cut into stone -- */
+/* ==== Tilequest's interface on phones: calm, dark glass; one clean typeface; gold only for what's chosen ============
+   One set of tokens for everything: surfaces in three steps of dark, hairline borders, rounded corners, a single
+   accent. Icons are line drawings (js/icons.js) in the colour of their text. */
+body.touch-ui {
+  --ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg: #141311; --bg-2: #1c1b19; --bg-3: #282623; --bg-4: #34312d; --glass: rgba(20, 19, 17, 0.84);
+  --line: rgba(255, 255, 255, 0.07); --line-2: rgba(255, 255, 255, 0.13);
+  --text: #eeeae3; --muted: #9d968c; --faint: #6b665f;
+  --accent: #e8b54a; --accent-soft: rgba(232, 181, 74, 0.14); --accent-line: rgba(232, 181, 74, 0.42);
+  --hp: #e5484d; --mana: #3e8ef7; --xp: #e8b54a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+body.touch-ui *:not(canvas) { font-family: var(--ui) !important; }
+body.touch-ui .icon { display: block; flex-shrink: 0; pointer-events: none; }
+
+/* -- the status bar: a glass card; portrait, name, two slim bars, gold -- */
 body.touch-ui .hud {
-  border: 0; border-radius: 12px; padding: 7px 9px 8px;
-  background: var(--rivets), linear-gradient(#3a332a, #221e18 60%, #1a1712);
-  box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 3px var(--bronze-lo), inset 0 0 0 4px var(--bronze), inset 0 1px 0 5px #ffffff10, 0 4px 14px #000b;
+  grid-template-columns: 46px 1fr auto; grid-template-rows: auto 12px 12px 3px; gap: 4px 10px; align-items: center;
+  padding: 8px 10px 9px 8px; border: 1px solid var(--line-2); border-radius: 16px;
+  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow);
 }
 body.touch-ui .hud-lvl {
-  border: 0; background:
-    radial-gradient(circle at 38% 30%, #fff3c0 0 8%, transparent 9%),
-    radial-gradient(circle at 50% 50%, #e8b850 0 52%, #a87420 53% 60%, #f4d27a 61% 64%, #6e4a18 65% 100%);
-  box-shadow: 0 0 0 2px var(--ink), 0 3px 8px #000c, inset 0 -2px 3px #0006;
+  grid-row: 1 / 5; width: 46px; height: 46px; border: 0; border-radius: 50%; overflow: visible;
+  background: var(--bg-3); box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--line-2);
 }
-body.touch-ui .hud-lvl::before { /* the laurel round it */
-  content: ''; position: absolute; inset: -5px; border-radius: 50%;
-  background: repeating-conic-gradient(from -60deg, #6a9a3a 0 7deg, transparent 7deg 15deg);
-  -webkit-mask: radial-gradient(circle, transparent 62%, #000 63% 72%, transparent 73%); mask: radial-gradient(circle, transparent 62%, #000 63% 72%, transparent 73%);
-  clip-path: polygon(0 35%, 50% 50%, 100% 35%, 100% 100%, 0 100%);
-}
-body.touch-ui .hud-lvl small { color: #5a3a08; letter-spacing: 1px; top: 5px; }
-body.touch-ui .hud-lvl b { color: #3a2404; text-shadow: 0 1px 0 #ffe9a0; }
-body.touch-ui .hud .tbar { background: #0c0a08; border: 0; box-shadow: inset 0 0 0 1px #000, inset 0 2px 3px #000c, 0 1px 0 #ffffff14; }
-body.touch-ui .hud .tbar div { position: relative; }
-body.touch-ui .hud .tbar div::after { /* a glassy shine, and notches every tenth */
-  content: ''; position: absolute; inset: 0; border-radius: inherit;
-  background: linear-gradient(#ffffff40, #ffffff08 45%, #0000 55%), repeating-linear-gradient(90deg, transparent 0 9.6%, #0005 9.6% 10%);
-}
-body.touch-ui .hud .tbar.hp div { background: linear-gradient(#ff6a5a, #c42a22 55%, #7a1410); }
-body.touch-ui .hud .tbar.mana div { background: linear-gradient(#7aa8ff, #2f5ad0 55%, #182c78); }
-body.touch-ui .hud .tbar span { font: 800 11px/16px sans-serif; letter-spacing: 0.3px; text-shadow: 0 0 2px #000, 0 1px 1px #000; }
-body.touch-ui .hud-xp { background: #0c0a08; box-shadow: inset 0 1px 2px #000; }
-body.touch-ui .hud-xp div { background: linear-gradient(#ffe69a, #d8a830 60%, #8a6418); box-shadow: 0 0 6px #ffd84a88; }
-body.touch-ui .hud-gold {
-  background: linear-gradient(#2a241c, #14110d); border-radius: 8px; color: #ffd84a; font: 800 14px Georgia, serif;
-  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px var(--bronze-lo), 0 1px 0 #ffffff14; text-shadow: 0 1px 0 #000;
-}
-
-/* -- the bottom bar: carved oak, a bronze rail on top; the open tab lit, a gem under it -- */
-body.touch-ui .tabbar {
-  border-top: 0;
-  background:
-    linear-gradient(#f4d27a, #c8943a 40%, #6e4a18) top / 100% 3px no-repeat,
-    linear-gradient(#000a, #000a) 0 3px / 100% 1px no-repeat,
-    repeating-linear-gradient(90deg, #0000 0 19.5%, #00000055 19.5% 20%),
-    repeating-linear-gradient(0deg, #ffffff06 0 2px, #0000 2px 5px),
-    linear-gradient(#4a3420, #2e2014 55%, #1e150c);
-  box-shadow: 0 -4px 14px #000b;
-}
-body.touch-ui .tabbar button { color: #cdb27a; font: 700 11px Georgia, serif; letter-spacing: 0.4px; text-shadow: 0 1px 0 #000; position: relative; }
-body.touch-ui .tabbar button span { display: flex; align-items: center; justify-content: center; width: 40px; height: 34px; border-radius: 10px; transition: transform 0.12s; }
-body.touch-ui .tabbar button:active span { transform: translateY(1px) scale(0.94); }
-body.touch-ui .tabbar button.active { color: #ffe08a; background: none; }
-body.touch-ui .tabbar button.active span {
-  background: radial-gradient(circle at 50% 40%, #ffd84a33, #0000 70%);
-  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 2px #c8943a88;
-}
-body.touch-ui .tabbar button.active::after { /* a little gem under the open tab */
-  content: ''; position: absolute; top: -1px; left: 50%; width: 7px; height: 7px; transform: translateX(-50%) rotate(45deg);
-  background: linear-gradient(135deg, #fff3a0, #ffb82a 50%, #a86a08); box-shadow: 0 0 6px #ffd84a, 0 0 0 1px #000;
-}
-
-/* -- the joystick: a carved stone wheel with a compass rose, a bronze knob -- */
-body.touch-ui .joystick {
-  border: 0; background:
-    conic-gradient(from 0deg, #0000 0 43deg, #c8943a44 43deg 47deg, #0000 47deg 133deg, #c8943a44 133deg 137deg, #0000 137deg 223deg, #c8943a44 223deg 227deg, #0000 227deg 313deg, #c8943a44 313deg 317deg, #0000 317deg),
-    radial-gradient(circle, #0000 0 56%, #c8943a55 57% 58%, #0000 59%),
-    radial-gradient(circle at 50% 40%, #3a342cb8, #14110dc8 70%);
-  box-shadow: inset 0 0 0 2px #000c, inset 0 0 0 3px #8a6a3a99, inset 0 0 0 5px #0006, 0 4px 12px #0009;
-}
-body.touch-ui .joystick::before { /* N E S W marks */
-  content: ''; position: absolute; inset: 6px; border-radius: 50%; pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 3%, #ffd84a 0 3px, #0000 3.5px), radial-gradient(circle at 97% 50%, #c8943a 0 2.5px, #0000 3px),
-    radial-gradient(circle at 50% 97%, #c8943a 0 2.5px, #0000 3px), radial-gradient(circle at 3% 50%, #c8943a 0 2.5px, #0000 3px);
-}
-body.touch-ui .joystick .knob {
-  border: 0; background:
-    radial-gradient(circle at 36% 30%, #fff1b8 0 10%, #0000 22%),
-    radial-gradient(circle, #d8a848 0 45%, #8a5e1c 46% 52%, #e8c068 53% 58%, #5a3a10 59% 100%);
-  box-shadow: 0 0 0 2px #000, 0 4px 8px #000c, inset 0 -3px 4px #0007;
-}
-
-/* -- the big action button: a bronze ring engraved with runes round a gem whose colour says what it does -- */
-body.touch-ui .attack-btn {
-  border: 0 !important; display: flex; align-items: center; justify-content: center;
-  background:
-    radial-gradient(circle at 38% 30%, #ffffff55 0 7%, #0000 22%),
-    radial-gradient(circle, var(--gem, #b8302a) 0 52%, var(--gem-lo, #5a0e0a) 62%, #0000 63%),
-    repeating-conic-gradient(#f4d27a 0 3deg, #8a5e1c 3deg 10deg, #c8943a 10deg 12deg, #6e4a18 12deg 22.5deg) !important;
-  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000a, 0 0 0 4px #c8943a, 0 0 0 6px #000, 0 6px 16px #000d, 0 0 18px var(--gem-glow, #ff503055) !important;
-}
-body.touch-ui .attack-btn img.icon { width: 48px; height: 48px; filter: drop-shadow(0 3px 3px #000d); }
-body.touch-ui .attack-btn:active { transform: scale(0.95); }
-body.touch-ui .attack-btn[data-action="talk"] { --gem: #2f78a8; --gem-lo: #0c2a44; --gem-glow: #4ab8ff66; }
-body.touch-ui .attack-btn[data-action="loot"] { --gem: #c8902a; --gem-lo: #4a2a06; --gem-glow: #ffc84a66; }
-body.touch-ui .attack-btn[data-action="use"] { --gem: #5a8a3a; --gem-lo: #1a3a0c; --gem-glow: #8ae05a55; }
-body.touch-ui .attack-btn[data-action="idle"] { --gem: #4a443a; --gem-lo: #1a1712; --gem-glow: #0000; }
-
-/* -- the quick buttons: bronze rings set in dark stone; the count on a little bronze plaque -- */
-body.touch-ui .radial-controls .fav {
-  border: 0 !important; opacity: 1 !important; display: flex; align-items: center; justify-content: center; flex-direction: column;
-  background: radial-gradient(circle at 40% 30%, #4a4238, #1e1b16 70%) !important;
-  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000, inset 0 0 0 3px #8a5e1c, inset 0 0 0 4px #e8c068aa, inset 0 3px 6px #0009, 0 4px 10px #000b !important;
-  color: #a8d8ff; font: 700 10px/1.1 Georgia, serif; text-align: center;
-}
-body.touch-ui .radial-controls .fav span img { width: 34px; height: 34px; }
-body.touch-ui .radial-controls .fav small {
-  background: linear-gradient(#c8943a, #6e4a18) !important; border: 0 !important; border-radius: 4px !important;
-  box-shadow: 0 0 0 1px #000, inset 0 1px 0 #f4d27a; color: #fff6d8 !important; font: 800 10px/14px sans-serif !important; text-shadow: 0 1px 0 #000;
-}
-body.touch-ui .radial-controls .fav.empty {
-  background: radial-gradient(circle, #1e1b16aa, #0e0c0aaa) !important; opacity: 0.8 !important;
-  box-shadow: 0 0 0 2px #0008, inset 0 0 0 2px #c8943a55 !important; border: 0 !important;
-}
-body.touch-ui .radial-controls .fav.empty span img { width: 28px; height: 28px; opacity: 0.8; }
-body.touch-ui .radial-controls .fav.holding { box-shadow: 0 0 0 2px #000, inset 0 0 0 4px #ffd84a, 0 0 16px #ffd84a !important; }
-
-/* -- sheets and the talk card: parchment-dark stone in a bronze frame, a bronze title plate, iron close buttons -- */
-body.touch-ui .panel {
-  background: linear-gradient(#ffffff06, #0000 120px), repeating-linear-gradient(0deg, #ffffff03 0 2px, #0000 2px 6px), linear-gradient(#2e2922, #1a1713) !important;
-  box-shadow: inset 0 3px 0 #000, inset 0 4px 0 #c8943a, inset 0 5px 0 #f4d27a66, 0 -8px 30px #000d !important; border: 0 !important;
-}
-body.touch-ui .sheet-head b { font: bold 20px/36px Georgia, serif; color: #ffd84a; text-shadow: 0 2px 0 #000, 0 0 10px #ffb82a44; letter-spacing: 0.5px; }
-body.touch-ui .sheet-head b::after { content: ''; display: block; height: 2px; width: 120px; margin-top: -2px; background: linear-gradient(90deg, #c8943a, #0000); }
-body.touch-ui .panel-close, body.touch-ui .talk-who button, body.touch-ui .viewport .bag-close {
-  display: flex !important; align-items: center; justify-content: center; padding: 0 !important; border: 0 !important; border-radius: 8px !important;
-  background: var(--rivets), linear-gradient(#4a4238, #24201a) !important;
-  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #8a6a3a, inset 0 1px 0 #ffffff22, 0 2px 4px #000a !important;
-}
-body.touch-ui .panel-close img, body.touch-ui .talk-who button img { width: 22px; height: 22px; }
-body.touch-ui .seg { background: #0c0a08; box-shadow: inset 0 0 0 1px #000, inset 0 2px 4px #000c, 0 1px 0 #ffffff12; }
-body.touch-ui .seg button { font: 700 13px Georgia, serif !important; color: #b8a074 !important; }
-body.touch-ui .seg button.active {
-  background: linear-gradient(#d8a848, #8a5e1c) !important; color: #fff6d8 !important; text-shadow: 0 1px 0 #000;
-  box-shadow: 0 0 0 1px #000, inset 0 1px 0 #ffe9a0 !important;
-}
-body.touch-ui .toggle { background: #1a1712; box-shadow: inset 0 0 0 1px #000, inset 0 2px 4px #000c, 0 1px 0 #ffffff14; }
-body.touch-ui .toggle::after { background: radial-gradient(circle at 40% 35%, #f4d27a, #8a5e1c); box-shadow: 0 0 0 1px #000, 0 2px 3px #000a; }
-body.touch-ui .toggle.on { background: linear-gradient(#3a6a2a, #2a4a1c); }
-body.touch-ui .menu-head { font-family: Georgia, serif; }
-body.touch-ui .menu-head::after { content: ''; display: inline-block; vertical-align: middle; width: 60%; height: 1px; margin-left: 8px; background: linear-gradient(90deg, #c8943a88, #0000); }
-body.touch-ui .talk-card:not([hidden]) {
-  border: 0; background: var(--rivets), linear-gradient(#ffffff08, #0000 40px), linear-gradient(#2e2922f8, #1a1713f8);
-  box-shadow: 0 0 0 2px #000, inset 0 0 0 1px #000, inset 0 0 0 2px #8a5e1c, inset 0 0 0 3px #e8c06888, 0 -6px 26px #000d;
-}
-body.touch-ui .talk-who canvas { box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #c8943a; border: 0; background: radial-gradient(circle at 50% 40%, #3a342c, #14110d); }
-body.touch-ui .talk-who b { color: #ffd84a; text-shadow: 0 1px 0 #000; }
-body.touch-ui .talk-words button {
-  background: linear-gradient(#2c5a8a, #163454) !important; border: 0 !important; color: #e8f4ff !important; font: 700 14px Georgia, serif !important;
-  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6aa0e0, inset 0 1px 0 #a8d0ff88, 0 2px 4px #000a;
-}
-body.touch-ui .talk-words button:active { transform: translateY(1px); }
-body.touch-ui .talk-words button.bye { background: linear-gradient(#4a4238, #24201a) !important; color: #d8c49a !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #8a6a3a, 0 2px 4px #000a; }
-body.touch-ui .tabbar button span img { width: 36px; height: 36px; }
-
-/* ==== the dark, gold-lined look (after the owner's own earlier design) ==============================================
-   Near-black panels with a hair-thin line of old gold and a corner ornament; titles in small capitals between rules;
-   icons of worn metal, dimmed until they're the one you're on, which glows gold with a diamond under it. */
-body.touch-ui {
-  --gold: #c9a259; --gold-hi: #f0d898; --gold-lo: #6a5226; --night: #0d0c0b; --night-2: #16140f; --rule: #4a3c22;
-  --title: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  --frame: inset 0 0 0 1px #000, inset 0 0 0 2px #6a5226aa, inset 0 0 0 3px #000c;
-  --corners:
-    linear-gradient(135deg, #c9a259 0 4px, transparent 4.5px) top left / 14px 14px no-repeat,
-    linear-gradient(225deg, #c9a259 0 4px, transparent 4.5px) top right / 14px 14px no-repeat,
-    linear-gradient(45deg, #c9a259 0 4px, transparent 4.5px) bottom left / 14px 14px no-repeat,
-    linear-gradient(315deg, #c9a259 0 4px, transparent 4.5px) bottom right / 14px 14px no-repeat;
-}
-/* -- the top: a portrait in a gold ring, name and level, slim bars, gold in a pill -- */
-body.touch-ui .hud {
-  grid-template-columns: 54px 1fr auto !important; grid-template-rows: auto 11px 11px 4px !important; gap: 3px 9px !important;
-  padding: 7px 10px 8px !important; border-radius: 6px !important;
-  background: var(--corners), linear-gradient(#17150fef, #0d0c0bf2) !important;
-  box-shadow: var(--frame), 0 6px 18px #000c !important;
-}
-body.touch-ui .hud-lvl {
-  grid-row: 1 / 5 !important; width: 54px !important; height: 54px !important; border-radius: 50%; overflow: visible;
-  background: radial-gradient(circle at 50% 40%, #2a2620, #0c0a08) !important;
-  box-shadow: 0 0 0 1.5px #000, 0 0 0 3px var(--gold), 0 0 0 4px #000, 0 0 0 5px #6a5226, 0 3px 10px #000c !important;
-}
-body.touch-ui .hud-lvl::before { display: none; }
-body.touch-ui .hud-lvl canvas { width: 54px; height: 54px; border-radius: 50%; image-rendering: pixelated; display: block; }
+body.touch-ui .hud-lvl canvas { display: block; width: 46px; height: 46px; border-radius: 50%; image-rendering: pixelated; }
 body.touch-ui .hud-lvl b {
-  position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); min-width: 22px; height: 18px; padding: 0 4px; margin: 0 !important;
-  border-radius: 9px; background: linear-gradient(#2a2418, #0d0b08); box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold);
-  color: var(--gold-hi) !important; font: 700 11px/18px var(--title) !important; text-shadow: none !important; text-align: center;
+  position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); margin: 0; min-width: 22px; height: 17px; padding: 0 5px;
+  border-radius: 9px; background: var(--accent); color: #1d1404; box-shadow: 0 0 0 2px var(--bg);
+  font: 700 11px/17px var(--ui); text-align: center; text-shadow: none; font-variant-numeric: tabular-nums;
 }
-body.touch-ui .hud-name { grid-column: 2; grid-row: 1; display: flex; align-items: baseline; gap: 8px; min-width: 0; line-height: 1.1; }
-body.touch-ui .hud-name b { color: #efe4c8; font: 700 15px var(--title); letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body.touch-ui .hud-name small { color: #a8977a; font: 11px Georgia, serif; white-space: nowrap; }
+body.touch-ui .hud-name { grid-column: 2; grid-row: 1; display: flex; align-items: baseline; gap: 8px; min-width: 0; line-height: 1.15; }
+body.touch-ui .hud-name b { color: var(--text); font: 600 14px var(--ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.touch-ui .hud-name small { color: var(--muted); font: 500 11px var(--ui); white-space: nowrap; }
+body.touch-ui .hud .tbar { height: 12px; border: 0; border-radius: 6px; background: rgba(255, 255, 255, 0.07); box-shadow: none; }
 body.touch-ui .hud .tbar.hp { grid-column: 2; grid-row: 2; }
-body.touch-ui .hud .tbar.mana { grid-column: 2; grid-row: 3 !important; }
-body.touch-ui .hud .tbar { height: 11px !important; border-radius: 2px !important; background: #050404 !important; box-shadow: 0 0 0 1px #000, 0 0 0 2px #3a3020 !important; }
-body.touch-ui .hud .tbar div { border-radius: 1px !important; }
-body.touch-ui .hud .tbar.hp div { background: linear-gradient(#e0574a, #9a1e18 60%, #5a0c08) !important; }
-body.touch-ui .hud .tbar.mana div { background: linear-gradient(#5a8ae8, #2448a8 60%, #102058) !important; }
-body.touch-ui .hud .tbar span { font: 700 9px/11px Georgia, serif !important; letter-spacing: 0.5px; }
-body.touch-ui .hud-xp { grid-column: 2 / 4 !important; grid-row: 4 !important; height: 3px !important; background: #050404 !important; }
-body.touch-ui .hud-xp div { background: linear-gradient(90deg, #8a6630, var(--gold-hi)) !important; box-shadow: 0 0 6px #f0c86888 !important; }
+body.touch-ui .hud .tbar.mana { grid-column: 2; grid-row: 3; }
+body.touch-ui .hud .tbar div { border-radius: 6px; }
+body.touch-ui .hud .tbar.hp div { background: linear-gradient(#ee6266, var(--hp)); }
+body.touch-ui .hud .tbar.mana div { background: linear-gradient(#5aa0ff, var(--mana)); }
+body.touch-ui .hud .tbar span { font: 600 9.5px/12px var(--ui); letter-spacing: 0.2px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); font-variant-numeric: tabular-nums; }
+body.touch-ui .hud-xp { grid-column: 2 / 4; grid-row: 4; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.07); }
+body.touch-ui .hud-xp div { background: var(--xp); border-radius: 2px; box-shadow: none; }
 body.touch-ui .hud-gold {
-  grid-column: 3 !important; grid-row: 1 / 4 !important; align-self: center; padding: 4px 10px 4px 6px !important; border-radius: 20px !important;
-  background: linear-gradient(#1a1712, #0a0908) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important;
-  color: #efe4c8 !important; font: 700 13px var(--title) !important;
+  grid-column: 3; grid-row: 1 / 4; align-self: center; display: flex; align-items: center; gap: 5px; padding: 5px 10px 5px 6px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--bg-3); color: var(--text);
+  font: 600 13px var(--ui); font-variant-numeric: tabular-nums; text-shadow: none;
 }
-body.touch-ui .hud-gold img { width: 22px !important; height: 22px !important; image-rendering: auto !important; }
-/* -- the guide: a dark card with a gold rule -- */
-body.touch-ui .guide { background: linear-gradient(#17150fee, #0d0c0bee) !important; border: 0 !important; border-left: 2px solid var(--gold) !important; box-shadow: var(--frame), 0 4px 14px #000a !important; border-radius: 4px !important; top: 86px !important; }
-body.touch-ui .guide header b { font: 700 12px var(--title); letter-spacing: 1px; color: var(--gold-hi); }
-/* -- the bottom bar: near black, hair-thin gold dividers; icons dimmed until chosen -- */
-body.touch-ui .tabbar {
-  background: linear-gradient(#0000, #0000), linear-gradient(90deg, #0000 0, #6a5226 30%, #c9a259 50%, #6a5226 70%, #0000 100%) top / 100% 1px no-repeat,
-    linear-gradient(#141210, #0a0908) !important;
-  box-shadow: 0 -1px 0 #000, 0 -8px 24px #000c !important; gap: 0 !important; padding-top: 4px !important;
+body.touch-ui .hud-gold img { width: 18px; height: 18px; image-rendering: auto; }
+
+/* -- the guide: the same glass, an accent line for what to do now -- */
+body.touch-ui .guide {
+  top: 88px !important; border: 1px solid var(--line-2) !important; border-left: 3px solid var(--accent) !important; border-radius: 12px !important;
+  background: var(--glass) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow) !important; color: var(--text);
 }
-body.touch-ui .tabbar button { font: 500 10px var(--title) !important; letter-spacing: 1px; text-transform: uppercase; color: #8a7a5e !important; border-radius: 0 !important; }
-body.touch-ui .tabbar button + button { box-shadow: -1px 0 0 #2a2418; }
-body.touch-ui .tabbar button span { background: none !important; box-shadow: none !important; width: 44px !important; height: 38px !important; }
-body.touch-ui .tabbar button span img { width: 34px !important; height: 34px !important; filter: grayscale(0.55) brightness(0.72) drop-shadow(0 2px 2px #000) !important; transition: filter 0.15s; }
-body.touch-ui .tabbar button.active { color: var(--gold-hi) !important; background: radial-gradient(ellipse at 50% 40%, #c9a25922, #0000 70%) !important; }
-body.touch-ui .tabbar button.active span img { filter: drop-shadow(0 0 6px #f0c86888) drop-shadow(0 2px 2px #000) !important; }
-body.touch-ui .tabbar button.active::after { top: auto !important; bottom: 2px !important; width: 6px !important; height: 6px !important; background: var(--gold-hi) !important; box-shadow: 0 0 8px #f0c868 !important; }
-/* -- the controls: dark discs ringed in old gold -- */
-body.touch-ui .radial-controls .fav {
-  background: radial-gradient(circle at 50% 35%, #24201a, #0b0a08 70%) !important;
-  box-shadow: 0 0 0 1px #000, 0 0 0 2.5px #8a6a34, 0 0 0 3.5px #000, inset 0 2px 6px #000c, 0 4px 10px #000c !important;
+body.touch-ui .guide header b { font: 600 12px var(--ui); color: var(--accent); }
+body.touch-ui .guide header button { background: var(--bg-3); border: 1px solid var(--line); border-radius: 8px; box-shadow: none; color: var(--muted); }
+
+/* -- the bottom bar: solid, a hairline on top; the open tab in gold with a short bar over it -- */
+body.touch-ui .tabbar { background: var(--bg); border-top: 1px solid var(--line-2); box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35); gap: 0; padding-top: 6px; }
+body.touch-ui .tabbar button {
+  position: relative; gap: 4px; border-radius: 0; background: none; color: var(--faint);
+  font: 500 10.5px var(--ui); letter-spacing: 0.1px; text-shadow: none; transition: color 0.15s;
 }
-body.touch-ui .radial-controls .fav small { background: #0b0a08 !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold) !important; color: var(--gold-hi) !important; font: 700 10px/14px var(--title) !important; }
-body.touch-ui .radial-controls .fav.empty { box-shadow: 0 0 0 1px #0008, 0 0 0 2px #8a6a3466 !important; background: #0b0a0899 !important; }
-body.touch-ui .attack-btn {
-  background:
-    radial-gradient(circle at 50% 38%, #ffffff22 0 10%, #0000 30%),
-    radial-gradient(circle, var(--gem, #7a1612) 0 50%, var(--gem-lo, #2a0604) 62%, #0000 63%),
-    conic-gradient(from 0deg, #f0d898, #8a6630, #f0d898, #6a4a20, #f0d898, #8a6630, #f0d898) !important;
-  box-shadow: 0 0 0 1.5px #000, inset 0 0 0 3px #0000, 0 0 0 4px #0b0a08, 0 0 0 5px #6a5226, 0 6px 18px #000e, 0 0 22px var(--gem-glow, #c0302a55) !important;
+body.touch-ui .tabbar button span { display: flex; align-items: center; justify-content: center; width: auto; height: 26px; background: none; box-shadow: none; }
+body.touch-ui .tabbar button.active { color: var(--accent); background: none; }
+body.touch-ui .tabbar button.active::after {
+  content: ''; position: absolute; top: -7px; left: 50%; width: 22px; height: 3px; transform: translateX(-50%);
+  border-radius: 0 0 3px 3px; background: var(--accent);
 }
-body.touch-ui .attack-btn[data-action="talk"] { --gem: #1e4a6e; --gem-lo: #08182a; }
-body.touch-ui .attack-btn[data-action="loot"] { --gem: #7a5a1a; --gem-lo: #2a1c04; }
-body.touch-ui .attack-btn[data-action="use"] { --gem: #2e5a2a; --gem-lo: #0c200a; }
-body.touch-ui .attack-btn[data-action="idle"] { --gem: #2a2620; --gem-lo: #0b0a08; }
+body.touch-ui .tabbar button:active span { transform: scale(0.92); }
+
+/* -- the controls: glass discs, the big button in the colour of what it does -- */
 body.touch-ui .joystick {
-  background: radial-gradient(circle, #0000 0 57%, #c9a25944 58% 59%, #0000 60%), radial-gradient(circle at 50% 40%, #1a1712cc, #0b0a08dd 70%) !important;
-  box-shadow: 0 0 0 1px #000, inset 0 0 0 2px #6a5226aa, 0 4px 12px #000a !important;
+  border: 1px solid var(--line-2); background: rgba(20, 19, 17, 0.42); box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.02);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
-body.touch-ui .joystick .knob {
-  background: radial-gradient(circle at 38% 30%, #fff1c0 0 8%, #0000 20%), radial-gradient(circle, #b8904c 0 46%, #4a3416 50% 56%, #d8b870 58% 62%, #2a1c08 64%) !important;
+body.touch-ui .joystick .knob { border: 1.5px solid rgba(255, 255, 255, 0.55); background: rgba(238, 234, 227, 0.22); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); }
+body.touch-ui .radial-controls .fav {
+  display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2) !important; opacity: 1 !important;
+  background: var(--glass) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important; color: var(--text); font: 600 10px/1.1 var(--ui); text-align: center;
 }
-/* -- sheets and the talk card: near-black, a gold hairline frame with corner ornaments, titles between rules -- */
-body.touch-ui .panel { background: var(--corners), linear-gradient(#15130f, #0b0a08) !important; box-shadow: inset 0 1px 0 #000, inset 0 2px 0 var(--gold), inset 0 3px 0 #000, 0 -10px 30px #000e !important; }
-body.touch-ui .sheet-head b { font: 700 20px/36px var(--title) !important; color: var(--gold-hi) !important; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 2px 0 #000 !important; }
-body.touch-ui .sheet-head b::after { width: 100% !important; height: 1px !important; background: linear-gradient(90deg, var(--gold), #0000 80%) !important; }
+body.touch-ui .radial-controls .fav span { display: flex; align-items: center; justify-content: center; }
+body.touch-ui .radial-controls .fav small {
+  right: -3px !important; bottom: -3px !important; min-width: 18px; padding: 0 5px !important; border: 0 !important; border-radius: 9px !important;
+  background: var(--bg-4) !important; box-shadow: 0 0 0 2px var(--bg) !important; color: var(--text) !important;
+  font: 600 10px/16px var(--ui) !important; text-align: center; font-variant-numeric: tabular-nums;
+}
+body.touch-ui .radial-controls .fav.empty { border: 1px dashed rgba(255, 255, 255, 0.2) !important; background: rgba(20, 19, 17, 0.4) !important; box-shadow: none !important; color: var(--muted); }
+body.touch-ui .radial-controls .fav.holding { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-soft) !important; }
+body.touch-ui .attack-btn {
+  display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.22) !important; color: #fff;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.16), transparent 60%), var(--act, #c9413a) !important;
+  box-shadow: 0 0 0 4px rgba(20, 19, 17, 0.55), 0 8px 22px rgba(0, 0, 0, 0.5) !important; transition: transform 0.1s, background-color 0.2s;
+}
+body.touch-ui .attack-btn:active { transform: scale(0.94); }
+body.touch-ui .attack-btn[data-action="talk"] { --act: #2f6fb3; }
+body.touch-ui .attack-btn[data-action="loot"] { --act: #b8862b; }
+body.touch-ui .attack-btn[data-action="use"] { --act: #3f8a4e; }
+body.touch-ui .attack-btn[data-action="idle"] { --act: rgba(40, 38, 35, 0.9); color: var(--muted); }
+
+/* -- sheets: a solid card coming up from the bottom, with a grab handle, a plain title and a segmented control -- */
+body.touch-ui .panel {
+  border: 0 !important; border-top: 1px solid var(--line-2) !important; border-radius: 20px 20px 0 0; padding: 18px 16px 12px;
+  background: var(--bg) !important; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55) !important; color: var(--text);
+}
+body.touch-ui .panel::before {
+  content: ''; position: absolute; top: 7px; left: 50%; width: 36px; height: 4px; transform: translateX(-50%); border-radius: 2px; background: var(--bg-4);
+}
+body.touch-ui .sheet-head { margin: 0 0 12px; padding-right: 48px; }
+body.touch-ui .sheet-head b { display: block; font: 700 20px/36px var(--ui); color: var(--text); letter-spacing: -0.2px; text-shadow: none; }
+body.touch-ui .sheet-head b::after { display: none; }
 body.touch-ui .panel-close, body.touch-ui .talk-who button, body.touch-ui .viewport .bag-close {
-  background: linear-gradient(#1a1712, #0b0a08) !important; border-radius: 4px !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important;
+  display: flex !important; align-items: center; justify-content: center; width: 36px !important; height: 36px !important; min-width: 0 !important; min-height: 0 !important;
+  padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: var(--bg-3) !important; box-shadow: none !important; color: var(--muted);
 }
-body.touch-ui .seg { background: #070605 !important; border-radius: 4px !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #2a2418 !important; }
-body.touch-ui .seg button { font: 700 12px var(--title) !important; letter-spacing: 1px; text-transform: uppercase; border-radius: 3px !important; color: #8a7a5e !important; }
-body.touch-ui .seg button.active { background: linear-gradient(#2a2418, #14110c) !important; color: var(--gold-hi) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px var(--gold) !important; }
-body.touch-ui .menu-head { font: 700 11px var(--title) !important; letter-spacing: 2px !important; color: var(--gold) !important; text-align: center; display: flex; align-items: center; gap: 10px; }
-body.touch-ui .menu-head::before, body.touch-ui .menu-head::after { content: ''; flex: 1; height: 1px; width: auto !important; margin: 0 !important; background: linear-gradient(90deg, #0000, var(--rule)) !important; }
-body.touch-ui .menu-head::after { background: linear-gradient(90deg, var(--rule), #0000) !important; }
-body.touch-ui .menu-row { border-bottom-color: #221d14 !important; font-family: Georgia, serif !important; color: #e6dcc4 !important; }
-body.touch-ui .toggle { background: #070605 !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #3a3020 !important; }
-body.touch-ui .toggle::after { background: radial-gradient(circle at 40% 35%, #f0d898, #6a5226) !important; }
-body.touch-ui .toggle.on { background: linear-gradient(#1e3a1a, #0e200c) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #4a7a3a !important; }
-body.touch-ui .talk-card:not([hidden]) { background: var(--corners), linear-gradient(#17150ff6, #0b0a08f6) !important; box-shadow: var(--frame), 0 -6px 26px #000e !important; border-radius: 6px !important; }
-body.touch-ui .talk-who canvas { border-radius: 50% !important; box-shadow: 0 0 0 1px #000, 0 0 0 2.5px var(--gold), 0 0 0 3.5px #000 !important; }
-body.touch-ui .talk-who b { font: 700 16px var(--title) !important; color: var(--gold-hi) !important; letter-spacing: 0.5px; }
-body.touch-ui .talk-card p { font-family: Georgia, serif !important; color: #e6dcc4; }
-body.touch-ui .talk-card p u { color: #8cc4f0 !important; }
-body.touch-ui .talk-words button { background: linear-gradient(#162a40, #0a1420) !important; border-radius: 4px !important; font: 700 13px var(--title) !important; letter-spacing: 0.5px; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #3a6a9a !important; color: #d8ecff !important; }
-body.touch-ui .talk-words button.bye { background: linear-gradient(#1a1712, #0b0a08) !important; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #6a5226 !important; color: #c8b890 !important; }
-body.touch-ui .panel .equipment .slot, body.touch-ui .panel .grid .slot { background: #070605 !important; border-color: #2a2418 !important; box-shadow: inset 0 0 0 1px #000; border-radius: 3px; }
-body.touch-ui .panel section { background: none !important; border-color: #221d14 !important; }
-body.touch-ui .panel h2 { font-family: var(--title) !important; letter-spacing: 2px; color: var(--gold) !important; }
+body.touch-ui .panel-close { top: 16px; right: 14px; }
+body.touch-ui .seg { gap: 2px; padding: 3px; margin-top: 10px; border-radius: 11px; background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line); }
+body.touch-ui .seg button {
+  min-height: 34px; border: 0; border-radius: 8px; background: none; box-shadow: none; color: var(--muted);
+  font: 600 13px var(--ui); text-transform: none; letter-spacing: 0; text-shadow: none;
+}
+body.touch-ui .seg button.active { background: var(--bg-4); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+/* the sections inside: cards */
+body.touch-ui .panel section, body.touch-ui.panel-open .panel #containers > * {
+  padding: 10px 12px; border: 1px solid var(--line) !important; border-radius: 14px; background: var(--bg-2) !important; box-shadow: none;
+}
+body.touch-ui .panel h2 { font: 600 11px var(--ui); color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; text-shadow: none; border: 0; padding: 0; margin: 0 0 8px; }
+body.touch-ui .panel #gearStats { margin-top: 6px; border-radius: 10px; background: var(--bg-3); color: var(--muted); font: 500 12.5px var(--ui); }
+/* item slots: inset wells; an empty one shows a faint drawing of what goes there */
+body.touch-ui .slot { border: 1px solid var(--line) !important; border-radius: 8px; background: #0e0d0c !important; box-shadow: none !important; }
+body.touch-ui .slot.empty svg { position: absolute; inset: 0; margin: auto; color: rgba(255, 255, 255, 0.16); }
+.slot.empty:has(svg)::after { display: none; }
+.slot.empty svg { position: absolute; inset: 0; margin: auto; color: #4a443c; pointer-events: none; }
+body.touch-ui .slot .count { font: 600 10px var(--ui); }
+body.touch-ui .slot[data-rarity="uncommon"] { border-color: #3f9a55 !important; }
+body.touch-ui .slot[data-rarity="rare"] { border-color: #3e8ef7 !important; }
+body.touch-ui .slot[data-rarity="epic"] { border-color: #a26bf0 !important; }
+body.touch-ui .slot[data-rarity="legendary"] { border-color: var(--accent) !important; }
+/* the Menu: grouped rows, small captions, plain switches */
+body.touch-ui .menu-head { margin: 18px 4px 6px; color: var(--muted); font: 600 11px var(--ui); letter-spacing: 0.8px; text-transform: uppercase; text-align: left; display: block; }
+body.touch-ui .menu-head::before, body.touch-ui .menu-head::after { display: none; }
+body.touch-ui .menu-row {
+  min-height: 50px; padding: 8px 14px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: var(--bg-2);
+  color: var(--text); font: 500 15px var(--ui); text-shadow: none;
+}
+body.touch-ui .menu-head + .menu-row, body.touch-ui .menu-head + .seg + .menu-row { border-radius: 12px 12px 0 0; }
+body.touch-ui .menu-row:has(+ .menu-head), body.touch-ui .menu-row:last-child { border-bottom: 0; border-radius: 0 0 12px 12px; }
+body.touch-ui .menu-head + .menu-row:has(+ .menu-head) { border-radius: 12px; }
+body.touch-ui .menu-row small { margin-top: 2px; color: var(--muted); font: 400 12px var(--ui); }
+body.touch-ui .menu-row.danger { color: #f07a7e; }
+body.touch-ui .toggle { width: 44px; height: 26px; border-radius: 13px; background: var(--bg-4); box-shadow: none; transition: background-color 0.15s; }
+body.touch-ui .toggle::after { top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+body.touch-ui .toggle.on { background: var(--accent); }
+body.touch-ui .toggle.on::after { left: 21px; }
+
+/* -- the talk card: who's talking, what they say, the words you can answer with as chips -- */
+body.touch-ui .talk-card:not([hidden]) {
+  padding: 14px; border: 1px solid var(--line-2); border-radius: 18px; background: rgba(20, 19, 17, 0.96); box-shadow: var(--shadow); color: var(--text);
+}
+body.touch-ui .talk-who { gap: 12px; margin-bottom: 10px; }
+body.touch-ui .talk-who canvas { width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--bg-3); box-shadow: 0 0 0 1px var(--line-2); }
+body.touch-ui .talk-who b { color: var(--text); font: 600 15px var(--ui); text-shadow: none; }
+body.touch-ui .talk-who small { color: var(--muted); font: 500 12px var(--ui); }
+body.touch-ui .talk-card p { font: 400 14.5px/1.55 var(--ui); color: #ddd8cf; margin: 0 0 12px; }
+body.touch-ui .talk-card p u { color: var(--accent); font-weight: 600; }
+body.touch-ui .talk-words { gap: 8px; }
+body.touch-ui .talk-words button {
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--accent-line); border-radius: 999px; background: var(--accent-soft);
+  box-shadow: none; color: #f5d68f; font: 600 13.5px var(--ui); text-shadow: none; text-transform: capitalize;
+}
+body.touch-ui .talk-words button:active { transform: scale(0.97); }
+body.touch-ui .talk-words button.bye { border-color: var(--line-2); background: var(--bg-3); color: var(--muted); }
+
+/* -- windows (shop, bag, dialogs, chat): the same solid card, a plain header, clean buttons -- */
+body.touch-ui .window, body.touch-ui .dialog, body.touch-ui.bag-open #containers, body.touch-ui.chat-open .console {
+  border: 1px solid var(--line-2) !important; border-radius: 16px !important; background: var(--bg) !important; box-shadow: var(--shadow) !important; color: var(--text);
+}
+body.touch-ui .window header, body.touch-ui .dialog header { padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+body.touch-ui .window header b, body.touch-ui .dialog header b { color: var(--text); font: 600 16px var(--ui); text-shadow: none; letter-spacing: 0; }
+body.touch-ui .window button, body.touch-ui .dialog button, body.touch-ui .panel button:not(.menu-row):not(.panel-close):not(.toggle),
+body.touch-ui #containers button, body.touch-ui .console button {
+  border: 1px solid var(--line-2); border-radius: 9px; background: var(--bg-3); box-shadow: none; color: var(--text); text-shadow: none; font-weight: 600;
+}
+body.touch-ui .seg button { border: 0 !important; background: none !important; }
+body.touch-ui .seg button.active { background: var(--bg-4) !important; }
+body.touch-ui .window button.primary, body.touch-ui .dialog button.primary { border-color: transparent; background: var(--accent); color: #1d1404; }
+body.touch-ui .window button.active, body.touch-ui .dialog button.active, body.touch-ui .panel button.active:not(.seg button) {
+  border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent);
+}
+body.touch-ui input, body.touch-ui select { border: 1px solid var(--line-2); border-radius: 9px; background: #0e0d0c; box-shadow: none; color: var(--text); }
+body.touch-ui input:focus { outline: 2px solid var(--accent-line); outline-offset: 0; }
+body.touch-ui .sheet-head .seg { margin-right: -48px; }
+/* messages over the map: small glass pills */
+body.touch-ui .toast {
+  padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(20, 19, 17, 0.82); color: var(--text);
+  font: 500 13px/1.35 var(--ui); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+body.touch-ui .toast.damage { color: #ff9a9c; }
+body.touch-ui .toast.quest, body.touch-ui .toast.level { color: var(--accent); }
+/* the story card in the Quests sheet, quests, close buttons in windows, checkboxes, the chat line */
+body.touch-ui .story { padding: 12px 14px; border: 1px solid var(--accent-line); border-radius: 12px; background: var(--accent-soft); font-size: 13px; }
+body.touch-ui .story > b { color: var(--accent); font-weight: 600; letter-spacing: 0; }
+body.touch-ui .story .next { color: var(--muted); font-style: normal; }
+body.touch-ui .story .now b { color: var(--text); }
+body.touch-ui .story .now i { color: #8cbcff; }
+body.touch-ui .quest { border-color: var(--line) !important; border-radius: 10px; background: var(--bg-3) !important; }
+body.touch-ui .dialog header button, body.touch-ui #shopClose, body.touch-ui #lootClose, body.touch-ui .console .chat-close, body.touch-ui .window header button {
+  display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; min-width: 36px !important; min-height: 36px !important; padding: 0;
+  border: 0 !important; border-radius: 50% !important; background: var(--bg-3) !important; color: var(--muted) !important; font: 400 18px/1 var(--ui);
+}
+body.touch-ui input[type=checkbox] { accent-color: var(--accent); }
+body.touch-ui .console input, body.touch-ui #chat { border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 0 16px 16px; background: var(--bg-2) !important; outline: none; }

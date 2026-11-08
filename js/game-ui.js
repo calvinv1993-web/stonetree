@@ -451,7 +451,7 @@ window.addEventListener('pointerup', e => {
 
 const resolveForUi = ref => (resolve(ref) || {}).item || null;
 
-function slotEl(item, { label, dragRef, dropRef, onClick, onRight, hint } = {}) {
+function slotEl(item, { label, slot, dragRef, dropRef, onClick, onRight, hint } = {}) {
   const el = document.createElement('div');
   el.className = 'slot';
   if (item) {
@@ -472,6 +472,8 @@ function slotEl(item, { label, dragRef, dropRef, onClick, onRight, hint } = {}) 
   } else {
     el.classList.add('empty');
     if (label) el.dataset.label = label;
+    // an empty equipment slot shows a faint drawing of what goes there
+    if (slot && typeof Icons !== 'undefined') el.appendChild(Icons.img(`slot-${slot}`, 22));
   }
   if (dropRef) el.dropRef = dropRef;
   if (item && dragRef) el.addEventListener('pointerdown', e => startDrag(e, dragRef, Sprites.itemURL(item.id), onClick));
@@ -507,7 +509,7 @@ function renderEquipment() {
     }
     const ref = { root: 'equip', slot };
     root.appendChild(slotEl(player.equipment[slot], {
-      label: SLOT_LABELS[slot], dragRef: slot === 'backpack' ? null : ref, dropRef: ref,
+      label: SLOT_LABELS[slot], slot, dragRef: slot === 'backpack' ? null : ref, dropRef: ref,
       onClick: slot === 'backpack' ? null : () => Actions.unequip(slot), onRight: () => Actions.unequip(slot),
       hint: 'Click to take it off, or drag it.',
     }));
