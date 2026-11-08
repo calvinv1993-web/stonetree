@@ -359,7 +359,8 @@ function updatePlayer() {
   if (walked) {
     const change = map.floorChange(player.x, player.y, player.z);
     const t = map.get(player.x, player.y, player.z), meta = map.getMeta(player.x, player.y, player.z);
-    if (change) changeFloor(change, player.x - walked.fromX, player.y - walked.fromY);
+    // a grate only takes you down when you use it, so nobody falls into the sewers by walking over one
+    if (change && !(t && t.items.some(id => THINGS[id].useToClimb))) changeFloor(change, player.x - walked.fromX, player.y - walked.fromY);
     else if (t && meta && meta.to && t.items.some(id => THINGS[id].teleport)) {
       teleport(meta.to);
       addSparkle(player, '#c58cff');

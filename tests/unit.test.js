@@ -403,7 +403,13 @@ test('the sewers: a street grate takes you down to the rats, the ladder under it
   ctx.teleport({ x: 131, y: 113, z: 8 });
   A.walkTo(131, 111);
   tick(game, 1500);
-  assert.strictEqual(p.z, 7, 'climbed down through the grate on the square');
+  assert.strictEqual(p.z, 8, 'walking over a grate doesn\'t drop you into the sewers');
+  assert.strictEqual(p.x * 1000 + p.y, 131111, 'you can stand on it');
+  A.walkTo(131, 113);
+  tick(game, 1500);
+  A.interact('use', 131, 111, 8);
+  tick(game, 1500);
+  assert.strictEqual(p.z, 7, 'using it climbs down through the grate on the square');
   assert(Math.abs(p.x - 131) <= 1 && Math.abs(p.y - 111) <= 1, 'landed beside the ladder under it');
   assert(map.get(131, 111, 7).items.includes('sewer_ladder'), 'a ladder stands under the grate');
   A.walkTo(131, 111);

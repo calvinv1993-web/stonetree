@@ -262,6 +262,18 @@ function initTouch() {
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
   for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests'], ['tabMap', 'map'], ['tabChat', 'chat'], ['tabMenu', 'menu']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
+  // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
+  const hud = document.querySelector('#touch .hud');
+  let hudH = -1;
+  const hudHeight = () => requestAnimationFrame(() => { // (after the layout, so the observer doesn't loop)
+    const h = Math.max(0, Math.ceil(hud.getBoundingClientRect().bottom - $('viewport').getBoundingClientRect().top));
+    if (h === hudH) return;
+    hudH = h;
+    document.body.style.setProperty('--hud-h', `${h}px`);
+    fitView();
+  });
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(hudHeight).observe(hud);
+  window.addEventListener('resize', hudHeight);
   for (const id of ['panelClose', 'talkClose']) $(id).replaceChildren(Icons.img('close', 20));
   // Help for a phone, not for a keyboard
   $('tab-help').innerHTML = `<ul class="help">

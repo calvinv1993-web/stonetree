@@ -25,13 +25,16 @@ function setViewSize(w, h) {
 }
 
 // Scale the map to the largest rectangle that fits the space left for it. On a
-// phone the view itself adapts: 15 tiles across on its side, 11 when upright,
-// and as many rows as fit.
+// phone the view itself adapts to the screen (see below).
 function fitView() {
-  const box = $('viewport').getBoundingClientRect();
-  if (document.body.classList.contains('touch-ui') && box.width && box.height) {
-    const cols = box.height > box.width ? 11 : 15;
-    setViewSize(cols, Math.max(9, Math.min(19, Math.round((cols * box.height) / box.width))));
+  // (on a phone the status bar and the bottom buttons sit in the viewport's padding: the map goes between them)
+  const vp = $('viewport'), r = vp.getBoundingClientRect(), pad = getComputedStyle(vp), px = k => parseFloat(pad[k]) || 0;
+  const box = { width: r.width - px('paddingLeft') - px('paddingRight'), height: r.height - px('paddingTop') - px('paddingBottom') };
+  if (document.body.classList.contains('touch-ui') && box.width > 0 && box.height > 0) {
+    // upright: 11 tiles across and as many rows as fit; on its side: 9 rows and as many across as fit (up to 23,
+    // what the server sends round you)
+    if (box.height > box.width) setViewSize(11, Math.max(9, Math.min(19, Math.round((11 * box.height) / box.width))));
+    else setViewSize(Math.max(15, Math.min(23, Math.round((9 * box.width) / box.height))), 9);
   }
   const s = Math.max(1, Math.min((box.width - 4) / VIEW_W, (box.height - 4) / VIEW_H));
   canvas.style.width = `${Math.floor(VIEW_W * s)}px`;
@@ -201,7 +204,7 @@ function clickTile(e, t, wx, wy) {
   const tile = map.get(t.x, t.y, t.z);
   const usable = pileAt(t.x, t.y, t.z) || (tile && tile.items.some(id => {
     const d = THINGS[id];
-    return d.chest || d.lever || d.depot || d.readable || d.bookshelf;
+    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb;
   }));
   if (e.button === 2 || usable) Actions.interact('use', t.x, t.y, t.z);
   else if (e.button === 0) Actions.walkTo(t.x, t.y);

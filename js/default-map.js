@@ -199,7 +199,7 @@ const OAKVALE = {
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[131, 111], [140, 129], [110, 128], [127, 141]],
-  grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Step onto it to climb down.',
+  grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Use it to climb down.',
   // Things with something to say when you look at them: [x, y, text]
   looks: [
     [124, 110, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],

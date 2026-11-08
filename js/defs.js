@@ -11,6 +11,7 @@ const DY = [-1, 0, 1, 0];
 //   block:    creatures cannot walk here
 //   low:      blocks walking but not missiles/spells (tables, fences...)
 //   change:   stepping here moves you one floor up (+1) or down (-1)
+//   useToClimb: a floor change you go through only by using it (tapping it); stepping onto it does nothing (grates)
 //   light:    light radius in tiles (in the dark: underground and at night)
 //   chest:    a quest chest that gives its reward once per character:
 //             { flag, quest?, requires? ('quest', or 'quest@step': only from that step on), gold?, items: [[itemId, count]],
@@ -142,7 +143,7 @@ const THINGS = {
   rubble:      { name: 'rubble', cat: 'Nature' },
   crystal:     { name: 'glowing crystal', cat: 'Nature', block: true, low: true, light: 3 },
   puddle:      { name: 'puddle', cat: 'Nature' },
-  grate:       { name: 'sewer grate', cat: 'Floor change', change: -1 }, // climb down into the sewers
+  grate:       { name: 'sewer grate', cat: 'Floor change', change: -1, useToClimb: true }, // climb down into the sewers
   apple_crate: { name: 'crate of apples', cat: 'Town', block: true, low: true },
   fish_rack:   { name: 'fish drying rack', cat: 'Town', block: true, low: true },
   pier:        { name: 'wooden pier', cat: 'Ground', ground: true },
