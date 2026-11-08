@@ -2459,14 +2459,15 @@ const Sprites = (() => {
       line(g, '#2a2a2e', 1.5, 12, 8, 16, 16, 13, 22, 17, 28);
       line(g, '#2a2a2e', 1, 16, 16, 23, 19);
     },
-    // Stairs up: a short flight of stone steps rising north, each tread lit and each riser in shade, into the dark
-    // stairwell under the floor above (the rest of the flight goes on up out of sight), a low kerb on its east.
+    // Stairs up: a flight of stone steps rising north across the whole tile, each tread lit (the higher, the
+    // brighter), each riser in shade, the top step meeting the dark of the stairwell going on up out of sight.
     stairs_up(g) {
-      const step = { top: '#c4bcb0', south: '#8a8478', east: '#6a645a', edge: '#e0d8cc' };
-      poly(g, '#16120e', [...P(5, 3, 0), ...P(27, 3, 0), ...P(27, 11, 0), ...P(5, 11, 0)]); // the stairwell, dark
-      for (let i = 0; i < 4; i++) prism(g, 5, 11 + i * 4.5, 27, 11 + (i + 1) * 4.5, 0, 4 * (4 - i), step); // (back to front)
-      prism(g, 27, 3, 29, 29, 0, 4, { top: '#9a948a', south: '#7a746a', east: '#5a544a', edge: '#b0aaa0' });
-      prism(g, 3, 3, 5, 29, 0, 4, { top: '#9a948a', south: '#7a746a', east: '#5a544a', edge: '#b0aaa0' });
+      poly(g, '#120e0b', [...P(0, 0, 0), ...P(32, 0, 0), ...P(32, 9, 0), ...P(0, 9, 0)]); // the stairwell, dark
+      const n = 5, run = 23 / n;
+      for (let i = 0; i < n; i++) { // back (highest) to front (lowest)
+        const v0 = 9 + i * run, h = 3.4 * (n - i), l = 1.12 - i * 0.07;
+        prism(g, 1, v0, 31, v0 + run, 0, h, { top: shade('#c8c0b2', l), south: shade('#8a8478', l), east: shade('#6a645a', l), edge: shade('#e8e0d2', l) });
+      }
     },
     // Stairs down: an opening in the floor with steps going down into the dark, each lower one darker.
     stairs_down(g) {
