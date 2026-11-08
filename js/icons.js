@@ -24,14 +24,6 @@ const Icons = (() => {
       <path d="M7.1 14.2h9.8l.8 1.4a4.3 4.3 0 0 1-3.8 5.9h-3.8a4.3 4.3 0 0 1-3.8-5.9z" fill="${colour}" stroke="none"/>
       <path d="M9.5 3h5M10.3 3v5.2L5.6 15.3a4.6 4.6 0 0 0 4 6.7h4.8a4.6 4.6 0 0 0 4-6.7l-4.7-7.1V3"/>`;
 
-  // a sword pointing up-right (or up-left, mirrored), filled: blade, guard, grip, pommel
-  const sword = mirror => `<g${mirror ? ' transform="matrix(-1 0 0 1 24 0)"' : ''} stroke="none" fill="currentColor">
-      <path d="M8.25 14.25 18.85 3.65 21 3 20.35 5.15 9.75 15.75z"/><path d="M5.9 12.7 11.3 18.1 10.3 19.1 4.9 13.7z"/>
-      <path d="M8.6 16.6 6.2 19 5 17.8 7.4 15.4z"/><circle cx="4.9" cy="19.1" r="1.7"/></g>`;
-  // a footprint: a sole and a heel, turned by `turn` degrees
-  const foot = (x, y, turn) => `<g transform="translate(${x} ${y}) rotate(${turn})" stroke="none" fill="currentColor">
-      <ellipse cx="0" cy="2.6" rx="2.7" ry="3.6"/><ellipse cx="0" cy="8.3" rx="2" ry="1.7"/></g>`;
-
   // each icon: SVG paths on a 24×24 grid, stroked with currentColor unless they say otherwise
   const ICONS = {
     // the five tabs
@@ -50,13 +42,14 @@ const Icons = (() => {
     use: `<path d="M9 12V5.2a1.6 1.6 0 0 1 3.2 0V11"/><path d="M12.2 10.5V3.9a1.6 1.6 0 0 1 3.2 0v6.6"/>
       <path d="M15.4 10.5V5.6a1.6 1.6 0 0 1 3.2 0v8.2a7.4 7.4 0 0 1-7.4 7.4h-.6a6 6 0 0 1-5-2.7l-2.6-4a1.6 1.6 0 0 1 2.6-1.8L9 15.6"/>`,
     idle: `<path d="M20 4l-.6 3.8L10 17.2 6.8 14l9.4-9.4z"/><path d="M5.5 12.7l5.8 5.8M7.6 16.4 4 20"/>`,
-    // the fight modes and following: solid shapes, so they read at a glance (fill and stroke in the text's colour)
-    'mode-attack': `${sword(false)}${sword(true)}`,
-    'mode-balanced': `${sword(false)}<path d="M10.4 9.6 16.2 11.5v3c0 3-2.4 5-5.8 6.2-3.4-1.2-5.8-3.2-5.8-6.2v-3z" fill="#1d1c19" stroke-width="2"/>
-      <path d="M10.4 9.6 16.2 11.5v3c0 3-2.4 5-5.8 6.2-3.4-1.2-5.8-3.2-5.8-6.2v-3z" fill="currentColor" fill-opacity=".3" stroke="none"/>`,
-    'mode-defend': `<path d="M12 2.6 20.5 5.6v5.8c0 5.2-3.5 8.8-8.5 10.6-5-1.8-8.5-5.4-8.5-10.6V5.6z" fill="currentColor" fill-opacity=".35" stroke-width="2"/>
-      <path d="M12 6.2v12.4" stroke-width="2"/>`,
-    'mode-follow': `${foot(7.2, 4.5, -8)}${foot(16.4, 10.5, 8)}`,
+    // the fight modes and following, in the same line style
+    'mode-attack': `<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/>
+      <path d="M14.5 6.5 18 3h3v3l-3.5 3.5"/><path d="M5 14l4 4M7 17l-3 3M3 19l2 2"/>`,
+    'mode-balanced': `<path d="M17.5 14.5 6 3H3v3l11.5 11.5"/><path d="M19 13l-6 6M16 16l4 4M21 19l-2 2"/>
+      <path d="M6.6 12.6 11 14v2.9c0 2.3-1.8 4-4.4 4.9-2.6-.9-4.4-2.6-4.4-4.9V14z"/>`,
+    'mode-defend': `<path d="M12 3 19.5 5.6V11c0 4.8-3.2 8.3-7.5 10-4.3-1.7-7.5-5.2-7.5-10V5.6z"/><path d="M12 6.8v10.4"/>`,
+    'mode-follow': `<g transform="rotate(-12 7 10)"><path d="M7 3.2c1.7 0 2.7 1.6 2.7 3.8 0 1.9-.7 3.4-1.1 4.8H5.4C5 10.4 4.3 8.9 4.3 7 4.3 4.8 5.3 3.2 7 3.2z"/><path d="M5.6 14.2h2.8v.9a1.4 1.4 0 0 1-2.8 0z"/></g>
+      <g transform="rotate(12 17 14)"><path d="M17 7.2c1.7 0 2.7 1.6 2.7 3.8 0 1.9-.7 3.4-1.1 4.8h-3.2c-.4-1.4-1.1-2.9-1.1-4.8 0-2.2 1-3.8 2.7-3.8z"/><path d="M15.6 18.2h2.8v.9a1.4 1.4 0 0 1-2.8 0z"/></g>`,
     // small buttons
     close: `<path d="M6 6l12 12M18 6 6 18"/>`,
     plus: `<path d="M12 5.5v13M5.5 12h13"/>`,
