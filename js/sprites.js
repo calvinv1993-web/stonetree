@@ -338,52 +338,73 @@ const Sprites = (() => {
   function onWall(g, shape, paint) {
     face(g, runsNorthSouth(wallSides(shape)) ? 'east' : 'south', 0, paint);
   }
-  // ---- Things on walls, in the camera's view (docs/art-style.md) ---------------------------------------------------
-  // What's part of the wall (a window, a plaque) is painted in its face, with depth: a frame, a sill, a shadow inside.
-  // What hangs or burns (a torch, a banner, a lantern, a sign) is drawn upright, as the figures are, on an iron
-  // bracket out of the wall. wallSpot(shape)(u, out, h): where a point on the wall's face lands in the 64x64 picture
-  // of its tile: u along the wall (west to east; north to south on an east face), out in front of it, h above the floor.
+  // ---- Things on walls, in our camera (docs/art-style.md) ------------------------------------------------------------
+  // They hang against the wall's face, in the same slant as the wall, and have real depth in it: a window is a recess
+  // in the wall with its glass at the back, a torch, a lantern or a sign is an object on an iron bracket standing out
+  // from the face. wallSpot(shape)(u, out, h): where a point lands in the 64x64 picture of the wall's tile: u along
+  // the wall (west to east; north to south on an east face), out in front of the face (into it when negative), h up.
   const wallSpot = shape => (runsNorthSouth(wallSides(shape))
     ? (u, out, h) => [64 + out - h, 32 + u - h]
     : (u, out, h) => [32 + u - h, 64 + out - h]);
-  const IRON = ['#6a655e', '#3a3632', '#1c1a18']; // lit, base, shade
-  // An iron bracket out of the wall at (u, h): a plate on the wall and an arm reaching out; returns the arm's end.
-  function bracket(g, at, u, h, reach) {
-    const [x0, y0] = at(u, 0, h), [x1, y1] = at(u, reach, h + 1);
-    rect(g, IRON[2], x0 - 2, y0 - 2.5, 4, 5); rect(g, IRON[1], x0 - 2, y0 - 2.5, 3, 4); rect(g, IRON[0], x0 - 2, y0 - 2.5, 3, 1);
-    line(g, IRON[2], 2, x0 + 0.5, y0 + 0.5, x1 + 0.5, y1 + 0.5);
-    line(g, IRON[0], 1, x0, y0, x1, y1);
-    return [x1, y1];
+  const IRON = { top: '#5e5a54', south: '#3a3632', east: '#24221f', edge: '#7a756e' };
+  const STONE = { top: '#ece4ce', south: '#cfc6b0', east: '#a89e88', edge: '#fff8e4' };
+  // A block against the wall from u0 to u1 along it, out0 to out1 in front of it, h0 to h1 high: the faces you see.
+  // (On a south wall its front faces south and its end east; on an east wall its front faces east and its end south.)
+  function wallBox(g, shape, u0, u1, o0, o1, h0, h1, c) {
+    const at = wallSpot(shape), east = runsNorthSouth(wallSides(shape));
+    poly(g, east ? c.south : c.east, [...at(u1, o0, h0), ...at(u1, o1, h0), ...at(u1, o1, h1), ...at(u1, o0, h1)]);
+    poly(g, east ? c.east : c.south, [...at(u0, o1, h0), ...at(u1, o1, h0), ...at(u1, o1, h1), ...at(u0, o1, h1)]);
+    poly(g, c.top, [...at(u0, o0, h1), ...at(u1, o0, h1), ...at(u1, o1, h1), ...at(u0, o1, h1)]);
+    if (c.edge) line(g, c.edge, 1, ...at(u0, o1, h1), ...at(u1, o1, h1));
   }
-  // A board hanging upright on two chains from a bracket, its top middle at (x, y), w x h; the picture is drawn
-  // in its own 32x32 frame (the board at 8..24 x 8..23), moved onto the board.
-  function hangingBoard(g, x, y, board, picture) {
-    poly(g, 'rgba(15,10,5,0.28)', [x - 6, y + 4, x + 10, y + 4, x + 10, y + 19, x - 6, y + 19]); // its shadow on the wall
-    line(g, IRON[1], 1, x - 5, y - 1, x - 5, y + 3); line(g, IRON[1], 1, x + 5, y - 1, x + 5, y + 3); // the chains
-    rect(g, IRON[1], x - 7, y - 2, 14, 2); rect(g, IRON[0], x - 7, y - 2, 14, 1); // the bar
+  // A shape lying in a plane parallel to the wall, out in front of it: points [u, h, ...].
+  const wallPoly = (g, shape, out, color, pts) => {
+    const at = wallSpot(shape), xy = [];
+    for (let k = 0; k < pts.length; k += 2) xy.push(...at(pts[k], out, pts[k + 1]));
+    poly(g, color, xy);
+  };
+  // Draw `paint` in a plane parallel to the wall, out in front of it, in coordinates (x along the wall, y down from
+  // h = 32): so a picture made for a 32x32 face lands on a board or a canvas there.
+  function onWallPlane(g, shape, out, paint) {
+    const at = wallSpot(shape), [ox, oy] = at(0, out, 32), [ax, ay] = at(1, out, 32), [bx, by] = at(0, out, 31);
     g.save();
-    g.translate(x - 16, y + 3 - 8);
-    rect(g, '#2a1c10', 8, 8, 16, 15);                                  // the edge of the board (its thickness, in shade)
-    rect(g, board, 8, 8, 15, 14);
-    rect(g, 'rgba(255,255,255,0.22)', 8, 8, 15, 1); rect(g, 'rgba(255,255,255,0.1)', 8, 8, 1, 14); // lit from the north-west
-    rect(g, 'rgba(0,0,0,0.22)', 8, 21, 15, 1);
-    picture();
+    g.setTransform(ax - ox, ay - oy, bx - ox, by - oy, ox, oy);
+    paint();
     g.restore();
   }
-  function wallTorch(g, shape, frame, lit) {
-    const at = wallSpot(shape), [sx, sy] = at(16, 0, 28);
-    if (lit) ellipse(g, 'rgba(20,14,8,0.25)', sx, sy, 3.5, 5); // soot on the wall above it
-    const [ex, ey] = bracket(g, at, 16, 15, 4);
-    rect(g, '#3e2410', ex - 1.5, ey - 7, 3, 11); rect(g, '#7a4c26', ex - 1.5, ey - 7, 1, 11); // the torch, lit on its west
-    rect(g, IRON[1], ex - 2.5, ey - 1, 5, 2); rect(g, IRON[0], ex - 2.5, ey - 1, 5, 0.8);   // its ring
-    rect(g, '#24160c', ex - 2, ey - 9.5, 4, 3);                                              // the pitch-wound head
-    if (lit) flame(g, ex, ey - 9, 2.6, 8, frame);
-    else rect(g, '#141010', ex - 1.5, ey - 10.5, 3, 1.5);
+  // An iron bracket at (u, h): a plate on the wall and an arm reaching `reach` out (and a little up).
+  function bracket(g, shape, u, h, reach) {
+    const at = wallSpot(shape);
+    wallBox(g, shape, u - 1.5, u + 1.5, 0, 1, h - 2.5, h + 1.5, IRON);
+    line(g, IRON.east, 2, ...at(u, 1, h - 0.5), ...at(u, reach, h));
+    line(g, IRON.edge, 1, ...at(u, 1, h), ...at(u, reach, h + 0.5));
   }
-  // A shop sign: a board on chains under an iron bracket, upright, with its trade's picture.
+  function wallTorch(g, shape, frame, lit) {
+    const at = wallSpot(shape), [sx, sy] = at(16, 0, 30);
+    if (lit) ellipse(g, 'rgba(20,14,8,0.25)', sx, sy, 3, 4.5); // soot on the wall above it
+    bracket(g, shape, 16, 17, 4);
+    const [bx, by] = at(16, 4, 12), [tx, ty] = at(16, 4, 23);
+    line(g, '#3e2410', 2.5, bx, by, tx, ty); line(g, '#7a4c26', 1, bx - 0.8, by, tx - 0.8, ty); // the torch, lit on its west
+    wallBox(g, shape, 14.8, 17.2, 2.8, 5.2, 16.5, 17.5, IRON);                                  // its ring
+    wallBox(g, shape, 14.8, 17.2, 2.8, 5.2, 22, 25, { top: '#3a2a1c', south: '#24160c', east: '#160e08' }); // the pitch-wound head
+    const [fx, fy] = at(16, 4, 25);
+    if (lit) flame(g, fx, fy + 1, 2.8, 8, frame); // (fire rises straight up)
+    else ellipse(g, '#141010', fx, fy, 1.5, 1);
+  }
+  // A shop sign: a board on two chains under an iron arm, parallel to the wall and out in front of it, with its
+  // trade's picture on its face (drawn for a board at 8..24 x 8..23).
   function shopSign(g, shape, board, picture) {
-    const at = wallSpot(shape), [ex, ey] = bracket(g, at, 16, 27, 3);
-    hangingBoard(g, ex, ey + 1, board, picture);
+    const at = wallSpot(shape), out = 6;
+    wallPoly(g, shape, 0, 'rgba(15,10,5,0.25)', [10, 23, 25, 23, 25, 9, 10, 9]); // its shadow on the wall
+    bracket(g, shape, 9, 27, out + 0.5); bracket(g, shape, 23, 27, out + 0.5);
+    for (const u of [10.5, 21.5]) line(g, IRON.south, 1, ...at(u, out, 27), ...at(u, out, 24));  // the chains
+    wallBox(g, shape, 8, 24, out - 1, out, 9, 24, { top: '#6a4a28', south: '#2a1c10', east: '#2a1c10' }); // its thickness
+    onWallPlane(g, shape, out, () => {
+      rect(g, board, 8, 8, 16, 15);
+      rect(g, 'rgba(255,255,255,0.22)', 8, 8, 16, 1); rect(g, 'rgba(255,255,255,0.1)', 8, 8, 1, 15); // lit from the north-west
+      rect(g, 'rgba(0,0,0,0.25)', 8, 22, 16, 1); rect(g, 'rgba(0,0,0,0.18)', 23, 8, 1, 15);
+      picture();
+    });
   }
   function drawLever(g, on) {
     shadow(g, 16, 27, 8, 3);
@@ -555,20 +576,8 @@ const Sprites = (() => {
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
-  // Things that stand on their own (statues, poles, standing torches: UPRIGHT) rise nearly straight up, as the
-  // figures do, rather than up-left as walls lean: only a sliver of their east side shows (docs/art-style.md).
-  // (Pillars hold up the floor above, so they keep the walls' slant and meet it.)
-  const UPRIGHT = new Set(['statue', 'torch', 'torch_out', 'lamppost', 'lamppost_off', 'signpost', 'flagpole', 'totem', 'obelisk',
-    'dummy', 'scarecrow']);
-  const UPRIGHT_LEAN = 0.22, UPRIGHT_RISE = HEIGHT; // (as tall as before: only the lean changes)
-  let leanNow = LEAN, riseNow = HEIGHT;
-  const P = (u, v, z) => [64 + u - z * HEIGHT * leanNow, 64 + v - z * riseNow];
-  // Draw with the projection for upright things, then back.
-  function upright(draw) {
-    const was = [leanNow, riseNow];
-    leanNow = UPRIGHT_LEAN; riseNow = UPRIGHT_RISE;
-    try { draw(); } finally { [leanNow, riseNow] = was; }
-  }
+  const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+
   const FLOOR_Z = 32 / HEIGHT; // one floor's height in P()'s heights: what reaches it meets the floor above
   // An open hatch: the tile has no floor, only a frame of boards round a square opening in the middle, with its lid
   // thrown open, flat on the boards to the east. middle() draws what stands in the opening (the rope): after the back
@@ -801,14 +810,14 @@ const Sprites = (() => {
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
   function onSouth(g, v, fn) {
     g.save();
-    g.setTransform(1, 0, -leanNow * HEIGHT, -riseNow, 64, 64 + v); // (u, z) -> P(u, v, z)
+    g.setTransform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); // (u, z) -> P(u, v, z)
     fn(g);
     g.restore();
   }
   // A round column standing at (cu, cv), radius rad, from z0 up to z1: lit on its left, dark on its right.
   function column(g, cu, cv, rad, z0, z1, c) {
     const [bx, by] = P(cu, cv, z0), [tx, ty] = P(cu, cv, z1);
-    const n = Math.hypot(1, leanNow), kx = rad / n, ky = (rad * leanNow) / n; // across the column's axis
+    const n = Math.hypot(1, LEAN), kx = rad / n, ky = (rad * LEAN) / n; // across the column's axis
     const grad = g.createLinearGradient(bx - kx, by + ky, bx + kx, by - ky);
     grad.addColorStop(0, c.light); grad.addColorStop(0.45, c.mid); grad.addColorStop(1, c.dark);
     g.fillStyle = grad;
@@ -2194,44 +2203,45 @@ const Sprites = (() => {
       rect(g, '#a03a10', 17, 22, 1, 1); // one last ember
     },
 
-    // A window set into the wall, upright (as the figures are, so it isn't a slanted slot): a stone frame, glass deep in
-    // its recess with the frame's shadow on its north-west, leaded panes with the sky in them, and a sill below.
-    // On an east face, seen nearly edge-on, it is narrow.
+    // A window: a recess in the wall with the glass at its back (its leading, the sky in it, the frame's shadow on
+    // its north-west), the recess's sill and side showing, a stone surround standing out a little, and a sill below.
     window: (g, r, frame, shape) => {
-      const east = runsNorthSouth(wallSides(shape)), at = wallSpot(shape), [cx, cy] = at(16, 0, 17);
-      const w = east ? 6 : 13, h = 14, x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
-      rect(g, '#8e8676', x - 2, y - 2, w + 4, h + 4); rect(g, '#cfc6b0', x - 2, y - 2, w + 3, h + 3); rect(g, '#ece4ce', x - 2, y - 2, w + 3, 1); // the frame
-      rect(g, '#1c2630', x, y, w, h);                                       // the recess
-      rect(g, '#5a8cb0', x + 1.5, y + 1.5, w - 1.5, h - 1.5);               // glass
-      rect(g, '#8cc0e0', x + w * 0.45, y + 2.5, Math.max(1, w * 0.25), 4); rect(g, '#b8e0f8', x + w - 3, y + h - 5, 1.5, 3); // the sky in it
-      rect(g, '#22303c', x, y, w, 1.5); rect(g, '#22303c', x, y, 1.5, h);   // the frame's shadow inside
-      if (!east) rect(g, '#3a2818', x + Math.floor(w / 2), y + 1.5, 1, h - 1.5); // the leading
-      rect(g, '#3a2818', x + 1.5, y + Math.floor(h / 2), w - 1.5, 1);
-      rect(g, 'rgba(255,255,255,0.35)', x + 2, y + 2.5, 1, 3);
-      rect(g, '#e8e0ca', x - 3, y + h + 2, w + 6, 1.5); rect(g, '#a89e88', x - 3, y + h + 3.5, w + 6, 1.2); // the sill
-      rect(g, 'rgba(15,10,5,0.25)', x - 2, y + h + 4.7, w + 5, 1);          // its shadow
+      const at = wallSpot(shape), east = runsNorthSouth(wallSides(shape)), D = 4, u0 = 10, u1 = 22, h0 = 12, h1 = 26;
+      g.save(); // what's in the recess shows only through the opening in the face
+      g.beginPath(); for (const [u, h] of [[u0, h0], [u1, h0], [u1, h1], [u0, h1]]) g.lineTo(...at(u, 0, h)); g.closePath(); g.clip();
+      wallPoly(g, shape, -D, '#1c2630', [u0, h0, u1, h0, u1, h1, u0, h1]);
+      onWallPlane(g, shape, -D, () => {
+        rect(g, '#5a8cb0', u0 + 1, 32 - h1 + 1, u1 - u0 - 1, h1 - h0 - 1);  // glass
+        rect(g, '#8cc0e0', 17, 9, 3, 4); rect(g, '#b8e0f8', 19, 15, 2, 3);  // the sky in it
+        rect(g, '#3a2818', 16, 32 - h1 + 1, 1, h1 - h0); rect(g, '#3a2818', u0 + 1, 13, u1 - u0, 1); // the leading
+        rect(g, 'rgba(255,255,255,0.3)', 12, 9, 1, 3);
+        rect(g, 'rgba(10,16,24,0.55)', u0, 32 - h1, u1 - u0, 2); rect(g, 'rgba(10,16,24,0.55)', u0, 32 - h1, 2, h1 - h0); // the frame's shadow
+      });
+      const sill = [...at(u0, -D, h0), ...at(u1, -D, h0), ...at(u1, 0, h0), ...at(u0, 0, h0)];
+      poly(g, '#d8d0bc', sill);                                                                          // the recess's sill, lit
+      poly(g, east ? '#b8b09c' : '#7e776a', [...at(u0, -D, h0), ...at(u0, 0, h0), ...at(u0, 0, h1), ...at(u0, -D, h1)]); // its side
+      g.restore();
+      wallBox(g, shape, u0 - 2, u1 + 2, 0, 1, h1, h1 + 2, STONE);   // the lintel
+      wallBox(g, shape, u0 - 2, u0, 0, 1, h0, h1, STONE);           // the jambs
+      wallBox(g, shape, u1, u1 + 2, 0, 1, h0, h1, STONE);
+      wallBox(g, shape, u0 - 3, u1 + 3, 0, 3, h0 - 2, h0, STONE);   // the sill, sticking out
     },
-    // A torch in an iron ring on a bracket, upright, soot on the wall above it.
+    // A torch in an iron ring on a bracket out from the wall, soot on the wall above it.
     wall_torch: (g, r, frame, shape) => wallTorch(g, shape, frame, true),
     wall_torch_out: (g, r, frame, shape) => wallTorch(g, shape, frame, false),
-    // A banner on a rod along the top of the wall, hanging straight down in folds, with a swallowtail and the
-    // temple's gold diamond; its shadow on the wall behind.
+    // A banner hanging flat against the wall from a rod along its top, in folds, with a swallowtail and the temple's
+    // gold diamond; its shadow on the wall just beside it.
     banner: (g, r, frame, shape) => {
-      const at = wallSpot(shape), [ax, ay] = at(10, 1.5, 29), [bx, by] = at(22, 1.5, 29), L = 17;
-      const cloth = (dx, dy) => [ax + dx, ay + dy, bx + dx, by + dy, bx + dx, by + L + dy, (ax + bx) / 2 + dx, (ay + by) / 2 + L - 5 + dy, ax + dx, ay + L + dy];
-      poly(g, 'rgba(15,10,5,0.3)', cloth(1.5, 1.5));
-      poly(g, '#7a1820', cloth(0, 0));
-      for (let k = 1; k < 4; k++) { // folds: shaded on their east side
-        const t = k / 4, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
-        poly(g, 'rgba(0,0,0,0.22)', [x, y, x + 1.6, y + (by - ay) / 10, x + 1.6, y + L - 2, x, y + L - 3]);
-        rect(g, 'rgba(255,140,140,0.18)', x - 1.2, y + 1, 1, L - 5);
-      }
-      const gold = '#d8b040';
-      line(g, gold, 1, ax + 1.5, ay + 1, ax + 1.5, ay + L - 1); line(g, gold, 1, bx - 1.5, by + 1, bx - 1.5, by + L - 1);
-      const mx = (ax + bx) / 2, my = (ay + by) / 2 + 7;
-      poly(g, '#8a6a18', [mx, my - 4, mx + 3, my, mx, my + 4, mx - 3, my]); poly(g, '#f0d060', [mx, my - 4, mx + 2, my - 0.5, mx, my + 2, mx - 2, my]);
-      line(g, IRON[2], 2, ax - 1.5, ay + 0.5, bx + 1.5, by + 0.5); line(g, IRON[0], 1, ax - 1.5, ay, bx + 1.5, by); // the rod
-      ellipse(g, gold, ax - 2, ay, 1.5, 1.5); ellipse(g, gold, bx + 2, by, 1.5, 1.5);
+      const cloth = [10, 28, 22, 28, 22, 13, 16, 16, 10, 13];
+      wallPoly(g, shape, 0, 'rgba(15,10,5,0.3)', cloth.map((v, k) => v + (k % 2 ? -1.2 : 1)));
+      wallPoly(g, shape, 1, '#7a1820', cloth);
+      onWallPlane(g, shape, 1, () => {
+        for (const u of [13, 16, 19]) { rect(g, 'rgba(0,0,0,0.22)', u, 4, 1.3, 13); rect(g, 'rgba(255,150,150,0.16)', u - 1.2, 4, 1, 12); } // folds
+        rect(g, '#d8b040', 10.8, 4, 0.9, 14); rect(g, '#d8b040', 20.3, 4, 0.9, 14);          // gold trim
+        poly(g, '#8a6a18', [16, 7, 18.5, 10.5, 16, 14, 13.5, 10.5]); poly(g, '#f0d060', [16, 7, 17.6, 10, 16, 12.2, 14.4, 10]); // the diamond
+      });
+      wallBox(g, shape, 9, 23, 0, 1.6, 28, 29.6, IRON);                                       // the rod
+      for (const u of [8.5, 23.5]) wallBox(g, shape, u - 1, u + 1, 0, 2, 27.8, 29.8, { top: '#f0d060', south: '#c8a030', east: '#8a6a18' });
     },
     painting: (g, r, frame, shape) => onWall(g, shape, () => {
       rect(g, 'rgba(15,10,5,0.3)', 7, 6, 21, 16); rect(g, '#7a5a18', 6, 5, 21, 16); // its shadow, the frame's edge
@@ -2298,29 +2308,27 @@ const Sprites = (() => {
     }),
     // A box of flowers under a window.
     window_box: (g, r, frame, shape) => {
-      const at = wallSpot(shape), P = (u, o, h) => at(u, o, h);
-      poly(g, 'rgba(15,10,5,0.3)', [...P(7, 0, 5), ...P(25, 0, 5), ...P(25, 0, 9), ...P(7, 0, 9)].map((v, i) => v + 1.5)); // its shadow
-      poly(g, '#3a2614', [...P(7, 0, 10), ...P(25, 0, 10), ...P(25, 4, 10), ...P(7, 4, 10)]);             // the soil
-      poly(g, '#6a4220', [...P(7, 4, 10), ...P(25, 4, 10), ...P(25, 4, 6), ...P(7, 4, 6)]);               // the front
-      poly(g, '#4a2c14', [...P(25, 0, 10), ...P(25, 4, 10), ...P(25, 4, 6), ...P(25, 0, 6)]);             // the east end
-      line(g, '#8e5c2e', 1, ...P(7, 4, 10), ...P(25, 4, 10));                                               // its lit rim
-      for (let i = 0; i < 8; i++) { // flowers, upright
-        const [x, y] = P(8.5 + i * 2.2, 2 + (i % 2), 10);
-        line(g, '#3a7a30', 1, x, y, x, y - 3 - (i % 3));
-        const c = ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0];
-        rect(g, c, x - 1, y - 5 - (i % 3), 2.5, 2); rect(g, 'rgba(255,255,255,0.5)', x - 1, y - 5 - (i % 3), 1, 1);
+      const at = wallSpot(shape);
+      wallPoly(g, shape, 0, 'rgba(15,10,5,0.3)', [8, 5, 26, 5, 26, 9, 8, 9]);                 // its shadow on the wall
+      wallBox(g, shape, 7, 25, 0, 4, 6, 10, { top: '#3a2614', south: '#6a4220', east: '#4a2c14', edge: '#8e5c2e' });
+      for (let i = 0; i < 8; i++) { // flowers, standing up out of the soil
+        const u = 8.5 + i * 2.2, o = 1.2 + (i % 2) * 1.6, top = 13 + (i % 3);
+        line(g, '#3a7a30', 1, ...at(u, o, 10), ...at(u, o, top));
+        const [x, y] = at(u, o, top), c = ['#e84a5f', '#f5d547', '#ffffff', '#b06ee0'][(r() * 4) | 0];
+        rect(g, c, x - 1.2, y - 1.2, 2.5, 2); rect(g, 'rgba(255,255,255,0.5)', x - 1.2, y - 1.2, 1, 1);
       }
     },
-    // A lantern hanging from a bracket, glowing.
+    // A lantern hanging from an iron arm: a little iron house with glass sides, glowing.
     lantern: (g, r, frame, shape) => {
-      const at = wallSpot(shape), [ex, ey] = bracket(g, at, 16, 25, 5);
-      line(g, IRON[1], 1, ex, ey, ex, ey + 3); // its hook
-      ellipse(g, 'rgba(255,210,120,0.28)', ex, ey + 9, 7, 7);
-      poly(g, IRON[1], [ex - 3.5, ey + 5, ex, ey + 2.5, ex + 3.5, ey + 5]);       // its roof
-      rect(g, IRON[2], ex - 3, ey + 5, 6, 8);                                     // its cage
-      rect(g, '#ffd880', ex - 2, ey + 6, 4, 6); rect(g, '#fff4c8', ex - 1, ey + 7, 2, 3);
-      rect(g, IRON[0], ex - 3, ey + 5, 1, 8);                                     // lit on the west
-      rect(g, IRON[1], ex - 3.5, ey + 13, 7, 1.5);                                // its base
+      const at = wallSpot(shape);
+      bracket(g, shape, 16, 27, 5.5);
+      line(g, IRON.south, 1, ...at(16, 5, 27), ...at(16, 5, 23));                               // its hook
+      const [gx, gy] = at(16, 5, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8);      // its glow
+      wallBox(g, shape, 14, 18, 3, 7, 13, 14.5, IRON);                                          // its base
+      wallBox(g, shape, 14.5, 17.5, 3.5, 6.5, 14.5, 21, { top: '#fff4c8', south: '#ffd880', east: '#d89a40' }); // the glass, lit inside
+      for (const [u, o] of [[14.5, 6.5], [17.5, 6.5], [17.5, 3.5]]) line(g, IRON.east, 1, ...at(u, o, 14.5), ...at(u, o, 21)); // its frame
+      wallBox(g, shape, 13.8, 18.2, 2.8, 7.2, 21, 22.5, IRON);                                  // its roof
+      wallBox(g, shape, 15.3, 16.7, 4.3, 5.7, 22.5, 23.5, IRON);
     },
     // A shelf with jars and pots.
     shelf: (g, r, frame, shape) => onWall(g, shape, () => {
@@ -4704,8 +4712,7 @@ const Sprites = (() => {
       const shaped = def.wall === 'thin' || def.onWall || def.roof || id === 'fence' || BRIDGES.has(id);
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
       const raised = RAISED.has(sprite), size = def.wall || def.tall || def.onWall || raised ? 2 * TILE : TILE;
-      const draw = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
-      const paint = UPRIGHT.has(sprite) ? g => upright(() => draw(g)) : draw;
+      const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
       return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, raised ? 3 * TILE : size);
     },
     item(id) {

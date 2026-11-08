@@ -6,15 +6,15 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
 
 ## Camera
 
-- **Top-down, oblique**: the ground is seen from straight above; height goes **up and to the left**, 0.6 pixel up and
-  0.6 left per unit (`P(u, v, z)` in `sprites.js`; a floor is 32 pixels high). Walls, roofs, furniture and upper floors
-  all follow this.
-- **Two kinds of things**:
-  - *Built things* (walls, furniture, windows, frames, plinths, steps) are boxes in this projection: their tops are
-    shifted up-left, their **south and east faces** show.
-  - *Things that hang or stand on their own* (people, monsters, flames, hanging cloth, a sign on its chain) are drawn
-    **upright**, as the figures are (`doll()`): gravity points straight down the screen.
-- Nothing is ever a flat picture laid onto a wall face or the floor if it has thickness in the world.
+- **One camera for everything**: the ground is seen from straight above; height goes **up and to the left**, 0.6 pixel
+  up and 0.6 left per unit (`P(u, v, z)` in `sprites.js`; a floor is 32 pixels high). Walls, roofs, furniture, statues,
+  poles and upper floors all follow it. Nothing is drawn in another perspective.
+- **Things on walls** hang against the wall's face, in the face's own slant, and have real depth in it
+  (`wallSpot`, `wallBox`, `wallPoly`, `onWallPlane`): a window is a recess with its glass at the back and a frame and
+  sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
+  hangs flat against it, with its shadow on the wall.
+- Only flames rise straight up the screen (fire goes up), and the figures, which are built as dolls (`doll()`).
+- Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 
 ## Light
 
