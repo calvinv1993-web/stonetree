@@ -1225,6 +1225,8 @@ function buildTown(m, S, runs, river) {
     const [wx0, wy0, wx1, wy1] = n.wings[0]; // the wing: the cellar store
     for (let x = wx0 + 1; x < wx1; x++) inside(n, x, wy1 - 1, x % 2 ? 'barrel' : 'crate');
     longBed(wx0 + 1, wy1 - 2, S + 1); longBed(wx1 - 1, wy1 - 2, S + 1);
+    // upstairs the wing is a fourth room, through a door from the first one (a wall between them, not open floor)
+    for (let x = wx0 + 1; x < wx1; x++) m.ensure(x, n.y1, S + 1).items = [x === n.x0 + 2 ? 'door' : 'wall_wood'];
   }
 
   // ---- the watchtower: a ladder up to the lookout on top --------------------------------------------------------
