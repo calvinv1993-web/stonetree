@@ -45,9 +45,11 @@ const Icons = (() => {
     // the fight modes and following, in the same line style
     'mode-attack': `<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/>
       <path d="M14.5 6.5 18 3h3v3l-3.5 3.5"/><path d="M5 14l4 4M7 17l-3 3M3 19l2 2"/>`,
-    'mode-balanced': `<path d="M17.5 14.5 6 3H3v3l11.5 11.5"/><path d="M19 13l-6 6M16 16l4 4M21 19l-2 2"/>
-      <path d="M6.6 12.6 11 14v2.9c0 2.3-1.8 4-4.4 4.9-2.6-.9-4.4-2.6-4.4-4.9V14z"/>`,
-    'mode-defend': `<path d="M12 3 19.5 5.6V11c0 4.8-3.2 8.3-7.5 10-4.3-1.7-7.5-5.2-7.5-10V5.6z"/><path d="M12 6.8v10.4"/>`,
+    // (the shield is cut away round the sword, so the sword lies clearly over it)
+    'mode-balanced': `<mask id="cutBySword" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff" stroke="none"/>
+      <g stroke="#000" stroke-width="4.5" fill="none"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/></g></mask>
+      <path d="M12 3 19.5 5.6V11c0 4.8-3.2 8.3-7.5 10-4.3-1.7-7.5-5.2-7.5-10V5.6z" mask="url(#cutBySword)"/><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/>`,
+    'mode-defend': `<path d="M12 3 19.5 5.6V11c0 4.8-3.2 8.3-7.5 10-4.3-1.7-7.5-5.2-7.5-10V5.6z"/>`,
     'mode-follow': `<g transform="rotate(-12 7 10)"><path d="M7 3.2c1.7 0 2.7 1.6 2.7 3.8 0 1.9-.7 3.4-1.1 4.8H5.4C5 10.4 4.3 8.9 4.3 7 4.3 4.8 5.3 3.2 7 3.2z"/><path d="M5.6 14.2h2.8v.9a1.4 1.4 0 0 1-2.8 0z"/></g>
       <g transform="rotate(12 17 14)"><path d="M17 7.2c1.7 0 2.7 1.6 2.7 3.8 0 1.9-.7 3.4-1.1 4.8h-3.2c-.4-1.4-1.1-2.9-1.1-4.8 0-2.2 1-3.8 2.7-3.8z"/><path d="M15.6 18.2h2.8v.9a1.4 1.4 0 0 1-2.8 0z"/></g>`,
     // small buttons
