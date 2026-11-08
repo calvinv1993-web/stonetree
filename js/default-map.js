@@ -485,6 +485,23 @@ function createDefaultMap() {
       }
     }
   };
+  // A trail out in the wilds wanders: its middle drifts a tile or two either way and it is now wider, now narrower,
+  // along slow noise; at its corners and ends it keeps to the drawn line, so trails still meet. (In town they're straight.)
+  const town = OAKVALE.bounds, inTownArea = (x, y) => x >= town.x0 - 2 && x <= town.x1 + 2 && y >= town.y0 - 2 && y <= town.y1 + 2;
+  const wanderRuns = (line, width, fn, pad = 0, seed = 0) => {
+    for (let i = 0; i + 1 < line.length; i++) {
+      const [ax, ay] = line[i], [bx, by] = line[i + 1], alongX = ay === by;
+      const t0 = Math.min(alongX ? ax : ay, alongX ? bx : by), t1 = Math.max(alongX ? ax : ay, alongX ? bx : by);
+      for (let t = t0 - 2; t <= t1 + 2; t++) {
+        const x = alongX ? t : ax, y = alongX ? ay : t;
+        const fade = Math.max(0, Math.min(1, (Math.min(t - t0, t1 - t) - 1) / 4)) * (inTownArea(x, y) ? 0 : 1);
+        const off = Math.round(fade * (noise(t, i + seed * 7, 9, 91 + seed) * 2 - 1) * 2.2);
+        const wn = noise(t, i + seed * 7, 5, 97 + seed), w = width + pad + (fade > 0.5 ? (wn > 0.68 ? 1 : wn < 0.22 && width > 2 ? -1 : 0) : 0);
+        const lo = -Math.floor((w - 1) / 2) + off, hi = lo + w - 1;
+        for (let c = lo; c <= hi; c++) fn(alongX ? t : ax + c, alongX ? ay + c : t, alongX);
+      }
+    }
+  };
   const riverBed = new Set(); // where bridges may go
   for (const river of d.rivers) runs(river.line, river.width, (x, y) => { m.setGround(x, y, S, 'water'); riverBed.add(y * W + x); });
   // Banks that step in and out a tile here and there, in short stretches (not where a road crosses).
@@ -622,9 +639,11 @@ function createDefaultMap() {
   }
 
   // ---- roads, trails and bridges ------------------------------------------------------------
+  let trailNo = 0;
   const paint = (line, width) => {
-    runs(line, width, (x, y) => { if (m.inBounds(x, y, S)) keep[y * W + x] = 1; }, 3); // and a margin with no trees
-    runs(line, width, (x, y, alongX) => {
+    const seed = ++trailNo;
+    wanderRuns(line, width, (x, y) => { if (m.inBounds(x, y, S)) keep[y * W + x] = 1; }, 3, seed); // and a margin with no trees
+    wanderRuns(line, width, (x, y, alongX) => {
       const g = ground(x, y);
       if (g === 'water' && riverBed.has(y * W + x)) m.setGround(x, y, S, alongX ? 'bridge_ew' : 'bridge_ns');
       else if (g === 'water') m.setGround(x, y, S, 'dirt'); // a trail through a marsh pool is a causeway
@@ -632,7 +651,7 @@ function createDefaultMap() {
         m.setGround(x, y, S, 'dirt');
         at(x, y).items = at(x, y).items.filter(id => !THINGS[id].block);
       }
-    });
+    }, 0, seed);
   };
   for (const road of d.roads) paint(road.line, road.width);
   for (const path of d.paths) paint(path.line, 2);

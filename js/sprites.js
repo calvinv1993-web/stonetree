@@ -4634,7 +4634,7 @@ const Sprites = (() => {
     default: { shade: 'rgba(0,0,0,0.16)', rim: 'rgba(0,0,0,0.28)' },
     // raised grounds (raise: how many pixels high their edge stands): side = [facing south, facing east, roots/stones],
     // rim = the darker south-east edge of the top, light = its lit north-west lip, blades = what hangs over the edge
-    grass: { raise: 3, clumps: 1.6, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
+    grass: { raise: 3, clumps: 2.4, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
       side: ['#7a5430', '#5a3c1e', '#3c2812'], blades: ['#4f8a2c', '#3e7424', '#62a034'] },
     jungle: { raise: 3, clumps: 1.6, shade: 'rgba(10,20,8,0.35)', rim: '#1e4a1a', light: 'rgba(90,150,70,0.6)',
       side: ['#5a4228', '#3e2c18', '#241a0e'], blades: ['#275a22', '#3a7a32', '#1e4a1a'] },
@@ -4671,6 +4671,28 @@ const Sprites = (() => {
   }
   // Neighbour bits for edge(): n e s w, then the corners ne se sw nw.
   const EDGE_BITS = { n: 1, e: 2, s: 4, w: 8, ne: 16, se: 32, sw: 64, nw: 128 };
+  // Raised grounds have round corners where they stick out (a convex corner: lower ground on both sides and across):
+  // RR is the radius. rrDist: the distance from a point to a square [x0, y0]-[x1, y1] whose corners in `round`
+  // ('tl', 'tr', 'bl', 'br') are rounded with radius RR; 0 inside.
+  const RR = 24;
+  function rrDist(cx, cy, x0, y0, x1, y1, round) {
+    for (const c of round) {
+      const kx = c[1] === 'l' ? x0 + RR : x1 - RR, ky = c[0] === 't' ? y0 + RR : y1 - RR;
+      if ((c[1] === 'l' ? cx < kx : cx > kx) && (c[0] === 't' ? cy < ky : cy > ky)) return Math.max(0, Math.hypot(cx - kx, cy - ky) - RR);
+    }
+    return Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1));
+  }
+  // Which corners of each neighbouring raised square (by its bit) stick out, seen from the lower tile with mask m
+  // (all eight neighbours' bits, before corners were dropped).
+  const roundCorners = (bit, m) => {
+    const no = b => !(m & b), r = [];
+    if (bit === 1) { if (no(128) && no(8)) r.push('bl'); if (no(16) && no(2)) r.push('br'); }
+    if (bit === 4) { if (no(64) && no(8)) r.push('tl'); if (no(32) && no(2)) r.push('tr'); }
+    if (bit === 8) { if (no(128) && no(1)) r.push('tr'); if (no(64) && no(4)) r.push('br'); }
+    if (bit === 2) { if (no(16) && no(1)) r.push('tl'); if (no(32) && no(4)) r.push('bl'); }
+    if (bit === 16) r.push('bl'); if (bit === 32) r.push('tl'); if (bit === 64) r.push('tr'); if (bit === 128) r.push('br');
+    return r;
+  };
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
@@ -4896,11 +4918,46 @@ const Sprites = (() => {
     // inner corners are all one smooth line that runs on into the next tile without a seam. The line
     // wobbles a little (variant 0-2 picks how), but always meets the tile's sides at the same width.
     // Seamless grounds show their own texture for this place (x, y).
+    // A raised ground's own corner rounded off where a lower ground lies on both sides of it and across the corner
+    // (corner: 'ne', 'se', 'sw' or 'nw'): the lower ground's texture fills the cut, and the raised ground's side
+    // and rim run round the curve, so a trail winds round the end of a clump of grass instead of a square block.
+    cornerCut(high, low, corner, x, y) {
+      const kh = SEAMLESS[high], kl = SEAMLESS[low], pos = (k, n) => k ? `${((n % k.tiles) + k.tiles) % k.tiles}` : '';
+      return cached(`cut2:${high}:${low}:${corner}:${pos(kh, x)}:${pos(kh, y)}:${pos(kl, x)}:${pos(kl, y)}`, g => {
+        const st = edgeStyle(high), lift = st.raise || 0;
+        if (!lift) return;
+        const lowTex = texturePixels(low, x, y);
+        const probe = document.createElement('canvas').getContext('2d');
+        const rgb = c => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = c; probe.fillRect(0, 0, 1, 1); return probe.getImageData(0, 0, 1, 1).data; };
+        const side = st.side.map(rgb), rim = rgb(st.rim), light = rgb(st.light || st.rim), shade = rgb(st.shade);
+        // this tile as a square with that corner rounded, grown by the edge's width (as its neighbours see it)
+        const round = [{ ne: 'tr', se: 'br', sw: 'bl', nw: 'tl' }[corner]], width = st.width || 5;
+        const out = (px, py) => rrDist(px, py, 0, 0, TILE, TILE, round) - width;
+        const img = g.createImageData(TILE, TILE), d = img.data;
+        const put = (i, c, a = c[3] / 255) => {
+          const o = d[i + 3] / 255, na = a + o * (1 - a);
+          if (!na) return;
+          for (let j = 0; j < 3; j++) d[i + j] = (c[j] * a + d[i + j] * o * (1 - a)) / na;
+          d[i + 3] = na * 255;
+        };
+        for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
+          const cx = px + 0.5, cy = py + 0.5, i = (py * TILE + px) * 4, e = out(cx, cy);
+          if (e < 0) { // still the raised ground (left as it is), but its rim along the curve
+            if (e > -1.2) { if (out(cx - 1, cy - 1) >= 0) put(i, light, 0.75); else put(i, rim); }
+            continue;
+          }
+          for (let j = 0; j < 4; j++) d[i + j] = lowTex[i + j];
+          if (out(cx - lift, cy - lift) < 0) { const c = side[out(cx, cy - lift) < 0 ? 0 : 1]; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; }
+          else if (out(cx - lift - 1.5, cy - lift - 1.5) < 0) put(i, shade);
+        }
+        g.putImageData(img, 0, 0);
+      });
+    },
     edge(ground, mask, variant, x, y) {
-      const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]];
+      const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]], all = mask;
       for (const [c, a, b] of corners) if (mask & (a | b)) mask &= ~c; // a corner only counts on its own
       const k = SEAMLESS[ground], pos = k ? `${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : '';
-      return cached(`edge2:${ground}:${mask}:${variant}:${pos}`, g => {
+      return cached(`edge6:${ground}:${mask}:${all}:${variant}:${pos}`, g => {
         const st = edgeStyle(ground), tex = texturePixels(ground, x, y);
         const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble, lift = st.raise || 0;
         const k1 = [2, 3, 4][variant], k2 = [5, 7, 6][variant];
@@ -4923,11 +4980,20 @@ const Sprites = (() => {
           for (let j = 0; j < 3; j++) d[i + j] = (c[j] * a + d[i + j] * o * (1 - a)) / na;
           d[i + 3] = na * 255;
         };
+        const ROUND = 9; // how round the edge turns where two neighbours meet (raised grounds)
         const hash = (px, py, s = 0) => (((px * 73856093) ^ (py * 19349663) ^ ((variant + s) * 83492791)) >>> 0) % 100;
         // how far a point lies outside the higher ground's top (negative: on it)
         const out = (cx, cy) => {
           let dist = 99;
-          for (const [, x0, y0, x1, y1] of rects) dist = Math.min(dist, Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1)));
+          // a smooth minimum over the neighbours, so where two of them meet the edge curves round instead of turning
+          // a sharp corner: a trail winds through the grass rather than stepping in squares
+          let sum = 0;
+          for (const [bit, x0, y0, x1, y1] of rects) {
+            const d = lift ? rrDist(cx, cy, x0, y0, x1, y1, roundCorners(bit, all)) : Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1));
+            dist = Math.min(dist, d);
+            sum += Math.exp(-d / ROUND);
+          }
+          if (lift && sum > 0) dist = Math.min(dist, -ROUND * Math.log(sum));
           return dist - (width + wob(cx / TILE) + wob(cy / TILE) * 0.8);
         };
         for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
@@ -4950,7 +5016,7 @@ const Sprites = (() => {
               else if (hash(px, py) < 12) put(i, side[2], 0.6); // stones and roots in the soil
             } else if (out(cx - lift - 1.5, cy - lift - 1.5) < 0) put(i, shade); // the soft shadow it casts south-east
             // blades of grass hanging over its edge, here and there
-            if (blades && e < 3 && hash(px >> 1, py, 7) < 22 && out(cx, cy - 1 - (hash(px, py, 3) % 2)) < 0) put(i, blades[hash(px, py, 5) % blades.length], 1);
+            if (blades && e < 4 && hash(px >> 1, py, 7) < 34 && out(cx, cy - 1 - (hash(px, py, 3) % 3)) < 0) put(i, blades[hash(px, py, 5) % blades.length], 1);
             continue;
           }
           const dist = e + width; // (the older flat edge, for grounds that lie flat on the lower one)
