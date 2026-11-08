@@ -152,7 +152,7 @@ const Render = {
         const solid = (x, y) => { const t = tileAt(x, y); return !!(t && t.ground); };
         for (let y = y0; y <= y1; y++) {
           for (let x = x0; x <= x1; x++) {
-            if (!solid(x, y)) continue;
+            if (!solid(x, y) || wallAt(x, y)) continue; // (a building's wall needs no strip: its own faces reach down)
             const px = ox + x * TILE, py = oy + y * TILE;
             // (where the edge turns a corner, the shadow starts half a strip in, so corners don't double up)
             if (!solid(x, y + 1)) g.drawImage(down, px + (solid(x - 1, y + 1) ? 0 : S / 2), py + TILE);
@@ -167,6 +167,9 @@ const Render = {
         if (!beside) { // at the edge of a raised floor: the open ground beside it (not another wall's floor), or nothing
           const open = [[1, 0], [-1, 0], [0, 1]].find(([dx, dy]) => groundAt(x + dx, y + dy) && !wallAt(x + dx, y + dy));
           beside = open ? groundAt(x + open[0], y + open[1]) : null;
+          // a building's corner on the very edge of a raised mount stands on the mount's own top
+          const under = !beside && z > 0 && map.get(x, y, z - 1);
+          if (under && under.items.includes('cliff')) beside = 'grass';
         }
         const below = groundAt(x, y + 1);
         if (below && !wallAt(x, y + 1) && Sprites.paved(below) && !(beside && Sprites.paved(beside))) beside = below;
