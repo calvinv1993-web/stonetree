@@ -2462,11 +2462,11 @@ const Sprites = (() => {
     // Stairs up: a flight of stone steps rising north across the whole tile, each tread lit (the higher, the
     // brighter), each riser in shade, the top step meeting the dark of the stairwell going on up out of sight.
     stairs_up(g) {
-      poly(g, '#120e0b', [...P(0, 0, 0), ...P(32, 0, 0), ...P(32, 9, 0), ...P(0, 9, 0)]); // the stairwell, dark
-      const n = 5, run = 23 / n;
+      poly(g, '#120e0b', [...P(0, 0, 0), ...P(32, 0, 0), ...P(32, 2, 0), ...P(0, 2, 0)]); // the stairwell, dark
+      const n = 6, run = 30 / n;
       for (let i = 0; i < n; i++) { // back (highest) to front (lowest)
-        const v0 = 9 + i * run, h = 3.4 * (n - i), l = 1.12 - i * 0.07;
-        prism(g, 1, v0, 31, v0 + run, 0, h, { top: shade('#c8c0b2', l), south: shade('#8a8478', l), east: shade('#6a645a', l), edge: shade('#e8e0d2', l) });
+        const v0 = 2 + i * run, h = 3 * (n - i), l = 1.12 - i * 0.06;
+        prism(g, 0, v0, 32, v0 + run, 0, h, { top: shade('#c8c0b2', l), south: shade('#8a8478', l), east: shade('#6a645a', l), edge: shade('#e8e0d2', l) });
       }
     },
     // Stairs down: an opening in the floor with steps going down into the dark, each lower one darker.
