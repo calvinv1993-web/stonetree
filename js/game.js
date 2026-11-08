@@ -213,40 +213,27 @@ function clickTile(e, t, wx, wy) {
 // Where you tapped (or clicked) to go: a gold mark on that tile until you're there, or stop walking, or go elsewhere.
 let walkMark = null;
 const markWalk = t => { walkMark = { x: t.x, y: t.y, z: t.z, at: now, moved: now }; };
-function drawWalkMark(screen) {
+// Drawn on the floor itself (Render's onFloor, in world pixels), so walls, things, roofs and creatures stand over it.
+function drawWalkMark(g, ox, oy, z) {
   const m = walkMark;
-  if (!m) return;
+  if (!m || m.z !== z) return;
   if (player.walk) m.moved = now;
   if (player.z !== m.z || (player.x === m.x && player.y === m.y) || now - m.at > 20000 || now - m.moved > 700) return void (walkMark = null);
-  const [sx, sy] = screen(m.x, m.y), size = TILE * SCALE;
-  // first a quick ring where you tapped, so a tap always answers
-  const t = (now - m.at) / 350;
-  if (t < 1) {
-    ctx.strokeStyle = `rgba(232, 181, 74, ${1 - t})`;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(sx + size / 2, sy + size / 2, size * (0.15 + t * 0.4), 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  // Under a roof or an upper floor you're not under (inside a building), the mark would seem to lie on the roof:
-  // it waits until the roof lifts as you walk in. (A floor d up is drawn d tiles up-left: (x+d, y+d) covers (x, y).)
-  const top = player.z < map.surfaceZ ? player.z : map.visibleMaxZ(player.x, player.y, player.z);
-  for (let d = 1; m.z + d <= top; d++) if (map.get(m.x + d, m.y + d, m.z + d)) return;
-  const pulse = (Math.sin(now / 160) + 1) / 2, inset = 3 + pulse * 3, arm = size * 0.28;
-  ctx.fillStyle = `rgba(232, 181, 74, ${0.12 + pulse * 0.1})`;
-  ctx.fillRect(sx + 2, sy + 2, size - 4, size - 4);
-  ctx.strokeStyle = '#e8b54a';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
+  const sx = ox + m.x * TILE, sy = oy + m.y * TILE, size = TILE, pulse = (Math.sin(now / 160) + 1) / 2, inset = 1.5 + pulse * 1.5, arm = size * 0.28;
+  g.fillStyle = `rgba(232, 181, 74, ${0.12 + pulse * 0.1})`;
+  g.fillRect(sx + 1, sy + 1, size - 2, size - 2);
+  g.strokeStyle = '#e8b54a';
+  g.lineWidth = 1.25;
+  g.lineCap = 'round';
+  g.beginPath();
   for (const [cx, cy, dx, dy] of [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]]) { // the four corners, pointing in
     const x = sx + cx * size + dx * inset, y = sy + cy * size + dy * inset;
-    ctx.moveTo(x, y + dy * arm);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x + dx * arm, y);
+    g.moveTo(x, y + dy * arm);
+    g.lineTo(x, y);
+    g.lineTo(x + dx * arm, y);
   }
-  ctx.stroke();
-  ctx.lineCap = 'butt';
+  g.stroke();
+  g.lineCap = 'butt';
 }
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -338,7 +325,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { afterGround: Fx.ground, wind: Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: drawWalkMark, afterGround: Fx.ground, wind: Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.item(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
@@ -380,7 +367,6 @@ function draw() {
   const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
   Fx.overlay(screen);
-  drawWalkMark(screen);
   // Who just hit you: 1 right after the hit, fading to 0.
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);

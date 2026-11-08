@@ -90,6 +90,7 @@ const Render = {
   //   depth:      how much darker each floor below the camera floor gets (0..1; the game: they lie deeper, in shadow)
   //   edgeShadow: where a floor above the lowest one ends (a cliff, a roof, a balcony), a soft shadow falls
   //               down-right onto what lies below, as if the light came from the top left
+  //   onFloor(g, ox, oy, z): drawn on each floor after its ground and rugs, before anything standing on it
   //   afterGround(g, ox, oy, z, x0, x1, y0, y1, groundAt): drawn over each floor's ground,
   //               under everything on it (footprints, deep water)
   //   beyond(z):  the ground shown past the edge of the map on floor z (the open sea), or
@@ -281,6 +282,7 @@ const Render = {
           .map(([dx, dy]) => rugAt(x + dx, y + dy) ? '1' : '0').join('');
         g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
       }
+      if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
 
       const objects = byFloor.get(z);
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
