@@ -673,7 +673,7 @@ const Sprites = (() => {
   // The temple's archway: three tiles of carved stone wall along their south edge, as thin walls stand, with a round
   // arch nearly two tiles wide cut through it, on piers with capitals; a keystone, and the temple's golden sun above it.
   // The wall's own textures are laid on its faces, so it joins the walls either side without a seam.
-  BIG.arch = { w: 3, h: 1, draw(g) {
+  BIG.arch = { w: 3, h: 1, noInk: true, draw(g) { // (no dark outline: it's part of the wall, and walls have none)
     const FZ = FLOOR_Z, v0 = W0, v1 = TILE, a0 = 12, a1 = 84, zs = 20, rise = 20, mid = (a0 + a1) / 2, half = (a1 - a0) / 2;
     const arcZ = u => zs + rise * Math.sqrt(Math.max(0, 1 - ((u - mid) / half) ** 2));
     const arc = (v, from, to) => { const pts = []; for (let i = 0; i <= 24; i++) { const u = from + ((to - from) * i) / 24; pts.push(...P(u, v, arcZ(u))); } return pts; };
@@ -725,7 +725,7 @@ const Sprites = (() => {
   };
   function bigPart(id, frame) {
     const [name, col, row] = PARTS[id], b = BIG[name];
-    const whole = cached(`bigthing:${name}:${frame}`, g => inked(g, f => b.draw(f, frame)), b.w * TILE + 64, b.h * TILE + 64);
+    const whole = cached(`bigthing:${name}:${frame}`, g => (b.noInk ? b.draw(g, frame) : inked(g, f => b.draw(f, frame))), b.w * TILE + 64, b.h * TILE + 64);
     return cached(`part:${id}:${frame}`, g => {
       g.beginPath(); // this tile, and the strip rising up-left from it
       for (const [x, y] of [[0, 0], [32, 0], [96, 64], [96, 96], [64, 96], [0, 32]]) g.lineTo(x, y);
