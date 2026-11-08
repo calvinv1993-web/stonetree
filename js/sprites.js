@@ -557,9 +557,10 @@ const Sprites = (() => {
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   // Things that stand on their own (statues, poles, standing torches: UPRIGHT) rise nearly straight up, as the
   // figures do, rather than up-left as walls lean: only a sliver of their east side shows (docs/art-style.md).
+  // (Pillars hold up the floor above, so they keep the walls' slant and meet it.)
   const UPRIGHT = new Set(['statue', 'torch', 'torch_out', 'lamppost', 'lamppost_off', 'signpost', 'flagpole', 'totem', 'obelisk',
-    'pillar', 'dummy', 'scarecrow']);
-  const UPRIGHT_LEAN = 0.22, UPRIGHT_RISE = 0.82; // (its height grows a little, so it isn't shorter than before)
+    'dummy', 'scarecrow']);
+  const UPRIGHT_LEAN = 0.22, UPRIGHT_RISE = HEIGHT; // (as tall as before: only the lean changes)
   let leanNow = LEAN, riseNow = HEIGHT;
   const P = (u, v, z) => [64 + u - z * HEIGHT * leanNow, 64 + v - z * riseNow];
   // Draw with the projection for upright things, then back.
@@ -2193,25 +2194,22 @@ const Sprites = (() => {
       rect(g, '#a03a10', 17, 22, 1, 1); // one last ember
     },
 
-    // A window set into the wall: a stone frame, glass deep in its recess (in the frame's shadow on its north-west),
-    // leaded panes catching the light, and a sill sticking out below it.
+    // A window set into the wall, upright (as the figures are, so it isn't a slanted slot): a stone frame, glass deep in
+    // its recess with the frame's shadow on its north-west, leaded panes with the sky in them, and a sill below.
+    // On an east face, seen nearly edge-on, it is narrow.
     window: (g, r, frame, shape) => {
-      onWall(g, shape, () => {
-        rect(g, '#8e8676', 7, 3, 18, 19); rect(g, '#c8bfa8', 7, 3, 17, 18); rect(g, '#e4dcc6', 7, 3, 17, 1); // the frame
-        rect(g, '#1c2630', 9, 5, 14, 15);                                  // the recess
-        rect(g, '#5a8cb0', 11, 7, 12, 13);                                 // glass
-        rect(g, '#8cc0e0', 15, 8, 3, 4); rect(g, '#b8e0f8', 19, 13, 2, 3);  // the sky in it
-        rect(g, '#22303c', 9, 5, 14, 2); rect(g, '#22303c', 9, 5, 2, 15);  // the frame's shadow inside
-        rect(g, '#3a2818', 16, 7, 1, 13); rect(g, '#3a2818', 11, 13, 12, 1); // the leading
-        rect(g, 'rgba(255,255,255,0.35)', 12, 8, 1, 4);
-      });
-      const at = wallSpot(shape), box = (u0, u1, o0, o1, h0, h1, top, front, end) => {
-        const P = (u, o, h) => at(u, o, h);
-        poly(g, front, [...P(u0, o1, h1), ...P(u1, o1, h1), ...P(u1, o1, h0), ...P(u0, o1, h0)]);
-        poly(g, end, [...P(u1, o0, h1), ...P(u1, o1, h1), ...P(u1, o1, h0), ...P(u1, o0, h0)]);
-        poly(g, top, [...P(u0, o0, h1), ...P(u1, o0, h1), ...P(u1, o1, h1), ...P(u0, o1, h1)]);
-      };
-      box(6, 26, 0, 3, 8, 10, '#e4dcc6', '#a89e88', '#8a8272'); // the sill
+      const east = runsNorthSouth(wallSides(shape)), at = wallSpot(shape), [cx, cy] = at(16, 0, 17);
+      const w = east ? 6 : 13, h = 14, x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
+      rect(g, '#8e8676', x - 2, y - 2, w + 4, h + 4); rect(g, '#cfc6b0', x - 2, y - 2, w + 3, h + 3); rect(g, '#ece4ce', x - 2, y - 2, w + 3, 1); // the frame
+      rect(g, '#1c2630', x, y, w, h);                                       // the recess
+      rect(g, '#5a8cb0', x + 1.5, y + 1.5, w - 1.5, h - 1.5);               // glass
+      rect(g, '#8cc0e0', x + w * 0.45, y + 2.5, Math.max(1, w * 0.25), 4); rect(g, '#b8e0f8', x + w - 3, y + h - 5, 1.5, 3); // the sky in it
+      rect(g, '#22303c', x, y, w, 1.5); rect(g, '#22303c', x, y, 1.5, h);   // the frame's shadow inside
+      if (!east) rect(g, '#3a2818', x + Math.floor(w / 2), y + 1.5, 1, h - 1.5); // the leading
+      rect(g, '#3a2818', x + 1.5, y + Math.floor(h / 2), w - 1.5, 1);
+      rect(g, 'rgba(255,255,255,0.35)', x + 2, y + 2.5, 1, 3);
+      rect(g, '#e8e0ca', x - 3, y + h + 2, w + 6, 1.5); rect(g, '#a89e88', x - 3, y + h + 3.5, w + 6, 1.2); // the sill
+      rect(g, 'rgba(15,10,5,0.25)', x - 2, y + h + 4.7, w + 5, 1);          // its shadow
     },
     // A torch in an iron ring on a bracket, upright, soot on the wall above it.
     wall_torch: (g, r, frame, shape) => wallTorch(g, shape, frame, true),
@@ -2219,7 +2217,7 @@ const Sprites = (() => {
     // A banner on a rod along the top of the wall, hanging straight down in folds, with a swallowtail and the
     // temple's gold diamond; its shadow on the wall behind.
     banner: (g, r, frame, shape) => {
-      const at = wallSpot(shape), [ax, ay] = at(8, 1.5, 29), [bx, by] = at(24, 1.5, 29), L = 18;
+      const at = wallSpot(shape), [ax, ay] = at(10, 1.5, 29), [bx, by] = at(22, 1.5, 29), L = 17;
       const cloth = (dx, dy) => [ax + dx, ay + dy, bx + dx, by + dy, bx + dx, by + L + dy, (ax + bx) / 2 + dx, (ay + by) / 2 + L - 5 + dy, ax + dx, ay + L + dy];
       poly(g, 'rgba(15,10,5,0.3)', cloth(1.5, 1.5));
       poly(g, '#7a1820', cloth(0, 0));
