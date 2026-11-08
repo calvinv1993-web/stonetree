@@ -10,8 +10,18 @@
   const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3];
   const MAIN_START_COLOR = '#60a0ff';
 
-  const storedMap = loadStoredMap();
-  let map = storedMap || createDefaultMap();
+  // The map saved in this browser, unless the built-in world has changed since it was made: then the editor asks
+  // whether to start again from the new built-in world (the game won't play an outdated map anyway).
+  const builtIn = createDefaultMap(), builtInBase = worldFingerprint(builtIn);
+  let storedMap = loadStoredMap();
+  if (storedMap && storedMapBase() !== builtInBase) {
+    if (confirm('The built-in world has been updated since you saved the map in this browser.\n\nOK: open the new built-in world (your saved edits here are replaced).\nCancel: keep editing your saved map (the game plays the built-in world until you update it).')) {
+      storedMap = null;
+      try { localStorage.removeItem(MAP_STORAGE_KEY); } catch (e) { /* nothing stored */ }
+    }
+  }
+  let map = storedMap || builtIn;
+  let mapBase = storedMap ? storedMapBase() : builtInBase; // (saved with the map: what the game compares)
   const ed = {
     tool: 'brush', size: 1, zoom: 1.5, z: 0, camX: 0, camY: 0,
     selected: { kind: 'thing', id: 'grass' }, // kind: thing | scatter | spawn | npc | start | mainStart
@@ -493,7 +503,7 @@
   // ---- saving / loading ------------------------------------------------------------
   function save() {
     clearTimeout(saveTimer);
-    $('saveState').textContent = storeMap(map) ? 'Saved' : 'Could not save to browser storage!';
+    $('saveState').textContent = storeMap(map) ? (storeMapBase(mapBase), 'Saved') : 'Could not save to browser storage!';
   }
   function scheduleSave() {
     $('saveState').textContent = 'Saving…';
@@ -532,7 +542,7 @@
   });
 
   $('defaultMap').addEventListener('click', () => {
-    if (confirmReplace()) loadMap(createDefaultMap());
+    if (confirmReplace()) { mapBase = builtInBase; loadMap(createDefaultMap()); }
   });
 
   // Non-destructive terrain operation: connect the existing starter town and Ashport.
@@ -619,7 +629,8 @@
 
   $('playMap').addEventListener('click', () => {
     save();
-    if (!storeMap(map)) return alert('The map is too big for this browser\'s storage, so the game would not get your changes. Export it instead, or publish it to a server.');
+    if (storeMap(map)) storeMapBase(mapBase);
+    else return alert('The map is too big for this browser\'s storage, so the game would not get your changes. Export it instead, or publish it to a server.');
     window.open('index.html', 'tilequest-game');
   });
 

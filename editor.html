@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Tilequest Map Editor</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=ui27">
 </head>
 <body class="editor">
   <header class="toolbar">
@@ -43,7 +43,7 @@
     </div>
     <div class="group right">
       <button id="newMap" title="Start an empty map">New</button>
-      <button hidden id="defaultMap" title="Load the built-in demo map">Demo map</button>
+      <button id="defaultMap" title="Start again from the built-in world as it is now">Built-in world</button>
       <button id="importMap" title="Load a map .json file">Import</button>
       <button id="exportMap" title="Download the map as .json">Export</button>
       <button hidden id="publishMap" title="Save this map on the game server, so everyone plays on it" hidden>Publish to server</button>
@@ -90,17 +90,17 @@
       box.textContent = 'Map editor error: ' + message + (event.filename ? ' (' + event.filename.split('/').pop() + ':' + event.lineno + ')' : '');
     });
   </script>
-  <script src="js/defs.js?v=oakvale16"></script>
-  <script src="js/items.js?v=oakvale16"></script>
-  <script src="js/creatures.js?v=oakvale16"></script>
-  <script src="js/npcs.js?v=oakvale16"></script>
-  <script src="js/data.js?v=oakvale16"></script>
-  <script src="sprites/custom.js?v=temple-walls1"></script>
-  <script src="js/sprites.js?v=temple-walls1"></script>
-  <script src="js/map.js?v=oakvale16"></script>
-  <script src="js/default-map.js?v=oakvale16"></script>
-  <script src="js/render.js?v=oakvale16"></script>
-  <script src="js/editor.js?v=oakvale16"></script>
+  <script src="js/defs.js?v=ui27"></script>
+  <script src="js/items.js?v=ui27"></script>
+  <script src="js/creatures.js?v=ui27"></script>
+  <script src="js/npcs.js?v=ui27"></script>
+  <script src="js/data.js?v=ui27"></script>
+  <script src="sprites/custom.js?v=ui27"></script>
+  <script src="js/sprites.js?v=ui27"></script>
+  <script src="js/map.js?v=ui27"></script>
+  <script src="js/default-map.js?v=ui27"></script>
+  <script src="js/render.js?v=ui27"></script>
+  <script src="js/editor.js?v=ui27"></script>
 </body>
 </html>
 

@@ -179,6 +179,29 @@ function mapSignature(m) {
 }
 
 const MAP_STORAGE_KEY = 'tilequest.map.v3';
+// Which version of the built-in world an editor map was made from (worldFingerprint), so a map made from an older
+// version doesn't quietly replace a newer built-in world.
+const MAP_BASE_KEY = 'tilequest.map.base';
+
+// A fingerprint of every tile, spawn and NPC of a map (mapSignature only samples).
+function worldFingerprint(m) {
+  let h = (m.width * 31 + m.height * 17 + m.depth * 7) | 0;
+  const mix = s => { for (let k = 0; k < s.length; k++) h = (h * 33 + s.charCodeAt(k)) | 0; };
+  for (let z = 0; z < m.depth; z++) {
+    const floor = m.floors[z];
+    for (let i = 0; i < floor.length; i++) { const t = floor[i]; if (t) { h = (h * 31 + i) | 0; mix(t.ground || ''); mix(t.items.join(',')); } }
+  }
+  for (const s of m.spawns) mix(`${s.type}${s.x},${s.y},${s.z}`);
+  for (const n of m.npcs) mix(`${n.type || n.id}${n.x},${n.y},${n.z}`);
+  return String(h);
+}
+// The base an editor map was made from, or null.
+function storedMapBase() {
+  try { return localStorage.getItem(MAP_BASE_KEY); } catch (e) { return null; }
+}
+function storeMapBase(base) {
+  try { localStorage.setItem(MAP_BASE_KEY, base); } catch (e) { /* not remembered */ }
+}
 
 function loadStoredMap() {
   try {
