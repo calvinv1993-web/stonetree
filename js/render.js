@@ -224,6 +224,9 @@ const Render = {
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         const here = groundAt(x, y), p = Sprites.borderPriority(here);
         if (p === undefined) continue;
+        // a wall stands on this tile: the ground round it meets the wall; nothing spills under it
+        const walled = (wx, wy) => { const t = tileAt(wx, wy); return !!t && t.items.some(id => THINGS[id].wall); };
+        if (walled(x, y)) continue;
         if (Sprites.paved(here)) {
           const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
           if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
@@ -233,7 +236,7 @@ const Render = {
         let higher = null;
         for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
           const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
-          if (q === undefined || !(q > p)) continue;
+          if (q === undefined || !(q > p) || walled(x + dx, y + dy)) continue;
           higher = higher || new Map();
           higher.set(n, (higher.get(n) || 0) | bit);
         }
@@ -241,6 +244,7 @@ const Render = {
         if (Sprites.cornerCut) for (const [d, dx, dy, a, b] of BORDER_DIRS) {
           const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
           if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
+          if (walled(x + dx, y) || walled(x, y + dy) || walled(x + dx, y + dy)) continue;
           g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
         }
         if (!higher) continue;
