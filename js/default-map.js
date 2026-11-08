@@ -1075,8 +1075,9 @@ function buildTown(m, S, runs, river) {
   // ---- the temple on the mount: a great hall, an altar on a dais, two rows of pillars, statues ----------------
   {
     const t = B.temple, cx = (t.x0 + t.x1) >> 1, Z = S + 1;
-    for (let y = t.y0 + 1; y < t.y1; y++) m.setGround(cx, y, Z, 'carpet');
-    for (let x = cx - 1; x <= cx + 1; x++) m.setGround(x, t.y0 + 1, Z, 'carpet'); // the dais
+    // A three-by-three rug rests on the marble beneath the altar.
+    for (let y = t.y0 + 1; y <= t.y0 + 3; y++)
+      for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug');
     put(cx, t.y0 + 1, Z, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, Z, 'torch');
     for (const x of [cx - 4, cx + 4]) put(x, t.y0, Z, 'banner');
@@ -1108,7 +1109,7 @@ function buildTown(m, S, runs, river) {
     put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Lessons every morning: fighting, magic, and how not to get eaten by rats.' });
     put(a.x0 + 1, a.y1 - 1, S, 'stairs_up');
     put(a.x0 + 1, a.y1 - 1, S + 1, 'stairs_down');
-    for (let y = a.y0 + 2; y < a.y1; y++) m.setGround(cx, y, S + 1, 'carpet');
+    for (let y = a.y0 + 2; y < a.y1; y++) put(cx, y, S + 1, 'carpet_rug');
     put(cx, a.y0 + 1, S + 1, 'obelisk');
     for (const x of [a.x0 + 1, a.x1 - 1]) { put(x, a.y0 + 1, S + 1, 'torch'); put(x, a.y0 + 4, S + 1, 'pillar'); }
     put(a.x1 - 1, a.y1 - 1, S + 1, 'bookshelf'); put(cx - 2, a.y0, S + 1, 'banner'); put(cx + 2, a.y0, S + 1, 'banner');
@@ -1303,3 +1304,4 @@ function buildTown(m, S, runs, river) {
   for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
     const t = m.get(x, y, S); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }
 }
+

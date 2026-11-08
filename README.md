@@ -215,3 +215,6 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 - **The simulated soak test** runs the real game logic with a random player and checks for exceptions, slow updates and broken state after every update. A failure prints the seed and the last actions so it can be replayed.
 - **The browser soak test** clicks, types and trades randomly in the real page. It fails on any JavaScript error, a stalled game loop or a frame over 250 ms.
 - **The online test** checks that two players see each other, chat and get their own NPC answers. It also checks that reloads keep you logged in and that a restarted server keeps characters, logins and the world.
+
+
+- The temple has a rounded embroidered rug above its marble floor, with one ornament across three by three tiles.

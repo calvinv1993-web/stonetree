@@ -273,12 +273,22 @@ const Render = {
 
       if (v.afterGround) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
 
+      // Rugs are floor objects: paint them before furniture, walls and creatures.
+      const rugAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.includes('carpet_rug'); };
+      for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+        if (!rugAt(x, y)) continue;
+        const shape = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+          .map(([dx, dy]) => rugAt(x + dx, y + dy) ? '1' : '0').join('');
+        g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+      }
+
       const objects = byFloor.get(z);
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = floor[y * map.width + x];
         if (t) {
           let wallShape = null;
           for (const id of t.items) {
+            if (id === 'carpet_rug') continue;
             const def = THINGS[id];
             let shape, material;
             if (def.wall === 'thin') {
@@ -328,3 +338,4 @@ const Render = {
     }
   },
 };
+

@@ -60,7 +60,8 @@ const THINGS = {
   sandstone:   { name: 'sandstone floor', cat: 'Ground', ground: true },
   ash:         { name: 'ash', cat: 'Ground', ground: true },
   lava:        { name: 'lava', cat: 'Ground', ground: true, block: true, light: 3 },
-  carpet:      { name: 'carpet', cat: 'Ground', ground: true },
+  carpet:      { name: 'carpet (legacy floor)', cat: 'Ground', ground: true },
+  carpet_rug:  { name: 'carpet', cat: 'Decoration', low: true },
   water:       { name: 'water', cat: 'Ground', ground: true, block: true },
   bridge_ns:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing north-south
   bridge_ew:   { name: 'wooden bridge', cat: 'Ground', ground: true }, // crossing east-west
@@ -451,3 +452,4 @@ function makeRng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+

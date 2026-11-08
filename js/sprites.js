@@ -678,8 +678,8 @@ const Sprites = (() => {
     const arcZ = u => zs + rise * Math.sqrt(Math.max(0, 1 - ((u - mid) / half) ** 2));
     const arc = (v, from, to) => { const pts = []; for (let i = 0; i <= 24; i++) { const u = from + ((to - from) * i) / 24; pts.push(...P(u, v, arcZ(u))); } return pts; };
     const st = WALL_STYLES.wall_temple, rnd = makeRng(4242);
-    // the arch's underside, seen through the opening's top: a dark band between its back and front edges
-    poly(g, 'rgba(60,54,44,0.85)', [...arc(v0, a0, a1), ...arc(v1, a1, a0)]);
+    // Limestone underside blends into the surrounding wall instead of a black band.
+    poly(g, '#b8b09c', [...arc(v0, a0, a1), ...arc(v1, a1, a0)]);
     // the inner face of the west pier (it faces east, into the opening)
     poly(g, '#8a8476', [...P(a0, v0, 0), ...P(a0, v1, 0), ...P(a0, v1, zs), ...P(a0, v0, zs)]);
     // the front (south) face, the wall's own carved stone, with the arch cut out of it
@@ -937,6 +937,7 @@ const Sprites = (() => {
       for (let y = 0; y < TILE; y += 8) { poly(g, '#d89a30', [16, y, 20, y + 4, 16, y + 8, 12, y + 4]); poly(g, '#8a1a1e', [16, y + 2, 18, y + 4, 16, y + 6, 14, y + 4]); }
       for (let y = 2; y < TILE; y += 4) { rect(g, '#9a2024', 6, y, 2, 1); rect(g, '#9a2024', 24, y, 2, 1); }
     },
+    carpet_rug(g) { DRAW.carpet(g); },
     // Swamp: dark wet ground with a few pools of black water.
     swamp(g, r) {
       rect(g, '#566636', 0, 0, TILE, TILE);
@@ -4551,7 +4552,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'grass' || id === 'marble' || id === 'temple_wall_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
+      if (id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4565,6 +4566,39 @@ const Sprites = (() => {
   const hashXY = (x, y) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0;
 
   // People and the beasts done so far are built in 3D (dolls); the rest are still drawn as pictures.
+  // Connected carpet tiles share one textile; only exposed sides have a hem.
+  function carpetTile(x, y, shape) {
+    const bits = /^[01]{4}$/.test(shape) ? shape : '0000';
+    const [n, e, s, w] = [...bits].map(v => v === '1');
+    const px = !w ? 0 : !e ? 2 : 1, py = !n ? 0 : !s ? 2 : 1;
+    return cached(`carpet:rounded:${bits}:${px}:${py}`, g => {
+      // Transparent corners expose the actual floor; this sprite contains only cloth.
+      const outline = inset => {
+        const left = w ? -16 : 2 + inset, top = n ? -16 : 2 + inset;
+        const right = e ? TILE + 16 : TILE - 2 - inset, bottom = s ? TILE + 16 : TILE - 2 - inset;
+        const radius = Math.max(0, 8 - inset);
+        g.beginPath();
+        g.roundRect(left, top, right - left, bottom - top,
+          [!n && !w ? radius : 0, !n && !e ? radius : 0,
+            !s && !e ? radius : 0, !s && !w ? radius : 0]);
+      };
+      g.save(); outline(0); g.clip();
+      const image = customImage('carpet_texture');
+      if (image) {
+        g.imageSmoothingEnabled = false;
+        const sx = !e && !w ? TILE : px * TILE;
+        g.drawImage(image, sx, py * TILE, TILE, TILE, 0, 0, TILE, TILE);
+      } else DRAW.carpet(g);
+      g.restore();
+      // A cloth binding with small muted stitches, rather than a metallic frame.
+      g.save();
+      outline(1); g.lineWidth = 2; g.strokeStyle = '#62262a'; g.stroke();
+      outline(1.5); g.lineWidth = 0.75; g.strokeStyle = '#a5824b';
+      g.setLineDash([1, 2]); g.stroke();
+      g.restore();
+    });
+  }
+
   const DOLLS_ON = true;
   return {
     // Sprite for a map thing at map position (x, y); position picks the variant.
@@ -4572,6 +4606,7 @@ const Sprites = (() => {
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
+      if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       const own = customImage(id);
       if (id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
       if (own) return own;
@@ -4877,5 +4912,6 @@ const Sprites = (() => {
     },
   };
 })();
+
 
 
