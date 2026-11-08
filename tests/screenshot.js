@@ -14,7 +14,7 @@
 // Needs playwright-core and its Chromium (npm install, then npx playwright install chromium).
 
 const path = require('path');
-const { pathToFileURL } = require('url'); // a file:// address that works on Windows too
+const { serve } = require('./serve'); // the pages over http (see serve.js)
 const { ROOT } = require('./harness');
 
 let chromium;
@@ -50,7 +50,7 @@ const [out = 'screenshot.png', x, y, z] = args;
       window.requestAnimationFrame = cb => raf(t => cb(t + shift));
     }, +hour);
   }
-  await page.goto(`${pathToFileURL(path.join(ROOT, 'index.html')).href}${mobile ? '?mobile' : ''}`);
+  await page.goto(`${await serve()}/index.html${mobile ? '?mobile' : ''}`);
   await page.fill('#createName', 'Screenshot');
   await page.click('#createStart');
   await page.click('#outfitDone', { timeout: 2000 }).catch(() => {});

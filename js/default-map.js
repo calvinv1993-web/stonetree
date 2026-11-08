@@ -828,12 +828,33 @@ function createDefaultMap() {
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
   }
 
+  tidyWorld(m, S);
+
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount
   m.mainStart = { ...m.start };
   const xs = d.coast.map(p => p[0]), ys = d.coast.map(p => p[1]);
   m.isle = { x0: Math.min(...xs) - 4, y0: Math.min(...ys) - 4, x1: Math.max(...xs) + 4, y1: Math.max(...ys) + 4 };
   return m;
+}
+
+// Last touches over the whole world, so the rules hold everywhere, not only where someone looked:
+//   - nothing hangs on a wall that a stair or ladder climbs against (it would show through the steps)
+//   - a single tile of grass left in the middle of a trail becomes trail
+function tidyWorld(m, S) {
+  const CLIMB = ['stairs_up', 'ladder', 'cave_ladder', 'sewer_ladder'];
+  for (let z = 0; z < m.depth; z++) for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
+    const t = m.get(x, y, z);
+    if (!t) continue;
+    if (t.items.some(id => CLIMB.includes(id))) {
+      const n = m.get(x, y - 1, z);
+      if (n) n.items = n.items.filter(id => !THINGS[id].onWall);
+    }
+    if (z === S && t.ground === 'grass' && !t.items.length) {
+      const around = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => (m.get(x + dx, y + dy, z) || {}).ground);
+      if (around.every(g => g === 'dirt')) t.ground = 'dirt';
+    }
+  }
 }
 
 // Builds the sewers under Oakvale (see SEWERS): the walkways, rooms and fallen-in parts, the channels and
@@ -1090,8 +1111,6 @@ function buildTown(m, S, runs, river) {
   {
     const bt = T.buildings.find(b => b.id === 'belltower'), BT = T.belltower, base = S + (bt.level || 0), top = base + bt.floors, [hx, hy] = BT.shaft;
     BT.stairs.forEach(([x, y], k) => { put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
-    // nothing hangs on the wall a flight of stairs climbs against (it would show through the steps)
-    BT.stairs.forEach(([x, y], k) => { const w = m.get(x, y - 1, base + k); if (w) w.items = w.items.filter(id => !THINGS[id].onWall); });
     for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) {
       const edge = x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1, corner = (x === bt.x0 || x === bt.x1) && (y === bt.y0 || y === bt.y1);
       const pillar = corner && y === bt.y1; // on the two front corners: the sides stay open to walk round the bell

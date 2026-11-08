@@ -8,7 +8,7 @@
 // Needs playwright-core and its Chromium (npm install, then npx playwright install chromium).
 
 const path = require('path');
-const { pathToFileURL } = require('url'); // a file:// address that works on Windows too
+const { serve } = require('./serve'); // the pages over http (see serve.js)
 const { seededRandom, ROOT } = require('./harness');
 
 let chromium;
@@ -53,7 +53,7 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
       window.__slowest = Math.max(window.__slowest, performance.now() - start);
     });
   });
-  await page.goto(pathToFileURL(path.join(ROOT, 'index.html')).href);
+  await page.goto(`${await serve()}/index.html`);
   const spriteErrors = await page.evaluate(() => {
     const errors = [];
     const tryDraw = (what, f) => { try { f(); } catch (e) { errors.push(`${what}: ${e.message}`); } };

@@ -252,6 +252,47 @@ test('every NPC on the map exists, and every item they sell or a quest gives exi
   assert.deepStrictEqual(bad, []);
 });
 
+// How the world looks: mistakes of a kind, found everywhere at once rather than one screenshot at a time.
+test('nothing hangs on a wall that a stair or ladder climbs against', () => {
+  const bad = [];
+  for (let z = 0; z < map.depth; z++) for (let y = 1; y < H; y++) for (let x = 0; x < W; x++) {
+    const t = map.get(x, y, z), n = map.get(x, y - 1, z);
+    if (t && n && t.items.some(id => ['stairs_up', 'ladder', 'cave_ladder', 'sewer_ladder'].includes(id)) && n.items.some(id => THINGS[id].onWall)) bad.push(`${x},${y},${z}`);
+  }
+  assert.deepStrictEqual(bad, [], `decoration behind the steps at ${bad.join(' ')}`);
+});
+
+test('no single tile of grass sits in the middle of a trail, and no lone tile of trail in the grass', () => {
+  const bad = [];
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const t = map.get(x, y, S);
+    if (!t || t.items.length || !['grass', 'dirt'].includes(t.ground)) continue;
+    const other = t.ground === 'grass' ? 'dirt' : 'grass';
+    if ([[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => (map.get(x + dx, y + dy, S) || {}).ground === other)) bad.push(`${x},${y}`);
+  }
+  assert.deepStrictEqual(bad, [], `lone tiles at ${bad.join(' ')}`);
+});
+
+test('every room on an upper floor is closed by walls (no floor running on outside)', () => {
+  // On each floor above the ground, walk from every floor tile inside a building without crossing walls or
+  // doors: you must not reach a tile outside the building's outline (its walls are its edge).
+  const bad = [];
+  for (const b of (require('vm').runInContext('OAKVALE.buildings', ctx))) {
+    const parts = [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])], inB = (x, y) => parts.some(([a, c, d, e]) => x >= a && x <= d && y >= c && y <= e);
+    for (let z = S + 1 + (b.level || 0); z < S + (b.level || 0) + (b.floors || 1); z++) {
+      for (let y = b.y0; y <= b.y1; y++) for (let x = b.x0; x <= b.x1; x++) {
+        const t = map.get(x, y, z);
+        if (!t || t.items.some(id => THINGS[id].wall || THINGS[id].toggle || id.startsWith('door'))) continue;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const n = map.get(x + dx, y + dy, z);
+          if (n && n.ground && !inB(x + dx, y + dy) && !n.items.some(id => THINGS[id].wall)) bad.push(`${b.id} ${x},${y},${z}`);
+        }
+      }
+    }
+  }
+  assert.deepStrictEqual(bad, [], `open to the outside at ${bad.join(' ')}`);
+});
+
 test('the world saves compactly and loads back tile for tile', () => {
   const json = JSON.stringify(map), copy = GameMap.fromJSON(JSON.parse(json));
   assert.ok(json.length < 1.5e6, `the saved world is ${json.length} bytes`);

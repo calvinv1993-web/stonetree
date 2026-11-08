@@ -12,7 +12,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const assert = require('assert');
-const { pathToFileURL } = require('url');
+const { serve } = require('./serve'); // the pages over http (see serve.js)
 const { ROOT } = require('./harness');
 
 let chromium;
@@ -23,7 +23,7 @@ try {
   process.exit(2);
 }
 const shots = process.argv[2];
-const URL_ = pathToFileURL(path.join(ROOT, 'editor.html')).href;
+let URL_; // the editor's address, once the test server is up
 let START; // the start tile of the built-in world, read from the page
 
 let passed = 0, failed = 0;
@@ -51,6 +51,7 @@ const storedTiles = (page, x, y, z, r = 1) => page.evaluate(([x, y, z, r]) => {
 const shoot = async (page, name) => { if (shots) await page.screenshot({ path: path.join(shots, name) }); };
 
 (async () => {
+  URL_ = `${await serve()}/editor.html`;
   const browser = await chromium.launch();
   const errors = [];
   const watch = page => {

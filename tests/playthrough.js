@@ -96,8 +96,9 @@ function goTo(gx, gy, gz, near = 0, why = '') {
     for (let i = 1; i < path.length; i++) if (path[i][2] !== p.z) { target = path[i - 1]; break; }
     for (let i = 1; i < path.length && path[i][2] === p.z; i++) if (map.floorChange(...path[i])) { target = path[i]; break; }
     const leg = path.indexOf(target); if (leg > 30) target = path[30]; // click ahead a stretch at a time, as a player does (a click can't plan the whole isle)
-    const z0 = p.z;
-    A.walkTo(target[0], target[1]);
+    const z0 = p.z, tt = map.get(target[0], target[1], p.z);
+    if (tt && tt.items.some(id => state.THINGS ? state.THINGS[id].useToClimb : id === 'grate')) A.interact('use', target[0], target[1], p.z); // a grate: you climb down by using it
+    else A.walkTo(target[0], target[1]);
     const end = state.now + 120000;
     while (state.now < end && (p.path.length || p.walk)) { tick(); if (fightBack()) break; }
     if (p.z !== z0) continue;
