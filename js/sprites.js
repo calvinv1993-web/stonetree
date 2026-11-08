@@ -416,12 +416,15 @@ const Sprites = (() => {
       picture();
     });
   }
+  // A lever: an iron box on the floor, its handle a rod through space with a red knob, thrown west or east.
   function drawLever(g, on) {
-    shadow(g, 16, 27, 8, 3);
-    rect(g, '#5a5a62', 10, 20, 12, 7);
-    rect(g, '#7a7a82', 10, 20, 12, 2);
-    line(g, '#6a4a2a', 3, 16, 21, on ? 24 : 8, 8);
-    ellipse(g, '#c03030', on ? 24 : 8, 8, 3, 3);
+    floorShadow(g, 8, 3);
+    const iron = { top: '#7a7a82', south: '#5a5a62', east: '#3e3e46', edge: '#9a9aa2' };
+    prism(g, 10, 17, 22, 24, 0, 5, iron);
+    prism(g, 14, 19.5, 18, 21.5, 5, 6, { top: '#2a2a30', south: '#1e1e22', east: '#141418' }); // its slot
+    const tip = on ? [23, 20.5, 20] : [9, 20.5, 20];
+    line3(g, '#3a2a18', 2.5, 16, 20.5, 5.5, ...tip); line3(g, '#8a6a42', 1, 16, 20.5, 5.5, ...tip);
+    const [kx, ky] = P(...tip); ellipse(g, '#7a1a1a', kx + 0.5, ky + 0.5, 3, 3); ellipse(g, '#c03030', kx, ky, 2.6, 2.6); ellipse(g, '#ff9a8a', kx - 0.8, ky - 0.8, 0.9, 0.9);
   }
 
   // --- roofs -----------------------------------------------------------------------------
@@ -576,7 +579,8 @@ const Sprites = (() => {
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
   // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
   // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
-  const RAISED = new Set(['pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
+  const RAISED = new Set(['ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
+    'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
@@ -1751,14 +1755,12 @@ const Sprites = (() => {
       }
       if (r() < 0.5) { ellipse(g, '#f0a0c0', 16, 16, 2.5, 2); ellipse(g, '#fff0f4', 16, 15.5, 1, 1); }
     },
+    // Stalagmites: rock spikes growing up from the floor, tapering to a point, lit on their west.
     stalagmite(g, r) {
-      shadow(g, 16, 27, 11, 3);
+      floorShadow(g, 11, 3);
+      const rock = { top: '#8a7e70', south: '#6a5e52', east: '#4e443a', edge: '#a4988a' };
       const n = 2 + Math.floor(r() * 2);
-      for (let i = 0; i < n; i++) {
-        const x = 8 + i * 7 + r() * 3, h = 10 + r() * 12;
-        poly(g, '#6a5e52', [x - 4, 27, x + 4, 27, x + 0.5, 27 - h]);
-        poly(g, '#8a7e70', [x - 4, 27, x - 0.5, 27, x + 0.5, 27 - h]);
-      }
+      for (let i = 0; i < n; i++) { const u = 8 + i * 7 + r() * 3, v = 14 + r() * 8, w = 3 + r() * 1.5; taper(g, u - w, v - w, u + w, v + w, 0, 14 + r() * 18, w * 0.92, rock); }
     },
     rubble(g, r) {
       for (let i = 0; i < 7; i++) {
@@ -1767,14 +1769,13 @@ const Sprites = (() => {
         ellipse(g, r() < 0.5 ? '#7a7068' : '#8e847a', x, y, rx, rx * 0.7);
       }
     },
+    // A cluster of glowing crystals: tapering shards standing in the slant, lit through, a glow round them.
     crystal(g, r) {
       const [c, light, glow] = r() < 0.5 ? ['#40c8f0', '#c0f4ff', 'rgba(64,200,240,0.25)'] : ['#a060f0', '#e8d0ff', 'rgba(160,96,240,0.25)'];
-      ellipse(g, glow, 16, 20, 13, 9);
-      shadow(g, 16, 27, 9, 2.5);
-      for (const [x, h, w] of [[11, 14, 3], [16, 20, 4], [21, 12, 3], [14, 9, 2]]) {
-        poly(g, c, [x - w, 27, x + w, 27, x + w, 27 - h + 3, x, 27 - h, x - w, 27 - h + 3]);
-        poly(g, light, [x - w, 27, x, 27, x, 27 - h, x - w, 27 - h + 3]);
-      }
+      const [gx, gy] = P(16, 18, 10); ellipse(g, glow, gx, gy, 14, 11);
+      floorShadow(g, 9, 2.5);
+      const col = { top: light, south: c, east: shade(c, 0.65) };
+      for (const [u, v, h, w] of [[12, 15, 22, 2.6], [19, 17, 30, 3.2], [22, 22, 16, 2.4], [14, 21, 13, 2]]) taper(g, u - w, v - w, u + w, v + w, 0, h, w * 0.95, col);
     },
     puddle(g, r) {
       ellipse(g, '#2a3a4a', 16, 20, 10 + r() * 3, 4 + r() * 2);
@@ -1870,13 +1871,14 @@ const Sprites = (() => {
       for (let i = 0; i < 3; i++) { const k = (frame + i) % 3; ellipse(g, 'rgba(170,245,130,0.9)', x - 4 + i * 4, y - 1 - k * 2, 1.5, 1.5); }
       frontRing(g, 16, 17, 18, 9.5, '#3a3a44', 2);
     },
+    // A sword stuck in the ground over a little mound: blade, crossguard, grip and pommel, all in the slant.
     sword_grave(g) {
-      ellipse(g, '#6a5a44', 16, 26, 7, 2.5);
-      rect(g, '#c8ccd4', 15, 10, 3, 16);
-      rect(g, '#ffffff', 15, 10, 1, 15);
-      rect(g, '#b08a30', 11, 9, 11, 2);
-      rect(g, '#5a3a1a', 15, 4, 3, 5);
-      ellipse(g, '#d0a030', 16.5, 3.5, 2, 2);
+      floorShadow(g, 7, 2.5);
+      const [mx, my] = P(16, 20, 0); ellipse(g, '#6a5a44', mx, my, 7, 3); ellipse(g, '#7e6c52', mx - 1, my - 0.5, 4.5, 1.8);
+      prism(g, 15.2, 19.4, 16.8, 20.6, 0, 26, { top: '#ffffff', south: '#c8ccd4', east: '#8a909a', edge: '#ffffff' }); // the blade
+      prism(g, 10.5, 19.2, 21.5, 20.8, 26, 28, { top: '#e0b850', south: '#b08a30', east: '#7a5e1a', edge: '#f0d070' }); // the crossguard
+      prism(g, 15.3, 19.5, 16.7, 20.5, 28, 35, { top: '#7a5a32', south: '#5a3a1a', east: '#3e2612' });                    // the grip
+      const [px, py] = P(16, 20, 37); ellipse(g, '#a87a20', px + 0.4, py + 0.4, 2.2, 2.2); ellipse(g, '#e0b040', px, py, 1.8, 1.8); // the pommel
     },
     // A flag on a tall pole: the pole in the slant, the flag hanging in its own plane, east of the pole.
     flagpole(g, r) {
@@ -1895,12 +1897,11 @@ const Sprites = (() => {
       column(g, 16, 16, 6, 0, 36, { light: '#7a5432', mid: '#5b3a1e', dark: '#3a2410', top: '#c8a070' });
       leafCrown(g, r, 16, 16, 50, 20, 13, 70, { shade: '#122e10', dark: '#1f4a1c', mid: '#2a5f25', light: '#347330', glint: '#4a8a3c', size: 6 });
     },
+    // Ice crystals: pale tapering spikes in the slant, lit through on their west.
     ice_spike(g, r) {
-      shadow(g, 16, 28, 11, 3);
-      for (const [x, h, w] of [[10, 14, 3], [16, 20, 4], [22, 11, 3]].map(([x, h, w]) => [x + r() * 2, h + r() * 4, w])) {
-        poly(g, '#b8e0f4', [x - w, 28, x + w, 28, x, 28 - h]);
-        poly(g, '#f0faff', [x - w, 28, x, 28, x, 28 - h]);
-      }
+      floorShadow(g, 11, 3);
+      const ice = { top: '#f0faff', south: '#b8e0f4', east: '#8ab8d4', edge: '#ffffff' };
+      for (const [u, v, h, w] of [[10, 16, 20, 3], [17, 18, 30, 3.6], [23, 15, 17, 2.8]].map(([u, v, h, w]) => [u + r() * 2, v + r() * 3, h + r() * 6, w])) taper(g, u - w, v - w, u + w, v + w, 0, h, w * 0.95, ice);
     },
     // A toppled pillar, lying east to west: its fluted shaft, the broken end showing its round section, rubble round it.
     fallen_pillar(g, r) {
@@ -2161,15 +2162,25 @@ const Sprites = (() => {
     // A gravestone: an upright slab with a rounded top and a cross cut into its face.
     // A gravestone: a low foot in the tiles' slant, and on it an upright stone with a rounded top, its top
     // edge showing, and a cross cut into its face.
+    // A gravestone: a stone slab with a rounded top standing on a low base, a cross cut into its face; all in the
+    // slant, its top edge and east side catching less light than its face.
     gravestone(g) {
       floorShadow(g, 10, 3);
-      prism(g, 7, 13, 25, 21, 0, 4, { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' });
-      const [x, y] = P(16, 19, 4);
-      const slab = (dy, c) => { g.fillStyle = c; g.beginPath(); g.moveTo(x - 8, y + dy); g.lineTo(x - 8, y + dy - 14); g.arc(x, y + dy - 14, 8, Math.PI, 0); g.lineTo(x + 8, y + dy); g.closePath(); g.fill(); };
-      slab(-3, '#c8c8c4');                 // its top edge (the back of the stone, seen from above)
-      slab(0, '#9a9a96');                  // its face
-      rect(g, '#b4b4b0', x - 8, y - 14, 1, 14);
-      rect(g, '#5e5e5a', x - 1, y - 18, 2, 13); rect(g, '#5e5e5a', x - 5, y - 14, 10, 2);
+      const stone = { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' };
+      prism(g, 7, 13, 25, 22, 0, 4, stone);                       // the base
+      const u0 = 9.5, u1 = 22.5, v0 = 16, v1 = 19, z0 = 4, z1 = 22, rad = (u1 - u0) / 2;
+      const arch = (v, c) => { // the slab's outline at depth v: straight sides, a round top
+        const pts = [...P(u0, v, z0), ...P(u1, v, z0)];
+        for (let k = 0; k <= 12; k++) { const a = (k / 12) * Math.PI; pts.push(...P(u0 + rad + Math.cos(a) * rad, v, z1 + Math.sin(a) * rad)); }
+        poly(g, c, pts);
+      };
+      arch(v0, '#c8c8c4');                                        // the back, seen over the top
+      prism(g, u1 - 0.01, v0, u1, v1, z0, z1, stone);             // its east side
+      for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI / 2, b = ((k + 1) / 6) * Math.PI / 2, c = u0 + rad; // the round top's east half, between front and back
+        poly(g, '#b0b0ac', [...P(c + Math.cos(a) * rad, v0, z1 + Math.sin(a) * rad), ...P(c + Math.cos(b) * rad, v0, z1 + Math.sin(b) * rad), ...P(c + Math.cos(b) * rad, v1, z1 + Math.sin(b) * rad), ...P(c + Math.cos(a) * rad, v1, z1 + Math.sin(a) * rad)]); }
+      arch(v1, '#a4a4a0');                                        // the face
+      onSouth(g, v1, f => { rect(f, '#6e6e6a', 15.2, 10, 1.6, 15); rect(f, '#6e6e6a', 11.5, 19, 9, 1.6); rect(f, '#c8c8c4', 15.2, 10, 0.6, 15); }); // the cross
+      line3(g, '#e0e0dc', 1, u0, v1, z0, u0, v1, z1);             // its lit west edge
     },
     // A canvas tent, its ridge running north to south: the west slope in the light, the east slope in shade, the
     // door in the south gable.
@@ -2447,25 +2458,26 @@ const Sprites = (() => {
       line(g, '#2a2a2e', 1.5, 12, 8, 16, 16, 13, 22, 17, 28);
       line(g, '#2a2a2e', 1, 16, 16, 23, 19);
     },
+    // Stairs up: a flight of stone steps climbing north to the floor above, each tread lit, each riser in shade, a
+    // wall of stone along its east side.
     stairs_up(g) {
-      for (let i = 0; i < 5; i++) {
-        const v = 170 - i * 18; // steps get darker toward the bottom
-        rect(g, `rgb(${v},${v - 8},${v - 20})`, 4, 2 + i * 6, 24, 6);
-        rect(g, `rgb(${v - 40},${v - 48},${v - 60})`, 4, 7 + i * 6, 24, 1);
-      }
-      rect(g, '#4a4038', 2, 2, 2, 30);
-      rect(g, '#4a4038', 28, 2, 2, 30);
+      const step = { top: '#c4bcb0', south: '#8a8478', east: '#6a645a', edge: '#e0d8cc' };
+      const n = 6, rise = 54 / n, run = 24 / n;
+      for (let i = n - 1; i >= 0; i--) prism(g, 5, 4 + i * run, 27, 4 + (i + 1) * run, 0, rise * (n - i), step);
+      prism(g, 27, 4, 29, 28, 0, 6, { top: '#9a948a', south: '#7a746a', east: '#5a544a', edge: '#b0aaa0' }); // a low kerb on its east
     },
+    // Stairs down: an opening in the floor with steps going down into the dark, each lower one darker.
     stairs_down(g) {
-      rect(g, '#120e0b', 3, 3, 26, 26);
-      for (let i = 0; i < 4; i++) {
-        const v = 120 - i * 28; // steps fade into the dark below
-        rect(g, `rgb(${v},${v - 8},${v - 16})`, 5, 5 + i * 6, 22, 5);
+      const opening = [...P(4, 4, 0), ...P(28, 4, 0), ...P(28, 28, 0), ...P(4, 28, 0)];
+      poly(g, '#0e0a08', opening);
+      g.save(); g.beginPath(); for (let k = 0; k < 8; k += 2) g.lineTo(opening[k], opening[k + 1]); g.closePath(); g.clip();
+      for (let i = 0; i < 5; i++) { // from the deepest (north) to the top (south)
+        const v0 = 4 + i * 4.8, z = -(5 - i) * 3.5, l = 0.35 + i * 0.14; // (shallow, so the steps show inside the opening)
+        prism(g, 4, v0, 28, v0 + 4.8, z - 3.5, z, { top: shade('#b8b0a4', l), south: shade('#8a8478', l), east: shade('#6a645a', l) });
       }
-      rect(g, '#6a5a48', 2, 2, 28, 2);
-      rect(g, '#6a5a48', 2, 2, 2, 28);
-      rect(g, '#3a3028', 28, 2, 2, 28);
-      rect(g, '#3a3028', 2, 28, 28, 2);
+      g.restore();
+      const rim = { top: '#9a948a', south: '#7a746a', east: '#5a544a', edge: '#c0bab0' };
+      prism(g, 2, 2, 30, 4, -1, 1, rim); prism(g, 2, 4, 4, 30, -1, 1, rim); prism(g, 28, 4, 30, 30, -1, 1, rim); prism(g, 4, 28, 28, 30, -1, 1, rim); // its stone rim
     },
     // A ladder up through a dark hole in the ceiling, to the trapdoor on the floor above.
     cave_ladder(g) {
@@ -2495,10 +2507,13 @@ const Sprites = (() => {
       for (let z = 7; z < 54; z += 8) prism(g, 11, 4, 21, 5, z, z + 2, wood);
       prism(g, 21, 3, 24, 6, 0, 54, wood);
     },
+    // A ladder standing against the tile's north side, up to the floor above.
     ladder(g) {
-      rect(g, '#7a4f26', 8, 0, 3, 31);
-      rect(g, '#7a4f26', 21, 0, 3, 31);
-      for (let y = 3; y < 30; y += 6) rect(g, '#9a6a38', 11, y, 10, 2);
+      const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
+      floorShadow(g, 9, 2);
+      prism(g, 8, 4, 11, 7, 0, 54, wood);
+      for (let z = 7; z < 54; z += 8) prism(g, 11, 5, 21, 6, z, z + 2, wood);
+      prism(g, 21, 4, 24, 7, 0, 54, wood);
     },
     hole(g) {
       ellipse(g, '#3a2a1a', 16, 17, 13, 10);
