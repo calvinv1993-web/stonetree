@@ -731,7 +731,9 @@ function drawTexts(screen, z) {
       const lines = wrapText(fx.text, 30);
       if (fx.name) lines.unshift(`${fx.name} says:`);
       const x = Math.max(110, Math.min(viewPxW() - 110, sx + half - HEAD_LEAN * Render.CREATURE_LEAN * SCALE)), color = fx.name ? '#ffd84a' : '#ff9a30';
-      lines.forEach((line, i) => outlinedText(line, x, sy - 28 - (lines.length - 1 - i) * 15, color, 'bold 13px sans-serif'));
+      // straight above the speaker, over their name and health bar (which sit LIFT higher than their tile)
+      const top = sy - LIFT * SCALE - 30;
+      lines.forEach((line, i) => outlinedText(line, x, top - (lines.length - 1 - i) * 15, color, 'bold 13px sans-serif'));
     }
   }
 }

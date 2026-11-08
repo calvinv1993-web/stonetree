@@ -960,7 +960,7 @@ body.touch-ui .radial-controls .fav.empty span { font-size: 22px; color: #e8d8b0
 body.touch-ui .guide { font-size: 12px !important; width: min(250px, 66%) !important; }
 body.touch-ui .guide header button { min-width: 38px !important; min-height: 32px !important; font-size: 14px; }
 /* messages (welcome, loot, damage) in the middle of the map, clear of the guide and the status bar */
-@media (orientation: portrait) { body.touch-ui .toasts { top: 38% !important; } }
+
 
 
 /* ==== Tilequest's interface on phones: calm, dark glass; one clean typeface; gold only for what's chosen ============
@@ -1285,8 +1285,24 @@ body.touch-ui #view { border: 0; }
   /* on its side the bar keeps the whole width, but the bars themselves don't stretch across all of it */
   body.touch-ui .hud { grid-template-columns: 46px minmax(0, 380px) auto; justify-content: start; }
 }
-@media (max-height: 500px) { body.touch-ui .toasts { top: calc(var(--hud-h) + 8px); } }
+
 /* the joystick put away (Menu, Game) */
 body.touch-ui.no-joystick .joystick { display: none !important; }
 /* the map may be a little wider than its space (whole tiles at the screen's own pixels): its edges are cut */
 body.touch-ui .viewport { overflow: hidden; }
+
+/* ---- messages low on the map, the loot window under the status bar, labels in the quick buttons ------------------ */
+
+body.touch-ui .toasts { bottom: auto; width: min(92%, 420px); gap: 4px; }
+body.touch-ui .toast { padding: 4px 10px; font: 500 12.5px/1.35 var(--ui); border-radius: 8px; }
+@media (orientation: landscape) { body.touch-ui .toasts { width: min(46%, 380px); } }
+body.touch-ui #lootBox {
+  top: calc(var(--hud-h) + 8px); width: min(340px, calc(100% - 16px)); padding: 10px 12px 12px;
+  border: 1px solid var(--line-2); border-radius: 14px; background: rgba(20, 19, 17, 0.96); box-shadow: var(--shadow); z-index: 40;
+}
+body.touch-ui #lootBox h2 { gap: 8px; margin: 0 0 10px; color: var(--text); font: 600 15px var(--ui); text-transform: none; letter-spacing: 0; border: 0; padding: 0; }
+body.touch-ui #lootBox h2 > span:last-child { display: flex; gap: 6px; align-items: center; }
+body.touch-ui #lootAll { min-height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--accent); color: #1d1404; font: 600 13px var(--ui); box-shadow: none; text-shadow: none; }
+body.touch-ui #lootClose { width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important; }
+body.touch-ui #lootBox .grid { gap: 6px; }
+body.touch-ui .radial-controls .fav span { font: 600 9px/1.1 var(--ui); white-space: normal; text-align: center; padding: 0 3px; overflow: hidden; max-height: 22px; }

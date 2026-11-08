@@ -203,10 +203,15 @@ function initJoystick() {
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, release);
 }
 
-// Messages pop up at the top for a few seconds, as the log is put away on a phone.
+// Messages pop up near the top of the map (under the status bar and the guide) for a few seconds, as the log is put away on a phone.
 function toast(text, kind) {
   if (!touchScreen || document.body.classList.contains('chat-open')) return;
+  if (kind === 'damage') return; // (the numbers over your head say it already)
   const box = $('toasts'), line = document.createElement('div');
+  // just under the status bar, or under the guide or a corpse's window when they show: clear of you in the middle of the map
+  const shown = id => { const el = $(id); return el && !el.hidden && el.offsetParent && getComputedStyle(el).display !== 'none' ? el.getBoundingClientRect().bottom : 0; };
+  const under = Math.max($('touch').querySelector('.hud').getBoundingClientRect().bottom, shown('guide'), shown('lootBox')) - $('touch').getBoundingClientRect().top;
+  box.style.top = `${Math.round(under + 6)}px`;
   line.className = `toast ${kind || ''}`;
   line.textContent = text;
   box.appendChild(line);
