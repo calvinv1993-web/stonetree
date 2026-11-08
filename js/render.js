@@ -16,12 +16,12 @@ const Render = {
   // its east side, as a block's top and east face do.
   CREATURE_DEPTH: 0, // (a darker copy behind a flat picture, for depth; not needed for dolls)
   slanted(g, img, px, py, draw) {
-    const foot = py + img.height - 2;
+    const foot = py + Sprites.h(img) - 2;
     g.save();
     g.transform(1, 0, Render.CREATURE_LEAN, 1, -foot * Render.CREATURE_LEAN, 0); // x' = x + lean * (y - foot)
     if (Render.CREATURE_DEPTH) {
       const back = Render.shadeOf(img), a = g.globalAlpha;
-      for (let d = Render.CREATURE_DEPTH; d >= 1; d--) g.drawImage(back, px + d * 0.8, py - d * 0.6); // its shaded east side and top, behind it
+      for (let d = Render.CREATURE_DEPTH; d >= 1; d--) g.drawImage(back, px + d * 0.8, py - d * 0.6, Sprites.w(img), Sprites.h(img)); // its shaded east side and top, behind it
       g.globalAlpha = a;
     }
     draw();
@@ -33,7 +33,7 @@ const Render = {
     let c = cache.get(img);
     if (!c) {
       c = document.createElement('canvas');
-      Object.assign(c, { width: img.width, height: img.height });
+      Object.assign(c, { width: img.width, height: img.height, res: img.res });
       const g = c.getContext('2d');
       g.drawImage(img, 0, 0);
       g.globalCompositeOperation = 'source-atop';
@@ -53,7 +53,7 @@ const Render = {
     let c = cache.get(img);
     if (!c) {
       c = document.createElement('canvas');
-      Object.assign(c, { width: img.width, height: img.height });
+      Object.assign(c, { width: img.width, height: img.height, res: img.res });
       const g = c.getContext('2d');
       g.filter = 'brightness(0.45) saturate(0.8)';
       g.drawImage(img, 0, 0);
@@ -321,16 +321,16 @@ const Render = {
         }
         const here = objects && objects.get(y * map.width + x);
         if (here) for (const o of here) {
-          const lift = o.img.width - TILE + (o.lift || 0);
+          const iw = Sprites.w(o.img), ih = Sprites.h(o.img), lift = iw - TILE + (o.lift || 0);
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
           const px = Math.round(ox + (o.vx ?? o.x) * TILE - lift), py = Math.round(oy + (o.vy ?? o.y) * TILE - lift);
           if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant
-            g.drawImage(Render.CREATURE_DEPTH ? Render.roundOf(o.img) : o.img, px, py);
-            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
+            g.drawImage(Render.CREATURE_DEPTH ? Render.roundOf(o.img) : o.img, px, py, iw, ih);
+            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py, iw, ih); }
           });
           else {
-            g.drawImage(o.img, px, py);
-            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py); }
+            g.drawImage(o.img, px, py, iw, ih);
+            if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py, iw, ih); }
           }
           g.globalAlpha = 1;
         }

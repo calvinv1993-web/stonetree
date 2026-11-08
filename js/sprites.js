@@ -3176,7 +3176,8 @@ const Sprites = (() => {
     e.fillRect(0, 0, width, height);
     g.save();
     g.setTransform(1, 0, 0, 1, 0, 0);
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) g.drawImage(edge, dx, dy);
+    const k = g.canvas.res || 1; // (a world pixel wide)
+    for (const [dx, dy] of [[-k, 0], [k, 0], [0, -k], [0, k]]) g.drawImage(edge, dx, dy);
     g.drawImage(layer, 0, 0);
     g.restore();
   }
@@ -4640,6 +4641,10 @@ const Sprites = (() => {
       return `player:${vocation}:${o.hair}|${o.body}|${o.legs}|${o.feet}|${o.type}|${o.female ? 1 : 0}|${o.addons | 0}`;
     },
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
+    CREATURE_RES: 2,
+    // a picture's size in world pixels (creatures are drawn finer: see creature())
+    w: img => img.width / (img.res || 1),
+    h: img => img.height / (img.res || 1),
     creature(key, dir, frame = 0) {
       if (key.startsWith('npc:') && NPCS[key.slice(4)].creature) key = NPCS[key.slice(4)].creature; // an NPC that looks like a monster
       const base = key.startsWith('player:') ? 'player' : key;
@@ -4648,11 +4653,15 @@ const Sprites = (() => {
         if (own.naturalWidth < 96 || own.naturalHeight < 128) return own;
         return cached(`own:${base}:${dir}:${frame}`, g => g.drawImage(own, frame * TILE, dir * TILE, TILE, TILE, 0, 0, TILE, TILE));
       }
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key);
-      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}`, g => {
+      // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
+      // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key), R = Sprites.CREATURE_RES;
+      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}`, g => {
+        g.canvas.res = R;
+        g.scale(R, R);
         if (big) g.translate(TILE, TILE);
         creatureDrawer(key)(g, dir, frame);
-      }, big ? 2 * TILE : TILE);
+      }, (big ? 2 * TILE : TILE) * R);
     },
     flyingCar: () => cached('flying_car', flyingCar, 48),
     mineCart: passenger => cached(`minecart:${passenger}`, g => {
@@ -4692,6 +4701,7 @@ const Sprites = (() => {
         white = document.createElement('canvas');
         white.width = img.width;
         white.height = img.height;
+        white.res = img.res;
         const g = white.getContext('2d');
         g.drawImage(img, 0, 0);
         g.globalCompositeOperation = 'source-in';

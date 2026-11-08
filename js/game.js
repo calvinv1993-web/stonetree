@@ -350,7 +350,7 @@ function draw() {
     // Walls can hide you; a faint silhouette on top keeps you visible behind them.
     ctx.globalAlpha = 0.35;
     const img = Sprites.creature(creatureKey(player), player.dir, pv.frame), px = Math.round(ox + pv.x * TILE - LIFT), py = Math.round(oy + pv.y * TILE - LIFT);
-    Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py));
+    Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py, Sprites.w(img), Sprites.h(img)));
     ctx.globalAlpha = 1;
   }
   for (const p of players) if (riding(p) && p.z === z) {
@@ -503,7 +503,8 @@ function drawFlyby(fx, ox, oy) {
   const spiders = [[0.09, 1], [0.15, 0], [0.21, 2]].map(([lag, dy]) => ({ x: ox + flybyX(fx, lag) * TILE, y: rowY + dy * TILE }));
   for (const s of spiders) {
     const img = Sprites.creature('giant_spider', dir > 0 ? 1 : 3, Math.floor(now / 120) % 3);
-    ctx.drawImage(img, s.x - (img.width - TILE), s.y - (img.height - TILE));
+    const w = Sprites.w(img), h = Sprites.h(img);
+    ctx.drawImage(img, s.x - (w - TILE), s.y - (h - TILE), w, h);
   }
   const bob = Math.sin(now / 110) * 3, carY = rowY - 22 + bob;
   ctx.fillStyle = 'rgba(0,0,0,0.25)';

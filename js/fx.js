@@ -478,9 +478,9 @@ const Fx = (() => {
   function world(g, ox, oy, z) {
     for (const k of ghosts) {
       if (k.z !== z || !k.img) continue;
-      const t = (now - k.at) / 600, lift = k.img.width - TILE + 6;
+      const w = Sprites.w(k.img), h = Sprites.h(k.img), t = (now - k.at) / 600, lift = w - TILE + 6;
       g.globalAlpha = Math.max(0, 1 - t);
-      g.drawImage(k.img, ox + k.x * TILE - lift, oy + k.y * TILE - lift - t * 10);
+      g.drawImage(k.img, ox + k.x * TILE - lift, oy + k.y * TILE - lift - t * 10, w, h);
     }
     g.globalAlpha = 1;
     for (const b of birds) {

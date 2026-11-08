@@ -367,10 +367,10 @@ function initTouch() {
     const faceKey = creatureKey(player) + player.dir;
     if (faceKey !== hudFaceKey) { // the portrait: your own head and shoulders, big
       hudFaceKey = faceKey;
-      const img = Sprites.creature(creatureKey(player), 2, 0), big = img.width > TILE, f = $('hudFace').getContext('2d');
-      f.clearRect(0, 0, 64, 64);
-      f.imageSmoothingEnabled = false;
-      f.drawImage(img, big ? TILE + 5 : 5, big ? TILE - 6 : -6, 22, 22, 0, 0, 64, 64);
+      const img = Sprites.creature(creatureKey(player), 2, 0), big = Sprites.w(img) > TILE, r = img.res || 1, f = $('hudFace').getContext('2d');
+      f.clearRect(0, 0, 128, 128);
+      f.imageSmoothingEnabled = r > 1;
+      f.drawImage(img, (big ? TILE + 5 : 5) * r, (big ? TILE - 6 : -6) * r, 22 * r, 22 * r, 0, 0, 128, 128);
     }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
     $('hudXp').style.width = `${Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)))}%`;
@@ -491,11 +491,11 @@ function showTalk(speaker, text) {
     return b;
   }), Object.assign(document.createElement('button'), { className: 'bye', textContent: 'Good bye', onclick: () => { Actions.say('bye'); hideTalk(); } }));
   const face = $('talkFace').getContext('2d');
-  face.clearRect(0, 0, 56, 56);
+  face.clearRect(0, 0, 112, 112);
   if (npc) { // its head and shoulders, big
-    const img = Sprites.creature(creatureKey(npc), 2, 0), big = img.width > TILE;
-    face.imageSmoothingEnabled = false;
-    face.drawImage(img, big ? TILE + 4 : 4, big ? TILE - 4 : -4, 24, 24, 0, 0, 56, 56);
+    const img = Sprites.creature(creatureKey(npc), 2, 0), big = Sprites.w(img) > TILE, r = img.res || 1;
+    face.imageSmoothingEnabled = r > 1;
+    face.drawImage(img, (big ? TILE + 4 : 4) * r, (big ? TILE - 4 : -4) * r, 24 * r, 24 * r, 0, 0, 112, 112);
   }
   $('talk').hidden = !!player.shopNpc; // (trading: the shop is open, the card would cover it)
   talkShownAt = now;
