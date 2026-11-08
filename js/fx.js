@@ -656,15 +656,18 @@ const Fx = (() => {
         const a = t < 0.1 ? t / 0.1 : t > 0.7 ? (1 - t) / 0.3 : 1, pop = t < 0.1 ? 1.4 - t * 4 : 1, size = Math.round(Math.min(52, W / 12) * pop);
         ctx.globalAlpha = a;
         ctx.textAlign = 'center';
-        ctx.font = `bold ${size}px Georgia, 'Times New Roman', serif`;
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = 'rgba(40,20,0,0.9)';
-        ctx.strokeText(levelBanner.text, W / 2, H * 0.4);
+        ctx.font = `800 ${size}px Inter, system-ui, sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 2;
         const gold = ctx.createLinearGradient(0, H * 0.4 - size, 0, H * 0.4);
-        gold.addColorStop(0, '#fff6c8');
-        gold.addColorStop(1, '#e0a020');
+        gold.addColorStop(0, '#fff3cf');
+        gold.addColorStop(1, '#e8b54a');
         ctx.fillStyle = gold;
         ctx.fillText(levelBanner.text, W / 2, H * 0.4);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
         ctx.globalAlpha = 1;
       }
     }
@@ -675,15 +678,23 @@ const Fx = (() => {
         const a = t < 0.15 ? t / 0.15 : t > 0.75 ? (1 - t) / 0.25 : 1;
         ctx.globalAlpha = a;
         ctx.textAlign = 'center';
-        ctx.font = `bold ${Math.round(Math.min(44, W / 16))}px Georgia, 'Times New Roman', serif`;
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
-        ctx.strokeText(banner.name, W / 2, H * 0.22);
-        ctx.fillStyle = '#f4e4b8';
-        ctx.fillText(banner.name, W / 2, H * 0.22);
-        ctx.fillStyle = 'rgba(244,228,184,0.8)';
-        const lw = Math.min(W * 0.4, ctx.measureText(banner.name).width + 60);
-        ctx.fillRect(W / 2 - lw / 2, H * 0.22 + 12, lw, 2);
+        // the place's name in spaced capitals, a short gold line either side, a soft shadow to read over any ground
+        const size = Math.round(Math.min(30, W / 20)), y = H * 0.22, name = banner.name.toUpperCase();
+        ctx.font = `600 ${size}px Inter, system-ui, sans-serif`;
+        if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(size * 0.18)}px`;
+        ctx.shadowColor = 'rgba(0,0,0,0.75)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 1;
+        ctx.fillStyle = '#f3eee6';
+        ctx.fillText(name, W / 2, y);
+        const half = ctx.measureText(name).width / 2 + 18;
+        ctx.fillStyle = '#e8b54a';
+        ctx.fillRect(W / 2 - half - 36, y - size * 0.36, 36, 2);
+        ctx.fillRect(W / 2 + half, y - size * 0.36, 36, 2);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
         ctx.globalAlpha = 1;
       }
     }

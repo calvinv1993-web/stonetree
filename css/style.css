@@ -966,7 +966,7 @@ body.touch-ui .guide header button { min-width: 38px !important; min-height: 32p
 /* ==== Tilequest's interface on phones: calm, dark glass; one clean typeface; gold only for what's chosen ============
    One set of tokens for everything: surfaces in three steps of dark, hairline borders, rounded corners, a single
    accent. Icons are line drawings (js/icons.js) in the colour of their text. */
-body.touch-ui {
+body.game {
   --ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --bg: #141311; --bg-2: #1c1b19; --bg-3: #282623; --bg-4: #34312d; --glass: rgba(20, 19, 17, 0.84);
   --line: rgba(255, 255, 255, 0.07); --line-2: rgba(255, 255, 255, 0.13);
@@ -1177,3 +1177,86 @@ body.touch-ui .dialog header button, body.touch-ui #shopClose, body.touch-ui #lo
 }
 body.touch-ui input[type=checkbox] { accent-color: var(--accent); }
 body.touch-ui .console input, body.touch-ui #chat { border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 0 16px 16px; background: var(--bg-2) !important; outline: none; }
+
+/* checkboxes: a rounded box, gold with a tick when on */
+body.game input[type=checkbox] {
+  -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin: 0 8px 0 0; vertical-align: middle; flex-shrink: 0;
+  border: 1.5px solid var(--line-2); border-radius: 6px; background: #0e0d0c; cursor: pointer; position: relative;
+}
+body.game input[type=checkbox]:checked { border-color: var(--accent); background: var(--accent); }
+body.game input[type=checkbox]:checked::after {
+  content: ''; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid #1d1404; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+body.game input[type=checkbox]:disabled { opacity: 0.4; cursor: default; }
+
+/* ==== the same look on computers: the side panel as a column of cards, the log and hotbar beneath the view ========== */
+body.game:not(.touch-ui) { background: #0d0c0b; color: var(--text); }
+body.game:not(.touch-ui) *:not(canvas) { font-family: var(--ui); }
+body.game:not(.touch-ui) .log, body.game:not(.touch-ui) .log * { font: 400 13px/1.55 var(--ui); }
+body.game:not(.touch-ui) .log .time { color: var(--faint); font-variant-numeric: tabular-nums; }
+body.game:not(.touch-ui) .log .level, body.game:not(.touch-ui) .log .quest { color: var(--accent); font-weight: 600; }
+body.game:not(.touch-ui) .log .npc { color: #8cbcff; }
+body.game:not(.touch-ui) .log .kw { color: var(--accent); text-decoration: none; font-weight: 600; }
+body.game:not(.touch-ui) #view { border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); }
+body.game:not(.touch-ui) .panel { padding: 12px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: var(--bg); box-shadow: none; }
+body.game:not(.touch-ui) .panel section, body.game:not(.touch-ui) .panel #containers > * {
+  padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); box-shadow: none;
+}
+body.game:not(.touch-ui) .panel h2 {
+  margin: 0 0 10px; padding: 0; border: 0; color: var(--muted); font: 600 11px var(--ui); letter-spacing: 0.8px; text-transform: uppercase; text-shadow: none;
+}
+body.game:not(.touch-ui) .charline { color: var(--text); font: 600 14px var(--ui); margin-bottom: 8px; }
+body.game:not(.touch-ui) .bar { height: 16px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, 0.07); box-shadow: none; overflow: hidden; margin-bottom: 5px; }
+body.game:not(.touch-ui) .bar > div { border-radius: 8px; }
+body.game:not(.touch-ui) .bar.hp > div { background: linear-gradient(#ee6266, var(--hp)); }
+body.game:not(.touch-ui) .bar.mana > div { background: linear-gradient(#5aa0ff, var(--mana)); }
+body.game:not(.touch-ui) .bar.xp { height: 10px; }
+body.game:not(.touch-ui) .bar.xp > div { background: var(--xp); }
+body.game:not(.touch-ui) .bar span { font: 600 10.5px/16px var(--ui); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+body.game:not(.touch-ui) .bar.xp span { font-size: 9px; line-height: 10px; }
+body.game:not(.touch-ui) button, body.game:not(.touch-ui) .button {
+  border: 1px solid var(--line-2); border-radius: 8px; background: var(--bg-3); box-shadow: none; color: var(--text);
+  font: 500 12.5px var(--ui); text-shadow: none; transition: background-color 0.12s, border-color 0.12s;
+}
+body.game:not(.touch-ui) button:hover:not(:disabled), body.game:not(.touch-ui) .button:hover { background: var(--bg-4); }
+body.game:not(.touch-ui) button.active { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent); }
+body.game:not(.touch-ui) button.primary { border-color: transparent; background: var(--accent); color: #1d1404; font-weight: 600; }
+body.game:not(.touch-ui) button.primary:hover:not(:disabled) { background: #f0c25e; }
+body.game:not(.touch-ui) input, body.game:not(.touch-ui) select { border: 1px solid var(--line-2); border-radius: 8px; background: #0e0d0c; box-shadow: none; color: var(--text); font: 400 13px var(--ui); }
+body.game:not(.touch-ui) input:focus { outline: 2px solid var(--accent-line); outline-offset: 0; }
+body.game:not(.touch-ui) .slot { border: 1px solid var(--line) !important; border-radius: 7px; background: #0e0d0c; box-shadow: none; }
+body.game:not(.touch-ui) .slot.empty svg { color: rgba(255, 255, 255, 0.16); }
+body.game:not(.touch-ui) .slot:hover { border-color: var(--line-2) !important; }
+body.game:not(.touch-ui) .slot[data-rarity="uncommon"] { border-color: #3f9a55 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="rare"] { border-color: #3e8ef7 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="epic"] { border-color: #a26bf0 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="legendary"] { border-color: var(--accent) !important; }
+body.game:not(.touch-ui) .slot .count { font: 600 10px var(--ui); }
+body.game:not(.touch-ui) .console { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); box-shadow: none; overflow: hidden; }
+body.game:not(.touch-ui) .console #chat { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: var(--bg-2); padding: 9px 12px; }
+body.game:not(.touch-ui) .log-tabs { margin: 8px 10px 2px; gap: 2px; padding: 3px; border-radius: 9px; background: var(--bg-2); width: max-content; }
+body.game:not(.touch-ui) .log-tabs button { border: 0; background: none; color: var(--muted); padding: 3px 10px; font: 600 12px var(--ui); }
+body.game:not(.touch-ui) .log-tabs button.active { background: var(--bg-4); color: var(--text); }
+body.game:not(.touch-ui) .hotbar button { border-radius: 9px; background: var(--bg-2); border-color: var(--line); padding: 5px 10px; }
+body.game:not(.touch-ui) .hotbar kbd, body.game:not(.touch-ui) .hotbar .key { border: 1px solid var(--line-2); border-radius: 4px; background: var(--bg-3); color: var(--muted); }
+body.game:not(.touch-ui) .tabs button { border-radius: 8px; }
+body.game:not(.touch-ui) .battle-row { border-radius: 8px; padding: 3px 6px; }
+body.game:not(.touch-ui) .battle-row:hover { background: var(--bg-3); border-color: transparent; }
+body.game:not(.touch-ui) .battle-row.target { border-color: var(--hp); background: rgba(229, 72, 77, 0.08); }
+body.game:not(.touch-ui) .battle-row.followed { border-color: #3f9a55; }
+body.game:not(.touch-ui) .battle-row .mini { height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+body.game:not(.touch-ui) .battle-row .mini div { border-radius: 2px; background: #3fbf5f; }
+body.game:not(.touch-ui) .window, body.game:not(.touch-ui) .dialog, body.game:not(.touch-ui) #lootBox {
+  border: 1px solid var(--line-2); border-radius: 14px; background: var(--bg); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); color: var(--text);
+}
+body.game:not(.touch-ui) .window header, body.game:not(.touch-ui) .dialog header { padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+body.game:not(.touch-ui) .window header b, body.game:not(.touch-ui) .dialog header b { color: var(--text); font: 600 15px var(--ui); text-shadow: none; letter-spacing: 0; }
+body.game:not(.touch-ui) .guide { border: 1px solid var(--line-2); border-left: 3px solid var(--accent); border-radius: 12px; background: var(--glass); box-shadow: var(--shadow); color: var(--text); }
+body.game:not(.touch-ui) .guide header b { color: var(--accent); font-weight: 600; }
+body.game:not(.touch-ui) .toast { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(20, 19, 17, 0.85); color: var(--text); font: 500 13px var(--ui); }
+body.game:not(.touch-ui) .story { border: 1px solid var(--accent-line); border-radius: 10px; background: var(--accent-soft); }
+body.game:not(.touch-ui) .story > b { color: var(--accent); }
+body.game:not(.touch-ui) .story .next { color: var(--muted); font-style: normal; }
+body.game:not(.touch-ui) .muted { color: var(--muted); }
+body.game:not(.touch-ui) .panel h2 button { padding: 1px 6px; font-size: 11px; border-radius: 6px; text-transform: none; letter-spacing: 0; }
+body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }

@@ -346,13 +346,13 @@ function draw() {
   drawGuideArrow(screen);
   if (useWith) outlinedText(`Use ${useWith.name} on...`, canvas.width / 2, 24, '#ffe080', 'bold 14px sans-serif');
   if (raidBanner && now < raidBanner.until) {
-    wrapText(raidBanner.text, Math.floor(canvas.width / 13)).forEach((line, i) => outlinedText(line, canvas.width / 2, 60 + i * 28, raidBanner.color, 'bold 22px Georgia, serif'));
+    wrapText(raidBanner.text, Math.floor(canvas.width / 13)).forEach((line, i) => outlinedText(line, canvas.width / 2, 60 + i * 28, raidBanner.color, '700 22px Inter, system-ui, sans-serif'));
   }
 
   if (player.dead) {
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    outlinedText('You are dead', canvas.width / 2, canvas.height / 2, '#e03030', 'bold 40px Georgia, serif');
+    outlinedText('You are dead', canvas.width / 2, canvas.height / 2, '#e5484d', '800 40px Inter, system-ui, sans-serif');
   }
   Fx.ambience();
 }
