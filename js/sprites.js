@@ -4627,16 +4627,16 @@ const Sprites = (() => {
   // Water lies lowest: paving meets it at a stone edge, like a quay. Bridges take and give no borders:
   // they have their own beams.
   const BORDER_PRIORITY = { ...PAVED, bridge_ns: undefined, bridge_ew: undefined, sewer_bridge_ns: undefined, sewer_bridge_ew: undefined,
-    water: -1, lava: -1, sewer_water: -1, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
+    water: -1, lava: -1, sewer_water: -1, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2.2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
     default: { shade: 'rgba(0,0,0,0.16)', rim: 'rgba(0,0,0,0.28)' },
     // raised grounds (raise: how many pixels high their edge stands): side = [facing south, facing east, roots/stones],
     // rim = the darker south-east edge of the top, light = its lit north-west lip, blades = what hangs over the edge
-    grass: { raise: 3, clumps: 2.4, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
+    grass: { raise: 3, clumps: 1.1, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
       side: ['#7a5430', '#5a3c1e', '#3c2812'], blades: ['#4f8a2c', '#3e7424', '#62a034'] },
-    jungle: { raise: 3, clumps: 1.6, shade: 'rgba(10,20,8,0.35)', rim: '#1e4a1a', light: 'rgba(90,150,70,0.6)',
+    jungle: { raise: 3, clumps: 1.1, shade: 'rgba(10,20,8,0.35)', rim: '#1e4a1a', light: 'rgba(90,150,70,0.6)',
       side: ['#5a4228', '#3e2c18', '#241a0e'], blades: ['#275a22', '#3a7a32', '#1e4a1a'] },
     snow: { raise: 3, clumps: 1, shade: 'rgba(60,80,110,0.28)', rim: '#b8c8dc', light: 'rgba(255,255,255,0.9)',
       side: ['#d6e2ee', '#a8b8cc', '#8a9ab0'] },
@@ -4923,7 +4923,7 @@ const Sprites = (() => {
     // and rim run round the curve, so a trail winds round the end of a clump of grass instead of a square block.
     cornerCut(high, low, corner, x, y) {
       const kh = SEAMLESS[high], kl = SEAMLESS[low], pos = (k, n) => k ? `${((n % k.tiles) + k.tiles) % k.tiles}` : '';
-      return cached(`cut2:${high}:${low}:${corner}:${pos(kh, x)}:${pos(kh, y)}:${pos(kl, x)}:${pos(kl, y)}`, g => {
+      return cached(`cut3:${high}:${low}:${corner}:${pos(kh, x)}:${pos(kh, y)}:${pos(kl, x)}:${pos(kl, y)}`, g => {
         const st = edgeStyle(high), lift = st.raise || 0;
         if (!lift) return;
         const lowTex = texturePixels(low, x, y);
@@ -4957,13 +4957,14 @@ const Sprites = (() => {
       const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]], all = mask;
       for (const [c, a, b] of corners) if (mask & (a | b)) mask &= ~c; // a corner only counts on its own
       const k = SEAMLESS[ground], pos = k ? `${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : '';
-      return cached(`edge6:${ground}:${mask}:${all}:${variant}:${pos}`, g => {
+      return cached(`edge9:${ground}:${mask}:${all}:${variant}:${pos}`, g => {
         const st = edgeStyle(ground), tex = texturePixels(ground, x, y);
         const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble, lift = st.raise || 0;
         const k1 = [2, 3, 4][variant], k2 = [5, 7, 6][variant];
         // border jitter: a slow wander of the line, never a repeating zigzag
         // (a raised ground's edge also has clumps: shorter bumps, zero at the tile's sides so neighbours still meet)
         const clump = st.clumps || 0, k3 = [9, 11, 13][variant], k4 = [15, 17, 19][variant];
+        const wob0 = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t));
         const wob = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t))
           + clump * Math.sin(Math.PI * t) * (0.7 * Math.sin(k3 * Math.PI * t + variant) + 0.45 * Math.sin(k4 * Math.PI * t + 2 * variant));
         const rects = EDGE_RECTS.filter(([bit]) => mask & bit);
@@ -4983,6 +4984,7 @@ const Sprites = (() => {
         const ROUND = 9; // how round the edge turns where two neighbours meet (raised grounds)
         const hash = (px, py, s = 0) => (((px * 73856093) ^ (py * 19349663) ^ ((variant + s) * 83492791)) >>> 0) % 100;
         // how far a point lies outside the higher ground's top (negative: on it)
+        let smoothOnly = false; // (the side below the edge follows the edge without its clumps: no brown teeth)
         const out = (cx, cy) => {
           let dist = 99;
           // a smooth minimum over the neighbours, so where two of them meet the edge curves round instead of turning
@@ -4994,8 +4996,9 @@ const Sprites = (() => {
             sum += Math.exp(-d / ROUND);
           }
           if (lift && sum > 0) dist = Math.min(dist, -ROUND * Math.log(sum));
-          return dist - (width + wob(cx / TILE) + wob(cy / TILE) * 0.8);
+          return dist - (width + (smoothOnly ? wob0(cx / TILE) + wob0(cy / TILE) : wob(cx / TILE) + wob(cy / TILE)));
         };
+        const outS = (cx, cy) => { smoothOnly = true; const v = out(cx, cy); smoothOnly = false; return v; };
         for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
           const cx = px + 0.5, cy = py + 0.5, i = (py * TILE + px) * 4, e = out(cx, cy);
           if (lift) {
@@ -5008,13 +5011,13 @@ const Sprites = (() => {
               else if (out(cx + 1, cy + 1) >= 0) put(i, rim);                     // its darker south-east edge
               continue;
             }
-            const below = out(cx - lift, cy - lift) < 0, under = out(cx, cy - lift) < 0;
+            const below = outS(cx - lift, cy - lift) < 0 && outS(cx, cy) >= -0.5, under = outS(cx, cy - lift) < 0;
             if (below) { // the side: facing south (where the top is straight above) a little lit, facing east in shade
               const c = side[under ? 0 : 1];
               d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
-              if (out(cx - lift + 1, cy - lift + 1) < 0 && out(cx, cy - 1) < 0) put(i, side[2]); // roots, just under the top
+              if (under && out(cx, cy - lift + 1) < 0 && out(cx - 1, cy - lift) < 0 && out(cx + 1, cy - lift) < 0) put(i, side[2], 0.7); // roots, just under the top
               else if (hash(px, py) < 12) put(i, side[2], 0.6); // stones and roots in the soil
-            } else if (out(cx - lift - 1.5, cy - lift - 1.5) < 0) put(i, shade); // the soft shadow it casts south-east
+            } else if (outS(cx - lift - 1.5, cy - lift - 1.5) < 0) put(i, shade); // the soft shadow it casts south-east
             // blades of grass hanging over its edge, here and there
             if (blades && e < 4 && hash(px >> 1, py, 7) < 34 && out(cx, cy - 1 - (hash(px, py, 3) % 3)) < 0) put(i, blades[hash(px, py, 5) % blades.length], 1);
             continue;
