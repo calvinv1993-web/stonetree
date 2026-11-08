@@ -579,7 +579,7 @@ const Sprites = (() => {
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
   // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
   // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
-  const RAISED = new Set(['ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
+  const RAISED = new Set(['eggs', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
@@ -1836,16 +1836,16 @@ const Sprites = (() => {
       for (const [x, y] of [[66, 50], [84, 46], [88, 56], [70, 42]]) { rect(g, '#f0c020', x, y, 2, 1); rect(g, '#1a1a1a', x + 1, y, 1, 1); }
     },
     eggs(g, r) {
-      shadow(g, 16, 27, 13, 4);
-      ellipse(g, '#6a5030', 16, 24, 13, 5);
-      for (let i = 0; i < 18; i++) line(g, '#8a6a3a', 1, 4 + r() * 24, 20 + r() * 7, 4 + r() * 24, 20 + r() * 7);
-      const tint = r() < 0.5 ? ['#c84a3a', '#e88a6a'] : ['#4a8ab0', '#8ac0e0'];
-      for (const [x, y] of [[11, 17], [20, 18], [16, 14]]) {
-        ellipse(g, tint[0], x, y, 4.5, 6);
-        ellipse(g, tint[1], x - 1.5, y - 2, 1.5, 2);
-        for (let k = 0; k < 4; k++) rect(g, 'rgba(0,0,0,0.3)', x - 3 + r() * 6, y - 3 + r() * 7, 1, 1);
+      floorShadow(g, 12, 4);
+      const [nx, ny] = P(16, 18, 2); ellipse(g, '#5a4228', nx, ny + 1, 13, 7); ellipse(g, '#7a5a34', nx, ny, 12, 6); // the nest, of twigs
+      for (let i = 0; i < 18; i++) { const a = r() * Math.PI * 2, d = 7 + r() * 5; line(g, i % 2 ? '#9a7a46' : '#4e3820', 1, nx + Math.cos(a) * d, ny + Math.sin(a) * d * 0.5, nx + Math.cos(a + 0.6) * d, ny + Math.sin(a + 0.6) * d * 0.5); }
+      const tint = r() < 0.5 ? ['#e88a6a', '#c84a3a', '#8a2a1e'] : ['#8ac0e0', '#4a8ab0', '#2a5a7a'];
+      for (const [u, v] of [[16, 15], [11, 19], [20, 20]]) {
+        drum(g, u, v, 2, 11, t => 3.4 * Math.sqrt(Math.max(0, 1 - (2 * t - 0.8) ** 2 / 1.44)) + 0.4, { edge: tint[2], light: tint[0], mid: tint[1], dark: tint[2] });
+        for (let k = 0; k < 3; k++) { const [x, y] = P(u - 1.5 + r() * 3, v, 4 + r() * 5); rect(g, 'rgba(0,0,0,0.3)', x, y, 1, 1); }
       }
     },
+
     // A standing stone of the old ones: a dark shaft on a plinth, narrowing to a point, runes glowing down its front.
     obelisk(g) {
       floorShadow(g, 10, 4);
@@ -3261,6 +3261,8 @@ const Sprites = (() => {
   const NO_INK = new Set(['flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
     'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate', 'chimney']);
   const inkable = (id, def) => !def.ground && !def.wall && !def.onWall && !def.roof && !def.change && !NO_INK.has(id);
+  // A selective outline (docs/art-style.md): every pixel round the thing takes a deep shade of the colour it borders,
+  // not black, so a wooden crate is edged in dark brown and a stone in dark grey.
   function inked(g, draw) {
     const { width, height } = g.canvas, layer = document.createElement('canvas');
     layer.width = width;
@@ -3270,9 +3272,14 @@ const Sprites = (() => {
     const src = f.getImageData(0, 0, width, height).data, out = g.createImageData(width, height), d = out.data;
     const solid = (x, y) => x >= 0 && y >= 0 && x < width && y < height && src[(y * width + x) * 4 + 3] >= 200;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-      if (solid(x, y) || !(solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1))) continue;
+      if (solid(x, y)) continue;
+      let r = 0, gg = 0, b = 0, n = 0;
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) if (solid(x + dx, y + dy)) {
+        const j = ((y + dy) * width + x + dx) * 4; r += src[j]; gg += src[j + 1]; b += src[j + 2]; n++;
+      }
+      if (!n) continue;
       const i = (y * width + x) * 4;
-      d[i] = 22; d[i + 1] = 15; d[i + 2] = 10; d[i + 3] = 215;
+      d[i] = (r / n) * 0.3 + 6; d[i + 1] = (gg / n) * 0.27 + 4; d[i + 2] = (b / n) * 0.27 + 4; d[i + 3] = 225; // deep, a little warm
     }
     g.putImageData(out, 0, 0);
     g.drawImage(layer, 0, 0);
