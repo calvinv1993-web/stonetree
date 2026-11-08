@@ -463,6 +463,9 @@ function renderMenu() {
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
     row('Order a ride', h('span', {}, '›'), () => { closeSheet(); if ($('worldmap').hidden) toggleWorldMap(true); else setRideMode(true); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
+    h('div', { className: 'menu-head' }, 'Make'),
+    row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),
+    row(['Data editor', h('small', {}, 'Items, monsters and NPCs, in this browser')], h('span', {}, '›'), () => { location.href = 'data.html'; }),
     row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
   );
 }
