@@ -655,6 +655,34 @@ function createDefaultMap() {
   };
   for (const road of d.roads) paint(road.line, road.width);
   for (const path of d.paths) paint(path.line, 2);
+  // Side trails: short, narrow tracks of dirt branching off the roads and trails into the grass, as feet wear them,
+  // each wandering a little and fading out. (Fixed by a hash of the place, like everything else.)
+  const trodden = (x, y) => { const t = at(x, y); return t && t.ground === 'grass' && !t.items.some(id => THINGS[id].block || THINGS[id].change) && !inTownArea(x, y); };
+  let branchNo = 0;
+  for (const [k, line] of [...d.roads.map(r => r.line), ...d.paths.map(p => p.line)].entries()) {
+    for (let i = 0; i + 1 < line.length; i++) {
+      const [ax, ay] = line[i], [bx, by] = line[i + 1], alongX = ay === by, len = Math.abs(alongX ? bx - ax : by - ay);
+      for (let t = 6; t < len - 5; t += 9 + Math.floor(hash(k, i * 31 + t, 151) * 9)) {
+        if (hash(k, t, 157 + i) < 0.4) continue; // not at every chance
+        const side = hash(t, k, 163 + i) < 0.5 ? -1 : 1, n = 5 + Math.floor(hash(i, t, 167 + k) * 8), no = ++branchNo;
+        let x = alongX ? ax + Math.sign(bx - ax) * t : ax, y = alongX ? ay : ay + Math.sign(by - ay) * t;
+        let drift = 0, prev = null;
+        for (let s = 0; s < n; s++) {
+          // out from the trail, drifting sideways now and then
+          if (alongX) y += side; else x += side;
+          if (s > 1 && hash(no, s, 173) < 0.35) drift += hash(s, no, 179) < 0.5 ? -1 : 1;
+          const px = alongX ? x + drift : x, py = alongX ? y : y + drift;
+          if (s < 2) { if (!trodden(px, py) && ground(px, py) !== 'dirt') break; } // (the first steps may cross the trail's own edge)
+          else if (!trodden(px, py)) break;
+          if (ground(px, py) === 'grass') m.setGround(px, py, S, 'dirt');
+          // a step sideways: the tile between, so the track stays joined edge to edge
+          if (prev && Math.abs(prev[0] - px) + Math.abs(prev[1] - py) > 1) { const [qx, qy] = alongX ? [prev[0], py] : [px, prev[1]]; if (trodden(qx, qy)) m.setGround(qx, qy, S, 'dirt'); }
+          prev = [px, py];
+          if (s < n - 2 && hash(px, py, 181) < 0.45) { const qx = alongX ? px + 1 : px, qy = alongX ? py : py + 1; if (trodden(qx, qy)) m.setGround(qx, qy, S, 'dirt'); } // wider in places
+        }
+      }
+    }
+  }
 
   // ---- forests -------------------------------------------------------------------------------
   // Trees stand in clumps (where the noise is high) with glades between them, thinning out
