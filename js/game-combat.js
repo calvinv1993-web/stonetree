@@ -692,6 +692,8 @@ function updateMonster(m, i) {
   }
   finishWalk(m);
   if (m.walk) return;
+  if (m.returning) reengage(m);
+  if (strayHome(m)) return;
   const target = m.returning ? null : monsterTarget(m);
   if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Kenny minds nobody on the way
   m.goal = null;
@@ -735,25 +737,43 @@ function walkIn(m, i) {
 
 // A monster's territory: TERRITORY tiles round its spawn. It follows you out of it for a while, but once you've led
 // it CHASE tiles from home and you're beyond its territory (or in town, where it can't come), it gives up and walks
-// slowly back, minding nobody until it's home. (Raiders and summons have no home to go back to.)
+// slowly back. On the way it still turns on whoever hits it, or on someone who comes close inside its territory
+// (reengage). One that is far from home with nobody to see it is simply back at its spawn (strayHome), as in Tibia:
+// never while someone watches. (Raiders and summons have no home to go back to.)
 const TERRITORY = 8, CHASE = 10;
 function leftTerritory(m, target) {
   const home = m.spawn;
   if (!home || m.raid || m.summoner || home.z !== m.z) return false;
   const away = dist(m, home), targetAway = dist(target, home);
   if (!(map.isTown(target.x, target.y, target.z) && away > 2) && !(away >= CHASE && targetAway > TERRITORY)) return false;
-  m.returning = true;
+  m.returning = now;
   m.goal = { x: home.x, y: home.y };
   m.angryUntil = 0;
+  return true;
+}
+const NOTICE_ON_THE_WAY = 3;
+function reengage(m) {
+  const home = m.spawn, hitBy = m.angryUntil > now && m.angryUntil - 15000 >= m.returning ? players.find(p => p.id === m.angryAt) : null;
+  const near = players.find(p => !p.dead && p.z === m.z && dist(p, m) <= NOTICE_ON_THE_WAY && dist(p, home) <= TERRITORY
+    && !map.isShelter(p.x, p.y, p.z) && !map.isTown(p.x, p.y, p.z) && m.def.aggro > 0);
+  if (hitBy || near) { m.returning = 0; m.goal = null; }
+}
+function strayHome(m) {
+  const home = m.spawn;
+  if (!home || m.raid || m.summoner || m.def.comesBack || home.z !== m.z || dist(m, home) <= CHASE) return false;
+  if (m.angryUntil > now || players.some(p => inView(p, m) || inView(p, home))) return false;
+  const spot = findFreeTile(home.x, home.y, home.z, 4, true);
+  if (!spot) return false;
+  Object.assign(m, { x: spot.x, y: spot.y, walk: null, goal: null, returning: 0 });
   return true;
 }
 
 function walkToGoal(m) {
   if (now < m.nextMove) return;
-  if (m.returning && dist(m, m.goal) <= 2) { m.returning = false; m.goal = null; return; } // home again
+  if (m.returning && dist(m, m.goal) <= 2) { m.returning = 0; m.goal = null; return; } // home again
   m.nextMove = now + (m.returning ? 650 : 100); // (going home it ambles)
   const path = findPath(freeAround(m, 45), m.x, m.y, m.goal.x, m.goal.y, { range: 1, maxNodes: 3000 }); // round a town's houses too
-  if (!path || !path.length) { m.returning = false; return void (m.goal = null); }
+  if (!path || !path.length) { m.returning = 0; return void (m.goal = null); } // (stuck: strayHome brings it back unseen)
   step(m, path[0][0] - m.x, path[0][1] - m.y);
 }
 

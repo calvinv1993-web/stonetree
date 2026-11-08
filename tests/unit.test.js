@@ -578,6 +578,21 @@ test('monsters keep to their territory: they follow you a while, then amble home
   tick(game, 30000);
   assert(Math.max(Math.abs(rat.x - s.x), Math.abs(rat.y - s.y)) <= 3, 'it got home');
   assert(!rat.returning, 'and minds you again');
+  const r3 = ctx.spawnMonster({ ...s });
+  Object.assign(r3, { x: s.x + 11, y: s.y });
+  state.monsters.push(r3);
+  ctx.teleport({ x: s.x + 22, y: s.y, z: 8 });
+  ctx.leftTerritory(r3, p);
+  ctx.teleport({ x: s.x + 6, y: s.y + 1, z: 8 });
+  Object.assign(r3, { x: s.x + 7, y: s.y });
+  ctx.updateMonster(r3, state.monsters.indexOf(r3));
+  assert(!r3.returning, 'on its way home it turns on you when you come close inside its territory');
+  const r4 = ctx.spawnMonster({ ...s });
+  Object.assign(r4, { x: s.x + 30, y: s.y });
+  state.monsters.push(r4);
+  ctx.teleport({ x: s.x + 60, y: s.y, z: 8 });
+  ctx.updateMonster(r4, state.monsters.indexOf(r4));
+  assert(Math.max(Math.abs(r4.x - s.x), Math.abs(r4.y - s.y)) <= 4, 'one far from home that nobody sees is back at its spawn');
   assert(state.map.isTown(130, 120, 8) && !state.map.isTown(130, 120, 7), 'the town\'s streets are town, the sewers below aren\'t');
   const r2 = ctx.spawnMonster({ ...s });
   Object.assign(r2, { x: 126, y: 151 }); // just outside the south gate
