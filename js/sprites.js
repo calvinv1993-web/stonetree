@@ -1072,6 +1072,7 @@ const Sprites = (() => {
     bridge_ew(g, r, frame, shape) { bridge(g, r, true, undefined, shape); },
     sewer_bridge_ns(g, r, frame, shape) { bridge(g, r, false, '#2c4630', shape); },
     sewer_bridge_ew(g, r, frame, shape) { bridge(g, r, true, '#2c4630', shape); },
+    temple_paving(g, r) { DRAW.paving(g, r); },
     paving(g, r) {
       rect(g, '#6e6a62', 0, 0, TILE, TILE);
       for (const y of [0, 16]) {
@@ -2540,6 +2541,14 @@ const Sprites = (() => {
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   const SEAMLESS = {
+    temple_paving: { tiles: 4, draw: g => {
+      const image = customImage('temple_paving');
+      if (image) { g.imageSmoothingEnabled = false; g.drawImage(image, 0, 0); }
+      else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.paving(g, makeRng(hashStr('paving') + y * 4 + x)); g.restore();
+      }
+    } },
     marble: { tiles: 4, draw: g => {
       const image = customImage('marble');
       if (image) {
@@ -4623,7 +4632,7 @@ const Sprites = (() => {
 
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
-  const PAVED = { paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
+  const PAVED = { temple_paving: 0, paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
   // Water lies lowest: paving meets it at a stone edge, like a quay. Bridges take and give no borders:
   // they have their own beams.
   const BORDER_PRIORITY = { ...PAVED, bridge_ns: undefined, bridge_ew: undefined, sewer_bridge_ns: undefined, sewer_bridge_ew: undefined,
@@ -4696,7 +4705,7 @@ const Sprites = (() => {
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
-    if (id === 'grass' || id === 'marble') return seamlessPart(id, 0, 0);
+    if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, 0, 0);
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
@@ -4708,7 +4717,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -4764,7 +4773,7 @@ const Sprites = (() => {
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       const own = customImage(id);
-      if (id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
       if (own) return own;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
@@ -5155,6 +5164,7 @@ const Sprites = (() => {
     },
   };
 })();
+
 
 
 

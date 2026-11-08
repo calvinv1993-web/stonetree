@@ -1137,8 +1137,8 @@ function buildTown(m, S, runs, river) {
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // the terrace in front: paving, statues, lamps and flowers, with the steps down to the square
     const mt = T.mount;
-    for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0; x <= t.x1; x++) m.set(x, y, Z, { ground: 'paving', items: [] });
-    for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'paving');
+    for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0; x <= t.x1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
+    for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
     for (const [x, id] of [[t.x0 + 1, 'statue'], [t.x1 - 1, 'statue']]) put(x, mt.y1 - 1, Z, id);
     for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
     for (const x of [cx - 4, cx + 4]) put(x, t.y1 + 1, Z, 'torch');
@@ -1353,4 +1353,5 @@ function buildTown(m, S, runs, river) {
   for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
     const t = m.get(x, y, S); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }
 }
+
 

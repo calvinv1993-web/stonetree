@@ -47,6 +47,7 @@ const THINGS = {
   crypt:       { name: 'worn grave slabs', cat: 'Ground', ground: true },          // the floor of a crypt
   pit:         { name: 'deep shaft', cat: 'Ground', ground: true, block: true },   // a drop into the dark, through rock
   swamp:       { name: 'swamp', cat: 'Ground', ground: true },
+  temple_paving: { name: 'temple limestone paving', cat: 'Ground', ground: true },
   paving:      { name: 'paving stones', cat: 'Ground', ground: true },
   brick:       { name: 'brick road', cat: 'Ground', ground: true },
   tiles:       { name: 'tiled floor', cat: 'Ground', ground: true },
@@ -452,4 +453,5 @@ function makeRng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
 

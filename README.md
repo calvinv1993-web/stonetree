@@ -218,3 +218,6 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 
 - The temple has a rounded embroidered rug above its marble floor, with one ornament across three by three tiles.
+
+
+- The temple terrace uses detailed weathered limestone paving.
