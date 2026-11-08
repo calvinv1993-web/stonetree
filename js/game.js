@@ -32,6 +32,13 @@ function setViewSize(w, h, zoom = ZOOM) {
   dark.height = VIEW_H * TILE * SCALE;
 }
 
+// How close the camera is on a phone: 'near' (default) or 'far' (Menu, Game), remembered per browser.
+const mapZoomNear = () => { try { return localStorage.getItem('tilequest.zoom') !== 'far'; } catch (e) { return true; } };
+function setMapZoom(near) {
+  try { localStorage.setItem('tilequest.zoom', near ? 'near' : 'far'); } catch (e) { /* not remembered */ }
+  fitView();
+}
+
 // Scale the map to the largest rectangle that fits the space left for it. On a phone the view itself adapts to
 // the screen (see below).
 function fitView() {
@@ -43,7 +50,8 @@ function fitView() {
     // the next: as many tiles as cover the space (the last ones may be cut a little at the edges), up to what the
     // server sends round you (25 across, 21 down); fewer, bigger pixels if that's not enough.
     const dpr = window.devicePixelRatio || 1, W = box.width * dpr, H = box.height * dpr;
-    let p = Math.max(2, Math.round(dpr)), cols, rows;
+    // Near (the default) is one step closer: 4 screen pixels per world pixel on most iPhones, still whole pixels.
+    let p = Math.max(2, Math.round(dpr) + (mapZoomNear() ? 1 : 0)), cols, rows;
     for (;; p++) {
       cols = Math.ceil(W / (TILE * p));
       rows = Math.ceil(H / (TILE * p));

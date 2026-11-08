@@ -446,7 +446,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}`;
+  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${mapZoomNear()}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -470,6 +470,7 @@ function renderMenu() {
     h('div', { className: 'menu-head' }, 'Game'),
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
+    row(['Close-up view', h('small', {}, mapZoomNear() ? 'On: a closer camera, everything bigger' : 'Off: see more of the world around you')], toggle(mapZoomNear()), () => { setMapZoom(!mapZoomNear()); renderMenu(); }),
     row(['Joystick', h('small', {}, joystickOn() ? 'On: walk with the stick, bottom left' : 'Off: tap where to go, or swipe the map')], toggle(joystickOn()), () => setJoystick(!joystickOn())),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
