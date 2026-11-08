@@ -240,13 +240,13 @@ const Render = {
         // this tile's own corners: rounded off where a lower ground lies on both sides and across the corner
         if (Sprites.cornerCut) for (const [d, dx, dy, a, b] of BORDER_DIRS) {
           const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
-          if (q === undefined || !(q < p) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue;
+          if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
           g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
         }
         if (!higher) continue;
         const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
         for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
-          g.drawImage(Sprites.edge(n, mask, variant, x, y), ox + x * TILE, oy + y * TILE);
+          g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
         }
       }
 

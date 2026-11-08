@@ -4953,11 +4953,11 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       });
     },
-    edge(ground, mask, variant, x, y) {
+    edge(ground, mask, variant, x, y, crisp = false) { // crisp: over built ground (paving, floors): square corners
       const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]], all = mask;
       for (const [c, a, b] of corners) if (mask & (a | b)) mask &= ~c; // a corner only counts on its own
       const k = SEAMLESS[ground], pos = k ? `${((x % k.tiles) + k.tiles) % k.tiles}:${((y % k.tiles) + k.tiles) % k.tiles}` : '';
-      return cached(`edge9:${ground}:${mask}:${all}:${variant}:${pos}`, g => {
+      return cached(`edge9:${ground}:${mask}:${all}:${variant}:${pos}:${crisp ? 1 : 0}`, g => {
         const st = edgeStyle(ground), tex = texturePixels(ground, x, y);
         const width = st.width || 5, amp = st.wobble === undefined ? 1 : st.wobble, lift = st.raise || 0;
         const k1 = [2, 3, 4][variant], k2 = [5, 7, 6][variant];
@@ -4991,11 +4991,11 @@ const Sprites = (() => {
           // a sharp corner: a trail winds through the grass rather than stepping in squares
           let sum = 0;
           for (const [bit, x0, y0, x1, y1] of rects) {
-            const d = lift ? rrDist(cx, cy, x0, y0, x1, y1, roundCorners(bit, all)) : Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1));
+            const d = lift && !crisp ? rrDist(cx, cy, x0, y0, x1, y1, roundCorners(bit, all)) : Math.hypot(Math.max(x0 - cx, 0, cx - x1), Math.max(y0 - cy, 0, cy - y1));
             dist = Math.min(dist, d);
             sum += Math.exp(-d / ROUND);
           }
-          if (lift && sum > 0) dist = Math.min(dist, -ROUND * Math.log(sum));
+          if (lift && !crisp && sum > 0) dist = Math.min(dist, -ROUND * Math.log(sum));
           return dist - (width + (smoothOnly ? wob0(cx / TILE) + wob0(cy / TILE) : wob(cx / TILE) + wob(cy / TILE)));
         };
         const outS = (cx, cy) => { smoothOnly = true; const v = out(cx, cy); smoothOnly = false; return v; };
