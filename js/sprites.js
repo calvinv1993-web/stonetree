@@ -5103,6 +5103,79 @@ const Sprites = (() => {
     } else { up(0, -9, 1, '#7a5030'); up(1, -9, 1, '#4e3018'); for (const [dx, dy] of [[-1, -9], [-1, -8], [2, -9], [2, -8], [0, -10], [1, -10]]) px(dx, dy, '#5a3a1e'); }
   }
 
+  // ---- people in the world's own camera (Sprites.PEOPLE 'lean') -------------------------------------------------------
+  // Like everything with height in the world, a person leans: its height runs up and to the left, a pixel for a pixel,
+  // as a wall's does, so the head is up-left of the feet. Built from a few plain blocks (legs, body, arms, head, hair)
+  // in the look's colours, lit from the top left (tops light, south faces as they are, east faces in shade), drawn at
+  // a pixel per world pixel with a firm dark edge round the whole figure: chunky, simple, readable.
+  const leanable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
+  function leanPerson(g0, p, dir, frame) {
+    const L = (u, v, z) => [u - z * HEIGHT, v - z * HEIGHT]; // a point of the figure on the picture (leaning as things do)
+    const step = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+    const skin = p.skin || '#f0c090', hair = p.hair || shade(skin, 0.6), body = p.body || '#6a6a72', arms = p.arms || body;
+    const legs = p.legs || body, feet = p.feet || shade(legs, 0.6), hs = p.hairStyle || 'short', hat = p.hat || null;
+    const hooded = hat && hat.style === 'hood', bald = hs === 'bald' || hooded;
+    const U = 18, V = 24; // where the figure stands
+    const parts = [];
+    // a block in the figure's own frame: a across (to its right), b forward, w wide, d deep, from z0 to z1
+    const block = (a, b, w, d, z0, z1, color, extra) => {
+      const [du, dv] = turn(dir, a, b), [ww, dd] = dir === 1 || dir === 3 ? [d, w] : [w, d];
+      parts.push({ key: du + dv + z0 * 0.001, draw: g => {
+        const u0 = U + du - ww / 2, u1 = U + du + ww / 2, v0 = V + dv - dd / 2, v1 = V + dv + dd / 2;
+        poly(g, shade(color, 0.7), [...L(u1, v0, z0), ...L(u1, v1, z0), ...L(u1, v1, z1), ...L(u1, v0, z1)]);  // east, in shade
+        poly(g, color, [...L(u0, v1, z0), ...L(u1, v1, z0), ...L(u1, v1, z1), ...L(u0, v1, z1)]);             // south
+        poly(g, shade(color, 1.22), [...L(u0, v0, z1), ...L(u1, v0, z1), ...L(u1, v1, z1), ...L(u0, v1, z1)]); // top, lit
+        if (extra) extra(g, { u0, u1, v0, v1 });
+      } });
+    };
+    // legs, stepping forward and back; boots
+    for (const s of [-1, 1]) {
+      const sw = step * s * 2.6;
+      if (!p.robe) { block(s * 2.6, sw, 4.2, 4, 4, 15, legs); block(s * 2.6, sw + 0.8, 4.4, 5.6, 0, 4.4, feet); }
+    }
+    if (p.robe) { block(0, 0, 11.4, 7.6, 0.5, 16, body); if (p.trim) block(0, 0, 11.8, 8, 0.3, 2.4, p.trim); }
+    else block(0, 0, 10, 5, 13, 16, p.skirt || legs); // the hips
+    if (p.skirt) block(0, 0, 11, 6.4, 7, 16, p.skirt);
+    // the body, a belt; arms swinging against the legs, and hands
+    block(0, 0, 11, 6, 15.6, 28, p.armor || body);
+    if (p.tabard && dir !== 1 && dir !== 3) block(0, dir === 2 ? 3 : -3, 4.6, 0.8, 11, 27, p.tabard);
+    block(0, 0, 11.2, 6.2, 15.4, 17.4, p.sash || p.belt || shade(legs, 0.5));
+    if (p.cape) block(0, -3.6, 12, 1.4, 5, 27.6, p.cape);
+    for (const s of [-1, 1]) {
+      const sw = -step * s * 2.4;
+      block(s * 7.2, sw * 0.5, 3.4, 3.6, 19, 27.6, p.armor && !p.bareArms ? p.armor : p.bareArms ? skin : arms);
+      block(s * 7.2, sw, 3.2, 3.4, 15, 19.4, p.bareArms ? skin : arms);
+      block(s * 7.2, sw, 3, 3.2, 12.6, 15.2, skin); // the hand
+    }
+    if (p.held && dir !== 0) { const [hu, hv] = turn(dir, 7.2, -step * 2.4); const c = /staff/.test(p.held) ? '#7a5030' : /bow/.test(p.held) ? '#8a5a2e' : '#d8dce4'; parts.push({ key: hu + hv + 0.5, draw: g => line(g, c, 2, ...L(U + hu, V + hv, 13), ...L(U + hu, V + hv, /staff/.test(p.held) ? 48 : 36)) }); }
+    // the head (big, as the figure is meant to be read at a glance), and the face on the side it looks
+    const face = (g, f) => {
+      const px = ([x, y]) => rect(g, '#141010', Math.round(x), Math.round(y), 1, 2), ez = 34.6;
+      if (dir === 2) for (const s of [-2.2, 2.2]) px(L(U + s, f.v1, ez));
+      else if (dir === 1) px(L(f.u1, V + 1.6, ez));
+      else if (dir === 3) px(L(f.u0 + 1.8, f.v1, ez));
+    };
+    block(0, 0, 9.6, 8.4, 28, 40, skin, dir === 0 ? null : face);
+    if (!bald) { // hair: a cap over the top and down the back
+      block(0, -0.6, 10.6, 9.6, 37.6, 42.4, hair);
+      block(0, -3.9, 10.6, 2.2, 30, 39, hair);
+      if (hs === 'long' || hs === 'braids' || hs === 'wild') block(0, -4.2, 11, 2.4, 20, 31, hair);
+      if (hs === 'ponytail') block(0, -5.2, 2.6, 2, 23, 36, hair);
+    }
+    if (p.beard && dir !== 0) block(0, 3.6, 8, 1.8, 28, 32.4, p.beard);
+    if (hat) {
+      const c = hat.color || '#8a8a92', st = hat.style;
+      if (st === 'hood') block(0, -0.6, 11.4, 10, 31, 43.6, c);
+      else if (st === 'pointy') { block(0, 0, 14, 12.6, 40, 41.6, c); block(0, 0, 8, 7, 41.6, 48, c); block(0, 0, 4, 3.6, 48, 53, c); }
+      else if (st === 'crown') block(0, 0, 10, 9, 40.4, 43.4, GOLD);
+      else if (st === 'wide' || st === 'tricorn' || st === 'feather' || st === 'hunter') { block(0, 0, 15, 13.4, 40, 41.4, c); block(0, 0, 9.4, 8.4, 41.4, 45.4, c); }
+      else block(0, 0, 10.8, 9.8, 37, 43.6, c); // helmets and the rest
+    }
+    shadow(g0, U - 2, V + 1, 8.5, 3.6);
+    outlined(g0, g => { parts.sort((x, y) => x.key - y.key); for (const part of parts) part.draw(g); });
+    solidify(g0); // whole pixels: chunky, no soft edges
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -5423,7 +5496,7 @@ const Sprites = (() => {
   }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => (Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (look) return (g, d, f) => (Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -5798,7 +5871,7 @@ const Sprites = (() => {
       }
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)), R = Sprites.CREATURE_RES;
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)), R = Sprites.PEOPLE === 'lean' && leanable(look) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
