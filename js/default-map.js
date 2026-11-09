@@ -1051,8 +1051,9 @@ function buildTown(m, S, runs, river) {
       // a passage three tiles wide (a gate, the river) gets a great arch, in three parts; others a lintel
       const open = (ax, ay) => inRing(ax, ay) && !inTower(ax, ay) && !m.get(ax, ay, S).items.includes('rampart');
       const part = (dx, dy) => { let i = 0; while (open(x - dx * (i + 1), y - dy * (i + 1))) i++; let n = i + 1; while (open(x + dx * (n - i), y + dy * (n - i))) n++; return n === 3 ? i : -1; };
-      if (!inRing(x, y + 1)) { const i = part(1, 0); put(x, y, S, i < 0 ? 'arch_span_s' : `arch_gate_s${i}`); }
-      if (!inRing(x + 1, y)) { const i = part(0, 1); put(x, y, S, i < 0 ? 'arch_span_e' : `arch_gate_e${i}`); }
+      put(x, y, S, 'vault_shadow'); // the shade under the walkway
+      if (!inRing(x, y + 1)) { const i = part(1, 0); put(x, y, S, i < 0 ? 'arch_span_s' : `arch_gate_s${i}`); if (i >= 0 && gate(x, y)) put(x, y, S, `portcullis_s${i}`); }
+      if (!inRing(x + 1, y)) { const i = part(0, 1); put(x, y, S, i < 0 ? 'arch_span_e' : `arch_gate_e${i}`); if (i >= 0 && gate(x, y)) put(x, y, S, `portcullis_e${i}`); }
     }
     // cannons along the battlements, every eleven tiles, pointing out, a pile of balls beside each and every other one a
     // keg of powder on its other side (only where the wall is solid below, not over a gate or the water)

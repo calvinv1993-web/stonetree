@@ -99,6 +99,11 @@ const THINGS = {
   arch_span_e: { name: 'archway', cat: 'Walls', tall: true },
   // a great arch over a passage three tiles wide (a gate, the river), in three parts, on the face you see
   arch_gate_s0: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_s1: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_s2: { name: 'archway', cat: 'Walls', tall: true },
+  // the shade under the vault of a passage through the town wall (on the ground, over water too)
+  vault_shadow: { name: 'shadow', cat: 'Walls' },
+  // a gate's portcullis, drawn up into its arch (in three parts like it), its spikes showing under the stones
+  portcullis_s0: { name: 'portcullis', cat: 'Walls', tall: true }, portcullis_s1: { name: 'portcullis', cat: 'Walls', tall: true }, portcullis_s2: { name: 'portcullis', cat: 'Walls', tall: true },
+  portcullis_e0: { name: 'portcullis', cat: 'Walls', tall: true }, portcullis_e1: { name: 'portcullis', cat: 'Walls', tall: true }, portcullis_e2: { name: 'portcullis', cat: 'Walls', tall: true },
   arch_gate_e0: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_e1: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_e2: { name: 'archway', cat: 'Walls', tall: true },
   door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
   door_closed: { name: 'closed door', cat: 'Walls', block: true, toggle: 'door', wall: 'thin' },

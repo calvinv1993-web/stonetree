@@ -160,6 +160,24 @@ const Sprites = (() => {
       g.fillStyle = 'rgba(10,8,6,0.35)'; g.beginPath(); for (const [u, v] of curve(0)) g.lineTo(u, v); for (const [u, v] of curve(-3, true)) g.lineTo(u, v); g.closePath(); g.fill(); // the vault's shadow
     });
   }
+  // A portcullis drawn up into a gate's arch (part i of three): a grid of iron bars a little way below the arch's curve,
+  // just behind its face, ending in spikes.
+  function portcullis(g, which, i) {
+    face(g, which, 0, () => {
+      const u0 = i * TILE, hang = 9;                            // how far below the arch it hangs
+      for (let u = 2; u < TILE; u += 5) {                       // the upright bars, each down to a spike
+        const top = archV(u0 + u) - 1, bottom = archV(u0 + u) + hang;
+        rect(g, '#1e1c1c', u - 0.8, top, 2.2, bottom - top);
+        rect(g, '#5a5650', u - 0.8, top, 0.8, bottom - top);
+        poly(g, '#2a2826', [u - 0.9, bottom, u + 1.4, bottom, u + 0.25, bottom + 3]);
+      }
+      for (const d of [2, 6]) {                                 // the crossbars, following the curve
+        g.strokeStyle = '#2a2826'; g.lineWidth = 1.6; g.beginPath();
+        for (let u = 0; u <= TILE; u += 2) g.lineTo(u, archV(u0 + u) + d);
+        g.stroke();
+      }
+    });
+  }
   // Sheared faces get half-transparent pixels along their slanted edges, which
   // would let the ground show through the seams between wall tiles.
   function solidify(g) {
@@ -1434,6 +1452,10 @@ const Sprites = (() => {
     // you see, with the shadow of the vault under it.
     arch_span_s: (g, r) => spanLintel(g, r, 'south'),
     arch_span_e: (g, r) => spanLintel(g, r, 'east'),
+    // The shade under a vault: darker in the middle of the passage, as deep under the wall as it goes.
+    vault_shadow(g) { rect(g, 'rgba(12,9,6,0.5)', 0, 0, TILE, TILE); },
+    portcullis_s0: g => portcullis(g, 'south', 0), portcullis_s1: g => portcullis(g, 'south', 1), portcullis_s2: g => portcullis(g, 'south', 2),
+    portcullis_e0: g => portcullis(g, 'east', 0), portcullis_e1: g => portcullis(g, 'east', 1), portcullis_e2: g => portcullis(g, 'east', 2),
     arch_gate_s0: (g, r) => gateArch(g, r, 'south', 0), arch_gate_s1: (g, r) => gateArch(g, r, 'south', 1), arch_gate_s2: (g, r) => gateArch(g, r, 'south', 2),
     arch_gate_e0: (g, r) => gateArch(g, r, 'east', 0), arch_gate_e1: (g, r) => gateArch(g, r, 'east', 1), arch_gate_e2: (g, r) => gateArch(g, r, 'east', 2),
     // Battlements along the outer edge of a walkway: a parapet of dressed stone with merlons on it.
@@ -3518,7 +3540,7 @@ const Sprites = (() => {
 
   // Things standing on the ground get a dark ink line round them, as in the classic games, so they
   // read clearly against any ground. Their soft shadows (half see-through) get none.
-  const NO_INK = new Set(['flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
+  const NO_INK = new Set(['vault_shadow', 'portcullis_s0', 'portcullis_s1', 'portcullis_s2', 'portcullis_e0', 'portcullis_e1', 'portcullis_e2', 'flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
     'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate', 'chimney']);
   const inkable = (id, def) => !def.ground && !def.wall && !def.onWall && !def.roof && !def.change && !NO_INK.has(id);
   // A selective outline (docs/art-style.md): every pixel round the thing takes a deep shade of the colour it borders,
