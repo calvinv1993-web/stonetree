@@ -1086,7 +1086,7 @@ function buildTown(m, S, runs, river) {
     if (b.arch) for (const [k, id] of [[-1, 'arch_w'], [0, 'arch_m'], [1, 'arch_e']]) m.ensure(dx + k, dy, S).items = [id]; // in a south wall
     if (b.roof) eachOf(b, (x, y) => m.set(x, y, S + floors, { ground: b.roof, items: [] }));
     if (b.roof && b.kind !== 'temple' && b.kind !== 'depot') put(b.x1 - 1, b.y0 + 1, S + floors, 'chimney');
-    if (b.kind === 'temple') put((b.x0 + b.x1 + 1) >> 1, (b.y0 + b.y1 + 1) >> 1, S + floors, 'temple_lantern'); // on the middle of its roof
+    if (b.kind === 'temple') { const cx = (b.x0 + b.x1) >> 1, cy = ((b.y0 + b.y1) >> 1) + 1; for (const [dx, dy, k] of [[0, 0, 'nw'], [1, 0, 'ne'], [0, 1, 'sw'], [1, 1, 'se']]) put(cx + dx, cy + dy, S + floors, `temple_lantern_${k}`); } // on the middle of its roof
     const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
     // A sign on the wall beside the door, and a step of gravel in front of it.
     if (b.sign) {

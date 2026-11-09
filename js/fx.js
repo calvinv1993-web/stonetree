@@ -541,7 +541,7 @@ const Fx = (() => {
 
   // Light and dark, in canvas pixels: the night, holes of light, and coloured glows on top.
   const LIGHT_COLORS = {
-    temple_lantern: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
+    temple_lantern_se: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
     cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
   };
   function light(view, screen, pv, amount, underground) {
@@ -559,7 +559,7 @@ const Fx = (() => {
         if (!t) continue;
         if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
         for (const id of t.items) {
-          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && id !== 'temple_lantern' });
+          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') });
           else if (id === 'window' && !underground && amount > 0.25) lights.push({ x: x - d, y: y - d, r: 1.4, color: LIGHT_COLORS.window, flicker: true, soft: true });
         }
       }
