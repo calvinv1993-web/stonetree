@@ -4451,7 +4451,16 @@ const Sprites = (() => {
   // to the front. Its feet stand at (16, 29) on a 32x32 picture.
   const DOLL_DEPTH = 0.5; // how much of the ground a figure's depth takes up on screen (as seen from above)
   const turn = (dir, a, b) => (dir === 2 ? [-a, b] : dir === 0 ? [a, -b] : dir === 1 ? [b, a] : [-b, -a]); // -> (u, v)
-  const Q = (u, v, z) => [16 + u, 29 + v * DOLL_DEPTH - z];
+  // How people are built (Sprites.BUILD): the doll is modelled with a big head on a short body; a build stretches the
+  // legs (to the hip) and the body (to the shoulders) and makes the head smaller, by remapping heights (dollZ).
+  const BUILDS = {
+    classic: null,
+    hero: { hip: 10.4, shoulder: 19.6, head: 0.7, wide: 1.06 },
+    tall: { hip: 11.2, shoulder: 20.4, head: 0.6, wide: 1.1 },
+  };
+  let dollZ = z => z;
+  const buildZ = b => { const r = 5.6 * b.head, k = (1 + r) / 5.2; return z => (z <= 8.6 ? z * b.hip / 8.6 : z <= 17.6 ? b.hip + (z - 8.6) * (b.shoulder - b.hip) / 9 : b.shoulder + (z - 17.6) * k); };
+  const Q = (u, v, z) => [16 + u, 29 + v * DOLL_DEPTH - dollZ(z)];
   function dollParts(g, dir, parts) {
     const at = p => turn(dir, p.a || 0, p.b || 0);
     const depth = p => { const [u, v] = at(p); return v + u * 0.35 + (p.z || 0) * 0.002 + (p.over || 0); };
@@ -4484,6 +4493,11 @@ const Sprites = (() => {
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
   function doll(g0, p, dir, frame) {
+    const build = BUILDS[Sprites.BUILD] || null;
+    dollZ = build ? buildZ(build) : z => z;
+    try { dollFigure(g0, p, dir, frame, build); } finally { dollZ = z => z; }
+  }
+  function dollFigure(g0, p, dir, frame, build) {
     const s = p.scale || 1;
     if (s !== 1) { g0.translate(16, 29); g0.scale(s, s); g0.translate(-16, -29); }
     if (p.hat && ['pointy', 'wide', 'antlers', 'horned', 'crown'].includes(p.hat.style)) g0.translate(0, 1);
@@ -4496,7 +4510,7 @@ const Sprites = (() => {
     const parts = [];
     const part = (a, b, z, draw, over = 0) => parts.push({ a, b, z, over, draw });
     const at = (u, v, a, b) => { const [du, dv] = turn(dir, a, b); return [u + du, v + dv]; }; // a point on the figure
-    const W = p.female ? 8.6 : 9.8, D = 5.6; // the torso's width and depth
+    const W = (p.female ? 8.6 : 9.8) * (build ? build.wide : 1), D = 5.6; // the torso's width and depth
     // ---- behind: a cape, wings, a tail
     if (p.cape) part(0, -3.6, 12, (u, v) => {
       const [cu, cv] = at(u, v, 0, -0.4);
@@ -4572,6 +4586,7 @@ const Sprites = (() => {
     part(0, 0, 22, (u, v) => {
       dollLimb(g, u, v, 17, u, v, 18.6, 1.4 * thin, skin);
       const hz = 22.8, r = 5.6;
+      if (build) { const [cx, cy] = Q(u, v, hz); g.save(); g.translate(cx, cy); g.scale(build.head, build.head); g.translate(-cx, -cy); } // a smaller head
       // long hair, a ponytail and braids hang behind the head
       if ((hs === 'long' || hs === 'braids') && !front) { const [bu, bv] = at(u, v, 0, -1.8); dollBox(g, dir, bu, bv, 9.5, 3, 13, 23, { south: hair }); }
       if (hs === 'ponytail' && !front) { const [bu, bv] = at(u, v, 0, -r); dollLimb(g, bu, bv, 22, bu, bv, 14, 1.3, hair); }
@@ -4610,6 +4625,7 @@ const Sprites = (() => {
       }
       if (p.horns) for (const side of [-1, 1]) { const [hu2, hv2] = at(u, v, side * (r - 1), 0); const [x2, y2] = Q(hu2, hv2, hz + 3); line(g, p.horns === true ? '#e8dcc0' : p.horns, 1.8, x2, y2, x2 + side * 2.5, y2 - 2, x2 + side * 2, y2 - 5); }
       if (p.hat && !hood) dollHat(g, p.hat, x, y, r, dir, fwd);
+      if (build) g.restore();
     }, 0.02);
     dollParts(g, dir, parts);
     });
@@ -5145,6 +5161,7 @@ const Sprites = (() => {
     },
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
+    BUILD: 'classic', // how people are built: see BUILDS
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
@@ -5159,7 +5176,7 @@ const Sprites = (() => {
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key), R = Sprites.CREATURE_RES;
-      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}`, g => {
+      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
         if (big) g.translate(TILE, TILE);
