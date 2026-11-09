@@ -223,4 +223,5 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 - The temple terrace uses detailed weathered limestone paving.
 
 
-- Water has blue ripples with gentle animation and softer shore highlights.
+- Water has smoother blue ripples, more visible wave motion and a clear animated shoreline.
+

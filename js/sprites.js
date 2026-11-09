@@ -4733,33 +4733,45 @@ const Sprites = (() => {
 
   // People and the beasts done so far are built in 3D (dolls); the rest are still drawn as pictures.
   // Connected carpet tiles share one textile; only exposed sides have a hem.
-  function waterTile(x, y, time) {
+  // One current frame per atlas position: animation memory stays bounded.
+  const waterFrames = new Map();
+  function waterTile(x, y, time, size = TILE) {
     const image = customImage('water_texture');
     if (!image) return null;
-    const phase = Math.floor(time / 200) % 24;
+    const phase = Math.floor(time / 80) % 80, angle = phase * Math.PI / 40;
     const px = ((x % 16) + 16) % 16, py = ((y % 16) + 16) % 16;
-    // Mirrored atlas edges meet without a visible cut; every tile shares the same motion.
     const big = cached('water:surface', g => {
+      g.imageSmoothingEnabled = true;
       for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
-        g.save(); g.translate(x ? 512 : 0, y ? 512 : 0);
-        g.scale(x ? -1 : 1, y ? -1 : 1); g.drawImage(image, 0, 0, 256, 256); g.restore();
+        g.save(); g.translate(x ? 1024 : 0, y ? 1024 : 0);
+        g.scale(x ? -1 : 1, y ? -1 : 1); g.drawImage(image, 0, 0, 512, 512); g.restore();
       }
-    }, 512);
-    return cached(`water:surface:${px}:${py}:${phase}`, g => {
-      const sx = px * TILE, sy = py * TILE;
-      // Small travelling ripples deform the surface locally instead of sliding the whole sheet.
-      const pixels = big.waterPixels || (big.waterPixels = big.getContext('2d').getImageData(0, 0, 512, 512).data);
-      const tile = g.createImageData(TILE, TILE);
-      for (let row = 0; row < TILE; row++) {
-        const shift = Math.round(1.5 * Math.sin((sy + row) * Math.PI / 64 - phase * Math.PI / 12));
-        for (let col = 0; col < TILE; col++) {
-          const src = ((sy + row) * 512 + (sx + col + shift + 512) % 512) * 4;
-          const dst = (row * TILE + col) * 4;
-          for (let c = 0; c < 4; c++) tile.data[dst + c] = pixels[src + c];
-        }
-      }
-      g.putImageData(tile, 0, 0);
-    });
+    }, 1024);
+    const key = `${px}:${py}:${size}`;
+    let entry = waterFrames.get(key);
+    if (entry && entry.phase === phase && entry.image === image) return entry.canvas;
+    if (!entry) {
+      const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+      entry = { canvas }; waterFrames.set(key, entry);
+    }
+    const g = entry.canvas.getContext('2d');
+    const pixels = big.waterPixels || (big.waterPixels = big.getContext('2d').getImageData(0, 0, 1024, 1024).data);
+    const tile = g.createImageData(size, size);
+    for (let row = 0; row < size; row++) for (let col = 0; col < size; col++) {
+      const wx = px * 64 + col * 64 / size, wy = py * 64 + row * 64 / size;
+      const u = (wx + 7 * Math.sin(wy * Math.PI / 128 - angle) + 3 * Math.sin(angle * 2 + wx * Math.PI / 256) + 1024) % 1024;
+      const v = (wy + 4 * Math.sin(wx * Math.PI / 256 + angle) + 1024) % 1024;
+      const ix = Math.floor(u), iy = Math.floor(v), fx = u - ix, fy = v - iy;
+      const a = (iy * 1024 + ix) * 4, b = (iy * 1024 + (ix + 1) % 1024) * 4;
+      const c = (((iy + 1) % 1024) * 1024 + ix) * 4, d = (((iy + 1) % 1024) * 1024 + (ix + 1) % 1024) * 4;
+      const out = (row * size + col) * 4;
+      for (let channel = 0; channel < 3; channel++) tile.data[out + channel] =
+        (pixels[a + channel] * (1 - fx) + pixels[b + channel] * fx) * (1 - fy) +
+        (pixels[c + channel] * (1 - fx) + pixels[d + channel] * fx) * fy;
+      tile.data[out + 3] = 255;
+    }
+    g.putImageData(tile, 0, 0); entry.phase = phase; entry.image = image;
+    return entry.canvas;
   }
 
   function carpetTile(x, y, shape) {
@@ -4796,6 +4808,7 @@ const Sprites = (() => {
 
   const DOLLS_ON = true;
   return {
+    water: (x, y, time) => waterTile(x, y, time, 64),
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins
@@ -4910,37 +4923,25 @@ const Sprites = (() => {
     // with foam lapping in and out (frame 0-3).
     shore(d, frame) {
       return cached(`shore:${d}:${frame}`, g => {
+        g.scale(2, 2);
         const turn = { n: 0, e: 1, s: 2, w: 3, ne: 0, se: 1, sw: 2, nw: 3 }[d];
-        g.translate(16, 16);
-        g.rotate((turn * Math.PI) / 2);
-        g.translate(-16, -16);
-        const lap = [0, 1, 2, 1][frame];
+        g.translate(16, 16); g.rotate(turn * Math.PI / 2); g.translate(-16, -16);
+        const angle = frame * Math.PI / 16, lap = 1.8 * Math.sin(angle);
+        const shallow = d.length === 1 ? g.createLinearGradient(0, 0, 0, 18) : g.createRadialGradient(32, 0, 0, 32, 0, 18);
+        shallow.addColorStop(0, 'rgba(16,48,49,0.75)');
+        shallow.addColorStop(0.32, 'rgba(75,162,163,0.65)');
+        shallow.addColorStop(1, 'rgba(80,175,192,0)');
+        g.fillStyle = shallow; g.fillRect(0, 0, 32, 32);
+        g.lineWidth = 0.9; g.strokeStyle = 'rgba(213,239,224,0.5)';
+        g.beginPath();
         if (d.length === 1) {
-          const shallow = g.createLinearGradient(0, 0, 0, 18);
-          shallow.addColorStop(0, 'rgba(90,160,175,0.24)');
-          shallow.addColorStop(1, 'rgba(90,160,175,0)');
-          g.fillStyle = shallow;
-          g.fillRect(0, 0, TILE, 18);
-          g.strokeStyle = 'rgba(160,205,205,0.13)';
-          g.lineWidth = 0.75;
-          g.beginPath();
-          for (let x = 0; x <= TILE; x += 2) g.lineTo(x, 9 + lap + Math.sin((x + frame * 3) * 0.45) * 1.2);
-          g.stroke();
-          g.fillStyle = 'rgba(160,205,205,0.08)';
-          for (let x = 3 + frame * 2; x < TILE; x += 9) g.fillRect(x, 13 + lap, 2, 1);
-        } else { // the corner (top right, before turning) is land
-          const shallow = g.createRadialGradient(TILE, 0, 0, TILE, 0, 18);
-          shallow.addColorStop(0, 'rgba(90,160,175,0.24)');
-          shallow.addColorStop(1, 'rgba(90,160,175,0)');
-          g.fillStyle = shallow;
-          g.fillRect(0, 0, TILE, TILE);
-          g.strokeStyle = 'rgba(160,205,205,0.13)';
-          g.lineWidth = 0.75;
-          g.beginPath();
-          g.arc(TILE, 0, 10 + lap, Math.PI / 2, Math.PI);
-          g.stroke();
-        }
-      });
+          for (let x = 0; x <= 32; x++) {
+            const y = 10 + lap + Math.sin(x * Math.PI / 16 + angle) * 0.8;
+            if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
+          }
+        } else g.arc(32, 0, 10 + lap, Math.PI / 2, Math.PI);
+        g.stroke();
+      }, 64);
     },
     // A kerb: the edge where two kinds of paving meet, on the north (n) or west (w) side of a tile.
     kerb(side) {
@@ -5195,6 +5196,7 @@ const Sprites = (() => {
     },
   };
 })();
+
 
 
 
