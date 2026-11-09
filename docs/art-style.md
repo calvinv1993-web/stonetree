@@ -14,7 +14,7 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
   hangs flat against it, with its shadow on the wall.
 - Only flames rise straight up the screen (fire goes up), and the figures.
-- **People** are pixel art (`pixelPerson()`): grown-up proportions, 27 pixels tall with a head of 8, from templates for the front, side and back views coloured by their look, with what they wear in layers on top. Looks the pixel figure can't draw (bones, wings, tails...) and the beasts are still built as dolls (`doll()`).
+- People and beasts are built as dolls (`doll()`). A pixel-art drawer for people (`pixelPerson()`, `Sprites.PEOPLE = 'pixel'`) was tried and isn't used: too small and plain.
 - Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 
 ## Light

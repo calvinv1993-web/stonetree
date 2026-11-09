@@ -5322,7 +5322,7 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
-    PEOPLE: 'pixel', // people drawn as pixel art ('pixel') or as dolls ('doll')
+    PEOPLE: 'doll', // people drawn as dolls ('doll') or as pixel art ('pixel': tried, not liked yet)
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
