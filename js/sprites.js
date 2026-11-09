@@ -618,7 +618,7 @@ const Sprites = (() => {
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
-    'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
+    'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -2033,6 +2033,28 @@ const Sprites = (() => {
       poly(g, c, [...P(16.5, 16, 84), ...P(30, 16, 82), ...P(27, 16, 76), ...P(31, 16, 69), ...P(16.5, 16, 68)]);
       poly(g, 'rgba(255,255,255,0.25)', [...P(19, 16, 80), ...P(24, 16, 79), ...P(24, 16, 75), ...P(19, 16, 76)]);
     },
+    // Oakvale's flag on a tower: an iron-shod pole with a gilded knob, a big blue flag with the temple's golden sun on
+    // it, waving (four frames): its folds catch the light and fall into shade.
+    tower_flag(g, r, frame) {
+      floorShadow(g, 6, 2);
+      prism(g, 12, 12, 20, 20, 0, 4, { top: '#7a7a82', south: '#5a5a62', east: '#42424a', edge: '#9a9aa2' });
+      prism(g, 15.2, 15.2, 16.8, 16.8, 4, 74, { top: '#8a6a3e', south: '#6a4a26', east: '#4a3018', edge: '#a8844e' });
+      const [kx, ky] = P(16, 16, 76); ellipse(g, '#a87818', kx, ky, 2.6, 2.6); ellipse(g, '#f2c94c', kx - 0.6, ky - 0.6, 1.6, 1.6);
+      const U0 = 17, U1 = 47, Z0 = 38, Z1 = 72, wave = u => Math.sin((u - U0) * 0.32 - frame * Math.PI / 2) * 2.2 * ((u - U0) / (U1 - U0));
+      const top = [], bottom = [];
+      for (let u = U0; u <= U1; u += 1) { top.push(...P(u, 16, Z1 + wave(u))); bottom.unshift(...P(u, 16, Z0 + wave(u) - (u - U0) * 0.08)); }
+      poly(g, '#2a5aa8', [...top, ...bottom]);                                                // the cloth
+      for (let u = U0 + 1; u < U1; u += 1) { // its folds: light where it bellies towards the sun, shade in the troughs
+        const k = Math.cos((u - U0) * 0.32 - frame * Math.PI / 2);
+        if (Math.abs(k) < 0.35) continue;
+        const z0 = Z0 + wave(u) - (u - U0) * 0.08, z1 = Z1 + wave(u);
+        poly(g, k > 0 ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,30,0.22)', [...P(u, 16, z1), ...P(u + 1, 16, z1), ...P(u + 1, 16, z0), ...P(u, 16, z0)]);
+      }
+      poly(g, '#e8b54a', [...P(U0, 16, Z1), ...P(U0 + 2, 16, Z1), ...P(U0 + 2, 16, Z0), ...P(U0, 16, Z0)]); // the gold hem at the pole
+      const su = 31, sz = (Z0 + Z1) / 2 + wave(31), [sx, sy] = P(su, 16, sz);              // the golden sun
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; line(g, '#f2c94c', 1.4, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7, sy + Math.sin(a) * 7); }
+      ellipse(g, '#c8901c', sx, sy, 4, 4); ellipse(g, '#ffd860', sx - 0.6, sy - 0.6, 2.9, 2.9);
+    },
     // An ancient tree: a massive trunk on great roots, a huge old crown.
     ancient_tree(g, r) {
       floorShadow(g, 22, 8);
@@ -2686,7 +2708,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
@@ -4888,6 +4910,9 @@ const Sprites = (() => {
   // Connected carpet tiles share one textile; only exposed sides have a hem.
   // One current frame per atlas position: animation memory stays bounded.
   const waterFrames = new Map();
+  // Water frames kept for good, up to WATER_KEEP bytes of pixels: less on a phone (touch screen), where memory is tight.
+  const waterKept = new Map(), WATER_KEEP = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 24 : 128) * 1024 * 1024;
+  waterKept.bytes = 0;
   function waterTile(x, y, time, size = TILE) {
     const image = customImage('water_texture');
     if (!image) return null;
@@ -4900,16 +4925,22 @@ const Sprites = (() => {
         g.scale(x ? -1 : 1, y ? -1 : 1); g.drawImage(image, 0, 0, 512, 512); g.restore();
       }
     }, 1024);
-    const key = `${px}:${py}:${size}`;
-    let entry = waterFrames.get(key);
+    // Every frame of every place is kept once worked out (the ripples go round in 80 frames), up to WATER_KEEP bytes;
+    // past that, the rest are worked out again each time in one canvas per place, as before.
+    if (waterKept.image !== image) { waterKept.clear(); waterKept.image = image; waterKept.bytes = 0; }
+    const kept = waterKept.get(`${px}:${py}:${size}:${phase}`);
+    if (kept) return kept;
+    const keep = waterKept.bytes < WATER_KEEP, key = `${px}:${py}:${size}`;
+    let entry = keep ? null : waterFrames.get(key);
     if (entry && entry.phase === phase && entry.image === image) return entry.canvas;
     if (!entry) {
       const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
-      entry = { canvas }; waterFrames.set(key, entry);
+      entry = { canvas };
+      if (keep) { waterKept.set(`${px}:${py}:${size}:${phase}`, canvas); waterKept.bytes += size * size * 4; } else waterFrames.set(key, entry);
     }
     const g = entry.canvas.getContext('2d');
     const pixels = big.waterPixels || (big.waterPixels = big.getContext('2d').getImageData(0, 0, 1024, 1024).data);
-    const tile = entry.data || (entry.data = g.createImageData(size, size));
+    const tile = entry.data || (entry.data = waterKept[size] || (waterKept[size] = g.createImageData(size, size))); // (one buffer per size)
     // The ripples: each wave depends on the row or on the column only, so they're worked out once per row and column
     // (not per pixel: that was most of a frame's time wherever there was a lot of water in view).
     const waveRow = new Float64Array(size), waveCol = new Float64Array(size), swellCol = new Float64Array(size);

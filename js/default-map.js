@@ -1055,6 +1055,19 @@ function buildTown(m, S, runs, river) {
       m.set(x, y, S, { ground: 'paving', items: ['wall_stairs'] });
       put(x, y, S + 1, 'stairs_down');
     }
+    // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, under a slate roof, so
+    // you see from anywhere in town where the gate is; the walkway goes through it, a banner hangs on its town side
+    for (const [gx0, gy0, gx1, gy1] of R.gates) {
+      const across = gy0 === R.y0 || gy1 === R.y1, box = across ? [gx0 - 1, gy0, gx1 + 1, gy1] : [gx0, gy0 - 1, gx1, gy1 + 1];
+      const [x0, y0, x1, y1] = box, mx = (x0 + x1) >> 1, my = (y0 + y1) >> 1;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const edge = x === x0 || x === x1 || y === y0 || y === y1, through = across ? y === my : x === mx; // (where the walkway comes in)
+        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_temple'] : [] });
+        m.set(x, y, S + 2, { ground: 'roof_slate', items: [] });
+      }
+      const [bx, by] = across ? [mx, gy0 === R.y0 ? y1 : y0] : [gx0 === R.x0 ? x1 : x0, my]; // the side towards town
+      put(bx, by, S + 1, 'banner');
+    }
     const town = (x, y) => x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k && !inTower(x, y);
     towers.forEach((box, n) => {
       const [x0, y0, x1, y1] = box, west = x0 === R.x0, north = y0 === R.y0;
@@ -1081,7 +1094,7 @@ function buildTown(m, S, runs, river) {
       }
       put(ox, oy, S, 'stairs_up'); put(ox, oy, S + 1, 'stairs_down');
       put(ix, iy, S + 1, 'stairs_up'); put(ix, iy, S + 2, 'stairs_down');
-      put(x0 + 2, y0 + 2, S + 2, 'flagpole');
+      put(x0 + 2, y0 + 2, S + 2, 'tower_flag');
       // a footbridge over the moat from the door out
       for (let x = outX + odx, y = outY + ody; water(x, y); x += odx, y += ody) m.setGround(x, y, S, odx ? 'bridge_ew' : 'bridge_ns');
     });

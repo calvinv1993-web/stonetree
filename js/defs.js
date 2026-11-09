@@ -243,6 +243,7 @@ const THINGS = {
   cauldron:    { name: 'cauldron', cat: 'Wilds', block: true, low: true, light: 2 },
   sword_grave: { name: 'a sword in the ground', cat: 'Wilds' },
   flagpole:    { name: 'banner', cat: 'Wilds', block: true, low: true, tall: true },
+  tower_flag:  { name: 'the flag of Oakvale', cat: 'Town', block: true, low: true, tall: true },
   ancient_tree:{ name: 'ancient tree', cat: 'Wilds', block: true, tall: true },
   ice_spike:   { name: 'ice crystals', cat: 'Wilds', block: true, low: true },
   fallen_pillar:{ name: 'fallen pillar', cat: 'Wilds', block: true, low: true },
