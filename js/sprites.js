@@ -798,68 +798,66 @@ const Sprites = (() => {
     for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, '#d8a830', 1.5, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7.5, sy + Math.sin(a) * 7.5); }
     ellipse(g, '#d8a830', sx, sy, 4.2, 4.2); ellipse(g, '#f8dc70', sx - 0.6, sy - 0.6, 3, 3);
   } };
-  // The temple's lantern on the middle of its roof, two tiles square: a marble turret on a stepped plinth, with
-  // pilasters at its corners and arched windows of coloured glass between them (lit from inside: it glows at night,
-  // see defs.js), a cornice with dentils and a gilded band, a pointed marble roof with gilded hips and corner
-  // pinnacles, crowned by an orb and the golden sun of the dawn.
+  // The temple's lantern on the middle of its roof, two tiles square and kept low (in our camera height runs
+  // up-left, so a tall turret would shear into a slab): a marble base with a gilded band, wide arched windows of
+  // coloured glass on the faces you see, lit from inside (it glows at night, see defs.js), a cornice, a low
+  // marble roof with gilded hips, and the golden sun of the dawn on a rod above it.
   BIG.temple_lantern = { w: 2, h: 2, draw(g) {
     const marble = { top: '#fbf6ea', south: '#ece2cc', east: '#c8bea8', edge: '#fffcf4' };
     const marble2 = { top: '#f2ead8', south: '#ddd2ba', east: '#b4aa94', edge: '#fffaf0' };
     const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
-    const u0 = 12, u1 = 52, H = 34;
-    const [gx, gy] = P(32, 32, 16); ellipse(g, 'rgba(255,214,130,0.3)', gx, gy, 40, 30);   // its glow on the roof
-    prism(g, 4, 4, 60, 60, 0, 3, marble2);                                               // a stepped plinth
-    prism(g, 7, 7, 57, 57, 3, 6, marble);
-    prism(g, 6.5, 6.5, 57.5, 57.5, 6, 7.5, gold);
-    prism(g, u0, u0, u1, u1, 7.5, H, marble);                                            // the turret
-    onSouth(g, u1, f => { for (let z = 12; z < H; z += 5) rect(f, 'rgba(150,135,110,0.3)', u0, z, u1 - u0, 0.6); });
-    // its windows: three arches on the south face, two on the east, each a recess with two colours of glass,
-    // a mullion, leading, light on the glass, a sill and a gilded keystone
+    const u0 = 12, u1 = 52, H = 18;
+    prism(g, 8, 8, 56, 56, 0, 2.5, marble2);                                           // the base
+    prism(g, 7.5, 7.5, 56.5, 56.5, 2.5, 4, gold);                                      // a gilded band
+    prism(g, u0, u0, u1, u1, 4, H, marble);                                            // the turret
+    // wide arched windows: a frame, glass in two colours, a mullion and leading, light on the glass, a keystone
     const archS = (u, c1, c2) => onSouth(g, u1, f => {
-      const w = 8, zb = 13, zt = 30, rr = w / 2;
+      const w = 9, zb = 6.5, zt = 12.5, rr = w / 2;
       const shape = (pad, zz) => { f.beginPath(); f.moveTo(u - pad, zb); f.lineTo(u - pad, zz); f.arc(u + rr, zz, rr + pad, Math.PI, 0, true); f.lineTo(u + w + pad, zb); f.closePath(); };
-      f.fillStyle = '#c8bea8'; shape(1.6, zt); f.fill();                                // its frame
-      f.fillStyle = '#4a3a2a'; shape(0.6, zt); f.fill();
+      f.fillStyle = '#b4aa94'; shape(1.4, zt); f.fill();
+      f.fillStyle = '#4a3a2a'; shape(0.5, zt); f.fill();
       f.fillStyle = c1; shape(0, zt); f.fill();
-      f.save(); shape(0, zt); f.clip(); rect(f, c2, u + rr, zb, rr, 20);
-      for (const z of [17, 21, 25, 29]) rect(f, '#4a3a2a', u, z, w, 0.6);
-      rect(f, '#4a3a2a', u + rr - 0.4, zb, 0.8, 22);
-      rect(f, 'rgba(255,250,220,0.55)', u + 0.8, zb, 1, 20); f.restore();
-      rect(f, '#fffcf4', u - 2.2, zb - 1.6, w + 4.4, 1.6); rect(f, '#a89e88', u - 2.2, zb - 2.2, w + 4.4, 0.6); // the sill
-      rect(f, '#e8b54a', u + rr - 1, zt + rr + 0.6, 2, 2.4);                            // the keystone
+      f.save(); shape(0, zt); f.clip(); rect(f, c2, u + rr, zb, rr, 12);
+      for (const z of [9.5, 13]) rect(f, '#4a3a2a', u, z, w, 0.6);
+      rect(f, '#4a3a2a', u + rr - 0.4, zb, 0.8, 12);
+      rect(f, 'rgba(255,250,220,0.6)', u + 0.8, zb, 1, 10); f.restore();
+      rect(f, '#e8b54a', u + rr - 0.9, zt + rr + 0.4, 1.8, 1.6);
     });
-    archS(14, '#e2483c', '#f2c94c'); archS(28, '#3e8ef7', '#7a4ad8'); archS(42, '#f2c94c', '#e2483c');
-    const archE = (v, c) => { const pts = [], pts2 = []; for (const [vv, z] of [[v, 13], [v + 8, 13], [v + 8, 30], [v + 4, 34], [v, 30]]) { pts.push(...P(u1, vv, z)); } for (const [vv, z] of [[v - 1.5, 11.5], [v + 9.5, 11.5], [v + 9.5, 30.5], [v + 4, 35.6], [v - 1.5, 30.5]]) pts2.push(...P(u1, vv, z));
-      poly(g, '#a89e88', pts2); poly(g, c, pts); line3(g, '#4a3a2a', 0.7, u1, v + 4, 13, u1, v + 4, 34); for (const z of [19, 25]) line3(g, '#4a3a2a', 0.6, u1, v, z, u1, v + 8, z); };
-    archE(18, '#f2c94c'); archE(36, '#e2483c');
-    // pilasters at the corners, with gilded capitals and bases
-    for (const [a, b] of [[u0 - 1, u1 - 4], [u1 - 4, u1 - 4], [u1 - 4, u0 - 1]]) {
-      prism(g, a - 0.5, b - 0.5, a + 5.5, b + 5.5, 7.5, 10, gold);
-      prism(g, a, b, a + 5, b + 5, 10, H - 3, marble2);
-      prism(g, a - 0.5, b - 0.5, a + 5.5, b + 5.5, H - 3, H, gold);
+    archS(15, '#e2483c', '#f2c94c'); archS(27.5, '#3e8ef7', '#7a4ad8'); archS(40, '#f2c94c', '#e2483c');
+    for (const [v, c] of [[18, '#f2c94c'], [34, '#e2483c']]) {
+      const frame = [], glass = [];
+      for (const [vv, z] of [[v - 1.4, 5.4], [v + 10.4, 5.4], [v + 10.4, 13.5], [v + 4.5, 18.4], [v - 1.4, 13.5]]) frame.push(...P(u1, vv, z));
+      for (const [vv, z] of [[v, 6.5], [v + 9, 6.5], [v + 9, 12.5], [v + 4.5, 16.6], [v, 12.5]]) glass.push(...P(u1, vv, z));
+      poly(g, '#a89e88', frame); poly(g, c, glass); line3(g, '#4a3a2a', 0.7, u1, v + 4.5, 6.5, u1, v + 4.5, 16.6);
     }
-    // the cornice: dentils, a marble ledge, a gilded band
-    onSouth(g, u1 + 1, f => { for (let u = u0; u < u1; u += 2.5) rect(f, '#b4aa94', u, H + 0.4, 1.2, 1.4); });
-    prism(g, u0 - 2, u0 - 2, u1 + 2, u1 + 2, H, H + 2.5, marble2);
-    prism(g, u0 - 2.5, u0 - 2.5, u1 + 2.5, u1 + 2.5, H + 2.5, H + 4.5, gold);
-    // a pointed roof of marble slabs with gilded hips
-    const z0 = H + 4.5, rh = 16, a0 = u0 - 1.5, a1 = u1 + 1.5;
-    { const apex = P(32, 32, z0 + rh); // (its four faces, each in its own light: north brightest, east in shade)
-      poly(g, '#fbf6ea', [...P(a0, a0, z0), ...P(a1, a0, z0), ...apex]);
-      poly(g, '#efe6d2', [...P(a0, a0, z0), ...P(a0, a1, z0), ...apex]);
-      poly(g, '#c8bea8', [...P(a1, a0, z0), ...P(a1, a1, z0), ...apex]);
-      poly(g, '#e2d8c2', [...P(a0, a1, z0), ...P(a1, a1, z0), ...apex]); }
-    for (let t = 0.17; t < 1; t += 0.17) { const z = z0 + rh * t, lo = a0 + (32 - a0) * t, hi = a1 - (a1 - 32) * t; line3(g, 'rgba(150,135,110,0.45)', 0.7, lo, hi, z, hi, hi, z); line3(g, 'rgba(120,108,90,0.45)', 0.7, hi, lo, z, hi, hi, z); }
-    for (const [u, v] of [[a0, a1], [a1, a1], [a1, a0]]) line3(g, '#e8b54a', 1.8, u, v, z0, 32, 32, z0 + rh);
-    // pinnacles on the corners
-    for (const [u, v] of [[a0 + 1, a1 - 1], [a1 - 1, a1 - 1], [a1 - 1, a0 + 1]]) { prism(g, u - 1.6, v - 1.6, u + 1.6, v + 1.6, z0, z0 + 6, marble); line3(g, '#e8b54a', 1.4, u, v, z0 + 6, u, v, z0 + 11); }
-    // an orb, a rod, and the golden sun of the dawn
+    for (const [a, b] of [[u0 - 1, u1 - 3], [u1 - 3, u1 - 3], [u1 - 3, u0 - 1]]) prism(g, a, b, a + 4, b + 4, 4, H, marble2); // corner pilasters
+    onSouth(g, u1 + 1, f => { for (let u = u0; u < u1; u += 2.5) rect(f, '#b4aa94', u, H + 0.4, 1.2, 1.2); }); // dentils
+    prism(g, u0 - 2, u0 - 2, u1 + 2, u1 + 2, H, H + 2, marble2);                        // the cornice
+    prism(g, u0 - 2.5, u0 - 2.5, u1 + 2.5, u1 + 2.5, H + 2, H + 3.5, gold);             // a gilded band
+    // its roof is a pyramid of stained glass in lead (seen from above, which is how you see roofs in our camera):
+    // each face a fan of coloured panes, the faces in their own light, gilded hips; lit from within at night
+    const z0 = H + 3.5, rh = 12, a0 = u0 - 2, a1 = u1 + 2, A = [32, 32, z0 + rh], apex = P(...A);
+    const COLS = ['#e2483c', '#f2c94c', '#3e8ef7', '#7a4ad8', '#3ea86a', '#f08a3c'];
+    const faces = [[[a0, a0], [a1, a0], 1.12], [[a0, a0], [a0, a1], 1], [[a1, a0], [a1, a1], 0.72], [[a0, a1], [a1, a1], 0.86]];
+    faces.forEach(([[ua, va], [ub, vb], lit], fi) => {
+      const n = 5, at = (t, k) => { const u = ua + (ub - ua) * t, v = va + (vb - va) * t; return [u + (A[0] - u) * k, v + (A[1] - v) * k, z0 + rh * k]; };
+      for (let i = 0; i < n; i++) for (let r = 0; r < 3; r++) { // panes: n across, three rows up to the apex
+        const k0 = r / 3, k1 = (r + 1) / 3, c = COLS[(i * 2 + r + fi * 3) % COLS.length];
+        poly(g, shade(c, lit * (0.9 + r * 0.08)), [...P(...at(i / n, k0)), ...P(...at((i + 1) / n, k0)), ...P(...at((i + 1) / n, k1)), ...P(...at(i / n, k1))]);
+      }
+      for (let i = 0; i <= n; i++) line(g, '#3a2c1e', 0.7, ...P(...at(i / n, 0)), ...apex);                    // leading
+      for (const k of [1 / 3, 2 / 3]) line(g, '#3a2c1e', 0.7, ...P(...at(0, k)), ...P(...at(1, k)));
+      line(g, 'rgba(255,255,255,0.35)', 0.8, ...P(...at(0.15, 0.08)), ...P(...at(0.45, 0.5)));                // a glint
+    });
+    for (const [u, v] of [[a0, a0], [a0, a1], [a1, a1], [a1, a0]]) line3(g, '#e8b54a', 1.8, u, v, z0, ...A);  // gilded hips
+    for (const [[ua, va], [ub, vb]] of faces) line3(g, '#e8b54a', 1.4, ua, va, z0, ub, vb, z0);               // and rim
+    // the sun of the dawn on a gilded rod
     const top = z0 + rh;
-    const [ox, oy] = P(32, 32, top + 2.5); ellipse(g, '#a8741a', ox, oy, 3.6, 3.6); ellipse(g, '#f2c94c', ox, oy, 3, 3); ellipse(g, '#fff0b0', ox - 0.9, oy - 0.9, 1.3, 1.3);
-    line3(g, '#c8901e', 2.4, 32, 32, top + 5, 32, 32, top + 11);
-    const [sx, sy] = P(32, 32, top + 19);
-    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, l = i % 2 ? 12 : 16.5; poly(g, i % 2 ? '#e8b54a' : '#f2c94c', [sx + Math.cos(a - 0.12) * 6.6, sy + Math.sin(a - 0.12) * 6.6, sx + Math.cos(a) * l, sy + Math.sin(a) * l, sx + Math.cos(a + 0.12) * 6.6, sy + Math.sin(a + 0.12) * 6.6]); }
-    ellipse(g, '#a8741a', sx, sy, 7.8, 7.8); ellipse(g, '#ffd860', sx, sy, 6.8, 6.8); ellipse(g, '#fff4c0', sx - 1.6, sy - 1.6, 3, 3);
+    const [ox, oy] = P(32, 32, top + 1.5); ellipse(g, '#a8741a', ox, oy, 3, 3); ellipse(g, '#f2c94c', ox, oy, 2.4, 2.4);
+    line3(g, '#c8901e', 2.2, 32, 32, top + 3, 32, 32, top + 9);
+    const [sx, sy] = P(32, 32, top + 16);
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, l = i % 2 ? 11 : 15; poly(g, i % 2 ? '#e8b54a' : '#f2c94c', [sx + Math.cos(a - 0.13) * 6.2, sy + Math.sin(a - 0.13) * 6.2, sx + Math.cos(a) * l, sy + Math.sin(a) * l, sx + Math.cos(a + 0.13) * 6.2, sy + Math.sin(a + 0.13) * 6.2]); }
+    ellipse(g, '#a8741a', sx, sy, 7.2, 7.2); ellipse(g, '#ffd860', sx, sy, 6.2, 6.2); ellipse(g, '#fff4c0', sx - 1.5, sy - 1.5, 2.8, 2.8);
   } };
   const PARTS = {
     temple_lantern_nw: ['temple_lantern', 0, 0], temple_lantern_ne: ['temple_lantern', 1, 0], temple_lantern_sw: ['temple_lantern', 0, 1], temple_lantern_se: ['temple_lantern', 1, 1],
