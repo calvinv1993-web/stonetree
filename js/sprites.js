@@ -4489,6 +4489,166 @@ const Sprites = (() => {
     gr.addColorStop(0, shade(colour, 1.28)); gr.addColorStop(0.55, colour); gr.addColorStop(1, shade(colour, 0.72));
     g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
   }
+  // ---- people as pixel art ----------------------------------------------------------------------------------------
+  // A grown-up figure drawn pixel by pixel, 27 pixels tall (a head of 8: about one to three and a half), standing at
+  // (16, 28), from templates for each view (front, side, back): letters stand for colours of the look, worked out in
+  // light and shade (art-style.md: lit from the top left). Walking moves the legs and swings the arms. What the look
+  // wears goes on top in layers: hair, beard, skirt, robe, coat, armour, tabard, vest, collar, cape, hat, what it holds
+  // and its shield. Looks this can't draw (bones, wings, tails, one eye...) are still drawn as dolls.
+  //   h hair  j its light  H its shade   s skin  z its light  S its shade   e eye   m mouth
+  //   b body  c its light  B its shade   a arm   A its shade   g hand   t belt   T buckle
+  //   l legs  L their shade   f feet   F their shade
+  const PX_FRONT = [
+    '......hhhh......', '....hhjjhhhH....', '...hhjhhhhhhH...', '...hzssssssSH...', '...hssesseSSH...',
+    '....ssssSssS....', '....sssmmsSS....', '.....SsssSS.....', '.......sS.......',
+    '..accbbbbbbBBA..', '..acbbbbbbbbBA..', '..acbbbbbbbbBA..', '..acbbbbbbbBBA..', '..a.bbbbbbbB.A..', '..a.bbbbbbbB.A..',
+    '..g.bbbbbbbB.g..', '..g.ttttTttt.g..',
+    '....llllllLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....',
+    '....lllL.lLL....', '....fffF.fFF....', '....fffF.fFF....', '...ffffF.ffFF...',
+  ];
+  const PX_BACK = [
+    '......hhhh......', '....hhjjhhhH....', '...hhjhhhhhhH...', '...hhhhhhhhhH...', '...hhhhhhhhHH...',
+    '....hhhhhhHH....', '....HhhhhhHH....', '.....SsssSS.....', '.......sS.......',
+    '..accbbbbbbBBA..', '..acbbbbbbbbBA..', '..acbbbbbbbbBA..', '..acbbbbbbbBBA..', '..a.bbbbbbbB.A..', '..a.bbbbbbbB.A..',
+    '..g.bbbbbbbB.g..', '..g.tttttttt.g..',
+    '....llllllLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....', '....lllL.lLL....',
+    '....lllL.lLL....', '....fffF.fFF....', '....fffF.fFF....', '...ffffF.ffFF...',
+  ];
+  const PX_SIDE = [ // facing east
+    '......hhhh......', '.....hjjhhhh....', '....hjhhhhhhH...', '....hhhhzsssS...', '....hhhhsssess..',
+    '....Hhhhsssss...', '.....HhSsssmS...', '......HSssSS....', '........sS......',
+    '......cbbbbB....', '.....cbbabbBB...', '.....cbbaABB....', '.....cbbaABB....', '.....cbbaABB....', '.....cbbaABB....',
+    '.....cbbgGBB....', '.....tttttTt....',
+    '......llllL.....', '......llllL.....', '......llllL.....', '......llllL.....', '......llllL.....', '......llllL.....',
+    '......llllL.....', '......fffffF....', '......fffffF....', '......ffffffF...',
+  ];
+  const PX_SIDE_STEP = [ // the legs (rows 17 to 26) of a side view mid-stride
+    '......llllL.....', '.....lllLlL.....', '.....lll.llL....', '....lllL.llL....', '....lllL..llL...', '...lllL...llL...',
+    '...lllL....llL..', '..ffffF....fffF.', '..ffffF....ffffF', '................',
+  ];
+  const PX_TOP = 2, PX_LEFT = 8; // where the templates go on the 32x32 picture
+  // Which looks the pixel figure can draw.
+  const pixelable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.ears && !p.horns;
+
+  function pixelPerson(g0, p, dir, frame) {
+    const s = p.scale || 1;
+    if (s !== 1) { g0.translate(16, 28); g0.scale(s, s); g0.translate(-16, -28); }
+    shadow(g0, 16, 28.6, 7, 2.6);
+    outlined(g0, g => {
+      const front = dir === 2, back = dir === 0, side = !front && !back, west = dir === 3;
+      const hs = p.hairStyle || 'short', bald = hs === 'bald' || (p.hat && p.hat.style === 'hood');
+      const skin = p.skin || '#f0c090', hair = p.hair || shade(skin, 0.6), body = p.body || '#6a6a72';
+      const arms = p.arms || body, legs = p.legs || body, feet = p.feet || shade(legs, 0.6), belt = p.belt || shade(legs, 0.55);
+      const C = {
+        h: bald ? skin : hair, j: bald ? shade(skin, 1.12) : shade(hair, 1.32), H: bald ? shade(skin, 0.8) : shade(hair, 0.68),
+        s: skin, z: shade(skin, 1.12), S: shade(skin, 0.8), e: p.eye || '#20160f', a: arms, A: shade(arms, 0.74), m: shade(skin, 0.6),
+        b: body, c: shade(body, 1.22), B: shade(body, 0.74), g: skin, G: shade(skin, 0.8), t: belt, T: GOLD,
+        l: legs, L: shade(legs, 0.72), f: feet, F: shade(feet, 0.68),
+      };
+      // the template, as a grid we can change (walking, and what the look wears)
+      const grid = [...(front ? PX_FRONT : back ? PX_BACK : PX_SIDE), '................'].map(r => r.split(''));
+      const at = (x, y) => (grid[y] || [])[x], set = (x, y, ch) => { if (grid[y] && x >= 0 && x < 16) grid[y][x] = ch; };
+      const step = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      if (step && side) { for (let k = 0; k < PX_SIDE_STEP.length; k++) grid[17 + k] = PX_SIDE_STEP[k].split(''); }
+      if (step && !side) { // one foot comes a pixel nearer, the other goes back; the arms swing the other way
+        const [near, far] = step > 0 ? [[3, 7], [9, 12]] : [[9, 12], [3, 7]];
+        for (let x = near[0]; x <= near[1]; x++) for (let y = 26; y >= 18; y--) set(x, y + 1, at(x, y));
+        for (let x = far[0]; x <= far[1]; x++) { for (let y = 23; y <= 26; y++) set(x, y - 1, at(x, y)); set(x, 26, '.'); }
+        const [swungBack, swungForward] = step > 0 ? [2, 13] : [13, 2]; // (the hand on the near leg's side swings back)
+        set(swungBack, 16, '.'); set(swungForward, 17, 'g');
+      }
+      if (step && side) { for (const y of [13, 14, 15]) { const ax = grid[y].indexOf('a'); if (ax >= 0 && step > 0) { set(ax, y, 'b'); set(ax + 1, y, 'a'); } } }
+      // ---- what it wears, in layers
+      const paint = (rows, x0, y0, ch) => rows.forEach((r, k) => [...r].forEach((c2, i) => { if (c2 !== '.') set(x0 + i, y0 + k, c2 === '#' ? ch : c2); }));
+      if (p.beard && !back) { C.r = p.beard; C.R = shade(p.beard, 0.75); if (front) paint(['r........R', 'rr.rmmr.RR', '.rrrrrrRR.', '..rrrrRR..'], 3, 5, ''); else paint(['....rrR', '...rrRR', '....rR.'], 6, 6, ''); }
+      if (!bald && (hs === 'long' || hs === 'braids' || hs === 'wild')) { // hair down to the shoulders
+        if (front) for (let y = 4; y <= 11; y++) { set(3, y, 'h'); set(12, y, 'H'); }
+        else if (back) for (let y = 7; y <= 12; y++) for (let x = 4; x <= 11; x++) set(x, y, x > 9 ? 'H' : 'h');
+        else for (let y = 5; y <= 11; y++) set(4, y, 'H');
+      }
+      if (!bald && hs === 'ponytail') { if (back) for (let y = 7; y <= 13; y++) { set(7, y, 'h'); set(8, y, 'H'); } else if (side) for (let y = 6; y <= 11; y++) set(3, y, y > 8 ? 'H' : 'h'); }
+      if (p.skirt) { C.k = p.skirt; C.K = shade(p.skirt, 0.74); for (let y = 17; y <= 21; y++) for (let x = 3 + (front || back ? 0 : 2); x <= (front || back ? 12 : 11); x++) if (at(x, y) !== '.' || y < 21) set(x, y, x >= (side ? 10 : 11) ? 'K' : 'k'); }
+      if (p.robe || p.coat) { // a robe to the feet (a coat to the knees), widening as it goes down
+        C.o = body; C.O = shade(body, 0.74); C.q = p.trim || shade(body, 1.25);
+        const end = p.robe ? 26 : 22;
+        for (let y = 16; y <= end; y++) {
+          const spread = Math.floor((y - 16) / 3), x0 = (side ? 5 : 4) - spread, x1 = (side ? 11 : 11) + spread;
+          for (let x = x0; x <= x1; x++) set(x, y, y === end && p.trim ? 'q' : x >= x1 - 1 ? 'O' : 'o');
+        }
+        if (p.robe && p.trim && !back && !side) for (let y = 16; y < end; y++) set(7, y, 'q');
+      }
+      if (p.armor) { // a breastplate and shoulder plates
+        C.p = p.armor; C.P = shade(p.armor, 0.7); C.y = shade(p.armor, 1.3);
+        for (let y = 9; y <= 14; y++) for (let x = 0; x < 16; x++) if ('bcB'.includes(at(x, y))) set(x, y, at(x, y) === 'c' ? 'y' : at(x, y) === 'B' ? 'P' : 'p');
+        if (!side) { paint(['yyy', 'ppP'], 1, 9, ''); paint(['yyP', 'pPP'], 12, 9, ''); } else paint(['yyp', 'ppP'], 7, 9, '');
+      }
+      if (p.vest && !side) { C.v = p.vest; C.V = shade(p.vest, 0.74); for (let y = 9; y <= 15; y++) { set(4, y, 'v'); set(5, y, 'v'); set(10, y, 'V'); set(11, y, 'V'); } }
+      if (p.stripes) { C.x = p.stripes; for (const y of [10, 12, 14]) for (let x = 0; x < 16; x++) if ('bcB'.includes(at(x, y))) set(x, y, 'x'); }
+      if (p.tabard && !side) { C.d = p.tabard; C.D = shade(p.tabard, 0.74); C.n = shade(p.tabard, 1.45); for (let y = 10; y <= 21; y++) { set(6, y, 'd'); set(7, y, 'd'); set(8, y, 'd'); set(9, y, 'D'); } if (front) { set(7, 13, 'n'); set(8, 13, 'n'); set(7, 12, 'n'); set(7, 14, 'n'); } }
+      if (p.collar && !back) { C.u = p.collar; if (front) paint(['.uuuu.'], 5, 9, ''); else paint(['uu'], 8, 9, ''); }
+      if (p.fur) { C.w = shade(body, 1.3); C.W = shade(body, 0.9); if (!side) paint(['wwwwwwwwwwww', '.WwWwWwWwW.'], 2, 9, ''); }
+      if (p.cape) { // behind: all of it from the back, its edges at the sides from the front
+        C.i = p.cape; C.I = shade(p.cape, 0.7);
+        if (back) for (let y = 9; y <= 24; y++) { const sp = Math.floor((y - 9) / 5); for (let x = 2 - sp; x <= 13 + sp; x++) set(x, y, x > 11 ? 'I' : 'i'); }
+        else if (front) for (let y = 10; y <= 22; y++) { if (at(1, y) === '.') set(1, y, 'I'); if (at(14, y) === '.') set(14, y, 'I'); }
+        else for (let y = 9; y <= 22; y++) { set(4, y, 'I'); if (y > 12) set(3, y, 'I'); }
+      }
+      if (p.backpack && back) { C.N = p.backpack; C.M = shade(p.backpack, 0.7); paint(['NNNNNN', 'NMMMMN', 'NNNNNN', 'NNNNNM', 'MMMMMM'], 5, 10, ''); }
+      // the picture, mirrored for a west view
+      const X = x => (west ? 31 - (PX_LEFT + x) : PX_LEFT + x);
+      grid.forEach((row, y) => row.forEach((ch, x) => { if (ch !== '.' && C[ch]) rect(g, C[ch], X(x), PX_TOP + y, 1, 1); }));
+      // ---- the hat, over the head
+      if (p.hat) pixelHat(g, p.hat, dir, X);
+      // ---- what it holds (in its right hand) and its shield (on its left arm)
+      const hand = front ? [2, 16] : back ? [13, 16] : [9, 16];
+      if (p.held && !back) pixelHeld(g, p.held, X(hand[0]), PX_TOP + hand[1], dir);
+      if (p.shield && !(side && !west) ) { const sx = front ? 13 : back ? 2 : 9; const c = p.shield; for (let y = 11; y <= 17; y++) for (let x = 0; x < 4; x++) if (!(y === 17 && (x === 0 || x === 3))) rect(g, x === 0 ? shade(c, 1.25) : x === 3 ? shade(c, 0.7) : c, X(sx + x - 1), PX_TOP + y, 1, 1); rect(g, GOLD, X(sx + 1), PX_TOP + 13, 1, 2); }
+    });
+  }
+  // A hat in pixels, on the head of a pixel figure (dir as the figure, X maps a template column to the picture).
+  function pixelHat(g, hat, dir, X) {
+    const c = hat.color || '#8a8a92', lit = shade(c, 1.3), dk = shade(c, 0.7), acc = hat.accent || GOLD, st = hat.style, front = dir === 2;
+    const row = (y, x0, x1, col) => { for (let x = x0; x <= x1; x++) rect(g, typeof col === 'function' ? col(x) : col, X(x), PX_TOP + y, 1, 1); };
+    const lightDark = (x0, x1) => x => (x <= x0 + 1 ? lit : x >= x1 - 1 ? dk : c);
+    if (st === 'hood') { // over the top and down the sides of the head, the face looking out; a mantle on the shoulders
+      const side = dir === 1 || dir === 3, back = dir === 0;
+      row(0, 5, 10, lightDark(5, 10)); row(1, 4, 11, lightDark(4, 11)); row(2, 3, 12, lightDark(3, 12));
+      for (let y = 3; y <= 8; y++) {
+        if (back) row(y, 3, 12, lightDark(3, 12));
+        else if (side) row(y, 3, 7, lightDark(3, 7));
+        else { row(y, 3, 4, lit); row(y, 11, 12, dk); }
+      }
+      if (front) row(3, 5, 10, shade(c, 0.45)); // the shadow of its edge on the forehead
+      row(9, 2, 13, lightDark(2, 13));
+      return;
+    }
+    if (st === 'helmet' || st === 'plume' || st === 'horned') {
+      row(0, 5, 10, lightDark(5, 10)); row(1, 4, 11, lightDark(4, 11)); row(2, 3, 12, lightDark(3, 12)); row(3, 3, 12, dk);
+      if (front) { rect(g, dk, X(7), PX_TOP + 4, 1, 1); rect(g, dk, X(8), PX_TOP + 4, 1, 1); rect(g, dk, X(7), PX_TOP + 5, 1, 1); }
+      if (st === 'plume') for (let y = -3; y <= 0; y++) row(y, 7 + (y < -1 ? 1 : 0), 8, acc);
+      if (st === 'horned') { for (const [x, y] of [[2, 1], [1, 0], [1, -1], [13, 1], [14, 0], [14, -1]]) rect(g, acc, X(x), PX_TOP + y, 1, 1); }
+      return;
+    }
+    if (st === 'crown') { row(1, 4, 11, GOLD); row(2, 4, 11, shade(GOLD, 0.8)); for (const x of [4, 7, 8, 11]) rect(g, '#f0d040', X(x), PX_TOP, 1, 1); rect(g, '#e04040', X(7), PX_TOP + 1, 1, 1); return; }
+    if (st === 'pointy') { for (let y = -5; y <= 2; y++) { const half = Math.max(0, Math.floor((y + 5) / 2)); row(y, 8 - half, 8 + half - 1, lightDark(8 - half, 8 + half - 1)); } row(3, 1, 14, dk); return; }
+    if (st === 'bandana') { row(1, 4, 11, c); row(2, 3, 12, dk); if (dir !== 2) { rect(g, c, X(dir === 0 ? 7 : 3), PX_TOP + 3, 1, 2); } return; }
+    if (st === 'antlers') { for (const [x, y] of [[5, 1], [4, 0], [3, -1], [4, -2], [2, 0], [10, 1], [11, 0], [12, -1], [11, -2], [13, 0]]) rect(g, c, X(x), PX_TOP + y, 1, 1); return; }
+    // a hat with a brim: wide, tricorn, hunter's, feathered
+    row(0, 5, 10, lightDark(5, 10)); row(1, 5, 10, lightDark(5, 10)); row(2, 4, 11, c);
+    row(3, st === 'wide' || st === 'tricorn' ? 1 : 2, st === 'wide' || st === 'tricorn' ? 14 : 13, dk);
+    row(2, 5, 10, acc === GOLD ? shade(c, 0.6) : acc);
+    if (st === 'feather' || st === 'hunter') for (const [x, y] of [[11, 1], [12, 0], [13, -1], [13, -2]]) rect(g, hat.accent || '#f4f0e8', X(x), PX_TOP + y, 1, 1);
+  }
+  // What a pixel figure holds, its hand at (x, y) on the picture.
+  function pixelHeld(g, kind, x, y, dir) {
+    const px = (dx, dy, c) => rect(g, c, x + dx, y + dy, 1, 1), up = (x0, y0, y1, c) => { for (let k = y0; k <= y1; k++) px(x0, k, c); };
+    if (kind === 'sword' || kind === 'sabre') { up(0, -10, -2, '#dfe3ea'); up(1, -9, -2, '#9aa0aa'); px(-1, -1, GOLD); px(0, -1, GOLD); px(1, -1, GOLD); px(2, -1, GOLD); up(0, 0, 1, '#5a3a1e'); }
+    else if (kind === 'axe' || kind === 'greataxe') { up(0, -9, 2, '#6a4422'); for (let k = -9; k <= -5; k++) { px(1, k, '#c4c8d0'); px(2, k, k === -9 || k === -5 ? '#8a8e96' : '#b0b4bc'); } if (kind === 'greataxe') for (let k = -9; k <= -5; k++) { px(-1, k, '#b0b4bc'); px(-2, k, '#8a8e96'); } }
+    else if (kind === 'staff' || kind === 'leafstaff') { up(0, -14, 4, '#7a5030'); px(0, -15, kind === 'leafstaff' ? '#5aaa48' : '#80d0ff'); px(-1, -15, kind === 'leafstaff' ? '#3a8a30' : '#c0ecff'); px(1, -15, kind === 'leafstaff' ? '#3a8a30' : '#4aa0e0'); px(0, -16, kind === 'leafstaff' ? '#5aaa48' : '#c0ecff'); }
+    else if (kind === 'bow' || kind === 'crossbow') { for (let k = -8; k <= 4; k++) px(Math.round(Math.abs(k + 2) / 4) - 1, k, '#8a5a2e'); up(1, -7, 3, '#e8e0d0'); }
+    else { up(0, -7, 1, '#6a4422'); px(1, -7, '#4a2e14'); px(1, -6, '#4a2e14'); px(-1, -7, '#5a3a1e'); }
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -4809,7 +4969,7 @@ const Sprites = (() => {
   }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => (Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (look) return (g, d, f) => (Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -5162,6 +5322,7 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
+    PEOPLE: 'pixel', // people drawn as pixel art ('pixel') or as dolls ('doll')
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
@@ -5176,7 +5337,7 @@ const Sprites = (() => {
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key), R = Sprites.CREATURE_RES;
-      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}`, g => {
+      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
         if (big) g.translate(TILE, TILE);
