@@ -164,7 +164,7 @@ const OAKVALE = {
   mount: { x0: 128, y0: 99, x1: 149, y1: 109, steps: [136, 137, 138],
     outline: [[128.6, 103.4], [129.8, 100.9], [132.4, 100.2], [136.8, 99.9], [141.4, 100.4], [143.6, 99.6], [149.6, 99.4],
       [150, 102.5], [149.6, 106.4], [146.4, 106.6], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
-    keep: [[131, 99, 142, 108], [134, 109, 140, 109], [143, 99, 149, 106], [142, 105, 143, 106]], clear: [] }, // (a rim round the bell tower)
+    keep: [[131, 99, 142, 108], [128, 102, 131, 107], [134, 109, 140, 109], [143, 99, 149, 106], [142, 105, 143, 106]], clear: [] }, // (a rim round the bell tower)
   streets: [
     { line: [[126, 91], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
     { line: [[128, 121], [128, 151]], width: 3, ground: 'cobble' },             // from the square to the south gate
@@ -254,6 +254,7 @@ const OAKVALE = {
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
   notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
   firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; this is the square. The depot is just east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
@@ -1277,15 +1278,15 @@ function buildTown(m, S, runs, river) {
     put(cx, t.y0 + 1, Z, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, Z, 'torch');
     for (const x of [cx - 3, cx + 3]) put(x, t.y0, Z, 'banner');
-    for (const x of [t.x0 + 1, t.x1 - 1]) { put(x, t.y0 + 1, Z, 'statue'); put(x, t.y1 - 1, Z, 'plant'); }
-    for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, t.y0 + 3, Z, 'bench');
+    for (const x of [t.x0 + 1, t.x1 - 1]) { put(x, t.y0 + 1, Z, 'saint'); put(x, t.y1 - 1, Z, 'plant'); }
+    for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, t.y0 + 3, Z, 'pew');
     for (const y of [t.y0 + 2]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // the terrace in front: paving, statues, lamps and flowers, with the steps down to the square
     const mt = T.mount;
     for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0; x <= t.x1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
-    for (const [x, id] of [[t.x0 + 1, 'statue'], [t.x1 - 1, 'statue']]) put(x, mt.y1 - 1, Z, id);
+    for (const [x, id] of [[t.x0 + 1, 'saint'], [t.x1 - 1, 'saint']]) put(x, mt.y1 - 1, Z, id);
     for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
     sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
     // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace, and
@@ -1296,6 +1297,12 @@ function buildTown(m, S, runs, river) {
     const bt = B.belltower, [bdx, bdy] = bt.door;
     for (let x = t.x1 + 2; x <= bdx + 1; x++) for (const y of [bdy + 1, bdy + 2]) pave(x, y);
     for (const y of [bdy, bdy + 3]) put(t.x1 + 2, y, Z, 'lamppost'); // either side of where it leaves the temple's path
+    // the statue of the founder, three tiles square, on the open ground west of the temple, facing the town
+    { const [fx, fy] = T.founder;
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+        const ft = m.get(fx + c, fy + r, Z); ft.ground = 'grass'; ft.items = [`founder_${c}${r}`];
+        m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale, in white marble, holding up the sun. The plaque reads: "She found this island in a storm, and called it home."' });
+      } }
     for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
       const tt = m.get(x, y, Z);
       if (tt && tt.ground === 'grass' && !tt.items.length && hash(x, y) < 0.35) put(x, y, Z, hash(x + 3, y) < 0.5 ? 'flowers' : 'grass_tuft');

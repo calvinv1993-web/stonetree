@@ -64,8 +64,8 @@ const Render = {
       else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
       map.dirty.length = 0;
     }
-    const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = Sprites.WATER_MOVES ? ['water', 'lava', 'sewer_water'] : ['lava', 'sewer_water'];
-    const floor = map.floors[z], tag = `${snow}:${beyond}:${Sprites.WATER_MOVES}`;
+    const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = ['lava', 'sewer_water'];
+    const floor = map.floors[z], tag = `${snow}:${beyond}`;
     // A chunk: kept, or made now if there's time left this frame (Render.budget); null if not (it's drawn live). A chunk
     // is made in parts of 2 x 2 tiles (the ground of a tile is drawn on that tile only, so they fit together): one in
     // view is finished at once, one round the view (ahead: soon) a part at a time while the frame has time to spare.
@@ -314,8 +314,8 @@ const Render = {
       };
       // The ground of tiles gx0..gx1, gy0..gy1 (the scree and lips of x0..x1, y0..y1), at (ox, oy): what lies flat,
       // under everything on the floor. Drawn live, or once into a chunk kept for later (see groundChunk).
-      const groundPass = (g, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame) => {
-        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+      const groundPass = (g, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, noBase) => {
+        if (!noBase) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) { // (noBase: all but the grounds themselves)
           const t = tileAt(x, y);
           if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) {
             g.save();
@@ -429,8 +429,19 @@ const Render = {
           g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
         }
       };
-      const shoreFrame = Sprites.WATER_MOVES ? Math.floor((v.time || 0) / 80) % 32 : 0;
-      Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, groundPass, beyond);
+      Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, 0, groundPass, beyond);
+      // The water ripples: a picture of its loop over the still water kept in the chunks, once that picture is made
+      // (between frames: until then it lies still). Water by a shore, a quay or a bridge has its borders drawn again
+      // over the ripples.
+      if (Sprites.WATER_MOVES) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+        if (groundAt(x, y) !== 'water' || wallAt(x, y)) continue;
+        const f = Sprites.waterFrame(x, y, v.time);
+        if (!f) continue;
+        g.drawImage(f, ox + x * TILE, oy + y * TILE);
+        let open = true;
+        for (let dy = -1; dy <= 1 && open; dy++) for (let dx = -1; dx <= 1; dx++) if (groundAt(x + dx, y + dy) !== 'water' || wallAt(x + dx, y + dy)) { open = false; break; }
+        if (!open) groundPass(g, ox, oy, x, x, y, y, x, x, y, y, 0, true);
+      }
       if (v.afterGround) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
 

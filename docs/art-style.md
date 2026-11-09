@@ -13,7 +13,7 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   (`wallSpot`, `wallBox`, `wallPoly`, `onWallPlane`): a window is a recess with its glass at the back and a frame and
   sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
   hangs flat against it, with its shadow on the wall.
-- Only flames rise straight up the screen (fire goes up), and the figures.
+- Only flames rise straight up the screen (fire goes up), and the figures: people, and the figures of statues (`stoneFigure()`: a person's figure in marble or bronze, upright on a plinth that leans as things do).
 - **People** stand upright (`tiltPerson()`, `Sprites.PEOPLE = 'tilt'`, `Sprites.TILT = 0`): a plain figure seen from the front, back or side, big simple shapes (head with hair and a face, body, belt, arms and hands, legs and boots) in two or three tones, lit from the top left, at a pixel per world pixel with a black edge. `TILT` can lean them along the world's slant (degrees); the owner chose upright. Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: `'art'`, `'hd'`, `'pixel'`, `'lean'`.
 - Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 

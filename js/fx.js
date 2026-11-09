@@ -559,7 +559,7 @@ const Fx = (() => {
         if (!t) continue;
         if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
         for (const id of t.items) {
-          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') });
+          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });
           else if ((id === 'window' || id === 'window_stained') && !underground && amount > 0.25) lights.push({ x: x - d, y: y - d, r: 1.4, color: LIGHT_COLORS.window, flicker: true, soft: true });
         }
       }

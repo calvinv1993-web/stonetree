@@ -657,7 +657,7 @@ const Sprites = (() => {
   const RAISED = new Set(['eggs', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
-    'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
+    'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
@@ -940,6 +940,46 @@ const Sprites = (() => {
   // stained glass, each a sunrise in lead (a golden sun with its rays, ringed by panes of blue, red and violet),
   // lit from inside (it glows at night, see defs.js), a cornice, and a marble roof gilded like the temple's own,
   // with the golden sun of the dawn on a rod above it.
+  // The statue of the founder, three tiles square, west of the temple: a stepped marble plinth with a gilded band and a
+  // plaque, and on it the founder in a long cloak, the left hand on a sword's hilt, the right holding a golden sun high.
+  BIG.founder = { w: 3, h: 3, draw(g) {
+    const m1 = { top: '#fbf7ee', south: '#e6dfcf', east: '#bdb4a2', edge: '#ffffff' }, m2 = { top: '#efe8d8', south: '#d6cdb8', east: '#aaa18e', edge: '#fffcf4' };
+    const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
+    shadow(g, 64 + 52, 64 + 58, 44, 16);
+    prism(g, 4, 4, 92, 92, 0, 4, m2);                 // three steps
+    prism(g, 10, 10, 86, 86, 4, 8, m1);
+    prism(g, 16, 16, 80, 80, 8, 12, m2);
+    prism(g, 22, 22, 74, 74, 12, 30, m1);              // the plinth
+    prism(g, 21, 21, 75, 75, 30, 32, gold);            // a gilded band
+    prism(g, 23, 23, 73, 73, 32, 35, m2);              // its cap
+    onSouth(g, 74, f => { rect(f, '#b8a684', 34, 16, 28, 9); rect(f, '#d8a030', 35, 17, 26, 7); rect(f, '#f2c94c', 36, 18, 24, 5); // the plaque
+      for (let k = 0; k < 6; k++) rect(f, '#9a7420', 38 + k * 3.6, 20, 2.2, 1); });
+    // the founder, upright as people stand, in marble, a cloak on her shoulders, holding a staff crowned with a sun
+    const [px, py] = P(48, 52, 35), k = 2;
+    g.imageSmoothingEnabled = false; // (whole pixels, twice as big)
+    g.drawImage(stoneFigure('founder', MARBLE_FOUNDER), Math.round(px - 20 * k), Math.round(py - 40.5 * k), 40 * k, 48 * k);
+    sunDisc(g, px + (29.7 - 20) * k, py + (6.5 - 40.5) * k - 2, 9);     // the sun on the staff's top
+  } };
+  // A figure as people are drawn (tiltPerson), standing upright, in the colours of stone: for statues. Feet at (20, 40.5)
+  // on a 40 x 48 picture.
+  const MARBLE_SAINT = { skin: '#ece4d2', hair: '#e2d9c4', body: '#f2ecdf', robe: true, trim: '#e0b840', belt: '#e0b840', eye: '#a89e8a',
+    hat: { style: 'hood', color: '#f6f1e6' } };
+  const MARBLE_FOUNDER = { skin: '#ece4d2', hair: '#ddd4c0', hairStyle: 'long', female: true, body: '#f2ecdf', robe: true, trim: '#e0b840', belt: '#e0b840',
+    cape: '#d9d0bc', eye: '#a89e8a', held: 'staff', heldColor: '#d8a030' };
+  const BRONZE_HERO = { skin: '#6a9a86', hair: '#3e6656', body: '#6a9a86', legs: '#5e8c7a', feet: '#3e6656', belt: '#d8c070', cape: '#4e7e6c',
+    eye: '#22382f', held: 'sword', heldColor: '#b4dccb', armor: '#7aa898' };
+  function stoneFigure(key, look) {
+    return cached(`stonefig:${key}`, g => {
+      const tilt = Sprites.TILT;
+      Sprites.TILT = 0;
+      try { g.translate(4, 12); tiltPerson(g, look, 2, 0); } finally { Sprites.TILT = tilt; }
+    }, 40, 48);
+  }
+  // A gilded sun: rays round a disc, at (x, y), r across.
+  function sunDisc(g, x, y, r) {
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r1 = i % 2 ? r : r * 1.25; line(g, '#d8a030', Math.max(1, r / 6), x + Math.cos(a) * r * 0.6, y + Math.sin(a) * r * 0.6, x + Math.cos(a) * r1, y + Math.sin(a) * r1); }
+    ellipse(g, '#b8861c', x, y, r * 0.66, r * 0.66); ellipse(g, '#f2c94c', x - 0.4, y - 0.4, r * 0.55, r * 0.55); ellipse(g, '#fff0b0', x - r * 0.2, y - r * 0.2, r * 0.2, r * 0.2);
+  }
   BIG.temple_lantern = { w: 2, h: 2, draw(g) {
     const marble = { top: '#fbf6ea', south: '#ece2cc', east: '#c8bea8', edge: '#fffcf4' };
     const marble2 = { top: '#f2ead8', south: '#ddd2ba', east: '#b4aa94', edge: '#fffaf0' };
@@ -973,6 +1013,7 @@ const Sprites = (() => {
     ellipse(g, '#a8741a', sx, sy, 7.2, 7.2); ellipse(g, '#ffd860', sx, sy, 6.2, 6.2); ellipse(g, '#fff4c0', sx - 1.5, sy - 1.5, 2.8, 2.8);
   } };
   const PARTS = {
+    founder_00: ['founder', 0, 0], founder_10: ['founder', 1, 0], founder_20: ['founder', 2, 0], founder_01: ['founder', 0, 1], founder_11: ['founder', 1, 1], founder_21: ['founder', 2, 1], founder_02: ['founder', 0, 2], founder_12: ['founder', 1, 2], founder_22: ['founder', 2, 2],
     temple_lantern_nw: ['temple_lantern', 0, 0], temple_lantern_ne: ['temple_lantern', 1, 0], temple_lantern_sw: ['temple_lantern', 0, 1], temple_lantern_se: ['temple_lantern', 1, 1],
     arch_w: ['arch', 0, 0], arch_m: ['arch', 1, 0], arch_e: ['arch', 2, 0],
     bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],
@@ -1805,28 +1846,38 @@ const Sprites = (() => {
       const stone = { top: '#c4c4c0', south: '#9a9a96', east: '#76767a', edge: '#e4e4e0' };
       prism(g, 4, 4, 28, 28, 0, 8, stone);
       prism(g, 6, 6, 26, 26, 8, 12, stone);
-      const bronze = { top: '#a8d4c0', south: '#6a9a86', east: '#3e6656', edge: '#c8ecdc' };
-      const dark = { top: '#5e8c7a', south: '#3e6656', east: '#2a4a3e', edge: '#7aa898' };
-      const round = { edge: '#2a4a3e', light: '#b4dccb', mid: '#6a9a86', dark: '#3e6656' };
-      prism(g, 11, 14, 15, 19, 12, 22, dark);                  // boots
-      prism(g, 17, 14, 21, 19, 12, 22, dark);
-      prism(g, 9, 12, 23, 22, 20, 34, bronze);                 // the coat's skirt, wide
-      onSouth(g, 22, f => rect(f, 'rgba(30,54,44,0.7)', 15.5, 20, 1, 14)); // its opening
-      prism(g, 10, 13, 22, 21, 34, 46, bronze);                // the chest
-      prism(g, 9.5, 12.5, 22.5, 21.5, 33, 35, dark);           // the belt
-      onSouth(g, 21.5, f => { rect(f, '#d8c070', 14.5, 33, 3, 2); for (const z of [38, 42]) rect(f, '#3e6656', 15.5, z, 1, 1); }); // buckle, buttons
-      prism(g, 6.5, 13, 25.5, 20.5, 45, 49, bronze);           // broad shoulders
-      prism(g, 6.5, 14, 9.5, 19, 30, 45, bronze);              // the left arm, hanging
-      prism(g, 6.5, 14.5, 9.5, 18.5, 27, 30, dark);            // its fist
-      prism(g, 22.5, 14, 25.5, 19, 49, 60, bronze);            // the right arm, raised
-      prism(g, 14, 15, 18, 19, 49, 51, dark);                  // the neck
-      const [hx, hy] = drum(g, 16, 17, 51, 61, t => 4.2 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1.4, round); // the head
-      drum(g, 16, 16.5, 58, 62, t => 4.6 - t * 2, { edge: '#22382f', light: '#5e8c7a', mid: '#3e6656', dark: '#22382f' }); // hair
-      const [fx, fy] = [hx, hy + 6]; // the face, on the head's front
-      rect(g, '#22382f', fx - 2.5, fy - 0.5, 1.5, 1); rect(g, '#22382f', fx + 1, fy - 0.5, 1.5, 1); rect(g, '#2a4a3e', fx - 0.5, fy + 1, 1, 1.5);
-      prism(g, 22.5, 15, 25.5, 18, 60, 62, dark);              // the hilt in the fist
-      prism(g, 20.5, 15.8, 27.5, 17.2, 62, 64, bronze);        // the crossguard
-      prism(g, 23.3, 16, 24.7, 17, 64, 86, { top: '#d4f4e8', south: '#9ac8b4', east: '#6a9a86', edge: '#f0fff8' }); // the blade
+      onSouth(g, 28, f => rect(f, '#86867f', 9, 2, 14, 4)); // a plaque
+      const [px, py] = P(16, 17, 12); // a bronze hero gone green, upright as people stand, a sword in hand
+      g.drawImage(stoneFigure('hero', BRONZE_HERO), Math.round(px - 20), Math.round(py - 40.5));
+    },
+    // A saint of the temple: a figure in white marble robes and a hood, a gilded sun behind its head, on a stepped plinth
+    // with a gilded band.
+    saint(g) {
+      floorShadow(g, 13, 3);
+      const m1 = { top: '#fbf7ee', south: '#e6dfcf', east: '#bdb4a2', edge: '#ffffff' }, m2 = { top: '#efe8d8', south: '#d6cdb8', east: '#aaa18e', edge: '#fffcf4' };
+      const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
+      prism(g, 3, 3, 29, 29, 0, 4, m2);              // the plinth: a wide step,
+      prism(g, 5, 5, 27, 27, 4, 12, m1);             // its block,
+      prism(g, 4.5, 4.5, 27.5, 27.5, 12, 13.5, gold); // a gilded band
+      prism(g, 6, 6, 26, 26, 13.5, 16, m2);          // and its top
+      onSouth(g, 27, f => { rect(f, '#c9bfa8', 10, 6, 12, 4); rect(f, '#f2c94c', 15, 7, 2, 2); }); // a panel with a little sun
+      const [px, py] = P(16, 17, 16);              // the figure stands upright on it, as people do
+      g.drawImage(stoneFigure('saint', MARBLE_SAINT), Math.round(px - 20), Math.round(py - 40.5));
+    },
+    // A temple pew: dark polished wood, its ends carved and capped, a seat and a high back (it faces the altar, north:
+    // you see its back), a gilded rail along the top.
+    pew(g) {
+      floorShadow(g, 15, 3);
+      const wood = { top: '#7a4a2a', south: '#5e3418', east: '#42240e', edge: '#9a6440' }, dark = { top: '#5e3418', south: '#4a2810', east: '#341a08', edge: '#7a4a2a' };
+      prism(g, 2, 9, 30, 19, 9, 11.5, wood);                           // the seat
+      for (const u of [1, 28]) {                                       // the ends, carved: a panel, a scroll at the top
+        prism(g, u, 8, u + 3, 23, 0, 20, dark);
+        onSouth(g, 23, f => { rect(f, '#2a1406', u + 0.8, 3, 1.4, 12); });
+        const [cx, cy] = P(u + 1.5, 15.5, 21.5); ellipse(g, '#4a2810', cx, cy, 2.2, 2.2); ellipse(g, '#7a4a2a', cx - 0.5, cy - 0.5, 1.2, 1.2);
+      }
+      prism(g, 2, 19, 30, 22, 0, 22, wood);                           // the back, which faces you
+      onSouth(g, 22, f => { for (const u0 of [4, 12.5, 21]) { rect(f, '#4a2810', u0, 4, 7, 14); rect(f, '#6a3c1e', u0 + 1, 5, 5, 12); } }); // its panels
+      prism(g, 1.5, 18.5, 30.5, 22.5, 22, 23.5, { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' }); // the gilded rail
     },
     rails(g) {
       for (let y = 2; y < TILE; y += 6) rect(g, '#5a3a1e', 6, y, 20, 3);
@@ -5218,13 +5269,13 @@ const Sprites = (() => {
         limb(g, 21, s * W, 2.2, 13.5 + sw, s * W * 1.06 + (side ? flip * sw : 0), 1.9, p.armor && !p.bareArms ? p.armor : p.bareArms ? skin : arms);
         blob(g, 12.4 + sw, s * W * 1.06 + (side ? flip * sw : 0), 1.8, 1.8, skin);
       });
-      if (p.held && !back) { const s = side ? -0.4 : 7.2, [x0, y0] = at(12, s), [x1, y1] = at(/staff/.test(p.held) ? 34 : 26, s + 2.5); g.strokeStyle = /staff|bow/.test(p.held) ? '#7a5030' : '#dde2ea'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+      if (p.held && !back) { const s = side ? -0.4 : 7.2, [x0, y0] = at(12, s), [x1, y1] = at(/staff/.test(p.held) ? 34 : 26, s + 2.5); g.strokeStyle = p.heldColor || (/staff|bow/.test(p.held) ? '#7a5030' : '#dde2ea'); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
       if (p.shield && front) blob(g, 17, -7.6, 4.2, 3.6, p.shield);
       // the head, big; the face on its front (or its side, for a profile); the hair over it
       if (!back && (hs === 'long' || hs === 'braids')) limb(g, 21, 0, 5.6, 28, 0, 5.8, shade(hair, 0.85)); // long hair behind
       blob(g, 27.8, side ? flip * 0.8 : 0, 6, 5.6, skin);
       if (!back && !hooded) {
-        const eye = (t, s) => { const [x, y] = at(t, s); rect(g, '#141010', Math.round(x), Math.round(y), 1, 1); };
+        const eye = (t, s) => { const [x, y] = at(t, s); rect(g, p.eye || '#141010', Math.round(x), Math.round(y), 1, 1); };
         if (front) { eye(27.2, -2.2); eye(27.2, 2.2); } else eye(27.4, flip * 3.2);
       }
       if (p.beard && !back) limb(g, 24.6, side ? flip * 2 : -2, 2.2, 24.6, side ? flip * 3.4 : 2, 2.2, p.beard);
@@ -5840,7 +5891,7 @@ const Sprites = (() => {
   // One current frame per atlas position: animation memory stays bounded.
   const waterFrames = new Map();
   // Water frames kept for good, up to WATER_KEEP bytes of pixels: less on a phone (touch screen), where memory is tight.
-  const waterKept = new Map(), WATER_KEEP = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 24 : 128) * 1024 * 1024;
+  const waterKept = new Map(), WATER_KEEP = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 32 : 128) * 1024 * 1024;
   waterKept.bytes = 0;
   function waterTile(x, y, time, size = TILE) {
     const image = customImage('water_texture');
@@ -5935,14 +5986,26 @@ const Sprites = (() => {
 
   const DOLLS_ON = true;
   return {
-    water: (x, y, time) => waterTile(x, y, Sprites.WATER_MOVES ? time : 0, 64),
+    water: (x, y) => waterTile(x, y, 0, 64), // (still: the water kept in the ground's chunks; open water ripples over it)
+    // Open water's ripples: WATER_PHASES pictures a place, a loop of 6.4 s; null until made (warmWater makes them ahead).
+    WATER_PHASES: 20,
+    waterFrame(x, y, time) {
+      const n = Sprites.WATER_PHASES, k = Math.floor(time / (6400 / n)) % n, px = ((x % 16) + 16) % 16, py = ((y % 16) + 16) % 16;
+      return waterKept.get(`${px}:${py}:${TILE}:${(k * 80) / n}`) || null;
+    },
+    // Jobs that make every picture of the ripples, for the quiet time between frames.
+    warmWater() {
+      const jobs = [], n = Sprites.WATER_PHASES;
+      for (let k = 0; k < n; k++) for (let py = 0; py < 16; py++) for (let px = 0; px < 16; px++) jobs.push(() => waterTile(px, py, ((k * 80) / n) * 80, TILE));
+      return jobs;
+    },
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
-      if (id === 'water' && !Sprites.WATER_MOVES) time = 0; // (still water: one picture per place, made once)
+      if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
       const own = customImage(id);
       if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
@@ -5982,7 +6045,7 @@ const Sprites = (() => {
     // for tests/bake-ground.js: the ground's pictures made so far ([key, canvas]), and the fingerprint they're made with
     bakeable: () => [...cache].filter(([k]) => BAKED_KINDS.some(p => k.startsWith(p))),
     groundFingerprint: () => groundFingerprint(),
-    WATER_MOVES: false, // the water's ripples move (off for now: testing whether it's what lags)
+    WATER_MOVES: true, // the water ripples: open water shows a loop of WATER_PHASES pictures, made ahead (see waterFrame)
     TILT: 0, // how far people lean, in degrees (along the world's lean: head up to the left); upright, as the owner chose
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars

@@ -404,6 +404,7 @@ function draw() {
     warmed.add(key);
     for (const d of [0, 1, 2, 3]) for (const f of [0, 1, 2]) Render.chores.push(() => Sprites.creature(key, d, f));
   }
+  if (!waterWarmed && Sprites.WATER_MOVES) { waterWarmed = true; Render.chores.push(...Sprites.warmWater()); }
   Render.idle(); // (the ground ahead, and those pictures, made between frames)
   const ox = Math.round(view.w / 2 - view.cx), oy = Math.round(view.h / 2 - view.cy);
   if (!player.dead && !riding(player)) {
@@ -784,6 +785,7 @@ let lastBars = 0, lastSave = 0, lastError = '';
 // Map canvases are independent of the world canvas; 10 refreshes/sec is sufficient.
 let lastMapDraw = -Infinity;
 const warmed = new Set(); // creatures whose pictures are made (or asked for) between frames
+let waterWarmed = false; // (the water's ripples, made between frames once the game runs)
 const MAP_DRAW_INTERVAL = 100;
 // The game runs at the screen's own rate, 60 frames a second (a phone too: the ground is kept in chunks now, see
 // Render.ground). FRAME_INTERVAL is the shortest time between two frames: a 120 Hz screen still draws 60.
