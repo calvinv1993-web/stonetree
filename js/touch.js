@@ -34,8 +34,6 @@ function setJoystick(on) {
 
 function setTouchMode(mode) {
   touchMode = mode;
-  $('tUse').classList.toggle('active', mode === 'use');
-  $('tLook').classList.toggle('active', mode === 'look');
   canvas.classList.toggle('targeting', !!mode);
 }
 
@@ -86,13 +84,6 @@ function favourites() {
   slots[FAV_SLOTS * FAV_PAGES] = 'h';
   slots[FAV_SLOTS * FAV_PAGES + 1] = 'm';
   return slots;
-}
-function changeFavPage(delta) {
-  endFavPress(false);
-  favPageIndex = (favPageIndex + delta + FAV_PAGES) % FAV_PAGES;
-  $('favPage').textContent = `${favPageIndex + 1} / ${FAV_PAGES}`;
-  favShown = '';
-  renderFavs();
 }
 
 function useFav(slot) {
@@ -306,42 +297,17 @@ function initTouch() {
     if (player && !paused) fn();
   });
   tap('tAttack', pressSmartAction);
-  tap('tMore', () => $('touch').classList.toggle('more-open'));
-  tap('tStop', () => {
-    setTouchMode(null);
-    if (useWith) cancelUseWith();
-    Actions.stop();
-  });
-  tap('tUse', () => setTouchMode(touchMode === 'use' ? null : 'use'));
-  tap('tLook', () => setTouchMode(touchMode === 'look' ? null : 'look'));
-  tap('tHeal', () => Actions.hotkey('h'));
-  tap('tMana', () => Actions.hotkey('m'));
-  tap('tChat', () => setChat(!document.body.classList.contains('chat-open'), true));
-  tap('tMap', () => toggleWorldMap());
-  tap('tRide', () => {
-    if ($('worldmap').hidden) toggleWorldMap(true);
-    else setRideMode(true);
-  });
-  tap('tPanel', () => document.body.classList.toggle('panel-open'));
   tap('panelClose', () => closeSheet());
   for (const id of ['tabChar', 'tabQuests', 'tabMenu']) tap(id, () => toggleSheet($(id).dataset.sheet));
   tap('tabMap', () => { closeSheet(); toggleWorldMap(); });
   tap('tabChat', () => { closeSheet(); setChat(!document.body.classList.contains('chat-open'), true); });
   tap('talkClose', () => { if (player.conversation) Actions.say('bye'); hideTalk(); });
-  tap('tBag', () => document.body.classList.toggle('bag-open'));
-  const MODES = ['offensive', 'balanced', 'defensive'];
-  tap('tFight', () => Actions.setFightMode(MODES[(MODES.indexOf(player.fightMode) + 1) % MODES.length]));
   for (const b of document.querySelectorAll('#fightModes button')) {
     b.replaceChildren(Icons.img({ offensive: 'mode-attack', balanced: 'mode-balanced', defensive: 'mode-defend' }[b.dataset.mode], 24));
     tap(b, () => Actions.setFightMode(b.dataset.mode));
   }
   $('fightFollow').replaceChildren(Icons.img('mode-follow', 24));
   tap('fightFollow', () => Actions.setChase(!player.chase));
-  tap('tChase', () => Actions.setChase(!player.chase));
-  tap('tSecure', () => Actions.setSecure(player.secure === false));
-  $('tFull').addEventListener('click', toggleFullscreen);
-  tap('favPrev', () => changeFavPage(-1));
-  tap('favNext', () => changeFavPage(1));
   initJoystick();
   $('chatClose').addEventListener('click', () => setChat(false));
   $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
@@ -352,7 +318,6 @@ function initTouch() {
   window.addEventListener('resize', fitView);
   fitView();
   // Health and mana stay in sight while the panel is put away, and so do the fight settings.
-  const FIGHT_ICONS = { offensive: ['&#9876;', 'Attack'], balanced: ['&#9878;', 'Balanced'], defensive: ['&#128737;', 'Defend'] };
   let fightShown = '', fightingUntil = 0, lastHp = 0;
   setInterval(() => {
     if (!player) return;
@@ -360,12 +325,6 @@ function initTouch() {
     const fight = `${player.fightMode}|${player.chase}|${player.secure}`;
     if (fight !== fightShown) {
       fightShown = fight;
-      const [icon, label] = FIGHT_ICONS[player.fightMode] || FIGHT_ICONS.balanced;
-      $('tFight').innerHTML = `${icon}<small>${label}</small>`;
-      $('tChase').innerHTML = player.chase ? '&#127939;<small>Chase</small>' : '&#9995;<small>Stand</small>';
-      $('tChase').classList.toggle('active', player.chase);
-      $('tSecure').innerHTML = player.secure !== false ? '&#128330;<small>Secure</small>' : '&#9760;<small>PvP</small>';
-      $('tSecure').classList.toggle('active', player.secure !== false);
       for (const b of document.querySelectorAll('#fightModes button')) b.classList.toggle('active', b.dataset.mode === player.fightMode);
       $('fightFollow').classList.toggle('active', !!player.chase);
     }

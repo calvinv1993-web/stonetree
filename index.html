@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.json">
   <title>Tilequest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=ui51">
+  <link rel="stylesheet" href="css/style.css?v=ui53">
 </head>
 <body class="game">
   <div class="layout">
@@ -38,32 +38,14 @@
               <div class="hud-xp"><div id="hudXp"></div></div>
             </div>
             <div id="tbStatus" class="tb-status"></div>
-            <div class="touch-buttons"><button id="tMore" title="More controls" aria-label="More controls">⋯</button>
-              <button id="tStop" title="Stop: no target, stop walking">&#10006;</button>
-              <button id="tUse" title="Use: then tap what to use (or long-press it)">&#9995;</button>
-              <button id="tLook" title="Look: then tap what to look at">&#128065;</button>
-              <button id="tHeal" title="Drink a health potion">&#10084;</button>
-              <button id="tMana" title="Drink a mana potion">&#128167;</button>
-              <button id="tChat" title="Talk">&#128172;</button>
-              <button id="tMap" title="World map">&#128506;</button>
-              <button id="tRide" title="Order a ride">&#128052;</button>
-              <button id="tPanel" title="Character, equipment, battle list and skills">&#9776;</button>
-              <button id="tFull" title="Fullscreen">&#9974;</button>
-            </div>
           </div>
           <div id="toasts" class="toasts"></div>
           <div id="joystick" class="joystick"><div class="knob"></div></div>
           <button id="tAttack" class="attack-btn" title="Attack the closest monster (again: the next one)">&#9876;</button>
-          <button id="tBag" class="bag-btn" title="Backpack">&#127890;</button>
           <!-- while you fight: the fight mode and whether you follow your target -->
           <div id="fightBar" class="fight-bar">
             <div id="fightModes"><button data-mode="offensive" title="Attack: hit harder"></button><button data-mode="balanced" title="Balanced"></button><button data-mode="defensive" title="Defend: take less damage"></button></div>
             <button id="fightFollow" class="follow" title="Follow your target"></button>
-          </div>
-          <div class="touch-corner">
-            <button id="tFight" title="Fight mode: offensive, balanced or defensive"></button>
-            <button id="tChase" title="Chase your target, or stand your ground"></button>
-            <button id="tSecure" title="Secure mode: on, you can't hurt players without a skull; off, you can"></button>
           </div>
           <!-- the talk card: an NPC's words, its keywords as buttons -->
           <div id="talk" class="talk-card" hidden>
@@ -79,7 +61,7 @@
             <button id="tabChat"><span>&#128172;</span>Chat</button>
             <button id="tabMenu" data-sheet="menu"><span>&#9776;</span>Menu</button>
           </nav>
-          <div id="radialControls" class="radial-controls"><div id="favs" class="favs"></div><button id="favPrev" class="fav-page prev" aria-label="Previous hotkey set">‹</button><button id="favNext" class="fav-page next" aria-label="Next hotkey set">›</button><span id="favPage" class="fav-page-label">1 / 3</span></div>
+          <div id="radialControls" class="radial-controls"><div id="favs" class="favs"></div></div>
         </div>
 
         <div id="shop" class="window shop" hidden>
@@ -270,31 +252,31 @@
     </aside>
   </div>
 
-  <script src="js/defs.js?v=ui51"></script>
-  <script src="js/items.js?v=ui51"></script>
-  <script src="js/creatures.js?v=ui51"></script>
-  <script src="js/npcs.js?v=ui51"></script>
-  <script src="js/data.js?v=ui51"></script>
-  <script src="sprites/custom.js?v=ui51"></script>
-  <script src="js/sprites.js?v=ui51"></script>
-  <script src="js/map.js?v=ui51"></script>
-  <script src="js/default-map.js?v=ui51"></script>
-  <script src="js/render.js?v=ui51"></script>
-  <script src="js/icons.js?v=ui51"></script>
-  <script src="js/sound.js?v=ui51"></script>
-  <script src="js/fx.js?v=ui51"></script>
-  <script src="js/game-core.js?v=ui51"></script>
-  <script src="js/game-combat.js?v=ui51"></script>
-  <script src="js/game-npc.js?v=ui51"></script>
-  <script src="js/game-social.js?v=ui51"></script>
-  <script src="js/game-forge.js?v=ui51"></script>
-  <script src="js/game-guide.js?v=ui51"></script>
-  <script src="js/game-tales.js?v=ui51"></script>
-  <script src="js/game-update.js?v=ui51"></script>
-  <script src="js/game-ui.js?v=ui51"></script>
-  <script src="js/net.js?v=ui51"></script>
-  <script src="js/game.js?v=ui51"></script>
-  <script src="js/touch.js?v=ui51"></script>
+  <script src="js/defs.js?v=ui53"></script>
+  <script src="js/items.js?v=ui53"></script>
+  <script src="js/creatures.js?v=ui53"></script>
+  <script src="js/npcs.js?v=ui53"></script>
+  <script src="js/data.js?v=ui53"></script>
+  <script src="sprites/custom.js?v=ui53"></script>
+  <script src="js/sprites.js?v=ui53"></script>
+  <script src="js/map.js?v=ui53"></script>
+  <script src="js/default-map.js?v=ui53"></script>
+  <script src="js/render.js?v=ui53"></script>
+  <script src="js/icons.js?v=ui53"></script>
+  <script src="js/sound.js?v=ui53"></script>
+  <script src="js/fx.js?v=ui53"></script>
+  <script src="js/game-core.js?v=ui53"></script>
+  <script src="js/game-combat.js?v=ui53"></script>
+  <script src="js/game-npc.js?v=ui53"></script>
+  <script src="js/game-social.js?v=ui53"></script>
+  <script src="js/game-forge.js?v=ui53"></script>
+  <script src="js/game-guide.js?v=ui53"></script>
+  <script src="js/game-tales.js?v=ui53"></script>
+  <script src="js/game-update.js?v=ui53"></script>
+  <script src="js/game-ui.js?v=ui53"></script>
+  <script src="js/net.js?v=ui53"></script>
+  <script src="js/game.js?v=ui53"></script>
+  <script src="js/touch.js?v=ui53"></script>
 </body>
 </html>
 
