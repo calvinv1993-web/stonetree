@@ -1039,7 +1039,7 @@ function buildTown(m, S, runs, river) {
     for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
       if (!inRing(x, y) || inTower(x, y)) continue;
       if (!water(x, y) && !gate(x, y)) m.set(x, y, S, { ground: 'paving', items: ['rampart'] });
-      m.set(x, y, S + 1, { ground: 'paving', items: [] });
+      m.set(x, y, S + 1, { ground: 'temple_paving', items: [] });
       parapet(x, y, S + 1, [R.x0, R.y0, R.x1, R.y1]);
     }
     // the lintels over the gates and the water, on the faces you see
@@ -1050,6 +1050,13 @@ function buildTown(m, S, runs, river) {
     }
     for (const [a, b] of R.steps.north) for (let x = a; x <= b; x++) { m.set(x, R.y0 + k - 1, S, { ground: 'paving', items: ['steps'] }); m.setGround(x, R.y0 + k - 1, S + 1, 'steps_top'); }
     for (const [a, b] of R.steps.west) for (let y = a; y <= b; y++) { m.set(R.x0 + k - 1, y, S, { ground: 'paving', items: ['steps_e'] }); m.setGround(R.x0 + k - 1, y, S + 1, 'steps_top'); }
+    // torches along the inner edge of the walkway, every so often (not on the steps, nor over a gate or the water)
+    for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
+      if (!inRing(x, y) || inTower(x, y) || inRing(x, y + 1) && inRing(x, y - 1) && inRing(x + 1, y) && inRing(x - 1, y)) continue;
+      const inner = !inRing(x, y + 1) && y < R.y0 + k ? 'n' : !inRing(x, y - 1) && y > R.y1 - k ? 's' : !inRing(x + 1, y) && x < R.x0 + k ? 'w' : !inRing(x - 1, y) && x > R.x1 - k ? 'e' : null;
+      const along = inner === 'n' || inner === 's' ? x : y;
+      if (inner && along % 9 === 4 && m.get(x, y, S).items.includes('rampart')) put(x, y, S + 1, 'torch');
+    }
     for (const box of towers) {
       const [x0, y0, x1, y1] = box;
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
@@ -1060,8 +1067,8 @@ function buildTown(m, S, runs, river) {
           return !inTower(nx, ny) && inRing(nx, ny) && (dx ? inRing(nx, ny - 1) && inRing(nx, ny + 1) : inRing(nx - 1, ny) && inRing(nx + 1, ny));
         });
         m.set(x, y, S, { ground: 'paving', items: ['rampart'] });
-        m.set(x, y, S + 1, { ground: 'paving', items: edge && !door ? ['wall_stone'] : [] });
-        m.set(x, y, S + 2, { ground: 'paving', items: [] });
+        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !door ? ['wall_temple'] : [] });
+        m.set(x, y, S + 2, { ground: 'temple_paving', items: [] });
         parapet(x, y, S + 2, box);
       }
       // the stairs in the room's outer corner, away from the doorways

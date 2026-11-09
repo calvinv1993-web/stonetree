@@ -129,7 +129,7 @@ const Sprites = (() => {
   function spanLintel(g, r, which) {
     face(g, which, 0, () => {
       g.save(); g.beginPath(); g.rect(0, 0, TILE, 11); g.clip();
-      stoneBlocks(g, r, which === 'south' ? 128 : 92, which === 'south' ? '#3a3834' : '#282624');
+      ashlar(g, r, which === 'east');
       g.restore();
       for (let u = 3; u < TILE; u += 5) line(g, 'rgba(30,26,22,0.55)', 0.8, u, 3, u + (u - 16) * 0.12, 11); // the wedge joints
       rect(g, '#24201c', 0, 11, TILE, 1.5);                 // its edge
@@ -252,6 +252,20 @@ const Sprites = (() => {
       rect(g, 'rgba(255,255,255,0.15)', 0, y + 1, TILE, 1);
       rect(g, 'rgba(0,0,0,0.4)', 0, y + 7, TILE, 1);
     }
+  }
+  // The town wall's face: the limestone blocks of the temple's walls (its own texture, when there is one), in the
+  // light on a south face, in shade on an east one; drawn blocks otherwise.
+  function ashlar(g, r, shade) {
+    const image = customImage('temple_wall_texture');
+    if (!image) { stoneBlocks(g, r, shade ? 92 : 128, shade ? '#282624' : '#3a3834'); return; }
+    const texture = cached('temple-wall:atlas', ctx => ctx.drawImage(image, 0, 0), 128);
+    g.save();
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(texture, Math.floor(r() * 2) * 64, Math.floor(r() * 2) * 64, 64, 64, 0, 0, TILE, TILE);
+    rect(g, 'rgba(120,116,106,0.22)', 0, 0, TILE, TILE);                       // a little greyer than the temple
+    rect(g, shade ? 'rgba(30,27,22,0.42)' : 'rgba(30,27,22,0.1)', 0, 0, TILE, TILE);
+    g.restore();
   }
   function templeStone(g, r, shade) {
     // Retain the temple's original carved frieze and its existing projection.
@@ -656,7 +670,7 @@ const Sprites = (() => {
   }
   // Battlements on one edge of a tile (n, e, s, w): a parapet T thick, merlons on it with gaps between, drawn back
   // to front.
-  const PARAPET = { top: '#cdc8bc', south: '#a9a397', east: '#827c71', edge: '#ebe6da' };
+  const PARAPET = { top: '#ddd4c2', south: '#bab09c', east: '#8e8574', edge: '#f4ecdc' }; // (the limestone of the wall)
   function battlements(g, side) {
     const T = 6, H0 = 17, H1 = 29, along = side === 'n' || side === 's';
     const [a0, a1] = side === 'n' || side === 'w' ? [0, T] : [TILE - T, TILE];
@@ -1295,8 +1309,8 @@ const Sprites = (() => {
     // The town wall: big dressed blocks of grey stone, three courses a floor; its walkway is the floor above.
     rampart(g, r) {
       wallBlock(g, 'block', {
-        south: () => { stoneBlocks(g, r, 128, '#3a3834'); rect(g, 'rgba(255,250,235,0.18)', 0, 0, TILE, 1); },
-        east: () => stoneBlocks(g, r, 92, '#282624'),
+        south: () => { ashlar(g, r, false); rect(g, 'rgba(255,250,235,0.3)', 0, 0, TILE, 1); },
+        east: () => ashlar(g, r, true),
         top: () => capStone(g, r, 150),
       });
     },
@@ -4899,19 +4913,33 @@ const Sprites = (() => {
     }
     const g = entry.canvas.getContext('2d');
     const pixels = big.waterPixels || (big.waterPixels = big.getContext('2d').getImageData(0, 0, 1024, 1024).data);
-    const tile = g.createImageData(size, size);
-    for (let row = 0; row < size; row++) for (let col = 0; col < size; col++) {
-      const wx = px * 64 + col * 64 / size, wy = py * 64 + row * 64 / size;
-      const u = (wx + 7 * Math.sin(wy * Math.PI / 128 - angle) + 3 * Math.sin(angle * 2 + wx * Math.PI / 256) + 1024) % 1024;
-      const v = (wy + 4 * Math.sin(wx * Math.PI / 256 + angle) + 1024) % 1024;
-      const ix = Math.floor(u), iy = Math.floor(v), fx = u - ix, fy = v - iy;
-      const a = (iy * 1024 + ix) * 4, b = (iy * 1024 + (ix + 1) % 1024) * 4;
-      const c = (((iy + 1) % 1024) * 1024 + ix) * 4, d = (((iy + 1) % 1024) * 1024 + (ix + 1) % 1024) * 4;
-      const out = (row * size + col) * 4;
-      for (let channel = 0; channel < 3; channel++) tile.data[out + channel] =
-        (pixels[a + channel] * (1 - fx) + pixels[b + channel] * fx) * (1 - fy) +
-        (pixels[c + channel] * (1 - fx) + pixels[d + channel] * fx) * fy;
-      tile.data[out + 3] = 255;
+    const tile = entry.data || (entry.data = g.createImageData(size, size));
+    // The ripples: each wave depends on the row or on the column only, so they're worked out once per row and column
+    // (not per pixel: that was most of a frame's time wherever there was a lot of water in view).
+    const waveRow = new Float64Array(size), waveCol = new Float64Array(size), swellCol = new Float64Array(size);
+    for (let k = 0; k < size; k++) {
+      const wy = py * 64 + k * 64 / size, wx = px * 64 + k * 64 / size;
+      waveRow[k] = 7 * Math.sin(wy * Math.PI / 128 - angle);
+      waveCol[k] = 3 * Math.sin(angle * 2 + wx * Math.PI / 256);
+      swellCol[k] = 4 * Math.sin(wx * Math.PI / 256 + angle);
+    }
+    const step = 64 / size, out = tile.data, colU = new Float64Array(size), colV = new Float64Array(size);
+    for (let col = 0; col < size; col++) { colU[col] = px * 64 + col * step + waveCol[col] + 1024; colV[col] = swellCol[col] + 1024; }
+    for (let row = 0, o = 0; row < size; row++) {
+      const wr = waveRow[row], wy = py * 64 + row * step;
+      for (let col = 0; col < size; col++, o += 4) { // a bilinear sample of the surface at (u, v)
+        const u = colU[col] + wr, v = wy + colV[col];
+        let ix = u | 0, iy = v | 0;
+        const fx = u - ix, fy = v - iy;
+        ix &= 1023; iy &= 1023;
+        const ix1 = (ix + 1) & 1023, iy1 = (iy + 1) & 1023;
+        const p00 = ((iy << 10) | ix) << 2, p10 = ((iy << 10) | ix1) << 2, p01 = ((iy1 << 10) | ix) << 2, p11 = ((iy1 << 10) | ix1) << 2;
+        const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+        out[o] = pixels[p00] * w00 + pixels[p10] * w10 + pixels[p01] * w01 + pixels[p11] * w11;
+        out[o + 1] = pixels[p00 + 1] * w00 + pixels[p10 + 1] * w10 + pixels[p01 + 1] * w01 + pixels[p11 + 1] * w11;
+        out[o + 2] = pixels[p00 + 2] * w00 + pixels[p10 + 2] * w10 + pixels[p01 + 2] * w01 + pixels[p11 + 2] * w11;
+        out[o + 3] = 255;
+      }
     }
     g.putImageData(tile, 0, 0); entry.phase = phase; entry.image = image;
     return entry.canvas;
