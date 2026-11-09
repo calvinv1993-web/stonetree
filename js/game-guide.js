@@ -78,7 +78,7 @@ const GUIDE = [
   {
     text: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
     touch: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
-    target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [148, 101, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
+    target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [149, 102, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_3') === 'done',
   },
   {

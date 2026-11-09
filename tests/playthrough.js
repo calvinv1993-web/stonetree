@@ -319,7 +319,7 @@ try {
   step('to level 6', () => levelUp(6, 'goblin', GOBLINS));
   step('The Silent Bell III: the rope', () => {
     shop(8); talkFor('bell_3', 'active', 'ama', 'rope', 'yes'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
-    use(148, 101, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talkFor('bell_3', 'done', 'ama', 'rope');
+    use(149, 102, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talkFor('bell_3', 'done', 'ama', 'rope');
   });
   step('to level 8', () => levelUp(8, 'skeleton', CRYPT));
   step('The Silent Bell IV: the Gravewaker', () => {

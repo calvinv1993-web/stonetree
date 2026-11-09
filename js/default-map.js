@@ -150,17 +150,18 @@ const OAKVALE = {
   // The bell tower (a building, see buildings): stairs: up from each floor, from the ground; shaft: the column of
   // open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2) at the top; rules: a sign
   // on the ringers' wall [x, y, text].
-  belltower: { stairs: [[146, 100], [148, 100], [146, 100], [148, 100]], shaft: [148, 101], bell: [146, 101],
-    rules: [147, 99, 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.'],
+  belltower: { stairs: [[147, 101], [149, 101], [147, 101], [149, 101]], shaft: [149, 102], bell: [147, 102],
+    rules: [148, 100, 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
   // The temple mount: a knoll of rock north of the square, its top one floor up, with the temple on it, a terrace
   // in front and the bell tower on its east shoulder; a broad flight of stone steps runs down from the terrace to the
   // square. outline: its foot, roughened a little (see the mount below); keep: what must stand on it (the temple with
-  // its path round it, the terrace, the bell tower and the way to it); x0..y1: the box it lies in (y1: the steps' row).
-  mount: { x0: 128, y0: 99, x1: 149, y1: 109, steps: [136, 137, 138],
-    outline: [[128.6, 103.4], [129.8, 100.6], [132.4, 99.8], [136.8, 99.5], [141.4, 100.1], [144, 99.4], [149.6, 99.2],
-      [150, 102], [149.6, 106.2], [146.4, 106.4], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
-    keep: [[132, 100, 142, 108], [134, 109, 140, 109], [144, 99, 149, 105], [142, 104, 144, 105]] },
+  // its path round it, the terrace, the bell tower and the way to it); clear: never on it; x0..y1: the box it lies in (y1: the steps' row).
+  mount: { x0: 128, y0: 99, x1: 150, y1: 109, steps: [136, 137, 138],
+    outline: [[128.6, 103.4], [129.8, 100.6], [132.4, 99.8], [136.8, 99.5], [141.4, 100.1], [144, 99.6], [150.4, 99.6],
+      [150.9, 102.5], [150.6, 106.6], [146.4, 106.8], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
+    keep: [[132, 100, 142, 108], [134, 109, 140, 109], [145, 100, 150, 106], [142, 105, 145, 106]],
+    clear: [[145, 99, 151, 99]] }, // (clear: never rock: behind the bell tower it would be cut off)
   streets: [
     { line: [[126, 92], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
     { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
@@ -172,7 +173,7 @@ const OAKVALE = {
   square: [[123, 110, 146, 121]],
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_marble', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
-    { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 145, y0: 99, x1: 149, y1: 103, door: [147, 103], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
+    { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 146, y0: 100, x1: 150, y1: 104, door: [148, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 108, x1: 149, y1: 113, door: [147, 113], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 109, x1: 108, y1: 116, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
@@ -293,7 +294,7 @@ const SEWERS = {
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[148, 140], [146, 142]], // two: a pair a level 4 can take on with care
-  shaft: [148, 101, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
+  shaft: [149, 102, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -318,8 +319,8 @@ const DEEP_SEWERS = [
     caves: [{ cx: 127, cy: 111, rx: 8, ry: 6.5 }, { cx: 119, cy: 107, rx: 4, ry: 3.5 }, { cx: 131, cy: 117, rx: 4, ry: 3 }],
     pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
     drains: [[135, 108, 138, 109]], // the narrow way on, where the slime keeps (two rows: a south wall hides the row along it)
-    rooms: [[139, 103, 144, 109, 'paving'], [145, 100, 149, 104, 'paving']], // the bottom of the bell shaft, under the tower
-    props: [[148, 101, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
+    rooms: [[139, 103, 144, 109, 'paving'], [145, 101, 150, 105, 'paving']], // the bottom of the bell shaft, under the tower
+    props: [[149, 102, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
       // they lurk in the dark: each notices you only when you come near it (its aggro), not from across the cave,
       // so you can fight your way through a pair at a time - none of them by the ladder
@@ -1032,7 +1033,8 @@ function buildTown(m, S, runs, river) {
   // out or bites taken in); what it must carry is always on it, and in front of the steps its face runs straight.
   {
     const t = T.mount, inR = (r, x, y) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3];
-    const kept = (x, y) => t.keep.some(r => inR(r, x, y)), flat = (x, y) => y > t.y1 && x >= t.steps[0] - 4 && x <= t.steps[2] + 4;
+    const kept = (x, y) => t.keep.some(r => inR(r, x, y));
+    const flat = (x, y) => (y > t.y1 && x >= t.steps[0] - 4 && x <= t.steps[2] + 4) || t.clear.some(r => inR(r, x, y));
     let on = new Set();
     for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
       const rough = inPoly(t.outline, x + 0.5 + (smooth(x, y, 3, 11) - 0.5) * 2.4, y + 0.5 + (smooth(x, y, 3, 12) - 0.5) * 2.4);
@@ -1043,7 +1045,7 @@ function buildTown(m, S, runs, river) {
       const next = new Set();
       for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
         const k = `${x},${y}`, n = n4(x, y);
-        if (kept(x, y) || (on.has(k) ? n >= 2 : n >= 3 && !flat(x, y))) next.add(k);
+        if (kept(x, y) || (!flat(x, y) && (on.has(k) ? n >= 2 : n >= 3))) next.add(k);
       }
       on = next;
     }

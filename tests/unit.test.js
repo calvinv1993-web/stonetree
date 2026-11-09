@@ -703,18 +703,18 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   p.level = 6;
   talk(136, 102, 9, 'bell', 'yes');
   assert.strictEqual(state.questState('bell_3'), 'active');
-  ctx.useThing(148, 101, 5);
+  ctx.useThing(149, 102, 5);
   assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope waits until the way is cleared');
   kill('giant_rat', 8);
   kill('cistern_slime', 1);
   assert.strictEqual(p.quests.bell_3.step, 2, 'the drains and the cistern slime');
-  ctx.useThing(148, 101, 5);
+  ctx.useThing(149, 102, 5);
   ctx.useThing(142, 103, 5);
   assert(state.countItem('chewed_rope') === 1 && state.countItem('leather_boots') === 1, 'the rope, and boots in the rotting pack');
   talk(136, 102, 9, 'bell');
   assert.strictEqual(state.questState('bell_3'), 'done');
   // IV: the Gravewaker, at level 8: the gate opens, the tomb gives the clapper, the bell rings
-  ctx.useThing(147, 102, 13);
+  ctx.useThing(148, 103, 13);
   assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell is still silent');
   p.level = 8;
   talk(136, 102, 9, 'bell', 'yes');
@@ -729,10 +729,10 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   assert.strictEqual(state.questState('bell_4'), 'done');
   assert(messages.some(m => /rings again/.test(m)), 'the bell rings out');
   assert.strictEqual(state.countItem('chain_armor'), 1, 'and Ama gives chain armour');
-  ctx.useThing(147, 102, 13);
+  ctx.useThing(148, 103, 13);
   assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after');
   state.now += 31000;
-  ctx.useThing(147, 102, 13);
+  ctx.useThing(148, 103, 13);
   assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it');
   p.level = 9;
   talk(110, 102, 9, 'knight', 'yes');
@@ -799,7 +799,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   levelTo(6); assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
   talk('ama', 'rope', 'yes'); on(null, { x: 128, y: 120, z: 8 });
   assert.strictEqual(arrow(), '131,111,8', 'to the grate on the square');
-  kill('giant_rat', 8); kill('cistern_slime', 1); ctx.useThing(148, 101, 5);
+  kill('giant_rat', 8); kill('cistern_slime', 1); ctx.useThing(149, 102, 5);
   assert.strictEqual(arrow(), 'ama');
   talk('ama', 'rope'); assert.strictEqual(state.questState('bell_3'), 'done');
   assert.strictEqual(mark('ama'), 'later', 'the Gravewaker waits for level 8');
