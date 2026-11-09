@@ -170,12 +170,23 @@ const Render = {
       };
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         const t = tileAt(x, y);
-        if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) { g.drawImage(Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE); continue; }
+        if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) {
+          g.save();
+          if (beyond === 'water') {
+            g.imageSmoothingEnabled = true;
+            g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          } else g.drawImage(Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE);
+          g.restore(); continue;
+        }
         if (!t || !t.ground) continue;
         const id = groundShown(x, y, t);
         if (!id) continue;
         const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
-        g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+        if (id === 'water') {
+          g.save(); g.imageSmoothingEnabled = true;
+          g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(id, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          g.restore();
+        } else g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
         if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
           g.globalAlpha = 0.95;
           g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
@@ -184,15 +195,15 @@ const Render = {
       }
 
       // Along the shores: shallow water and foam (under the sand or grass spilling over it).
-      const shoreFrame = Math.floor((v.time || 0) / 450) % 4;
+      const shoreFrame = Math.floor((v.time || 0) / 80) % 32;
       const wet = id => id === 'water';
       const dry = id => !!id && id !== 'water' && id !== 'lava';
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         if (!wet(groundAt(x, y))) continue;
         const sides = { n: groundAt(x, y - 1), e: groundAt(x + 1, y), s: groundAt(x, y + 1), w: groundAt(x - 1, y) };
-        for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE);
+        for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
         for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          if (dry(groundAt(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE);
+          if (dry(groundAt(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
       }
 
@@ -329,4 +340,5 @@ const Render = {
     }
   },
 };
+
 
