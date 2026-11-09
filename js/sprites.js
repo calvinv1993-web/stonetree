@@ -5875,13 +5875,14 @@ const Sprites = (() => {
 
   const DOLLS_ON = true;
   return {
-    water: (x, y, time) => waterTile(x, y, time, 64),
+    water: (x, y, time) => waterTile(x, y, Sprites.WATER_MOVES ? time : 0, 64),
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins
     // ('wnse' flags, see wallBlock), and `material` the wall a door sits in.
     thing(id, x = 0, y = 0, time = 0, shape = '1100', material = 'wall_stone') {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
+      if (id === 'water' && !Sprites.WATER_MOVES) time = 0; // (still water: one picture per place, made once)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
       const own = customImage(id);
       if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
@@ -5918,6 +5919,7 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
+    WATER_MOVES: false, // the water's ripples move (off for now: testing whether it's what lags)
     TILT: 0, // how far people lean, in degrees (along the world's lean: head up to the left); upright, as the owner chose
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
