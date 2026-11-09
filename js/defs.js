@@ -97,6 +97,9 @@ const THINGS = {
   // the top of an archway under a walkway (over a gate or water), on the face you see: south or east
   arch_span_s: { name: 'archway', cat: 'Walls', tall: true },
   arch_span_e: { name: 'archway', cat: 'Walls', tall: true },
+  // a great arch over a passage three tiles wide (a gate, the river), in three parts, on the face you see
+  arch_gate_s0: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_s1: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_s2: { name: 'archway', cat: 'Walls', tall: true },
+  arch_gate_e0: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_e1: { name: 'archway', cat: 'Walls', tall: true }, arch_gate_e2: { name: 'archway', cat: 'Walls', tall: true },
   door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
   door_closed: { name: 'closed door', cat: 'Walls', block: true, toggle: 'door', wall: 'thin' },
   door_locked: { name: 'locked door', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_sealed', lockDoor: true, meta: 'lock' },

@@ -1048,8 +1048,11 @@ function buildTown(m, S, runs, river) {
     // the lintels over the gates and the water, on the faces you see
     for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
       if (!inRing(x, y) || inTower(x, y) || m.get(x, y, S).items.includes('rampart')) continue;
-      if (!inRing(x, y + 1)) put(x, y, S, 'arch_span_s');
-      if (!inRing(x + 1, y)) put(x, y, S, 'arch_span_e');
+      // a passage three tiles wide (a gate, the river) gets a great arch, in three parts; others a lintel
+      const open = (ax, ay) => inRing(ax, ay) && !inTower(ax, ay) && !m.get(ax, ay, S).items.includes('rampart');
+      const part = (dx, dy) => { let i = 0; while (open(x - dx * (i + 1), y - dy * (i + 1))) i++; let n = i + 1; while (open(x + dx * (n - i), y + dy * (n - i))) n++; return n === 3 ? i : -1; };
+      if (!inRing(x, y + 1)) { const i = part(1, 0); put(x, y, S, i < 0 ? 'arch_span_s' : `arch_gate_s${i}`); }
+      if (!inRing(x + 1, y)) { const i = part(0, 1); put(x, y, S, i < 0 ? 'arch_span_e' : `arch_gate_e${i}`); }
     }
     for (const [x, y] of R.stairs) { // a doorway in the inner face, the steps inside it come up through the walkway
       m.set(x, y, S, { ground: 'paving', items: ['wall_stairs'] });

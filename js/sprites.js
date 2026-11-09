@@ -136,6 +136,30 @@ const Sprites = (() => {
       rect(g, 'rgba(10,8,6,0.35)', 0, 12.5, TILE, 3);       // the vault's shadow under it
     });
   }
+  // A great arch over a passage three tiles wide, part `i` (0, 1, 2) of it, on the south or east face: the wall above
+  // it down to a curve that springs low at the sides and rises to the top in the middle (a circle through
+  // (0, 24), (48, 6), (96, 24) in face coordinates, v down from the top), a ring of wedge-shaped stones along it, a
+  // gilded keystone, and the shadow of the vault under it.
+  const ARCH = { cy: 79, r: 73 }, archV = u => ARCH.cy - Math.sqrt(ARCH.r * ARCH.r - (u - 48) * (u - 48));
+  function gateArch(g, r, which, i) {
+    face(g, which, 0, () => {
+      const u0 = i * TILE, curve = (lift, back) => { const pts = []; for (let u = 0; u <= TILE; u += 2) pts.push([u, archV(u0 + u) - lift]); return back ? pts.reverse() : pts; };
+      const fill = (lift, color) => { g.fillStyle = color; g.beginPath(); g.moveTo(0, 0); g.lineTo(TILE, 0); for (const [u, v] of curve(lift, true)) g.lineTo(u, v); g.closePath(); g.fill(); };
+      g.save(); g.beginPath(); g.moveTo(0, 0); g.lineTo(TILE, 0); for (const [u, v] of curve(0, true)) g.lineTo(u, v); g.closePath(); g.clip();
+      ashlar(g, r, which === 'east');                                                   // the wall over the arch
+      g.restore();
+      // the ring of voussoirs: a band 5 deep along the curve, lighter, with joints pointing to the arch's centre
+      g.fillStyle = which === 'east' ? '#a69a84' : '#d8ccb4';
+      g.beginPath(); for (const [u, v] of curve(5)) g.lineTo(u, v); for (const [u, v] of curve(0, true)) g.lineTo(u, v); g.closePath(); g.fill();
+      for (let u = (8 - (u0 % 8)) % 8; u <= TILE; u += 8) {
+        const a = Math.atan2(archV(u0 + u) - ARCH.cy, u0 + u - 48);
+        line(g, 'rgba(60,50,40,0.6)', 0.8, u, archV(u0 + u), u - Math.cos(a) * 5, archV(u0 + u) + Math.sin(a) * -5);
+      }
+      g.strokeStyle = '#2a2420'; g.lineWidth = 1.2; g.beginPath(); for (const [u, v] of curve(0)) g.lineTo(u, v); g.stroke(); // its edge
+      if (i === 1) { poly(g, '#a87818', [13, 0.5, 19, 0.5, 18, 7, 14, 7]); poly(g, '#f2c94c', [13.8, 1, 18.2, 1, 17.4, 6, 14.6, 6]); } // the keystone
+      g.fillStyle = 'rgba(10,8,6,0.35)'; g.beginPath(); for (const [u, v] of curve(0)) g.lineTo(u, v); for (const [u, v] of curve(-3, true)) g.lineTo(u, v); g.closePath(); g.fill(); // the vault's shadow
+    });
+  }
   // Sheared faces get half-transparent pixels along their slanted edges, which
   // would let the ground show through the seams between wall tiles.
   function solidify(g) {
@@ -1380,6 +1404,8 @@ const Sprites = (() => {
     // you see, with the shadow of the vault under it.
     arch_span_s: (g, r) => spanLintel(g, r, 'south'),
     arch_span_e: (g, r) => spanLintel(g, r, 'east'),
+    arch_gate_s0: (g, r) => gateArch(g, r, 'south', 0), arch_gate_s1: (g, r) => gateArch(g, r, 'south', 1), arch_gate_s2: (g, r) => gateArch(g, r, 'south', 2),
+    arch_gate_e0: (g, r) => gateArch(g, r, 'east', 0), arch_gate_e1: (g, r) => gateArch(g, r, 'east', 1), arch_gate_e2: (g, r) => gateArch(g, r, 'east', 2),
     // Battlements along the outer edge of a walkway: a parapet of dressed stone with merlons on it.
     battlement_n: g => battlements(g, 'n'),
     battlement_e: g => battlements(g, 'e'),
