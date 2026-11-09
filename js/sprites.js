@@ -4686,17 +4686,22 @@ const Sprites = (() => {
       // ---- behind everything: a cape, long hair from the back, what's held seen from behind
       if (p.cape && !back) { const c = p.cape; if (front) { hdShape(g, [8.2 - 2 * wide + 2, -2, 23.8 + 2 * wide - 2, -2, 25.4, 22, 6.6, 22], shade(c, 0.6), 6, 26); } else hdShape(g, [12, -2.5, 16, -2.5, 13.5, 22, 7.5, 22], c, 7, 16); }
       if (p.held && back) hdHeld(g, p.held, 23.4, 13, dir);
+      if (!back && (hs === 'long' || hs === 'braids' || hs === 'wild') && !hooded) { // long hair falling behind the shoulders
+        const lx = side ? 16.8 : 16;
+        if (side) hdShape(g, [lx - 4.4, -12, lx + 1, -12, lx - 1, 1.5, lx - 4.8, 1.5], shade(hair, 0.85), lx - 4.8, lx);
+        else hdShape(g, [lx - 4.4, -12, lx + 4.4, -12, lx + 4.9, 0.5, lx - 4.9, 0.5], shade(hair, 0.78), lx - 4.9, lx + 4.9);
+      }
       if (side && p.shield) hdShield(g, p.shield, 14.4, 6, true);
       // ---- the legs (under a robe only the toes), stepping
       const hips = side ? [[16.4, 11.5], [15.6, 11.5]] : [[13.3, 11.5], [18.7, 11.5]];
       const legPose = k => { // knee and ankle of leg k (0: left on screen or the far one, 1: right or the near one)
         const [hx, hy] = hips[k];
         if (side) {
-          const swing = (k === 1 ? step : -step) * 0.42, bend = swing < 0 ? 0.35 : 0;
+          const swing = (k === 1 ? step : -step) * (p.robe ? 0.16 : 0.42), bend = swing < 0 && !p.robe ? 0.35 : 0;
           const kx = hx + Math.sin(swing) * 8, ky = hy + Math.cos(swing) * 8, ax = kx + Math.sin(swing - bend) * 8, ay = ky + Math.cos(swing - bend) * 8;
           return [kx, ky, ax, Math.min(ay, 26.6)];
         }
-        const lift = (k === 0 ? step : -step) > 0 ? 1.4 : 0;
+        const lift = (k === 0 ? step : -step) > 0 ? 2.2 : 0;
         return [hx - (k === 0 ? 0.3 : -0.3), hy + 8 - lift * 0.6, hx - (k === 0 ? 0.3 : -0.3), 26.6 - lift];
       };
       const drawLeg = k => {
@@ -4704,7 +4709,8 @@ const Sprites = (() => {
         if (!p.robe) { hdCapsule(g, hx, hy, 2.6, kx, ky, 2.1, c); hdCapsule(g, kx, ky, 2.1, ax, ay - 1.5, 1.6, c); }
         // the boot: a shaft and a foot pointing the way it faces
         const toe = side ? 3.2 : 0, fy = ay + 2.4;
-        if (!p.robe || true) {
+        if (p.robe) hdShape(g, [ax - 1.8, fy - 1.8, ax + 1.6 + toe * 0.7, fy - 1.6, ax + 1.8 + toe * 0.7, fy + 0.4, ax - 1.9, fy + 0.4], f, ax - 1.9, ax + 1.8 + toe); // (only the toes, under the hem)
+        else {
           hdShape(g, [ax - 2.2, ay - 3.6, ax + 2.2, ay - 3.6, ax + 2.4 + toe, fy - 0.4, ax + 2 + toe, fy + 0.4, ax - 2.3, fy + 0.4, ax - 2.4, fy - 1.2], f, ax - 2.4, ax + 2.4 + toe);
           rect(g, shade(f, 1.35), ax - 2, ay - 3.6, 3.6, 0.7); // the boot's cuff, lit
         }
@@ -4718,7 +4724,7 @@ const Sprites = (() => {
           const ex = sx + Math.sin(sw) * 7, ey = shoulderY + 0.6 + Math.cos(sw) * 7, wx = ex + Math.sin(sw + 0.25) * 6.4, wy = ey + Math.cos(sw + 0.25) * 6.4;
           return [sx, shoulderY + 0.6, ex, ey, wx, wy];
         }
-        const sgn = k === 0 ? -1 : 1, sx = 16 + sgn * 6.9 * wide, swing = (k === 0 ? -step : step) * 1.3;
+        const sgn = k === 0 ? -1 : 1, sx = 16 + sgn * 6.9 * wide, swing = (k === 0 ? -step : step) * 2;
         return [sx, shoulderY + 0.8, sx + sgn * 1.1, 6.4 - swing * 0.3, sx + sgn * 0.6, 12.6 - swing];
       };
       const drawArm = k => {
@@ -4771,10 +4777,7 @@ const Sprites = (() => {
       // ---- the neck and the head
       const hx = side ? 16.8 : cx, hy = -9.6;
       hdCapsule(g, side ? 16.6 : cx, -5.6, 1.5, side ? 16.6 : cx, -2.6, 1.6, shade(skin, 0.9));
-      if (!back && (hs === 'long' || hs === 'braids' || hs === 'wild') && !hooded) { // long hair falling behind the shoulders
-        if (front) hdShape(g, [hx - 4.4, -12, hx + 4.4, -12, hx + 4.8, 1, hx - 4.8, 1], shade(hair, 0.82), hx - 4.8, hx + 4.8);
-        else hdShape(g, [hx - 4.4, -12, hx + 1, -12, hx - 1, 1.5, hx - 4.8, 1.5], shade(hair, 0.85), hx - 4.8, hx);
-      }
+      if (front && (hs === 'long' || hs === 'braids') && !hooded) for (const sx of [-1, 1]) hdShape(g, [hx + sx * 4.4, hy - 1, hx + sx * 3.4, hy - 1, hx + sx * 3.6, -1.4, hx + sx * 4.9, -0.8], hair, hx - 4.9, hx + 4.9); // locks over the shoulders
       hdFill(g, skin, hx - 4, hx + 4); g.beginPath(); // the head: a skull and a jaw narrowing to the chin
       if (side) { g.ellipse(hx - 0.3, hy, 3.9, 4.7, 0, 0, Math.PI * 2); g.fill(); hdShape(g, [hx + 2.6, hy - 1, hx + 4.6, hy + 0.6, hx + 3.4, hy + 1.2, hx + 3.6, hy + 3.4, hx + 1.4, hy + 4.9, hx, hy + 3], skin, hx, hx + 4.6); }
       else { g.moveTo(hx - 3.9, hy - 1); g.bezierCurveTo(hx - 4.1, hy - 7, hx + 4.1, hy - 7, hx + 3.9, hy - 1); g.bezierCurveTo(hx + 3.8, hy + 2.6, hx + 2, hy + 4.8, hx, hy + 5); g.bezierCurveTo(hx - 2, hy + 4.8, hx - 3.8, hy + 2.6, hx - 3.9, hy - 1); g.fill(); }
