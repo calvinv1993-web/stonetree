@@ -5,6 +5,7 @@
 
 // Trees and grass that sway in the wind.
 const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'dead_tree', 'ancient_tree', 'tallgrass', 'reeds', 'fern', 'flowers', 'bush']);
+const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can stand in
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
@@ -113,7 +114,17 @@ const Render = {
       const y0 = Math.max(0, Math.floor(-oy / TILE) - 1), y1 = Math.min(map.height - 1, Math.floor((v.h - oy) / TILE) + 2);
       const floor = map.floors[z], beyond = v.beyond ? v.beyond(z) : null;
       const tileAt = (x, y) => (x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null);
-      const groundAt = (x, y) => (x >= 0 && y >= 0 && x < map.width && y < map.height ? (floor[y * map.width + x] || {}).ground || null : beyond);
+      const rawGroundAt = (x, y) => (x >= 0 && y >= 0 && x < map.width && y < map.height ? (floor[y * map.width + x] || {}).ground || null : beyond);
+      // The ground as it shows: under a wall, the ground the wall stands in (groundShown), so every border, shore
+      // and edge treats a wall's tile as what you see there, not the grass hidden under it. (Once per tile.)
+      const shownCache = new Map();
+      const groundAt = (x, y) => {
+        const t = tileAt(x, y);
+        if (!t || !t.items.some(id => THINGS[id].wall === 'thin')) return rawGroundAt(x, y);
+        const k = y * map.width + x;
+        if (!shownCache.has(k)) shownCache.set(k, groundShown(x, y, t) || t.ground);
+        return shownCache.get(k);
+      };
       // The ground layers also cover what shows past the edge of the map.
       const gx0 = beyond ? Math.floor(-ox / TILE) - 1 : x0, gx1 = beyond ? Math.floor((v.w - ox) / TILE) + 2 : x1;
       const gy0 = beyond ? Math.floor(-oy / TILE) - 1 : y0, gy1 = beyond ? Math.floor((v.h - oy) / TILE) + 2 : y1;
@@ -129,18 +140,18 @@ const Render = {
       // (On an upper floor there's often nothing on that side - open air - and then nothing shows.)
       const groundShown = (x, y, t) => {
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
-        let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? groundAt(x, y - 1) : groundAt(x - 1, y);
+        let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? rawGroundAt(x, y - 1) : rawGroundAt(x - 1, y);
         // a building's corner on its terrace or street: the wall stands on that paving, not on the grass beside it
         if (!beside) { // at the edge of a raised floor: the open ground beside it (not another wall's floor), or nothing
-          const open = [[1, 0], [-1, 0], [0, 1]].find(([dx, dy]) => groundAt(x + dx, y + dy) && !wallAt(x + dx, y + dy));
-          beside = open ? groundAt(x + open[0], y + open[1]) : null;
+          const open = [[1, 0], [-1, 0], [0, 1]].find(([dx, dy]) => rawGroundAt(x + dx, y + dy) && !wallAt(x + dx, y + dy));
+          beside = open ? rawGroundAt(x + open[0], y + open[1]) : null;
           // a building's corner on the very edge of a raised mount stands on the mount's own top
           const under = !beside && z > 0 && map.get(x, y, z - 1);
           if (under && under.items.includes('cliff')) beside = 'grass';
         }
-        const below = groundAt(x, y + 1);
+        const below = rawGroundAt(x, y + 1);
         if (below && !wallAt(x, y + 1) && Sprites.paved(below) && !(beside && Sprites.paved(beside))) beside = below;
-        return beside && THINGS[beside].block ? t.ground : beside; // a wall on the water's edge stands on its own ground
+        return beside && THINGS[beside].block && !LIQUID.has(beside) ? t.ground : beside; // (a wall stands in water, as a quay or a moat wall does; not in rock)
       };
       // A roof tile's shape: how much further the roof reaches north, south, west and
       // east than towards its nearest edge (0, 1, or 2 for more), and whether the
@@ -200,10 +211,12 @@ const Render = {
       const dry = id => !!id && id !== 'water' && id !== 'lava';
       for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         if (!wet(groundAt(x, y))) continue;
-        const sides = { n: groundAt(x, y - 1), e: groundAt(x + 1, y), s: groundAt(x, y + 1), w: groundAt(x - 1, y) };
+        // (a wall rises straight out of the water: no beach along it)
+        const bank = (bx, by) => (wallAt(bx, by) ? 'water' : groundAt(bx, by));
+        const sides = { n: bank(x, y - 1), e: bank(x + 1, y), s: bank(x, y + 1), w: bank(x - 1, y) };
         for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
         for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          if (dry(groundAt(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          if (dry(bank(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
       }
 
