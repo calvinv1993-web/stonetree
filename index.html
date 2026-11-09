@@ -11,13 +11,14 @@
   <link rel="manifest" href="manifest.json">
   <title>Tilequest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=ui93">
+  <link rel="stylesheet" href="css/style.css?v=ui94">
 </head>
 <body class="game">
   <div class="layout">
     <main>
       <div class="viewport" id="viewport">
         <canvas id="view"></canvas>
+        <div id="speedMeter" class="speed-meter" hidden></div>
         <div id="lookText" class="look-text" hidden></div>
         <div id="guide" class="guide" hidden>
           <header id="guideHead" title="Fold the guide away, or out again"><b>Guide</b> <span id="guideStep"></span><button id="guideFold" title="Fold the guide away, or out again">▾</button></header>
@@ -242,7 +243,7 @@
       <section class="actions">
         <span class="muted small" id="mapSource"></span>
         <div class="button-row"><button id="hotkeysBtn">Hotkeys</button><button id="outfitBtn">Outfit</button><button id="guildBtn">Guild</button></div>
-        <div class="button-row"><button id="soundBtn">Sound</button><button id="musicBtn">Music</button><button id="rightBtn" class="desk-only" title="What a right-click on a monster or player does">Right-click</button></div>
+        <div class="button-row"><button id="soundBtn">Sound</button><button id="musicBtn">Music</button><button id="speedBtn" title="Show how smoothly the game runs: frames a second and stalls">Speed</button><button id="rightBtn" class="desk-only" title="What a right-click on a monster or player does">Right-click</button></div>
         <button id="fullscreen">Fullscreen</button>
         <a class="button desk-only" href="editor.html">Map editor</a>
         <a class="button desk-only" href="data.html">Data editor</a>
@@ -252,31 +253,32 @@
     </aside>
   </div>
 
-  <script src="js/defs.js?v=ui93"></script>
-  <script src="js/items.js?v=ui93"></script>
-  <script src="js/creatures.js?v=ui93"></script>
-  <script src="js/npcs.js?v=ui93"></script>
-  <script src="js/data.js?v=ui93"></script>
-  <script src="sprites/custom.js?v=ui93"></script>
-  <script src="js/sprites.js?v=ui93"></script>
-  <script src="js/map.js?v=ui93"></script>
-  <script src="js/default-map.js?v=ui93"></script>
-  <script src="js/render.js?v=ui93"></script>
-  <script src="js/icons.js?v=ui93"></script>
-  <script src="js/sound.js?v=ui93"></script>
-  <script src="js/fx.js?v=ui93"></script>
-  <script src="js/game-core.js?v=ui93"></script>
-  <script src="js/game-combat.js?v=ui93"></script>
-  <script src="js/game-npc.js?v=ui93"></script>
-  <script src="js/game-social.js?v=ui93"></script>
-  <script src="js/game-forge.js?v=ui93"></script>
-  <script src="js/game-guide.js?v=ui93"></script>
-  <script src="js/game-tales.js?v=ui93"></script>
-  <script src="js/game-update.js?v=ui93"></script>
-  <script src="js/game-ui.js?v=ui93"></script>
-  <script src="js/net.js?v=ui93"></script>
-  <script src="js/game.js?v=ui93"></script>
-  <script src="js/touch.js?v=ui93"></script>
+  <script src="js/defs.js?v=ui94"></script>
+  <script src="js/items.js?v=ui94"></script>
+  <script src="js/creatures.js?v=ui94"></script>
+  <script src="js/npcs.js?v=ui94"></script>
+  <script src="js/data.js?v=ui94"></script>
+  <script src="sprites/custom.js?v=ui94"></script>
+  <script src="sprites/baked-ground.js?v=ui94"></script>
+  <script src="js/sprites.js?v=ui94"></script>
+  <script src="js/map.js?v=ui94"></script>
+  <script src="js/default-map.js?v=ui94"></script>
+  <script src="js/render.js?v=ui94"></script>
+  <script src="js/icons.js?v=ui94"></script>
+  <script src="js/sound.js?v=ui94"></script>
+  <script src="js/fx.js?v=ui94"></script>
+  <script src="js/game-core.js?v=ui94"></script>
+  <script src="js/game-combat.js?v=ui94"></script>
+  <script src="js/game-npc.js?v=ui94"></script>
+  <script src="js/game-social.js?v=ui94"></script>
+  <script src="js/game-forge.js?v=ui94"></script>
+  <script src="js/game-guide.js?v=ui94"></script>
+  <script src="js/game-tales.js?v=ui94"></script>
+  <script src="js/game-update.js?v=ui94"></script>
+  <script src="js/game-ui.js?v=ui94"></script>
+  <script src="js/net.js?v=ui94"></script>
+  <script src="js/game.js?v=ui94"></script>
+  <script src="js/touch.js?v=ui94"></script>
 </body>
 </html>
 

@@ -1632,6 +1632,7 @@ function initUI() {
   $('hotkeysCancel').addEventListener('click', () => { $('hotkeys').hidden = true; });
   $('outfitBtn').addEventListener('click', () => { if (!paused && $('outfit').hidden) openOutfit(); }); // not while making a character
   $('soundBtn').addEventListener('click', () => { Sound.toggle(); updateSoundButtons(); });
+  $('speedBtn').addEventListener('click', () => setSpeedMeter(!speedMeter.on));
   $('musicBtn').addEventListener('click', () => { Sound.toggleMusic(); updateSoundButtons(); });
   $('rightBtn').addEventListener('click', () => { rightClickAttacks = !rightClickAttacks; saveSetting('rightClickAttacks', rightClickAttacks); updateSoundButtons(); });
   updateSoundButtons();

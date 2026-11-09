@@ -790,6 +790,31 @@ const MAP_DRAW_INTERVAL = 100;
 const FRAME_INTERVAL = 1000 / 60;
 let lastFrameAt = -Infinity;
 
+// ---- the speed meter (Menu, Game; Speed on a computer): frames a second, the work in a frame, and the stalls --------
+// For finding out where the game isn't smooth on a real phone: it shows, a few times a second, how many frames the last
+// second had, how long the work in a frame took (the middle one), and the stalls of the last 10 seconds (frames that
+// came 50 ms or more after the one before), with the worst. Remembered per browser.
+const speedMeter = { on: (() => { try { return localStorage.getItem('tilequest.meter') === '1'; } catch (e) { return false; } })(), frames: [], shownAt: 0 };
+function setSpeedMeter(on) {
+  speedMeter.on = !!on;
+  speedMeter.frames.length = 0;
+  try { localStorage.setItem('tilequest.meter', on ? '1' : '0'); } catch (e) { /* not remembered */ }
+  $('speedMeter').hidden = !on;
+}
+if (speedMeter.on) $('speedMeter').hidden = false;
+function meterFrame(t, dt, work) {
+  const f = speedMeter.frames;
+  if (dt < 1000) f.push([t, dt, work]); // (not the first frame after a pause)
+  while (f.length && f[0][0] < t - 10000) f.shift();
+  if (t - speedMeter.shownAt < 250) return;
+  speedMeter.shownAt = t;
+  const second = f.filter(([ft]) => ft > t - 1000), works = second.map(x => x[2]).sort((a, b) => a - b);
+  const stalls = f.filter(x => x[1] >= 50), worst = Math.max(0, ...f.map(x => x[1]));
+  const el = $('speedMeter');
+  el.textContent = `${second.length} fps · ${(works[works.length >> 1] || 0).toFixed(1)} ms work\n${stalls.length} stalls in 10 s · worst ${Math.round(worst)} ms`;
+  el.classList.toggle('bad', stalls.length > 0 || second.length < 50);
+}
+
 // A bug must never stop the game loop: report it in the log and keep going.
 function reportError(err) {
   console.error(err);
@@ -803,6 +828,7 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
   if (t - lastFrameAt < FRAME_INTERVAL - 2) return;
+  const dt = t - lastFrameAt, started = performance.now();
   lastFrameAt = t;
   checkKeepingUp(t);
   try {
@@ -831,6 +857,7 @@ function frame(t) {
   } catch (err) {
     reportError(err);
   }
+  if (speedMeter.on) meterFrame(t, dt, performance.now() - started);
 }
 
 function startWorld() {

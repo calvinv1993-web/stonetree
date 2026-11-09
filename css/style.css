@@ -426,6 +426,13 @@ body.touch-ui .swatch-color { width: auto; height: 17px; }
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000;
 }
 .look-text.fade { transition: opacity 0.6s; opacity: 0; }
+/* The speed meter (Menu, Game): frames a second and stalls, top right of the map; amber when the game isn't smooth */
+.speed-meter {
+  position: absolute; top: 8px; right: 8px; z-index: 7; padding: 4px 8px; border-radius: 6px; pointer-events: none;
+  background: rgba(0, 0, 0, 0.62); color: #8fef8f; font: 600 12px/1.35 ui-monospace, Menlo, Consolas, monospace; white-space: pre;
+}
+.speed-meter.bad { color: #ffc24a; }
+body.touch-ui .speed-meter { top: calc(var(--hud-h) + 8px); right: calc(var(--rail, 0px) + env(safe-area-inset-right) + 8px); font-size: 11px; }
 /* the guide for new adventurers, top left over the game */
 .guide {
   position: absolute; z-index: 7; width: min(310px, 42%); padding: 6px 9px 8px; border-radius: 8px;

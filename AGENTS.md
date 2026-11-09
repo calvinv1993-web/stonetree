@@ -30,6 +30,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | World validator: size, coast, floor changes, reachability | `node tests/world.test.js [--verbose]` |
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
+| Bake the ground's borders ahead of time (after changing how they're drawn, the ground textures, or the world's grounds) | `node tests/bake-ground.js` |
 | Syntax check | `node --check js/<file>.js` |
 
 - **Node 22 or newer**: the online test uses the built-in `WebSocket`.
@@ -148,7 +149,7 @@ Some details of the online client:
 | File | What it does |
 |---|---|
 | `sprites.js` | Procedural sprites, cached. `DRAW` (map things), `ITEM_DRAW` (items), `MONSTER_LOOKS`, the humanoid drawer (players and NPCs, from `look`), `VARIANTS`, `ANIMATED`. Helpers: `rect, ellipse, poly, line, diagonal, shadow, onWall, face`. |
-| `render.js` | Fake-3D floors: upper floors are shifted up-left, and roofs hide when you're under them. The ground (textures, shores, borders, rugs) is drawn once per 8x8-tile chunk and kept (`Render.ground`); a chunk is redrawn when a tile in or next to it changes, through `map.dirty` (filled by `map.set`, `setGround` and `mapChanged`). Change a tile's items without one of those and the ground there won't update. |
+| `render.js` | Fake-3D floors: upper floors are shifted up-left, and roofs hide when you're under them. The ground (textures, shores, borders, rugs) is drawn once per 8x8-tile chunk and kept (`Render.ground`); a chunk is redrawn when a tile in or next to it changes, through `map.dirty` (filled by `map.set`, `setGround` and `mapChanged`). Change a tile's items without one of those and the ground there won't update. Its borders come from `sprites/baked-ground.png` (made by `tests/bake-ground.js`) while a fingerprint of the code and textures that draw them still matches; otherwise they're made as the game goes. |
 | `fx.js` | Light, weather, seasons, particles, blood. Cosmetic only: it must never change game state. Weather follows the shared clock, seasons the real date. |
 | `game.js` | Input, the frame loop and canvas overlays: names, bars, frames, the guide arrow, banners. |
 | `game-ui.js` | DOM panels and windows, the log, minimap and world map. |

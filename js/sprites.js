@@ -8,6 +8,7 @@ const Sprites = (() => {
 
   function cached(key, draw, size = TILE, height = size) {
     let c = cache.get(key);
+    if (!c && (c = bakedPicture(key))) cache.set(key, c); // (made ahead of time: see bakedPicture)
     if (!c) {
       c = document.createElement('canvas');
       c.width = size;
@@ -5766,6 +5767,53 @@ const Sprites = (() => {
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
+  // ---- the ground's pictures, made ahead of time --------------------------------------------------------------------
+  // Making the ground's borders while you play (edges, rounded corners, scree, lips, shores, kerbs) is what stalls a slow
+  // phone in new ground. tests/bake-ground.js makes every one the built-in world uses ahead of time, into one picture
+  // (sprites/baked-ground.png, listed in sprites/baked-ground.js as BAKED_GROUND), and the game takes them from there.
+  // Only if they still match: a fingerprint of the code that draws them and of the textures they're made of
+  // (groundFingerprint) must be the one they were made with; else they're made as before. Bake again after changing
+  // either (node tests/bake-ground.js): the game says so in the console.
+  const BAKED_KINDS = ['edge9:', 'cut3:', 'foot:', 'lip:', 'kerb:']; // (shores are few and quick: made as we go)
+  const baked = { img: null, index: null, ok: undefined };
+  if (typeof BAKED_GROUND !== 'undefined' && BAKED_GROUND.keys) {
+    baked.index = new Map(BAKED_GROUND.keys.map((k, i) => [k, i]));
+    baked.img = new Image();
+    baked.img.src = `sprites/baked-ground.png?f=${BAKED_GROUND.fingerprint}`;
+  }
+  function bakedPicture(key) {
+    if (!baked.index || !baked.index.has(key)) return null;
+    if (baked.ok === undefined) {
+      if (!baked.img.complete || !baked.img.naturalWidth || [...custom.values()].some(i => !i.complete)) return null; // (not loaded yet)
+      baked.ok = groundFingerprint() === BAKED_GROUND.fingerprint;
+      if (!baked.ok) console.info('Tilequest: the baked ground pictures are out of date; making them as we go. Run node tests/bake-ground.js.');
+    }
+    if (!baked.ok) return null;
+    const i = baked.index.get(key), T = BAKED_GROUND.tile, cols = BAKED_GROUND.cols, c = document.createElement('canvas');
+    c.width = c.height = T;
+    c.getContext('2d').drawImage(baked.img, (i % cols) * T, Math.floor(i / cols) * T, T, T, 0, 0, T, T);
+    return c;
+  }
+  // What the ground's pictures are made from: the code that draws them, and the textures (sampled), as one number.
+  function groundFingerprint() {
+    const parts = ['edge', 'cornerCut', 'foot', 'lip', 'shore', 'kerb'].map(k => String(Sprites[k]));
+    parts.push(String(rrDist), String(roundCorners), String(texturePixels), String(seamlessPart), String(groundTexture), JSON.stringify(EDGE_STYLE), JSON.stringify(PAVED));
+    for (const id of Object.keys(THINGS)) if (THINGS[id].ground && DRAW[id]) parts.push(id, String(DRAW[id]));
+    for (const [id, k] of Object.entries(SEAMLESS)) parts.push(id, String(k.draw), k.tiles);
+    try {
+      const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+      probe.canvas.width = probe.canvas.height = 16;
+      for (const [id, img] of [...custom].sort()) {
+        if (!img.naturalWidth) { parts.push(id, 'none'); continue; }
+        probe.clearRect(0, 0, 16, 16); probe.drawImage(img, 0, 0, 16, 16);
+        parts.push(id, img.naturalWidth, img.naturalHeight, Array.from(probe.getImageData(0, 0, 16, 16).data).join(','));
+      }
+    } catch (e) { return 'unreadable'; } // (over file:// the textures can't be read: make the pictures as we go)
+    let h = 0;
+    for (const p of parts) h = (Math.imul(h, 31) + hashStr(String(p))) >>> 0;
+    return `${h.toString(16)}-${parts.join('').length}`;
+  }
+
   // Your own PNGs: list them in sprites/custom.js as CUSTOM_SPRITES = { id: 'file.png' }.
   // Creature images can be a single 32x32 picture or a 96x128 sheet: 3 frames
   // (standing, step, step) across, directions north, east, south, west down.
@@ -5774,7 +5822,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -5931,6 +5979,9 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
+    // for tests/bake-ground.js: the ground's pictures made so far ([key, canvas]), and the fingerprint they're made with
+    bakeable: () => [...cache].filter(([k]) => BAKED_KINDS.some(p => k.startsWith(p))),
+    groundFingerprint: () => groundFingerprint(),
     WATER_MOVES: false, // the water's ripples move (off for now: testing whether it's what lags)
     TILT: 0, // how far people lean, in degrees (along the world's lean: head up to the left); upright, as the owner chose
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
