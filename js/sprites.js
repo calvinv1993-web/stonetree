@@ -5918,17 +5918,21 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
-    TILT: 37, // how far people lean, in degrees (along the world's lean: head up to the left)
+    TILT: 0, // how far people lean, in degrees (along the world's lean: head up to the left); upright, as the owner chose
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
     // where a person's head and shoulders are on its picture [x, y, w, h], for portraits; null: the usual place
     faceBox(c) {
       if (Sprites.PEOPLE !== 'tilt' || !c) return null;
       const def = c.type === 'npc' && NPCS[c.npcId];
-      return c.type === 'player' || (def && !def.creature && tiltable(def.look)) ? [TILE - 6, TILE - 4, 20, 20] : null;
+      if (!(c.type === 'player' || (def && !def.creature && tiltable(def.look)))) return null;
+      const t = (Sprites.TILT || 0) * Math.PI / 180, fx = 16 + 5 * Math.sin(t) / 0.6, hx = fx - 27 * Math.sin(t), hy = 28.5 - 27 * Math.cos(t);
+      return [TILE + hx - 10, TILE + hy - 8, 20, 20]; // (the head a little above the middle)
     },
     headroom(c) {
-      const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : 0, able = Sprites.PEOPLE === 'art' ? artable : hdable;
+      const tiltRise = Math.max(0, Math.ceil(34 * Math.cos((Sprites.TILT || 0) * Math.PI / 180) - 28.5)); // (a tilted figure's head reaches higher the straighter it stands)
+      const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : Sprites.PEOPLE === 'tilt' ? tiltRise : 0;
+      const able = Sprites.PEOPLE === 'art' ? artable : Sprites.PEOPLE === 'tilt' ? tiltable : hdable;
       if (!rise || !c) return 0;
       if (c.type === 'player') return rise;
       const def = c.type === 'npc' && NPCS[c.npcId];

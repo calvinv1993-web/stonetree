@@ -14,7 +14,7 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
   hangs flat against it, with its shadow on the wall.
 - Only flames rise straight up the screen (fire goes up), and the figures.
-- **People** are pixel art a little over a tile tall (`artPerson()`, `Sprites.PEOPLE = 'art'`): 35 pixels with a head of 10, from parts drawn pixel by pixel for each view (`ART`: heads, bodies with their arms, legs), in light and shade from the top left, with what they wear and hold on top. They walk in four beats over two steps (`visual()`: a stride, the legs passing, a stride with the other leg): the body dips a pixel in a stride and the arms swing against the legs. Their name and bars sit above their heads (`Sprites.headroom`). Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: large shapes (`'hd'`), small pixels (`'pixel'`).
+- **People** stand upright (`tiltPerson()`, `Sprites.PEOPLE = 'tilt'`, `Sprites.TILT = 0`): a plain figure seen from the front, back or side, big simple shapes (head with hair and a face, body, belt, arms and hands, legs and boots) in two or three tones, lit from the top left, at a pixel per world pixel with a black edge. `TILT` can lean them along the world's slant (degrees); the owner chose upright. Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: `'art'`, `'hd'`, `'pixel'`, `'lean'`.
 - Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 
 ## Light
