@@ -5182,7 +5182,8 @@ const Sprites = (() => {
   // two or three tones each, lit from the top left, drawn at a pixel per world pixel with a black edge: chunky.
   const tiltable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
   function tiltPerson(g0, p, dir, frame) {
-    const FX = 21, FY = 28.5, D = [-0.6, -0.8], N = [0.8, -0.6]; // the feet; along the figure (up), across it (to its left on the picture: right)
+    const tilt = (Sprites.TILT || 0) * Math.PI / 180, sa = Math.sin(tilt), ca = Math.cos(tilt);
+    const FX = 16 + 5 * sa / 0.6, FY = 28.5, D = [-sa, -ca], N = [ca, -sa]; // the feet; along the figure (up), across it
     const at = (t, s) => [FX + D[0] * t + N[0] * s, FY + D[1] * t + N[1] * s];
     const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, front = dir === 2, back = dir === 0, side = !front && !back;
     const flip = dir === 3 ? -1 : 1; // which way a profile looks across the figure
@@ -5917,6 +5918,7 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
+    TILT: 37, // how far people lean, in degrees (along the world's lean: head up to the left)
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
     // where a person's head and shoulders are on its picture [x, y, w, h], for portraits; null: the usual place
@@ -5946,7 +5948,7 @@ const Sprites = (() => {
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
-      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
+      return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}:${Sprites.TILT}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
         if (big) g.translate(TILE, TILE);
