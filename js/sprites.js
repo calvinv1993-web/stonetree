@@ -5048,58 +5048,6 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       });
     },
-    border(ground, dir, variant = 0) {
-      return cached(`border:${ground}:${dir}:${variant}`, g => {
-        const r = makeRng(hashStr(`${ground}${dir}${variant}`));
-        const turn = { n: 0, e: 1, s: 2, w: 3, ne: 0, se: 1, sw: 2, nw: 3 }[dir];
-        const style = EDGE_STYLE[ground] || EDGE_STYLE.default;
-        g.translate(16, 16);
-        g.rotate((turn * Math.PI) / 2);
-        g.translate(-16, -16);
-        // The edge line, from the right of the tile to the left (the ground reaches in from the top).
-        const edge = [];
-        if (dir.length === 1) {
-          for (let x = TILE; x >= 0; x -= 2) {
-            const end = x === TILE || x === 0;
-            edge.push([x, end ? 5 : 5 + Math.sin(x * 0.3 + variant * 2.1) * 1.5 + Math.sin(x * 0.9 + variant) * 0.6]);
-          }
-        } else { // an outer corner: the ground fills the top-right corner
-          const rx = 9 + r() * 3, ry = 9 + r() * 3;
-          for (let a = 0; a <= 12; a++) {
-            const t = (a / 12) * (Math.PI / 2), wob = (r() - 0.5) * 1.6;
-            edge.push([TILE - (rx + wob) * Math.cos(t), (ry + wob) * Math.sin(t)]);
-          }
-        }
-        const trace = (dx, dy) => { g.beginPath(); edge.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); };
-        // The ground itself: the shape, filled with the ground's own texture (unturned, so it
-        // matches the tiles it belongs to)...
-        g.beginPath();
-        g.moveTo(TILE, 0);
-        edge.forEach(([x, y]) => g.lineTo(x, y));
-        if (dir.length === 1) g.lineTo(0, 0);
-        g.closePath();
-        g.fillStyle = '#000';
-        g.fill();
-        g.save();
-        g.setTransform(1, 0, 0, 1, 0, 0);
-        g.globalCompositeOperation = 'source-in';
-        g.drawImage(groundTexture(ground), 0, 0);
-        g.restore();
-        // ...with the shadow it casts on the lower ground behind it.
-        g.globalCompositeOperation = 'destination-over';
-        g.lineWidth = style.lip || 2;                 // a raised edge shows its earth (style.lip pixels of it)
-        g.strokeStyle = style.shade;
-        trace(0, style.lip ? 2 : 1.5);
-        g.stroke();
-        g.globalCompositeOperation = 'source-over';
-        // The rim, and a light line just inside it on bright grounds.
-        g.lineWidth = 1;
-        g.strokeStyle = style.rim;
-        trace(0, 0.5);
-        g.stroke();
-        if (style.light) { g.strokeStyle = style.light; trace(0, -1); g.stroke(); }
-      });
-    },
     // The foot of a rock wall (cliff or cave wall) on side d of a ground tile (n, e, s, w; or ne,
     // se, sw, nw for a corner): scree and stones spilling out from the rock, with its shadow.
     foot(d, variant = 0) {

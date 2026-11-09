@@ -475,7 +475,6 @@ function updateFields() {
 }
 
 // ---- spells and runes -------------------------------------------------------------------
-const knowsSpell = id => spellsFor(player.vocation).includes(id) && player.level >= SPELLS[id].level && (!SPELLS[id].promoted || player.promoted);
 
 // Tiles in front of the player: a cone (wave) or a straight line (beam).
 function shapeTiles(kind, length = 5) {

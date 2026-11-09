@@ -653,7 +653,6 @@
   };
   $('zoomIn').addEventListener('click', () => zoomStep(1));
   $('zoomOut').addEventListener('click', () => zoomStep(-1));
-  const touchPoint = touch => ({ clientX: touch.clientX, clientY: touch.clientY });
   const touchDistance = touches => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
