@@ -247,6 +247,15 @@ const THINGS = {
   sword_grave: { name: 'a sword in the ground', cat: 'Wilds' },
   flagpole:    { name: 'banner', cat: 'Wilds', block: true, low: true, tall: true },
   tower_flag:  { name: 'the flag of Oakvale', cat: 'Town', block: true, low: true, tall: true },
+  // a cannon on the town wall, on its wooden carriage, its muzzle pointing out (n, e, s or w); and a pile of its balls
+  cannon_n:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
+  cannon_e:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
+  cannon_s:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
+  cannon_w:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
+  cannonballs: { name: 'cannonballs', cat: 'Town', block: true, low: true },
+  // Oakvale's banner hanging down the outer face of the town wall (the south or east face, the ones you see)
+  wall_banner_s: { name: 'banner of Oakvale', cat: 'Walls', tall: true },
+  wall_banner_e: { name: 'banner of Oakvale', cat: 'Walls', tall: true },
   ancient_tree:{ name: 'ancient tree', cat: 'Wilds', block: true, tall: true },
   ice_spike:   { name: 'ice crystals', cat: 'Wilds', block: true, low: true },
   fallen_pillar:{ name: 'fallen pillar', cat: 'Wilds', block: true, low: true },

@@ -642,7 +642,7 @@ const Sprites = (() => {
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
-    'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
+    'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -701,6 +701,36 @@ const Sprites = (() => {
     const box = (s0, s1, z0, z1) => (along ? prism(g, s0, a0, s1, a1, z0, z1, PARAPET) : prism(g, a0, s0, a1, s1, z0, z1, PARAPET));
     box(0, TILE, 0, H0);
     for (const s0 of [0.5, 8.5, 16.5, 24.5]) box(s0, s0 + 6, H0, H1);
+  }
+  function wallBanner(g, which) {
+    face(g, which, 0, () => {
+      const cloth = [9, 2, 23, 2, 23, 27, 16, 23, 9, 27];
+      poly(g, 'rgba(20,14,8,0.32)', cloth.map((v, k) => v + (k % 2 ? 1 : 1.4)));            // its shadow on the wall
+      poly(g, which === 'east' ? '#1e4682' : '#2a5aa8', cloth);
+      for (const u of [12.5, 16, 19.5]) rect(g, 'rgba(0,0,30,0.18)', u, 3, 1, 20);           // folds
+      rect(g, '#e8b54a', 9, 2, 1.2, 25); rect(g, '#e8b54a', 21.8, 2, 1.2, 25);                // the gold hem
+      const sx = 16, sy = 11;
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; line(g, '#f2c94c', 1, sx + Math.cos(a) * 2.6, sy + Math.sin(a) * 2.6, sx + Math.cos(a) * 4.6, sy + Math.sin(a) * 4.6); }
+      ellipse(g, '#c8901c', sx, sy, 2.6, 2.6); ellipse(g, '#ffd860', sx - 0.4, sy - 0.4, 1.8, 1.8);
+      rect(g, '#3a3632', 7.5, 0.6, 17, 1.8);                                                  // the rod
+    });
+  }
+  // A cannon pointing along (dx, dy): see cannon_n.
+  function cannon(g, dx, dy) {
+    const along = dx !== 0, oak = { top: '#8a6036', south: '#6a4422', east: '#4a2e14', edge: '#a87a48' };
+    floorShadow(g, 12, 4);
+    // the carriage: two cheeks along the barrel, and the axles' wheels at either side
+    if (along) { prism(g, 7, 10, 25, 13, 2, 9, oak); prism(g, 7, 19, 25, 22, 2, 9, oak); }
+    else { prism(g, 10, 7, 13, 25, 2, 9, oak); prism(g, 19, 7, 22, 25, 2, 9, oak); }
+    const wheel = (u, v) => { const [x, y] = P(u, v, 4); ellipse(g, '#2a2a2e', x, y, along ? 4.2 : 2.6, 3.6); ellipse(g, '#5a3a1e', x, y, along ? 3 : 1.8, 2.6); ellipse(g, '#9a9aa2', x, y, 0.9, 0.9); };
+    for (const k of [10, 22]) for (const side of [8.5, 23.5]) wheel(along ? k : side, along ? side : k);
+    // the barrel: from the breech behind the middle out past the front of the carriage, rising a little
+    const b0 = [16 - dx * 9, 16 - dy * 9, 11], b1 = [16 + dx * 15, 16 + dy * 15, 14];
+    line3(g, '#3a2a14', 7, ...b0, ...b1);
+    line3(g, '#8a6422', 5.4, ...b0, ...b1);
+    line3(g, '#d0a050', 1.6, b0[0], b0[1], b0[2] + 2, b1[0], b1[1], b1[2] + 2);   // the light along its top
+    const [mx, my] = P(...b1); ellipse(g, '#5a4018', mx, my, 3.4, 3.4); ellipse(g, '#141010', mx, my, 1.7, 1.7); // the muzzle
+    const [kx, ky] = P(16 - dx * 11, 16 - dy * 11, 11); ellipse(g, '#6a4c1c', kx, ky, 1.9, 1.9);                // the breech knob
   }
   // A pyramid on the square (u0, v0)-(u1, v1) at height z, its point h higher: the faces you see (west, north lit; south, east).
   function pyramid(g, u0, v0, u1, v1, z, h, c) {
@@ -2080,6 +2110,25 @@ const Sprites = (() => {
       const su = 31, sz = (Z0 + Z1) / 2 + wave(31), [sx, sy] = P(su, 16, sz);              // the golden sun
       for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; line(g, '#f2c94c', 1.4, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7, sy + Math.sin(a) * 7); }
       ellipse(g, '#c8901c', sx, sy, 4, 4); ellipse(g, '#ffd860', sx - 0.6, sy - 0.6, 2.9, 2.9);
+    },
+    // A cannon on the wall: a carriage of oak on four iron-rimmed wheels, a long bronze barrel on it with a ring at the
+    // muzzle and a knob at the breech, pointing out over the battlements.
+    // Oakvale's banner down the face of the town wall: blue cloth with a gold hem and the golden sun, a swallowtail, its
+    // shadow on the stone, hung from an iron rod at the top.
+    wall_banner_s: (g, r) => wallBanner(g, 'south'),
+    wall_banner_e: (g, r) => wallBanner(g, 'east'),
+    cannon_n: g => cannon(g, 0, -1),
+    cannon_e: g => cannon(g, 1, 0),
+    cannon_s: g => cannon(g, 0, 1),
+    cannon_w: g => cannon(g, -1, 0),
+    // A pyramid of iron cannonballs on a little wooden frame.
+    cannonballs(g) {
+      floorShadow(g, 9, 3);
+      prism(g, 7, 9, 25, 23, 0, 2, { top: '#7a5430', south: '#5a3a1e', east: '#3e2612', edge: '#9a7048' });
+      const ball = (u, v, z) => { const [x, y] = P(u, v, z); ellipse(g, '#1e1e22', x, y, 3.6, 3.6); ellipse(g, '#3e3e46', x - 0.6, y - 0.6, 2.8, 2.8); ellipse(g, '#8a8a96', x - 1.4, y - 1.4, 1, 1); };
+      for (const [u, v] of [[11, 13], [16, 13], [21, 13], [11, 19], [16, 19], [21, 19]]) ball(u, v, 5);
+      for (const [u, v] of [[13.5, 16], [18.5, 16]]) ball(u, v, 11);
+      ball(16, 16, 17);
     },
     // An ancient tree: a massive trunk on great roots, a huge old crown.
     ancient_tree(g, r) {

@@ -229,7 +229,7 @@ test('in Oakvale, the town wall\'s walkway goes all the way round, over the gate
   assert.deepStrictEqual(missed, [], 'every tile of the walkway can be walked to along it');
   for (const [x, y] of [[R.x0 + 2, R.y0 + 2], [R.x1 - 2, R.y0 + 2], [R.x0 + 2, R.y1 - 2], [R.x1 - 2, R.y1 - 2]]) { // (the towers' middles)
     assert(seen.has(`${x},${y}`), `the tower on the corner at ${x},${y} is open to the walkway`);
-    assert(walkable(x - 1, y, z + 1) && walkable(x + 1, y, z + 1), `the tower at ${x},${y} has a top to stand on, round its flag`);
+    assert([[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => walkable(x + dx, y + dy, z + 1)).length >= 2, `the tower at ${x},${y} has a top to stand on, round its flag and cannons`);
   }
   for (const [x0, y0, x1, y1] of R.gates) assert(walkable((x0 + x1) >> 1, (y0 + y1) >> 1, S), 'the gates are open below');
   const doors = [];

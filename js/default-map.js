@@ -1054,6 +1054,24 @@ function buildTown(m, S, runs, river) {
       if (!inRing(x, y + 1)) { const i = part(1, 0); put(x, y, S, i < 0 ? 'arch_span_s' : `arch_gate_s${i}`); }
       if (!inRing(x + 1, y)) { const i = part(0, 1); put(x, y, S, i < 0 ? 'arch_span_e' : `arch_gate_e${i}`); }
     }
+    // cannons along the battlements, every eleven tiles, pointing out, a pile of balls beside each and every other one a
+    // keg of powder on its other side (only where the wall is solid below, not over a gate or the water)
+    const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Cold now: Oakvale has not had to fire it in a long time.';
+    let cannons = 0;
+    for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
+      if (!inRing(x, y) || inTower(x, y)) continue;
+      const out = y === R.y0 ? 'n' : y === R.y1 ? 's' : x === R.x0 ? 'w' : x === R.x1 ? 'e' : null;
+      if (!out) continue;
+      const [ax, ay] = out === 'n' || out === 's' ? [1, 0] : [0, 1], along = ax ? x : y;
+      const solid = (dx, dy) => (m.get(x + dx, y + dy, S) || { items: [] }).items.includes('rampart');
+      if (along % 11 !== 6 || !solid(0, 0) || !solid(ax, ay) || !solid(-ax, -ay)) continue;
+      put(x, y, S + 1, `cannon_${out}`); m.setMeta(x, y, S + 1, { look: CANNON_LOOK });
+      put(x + ax, y + ay, S + 1, 'cannonballs');
+      if (cannons++ % 2) put(x - ax, y - ay, S + 1, 'barrel');
+    }
+    // banners down the faces of the wall you see from outside (south and east), between the cannons
+    for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }
+    for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }
     for (const [x, y] of R.stairs) { // a doorway in the inner face, the steps inside it come up through the walkway
       m.set(x, y, S, { ground: 'paving', items: ['wall_stairs'] });
       put(x, y, S + 1, 'stairs_down');
@@ -1098,6 +1116,10 @@ function buildTown(m, S, runs, river) {
       put(ox, oy, S, 'stairs_up'); put(ox, oy, S + 1, 'stairs_down');
       put(ix, iy, S + 1, 'stairs_up'); put(ix, iy, S + 2, 'stairs_down');
       put(x0 + 2, y0 + 2, S + 2, 'tower_flag');
+      // two cannons on the lookout, beside the flag, pointing out over the two outer sides
+      for (const [cx, cy, dir] of [[x0 + 2, north ? y0 + 1 : y1 - 1, north ? 'n' : 's'], [west ? x0 + 1 : x1 - 1, y0 + 2, west ? 'w' : 'e']]) {
+        put(cx, cy, S + 2, `cannon_${dir}`); m.setMeta(cx, cy, S + 2, { look: CANNON_LOOK });
+      }
       // a footbridge over the moat from the door out
       for (let x = outX + odx, y = outY + ody; water(x, y); x += odx, y += ody) m.setGround(x, y, S, odx ? 'bridge_ew' : 'bridge_ns');
     });
