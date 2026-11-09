@@ -7,6 +7,7 @@
 const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'dead_tree', 'ancient_tree', 'tallgrass', 'reeds', 'fern', 'flowers', 'bush']);
 const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can stand in
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
+const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const Render = {
@@ -434,6 +435,16 @@ const Render = {
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
 
       const objects = byFloor.get(z);
+      // A block (rock, a town wall) with blocks south, east and south-east of it, and the floor above drawn over its top,
+      // can't be seen at all: its faces lie under its neighbours' tops and its top under the ground above. Inside a
+      // mountain that's most of them: only the outer ones are drawn.
+      const above = z < v.maxZ ? map.floors[z + 1] : null;
+      const blockAt = (bx, by) => { const t = tileAt(bx, by); return !!t && t.items.some(id => THINGS[id].wall === 'block'); };
+      const buried = (bx, by) => {
+        if (!above || bx < 0 || by < 0 || bx >= map.width || by >= map.height) return false;
+        const up = above[by * map.width + bx], gid = up && up.ground;
+        return !!gid && !SEE_THROUGH.has(gid) && !THINGS[gid].roof && blockAt(bx, by + 1) && blockAt(bx + 1, by) && blockAt(bx + 1, by + 1);
+      };
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = floor[y * map.width + x];
         if (t) {
@@ -441,6 +452,7 @@ const Render = {
           for (const id of t.items) {
             if (id === 'carpet_rug') continue;
             const def = THINGS[id];
+            if (def.wall === 'block' && t.items.length === 1 && buried(x, y)) continue;
             let shape, material;
             if (def.wall === 'thin') {
               const sides = [wallAt(x - 1, y), wallAt(x, y - 1), wallAt(x, y + 1), wallAt(x + 1, y)]; // w n s e
