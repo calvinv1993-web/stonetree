@@ -87,6 +87,7 @@ const Actions = {
   targetNext,
   targetNearest,
   stop() {
+    player.training = null;
     player.target = null;
     player.follow = null;
     player.path = [];
@@ -391,6 +392,7 @@ function updatePlayer() {
     }
   }
   playerCombat();
+  trainTick();
   regenerate();
   updateConversation();
   const p = player.openPile;

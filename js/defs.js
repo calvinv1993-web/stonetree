@@ -17,6 +17,7 @@ const DY = [-1, 0, 1, 0];
 //             { flag, quest?, requires? ('quest', or 'quest@step': only from that step on), gold?, items: [[itemId, count]],
 //               locked?, empty? (what it says once taken), choice? (one of several chests sharing a flag) }
 //   bell:     the temple bell: use it to ring it, once it has its clapper back (ringBell)
+//   trainer:  a training dummy: use it to hit it with your weapon, again and again, until you walk away (trainTick)
 //             Chests sharing a flag are a "pick one" choice.
 //   sprite:   draw with another thing's sprite
 //   toggle:   using it turns it into this thing (doors)
@@ -239,7 +240,7 @@ const THINGS = {
   boat:        { name: 'rowing boat', cat: 'Town', block: true, low: true, tall: true },
   wreck:       { name: 'old shipwreck', cat: 'Nature', block: true, low: true },
   scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
-  dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true },
+  dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true, trainer: true },
   pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
   // Out in the wilds
   windmill:    { name: 'windmill', cat: 'Wilds', block: true, tall: true },

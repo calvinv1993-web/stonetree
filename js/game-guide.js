@@ -22,6 +22,12 @@ const GUIDE = [
     done: () => questState('bell_1') !== 'none',
   },
   {
+    text: 'Before you fight: train! Every hit with your weapon raises its skill (see Skills), and a higher skill hits harder. The training yard is in the south-west of town, off the main street. Click a dummy to hit it, as long as you like; walk away to stop. Hit it 5 times ($trained).',
+    touch: 'Train first: tap a dummy in the training yard (south-west of town) and you keep hitting it until you walk away. Every hit raises your weapon skill (Character, Skills), and a higher skill hits harder. Hit it 5 times ($trained).',
+    target: [{ at: [110, 141, 8] }, { at: [137, 109, 9] }], // (from the temple: to the steps down)
+    done: () => player.trainHits >= 5,
+  },
+  {
     text: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: talk to him.',
     touch: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: tap him to talk.',
     target: [{ npc: 'corwin' }],

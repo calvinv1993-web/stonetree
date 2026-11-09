@@ -181,6 +181,36 @@ function playerCombat() {
   }
 }
 
+// ---- training: hit a dummy as often and as long as you like, and your weapon skill grows -------------------------
+// Use a dummy next to you to start: every attack's time, a hit (a try for the weapon's skill, as a hit on a monster
+// is), until you walk away, pick a target or stop. Wands and rods train nothing: their skill is magic.
+function startTraining(x, y, z) {
+  const w = playerWeapon();
+  if (w.kind === 'magic') return log('A wand or a rod trains nothing on a dummy: magic grows by casting. Train with a weapon.');
+  player.target = null;
+  player.training = { x, y, z, fromX: player.x, fromY: player.y };
+  log(`You start training your ${SKILLS[w.kind === 'distance' ? 'distance' : w.skill].name} skill on the dummy. Walk away to stop.`);
+}
+
+function trainTick() {
+  const t = player.training;
+  if (!t) return;
+  if (player.dead || player.target || player.z !== t.z || player.x !== t.fromX || player.y !== t.fromY || Math.max(Math.abs(player.x - t.x), Math.abs(player.y - t.y)) > 1) {
+    player.training = null;
+    return;
+  }
+  if (now - player.lastAttack < ATTACK_SPEED) return;
+  const w = playerWeapon();
+  if (w.kind === 'magic') return void (player.training = null);
+  player.lastAttack = now;
+  if (!player.walk) player.dir = dirTo(t.x - player.x, t.y - player.y);
+  if (w.kind === 'distance') { addMissile(player, t, w.missile || 'arrow'); addSkillTries('distance'); }
+  else addSkillTries(w.skill);
+  player.trainHits++;
+  addSound('hit', t.x, t.y, t.z);
+  addBurst(t.x, t.y, t.z, '#e8d48a'); // (straw flies)
+}
+
 function useAmmo(w) {
   const eq = player.equipment;
   if (w.thrown) {

@@ -235,8 +235,8 @@ function smartActionContext() {
     if (tile && tile.items && tile.items.some(id => {
       const d = THINGS[id];
       return d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor ||
-        d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache);
-    })) return { kind: 'use', label: 'Use', ...t };
+        d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache || d.trainer);
+    })) return { kind: 'use', label: tile.items.some(id => THINGS[id].trainer) ? 'Train' : 'Use', ...t };
   }
   return { kind: protectedZone ? 'idle' : 'attack', label: protectedZone ? 'Action' : 'Attack' };
 }

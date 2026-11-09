@@ -750,6 +750,23 @@ test('free gear in the sewers: a cap in the old storeroom and a shield in the ra
   }
 });
 
+test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  ctx.teleport({ x: 110, y: 140, z: 8 });
+  assert(state.map.get(110, 141, 8).items.includes('dummy'), 'a dummy in the training yard');
+  const club = p.skills.club.level;
+  ctx.useThing(110, 141, 8);
+  for (let i = 0; i < 400; i++) tick(game, 1000);
+  assert(p.training, 'still training after many minutes');
+  assert(p.trainHits >= 390, `about one hit a second (${p.trainHits})`);
+  assert(p.skills.club.level > club, `club fighting went up (${club} -> ${p.skills.club.level})`);
+  state.Actions.walkTo(110, 138); tick(game, 1500);
+  const hits = p.trainHits; tick(game, 3000);
+  assert(!p.training && p.trainHits === hits, 'walking away stops it');
+});
+
 test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -770,6 +787,10 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(p.tutorial, 1, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
+  assert.strictEqual(arrow(), '137,109,9', 'first out of the temple...'); on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), '110,141,8', '...to the training yard');
+  on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
+  assert(p.trainHits >= 5, 'hitting the dummy');
   assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
   talk('corwin', 'bell'); kill('rat', 5);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; p.fedUntil = state.now + 99999;

@@ -254,7 +254,7 @@ function clickTile(e, t, wx, wy) {
   const tile = map.get(t.x, t.y, t.z);
   const usable = pileAt(t.x, t.y, t.z) || (tile && tile.items.some(id => {
     const d = THINGS[id];
-    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb;
+    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb || d.trainer;
   }));
   if (e.button === 2 || usable) markWalk(t), Actions.interact('use', t.x, t.y, t.z);
   else if (e.button === 0) markWalk(t), Actions.walkTo(t.x, t.y);

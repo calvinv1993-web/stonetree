@@ -139,7 +139,7 @@ function renderGuide() {
   // $progress: how far the task you're on has come (the first active quest still asking you to kill something)
   const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
   const progress = hunting ? questProgress(hunting) : 'done';
-  const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress) : '';
+  const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress).replace('$trained', `${Math.min(5, player.trainHits || 0)}/5`) : ''; // ($trained: hits on a dummy)
   const now = guideNow(step);
   const key = `${player.tutorial}|${text}|${now}|${guideFolded}`;
   if (key === guideKey) return;

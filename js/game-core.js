@@ -62,6 +62,7 @@ function newPlayer(name) {
     fightMode: 'balanced', chase: true, secure: true, conditions: {},
     path: [], pathGoal: null, action: null, target: null, openPile: null,
     input: { held: [], queued: null }, conversation: null, shopNpc: null, events: [],
+    training: null, trainHits: 0, // the dummy you're hitting ({ x, y, z, fromX, fromY }), and how often you have
     lastAttack: 0, nextChase: 0, nextRegen: 0, fedUntil: 0, lightUntil: 0, spellReady: 0, potionReady: 0, useReady: 0,
     teleportAt: 0, dead: false, respawnAt: 0, lastNotPossible: 0, lastWarning: 0, skullUntil: 0, redSkullUntil: 0, pzLockUntil: 0, frags: [], yellowTo: {},
   };
@@ -490,6 +491,7 @@ function useThing(x, y, z) {
     if (def.fireSwap) return swapFire(x, y, z, i), true;
     if (def.chest) return openChest(def.chest), true;
     if (def.bell) return ringBell(x, y, z), true;
+    if (def.trainer) return startTraining(x, y, z), true;
     if (def.cache) return openChest({ flag: `cache:${x},${y},${z}`, ...(map.getMeta(x, y, z) || {}) }), true;
     if (def.change) {
       // Climb (or go down) from where you stand, as if you stepped onto it.
