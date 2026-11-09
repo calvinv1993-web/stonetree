@@ -347,7 +347,7 @@ function initTouch() {
       f.clearRect(0, 0, 128, 128);
       f.imageSmoothingEnabled = r > 1;
       const tall = Sprites.headroom(player); // (a tall figure's head is higher up its picture)
-      if (tall) f.drawImage(img, (TILE + 6) * r, (TILE - tall - 2) * r, 20 * r, 20 * r, 0, 0, 128, 128);
+      if (tall) f.drawImage(img, (TILE + 8) * r, (TILE - tall - 2) * r, 16 * r, 16 * r, 0, 0, 128, 128);
       else f.drawImage(img, (big ? TILE + 5 : 5) * r, (big ? TILE - 6 : -6) * r, 22 * r, 22 * r, 0, 0, 128, 128);
     }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
@@ -478,7 +478,7 @@ function showTalk(speaker, text) {
     const img = Sprites.creature(creatureKey(npc), 2, 0), big = Sprites.w(img) > TILE, r = img.res || 1;
     face.imageSmoothingEnabled = r > 1;
     const tall = Sprites.headroom(npc);
-    if (tall) face.drawImage(img, (TILE + 5) * r, (TILE - tall - 2) * r, 22 * r, 22 * r, 0, 0, 112, 112);
+    if (tall) face.drawImage(img, (TILE + 7) * r, (TILE - tall - 2) * r, 18 * r, 18 * r, 0, 0, 112, 112);
     else face.drawImage(img, (big ? TILE + 4 : 4) * r, (big ? TILE - 4 : -4) * r, 24 * r, 24 * r, 0, 0, 112, 112);
   }
   $('talk').hidden = !!player.shopNpc; // (trading: the shop is open, the card would cover it)

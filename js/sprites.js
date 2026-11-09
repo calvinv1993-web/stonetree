@@ -4655,7 +4655,8 @@ const Sprites = (() => {
   // knees and boots. Every part is shaded across from the light (top left) to the shade (right). Feet at (16, 29), the
   // head up to y -15, so it's drawn on a big (64 x 64) picture. Walking swings the legs and arms. What the look wears
   // and holds goes on in layers. (Looks it can't draw are still dolls: see hdable.)
-  const HD_RISE = 15; // how far above its tile a person's head reaches
+  const HD_SIZE = 0.8; // the figure's size: 0.8 of the 44 pixels it's drawn at, about 35 pixels tall
+  const HD_RISE = Math.ceil(44 * HD_SIZE - 29); // how far above its tile a person's head reaches
   const hdable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
   function hdFill(g, color, x0, x1) { // a fill lit on the left and shaded on the right
     const gr = g.createLinearGradient(x0, 0, x1, 0);
@@ -4673,6 +4674,7 @@ const Sprites = (() => {
     g.closePath(); hdFill(g, color, x0, x1); g.fill();
   }
   function hdPerson(g0, p, dir, frame) {
+    g0.translate(16, 29); g0.scale(HD_SIZE, HD_SIZE); g0.translate(-16, -29); // (smaller, standing on the same spot)
     shadow(g0, 16, 29, 8, 3);
     outlined(g0, g => {
       if (dir === 3) { g.translate(32, 0); g.scale(-1, 1); } // a west view is the east one mirrored
