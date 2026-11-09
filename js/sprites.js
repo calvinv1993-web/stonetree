@@ -942,23 +942,22 @@ const Sprites = (() => {
   // with the golden sun of the dawn on a rod above it.
   // The statue of the founder, three tiles square, west of the temple: a stepped marble plinth with a gilded band and a
   // plaque, and on it the founder in a long cloak, the left hand on a sword's hilt, the right holding a golden sun high.
-  BIG.founder = { w: 3, h: 3, draw(g) {
+  BIG.founder = { w: 3, h: 3, rise: 160, upright: true, draw(g) {
     const m1 = { top: '#fbf7ee', south: '#e6dfcf', east: '#bdb4a2', edge: '#ffffff' }, m2 = { top: '#efe8d8', south: '#d6cdb8', east: '#aaa18e', edge: '#fffcf4' };
     const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
-    shadow(g, 64 + 52, 64 + 58, 44, 16);
-    prism(g, 4, 4, 92, 92, 0, 4, m2);                 // three steps
-    prism(g, 10, 10, 86, 86, 4, 8, m1);
-    prism(g, 16, 16, 80, 80, 8, 12, m2);
-    prism(g, 22, 22, 74, 74, 12, 30, m1);              // the plinth
-    prism(g, 21, 21, 75, 75, 30, 32, gold);            // a gilded band
-    prism(g, 23, 23, 73, 73, 32, 35, m2);              // its cap
-    onSouth(g, 74, f => { rect(f, '#b8a684', 34, 16, 28, 9); rect(f, '#d8a030', 35, 17, 26, 7); rect(f, '#f2c94c', 36, 18, 24, 5); // the plaque
-      for (let k = 0; k < 6; k++) rect(f, '#9a7420', 38 + k * 3.6, 20, 2.2, 1); });
-    // the founder, upright as people stand, in marble, a cloak on her shoulders, holding a staff crowned with a sun
-    const [px, py] = P(48, 52, 35), k = 2;
-    g.imageSmoothingEnabled = false; // (whole pixels, twice as big)
+    shadow(g, 64 + 52, 64 + 60, 40, 15);
+    prism(g, 8, 8, 88, 88, 0, 4, m2);                 // two low steps
+    prism(g, 16, 16, 80, 80, 4, 8, m1);
+    prism(g, 26, 26, 70, 70, 8, 20, m2);               // the plinth, as wide as the figure stands
+    prism(g, 25, 25, 71, 71, 20, 22, gold);            // a gilded band
+    prism(g, 27, 27, 69, 69, 22, 24, m1);              // its cap
+    onSouth(g, 70, f => { rect(f, '#b8a684', 36, 10, 24, 7); rect(f, '#d8a030', 37, 11, 22, 5); rect(f, '#f2c94c', 38, 12, 20, 3); }); // the plaque
+    // the founder, upright as people stand, in marble, three times a person's height, a cloak on her shoulders, holding
+    // a staff crowned with a sun
+    const [px, py] = P(48, 50, 24), k = 3;
+    g.imageSmoothingEnabled = false; // (whole pixels, three times as big)
     g.drawImage(stoneFigure('founder', MARBLE_FOUNDER), Math.round(px - 20 * k), Math.round(py - 40.5 * k), 40 * k, 48 * k);
-    sunDisc(g, px + (29.7 - 20) * k, py + (6.5 - 40.5) * k - 2, 9);     // the sun on the staff's top
+    sunDisc(g, px + (29.7 - 20) * k, py + (6.5 - 40.5) * k - 3, 13);     // the sun on the staff's top
   } };
   // A figure as people are drawn (tiltPerson), standing upright, in the colours of stone: for statues. Feet at (20, 40.5)
   // on a 40 x 48 picture.
@@ -1020,16 +1019,21 @@ const Sprites = (() => {
     bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
     fountain_nw: ['fountain', 0, 0], fountain_ne: ['fountain', 1, 0], fountain_sw: ['fountain', 0, 1], fountain_se: ['fountain', 1, 1],
   };
+  // (upright: it stands straight up, as statues' figures do, not leaning: see the clip below; rise: how far above its tiles a
+  // big thing reaches, 64 unless it says more; its own PNG, sprites/custom.js, if it has one:
+  // the whole thing on one picture, w * 32 + rise wide and h * 32 + rise high, its north-west tile's corner at rise, rise)
   function bigPart(id, frame) {
-    const [name, col, row] = PARTS[id], b = BIG[name];
-    const whole = cached(`bigthing:${name}:${frame}`, g => (b.noInk ? b.draw(g, frame) : inked(g, f => b.draw(f, frame))), b.w * TILE + 64, b.h * TILE + 64);
-    return cached(`part:${id}:${frame}`, g => {
-      g.beginPath(); // this tile, and the strip rising up-left from it
-      for (const [x, y] of [[0, 0], [32, 0], [96, 64], [96, 96], [64, 96], [0, 32]]) g.lineTo(x, y);
-      g.closePath();
+    const [name, col, row] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name);
+    const at = (f, fn) => { f.save(); f.translate(R - 64, R - 64); fn(f); f.restore(); }; // (its drawing has the corner at 64, 64, as P() has)
+    const whole = own || cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R);
+    return cached(`part:${id}:${frame}:${own ? 'own' : ''}`, g => {
+      g.beginPath();
+      if (!b.upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
+      else if (row === b.h - 1) g.rect(col ? R : 0, 0, col ? 32 : R + 32, R + 32); // (upright: the south row's tiles draw everything straight above them,
+      else g.rect(R, R, 32, 32);                                                     // the westmost also what leans out west; the others their own tile)
       g.clip();
       g.drawImage(whole, -col * TILE, -row * TILE);
-    }, 3 * TILE);
+    }, R + TILE);
   }
 
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.

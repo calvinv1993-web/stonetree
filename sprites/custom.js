@@ -7,6 +7,10 @@
 // tile in the bottom-right corner). Creatures are a 32x32 picture, or a 96x128
 // sheet: 3 frames (standing, step, step) across and the directions north, east,
 // south, west down. Run the game from a local web server to use your own PNGs.
+// Things with height (trees, statues, furniture) are 96x96 with their tile in the bottom-right
+// corner; a big thing of several tiles goes under its name (e.g. founder: the statue west of the
+// temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
+// shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-atlas.png',
