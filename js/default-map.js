@@ -157,11 +157,10 @@ const OAKVALE = {
   // in front and the bell tower on its east shoulder; a broad flight of stone steps runs down from the terrace to the
   // square. outline: its foot, roughened a little (see the mount below); keep: what must stand on it (the temple with
   // its path round it, the terrace, the bell tower and the way to it); clear: never on it; x0..y1: the box it lies in (y1: the steps' row).
-  mount: { x0: 128, y0: 99, x1: 150, y1: 109, steps: [136, 137, 138],
-    outline: [[128.6, 103.4], [129.8, 100.6], [132.4, 99.8], [136.8, 99.5], [141.4, 100.1], [144, 99.6], [150.4, 99.6],
-      [150.9, 102.5], [150.6, 106.6], [146.4, 106.8], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
-    keep: [[132, 100, 142, 108], [134, 109, 140, 109], [145, 100, 150, 106], [142, 105, 145, 106]],
-    clear: [[145, 99, 151, 99]] }, // (clear: never rock: behind the bell tower it would be cut off)
+  mount: { x0: 128, y0: 99, x1: 151, y1: 109, steps: [136, 137, 138],
+    outline: [[128.6, 103.4], [129.8, 100.6], [132.4, 99.8], [136.8, 99.5], [141.4, 100.1], [144, 99.4], [151.6, 99.2],
+      [152, 102.5], [151.6, 106.6], [146.4, 106.8], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
+    keep: [[132, 100, 142, 108], [134, 109, 140, 109], [145, 99, 151, 106], [142, 105, 145, 106]], clear: [] }, // (a rim round the bell tower)
   streets: [
     { line: [[126, 92], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
     { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
