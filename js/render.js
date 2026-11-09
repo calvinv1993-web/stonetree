@@ -43,11 +43,16 @@ const Render = {
   CHUNK_MS: 4, // how long a frame may spend making chunks (Render.budget: until when)
   budget: 0,
   chunks: new Map(),
+  pictures: 0, // how many of them hold a picture
   spare: [], // pictures of chunks let go of, to use again
+  stats: { live: 0, finished: 0 }, // (how often a chunk in view wasn't ready: for measuring)
+  later: new Map(), // chunks in view that weren't made in their frame
+  chores: [], // small jobs for the quiet time between frames: making pictures before they're needed
   forget(key) {
     const c = Render.chunks.get(key);
     if (!c) return;
     Render.chunks.delete(key);
+    if (c.canvas) Render.pictures--;
     if (c.canvas && Render.spare.length < 16) Render.spare.push(c.canvas);
   },
   ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond) {
@@ -69,9 +74,8 @@ const Render = {
       let c = keep.get(key);
       if (c && c.tag !== tag) { Render.forget(key); c = null; }
       if (c && c.made >= PARTS) { keep.delete(key); keep.set(key, c); return c; } // (to the back of the line: just used)
-      if (performance.now() > Render.budget) return null;
       const tx0 = cx * C, ty0 = cy * C;
-      if (!c) {
+      if (!c) { // (seeing what's in it is quick: done even without time to spare)
         // what's in it: nothing (an empty upper floor), moving ground (drawn live), or ground to keep
         let any = false, moving = false;
         for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
@@ -90,14 +94,27 @@ const Render = {
           cg.imageSmoothingEnabled = false;
           c.made = 0;
         }
-        while (keep.size >= Render.CHUNKS_KEPT) Render.forget(keep.keys().next().value);
+        if (c.canvas) { // at most CHUNKS_KEPT pictures: the least recently used one goes (empty chunks cost nothing: they stay)
+          Render.pictures++;
+          for (const [k, o] of keep) { if (Render.pictures <= Render.CHUNKS_KEPT) break; if (o.canvas) Render.forget(k); }
+        }
         keep.set(key, c);
       }
-      const cg = c.canvas && c.canvas.getContext('2d');
+      if (c.made >= PARTS) return c; // (empty, or moving ground: nothing to make)
+      if (performance.now() > Render.budget) { if (!ahead && !Render.later.has(key)) Render.later.set(key, () => chunk(cx, cy, true)); return null; } // (made between frames)
+      const cg = c.canvas.getContext('2d');
+      if (!ahead) Render.stats.finished++;
       while (c.made < PARTS && (!ahead || performance.now() < Render.budget)) {
         const px = tx0 + (c.made % (C / PART)) * PART, py = ty0 + Math.floor(c.made / (C / PART)) * PART;
         pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
         c.made++;
+      }
+      if (ahead && c.made >= PARTS && !c.warm && !c.empty && performance.now() < Render.budget) { // and the pictures of what stands there (trees, bushes, things), ready too
+        c.warm = true;
+        for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
+          const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
+          if (t) for (const id of t.items) { const d = THINGS[id]; if (!d.wall && !d.roof && !d.onWall && id !== 'carpet_rug') Sprites.thing(id, x, y, 0); }
+        }
       }
       return c.made >= PARTS ? c : null;
     };
@@ -105,21 +122,42 @@ const Render = {
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
       const c = chunk(cx, cy), tx0 = cx * C, ty0 = cy * C;
       if (c && c.empty) continue;
-      if (c && c.canvas) { g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); continue; }
+      if (c && c.canvas && c.made >= PARTS) { g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); continue; }
       // moving ground, or not made yet: this chunk's part of the view, drawn live
+      if (!c || c.canvas) Render.stats.live++;
       const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
       g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();
       pass(g, ox, oy, ax0, ax1, ay0, ay1, Math.max(x0, ax0), Math.min(x1, ax1), Math.max(y0, ay0), Math.min(y1, ay1), shoreFrame);
       g.restore();
     }
-    // With time to spare, make the chunks round the view on the floor you're on, so they're ready before you get there.
-    if (z === v.z) for (let r = 1; r <= 2 && performance.now() < Render.budget; r++) {
-      for (let cy = cy0 - r; cy <= cy1 + r; cy++) for (let cx = cx0 - r; cx <= cx1 + r; cx++) {
+    // With time to spare (this frame's, and the quiet time between frames: see idle), make the chunks round the view on
+    // the floor you're on, nearest first, so they're ready before you get there.
+    if (z !== v.z) return;
+    Render.ahead = () => {
+      for (let r = 1; r <= 2; r++) for (let cy = cy0 - r; cy <= cy1 + r; cy++) for (let cx = cx0 - r; cx <= cx1 + r; cx++) {
         if (cy > cy0 - r && cy < cy1 + r && cx > cx0 - r && cx < cx1 + r) continue; // (the ring only)
+        if (performance.now() >= Render.budget) return false;
         const k = keep.get(`${z}:${cx}:${cy}`);
-        if ((!k || k.made < PARTS) && !chunk(cx, cy, true)) return;
+        if ((!k || k.made < PARTS) && !chunk(cx, cy, true)) return false;
       }
-    }
+      return true; // all made
+    };
+    Render.ahead();
+  },
+  // Between frames, while the page is idle, go on making the chunks ahead (requestIdleCallback says for how long; where
+  // there's none, as on iPhones, a few ms after each frame).
+  idle() {
+    if (Render.idleAsked || (!Render.ahead && !Render.chores.length && !Render.later.size)) return;
+    Render.idleAsked = true;
+    const run = deadline => {
+      Render.idleAsked = false;
+      Render.budget = performance.now() + (deadline ? Math.max(0, deadline.timeRemaining() - 1) : 5);
+      for (const [k, f] of Render.later) { if (performance.now() >= Render.budget) break; if (f() || performance.now() < Render.budget) Render.later.delete(k); } // chunks in view not made in their frame
+      if (Render.ahead && Render.ahead()) Render.ahead = null;
+      while (Render.chores.length && performance.now() < Render.budget) Render.chores.shift()(); // then other pictures to make (see game.js)
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 100 });
+    else setTimeout(() => run(null), 1);
   },
   // A picture made round: lit on its left, in shade on its right, so a body, arms and a head look round, not flat.
   roundOf(img) {

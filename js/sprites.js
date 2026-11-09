@@ -5747,6 +5747,18 @@ const Sprites = (() => {
     if (bit === 16) r.push('bl'); if (bit === 32) r.push('tl'); if (bit === 64) r.push('tr'); if (bit === 128) r.push('br');
     return r;
   };
+  // A CSS colour as [r, g, b, a], via a 1-pixel canvas; each colour worked out once.
+  const cssRgbs = new Map();
+  let cssProbe = null;
+  const cssRgb = c => {
+    let v = cssRgbs.get(c);
+    if (!v) {
+      cssProbe = cssProbe || document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+      cssProbe.clearRect(0, 0, 1, 1); cssProbe.fillStyle = c; cssProbe.fillRect(0, 0, 1, 1);
+      cssRgbs.set(c, (v = cssProbe.getImageData(0, 0, 1, 1).data));
+    }
+    return v;
+  };
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
@@ -6058,8 +6070,7 @@ const Sprites = (() => {
         const st = edgeStyle(high), lift = st.raise || 0;
         if (!lift) return;
         const lowTex = texturePixels(low, x, y);
-        const probe = document.createElement('canvas').getContext('2d');
-        const rgb = c => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = c; probe.fillRect(0, 0, 1, 1); return probe.getImageData(0, 0, 1, 1).data; };
+        const rgb = cssRgb;
         const side = st.side.map(rgb), rim = rgb(st.rim), light = rgb(st.light || st.rim), shade = rgb(st.shade);
         // this tile as a square with that corner rounded, grown by the edge's width (as its neighbours see it)
         const round = [{ ne: 'tr', se: 'br', sw: 'bl', nw: 'tl' }[corner]], width = st.width || 5;
@@ -6095,14 +6106,19 @@ const Sprites = (() => {
         // border jitter: a slow wander of the line, never a repeating zigzag
         // (a raised ground's edge also has clumps: shorter bumps, zero at the tile's sides so neighbours still meet)
         const clump = st.clumps || 0, k3 = [9, 11, 13][variant], k4 = [15, 17, 19][variant];
-        const wob0 = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t));
-        const wob = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t))
-          + clump * Math.sin(Math.PI * t) * (0.7 * Math.sin(k3 * Math.PI * t + variant) + 0.45 * Math.sin(k4 * Math.PI * t + 2 * variant));
+        const wob0f = t => amp * (1.1 * Math.sin(k1 * Math.PI * t) + 0.5 * Math.sin(k2 * Math.PI * t));
+        const wobf = t => wob0f(t) + clump * Math.sin(Math.PI * t) * (0.7 * Math.sin(k3 * Math.PI * t + variant) + 0.45 * Math.sin(k4 * Math.PI * t + 2 * variant));
+        // Every point asked about lies on a half-pixel grid (x + 0.5, less whole or half pixels): the wobbles and the
+        // distances are worked out once per point of it (from M0 to M0 + MN / 2), not again for every pixel near it.
+        const M0 = -16, MN = 128, onGrid = v => { const k = (v - M0) * 2; return k >= 0 && k < MN && k === (k | 0) ? k : -1; };
+        const wobT = new Float64Array(MN), wob0T = new Float64Array(MN);
+        for (let k = 0; k < MN; k++) { wobT[k] = wobf((M0 + k / 2) / TILE); wob0T[k] = wob0f((M0 + k / 2) / TILE); }
+        const wob0 = t => { const k = onGrid(t * TILE); return k < 0 ? wob0f(t) : wob0T[k]; };
+        const wob = t => { const k = onGrid(t * TILE); return k < 0 ? wobf(t) : wobT[k]; };
         const rects = EDGE_RECTS.filter(([bit]) => mask & bit);
         const img = g.createImageData(TILE, TILE), d = img.data;
         // colours as [r, g, b, a] from CSS, via a 1-pixel canvas
-        const probe = document.createElement('canvas').getContext('2d');
-        const rgb = c => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = c; probe.fillRect(0, 0, 1, 1); return probe.getImageData(0, 0, 1, 1).data; };
+        const rgb = cssRgb;
         const rim = rgb(st.rim), light = st.light && rgb(st.light), shade = rgb(st.shade), dots = st.tufts || st.pebbles;
         const dotRgb = dots && dots.map(rgb);
         const side = st.side && st.side.map(rgb), blades = st.blades && st.blades.map(rgb);
@@ -6116,7 +6132,15 @@ const Sprites = (() => {
         const hash = (px, py, s = 0) => (((px * 73856093) ^ (py * 19349663) ^ ((variant + s) * 83492791)) >>> 0) % 100;
         // how far a point lies outside the higher ground's top (negative: on it)
         let smoothOnly = false; // (the side below the edge follows the edge without its clumps: no brown teeth)
+        const outMemo = new Float64Array(MN * MN * 2).fill(NaN);
         const out = (cx, cy) => {
+          const kx = onGrid(cx), ky = onGrid(cy), mi = kx < 0 || ky < 0 ? -1 : ((smoothOnly ? MN * MN : 0) + ky * MN + kx);
+          if (mi >= 0 && outMemo[mi] === outMemo[mi]) return outMemo[mi];
+          const v = outCalc(cx, cy);
+          if (mi >= 0) outMemo[mi] = v;
+          return v;
+        };
+        const outCalc = (cx, cy) => {
           let dist = 99;
           // a smooth minimum over the neighbours, so where two of them meet the edge curves round instead of turning
           // a sharp corner: a trail winds through the grass rather than stepping in squares
