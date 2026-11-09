@@ -132,8 +132,9 @@ const ISLE_DESIGN = {
 //   moat:      water [x0, y0, x1, y1] (the river's bed through the bounds is kept as well)
 //   ramparts:  the town wall, a ring x0..x1, y0..y1, `thick` tiles deep: solid masonry with a walkway on top (the floor
 //              above) all the way round, battlements on its outer edge; gates: where streets go through it (the walkway
-//              goes on over them, as it does over water); steps: flights up its inner face, on the north wall
-//              [[x0, x1], ...] and on the west wall [[y0, y1], ...] (the faces you see); a tower stands on each corner
+//              goes on over them, as it does over water); stairs: arched doorways in its inner face with steps up
+//              inside [[x, y], ...]; a tower stands on each corner, with a door into town, stairs up to the walkway
+//              and the lookout on top, and a door out over a footbridge (exits: its side, NW NE SW SE)
 //   hills:     rocky hills { outline, tiers }: rock walls with a rugged top
 //   wall:      stone wall pieces [x0, y0, x1, y1]; gaps: where the gates are
 //   streets:   { line, width, ground }, drawn like the roads outside; bridges where they cross water
@@ -143,12 +144,12 @@ const ISLE_DESIGN = {
 //   houses:    the buildings players can rent, with their rent
 //   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
-  bounds: { x0: 97, y0: 92, x1: 156, y1: 150 },
-  moat: [[97, 92, 156, 93], [97, 149, 156, 150], [97, 92, 98, 150], [155, 92, 156, 150]],
+  bounds: { x0: 96, y0: 91, x1: 157, y1: 151 },
+  moat: [[96, 91, 157, 93], [96, 149, 157, 151], [96, 91, 98, 151], [155, 91, 157, 151]],
   hills: [],
   ramparts: { x0: 99, y0: 94, x1: 154, y1: 148, thick: 3,
     gates: [[125, 94, 127, 96], [127, 146, 129, 148], [99, 129, 101, 131], [152, 115, 154, 117]],
-    steps: { north: [[110, 112], [140, 142]], west: [[109, 111], [137, 139]] } },
+    stairs: [[130, 96]], exits: ['n', 'n', 's', 's'] }, // (exits: the side each corner tower opens on to the outside, NW NE SW SE)
   start: { x: 137, y: 104 }, // in the temple on the mount, before the altar (one floor up)
   // The bell tower (a building, see buildings): stairs: up from each floor, from the ground; shaft: the column of
   // open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2) at the top; rules: a sign
@@ -165,10 +166,10 @@ const OAKVALE = {
       [150, 102.5], [149.6, 106.4], [146.4, 106.6], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
     keep: [[131, 99, 142, 108], [134, 109, 140, 109], [143, 99, 149, 106], [142, 105, 143, 106]], clear: [] }, // (a rim round the bell tower)
   streets: [
-    { line: [[126, 92], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
-    { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
-    { line: [[97, 130], [151, 130]], width: 3, ground: 'cobble' },              // the main street, from the west gate
-    { line: [[146, 116], [156, 116]], width: 3, ground: 'cobble' },             // to the east gate
+    { line: [[126, 91], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
+    { line: [[128, 121], [128, 151]], width: 3, ground: 'cobble' },             // from the square to the south gate
+    { line: [[96, 130], [151, 130]], width: 3, ground: 'cobble' },              // the main street, from the west gate
+    { line: [[146, 116], [157, 116]], width: 3, ground: 'cobble' },             // to the east gate
     { line: [[111, 116], [123, 116]], width: 3, ground: 'cobble' },             // over the bridge to the academy
     { line: [[110, 107], [110, 130]], width: 3, ground: 'cobble' },             // the academy lane, over the footbridge
   ],
@@ -196,13 +197,13 @@ const OAKVALE = {
     { x0: 123, y0: 134, x1: 125, y1: 139, kind: 'flowers' },
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
-  graveyard: { x0: 142, y0: 139, x1: 151, y1: 145, gate: [142, 142], stones: [
-    [144, 141, 'Here lies Old Wim, who went down the well for a bet.'],
-    [146, 141, 'An adventurer who never bought a rope.'],
-    [148, 141, 'Bertha Oakhart. She fed the town through the long winter.'],
-    [144, 143, 'Sir Galen. He said the rats in the cellar were "only rats".'],
-    [146, 143, 'Taken by the spiders of the hills. Go well armed, friend.'],
-    [148, 143, 'No name. Only the words: "the hills remember".'],
+  graveyard: { x0: 142, y0: 139, x1: 149, y1: 143, gate: [142, 141], stones: [
+    [143, 140, 'Here lies Old Wim, who went down the well for a bet.'],
+    [145, 140, 'An adventurer who never bought a rope.'],
+    [147, 140, 'Bertha Oakhart. She fed the town through the long winter.'],
+    [144, 142, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [146, 142, 'Taken by the spiders of the hills. Go well armed, friend.'],
+    [148, 142, 'No name. Only the words: "the hills remember".'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[131, 111], [140, 129], [110, 128], [127, 141]],
@@ -213,9 +214,9 @@ const OAKVALE = {
     [140, 119, 'Tamsin Oakhart, who built the first house by the river, and the bridge after it.'],
   ],
   // A forgotten chest for whoever explores the strip behind the academy: [x, y, gold]
-  cache: [102, 97, 30],
+  cache: [105, 97, 30],
   // The training yard: a fenced sandy yard with dummies.
-  yard: { x0: 108, y0: 134, x1: 114, y1: 144, gate: [111, 134] },
+  yard: { x0: 108, y0: 134, x1: 114, y1: 143, gate: [111, 134] },
   paths: [
     [[147, 114], [147, 114]],                   // the depot, onto the east street
     [[112, 111], [112, 111]], [[112, 120], [112, 120]],                          // the houses on the lane
@@ -240,10 +241,10 @@ const OAKVALE = {
   fountain: [134, 113],
   statue: [140, 119],
   signs: [
-    [124, 91, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
-    [96, 128, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
-    [157, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
-    [126, 151, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
+    [124, 90, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
+    [95, 128, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
+    [158, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
+    [126, 152, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
@@ -1028,7 +1029,9 @@ function buildTown(m, S, runs, river) {
     const R = T.ramparts, k = R.thick;
     const inRing = (x, y) => x >= R.x0 && x <= R.x1 && y >= R.y0 && y <= R.y1 && !(x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k);
     const gate = (x, y) => R.gates.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
-    const towers = [[R.x0, R.y0], [R.x1, R.y0], [R.x0, R.y1], [R.x1, R.y1]].map(([x, y]) => [x - 2, y - 2, x + 2, y + 2]);
+    // (each tower takes the ring's corner and two tiles more inwards: its door into town opens there)
+    const towers = [[R.x0, R.y0, 1, 1], [R.x1, R.y0, -1, 1], [R.x0, R.y1, 1, -1], [R.x1, R.y1, -1, -1]]
+      .map(([x, y, dx, dy]) => [Math.min(x, x + 4 * dx), Math.min(y, y + 4 * dy), Math.max(x, x + 4 * dx), Math.max(y, y + 4 * dy)]);
     const inTower = (x, y) => towers.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
     const parapet = (x, y, z, [x0, y0, x1, y1]) => {
       if (y === y0) put(x, y, z, 'battlement_n');
@@ -1048,34 +1051,40 @@ function buildTown(m, S, runs, river) {
       if (!inRing(x, y + 1)) put(x, y, S, 'arch_span_s');
       if (!inRing(x + 1, y)) put(x, y, S, 'arch_span_e');
     }
-    for (const [a, b] of R.steps.north) for (let x = a; x <= b; x++) { m.set(x, R.y0 + k - 1, S, { ground: 'paving', items: ['steps'] }); m.setGround(x, R.y0 + k - 1, S + 1, 'steps_top'); }
-    for (const [a, b] of R.steps.west) for (let y = a; y <= b; y++) { m.set(R.x0 + k - 1, y, S, { ground: 'paving', items: ['steps_e'] }); m.setGround(R.x0 + k - 1, y, S + 1, 'steps_top'); }
-    // torches along the inner edge of the walkway, every so often (not on the steps, nor over a gate or the water)
-    for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
-      if (!inRing(x, y) || inTower(x, y) || inRing(x, y + 1) && inRing(x, y - 1) && inRing(x + 1, y) && inRing(x - 1, y)) continue;
-      const inner = !inRing(x, y + 1) && y < R.y0 + k ? 'n' : !inRing(x, y - 1) && y > R.y1 - k ? 's' : !inRing(x + 1, y) && x < R.x0 + k ? 'w' : !inRing(x - 1, y) && x > R.x1 - k ? 'e' : null;
-      const along = inner === 'n' || inner === 's' ? x : y;
-      if (inner && along % 9 === 4 && m.get(x, y, S).items.includes('rampart')) put(x, y, S + 1, 'torch');
+    for (const [x, y] of R.stairs) { // a doorway in the inner face, the steps inside it come up through the walkway
+      m.set(x, y, S, { ground: 'paving', items: ['wall_stairs'] });
+      put(x, y, S + 1, 'stairs_down');
     }
-    for (const box of towers) {
-      const [x0, y0, x1, y1] = box;
+    const town = (x, y) => x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k && !inTower(x, y);
+    towers.forEach((box, n) => {
+      const [x0, y0, x1, y1] = box, west = x0 === R.x0, north = y0 === R.y0;
+      // inside the 3x3 room: the corner towards the outside (stairs between the room and the walkway) and the one towards
+      // town (stairs between the walkway and the lookout)
+      const [ox, oy] = [west ? x0 + 1 : x1 - 1, north ? y0 + 1 : y1 - 1], [ix, iy] = [west ? x1 - 1 : x0 + 1, north ? y1 - 1 : y0 + 1];
+      // its doors on the ground: one into town (on the first side that opens on to it: south, east, north, west), one out
+      const sides = [[0, 1], [1, 0], [0, -1], [-1, 0]], along = [];
+      for (const [dx, dy] of sides) for (let i = 1; i <= 3; i++) along.push([dx ? (dx > 0 ? x1 : x0) : x0 + i, dy ? (dy > 0 ? y1 : y0) : y0 + i, dx, dy]);
+      const [inX, inY] = along.find(([x, y, dx, dy]) => town(x + dx, y + dy));
+      const side = R.exits[n], [outX, outY, odx, ody] = side === 'n' ? [x0 + 2, y0, 0, -1] : side === 's' ? [x0 + 2, y1, 0, 1] : side === 'w' ? [x0, y0 + 2, -1, 0] : [x1, y0 + 2, 1, 0];
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const edge = x === x0 || x === x1 || y === y0 || y === y1;
-        // a doorway where the walkway comes in, in the middle of its width
-        const door = edge && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+        const door = (x === inX && y === inY) || (x === outX && y === outY);
+        // a doorway on the walkway's floor where the walkway comes in, in the middle of its width
+        const gap = edge && sides.some(([dx, dy]) => {
           const nx = x + dx, ny = y + dy;
           return !inTower(nx, ny) && inRing(nx, ny) && (dx ? inRing(nx, ny - 1) && inRing(nx, ny + 1) : inRing(nx - 1, ny) && inRing(nx + 1, ny));
         });
-        m.set(x, y, S, { ground: 'paving', items: ['rampart'] });
-        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !door ? ['wall_temple'] : [] });
+        m.set(x, y, S, { ground: 'paving', items: edge ? [door ? 'door' : 'wall_temple'] : [] });
+        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !gap ? ['wall_temple'] : [] });
         m.set(x, y, S + 2, { ground: 'temple_paving', items: [] });
         parapet(x, y, S + 2, box);
       }
-      // the stairs in the room's outer corner, away from the doorways
-      const sx = x0 + 2 < (R.x0 + R.x1) / 2 ? x0 + 1 : x1 - 1, sy = y0 + 2 < (R.y0 + R.y1) / 2 ? y0 + 1 : y1 - 1;
-      put(sx, sy, S + 1, 'stairs_up'); put(sx, sy, S + 2, 'stairs_down');
+      put(ox, oy, S, 'stairs_up'); put(ox, oy, S + 1, 'stairs_down');
+      put(ix, iy, S + 1, 'stairs_up'); put(ix, iy, S + 2, 'stairs_down');
       put(x0 + 2, y0 + 2, S + 2, 'flagpole');
-    }
+      // a footbridge over the moat from the door out
+      for (let x = outX + odx, y = outY + ody; water(x, y); x += odx, y += ody) m.setGround(x, y, S, odx ? 'bridge_ew' : 'bridge_ns');
+    });
   }
 
   // Streets (bridges over the river) and the square.

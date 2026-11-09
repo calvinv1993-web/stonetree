@@ -1361,24 +1361,20 @@ const Sprites = (() => {
       solidify(g);
     },
     steps_top() {},
-    // The same steps up a face looking east: the flight rises going west, its south side a triangle of stone.
-    steps_e(g, r) {
-      g.save();
-      g.setTransform(...FACES.south);
-      g.beginPath(); g.moveTo(0, 0); g.lineTo(0, TILE); g.lineTo(TILE, TILE); g.closePath(); g.clip();
-      stoneBlocks(g, r, 118, '#3a3834');
-      g.restore();
-      g.save();
-      g.setTransform(2, 1, 0, 1, 0, 0); // (w, v) on the slope, w from the top at the west edge -> (2w, w + v)
-      rect(g, '#8e8e8a', 0, 0, TILE, TILE);
-      for (let w = 0; w < TILE; w += 4) { // each step: its tread, lit, and its riser, in shade (it faces east)
-        rect(g, '#c4c4be', w, 0, 2, TILE);
-        rect(g, '#e2e2dc', w, 0, 1, TILE);
-        rect(g, '#5e5e5a', w + 2, 0, 2, TILE);
-      }
-      rect(g, 'rgba(0,0,0,0.12)', 0, 0, TILE, 1);
-      g.restore();
-      solidify(g);
+    // Stairs up into the town wall: an arched doorway in its face, steps rising into the dark inside it.
+    wall_stairs(g, r) {
+      wallBlock(g, 'block', {
+        south: () => {
+          ashlar(g, r, false);
+          const arch = (pad, color) => { g.fillStyle = color; g.beginPath(); g.moveTo(9 - pad, 32); g.lineTo(9 - pad, 15); g.arc(16, 15, 7 + pad, Math.PI, 0); g.lineTo(23 + pad, 32); g.closePath(); g.fill(); };
+          arch(1.6, '#e8dcc4');                                                    // the dressed stone round it
+          arch(0, '#16120e');                                                      // the dark inside
+          for (let k = 0; k < 5; k++) rect(g, k % 2 ? '#4a443c' : '#625a4e', 9.5 + k * 0.6, 29 - k * 3.4, 13 - k * 1.2, 1.6); // the steps going up
+          rect(g, '#f0c060', 15, 6.4, 2, 2.2);                                     // a keystone
+        },
+        east: () => ashlar(g, r, true),
+        top: () => capStone(g, r, 150),
+      });
     },
     // The top of an archway under a wall's walkway: a lintel of wedge-shaped stones across the opening, on the face
     // you see, with the shadow of the vault under it.

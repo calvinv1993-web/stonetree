@@ -200,10 +200,10 @@ test('the start, monsters and NPCs stand on free ground, and no monster in a pro
   for (const n of map.npcs) assert.ok(walkable(n.x, n.y, n.z), `NPC ${n.type} at ${n.x},${n.y},${n.z} is not walkable`);
 });
 
-test('in Oakvale, every building, and the temple mount, stands at least two tiles clear of the town wall', () => {
+test('in Oakvale, everything inside the walls (buildings, the temple mount, gardens, the yard, the graveyard) stands at least two tiles clear of the town wall', () => {
   const T = require('vm').runInContext('OAKVALE', ctx), [wx0, wy0, wx1, wy1] = [101, 96, 152, 146];
   const close = [];
-  for (const b of [...T.buildings, { id: 'temple mount', ...T.mount }]) {
+  for (const b of [...T.buildings, { id: 'temple mount', ...T.mount }, ...T.gardens.map((g, i) => ({ id: `garden ${i}`, ...g })), { id: 'yard', ...T.yard }, { id: 'graveyard', ...T.graveyard }]) {
     for (const [x0, y0, x1, y1] of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) {
       if (x0 - wx0 - 1 < 2 || y0 - wy0 - 1 < 2 || wx1 - x1 - 1 < 2 || wy1 - y1 - 1 < 2) close.push(b.id);
     }
@@ -211,11 +211,11 @@ test('in Oakvale, every building, and the temple mount, stands at least two tile
   assert.deepStrictEqual(close, []);
 });
 
-test('in Oakvale, the town wall\'s walkway goes all the way round, over the gates and the water, into every corner tower and up to its top', () => {
+test('in Oakvale, the town wall\'s walkway goes all the way round, over the gates and the water, into every corner tower and up to its top, and each tower has a door into town and one out', () => {
   const R = require('vm').runInContext('OAKVALE.ramparts', ctx), k = R.thick, z = S + 1;
   const inRing = (x, y) => x >= R.x0 && x <= R.x1 && y >= R.y0 && y <= R.y1 && !(x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k);
-  // walk the walkway (and the towers' rooms) from the first flight of steps, without going down any steps
-  const start = [R.steps.north[0][0], R.y0], seen = new Set([start.join()]), todo = [start];
+  // walk the walkway (and the towers' rooms) from a tile of it, without going down any stairs
+  const start = [R.x0 + 8, R.y0], seen = new Set([start.join()]), todo = [start];
   while (todo.length) {
     const [x, y] = todo.pop();
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -225,13 +225,19 @@ test('in Oakvale, the town wall\'s walkway goes all the way round, over the gate
     }
   }
   const missed = [];
-  for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) if (inRing(x, y) && walkable(x, y, z) && !THINGS[map.get(x, y, z).ground].change && !seen.has(`${x},${y}`)) missed.push(`${x},${y}`);
+  for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) if (inRing(x, y) && walkable(x, y, z) && !THINGS[map.get(x, y, z).ground].change && !map.get(x, y, z).items.some(id => THINGS[id].change) && !seen.has(`${x},${y}`)) missed.push(`${x},${y}`);
   assert.deepStrictEqual(missed, [], 'every tile of the walkway can be walked to along it');
-  for (const [x, y] of [[R.x0, R.y0], [R.x1, R.y0], [R.x0, R.y1], [R.x1, R.y1]]) {
+  for (const [x, y] of [[R.x0 + 2, R.y0 + 2], [R.x1 - 2, R.y0 + 2], [R.x0 + 2, R.y1 - 2], [R.x1 - 2, R.y1 - 2]]) { // (the towers' middles)
     assert(seen.has(`${x},${y}`), `the tower on the corner at ${x},${y} is open to the walkway`);
     assert(walkable(x - 1, y, z + 1) && walkable(x + 1, y, z + 1), `the tower at ${x},${y} has a top to stand on, round its flag`);
   }
   for (const [x0, y0, x1, y1] of R.gates) assert(walkable((x0 + x1) >> 1, (y0 + y1) >> 1, S), 'the gates are open below');
+  const doors = [];
+  const inTower = (x, y) => (x <= R.x0 + 4 || x >= R.x1 - 4) && (y <= R.y0 + 4 || y >= R.y1 - 4);
+  for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) if (inTower(x, y) && map.get(x, y, S).items.includes('door')) doors.push([x, y]);
+  assert.strictEqual(doors.length, 8, 'two doors on the ground in each tower');
+  const outside = doors.filter(([x, y]) => [[0, 1], [1, 0], [0, -1], [-1, 0]].some(([dx, dy]) => /^bridge/.test(map.get(x + dx, y + dy, S).ground)));
+  assert.strictEqual(outside.length, 4, 'each tower has a door out on to a footbridge over the moat');
 });
 
 test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch (what stands on the mount aside)', () => {

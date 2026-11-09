@@ -595,9 +595,9 @@ test('monsters keep to their territory: they follow you a while, then amble home
   assert(Math.max(Math.abs(r4.x - s.x), Math.abs(r4.y - s.y)) <= 4, 'one far from home that nobody sees is back at its spawn');
   assert(state.map.isTown(130, 120, 8) && !state.map.isTown(130, 120, 7), 'the town\'s streets are town, the sewers below aren\'t');
   const r2 = ctx.spawnMonster({ ...s });
-  Object.assign(r2, { x: 126, y: 151 }); // just outside the south gate
+  Object.assign(r2, { x: 128, y: 152 }); // just outside the south gate, on the road at the end of the bridge
   state.monsters.push(r2);
-  assert(state.map.isTown(126, 150, 8) && !state.map.isTown(126, 151, 8));
+  assert(state.map.isTown(128, 151, 8) && !state.map.isTown(128, 152, 8));
   assert(!ctx.step(r2, 0, -1), 'a monster can\'t step into town');
 });
 

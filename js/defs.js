@@ -261,7 +261,7 @@ const THINGS = {
   ramp_top:    { name: 'mountain path', cat: 'Floor change', ground: true, change: -1 },
   steps:       { name: 'stone steps', cat: 'Floor change', change: 1, tall: true },       // a grand stair up a rock face...
   steps_top:   { name: 'stone steps', cat: 'Floor change', ground: true, change: -1 },  // ...and its top, the floor above
-  steps_e:     { name: 'stone steps', cat: 'Floor change', change: 1, tall: true },       // the same, up a face looking east (climbed going west)
+  wall_stairs: { name: 'stairs up the wall', cat: 'Floor change', change: 1, wall: 'block' }, // an arched doorway in a town wall, steps up inside it
   rope_spot:   { name: 'rope spot', cat: 'Floor change', ropeSpot: true },
   rails:       { name: 'cart rails', cat: 'Mechanisms' },
   treasure:    { name: 'heap of treasure', cat: 'Furniture', block: true, low: true },
