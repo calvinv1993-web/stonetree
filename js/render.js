@@ -34,25 +34,43 @@ const Render = {
   // kept for later (CHUNK_RES pixels per world pixel: the ground's pictures are drawn that fine), and each frame only
   // the chunks in view are put down. A chunk is drawn again when a tile in or next to it changes (map.dirty, filled by
   // the map and by mapChanged), and not kept at all while it holds moving ground (lava, sewer water; water while it
-  // ripples): that is drawn live. At most CHUNKS_KEPT are kept, the least recently used going first.
+  // ripples): that is drawn live. At most CHUNKS_KEPT are kept, the least recently used going first. A frame makes chunks
+  // for CHUNK_MS at most (what isn't made yet is drawn live, as before), and with time to spare makes the ones round
+  // the view, so walking into new ground never stops the game.
   CHUNK: 8,
   CHUNK_RES: 2,
-  CHUNKS_KEPT: 72,
+  CHUNKS_KEPT: 110,
+  CHUNK_MS: 4, // how long a frame may spend making chunks (Render.budget: until when)
+  budget: 0,
   chunks: new Map(),
+  spare: [], // pictures of chunks let go of, to use again
+  forget(key) {
+    const c = Render.chunks.get(key);
+    if (!c) return;
+    Render.chunks.delete(key);
+    if (c.canvas && Render.spare.length < 16) Render.spare.push(c.canvas);
+  },
   ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond) {
     const C = Render.CHUNK, R = Render.CHUNK_RES, keep = Render.chunks;
-    if (keep.map !== map) { keep.clear(); keep.map = map; map.dirty = []; }
+    if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; }
     if (map.dirty && map.dirty.length) { // forget the chunks round what changed
-      if (map.dirty.length > 400) keep.clear();
-      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) keep.delete(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
+      if (map.dirty.length > 400) for (const k of [...keep.keys()]) Render.forget(k);
+      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
       map.dirty.length = 0;
     }
     const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = Sprites.WATER_MOVES ? ['water', 'lava', 'sewer_water'] : ['lava', 'sewer_water'];
-    const floor = map.floors[z];
-    for (let cy = Math.floor(gy0 / C); cy <= Math.floor(gy1 / C); cy++) for (let cx = Math.floor(gx0 / C); cx <= Math.floor(gx1 / C); cx++) {
-      const tx0 = cx * C, ty0 = cy * C, key = `${z}:${cx}:${cy}`, tag = `${snow}:${beyond}:${Sprites.WATER_MOVES}`;
+    const floor = map.floors[z], tag = `${snow}:${beyond}:${Sprites.WATER_MOVES}`;
+    // A chunk: kept, or made now if there's time left this frame (Render.budget); null if not (it's drawn live). A chunk
+    // is made in parts of 2 x 2 tiles (the ground of a tile is drawn on that tile only, so they fit together): one in
+    // view is finished at once, one round the view (ahead: soon) a part at a time while the frame has time to spare.
+    const PART = 2, PARTS = (C / PART) * (C / PART);
+    const chunk = (cx, cy, ahead) => {
+      const key = `${z}:${cx}:${cy}`;
       let c = keep.get(key);
-      if (c && c.tag !== tag) { keep.delete(key); c = null; }
+      if (c && c.tag !== tag) { Render.forget(key); c = null; }
+      if (c && c.made >= PARTS) { keep.delete(key); keep.set(key, c); return c; } // (to the back of the line: just used)
+      if (performance.now() > Render.budget) return null;
+      const tx0 = cx * C, ty0 = cy * C;
       if (!c) {
         // what's in it: nothing (an empty upper floor), moving ground (drawn live), or ground to keep
         let any = false, moving = false;
@@ -62,25 +80,44 @@ const Render = {
           if (gid || (t && t.items.length)) any = true;
           if (MOVING.includes(gid)) moving = true;
         }
-        c = { tag, empty: !any, live: moving, canvas: null };
-        if (any && !moving) {
-          c.canvas = document.createElement('canvas');
-          c.canvas.width = c.canvas.height = C * TILE * R;
+        c = { tag, empty: !any, canvas: null, made: PARTS };
+        if (any && !moving) { // (a picture freed by a chunk let go of, if there is one: making new ones is slow)
+          c.canvas = Render.spare.pop();
+          if (!c.canvas) { c.canvas = document.createElement('canvas'); c.canvas.width = c.canvas.height = C * TILE * R; }
           const cg = c.canvas.getContext('2d');
+          cg.setTransform(R, 0, 0, R, 0, 0);
+          cg.clearRect(0, 0, C * TILE, C * TILE);
           cg.imageSmoothingEnabled = false;
-          cg.scale(R, R);
-          pass(cg, -tx0 * TILE, -ty0 * TILE, tx0, tx0 + C - 1, ty0, ty0 + C - 1, tx0, tx0 + C - 1, ty0, ty0 + C - 1, 0);
+          c.made = 0;
         }
-        if (keep.size >= Render.CHUNKS_KEPT) keep.delete(keep.keys().next().value);
-      } else keep.delete(key); // (to the back of the line: just used)
-      keep.set(key, c);
-      if (c.empty) continue;
-      if (c.canvas) g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE);
-      else { // moving ground: this chunk's part of the view, drawn live
-        const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
-        g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();
-        pass(g, ox, oy, ax0, ax1, ay0, ay1, Math.max(x0, ax0), Math.min(x1, ax1), Math.max(y0, ay0), Math.min(y1, ay1), shoreFrame);
-        g.restore();
+        while (keep.size >= Render.CHUNKS_KEPT) Render.forget(keep.keys().next().value);
+        keep.set(key, c);
+      }
+      const cg = c.canvas && c.canvas.getContext('2d');
+      while (c.made < PARTS && (!ahead || performance.now() < Render.budget)) {
+        const px = tx0 + (c.made % (C / PART)) * PART, py = ty0 + Math.floor(c.made / (C / PART)) * PART;
+        pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
+        c.made++;
+      }
+      return c.made >= PARTS ? c : null;
+    };
+    const cx0 = Math.floor(gx0 / C), cx1 = Math.floor(gx1 / C), cy0 = Math.floor(gy0 / C), cy1 = Math.floor(gy1 / C);
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+      const c = chunk(cx, cy), tx0 = cx * C, ty0 = cy * C;
+      if (c && c.empty) continue;
+      if (c && c.canvas) { g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); continue; }
+      // moving ground, or not made yet: this chunk's part of the view, drawn live
+      const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
+      g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();
+      pass(g, ox, oy, ax0, ax1, ay0, ay1, Math.max(x0, ax0), Math.min(x1, ax1), Math.max(y0, ay0), Math.min(y1, ay1), shoreFrame);
+      g.restore();
+    }
+    // With time to spare, make the chunks round the view on the floor you're on, so they're ready before you get there.
+    if (z === v.z) for (let r = 1; r <= 2 && performance.now() < Render.budget; r++) {
+      for (let cy = cy0 - r; cy <= cy1 + r; cy++) for (let cx = cx0 - r; cx <= cx1 + r; cx++) {
+        if (cy > cy0 - r && cy < cy1 + r && cx > cx0 - r && cx < cx1 + r) continue; // (the ring only)
+        const k = keep.get(`${z}:${cx}:${cy}`);
+        if ((!k || k.made < PARTS) && !chunk(cx, cy, true)) return;
       }
     }
   },
@@ -140,6 +177,7 @@ const Render = {
   //   objects may also have flash: 0..1, a white flash over the sprite (a hit)
   // }
   world(g, map, v) {
+    Render.budget = performance.now() + Render.CHUNK_MS;
     g.fillStyle = '#000';
     g.fillRect(0, 0, v.w, v.h);
 
