@@ -42,7 +42,7 @@ function setMapZoom(near) {
 // On a phone that can't keep up, the map is drawn with fewer pixels: sharpDrop steps below the screen's own (at most
 // down to 2 per world pixel). It goes down a step when frames come too slowly for a few seconds running, and is
 // remembered per browser, so a slow phone starts where it ended.
-let sharpDrop = (() => { try { return Math.max(0, +localStorage.getItem('tilequest.sharpDrop') || 0); } catch (e) { return 0; } })();
+let sharpDrop = (() => { try { return Math.max(0, +localStorage.getItem('tilequest.sharpDrop60') || 0); } catch (e) { return 0; } })();
 const keepUp = { from: 0, frames: 0 };
 function checkKeepingUp(t) {
   if (!document.body.classList.contains('touch-ui') || document.hidden) { keepUp.from = 0; return; }
@@ -52,9 +52,9 @@ function checkKeepingUp(t) {
   if (t - keepUp.from < 4000) return;
   const fps = (keepUp.frames * 1000) / (t - keepUp.from);
   keepUp.from = 0;
-  if (fps >= 22 || Sprites.CREATURE_RES <= 2) return;
+  if (fps >= 45 || Sprites.CREATURE_RES <= 2) return; // (aiming at 60: a step coarser when it can't keep up)
   sharpDrop++;
-  try { localStorage.setItem('tilequest.sharpDrop', sharpDrop); } catch (e) { /* not remembered */ }
+  try { localStorage.setItem('tilequest.sharpDrop60', sharpDrop); } catch (e) { /* not remembered */ }
   fitView();
 }
 
@@ -775,8 +775,9 @@ let lastBars = 0, lastSave = 0, lastError = '';
 // Map canvases are independent of the world canvas; 10 refreshes/sec is sufficient.
 let lastMapDraw = -Infinity;
 const MAP_DRAW_INTERVAL = 100;
-// Cap expensive simulation and canvas work without changing elapsed-time gameplay timers.
-const FRAME_INTERVAL = 1000 / 30;
+// The game runs at the screen's own rate, 60 frames a second (a phone too: the ground is kept in chunks now, see
+// Render.ground). FRAME_INTERVAL is the shortest time between two frames: a 120 Hz screen still draws 60.
+const FRAME_INTERVAL = 1000 / 60;
 let lastFrameAt = -Infinity;
 
 // A bug must never stop the game loop: report it in the log and keep going.
@@ -791,7 +792,7 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
-  if (document.body.classList.contains('touch-ui') && t - lastFrameAt < FRAME_INTERVAL - 1) return;
+  if (t - lastFrameAt < FRAME_INTERVAL - 2) return;
   lastFrameAt = t;
   checkKeepingUp(t);
   try {
@@ -836,7 +837,7 @@ function startWorldPreview() {
   const preview = t => {
     if (!paused) return;
     requestAnimationFrame(preview);
-    if (document.body.classList.contains('touch-ui') && t - lastPreviewAt < FRAME_INTERVAL - 1) return;
+    if (t - lastPreviewAt < FRAME_INTERVAL - 2) return;
     lastPreviewAt = t;
     now = t;
     draw();

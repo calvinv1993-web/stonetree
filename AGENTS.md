@@ -148,7 +148,7 @@ Some details of the online client:
 | File | What it does |
 |---|---|
 | `sprites.js` | Procedural sprites, cached. `DRAW` (map things), `ITEM_DRAW` (items), `MONSTER_LOOKS`, the humanoid drawer (players and NPCs, from `look`), `VARIANTS`, `ANIMATED`. Helpers: `rect, ellipse, poly, line, diagonal, shadow, onWall, face`. |
-| `render.js` | Fake-3D floors: upper floors are shifted up-left, and roofs hide when you're under them. |
+| `render.js` | Fake-3D floors: upper floors are shifted up-left, and roofs hide when you're under them. The ground (textures, shores, borders, rugs) is drawn once per 8x8-tile chunk and kept (`Render.ground`); a chunk is redrawn when a tile in or next to it changes, through `map.dirty` (filled by `map.set`, `setGround` and `mapChanged`). Change a tile's items without one of those and the ground there won't update. |
 | `fx.js` | Light, weather, seasons, particles, blood. Cosmetic only: it must never change game state. Weather follows the shared clock, seasons the real date. |
 | `game.js` | Input, the frame loop and canvas overlays: names, bars, frames, the guide arrow, banners. |
 | `game-ui.js` | DOM panels and windows, the log, minimap and world map. |

@@ -82,6 +82,7 @@ function playerEvent(kind, data) {
 
 function mapChanged(x, y, z) {
   mapChanges.push([x, y, z]);
+  if (map.dirty) map.dirty.push([x, y, z]); // (the renderer draws that ground again)
 }
 
 // ---- world queries -----------------------------------------------------------------

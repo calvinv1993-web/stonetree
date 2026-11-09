@@ -77,6 +77,7 @@ class GameMap {
     if (!this.inBounds(x, y, z)) return;
     this.floors[z][y * this.width + x] = tile;
     this.version = GameMap.edits = GameMap.edits + 1;
+    if (this.dirty) this.dirty.push([x, y, z]); // (for the renderer's kept chunks of ground: see Render.ground)
   }
   ensure(x, y, z) {
     let t = this.get(x, y, z);
@@ -88,6 +89,7 @@ class GameMap {
     if (!t) return;
     t.ground = id;
     this.version = GameMap.edits = GameMap.edits + 1;
+    if (this.dirty) this.dirty.push([x, y, z]);
   }
   addItem(x, y, z, id) {
     const t = this.ensure(x, y, z);

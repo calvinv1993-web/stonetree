@@ -28,6 +28,62 @@ const Render = {
     draw();
     g.restore();
   },
+  // ---- the ground, kept in chunks --------------------------------------------------------------------------------
+  // The ground of a floor (its textures, shores, borders, scree, lips and rugs) doesn't change from frame to frame, but
+  // drawing it is hundreds of pictures a frame. So it's drawn once per chunk of CHUNK x CHUNK tiles, into a picture
+  // kept for later (CHUNK_RES pixels per world pixel: the ground's pictures are drawn that fine), and each frame only
+  // the chunks in view are put down. A chunk is drawn again when a tile in or next to it changes (map.dirty, filled by
+  // the map and by mapChanged), and not kept at all while it holds moving ground (lava, sewer water; water while it
+  // ripples): that is drawn live. At most CHUNKS_KEPT are kept, the least recently used going first.
+  CHUNK: 8,
+  CHUNK_RES: 2,
+  CHUNKS_KEPT: 72,
+  chunks: new Map(),
+  ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond) {
+    const C = Render.CHUNK, R = Render.CHUNK_RES, keep = Render.chunks;
+    if (keep.map !== map) { keep.clear(); keep.map = map; map.dirty = []; }
+    if (map.dirty && map.dirty.length) { // forget the chunks round what changed
+      if (map.dirty.length > 400) keep.clear();
+      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) keep.delete(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
+      map.dirty.length = 0;
+    }
+    const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = Sprites.WATER_MOVES ? ['water', 'lava', 'sewer_water'] : ['lava', 'sewer_water'];
+    const floor = map.floors[z];
+    for (let cy = Math.floor(gy0 / C); cy <= Math.floor(gy1 / C); cy++) for (let cx = Math.floor(gx0 / C); cx <= Math.floor(gx1 / C); cx++) {
+      const tx0 = cx * C, ty0 = cy * C, key = `${z}:${cx}:${cy}`, tag = `${snow}:${beyond}:${Sprites.WATER_MOVES}`;
+      let c = keep.get(key);
+      if (c && c.tag !== tag) { keep.delete(key); c = null; }
+      if (!c) {
+        // what's in it: nothing (an empty upper floor), moving ground (drawn live), or ground to keep
+        let any = false, moving = false;
+        for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
+          const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
+          const gid = t ? t.ground : beyond;
+          if (gid || (t && t.items.length)) any = true;
+          if (MOVING.includes(gid)) moving = true;
+        }
+        c = { tag, empty: !any, live: moving, canvas: null };
+        if (any && !moving) {
+          c.canvas = document.createElement('canvas');
+          c.canvas.width = c.canvas.height = C * TILE * R;
+          const cg = c.canvas.getContext('2d');
+          cg.imageSmoothingEnabled = false;
+          cg.scale(R, R);
+          pass(cg, -tx0 * TILE, -ty0 * TILE, tx0, tx0 + C - 1, ty0, ty0 + C - 1, tx0, tx0 + C - 1, ty0, ty0 + C - 1, 0);
+        }
+        if (keep.size >= Render.CHUNKS_KEPT) keep.delete(keep.keys().next().value);
+      } else keep.delete(key); // (to the back of the line: just used)
+      keep.set(key, c);
+      if (c.empty) continue;
+      if (c.canvas) g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE);
+      else { // moving ground: this chunk's part of the view, drawn live
+        const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
+        g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();
+        pass(g, ox, oy, ax0, ax1, ay0, ay1, Math.max(x0, ax0), Math.min(x1, ax1), Math.max(y0, ay0), Math.min(y1, ay1), shoreFrame);
+        g.restore();
+      }
+    }
+  },
   // A picture made round: lit on its left, in shade on its right, so a body, arms and a head look round, not flat.
   roundOf(img) {
     const cache = Render.rounds || (Render.rounds = new WeakMap());
@@ -179,122 +235,126 @@ const Render = {
         const [a, b] = id.endsWith('_ns') ? [groundAt(x - 1, y), groundAt(x + 1, y)] : [groundAt(x, y - 1), groundAt(x, y + 1)];
         return `${a === id ? 1 : 0}${b === id ? 1 : 0}`;
       };
-      for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-        const t = tileAt(x, y);
-        if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) {
-          g.save();
-          if (beyond === 'water') {
-            g.imageSmoothingEnabled = true;
-            g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
-          } else g.drawImage(Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE);
-          g.restore(); continue;
-        }
-        if (!t || !t.ground) continue;
-        const id = groundShown(x, y, t);
-        if (!id) continue;
-        const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
-        if (id === 'water') {
-          g.save(); g.imageSmoothingEnabled = true;
-          g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(id, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
-          g.restore();
-        } else g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
-        if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
-          g.globalAlpha = 0.95;
-          g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
-          g.globalAlpha = 1;
-        }
-      }
-
-      // Along the shores: shallow water and foam (under the sand or grass spilling over it).
-      const shoreFrame = Math.floor((v.time || 0) / 80) % 32;
-      const wet = id => id === 'water';
-      const dry = id => !!id && id !== 'water' && id !== 'lava';
-      for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-        if (!wet(groundAt(x, y))) continue;
-        // (a wall rises straight out of the water: no beach along it)
-        const bank = (bx, by) => (wallAt(bx, by) ? 'water' : groundAt(bx, by));
-        const sides = { n: bank(x, y - 1), e: bank(x + 1, y), s: bank(x, y + 1), w: bank(x - 1, y) };
-        for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
-        for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          if (dry(bank(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
-        }
-      }
-
-      // Ground borders: a higher neighbour (grass over dirt over sand over water, and any
-      // of those over paving) spills over the edge. Two kinds of paving meet at a kerb.
-      for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-        // a wall stands on this tile: the ground round it meets the wall; nothing spills under it, unless the wall
-        // stands on paving (a building's corner on its terrace), whose edge then runs on as the paving's beside it
-        const walled = (wx, wy) => { const t = tileAt(wx, wy); return !!t && t.items.some(id => THINGS[id].wall); };
-        const wt = tileAt(x, y), onWall = walled(x, y), shown = onWall && wt ? groundShown(x, y, wt) : null;
-        if (onWall && !(shown && Sprites.paved(shown))) continue;
-        const here = onWall ? shown : groundAt(x, y), p = Sprites.borderPriority(here);
-        if (p === undefined) continue;
-        if (Sprites.paved(here)) {
-          const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
-          if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
-          if (w && w !== here && Sprites.paved(w)) g.drawImage(Sprites.kerb('w'), ox + x * TILE, oy + y * TILE);
-        }
-        // Each higher ground around this tile spills its edge in, all its sides and corners at once (lowest first).
-        let higher = null;
-        for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
-          const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
-          if (q === undefined || !(q > p) || walled(x + dx, y + dy)) continue;
-          higher = higher || new Map();
-          higher.set(n, (higher.get(n) || 0) | bit);
-        }
-        // this tile's own corners: rounded off where a lower ground lies on both sides and across the corner
-        if (Sprites.cornerCut) for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
-          if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
-          if (walled(x + dx, y) || walled(x, y + dy) || walled(x + dx, y + dy)) continue;
-          g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
-        }
-        if (!higher) continue;
-        const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
-        for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
-          g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
-        }
-      }
-
-      // Around the foot of rock walls: scree on the ground next to them (not under walls themselves).
-      const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-        const t = tileAt(x, y);
-        if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall || THINGS[id].change)) continue; // nor over steps
-        const variant = ((x * 83492791) ^ (y * 2654435761)) >>> 0, sides = {};
-        for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
-          sides[d] = rockAt(x + dx, y + dy);
-          if (sides[d]) g.drawImage(Sprites.foot(d, variant % 3), ox + x * TILE, oy + y * TILE);
-        }
-        for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-          if (rockAt(x + dx, y + dy) && !sides[a] && !sides[b]) g.drawImage(Sprites.foot(d, (variant >>> 4) % 3), ox + x * TILE, oy + y * TILE);
-        }
-      }
-
-      // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
-      // straight line.
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-        const lt = tileAt(x, y), here = lt && lt.items.some(id => THINGS[id].wall === 'thin') ? groundShown(x, y, lt) : groundAt(x, y); // (a wall at the edge stands on the ground beside it, rocks and all)
-        if (!Sprites.hasLip(here)) continue;
-        const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
-        for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
-          if (!tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height) {
-            g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+      // The ground of tiles gx0..gx1, gy0..gy1 (the scree and lips of x0..x1, y0..y1), at (ox, oy): what lies flat,
+      // under everything on the floor. Drawn live, or once into a chunk kept for later (see groundChunk).
+      const groundPass = (g, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame) => {
+        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          const t = tileAt(x, y);
+          if (!t && beyond && !(x >= 0 && y >= 0 && x < map.width && y < map.height)) {
+            g.save();
+            if (beyond === 'water') {
+              g.imageSmoothingEnabled = true;
+              g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
+            } else g.drawImage(Sprites.thing(beyond, x, y, v.time), ox + x * TILE, oy + y * TILE);
+            g.restore(); continue;
+          }
+          if (!t || !t.ground) continue;
+          const id = groundShown(x, y, t);
+          if (!id) continue;
+          const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
+          if (id === 'water') {
+            g.save(); g.imageSmoothingEnabled = true;
+            g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(id, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
+            g.restore();
+          } else g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+          if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
+            g.globalAlpha = 0.95;
+            g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
+            g.globalAlpha = 1;
           }
         }
-      }
 
+        // Along the shores: shallow water and foam (under the sand or grass spilling over it).
+        const wet = id => id === 'water';
+        const dry = id => !!id && id !== 'water' && id !== 'lava';
+        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          if (!wet(groundAt(x, y))) continue;
+          // (a wall rises straight out of the water: no beach along it)
+          const bank = (bx, by) => (wallAt(bx, by) ? 'water' : groundAt(bx, by));
+          const sides = { n: bank(x, y - 1), e: bank(x + 1, y), s: bank(x, y + 1), w: bank(x - 1, y) };
+          for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          for (const [d, dx, dy, a, b] of BORDER_DIRS) {
+            if (dry(bank(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          }
+        }
+
+        // Ground borders: a higher neighbour (grass over dirt over sand over water, and any
+        // of those over paving) spills over the edge. Two kinds of paving meet at a kerb.
+        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          // a wall stands on this tile: the ground round it meets the wall; nothing spills under it, unless the wall
+          // stands on paving (a building's corner on its terrace), whose edge then runs on as the paving's beside it
+          const walled = (wx, wy) => { const t = tileAt(wx, wy); return !!t && t.items.some(id => THINGS[id].wall); };
+          const wt = tileAt(x, y), onWall = walled(x, y), shown = onWall && wt ? groundShown(x, y, wt) : null;
+          if (onWall && !(shown && Sprites.paved(shown))) continue;
+          const here = onWall ? shown : groundAt(x, y), p = Sprites.borderPriority(here);
+          if (p === undefined) continue;
+          if (Sprites.paved(here)) {
+            const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
+            if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
+            if (w && w !== here && Sprites.paved(w)) g.drawImage(Sprites.kerb('w'), ox + x * TILE, oy + y * TILE);
+          }
+          // Each higher ground around this tile spills its edge in, all its sides and corners at once (lowest first).
+          let higher = null;
+          for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
+            const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
+            if (q === undefined || !(q > p) || walled(x + dx, y + dy)) continue;
+            higher = higher || new Map();
+            higher.set(n, (higher.get(n) || 0) | bit);
+          }
+          // this tile's own corners: rounded off where a lower ground lies on both sides and across the corner
+          if (Sprites.cornerCut) for (const [d, dx, dy, a, b] of BORDER_DIRS) {
+            const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
+            if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
+            if (walled(x + dx, y) || walled(x, y + dy) || walled(x + dx, y + dy)) continue;
+            g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
+          }
+          if (!higher) continue;
+          const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
+          for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
+            g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
+          }
+        }
+
+        // Around the foot of rock walls: scree on the ground next to them (not under walls themselves).
+        const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const t = tileAt(x, y);
+          if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall || THINGS[id].change)) continue; // nor over steps
+          const variant = ((x * 83492791) ^ (y * 2654435761)) >>> 0, sides = {};
+          for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
+            sides[d] = rockAt(x + dx, y + dy);
+            if (sides[d]) g.drawImage(Sprites.foot(d, variant % 3), ox + x * TILE, oy + y * TILE);
+          }
+          for (const [d, dx, dy, a, b] of BORDER_DIRS) {
+            if (rockAt(x + dx, y + dy) && !sides[a] && !sides[b]) g.drawImage(Sprites.foot(d, (variant >>> 4) % 3), ox + x * TILE, oy + y * TILE);
+          }
+        }
+
+        // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
+        // straight line.
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const lt = tileAt(x, y), here = lt && lt.items.some(id => THINGS[id].wall === 'thin') ? groundShown(x, y, lt) : groundAt(x, y); // (a wall at the edge stands on the ground beside it, rocks and all)
+          if (!Sprites.hasLip(here)) continue;
+          const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
+          for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
+            if (!tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height) {
+              g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+            }
+          }
+        }
+
+        // Rugs are floor objects: paint them before furniture, walls and creatures.
+        const rugAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.includes('carpet_rug'); };
+        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          if (!rugAt(x, y)) continue;
+          const shape = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+            .map(([dx, dy]) => rugAt(x + dx, y + dy) ? '1' : '0').join('');
+          g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+        }
+      };
+      const shoreFrame = Sprites.WATER_MOVES ? Math.floor((v.time || 0) / 80) % 32 : 0;
+      Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, groundPass, beyond);
       if (v.afterGround) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
-
-      // Rugs are floor objects: paint them before furniture, walls and creatures.
-      const rugAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.includes('carpet_rug'); };
-      for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-        if (!rugAt(x, y)) continue;
-        const shape = [[0, -1], [1, 0], [0, 1], [-1, 0]]
-          .map(([dx, dy]) => rugAt(x + dx, y + dy) ? '1' : '0').join('');
-        g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
-      }
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
 
       const objects = byFloor.get(z);
