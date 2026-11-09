@@ -200,13 +200,12 @@ test('the start, monsters and NPCs stand on free ground, and no monster in a pro
   for (const n of map.npcs) assert.ok(walkable(n.x, n.y, n.z), `NPC ${n.type} at ${n.x},${n.y},${n.z} is not walkable`);
 });
 
-test('in Oakvale, every building stands at least two tiles clear of the town wall (the temple mount may lean on it: it only must not stand on it)', () => {
+test('in Oakvale, every building, and the temple mount, stands at least two tiles clear of the town wall', () => {
   const T = require('vm').runInContext('OAKVALE', ctx), [wx0, wy0, wx1, wy1] = [101, 96, 152, 146];
   const close = [];
-  for (const b of [...T.buildings, { id: 'temple mount', level: 1, ...T.mount }]) {
-    const room = b.id === 'temple mount' ? 0 : b.level ? 1 : 2;
+  for (const b of [...T.buildings, { id: 'temple mount', ...T.mount }]) {
     for (const [x0, y0, x1, y1] of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) {
-      if (x0 - wx0 - 1 < room || y0 - wy0 - 1 < room || wx1 - x1 - 1 < room || wy1 - y1 - 1 < room) close.push(b.id);
+      if (x0 - wx0 - 1 < 2 || y0 - wy0 - 1 < 2 || wx1 - x1 - 1 < 2 || wy1 - y1 - 1 < 2) close.push(b.id);
     }
   }
   assert.deepStrictEqual(close, []);
