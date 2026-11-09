@@ -125,6 +125,17 @@ const Sprites = (() => {
       if (x0 === 0 || slabs[0] === BLOCK || (x0 === W0 && !slabs.includes(ARM_W))) rect(g, 'rgba(255,255,255,0.25)', x0, y0, 1, y1 - y0);
     }
   }
+  // The lintel over an archway (see arch_span_s): on the south or east face, the top third of the floor's height.
+  function spanLintel(g, r, which) {
+    face(g, which, 0, () => {
+      g.save(); g.beginPath(); g.rect(0, 0, TILE, 11); g.clip();
+      stoneBlocks(g, r, which === 'south' ? 128 : 92, which === 'south' ? '#3a3834' : '#282624');
+      g.restore();
+      for (let u = 3; u < TILE; u += 5) line(g, 'rgba(30,26,22,0.55)', 0.8, u, 3, u + (u - 16) * 0.12, 11); // the wedge joints
+      rect(g, '#24201c', 0, 11, TILE, 1.5);                 // its edge
+      rect(g, 'rgba(10,8,6,0.35)', 0, 12.5, TILE, 3);       // the vault's shadow under it
+    });
+  }
   // Sheared faces get half-transparent pixels along their slanted edges, which
   // would let the ground show through the seams between wall tiles.
   function solidify(g) {
@@ -593,7 +604,7 @@ const Sprites = (() => {
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
-    'fallen_pillar', 'fence', 'cauldron', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
+    'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -642,6 +653,16 @@ const Sprites = (() => {
     poly(g, c.south, [...P(u0, v1, z0), ...P(u1, v1, z0), ...P(u1 - i, v1 - i, z1), ...P(u0 + i, v1 - i, z1)]);
     poly(g, c.top, [...P(u0 + i, v0 + i, z1), ...P(u1 - i, v0 + i, z1), ...P(u1 - i, v1 - i, z1), ...P(u0 + i, v1 - i, z1)]);
     line(g, 'rgba(0,0,0,0.35)', 1, ...P(u1, v1, z0), ...P(u1 - i, v1 - i, z1));
+  }
+  // Battlements on one edge of a tile (n, e, s, w): a parapet T thick, merlons on it with gaps between, drawn back
+  // to front.
+  const PARAPET = { top: '#cdc8bc', south: '#a9a397', east: '#827c71', edge: '#ebe6da' };
+  function battlements(g, side) {
+    const T = 6, H0 = 17, H1 = 29, along = side === 'n' || side === 's';
+    const [a0, a1] = side === 'n' || side === 'w' ? [0, T] : [TILE - T, TILE];
+    const box = (s0, s1, z0, z1) => (along ? prism(g, s0, a0, s1, a1, z0, z1, PARAPET) : prism(g, a0, s0, a1, s1, z0, z1, PARAPET));
+    box(0, TILE, 0, H0);
+    for (const s0 of [0.5, 8.5, 16.5, 24.5]) box(s0, s0 + 6, H0, H1);
   }
   // A pyramid on the square (u0, v0)-(u1, v1) at height z, its point h higher: the faces you see (west, north lit; south, east).
   function pyramid(g, u0, v0, u1, v1, z, h, c) {
@@ -1271,6 +1292,14 @@ const Sprites = (() => {
         top: () => rockSurface(g, r),
       });
     },
+    // The town wall: big dressed blocks of grey stone, three courses a floor; its walkway is the floor above.
+    rampart(g, r) {
+      wallBlock(g, 'block', {
+        south: () => { stoneBlocks(g, r, 128, '#3a3834'); rect(g, 'rgba(255,250,235,0.18)', 0, 0, TILE, 1); },
+        east: () => stoneBlocks(g, r, 92, '#282624'),
+        top: () => capStone(g, r, 150),
+      });
+    },
     // A path up the mountain side: a rocky slope from the ground at the tile's
     // south edge to the mountain top at its north edge, with rock below it.
     ramp(g, r) {
@@ -1318,6 +1347,34 @@ const Sprites = (() => {
       solidify(g);
     },
     steps_top() {},
+    // The same steps up a face looking east: the flight rises going west, its south side a triangle of stone.
+    steps_e(g, r) {
+      g.save();
+      g.setTransform(...FACES.south);
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(0, TILE); g.lineTo(TILE, TILE); g.closePath(); g.clip();
+      stoneBlocks(g, r, 118, '#3a3834');
+      g.restore();
+      g.save();
+      g.setTransform(2, 1, 0, 1, 0, 0); // (w, v) on the slope, w from the top at the west edge -> (2w, w + v)
+      rect(g, '#8e8e8a', 0, 0, TILE, TILE);
+      for (let w = 0; w < TILE; w += 4) { // each step: its tread, lit, and its riser, in shade (it faces east)
+        rect(g, '#c4c4be', w, 0, 2, TILE);
+        rect(g, '#e2e2dc', w, 0, 1, TILE);
+        rect(g, '#5e5e5a', w + 2, 0, 2, TILE);
+      }
+      rect(g, 'rgba(0,0,0,0.12)', 0, 0, TILE, 1);
+      g.restore();
+      solidify(g);
+    },
+    // The top of an archway under a wall's walkway: a lintel of wedge-shaped stones across the opening, on the face
+    // you see, with the shadow of the vault under it.
+    arch_span_s: (g, r) => spanLintel(g, r, 'south'),
+    arch_span_e: (g, r) => spanLintel(g, r, 'east'),
+    // Battlements along the outer edge of a walkway: a parapet of dressed stone with merlons on it.
+    battlement_n: g => battlements(g, 'n'),
+    battlement_e: g => battlements(g, 'e'),
+    battlement_s: g => battlements(g, 's'),
+    battlement_w: g => battlements(g, 'w'),
     door: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, true),
     door_closed: (g, r, frame, shape, material) => doorInWall(g, r, shape, material, false),
     // A fence joins the fences next to it ('wnse' flags, as for walls): a post in the middle of its tile and two rails

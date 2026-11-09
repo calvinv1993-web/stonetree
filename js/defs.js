@@ -88,6 +88,15 @@ const THINGS = {
   wall_crypt:  { name: 'carved crypt stone', cat: 'Walls', block: true, wall: 'block' },
   ore_vein:    { name: 'ore vein', cat: 'Walls', block: true, wall: 'block', oreVein: true },
   cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block' },
+  rampart:     { name: 'town wall', cat: 'Walls', block: true, wall: 'block' },       // the town wall: solid masonry, its walkway on the floor above
+  // the parapet along the outer edge of a wall's walkway (on the n, e, s or w edge of its tile), merlons and crenels
+  battlement_n: { name: 'battlements', cat: 'Walls', tall: true },
+  battlement_e: { name: 'battlements', cat: 'Walls', tall: true },
+  battlement_s: { name: 'battlements', cat: 'Walls', tall: true },
+  battlement_w: { name: 'battlements', cat: 'Walls', tall: true },
+  // the top of an archway under a walkway (over a gate or water), on the face you see: south or east
+  arch_span_s: { name: 'archway', cat: 'Walls', tall: true },
+  arch_span_e: { name: 'archway', cat: 'Walls', tall: true },
   door:        { name: 'open door', cat: 'Walls', toggle: 'door_closed', wall: 'thin' },
   door_closed: { name: 'closed door', cat: 'Walls', block: true, toggle: 'door', wall: 'thin' },
   door_locked: { name: 'locked door', cat: 'Walls', block: true, wall: 'thin', sprite: 'door_sealed', lockDoor: true, meta: 'lock' },
@@ -252,6 +261,7 @@ const THINGS = {
   ramp_top:    { name: 'mountain path', cat: 'Floor change', ground: true, change: -1 },
   steps:       { name: 'stone steps', cat: 'Floor change', change: 1, tall: true },       // a grand stair up a rock face...
   steps_top:   { name: 'stone steps', cat: 'Floor change', ground: true, change: -1 },  // ...and its top, the floor above
+  steps_e:     { name: 'stone steps', cat: 'Floor change', change: 1, tall: true },       // the same, up a face looking east (climbed going west)
   rope_spot:   { name: 'rope spot', cat: 'Floor change', ropeSpot: true },
   rails:       { name: 'cart rails', cat: 'Mechanisms' },
   treasure:    { name: 'heap of treasure', cat: 'Furniture', block: true, low: true },

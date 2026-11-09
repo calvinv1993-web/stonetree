@@ -211,6 +211,29 @@ test('in Oakvale, every building, and the temple mount, stands at least two tile
   assert.deepStrictEqual(close, []);
 });
 
+test('in Oakvale, the town wall\'s walkway goes all the way round, over the gates and the water, into every corner tower and up to its top', () => {
+  const R = require('vm').runInContext('OAKVALE.ramparts', ctx), k = R.thick, z = S + 1;
+  const inRing = (x, y) => x >= R.x0 && x <= R.x1 && y >= R.y0 && y <= R.y1 && !(x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k);
+  // walk the walkway (and the towers' rooms) from the first flight of steps, without going down any steps
+  const start = [R.steps.north[0][0], R.y0], seen = new Set([start.join()]), todo = [start];
+  while (todo.length) {
+    const [x, y] = todo.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, t = map.get(nx, ny, z);
+      if (seen.has(`${nx},${ny}`) || !walkable(nx, ny, z) || t.items.some(id => THINGS[id].change) || THINGS[t.ground].change) continue;
+      seen.add(`${nx},${ny}`); todo.push([nx, ny]);
+    }
+  }
+  const missed = [];
+  for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) if (inRing(x, y) && walkable(x, y, z) && !THINGS[map.get(x, y, z).ground].change && !seen.has(`${x},${y}`)) missed.push(`${x},${y}`);
+  assert.deepStrictEqual(missed, [], 'every tile of the walkway can be walked to along it');
+  for (const [x, y] of [[R.x0, R.y0], [R.x1, R.y0], [R.x0, R.y1], [R.x1, R.y1]]) {
+    assert(seen.has(`${x},${y}`), `the tower on the corner at ${x},${y} is open to the walkway`);
+    assert(walkable(x - 1, y, z + 1) && walkable(x + 1, y, z + 1), `the tower at ${x},${y} has a top to stand on, round its flag`);
+  }
+  for (const [x0, y0, x1, y1] of R.gates) assert(walkable((x0 + x1) >> 1, (y0 + y1) >> 1, S), 'the gates are open below');
+});
+
 test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch (what stands on the mount aside)', () => {
   const T = require('vm').runInContext('OAKVALE', ctx), rects = [];
   for (const b of T.buildings) for (const r of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) rects.push([b.id, ...r]);

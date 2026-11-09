@@ -86,9 +86,9 @@ These are targets for you to approve phase by phase. They're not built yet.
 ### Phase 3: Oakvale (fourth version)
 
 The town is the `OAKVALE` data in `js/default-map.js`, built by `buildTown`. It's laid out after the reference screenshots and the Rookgaard overview the owner sent:
-- **A ring of water and a wall:** a moat all round with a stone wall inside it, and gates with bridges north, south, east and west.
+- **A ring of water and a wall:** a moat all round (two tiles wide) with a town wall inside it, three tiles thick (99–154, 94–148, `OAKVALE.ramparts`): solid masonry with a walkway on top (floor 9) all the way round, battlements on its outer edge. Gates with bridges north, south, east and west; the walkway goes on over the gates and over Willow River (where it comes in at the north and goes out at the west) on lintels. Steps up its inner face: on the north wall at x 110–112 and 140–142, on the west wall at y 109–111 and 137–139. A tower on each corner (5×5, standing out into the moat): a room on the walkway's floor with doorways where the walkway comes in, stairs up to a lookout with battlements and a flag (floor 10). Everything inside stands at least two tiles clear of the wall.
 - **The river runs through the middle:** Willow River comes in from Mirror Lake in the north, runs south through the town, then turns west and out. That splits the town into three quarters joined by bridges.
-- **Two rocky hills inside the walls,** and small rock patches scattered over the whole island.
+- **Small rock patches** scattered over the whole island.
 
 | Quarter | What's there |
 |---|---|
