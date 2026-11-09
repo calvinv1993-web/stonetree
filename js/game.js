@@ -400,7 +400,8 @@ function draw() {
   if (!player.dead && !riding(player)) {
     // Walls can hide you; a faint silhouette on top keeps you visible behind them.
     ctx.globalAlpha = 0.35;
-    const img = Sprites.creature(creatureKey(player), player.dir, pv.frame), px = Math.round(ox + pv.x * TILE - LIFT), py = Math.round(oy + pv.y * TILE - LIFT);
+    const img = Sprites.creature(creatureKey(player), player.dir, pv.frame); // (a big picture has its tile in its bottom right)
+    const px = Math.round(ox + pv.x * TILE - LIFT - (Sprites.w(img) - TILE)), py = Math.round(oy + pv.y * TILE - LIFT - (Sprites.h(img) - TILE));
     Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py, Sprites.w(img), Sprites.h(img)));
     ctx.globalAlpha = 1;
   }
@@ -598,6 +599,7 @@ function outlinedText(text, x, y, color, font) {
 function drawCreatureInfo(c, screen, struck) {
   const v = visual(c);
   const [sx0, sy0] = screen(v.x, v.y), sx = sx0 - (LIFT + HEAD_LEAN * Render.CREATURE_LEAN) * SCALE, sy = sy0 - LIFT * SCALE;
+  const ty = sy - Sprites.headroom(c) * SCALE; // (names and bars above the head of a tall figure)
   const size = TILE * SCALE, fx = sx + (HEAD_LEAN * Render.CREATURE_LEAN / 2) * SCALE; // (the frame half way between feet and head)
   const frame = (color, inset, alpha = 1) => {
     ctx.globalAlpha = alpha;
@@ -608,12 +610,12 @@ function drawCreatureInfo(c, screen, struck) {
   };
   if (player.follow === c.id && c !== player.target) frame('#30e040', 1);
   if (c.type === 'npc') {
-    outlinedText(c.name, sx + size / 2, sy - 4, '#8fd0ff', 'bold 12px sans-serif');
+    outlinedText(c.name, sx + size / 2, ty - 4, '#8fd0ff', 'bold 12px sans-serif');
     // Above anyone who has something for you: ! a new quest (grey until you're strong enough), ? news to hand in.
     const news = questNews(c.npcId), mark = news && { offer: ['!', '#ffd84a'], report: ['?', '#ffd84a'], later: ['!', '#a0a0a0'] }[news.mark];
     if (mark) { // right of the name, clear of the guide's arrow above
       ctx.font = 'bold 12px sans-serif';
-      outlinedText(mark[0], sx + size / 2 + ctx.measureText(c.name).width / 2 + 9, sy - 1 - Math.round(Math.sin(now / 300) * 2), mark[1], 'bold 20px Georgia, serif');
+      outlinedText(mark[0], sx + size / 2 + ctx.measureText(c.name).width / 2 + 9, ty - 1 - Math.round(Math.sin(now / 300) * 2), mark[1], 'bold 20px Georgia, serif');
     }
     return;
   }
@@ -623,19 +625,19 @@ function drawCreatureInfo(c, screen, struck) {
   const frac = Math.max(0, Math.min(1, c.hp / c.maxHp));
   const color = frac > 0.6 ? '#30c030' : frac > 0.3 ? '#e0c020' : '#e03030';
   ctx.fillStyle = '#000';
-  ctx.fillRect(sx + 5, sy - 7, size - 10, 7);
+  ctx.fillRect(sx + 5, ty - 7, size - 10, 7);
   ctx.fillStyle = color;
-  ctx.fillRect(sx + 6, sy - 6, Math.ceil((size - 12) * frac), 5);
+  ctx.fillRect(sx + 6, ty - 6, Math.ceil((size - 12) * frac), 5);
   const name = c.type === 'player' ? c.name : capitalize(c.name);
-  outlinedText(name, sx + size / 2, sy - 11, color, 'bold 12px sans-serif');
+  outlinedText(name, sx + size / 2, ty - 11, color, 'bold 12px sans-serif');
   if (c.type === 'player') {
     ctx.font = 'bold 12px sans-serif';
-    drawSocialIcons(c, sx + size / 2 + ctx.measureText(name).width / 2 + 4, sy - 15);
+    drawSocialIcons(c, sx + size / 2 + ctx.measureText(name).width / 2 + 4, ty - 15);
   }
   const skull = c.type === 'player' && skullOf(c, player);
   if (skull) { // a white, yellow or red skull before the name
     ctx.font = 'bold 12px sans-serif';
-    const x = sx + size / 2 - ctx.measureText(name).width / 2 - 10, y = sy - 15;
+    const x = sx + size / 2 - ctx.measureText(name).width / 2 - 10, y = ty - 15;
     ctx.fillStyle = SKULL_COLORS[skull];
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1.5;
@@ -703,7 +705,7 @@ function drawGuideArrow(screen) {
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();
   if (t.z === player.z && sx > m && sy > m + 30 && sx < viewPxW() - m && sy < viewPxH() - m) {
-    ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 + bob); // above the name (and a creature's head)
+    ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 - (t.type ? Sprites.headroom(t) * SCALE : 0) + bob); // above the name (and a creature's head)
     ctx.rotate(Math.PI / 2);
   } else {
     const cx = viewPxW() / 2, cy = viewPxH() / 2, a = Math.atan2(sy - cy, sx - cx);

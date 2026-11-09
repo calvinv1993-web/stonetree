@@ -4649,6 +4649,222 @@ const Sprites = (() => {
     else { up(0, -7, 1, '#6a4422'); px(1, -7, '#4a2e14'); px(1, -6, '#4a2e14'); px(-1, -7, '#5a3a1e'); }
   }
 
+  // ---- people, drawn large ------------------------------------------------------------------------------------------
+  // A grown-up figure about a tile and a half tall (44 pixels, a head of 10), drawn from shapes rather than blocks: a
+  // head with a jaw, hair, a face; shoulders, a chest narrowing to the waist; arms with elbows and hands; thighs,
+  // knees and boots. Every part is shaded across from the light (top left) to the shade (right). Feet at (16, 29), the
+  // head up to y -15, so it's drawn on a big (64 x 64) picture. Walking swings the legs and arms. What the look wears
+  // and holds goes on in layers. (Looks it can't draw are still dolls: see hdable.)
+  const HD_RISE = 15; // how far above its tile a person's head reaches
+  const hdable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
+  function hdFill(g, color, x0, x1) { // a fill lit on the left and shaded on the right
+    const gr = g.createLinearGradient(x0, 0, x1, 0);
+    gr.addColorStop(0, shade(color, 1.22)); gr.addColorStop(0.42, color); gr.addColorStop(1, shade(color, 0.66));
+    g.fillStyle = gr;
+  }
+  function hdCapsule(g, x0, y0, r0, x1, y1, r1, color) { // a limb: two rounded ends joined
+    const a = Math.atan2(y1 - y0, x1 - x0);
+    g.beginPath(); g.arc(x0, y0, r0, a + Math.PI / 2, a + Math.PI * 1.5); g.arc(x1, y1, r1, a - Math.PI / 2, a + Math.PI / 2); g.closePath();
+    hdFill(g, color, Math.min(x0 - r0, x1 - r1), Math.max(x0 + r0, x1 + r1)); g.fill();
+  }
+  function hdShape(g, pts, color, x0, x1) { // a closed shape through points [x, y, ...], smoothed
+    g.beginPath(); g.moveTo(pts[0], pts[1]);
+    for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]);
+    g.closePath(); hdFill(g, color, x0, x1); g.fill();
+  }
+  function hdPerson(g0, p, dir, frame) {
+    shadow(g0, 16, 29, 8, 3);
+    outlined(g0, g => {
+      if (dir === 3) { g.translate(32, 0); g.scale(-1, 1); } // a west view is the east one mirrored
+      const front = dir === 2, back = dir === 0, side = !front && !back;
+      const step = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      const skin = p.skin || '#f0c090', hair = p.hair || shade(skin, 0.6), body = p.body || '#6a6a72', arms = p.arms || body;
+      const legs = p.legs || body, feet = p.feet || shade(legs, 0.6), belt = p.belt || null, hs = p.hairStyle || 'short';
+      const hat = p.hat || null, hooded = hat && hat.style === 'hood', female = !!p.female;
+      const wide = female ? 0.9 : 1; // her shoulders are narrower
+      const later = []; // what goes in front, drawn last
+      // ---- behind everything: a cape, long hair from the back, what's held seen from behind
+      if (p.cape && !back) { const c = p.cape; if (front) { hdShape(g, [8.2 - 2 * wide + 2, -2, 23.8 + 2 * wide - 2, -2, 25.4, 22, 6.6, 22], shade(c, 0.6), 6, 26); } else hdShape(g, [12, -2.5, 16, -2.5, 13.5, 22, 7.5, 22], c, 7, 16); }
+      if (p.held && back) hdHeld(g, p.held, 23.4, 13, dir);
+      if (side && p.shield) hdShield(g, p.shield, 14.4, 6, true);
+      // ---- the legs (under a robe only the toes), stepping
+      const hips = side ? [[16.4, 11.5], [15.6, 11.5]] : [[13.3, 11.5], [18.7, 11.5]];
+      const legPose = k => { // knee and ankle of leg k (0: left on screen or the far one, 1: right or the near one)
+        const [hx, hy] = hips[k];
+        if (side) {
+          const swing = (k === 1 ? step : -step) * 0.42, bend = swing < 0 ? 0.35 : 0;
+          const kx = hx + Math.sin(swing) * 8, ky = hy + Math.cos(swing) * 8, ax = kx + Math.sin(swing - bend) * 8, ay = ky + Math.cos(swing - bend) * 8;
+          return [kx, ky, ax, Math.min(ay, 26.6)];
+        }
+        const lift = (k === 0 ? step : -step) > 0 ? 1.4 : 0;
+        return [hx - (k === 0 ? 0.3 : -0.3), hy + 8 - lift * 0.6, hx - (k === 0 ? 0.3 : -0.3), 26.6 - lift];
+      };
+      const drawLeg = k => {
+        const [hx, hy] = hips[k], [kx, ky, ax, ay] = legPose(k), far = side && k === 0, c = far ? shade(legs, 0.8) : legs, f = far ? shade(feet, 0.8) : feet;
+        if (!p.robe) { hdCapsule(g, hx, hy, 2.6, kx, ky, 2.1, c); hdCapsule(g, kx, ky, 2.1, ax, ay - 1.5, 1.6, c); }
+        // the boot: a shaft and a foot pointing the way it faces
+        const toe = side ? 3.2 : 0, fy = ay + 2.4;
+        if (!p.robe || true) {
+          hdShape(g, [ax - 2.2, ay - 3.6, ax + 2.2, ay - 3.6, ax + 2.4 + toe, fy - 0.4, ax + 2 + toe, fy + 0.4, ax - 2.3, fy + 0.4, ax - 2.4, fy - 1.2], f, ax - 2.4, ax + 2.4 + toe);
+          rect(g, shade(f, 1.35), ax - 2, ay - 3.6, 3.6, 0.7); // the boot's cuff, lit
+        }
+      };
+      if (side) { drawLeg(0); } else { drawLeg(0); drawLeg(1); }
+      // ---- arms behind the body (the far arm from the side)
+      const shoulderY = -1.2;
+      const armPose = k => { // shoulder, elbow, wrist of arm k (0: left on screen / far, 1: right / near)
+        if (side) {
+          const sw = (k === 1 ? -step : step) * 0.45, sx = k === 1 ? 16.6 : 15.4;
+          const ex = sx + Math.sin(sw) * 7, ey = shoulderY + 0.6 + Math.cos(sw) * 7, wx = ex + Math.sin(sw + 0.25) * 6.4, wy = ey + Math.cos(sw + 0.25) * 6.4;
+          return [sx, shoulderY + 0.6, ex, ey, wx, wy];
+        }
+        const sgn = k === 0 ? -1 : 1, sx = 16 + sgn * 6.9 * wide, swing = (k === 0 ? -step : step) * 1.3;
+        return [sx, shoulderY + 0.8, sx + sgn * 1.1, 6.4 - swing * 0.3, sx + sgn * 0.6, 12.6 - swing];
+      };
+      const drawArm = k => {
+        const [sx, sy, ex, ey, wx, wy] = armPose(k), far = side && k === 0, c = far ? shade(arms, 0.8) : arms;
+        hdCapsule(g, sx, sy, 2.1, ex, ey, 1.7, c);
+        hdCapsule(g, ex, ey, 1.7, wx, wy, 1.4, p.armor && !p.bareArms ? shade(c, 1.08) : c);
+        if (p.cuffs && !p.bareArms) hdCapsule(g, wx - (wx - ex) * 0.18, wy - (wy - ey) * 0.18, 1.55, wx, wy, 1.5, p.cuffs);
+        hdFill(g, skin, wx - 1.6, wx + 1.6); g.beginPath(); g.ellipse(wx, wy + 1.3, 1.45, 1.7, 0, 0, Math.PI * 2); g.fill(); // the hand
+        return [wx, wy + 1.4];
+      };
+      if (side) drawArm(0);
+      // ---- the body: chest and shoulders down to the waist, the hips
+      const W = 7.2 * wide, cx = 16;
+      const torso = side ? [12.6, -2.6, 19.8, -2.6, 20.4, 3, 19.2, 10.5, 13.2, 10.5, 12.4, 3] : [cx - W, -2.8, cx + W, -2.8, cx + W - 0.4, 2.5, cx + 5, 10.5, cx - 5, 10.5, cx - W + 0.4, 2.5];
+      hdShape(g, torso, body, side ? 12.4 : cx - W, side ? 20.4 : cx + W);
+      if (!side) { hdShape(g, [cx - W + 0.6, -3.2, cx + W - 0.6, -3.2, cx + W, -1.6, cx - W, -1.6], shade(body, 1.08), cx - W, cx + W); } // the shoulders' curve
+      const hipsShape = side ? [13.2, 10, 19.2, 10, 19.4, 13.6, 13, 13.6] : [cx - 5.2, 10, cx + 5.2, 10, cx + 5.6, 13.4, cx - 5.6, 13.4];
+      if (!p.robe) hdShape(g, hipsShape, p.skirt || legs, side ? 13 : cx - 5.6, side ? 19.4 : cx + 5.6);
+      // what's worn on the body
+      if (p.vest && !side) { hdShape(g, [cx - W, -2.6, cx - 2, -2.6, cx - 2.6, 10, cx - 5, 10], p.vest, cx - W, cx - 2); hdShape(g, [cx + 2, -2.6, cx + W, -2.6, cx + 5, 10, cx + 2.6, 10], p.vest, cx + 2, cx + W); }
+      if (p.stripes) for (const y of [0.5, 3.5, 6.5]) { g.save(); g.beginPath(); g.moveTo(torso[0], torso[1]); for (let i = 2; i < torso.length; i += 2) g.lineTo(torso[i], torso[i + 1]); g.closePath(); g.clip(); rect(g, p.stripes, 0, y, 32, 1.2); g.restore(); }
+      if (p.armor) { // a breastplate shaped to the chest, a lit ridge down its middle
+        const a = p.armor, pl = side ? [13, -2.2, 19.6, -2.2, 20, 3, 18.8, 9, 13.6, 9, 12.8, 3] : [cx - W + 0.6, -2.4, cx + W - 0.6, -2.4, cx + W - 0.8, 2.6, cx + 4.4, 9, cx - 4.4, 9, cx - W + 1, 2.6];
+        hdShape(g, pl, a, side ? 12.8 : cx - W, side ? 20 : cx + W);
+        if (front) { rect(g, shade(a, 1.4), cx - 0.4, -2, 0.8, 10.6); rect(g, shade(a, 0.72), cx + 0.4, -2, 0.6, 10.6); }
+      }
+      if (p.tabard && !side) { const t = p.tabard; hdShape(g, [cx - 3.4, -2.2, cx + 3.4, -2.2, cx + 3, 18, cx - 3, 18], t, cx - 3.4, cx + 3.4); if (front) { rect(g, shade(t, 1.5), cx - 0.6, 1, 1.2, 7); rect(g, shade(t, 1.5), cx - 2.4, 3, 4.8, 1.2); } }
+      if (p.fur) { g.fillStyle = shade(body, 1.3); for (let x = side ? 12.6 : cx - W; x < (side ? 20 : cx + W); x += 1.6) { g.beginPath(); g.ellipse(x + 0.8, -2.2, 1.1, 1.5, 0, 0, Math.PI * 2); g.fill(); } }
+      if (p.collar && !back) { if (side) hdShape(g, [16.4, -3.8, 19.4, -3.8, 19.6, -1.6, 16.2, -1.6], p.collar, 16, 20); else hdShape(g, [cx - 3.6, -3.6, cx + 3.6, -3.6, cx + 2.4, -0.6, cx, 0.6, cx - 2.4, -0.6], p.collar, cx - 3.6, cx + 3.6); }
+      if (p.buttons && front) for (const y of [1.5, 4, 6.5]) { g.fillStyle = p.buttons; g.beginPath(); g.arc(cx, y, 0.55, 0, Math.PI * 2); g.fill(); }
+      if (p.strap && !side) { g.strokeStyle = p.strap; g.lineWidth = 1.4; g.beginPath(); g.moveTo(cx - W + 1.4, -2.4); g.lineTo(cx + 4.6, 9.6); g.stroke(); }
+      const beltColor = belt || (p.robe ? null : shade(legs, 0.55));
+      if (beltColor) { hdShape(g, side ? [13.1, 9.2, 19.3, 9.2, 19.3, 10.9, 13.1, 10.9] : [cx - 5.2, 9.2, cx + 5.2, 9.2, cx + 5.3, 10.9, cx - 5.3, 10.9], beltColor, cx - 5.3, cx + 5.3); if (!back) rect(g, GOLD, side ? 18 : cx - 0.9, 9.4, 1.8, 1.3); }
+      if (p.sash) hdShape(g, side ? [13.1, 8.8, 19.3, 8.8, 19.3, 10.6, 13.1, 10.6] : [cx - 5.4, 8.8, cx + 5.4, 8.8, cx + 5.4, 10.6, cx - 5.4, 10.6], p.sash, cx - 5.4, cx + 5.4);
+      if (p.robe || p.coat || p.skirt) { // the skirts of a robe (to the feet), a coat (to the knees) or a skirt
+        const c = p.robe || p.coat ? body : p.skirt, end = p.robe ? 27.2 : p.coat ? 19 : 18.5, flare = p.robe ? 2.4 : 1.2;
+        const x0 = side ? 12.8 : cx - 5.4, x1 = side ? 19.6 : cx + 5.4, sk = [x0, 10.4, x1, 10.4, x1 + flare, end, x0 - flare, end];
+        hdShape(g, sk, c, x0 - flare, x1 + flare);
+        if (p.trim) rect(g, p.trim, x0 - flare + 0.2, end - 1.2, x1 - x0 + 2 * flare - 0.4, 1.2);
+        if (p.robe && p.trim && front) rect(g, p.trim, cx - 0.6, 10.4, 1.2, end - 10.4);
+        if (p.leaves) for (const [x, y] of [[cx - 3, 14], [cx + 2.5, 18], [cx - 1, 22], [cx + 3.5, 24]]) { g.fillStyle = p.leaves; g.beginPath(); g.ellipse(side ? x - 1 : x, y, 1.4, 0.8, 0.6, 0, Math.PI * 2); g.fill(); }
+      }
+      if (side) drawLeg(1); // the near leg, over the body's skirts from the side? (no: in front of the far side)
+      if (p.backpack && back) { hdShape(g, [cx - 4.4, -1, cx + 4.4, -1, cx + 4.6, 8.4, cx - 4.6, 8.4], p.backpack, cx - 4.6, cx + 4.6); rect(g, shade(p.backpack, 0.7), cx - 4.4, 2.6, 8.8, 0.8); }
+      if (p.quiver && !front) { hdShape(g, back ? [cx + 1, -4, cx + 4, -4, cx + 3, 8, cx, 8] : [12, -4, 14.6, -4, 14, 8, 11.4, 8], LEATHER, 11, 18); for (const k of [0, 1.2, 2.4]) rect(g, '#e8e0d0', (back ? cx + 1.2 : 12) + k, -6, 0.6, 2.4); }
+      // ---- the arms in front of the body (both, or the near one)
+      let handAt = null;
+      if (side) handAt = drawArm(1); else { const l = drawArm(0); const r = drawArm(1); handAt = l; if (p.shield) later.push(() => hdShield(g, p.shield, r[0] + 0.6, r[1] - 6, false)); }
+      if (back && p.cape) { const c = p.cape; hdShape(g, [cx - W - 0.6, -2.6, cx + W + 0.6, -2.6, cx + W + 2.6, 23, cx - W - 2.6, 23], c, cx - W - 2.6, cx + W + 2.6); }
+      // ---- the neck and the head
+      const hx = side ? 16.8 : cx, hy = -9.6;
+      hdCapsule(g, side ? 16.6 : cx, -5.6, 1.5, side ? 16.6 : cx, -2.6, 1.6, shade(skin, 0.9));
+      if (!back && (hs === 'long' || hs === 'braids' || hs === 'wild') && !hooded) { // long hair falling behind the shoulders
+        if (front) hdShape(g, [hx - 4.4, -12, hx + 4.4, -12, hx + 4.8, 1, hx - 4.8, 1], shade(hair, 0.82), hx - 4.8, hx + 4.8);
+        else hdShape(g, [hx - 4.4, -12, hx + 1, -12, hx - 1, 1.5, hx - 4.8, 1.5], shade(hair, 0.85), hx - 4.8, hx);
+      }
+      hdFill(g, skin, hx - 4, hx + 4); g.beginPath(); // the head: a skull and a jaw narrowing to the chin
+      if (side) { g.ellipse(hx - 0.3, hy, 3.9, 4.7, 0, 0, Math.PI * 2); g.fill(); hdShape(g, [hx + 2.6, hy - 1, hx + 4.6, hy + 0.6, hx + 3.4, hy + 1.2, hx + 3.6, hy + 3.4, hx + 1.4, hy + 4.9, hx, hy + 3], skin, hx, hx + 4.6); }
+      else { g.moveTo(hx - 3.9, hy - 1); g.bezierCurveTo(hx - 4.1, hy - 7, hx + 4.1, hy - 7, hx + 3.9, hy - 1); g.bezierCurveTo(hx + 3.8, hy + 2.6, hx + 2, hy + 4.8, hx, hy + 5); g.bezierCurveTo(hx - 2, hy + 4.8, hx - 3.8, hy + 2.6, hx - 3.9, hy - 1); g.fill(); }
+      if (!back && !side) for (const s of [-1, 1]) { g.fillStyle = shade(skin, s < 0 ? 1 : 0.8); g.beginPath(); g.ellipse(hx + s * 4, hy + 0.2, 0.8, 1.3, 0, 0, Math.PI * 2); g.fill(); } // the ears
+      // the face
+      const dark = '#24180f', brow = shade(hair === skin ? '#5a3a1e' : hair, 0.7);
+      if (front) {
+        for (const s of [-1, 1]) { rect(g, '#f2ece4', hx + s * 1.7 - 0.8, hy - 0.3, 1.6, 1); rect(g, p.eye || dark, hx + s * 1.7 - (s < 0 ? 0.1 : 0.5), hy - 0.3, 0.7, 1); rect(g, brow, hx + s * 1.7 - 1, hy - 1.4, 2, 0.6); }
+        rect(g, shade(skin, 0.75), hx + 0.1, hy + 0.6, 0.7, 1.6);                    // the nose's shadow
+        rect(g, female ? '#b85a50' : shade(skin, 0.58), hx - 1, hy + 2.8, 2, 0.55);   // the mouth
+      } else if (side) {
+        rect(g, '#f2ece4', hx + 1.6, hy - 0.3, 1.2, 1); rect(g, p.eye || dark, hx + 2.2, hy - 0.3, 0.6, 1); rect(g, brow, hx + 1.4, hy - 1.4, 1.8, 0.6);
+        rect(g, shade(skin, 0.6), hx + 2.4, hy + 2.8, 1.2, 0.5);
+        g.fillStyle = shade(skin, 0.8); g.beginPath(); g.ellipse(hx - 0.8, hy + 0.3, 0.9, 1.3, 0, 0, Math.PI * 2); g.fill(); // the ear
+      }
+      if (p.beard && !back) { const b = p.beard; if (front) hdShape(g, [hx - 3.9, hy + 0.4, hx - 2.6, hy + 2.2, hx - 1.2, hy + 2.1, hx + 1.2, hy + 2.1, hx + 2.6, hy + 2.2, hx + 3.9, hy + 0.4, hx + 3.2, hy + 3.6, hx, hy + 6.2, hx - 3.2, hy + 3.6], b, hx - 3.9, hx + 3.9); else hdShape(g, [hx - 0.6, hy + 1, hx + 1.4, hy + 2.2, hx + 3.6, hy + 2.6, hx + 2.8, hy + 4.8, hx + 0.6, hy + 5.8, hx - 1, hy + 3.4], b, hx - 1, hx + 3.6); if (front) rect(g, shade(skin, 0.5), hx - 1, hy + 2.8, 2, 0.5); }
+      // the hair over the head
+      if (hs !== 'bald' && !hooded) {
+        if (back) { hdFill(g, hair, hx - 4.2, hx + 4.2); g.beginPath(); g.ellipse(hx, hy - 0.6, 4.25, 5.1, 0, 0, Math.PI * 2); g.fill(); if (hs === 'long' || hs === 'braids' || hs === 'wild') hdShape(g, [hx - 4.3, hy, hx + 4.3, hy, hx + 4.8, 1.5, hx - 4.8, 1.5], hair, hx - 4.8, hx + 4.8); }
+        else if (side) hdShape(g, [hx - 4.3, hy - 1, hx - 3.4, hy - 4.6, hx - 0.6, hy - 5.8, hx + 2.4, hy - 5.2, hx + 3.9, hy - 3, hx + 3.4, hy - 1.8, hx + 1, hy - 2.6, hx - 0.6, hy - 1.6, hx - 1.6, hy + 1.6, hx - 3.4, hy + 3, hx - 4.3, hy + 1.4], hair, hx - 4.3, hx + 3.9);
+        else hdShape(g, [hx - 4.2, hy + 0.6, hx - 4.3, hy - 3.2, hx - 2.4, hy - 5.6, hx + 0.6, hy - 6.1, hx + 3.2, hy - 5.1, hx + 4.4, hy - 2.6, hx + 4.2, hy + 0.6, hx + 3.4, hy - 2, hx + 1, hy - 3, hx - 1.6, hy - 2.4, hx - 3.4, hy - 2], hair, hx - 4.3, hx + 4.4);
+        if (hs === 'ponytail' && !front) { const tx = back ? hx : hx - 4.2; hdCapsule(g, tx, hy - 1.4, 1.3, tx - (side ? 1.2 : 0), hy + 6.6, 0.9, shade(hair, 0.9)); }
+        if (hs === 'wild') for (const [x, y] of [[-4.4, -3], [4.4, -3], [-2, -6.4], [2, -6.4]]) { g.fillStyle = shade(hair, 0.85); g.beginPath(); g.arc(hx + (side ? x * 0.8 - 0.6 : x), hy + y, 1.2, 0, Math.PI * 2); g.fill(); }
+        // a lit streak on top
+        g.strokeStyle = shade(hair, 1.35); g.lineWidth = 0.7; g.beginPath(); g.arc(hx - (side ? 0.6 : 0.8), hy - 1.6, 3.4, Math.PI * 1.15, Math.PI * 1.45); g.stroke();
+      }
+      if (hat) hdHat(g, hat, hx, hy, dir);
+      // ---- held, and the shield in front
+      if (p.held && !back && handAt) hdHeld(g, p.held, handAt[0], handAt[1], dir);
+      for (const f of later) f();
+    });
+  }
+  function hdShield(g, c, x, y, behind) {
+    hdShape(g, [x - 3.6, y, x + 3.6, y, x + 3.6, y + 4.6, x, y + 8.6, x - 3.6, y + 4.6], behind ? shade(c, 0.75) : c, x - 3.6, x + 3.6);
+    if (!behind) { rect(g, shade(c, 1.45), x - 0.5, y + 0.6, 1, 7); rect(g, shade(c, 1.45), x - 3, y + 2.6, 6, 1); g.fillStyle = GOLD; g.beginPath(); g.arc(x, y + 3.1, 0.9, 0, Math.PI * 2); g.fill(); }
+  }
+  // A hat on a large person's head, centred at (hx, hy).
+  function hdHat(g, hat, hx, hy, dir) {
+    const c = hat.color || '#8a8a92', acc = hat.accent || GOLD, st = hat.style, side = dir === 1 || dir === 3, back = dir === 0;
+    const dome = (lift, down) => { hdFill(g, c, hx - 4.6, hx + 4.6); g.beginPath(); g.moveTo(hx - 4.6, hy + down); g.bezierCurveTo(hx - 4.9, hy - 7 - lift, hx + 4.9, hy - 7 - lift, hx + 4.6, hy + down); g.closePath(); g.fill(); };
+    if (st === 'hood') {
+      hdShape(g, [hx - 5, -3.2, hx - 5.2, hy - 1, hx - 3.4, hy - 5.6, hx, hy - 6.6, hx + 3.4, hy - 5.6, hx + 5.2, hy - 1, hx + 5, -3.2], c, hx - 5.2, hx + 5.2);
+      if (!back) { g.fillStyle = shade(c, 0.4); g.beginPath(); if (side) g.ellipse(hx + 2, hy + 0.6, 2.2, 3.8, 0, 0, Math.PI * 2); else g.ellipse(hx, hy + 0.6, 3.4, 4.6, 0, 0, Math.PI * 2); g.fill(); }
+      if (!back) { hdFill(g, '#e8b890', hx - 3, hx + 3); g.beginPath(); if (side) g.ellipse(hx + 2.3, hy + 1, 1.7, 3.2, 0, 0, Math.PI * 2); else g.ellipse(hx, hy + 1.2, 2.7, 3.7, 0, 0, Math.PI * 2); g.fill();
+        if (!side) for (const s of [-1, 1]) rect(g, '#24180f', hx + s * 1.2 - 0.35, hy + 0.4, 0.7, 0.9); else rect(g, '#24180f', hx + 2.8, hy + 0.4, 0.6, 0.9); }
+      hdShape(g, [hx - 7, -1, hx + 7, -1, hx + 6.4, 2.4, hx - 6.4, 2.4], c, hx - 7, hx + 7); // the mantle on the shoulders
+      return;
+    }
+    if (st === 'helmet' || st === 'plume' || st === 'horned') {
+      dome(0.4, -0.6); hdShape(g, [hx - 4.8, hy - 1.4, hx + 4.8, hy - 1.4, hx + 4.8, hy, hx - 4.8, hy], shade(c, 0.75), hx - 4.8, hx + 4.8);
+      if (!back && !side) rect(g, shade(c, 0.7), hx - 0.5, hy - 1, 1, 3.6);
+      if (st === 'plume') { hdFill(g, acc, hx - 1, hx + 3); g.beginPath(); g.moveTo(hx, hy - 6.6); g.bezierCurveTo(hx + 2, hy - 11, hx + 5, hy - 10, hx + 6, hy - 6); g.bezierCurveTo(hx + 3.6, hy - 8, hx + 2, hy - 7.6, hx + 1, hy - 6); g.closePath(); g.fill(); }
+      if (st === 'horned') for (const s of [-1, 1]) { g.strokeStyle = acc; g.lineWidth = 1.6; g.beginPath(); g.moveTo(hx + s * 3.8, hy - 3.6); g.quadraticCurveTo(hx + s * 7, hy - 5, hx + s * 6.4, hy - 9); g.stroke(); }
+      return;
+    }
+    if (st === 'crown') { hdShape(g, [hx - 3.8, hy - 4.2, hx + 3.8, hy - 4.2, hx + 3.8, hy - 2.2, hx - 3.8, hy - 2.2], GOLD, hx - 3.8, hx + 3.8); for (const k of [-3, 0, 3]) hdShape(g, [hx + k - 1.2, hy - 4.2, hx + k + 1.2, hy - 4.2, hx + k, hy - 7], '#f0d040', hx + k - 1.2, hx + k + 1.2); rect(g, '#d83a3a', hx - 0.6, hy - 3.8, 1.2, 1.2); return; }
+    if (st === 'pointy') { hdShape(g, [hx - 7.4, hy - 2.6, hx + 7.4, hy - 2.6, hx + 6, hy - 1.2, hx - 6, hy - 1.2], shade(c, 0.75), hx - 7.4, hx + 7.4); hdShape(g, [hx - 4.4, hy - 2.6, hx + 4.4, hy - 2.6, hx + 2.4, hy - 9, hx + 4.6, hy - 14], c, hx - 4.4, hx + 4.6); rect(g, acc, hx - 4.2, hy - 3.6, 8.4, 1); return; }
+    if (st === 'bandana') { dome(-1.2, -2); hdShape(g, [hx - 4.4, hy - 2.6, hx + 4.4, hy - 2.6, hx + 4.4, hy - 1.4, hx - 4.4, hy - 1.4], shade(c, 0.8), hx - 4.4, hx + 4.4); if (back || side) hdShape(g, [hx - (side ? 4 : 0.6), hy - 2, hx - (side ? 6 : -0.6), hy + 1.4, hx - (side ? 5 : 1.6), hy + 1.6], c, hx - 6, hx); return; }
+    if (st === 'antlers') { g.strokeStyle = c; g.lineWidth = 1.1; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(hx + s * 2.6, hy - 4.6); g.lineTo(hx + s * 5, hy - 9); g.lineTo(hx + s * 7, hy - 11); g.moveTo(hx + s * 4.2, hy - 7.6); g.lineTo(hx + s * 7, hy - 7.4); g.moveTo(hx + s * 5, hy - 9); g.lineTo(hx + s * 4.4, hy - 12); g.stroke(); } return; }
+    // hats with a brim: wide, tricorn, hunter's, feathered
+    const brim = st === 'wide' || st === 'tricorn' ? 7.8 : 5.6;
+    hdFill(g, shade(c, 0.85), hx - brim, hx + brim); g.beginPath(); g.ellipse(hx, hy - 3.4, brim, st === 'tricorn' ? 2.4 : 1.8, 0, 0, Math.PI * 2); g.fill();
+    hdShape(g, [hx - 3.8, hy - 3.6, hx + 3.8, hy - 3.6, hx + 3.4, hy - 8, hx - 3.4, hy - 8], c, hx - 3.8, hx + 3.8);
+    rect(g, acc === GOLD ? shade(c, 0.6) : acc, hx - 3.8, hy - 4.8, 7.6, 1.1);
+    if (st === 'feather' || st === 'hunter') { hdFill(g, hat.accent || '#f4f0e8', hx + 2, hx + 7); g.beginPath(); g.moveTo(hx + 2.6, hy - 6); g.bezierCurveTo(hx + 4, hy - 12, hx + 7, hy - 12, hx + 7.4, hy - 10.6); g.bezierCurveTo(hx + 5.6, hy - 10, hx + 4.4, hy - 8, hx + 3.6, hy - 5.6); g.closePath(); g.fill(); }
+  }
+  // What a large person holds, in the hand at (x, y).
+  function hdHeld(g, kind, x, y, dir) {
+    const steel = '#dde2ea', steelDark = '#8e949e', wood = '#7a5030';
+    if (kind === 'sword' || kind === 'sabre') {
+      hdCapsule(g, x, y + 0.6, 0.55, x, y - 1.6, 0.55, '#5a3a1e');                                              // the grip
+      hdShape(g, [x - 2.4, y - 2.1, x + 2.4, y - 2.1, x + 2.4, y - 1.1, x - 2.4, y - 1.1], GOLD, x - 2.4, x + 2.4); // the crossguard
+      if (kind === 'sabre') hdShape(g, [x - 0.8, y - 2.2, x + 0.8, y - 2.2, x + 2.6, y - 10, x + 1.8, y - 15, x + 0.6, y - 10], steel, x - 0.8, x + 2.6);
+      else hdShape(g, [x - 0.9, y - 2.2, x + 0.9, y - 2.2, x + 0.9, y - 14, x, y - 15.6, x - 0.9, y - 14], steel, x - 0.9, x + 0.9);
+      rect(g, steelDark, x + 0.2, y - 13.6, 0.5, 11.2);
+    } else if (kind === 'axe' || kind === 'greataxe') {
+      hdCapsule(g, x, y + 2.4, 0.6, x, y - 12, 0.6, wood);
+      hdShape(g, [x + 0.4, y - 12, x + 4.6, y - 13.4, x + 4.6, y - 7.4, x + 0.4, y - 8.8], steel, x, x + 4.6);
+      if (kind === 'greataxe') hdShape(g, [x - 0.4, y - 12, x - 4.6, y - 13.4, x - 4.6, y - 7.4, x - 0.4, y - 8.8], steel, x - 4.6, x);
+    } else if (kind === 'staff' || kind === 'leafstaff') {
+      hdCapsule(g, x, y + 8, 0.6, x, y - 20, 0.6, wood);
+      const top = kind === 'leafstaff' ? '#4aa040' : '#86d8ff';
+      hdFill(g, top, x - 1.8, x + 1.8); g.beginPath(); g.arc(x, y - 21.4, 1.8, 0, Math.PI * 2); g.fill();
+      if (kind === 'leafstaff') for (const s of [-1, 1]) { g.fillStyle = '#5ab048'; g.beginPath(); g.ellipse(x + s * 2.2, y - 19.4, 1.6, 0.8, s * 0.6, 0, Math.PI * 2); g.fill(); }
+    } else if (kind === 'bow' || kind === 'crossbow') {
+      g.strokeStyle = '#8a5a2e'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y - 9); g.quadraticCurveTo(x + 4, y - 1, x, y + 7); g.stroke();
+      g.strokeStyle = '#ece4d4'; g.lineWidth = 0.4; g.beginPath(); g.moveTo(x, y - 9); g.lineTo(x, y + 7); g.stroke();
+    } else { hdCapsule(g, x, y + 1, 0.6, x, y - 8, 1.4, '#6a4422'); }
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -4969,7 +5185,7 @@ const Sprites = (() => {
   }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => (Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (look) return (g, d, f) => (Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -5322,7 +5538,14 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
-    PEOPLE: 'doll', // people drawn as dolls ('doll') or as pixel art ('pixel': tried, not liked yet)
+    PEOPLE: 'hd', // people drawn large ('hd'), as dolls ('doll'), or as small pixel art ('pixel': tried, not liked)
+    // how far above its tile a creature's head reaches (a large person's does), for its name and bars
+    headroom(c) {
+      if (Sprites.PEOPLE !== 'hd' || !c) return 0;
+      if (c.type === 'player') return HD_RISE;
+      const def = c.type === 'npc' && NPCS[c.npcId];
+      return def && !def.creature && hdable(def.look) ? HD_RISE : 0;
+    },
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
@@ -5336,7 +5559,7 @@ const Sprites = (() => {
       }
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key), R = Sprites.CREATURE_RES;
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)), R = Sprites.CREATURE_RES;
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
