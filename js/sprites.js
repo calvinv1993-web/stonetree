@@ -1026,14 +1026,18 @@ const Sprites = (() => {
     const [name, col, row] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name);
     const at = (f, fn) => { f.save(); f.translate(R - 64, R - 64); fn(f); f.restore(); }; // (its drawing has the corner at 64, 64, as P() has)
     const whole = own || cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R);
+    const k = own ? own.naturalWidth / (b.w * TILE + R) : 1; // (its own PNG may be finer than a pixel a world pixel: k times)
     return cached(`part:${id}:${frame}:${own ? 'own' : ''}`, g => {
+      g.canvas.res = k;
+      g.scale(k, k);
+      g.imageSmoothingEnabled = true;
       g.beginPath();
       if (!b.upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
       else if (row === b.h - 1) g.rect(col ? R : 0, 0, col ? 32 : R + 32, R + 32); // (upright: the south row's tiles draw everything straight above them,
       else g.rect(R, R, 32, 32);                                                     // the westmost also what leans out west; the others their own tile)
       g.clip();
-      g.drawImage(whole, -col * TILE, -row * TILE);
-    }, R + TILE);
+      g.drawImage(whole, -col * TILE, -row * TILE, whole.width / k, whole.height / k);
+    }, Math.round((R + TILE) * k));
   }
 
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.

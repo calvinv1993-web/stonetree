@@ -235,7 +235,7 @@ const THINGS = {
   founder_10: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   founder_20: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   founder_01: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
-  founder_11: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true, light: 3 },
+  founder_11: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   founder_21: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   founder_02: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   founder_12: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },

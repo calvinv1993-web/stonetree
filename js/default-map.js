@@ -1301,7 +1301,7 @@ function buildTown(m, S, runs, river) {
     { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         const ft = m.get(fx + c, fy + r, Z); ft.ground = 'grass'; ft.items = [`founder_${c}${r}`];
-        m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale, in white marble, holding up the sun. The plaque reads: "She found this island in a storm, and called it home."' });
+        m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale in white marble, a golden laurel on his brow, his hands folded on a sword. On the blue banner below him, the oak of Oakvale. The plinth reads: "He found this island in a storm, and called it home."' });
       } }
     for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
       const tt = m.get(x, y, Z);

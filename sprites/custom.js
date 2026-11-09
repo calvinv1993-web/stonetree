@@ -18,6 +18,7 @@ const CUSTOM_SPRITES = {
   temple_wall_texture: 'temple-wall-atlas.png',
   grass: 'grass-atlas.png',
   marble: 'marble-original-v2.png',
+  founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
 
