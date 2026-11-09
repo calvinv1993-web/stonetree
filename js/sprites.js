@@ -4870,6 +4870,239 @@ const Sprites = (() => {
     } else { hdCapsule(g, x, y + 1, 0.6, x, y - 8, 1.4, '#6a4422'); }
   }
 
+  // ---- people: the figure (Sprites.PEOPLE 'art') ------------------------------------------------------------------
+  // Pixel art a little over a tile tall (35 pixels, a head of 10: grown up, not a doll), put together from parts drawn
+  // pixel by pixel for each view (ART: a head, a body with its arms, legs; front, back, side), in a walk of four
+  // beats over two steps (see visual(): a stride with one leg ahead, the legs passing, a stride with the other): the
+  // body dips a pixel in a stride, the arms swing against the legs. Letters are the look's colours worked out in light
+  // and shade (lit from the top left); what the look wears and holds goes on top. The feet stand at (16, 29); the
+  // head reaches 6 above the tile, so the picture is a big one. 20 columns, the middle between 9 and 10.
+  //   h hair  j its light  H its shade    s skin  z its light  S its shade   e eye   m mouth
+  //   b body  c its light  B its shade    a arm  A its shade   g hand  G its shade   t belt  T buckle
+  //   l legs  k their light  L their shade    f feet  F their shade
+  const ART = {
+    headFront: [
+      '........hhhh........', '......hhjjjhhH......', '.....hhjjhhhhhH.....', '....hhjhhhhhhhhH....',
+      '....hhhjhhhhhhhH....', '....hzzsssssssSH....', '....hzsesssesSSH....', '....hzssssSssSSH....',
+      '.....zssmmmssS......', '......SsssssS.......', '........sSS.........',
+    ],
+    headBack: [
+      '........hhhh........', '......hhjjjhhH......', '.....hhjjhhhhhH.....', '....hhjhhhhhhhhH....',
+      '....hhhjhhhhhhhH....', '....hhhhhhhhhhHH....', '....hhhhhhhhhhHH....', '....hhhhhhhhhHHH....',
+      '.....HhhhhhhhHH.....', '......SsssssS.......', '........sSS.........',
+    ],
+    headSide: [
+      '.......hhhh.........', '.....hhjjjhhh.......', '....hhjjhhhhhh......', '....hjhhhhhhhhH.....',
+      '....hhhhhhzzssS.....', '....hhhhhSzssss.....', '....HhhhSssssesS....', '....HHhhSssssssz....',
+      '.....HHhSssssmS.....', '......HSssssS.......', '.........sS.........',
+    ],
+    torsoFront: [
+      '....ccbbbbbbbbBB....', '...accbbbbbbbbbBA...', '..aacbbbbbbbbbbBAA..', '..aacbbbbbbbbbBBAA..',
+      '..aa.cbbbbbbbbB.AA..', '..aa.cbbbbbbbBB.AA..', '..aa.cbbbbbbbBB.AA..', '..AA.cbbbbbbbBB.AA..',
+      '..gg.ttttTttttt.gg..', '..gg.llllllllLL.gg..', '....lllllllllLL.....',
+    ],
+    torsoSide: [
+      '.......cbbbbB.......', '......cbbbbbbB......', '......cbbaabbB......', '......cbbaAbbB......',
+      '......cbbaAbbB......', '......cbbaAbbB......', '......cbbaAbBB......', '......cbbAAbBB......',
+      '......ttttgtTt......', '......lllgGlLL......', '......llllllLL......',
+    ],
+    torsoSideBack: [
+      '.......cbbbbB.......', '......cbbbbbbB......', '......cbaabbbB......', '......caAbbbbB......',
+      '.....aaAbbbbbB......', '.....aAcbbbbbB......', '....aA.cbbbbBB......', '....gG.cbbbbBB......',
+      '......ttttttTt......', '......llllllLL......', '......llllllLL......',
+    ],
+    torsoSideFore: [
+      '.......cbbbbB.......', '......cbbbbbbB......', '......cbbaabbB......', '......cbbbaAbB......',
+      '......cbbbbaAB......', '......cbbbbbaA......', '......cbbbbBBaA.....', '......cbbbbBB.gG....',
+      '......ttttttTt.gG...', '......llllllLL......', '......llllllLL......',
+    ],
+    legsFront: [
+      '.....lllL..llLL.....', '.....lllL..llLL.....', '.....lllL..llLL.....', '.....lllL..llLL.....',
+      '.....lllL..llLL.....', '.....lklL..lkLL.....', '.....lllL..llLL.....', '.....lllL..llLL.....',
+      '.....fffF..ffFF.....', '.....fffF..ffFF.....', '.....fffF..ffFF.....', '....ffffF..fffFF....',
+      '....FFFFF..FFFFF....',
+    ],
+    legsFrontStep: [
+      '.....lllL..llLL.....', '.....lllL..llLL.....', '.....lllL..llLL.....', '.....lllL..llLL.....',
+      '.....lllL..llLL.....', '.....lklL..ffFF.....', '.....lllL..ffFF.....', '.....lllL..ffFF.....',
+      '.....fffF..fffFF....', '.....fffF..FFFFF....', '.....fffF...........', '....ffffF...........',
+      '....FFFFF...........',
+    ],
+    legsSide: [
+      '.......lllllL.......', '.......lllllL.......', '.......lllllL.......', '.......lllllL.......',
+      '.......lklllL.......', '.......lllllL.......', '.......lllllL.......', '.......lllllL.......',
+      '.......ffffffF......', '.......ffffffF......', '.......ffffffF......', '.......fffffffF.....',
+      '.......FFFFFFFF.....',
+    ],
+    legsSideStep: [
+      '.......lllllL.......', '......LLllllL.......', '......LL.llllL......', '.....LL...llllL.....',
+      '.....LL...lllL......', '....LL.....lllL.....', '....LL.....llllL....', '...LL.......lllL....',
+      '..FFF.......ffffF...', '..FFFF......fffffF..', '..FFFF......ffffffF.', '..FFFF......FFFFFFF.',
+    ],
+  };
+  const ART_ROW0 = -6, ART_COL0 = 6, ART_RISE = 6; // where row 0 and column 0 go on the picture; how far above its tile the head reaches
+  const artable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
+  // a row mirrored, its legs shaded again from the left (light) to the right (shade)
+  const artMirror = row => {
+    const r = [...row].reverse();
+    for (let i = 0; i < r.length;) {
+      const kind = 'lLk'.includes(r[i]) ? 'l' : 'fF'.includes(r[i]) ? 'f' : null;
+      if (!kind) { i++; continue; }
+      let j = i; while (j < r.length && (kind === 'l' ? 'lLk' : 'fF').includes(r[j])) j++;
+      const allDark = r.slice(i, j).every(c => c === 'F');
+      for (let x = i; x < j; x++) if (!allDark && r[x] !== 'k') r[x] = x >= j - (j - i > 3 ? 2 : 1) ? kind.toUpperCase() : kind;
+      i = j;
+    }
+    return r.join('');
+  };
+  function artPerson(g0, p, dir, frame) {
+    shadow(g0, 16, 29, 7.5, 2.8);
+    outlined(g0, g => {
+      if (dir === 3) { g.translate(32, 0); g.scale(-1, 1); } // a west view is the east one mirrored
+      const front = dir === 2, back = dir === 0, side = !front && !back, step = frame === 1 ? 1 : frame === 2 ? -1 : 0;
+      const hs = p.hairStyle || 'short', hat = p.hat || null, hooded = hat && hat.style === 'hood', bald = hs === 'bald' || hooded;
+      const skin = p.skin || '#f0c090', hair = p.hair || shade(skin, 0.6), body = p.body || '#6a6a72', arms = p.arms || body;
+      const legs = p.legs || body, feet = p.feet || shade(legs, 0.6);
+      const C = {
+        h: bald ? skin : hair, j: bald ? shade(skin, 1.12) : shade(hair, 1.35), H: bald ? shade(skin, 0.8) : shade(hair, 0.66),
+        s: skin, z: shade(skin, 1.12), S: shade(skin, 0.8), e: p.eye || '#1c120c', m: p.female ? '#b0504a' : shade(skin, 0.58),
+        b: body, c: shade(body, 1.24), B: shade(body, 0.72), a: arms, A: shade(arms, 0.72), g: skin, G: shade(skin, 0.8),
+        t: p.sash || p.belt || shade(legs, 0.5), T: GOLD, l: legs, k: shade(legs, 1.25), L: shade(legs, 0.7), f: feet, F: shade(feet, 0.62),
+      };
+      // ---- put the parts together: the legs, then the body and head over them (a pixel lower in a stride)
+      const grid = Array.from({ length: 36 }, () => Array(20).fill('.'));
+      const lay = (rows, top) => rows.forEach((r, i) => [...r].forEach((ch, x) => { if (ch !== '.' && grid[top + i]) grid[top + i][x] = ch; }));
+      const bob = step ? 1 : 0;
+      let legRows;
+      if (side) legRows = step ? (step > 0 ? ART.legsSideStep : ART.legsSideStep.map(r => [...r].map((ch, x) => (x < 9 ? { L: 'l', F: 'f' }[ch] || ch : { l: 'L', f: 'F', k: 'L' }[ch] || ch)).join(''))) : ART.legsSide;
+      else legRows = step ? (step > 0 ? ART.legsFrontStep : ART.legsFrontStep.map(artMirror)) : ART.legsFront;
+      lay(legRows, 35 - legRows.length);
+      let torso = side ? (step > 0 ? ART.torsoSideBack : step < 0 ? ART.torsoSideFore : ART.torsoSide) : ART.torsoFront;
+      if (!side && step) { // the arm on the side of the leg ahead swings back (shorter), the other forward (longer)
+        torso = torso.map(r => [...r]);
+        const [backCols, foreCols] = step > 0 ? [[2, 3], [16, 17]] : [[16, 17], [2, 3]];
+        for (const x of backCols) { torso[9][x] = '.'; torso[7][x] = 'g'; }
+        for (const x of foreCols) torso[10][x] = 'g';
+        torso = torso.map(r => r.join(''));
+      }
+      if (back) torso = torso.map(r => r.replace('T', 't'));
+      lay(torso, 11 + bob);
+      lay(front ? ART.headFront : back ? ART.headBack : ART.headSide, bob);
+      const H = bob, T = 11 + bob; // the head's top row, the body's
+      const at = (x, y) => (grid[y] || [])[x], set = (x, y, ch) => { if (grid[y] && x >= 0 && x < 20) grid[y][x] = ch; };
+      const fill = (x0, x1, y, ch, only) => { for (let x = x0; x <= x1; x++) if (!only || only.includes(at(x, y))) set(x, y, ch); };
+      const recolor = (y0, y1, map) => { for (let y = y0; y <= y1; y++) for (let x = 0; x < 20; x++) if (map[at(x, y)]) set(x, y, map[at(x, y)]); };
+      // ---- what it wears, in layers
+      if (!bald && (hs === 'long' || hs === 'braids' || hs === 'wild')) { // hair to the shoulders and down the back
+        if (front) for (let y = H + 5; y <= H + 13; y++) { if ('.aAcbB'.includes(at(4, y))) set(4, y, 'h'); if ('.aAcbB'.includes(at(15, y))) set(15, y, 'H'); }
+        else if (back) for (let y = H + 8; y <= H + 16; y++) fill(5, 14, y, y > H + 14 ? 'H' : 'h', 'hHjSscbBs');
+        else for (let y = H + 4; y <= H + 13; y++) { set(4, y, 'H'); if (y > H + 5 && at(5, y) === '.') set(5, y, 'h'); }
+      }
+      if (!bald && hs === 'ponytail') { if (back) for (let y = H + 8; y <= H + 16; y++) { set(9, y, 'h'); set(10, y, 'H'); } else if (side) for (let y = H + 5; y <= H + 12; y++) set(3, y, y > H + 8 ? 'H' : 'h'); }
+      if (p.beard && !back) {
+        C.r = p.beard; C.R = shade(p.beard, 0.72);
+        if (front) { set(5, H + 6, 'r'); set(14, H + 6, 'R'); fill(5, 6, H + 7, 'r'); fill(13, 14, H + 7, 'R'); fill(5, 13, H + 8, 'r'); fill(8, 10, H + 8, 'm'); fill(6, 12, H + 9, 'r'); fill(8, 10, H + 10, 'R'); }
+        else { fill(10, 14, H + 7, 'r', 'sSz'); fill(9, 14, H + 8, 'r', 'sSzm'); fill(9, 13, H + 9, 'R', 'sSzH'); fill(10, 12, H + 10, 'R'); }
+      }
+      if (p.armor) { // a breastplate, lit down its middle, and shoulder plates
+        C.p = p.armor; C.P = shade(p.armor, 0.68); C.y = shade(p.armor, 1.32);
+        recolor(T, T + 7, { b: 'p', c: 'y', B: 'P' });
+        if (front || back) { fill(2, 5, T, 'y'); fill(2, 5, T + 1, 'p'); fill(14, 17, T, 'p'); fill(14, 17, T + 1, 'P'); if (front) for (let y = T + 1; y <= T + 7; y++) set(9, y, 'y'); }
+        else { fill(8, 11, T, 'y'); fill(8, 11, T + 1, 'p'); }
+      }
+      if (p.vest && !side) { C.v = p.vest; C.V = shade(p.vest, 0.72); for (let y = T + 1; y <= T + 7; y++) { fill(5, 6, y, 'v', 'bcB'); fill(13, 14, y, 'V', 'bcB'); } }
+      if (p.stripes) { C.x = p.stripes; for (const y of [T + 2, T + 4, T + 6]) recolor(y, y, { b: 'x', c: 'x', B: 'x' }); }
+      if (p.tabard && !side) {
+        C.d = p.tabard; C.D = shade(p.tabard, 0.72); C.n = shade(p.tabard, 1.5);
+        for (let y = T + 1; y <= T + 16; y++) { fill(8, 10, y, 'd'); set(11, y, 'D'); }
+        if (front) { for (let y = T + 2; y <= T + 6; y++) fill(9, 10, y, 'n'); fill(8, 11, T + 3, 'n'); }
+      }
+      if (p.collar && !back) { C.u = p.collar; C.U = shade(p.collar, 0.8); if (front) { fill(7, 12, T, 'u'); set(12, T, 'U'); } else fill(10, 12, T, 'u'); }
+      if (p.fur) { C.w = shade(body, 1.3); C.W = shade(body, 0.92); for (let x = 3; x <= 16; x++) { if (at(x, T) !== '.') set(x, T, x % 2 ? 'w' : 'W'); if (at(x, T + 1) !== '.' && x % 3 === 0) set(x, T + 1, 'w'); } }
+      if (p.cuffs && !p.bareArms) { C.q = p.cuffs; recolor(T + 7, T + 7, { a: 'q', A: 'q' }); }
+      if (p.strap && !side) { C.Y = p.strap; for (let k = 0; k <= 8; k++) set(5 + k, T + k, 'Y'); }
+      if (p.robe || p.coat || p.skirt) { // a robe to the ankles, a coat to the knees, or a skirt, widening as it goes down
+        const c = p.robe || p.coat ? body : p.skirt; C.o = c; C.O = shade(c, 0.72); C.Q = p.trim || shade(c, 1.3);
+        const end = p.robe ? 33 : p.coat ? 28 : 27, x0 = side ? 7 : 5, x1 = side ? 13 : 14;
+        for (let y = T + 9; y <= end; y++) {
+          const sp = Math.floor((y - T - 9) / 4);
+          for (let x = x0 - sp; x <= x1 + sp; x++) set(x, y, y === end && p.trim ? 'Q' : x >= x1 + sp - 1 ? 'O' : 'o');
+        }
+        if (p.robe && p.trim && front) for (let y = T + 9; y < end; y++) set(9, y, 'Q');
+        if (p.leaves) { C.V2 = p.leaves; for (const [x, y] of [[7, 24], [12, 27], [9, 30], [6, 31]]) set(side ? x + 1 : x, y, 'Z'); C.Z = p.leaves; }
+      }
+      if (p.cape) { // all of it from the back; its edges at the sides from the front; behind the body from the side
+        C.i = p.cape; C.I = shade(p.cape, 0.66);
+        if (back) for (let y = T; y <= 31; y++) { const sp = Math.floor((y - T) / 6); fill(3 - sp, 16 + sp, y, y === 31 ? 'I' : 'i'); for (let x = 14 + sp; x <= 16 + sp; x++) set(x, y, 'I'); }
+        else if (front) for (let y = T + 1; y <= 30; y++) { if (at(1, y) === '.') set(1, y, 'I'); if (at(18, y) === '.') set(18, y, 'I'); }
+        else for (let y = T; y <= 31; y++) for (let x = 3; x <= 6; x++) if (at(x, y) === '.') set(x, y, 'I');
+      }
+      if (p.backpack && back) { C.N = p.backpack; C.M = shade(p.backpack, 0.68); for (let y = T + 1; y <= T + 7; y++) fill(6, 13, y, y === T + 4 ? 'M' : 'N'); fill(12, 13, T + 1, 'M'); }
+      if (p.quiver && !front) { C.Y = LEATHER; C.W2 = '#ece4d4'; const qx = back ? 13 : 5; for (let y = T - 2; y <= T + 7; y++) { set(qx, y, 'Y'); set(qx + 1, y, 'Y'); } set(qx, T - 3, 'X'); set(qx + 1, T - 4, 'X'); C.X = '#ece4d4'; }
+      // ---- the picture
+      grid.forEach((row, y) => row.forEach((ch, x) => { if (ch !== '.' && C[ch]) rect(g, C[ch], ART_COL0 + x, ART_ROW0 + y, 1, 1); }));
+      const X = col => ART_COL0 + col, Y = row => ART_ROW0 + row;
+      if (hat) artHat(g, hat, dir, X, Y, H);
+      // what it holds, in its right hand (the hand on the left of the picture from the front; the near one from the side)
+      const hand = front ? [2.5, T + 9 + (step < 0 ? 1 : step > 0 ? -1 : 0)] : side ? (step > 0 ? [4.5, T + 7] : step < 0 ? [15.5, T + 8] : [10, T + 9]) : null;
+      if (p.held && hand) artHeld(g, p.held, X(hand[0]), Y(hand[1]));
+      if (p.shield && (front || back || dir === 3)) artShield(g, p.shield, X(front ? 16 : back ? 1 : 12), Y(T + 3), back);
+    });
+  }
+  function artShield(g, c, x, y, behind) {
+    const lit = shade(c, 1.3), dk = shade(c, 0.66);
+    for (let r = 0; r < 9; r++) { const w = r < 5 ? 5 : 5 - (r - 4) * 1.2; for (let k = 0; k < w; k++) rect(g, behind ? dk : k === 0 ? lit : k >= w - 1 ? dk : c, Math.round(x - w / 2 + k), y + r, 1, 1); }
+    if (!behind) { rect(g, GOLD, x - 0.5, y + 1, 1, 6); rect(g, GOLD, x - 2, y + 3, 4, 1); }
+  }
+  // A hat on the figure's head (H: the head's top row; X, Y: columns and rows to the picture).
+  function artHat(g, hat, dir, X, Y, H) {
+    const c = hat.color || '#8a8a92', lit = shade(c, 1.3), dk = shade(c, 0.68), acc = hat.accent || GOLD, st = hat.style;
+    const front = dir === 2, back = dir === 0, side = !front && !back;
+    const row = (y, x0, x1, col) => { for (let x = x0; x <= x1; x++) rect(g, typeof col === 'function' ? col(x) : col, X(x), Y(H + y), 1, 1); };
+    const ld = (x0, x1) => x => (x <= x0 + 1 ? lit : x >= x1 - 1 ? dk : c);
+    if (st === 'hood') {
+      row(-1, 7, 12, ld(7, 12)); row(0, 5, 14, ld(5, 14)); row(1, 4, 15, ld(4, 15)); row(2, 3, 16, ld(3, 16));
+      for (let y = 3; y <= 9; y++) { if (back) row(y, 3, 16, ld(3, 16)); else if (side) row(y, 3, 9, ld(3, 9)); else { row(y, 3, 4, lit); row(y, 15, 16, dk); } }
+      if (front) row(3, 5, 14, shade(c, 0.42));
+      row(10, 2, 17, ld(2, 17)); row(11, 2, 17, dk);
+      return;
+    }
+    if (st === 'helmet' || st === 'plume' || st === 'horned') {
+      row(-1, 7, 12, ld(7, 12)); row(0, 5, 14, ld(5, 14)); row(1, 4, 15, ld(4, 15)); row(2, 4, 15, ld(4, 15)); row(3, 4, 15, dk);
+      if (front) { row(4, 9, 10, dk); row(5, 9, 10, dk); } else if (side) row(4, 12, 13, dk);
+      if (st === 'plume') { for (let y = -5; y <= -1; y++) row(y, 9 + (y < -3 ? 1 : 0), 10 + (y < -3 ? 1 : 0), y < -3 ? shade(acc, 1.2) : acc); }
+      if (st === 'horned') for (const [x, y] of [[3, 1], [2, 0], [2, -1], [2, -2], [16, 1], [17, 0], [17, -1], [17, -2]]) rect(g, acc, X(x), Y(H + y), 1, 1);
+      return;
+    }
+    if (st === 'crown') { row(1, 5, 14, GOLD); row(2, 5, 14, shade(GOLD, 0.78)); for (const x of [5, 8, 11, 14]) rect(g, '#f2d24a', X(x), Y(H), 1, 1); rect(g, '#d83a3a', X(9), Y(H + 1), 2, 1); return; }
+    if (st === 'pointy') { for (let y = -7; y <= 1; y++) { const half = Math.max(0, Math.floor((y + 7) / 1.6)); row(y, 10 - half, 9 + half, ld(10 - half, 9 + half)); } row(2, 1, 18, dk); row(1, 4, 15, acc); return; }
+    if (st === 'bandana') { row(1, 4, 15, c); row(2, 4, 15, dk); if (!front) { rect(g, c, X(back ? 9 : 3), Y(H + 3), 1, 3); rect(g, dk, X(back ? 10 : 2), Y(H + 4), 1, 2); } return; }
+    if (st === 'antlers') { for (const [x, y] of [[6, 1], [5, 0], [4, -1], [3, -2], [5, -2], [4, -3], [2, -1], [13, 1], [14, 0], [15, -1], [16, -2], [14, -2], [15, -3], [17, -1]]) rect(g, c, X(x), Y(H + y), 1, 1); return; }
+    // a hat with a brim: wide, tricorn, hunter's, feathered
+    const wideBrim = st === 'wide' || st === 'tricorn';
+    row(-2, 7, 12, ld(7, 12)); row(-1, 6, 13, ld(6, 13)); row(0, 6, 13, ld(6, 13)); row(1, 5, 14, acc === GOLD ? shade(c, 0.55) : acc);
+    row(2, wideBrim ? 1 : 3, wideBrim ? 18 : 16, dk); if (st === 'tricorn') { rect(g, dk, X(1), Y(H + 1), 1, 1); rect(g, dk, X(18), Y(H + 1), 1, 1); }
+    if (st === 'feather' || st === 'hunter') for (const [x, y] of [[14, 0], [15, -1], [16, -2], [16, -3], [17, -4]]) rect(g, hat.accent || '#f4f0e8', X(x), Y(H + y), 1, 1);
+  }
+  // What the figure holds, its hand at (x, y) on the picture.
+  function artHeld(g, kind, x, y) {
+    const px = (dx, dy, c) => rect(g, c, Math.round(x + dx), Math.round(y + dy), 1, 1), up = (dx, y0, y1, c) => { for (let k = y0; k <= y1; k++) px(dx, k, c); };
+    if (kind === 'sword' || kind === 'sabre') {
+      up(0, -14, -2, '#e2e6ee'); up(1, -13, -2, '#9aa0aa'); if (kind === 'sabre') { px(1, -14, '#e2e6ee'); px(2, -15, '#e2e6ee'); }
+      for (let k = -2; k <= 3; k++) px(k, -1, k === -2 || k === 3 ? '#a87818' : GOLD); up(0, 0, 1, '#5a3a1e'); px(1, 0, '#3e2610'); px(0, 2, GOLD);
+    } else if (kind === 'axe' || kind === 'greataxe') {
+      up(0, -12, 3, '#7a5030'); up(1, -12, 3, '#4e3018');
+      for (let k = -12; k <= -6; k++) { px(2, k, '#cdd2da'); px(3, k, k === -12 || k === -6 ? '#8a8e96' : '#b4b8c0'); if (k > -11 && k < -7) px(4, k, '#8a8e96'); }
+      if (kind === 'greataxe') for (let k = -12; k <= -6; k++) { px(-1, k, '#cdd2da'); px(-2, k, k === -12 || k === -6 ? '#8a8e96' : '#b4b8c0'); if (k > -11 && k < -7) px(-3, k, '#8a8e96'); }
+    } else if (kind === 'staff' || kind === 'leafstaff') {
+      up(0, -20, 6, '#8a5a34'); up(1, -19, 6, '#5a3a1e');
+      const [c1, c2] = kind === 'leafstaff' ? ['#5ab048', '#3a8030'] : ['#a8e8ff', '#3a9ae0'];
+      for (const [dx, dy, c] of [[0, -23, c1], [-1, -22, c1], [0, -22, c1], [1, -22, c2], [0, -21, c2], [-1, -21, c1], [1, -21, c2]]) px(dx, dy, c);
+    } else if (kind === 'bow' || kind === 'crossbow') {
+      for (let k = -11; k <= 6; k++) px(Math.round(Math.abs(k + 2.5) / 4.5) - 2, k, '#8a5a2e'); up(1, -10, 5, '#ece4d4');
+    } else { up(0, -9, 1, '#7a5030'); up(1, -9, 1, '#4e3018'); for (const [dx, dy] of [[-1, -9], [-1, -8], [2, -9], [2, -8], [0, -10], [1, -10]]) px(dx, dy, '#5a3a1e'); }
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -5190,7 +5423,7 @@ const Sprites = (() => {
   }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => (Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (look) return (g, d, f) => (Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -5543,13 +5776,14 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
-    PEOPLE: 'hd', // people drawn large ('hd'), as dolls ('doll'), or as small pixel art ('pixel': tried, not liked)
+    PEOPLE: 'art', // people as pixel art a little over a tile tall ('art'); tried before: large shapes ('hd'), dolls ('doll'), small pixels ('pixel')
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
     headroom(c) {
-      if (Sprites.PEOPLE !== 'hd' || !c) return 0;
-      if (c.type === 'player') return HD_RISE;
+      const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : 0, able = Sprites.PEOPLE === 'art' ? artable : hdable;
+      if (!rise || !c) return 0;
+      if (c.type === 'player') return rise;
       const def = c.type === 'npc' && NPCS[c.npcId];
-      return def && !def.creature && hdable(def.look) ? HD_RISE : 0;
+      return def && !def.creature && able(def.look) ? rise : 0;
     },
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
@@ -5564,7 +5798,7 @@ const Sprites = (() => {
       }
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)), R = Sprites.CREATURE_RES;
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)), R = Sprites.CREATURE_RES;
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
         g.canvas.res = R;
         g.scale(R, R);

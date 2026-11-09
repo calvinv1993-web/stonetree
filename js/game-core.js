@@ -278,7 +278,8 @@ function visual(c) {
   return {
     x: c.walk.fromX + (c.x - c.walk.fromX) * t,
     y: c.walk.fromY + (c.y - c.walk.fromY) * t,
-    frame: t < 0.5 ? 1 : 2,
+    // a walk in four beats over two steps: a stride (one leg ahead, then the other on the next step), the legs passing
+    frame: t < 0.5 ? ((c.x + c.y) & 1 ? 1 : 2) : 0,
   };
 }
 

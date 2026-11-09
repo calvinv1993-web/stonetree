@@ -1046,7 +1046,7 @@ function drawOutfitPreview() {
   const frame = [0, 1, 0, 2][Math.floor(performance.now() / 250) % 4];
   [2, 1, 0, 3].forEach((dir, i) => { // (a tall figure's picture is two tiles square: show it whole, its feet on the bottom)
     const img = Sprites.creature(Sprites.playerKey(player.vocation, outfitDraft), dir, frame), r = img.res || 1;
-    if (Sprites.w(img) > TILE) g.drawImage(img, 16 * r, 12 * r, 32 * r, 52 * r, i * 64 + 12, 0, 40, 64);
+    if (Sprites.w(img) > TILE) g.drawImage(img, TILE * r, 12 * r, TILE * r, 52 * r, i * 64 + 12, 0, 40, 64);
     else g.drawImage(img, i * 64, 0, 64, 64);
   });
   clearTimeout(outfitTimer);

@@ -14,7 +14,7 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
   hangs flat against it, with its shadow on the wall.
 - Only flames rise straight up the screen (fire goes up), and the figures.
-- **People** are drawn large (`hdPerson()`, `Sprites.PEOPLE = 'hd'`): a little over a tile tall (35 pixels: drawn at 44 and shown at 0.8, HD_SIZE), grown-up proportions, from shapes (a head with a jaw, shoulders, elbows, knees, boots), each shaded across from the light (left) to the shade (right). Their name and bars sit above their heads (`Sprites.headroom`). Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). A small pixel-art drawer (`'pixel'`) was tried and isn't used.
+- **People** are pixel art a little over a tile tall (`artPerson()`, `Sprites.PEOPLE = 'art'`): 35 pixels with a head of 10, from parts drawn pixel by pixel for each view (`ART`: heads, bodies with their arms, legs), in light and shade from the top left, with what they wear and hold on top. They walk in four beats over two steps (`visual()`: a stride, the legs passing, a stride with the other leg): the body dips a pixel in a stride and the arms swing against the legs. Their name and bars sit above their heads (`Sprites.headroom`). Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: large shapes (`'hd'`), small pixels (`'pixel'`).
 - Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 
 ## Light
