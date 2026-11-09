@@ -440,6 +440,7 @@ const Sprites = (() => {
     roof_thatch: { color: [204, 166, 92], course: 3, joint: 0, straw: true },
     roof_shingle: { color: [130, 88, 54], course: 4, joint: 5 },
     roof_green: { color: [74, 130, 100], course: 4, joint: 8 }, // copper gone green
+    roof_marble: { color: [250, 242, 226], course: 4, joint: 8, gild: [232, 181, 74] }, // white marble slabs, gilded ridges and eaves (the temple)
     roof_flat: { color: [216, 190, 138], flat: true },          // a flat roof with a low wall around it
   };
   const SLOPE_LIGHT = [1.14, 0.7, 1, 0.84]; // facing north, south, west, east: lit from the north-west
@@ -466,7 +467,7 @@ const Sprites = (() => {
         else if (eave < 6) light *= 0.85;
       } else {
         const [f, h] = slope(u, v);
-        light = SLOPE_LIGHT[f];
+        light = st.gild ? 1 + (SLOPE_LIGHT[f] - 1) * 0.5 : SLOPE_LIGHT[f]; // (pale marble: its slopes in softer shade)
         const c = h * st.course, row = Math.floor(c), fr = c - row;
         if (fr < 0.14) light *= 0.7;
         else if (fr < 0.32) light *= 1.08;
@@ -477,6 +478,12 @@ const Sprites = (() => {
         if (ridge) light = 1.28;
         if (eave < 1) light = 0.42;
         else if (eave < 2) light *= 0.72;
+        if (st.gild && (ridge || eave < 2)) { // gilded ridges and eaves, lit as the slope they sit on
+          const gl = ridge ? 1.12 : eave < 1 ? 0.62 : SLOPE_LIGHT[f] * 0.95, i = (py * TILE + px) * 4;
+          for (let ch = 0; ch < 3; ch++) data[i + ch] = Math.min(255, st.gild[ch] * gl + (ridge && (px + py) % 5 === 0 ? 40 : 0));
+          data[i + 3] = 255;
+          continue;
+        }
       }
       const i = (py * TILE + px) * 4;
       for (let ch = 0; ch < 3; ch++) data[i + ch] = Math.min(255, st.color[ch] * light);
@@ -579,7 +586,7 @@ const Sprites = (() => {
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
   // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
   // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
-  const RAISED = new Set(['eggs', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
+  const RAISED = new Set(['temple_lantern', 'eggs', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
@@ -1129,6 +1136,7 @@ const Sprites = (() => {
     roof_thatch: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_thatch),
     roof_shingle: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_shingle),
     roof_green: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_green),
+    roof_marble: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_marble),
     roof_flat: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_flat),
     water(g, r, frame) {
       rect(g, '#2d63b5', 0, 0, TILE, TILE);
@@ -2015,6 +2023,27 @@ const Sprites = (() => {
         const t = (frame + i * 1.4) % 4;
         ellipse(g, `rgba(215,215,220,${0.6 - t * 0.13})`, mx - t * 3, my - 5 - t * 6, 3 + t, 2.5 + t * 0.8);
       }
+    },
+    // The temple's lantern on its roof: a little marble turret with stained-glass windows (red, gold and blue) on
+    // its south and east faces, lit from inside, under a pointed marble roof with gilded edges, crowned by the
+    // golden sun of the dawn. It glows at night (light, in defs.js).
+    temple_lantern(g) {
+      const marble = { top: '#fbf6ea', south: '#ece2cc', east: '#c4baa4', edge: '#fffcf4' };
+      const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
+      const [gx, gy] = P(16, 16, 18); ellipse(g, 'rgba(255,214,130,0.3)', gx, gy, 22, 18); // its glow on the roof
+      prism(g, 2, 2, 30, 30, 0, 5, marble);                              // the base
+      prism(g, 1.5, 1.5, 30.5, 30.5, 5, 7, gold);                        // a gilded band
+      prism(g, 4, 4, 28, 28, 7, 36, marble);                             // the turret
+      onSouth(g, 28, f => { for (const [u, c] of [[7, '#e2483c'], [12.5, '#f2c94c'], [18, '#3e8ef7'], [23.5, '#e2483c']]) {
+        rect(f, '#5a4632', u - 0.7, 11, 3.4, 20); rect(f, c, u, 11.5, 2, 19); rect(f, 'rgba(255,255,255,0.5)', u, 11.5, 0.8, 19); rect(f, '#5a4632', u - 0.7, 20.5, 3.4, 0.8); } });
+      for (const [v, c] of [[8, '#f2c94c'], [14, '#3e8ef7'], [20, '#e2483c']]) { const pts = []; for (const [vv, z] of [[v, 12], [v + 2.5, 12], [v + 2.5, 30], [v, 30]]) pts.push(...P(28, vv, z)); poly(g, c, pts); }
+      prism(g, 2.5, 2.5, 29.5, 29.5, 36, 40, gold);                      // a gilded cornice
+      pyramid(g, 2.5, 2.5, 29.5, 29.5, 40, 24, marble);                  // its marble roof
+      for (const [u, v] of [[2.5, 29.5], [29.5, 29.5], [29.5, 2.5]]) line3(g, '#e8b54a', 1.5, u, v, 40, 16, 16, 64); // gilded hips
+      line3(g, '#c8901e', 2.5, 16, 16, 64, 16, 16, 70);                  // the sun's rod
+      const [sx, sy] = P(16, 16, 76);
+      for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, l = i % 2 ? 10 : 13; line(g, '#e8b54a', 2, sx + Math.cos(a) * 6, sy + Math.sin(a) * 6, sx + Math.cos(a) * l, sy + Math.sin(a) * l); }
+      ellipse(g, '#c8901e', sx, sy, 6.4, 6.4); ellipse(g, '#ffd860', sx, sy, 5.4, 5.4); ellipse(g, '#fff4c0', sx - 1.2, sy - 1.2, 2.6, 2.6);
     },
     // A wicker basket full of goods.
     // A wicker basket full of goods.

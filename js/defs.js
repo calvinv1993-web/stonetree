@@ -74,6 +74,7 @@ const THINGS = {
   roof_thatch: { name: 'thatched roof', cat: 'Roofs', ground: true, roof: true },
   roof_shingle:{ name: 'shingle roof', cat: 'Roofs', ground: true, roof: true },
   roof_green:  { name: 'copper roof', cat: 'Roofs', ground: true, roof: true },
+  roof_marble: { name: 'marble roof', cat: 'Roofs', ground: true, roof: true },
   roof_flat:   { name: 'flat roof', cat: 'Roofs', ground: true, roof: true },
 
   wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
@@ -211,6 +212,7 @@ const THINGS = {
   wagon:       { name: 'wagon', cat: 'Town', block: true, low: true, tall: true },
   woodpile:    { name: 'woodpile', cat: 'Town', block: true, low: true },
   chimney:     { name: 'chimney', cat: 'Town', block: true, tall: true },
+  temple_lantern: { name: 'the temple\'s lantern', cat: 'Town', block: true, tall: true, light: 5 },
   basket:      { name: 'basket of goods', cat: 'Town', block: true, low: true },
   sack:        { name: 'sack', cat: 'Town', block: true, low: true, movable: true },
   boat:        { name: 'rowing boat', cat: 'Town', block: true, low: true, tall: true },

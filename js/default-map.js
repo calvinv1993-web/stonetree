@@ -167,7 +167,7 @@ const OAKVALE = {
   ],
   square: [[123, 110, 146, 121]],
   buildings: [
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 131, y0: 99, x1: 143, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_green', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 131, y0: 99, x1: 143, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_marble', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 145, y0: 99, x1: 149, y1: 103, door: [147, 103], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 106, x1: 149, y1: 111, door: [147, 111], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
@@ -1086,6 +1086,7 @@ function buildTown(m, S, runs, river) {
     if (b.arch) for (const [k, id] of [[-1, 'arch_w'], [0, 'arch_m'], [1, 'arch_e']]) m.ensure(dx + k, dy, S).items = [id]; // in a south wall
     if (b.roof) eachOf(b, (x, y) => m.set(x, y, S + floors, { ground: b.roof, items: [] }));
     if (b.roof && b.kind !== 'temple' && b.kind !== 'depot') put(b.x1 - 1, b.y0 + 1, S + floors, 'chimney');
+    if (b.kind === 'temple') put((b.x0 + b.x1 + 1) >> 1, (b.y0 + b.y1 + 1) >> 1, S + floors, 'temple_lantern'); // on the middle of its roof
     const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
     // A sign on the wall beside the door, and a step of gravel in front of it.
     if (b.sign) {
@@ -1118,7 +1119,7 @@ function buildTown(m, S, runs, river) {
       t.ground = 'paving';
       t.items = t.items.filter(id => THINGS[id].change);
       if (pillar) t.items.push('pillar');
-      if (edge) m.set(x, y, top + 1, { ground: 'roof_green', items: [] }); // the eaves, open over the bell
+      if (edge) m.set(x, y, top + 1, { ground: 'roof_marble', items: [] }); // the eaves, open over the bell
     }
     const [sx, sy] = BT.stairs[BT.stairs.length - 1];
     m.get(sx, sy, top).items = ['stairs_down'];
