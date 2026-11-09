@@ -1078,7 +1078,7 @@ function buildTown(m, S, runs, river) {
         // windows on straight stretches of wall, every third tile, not next to the door
         const straight = (isWall(b, x - 1, y) && isWall(b, x + 1, y)) || (isWall(b, x, y - 1) && isWall(b, x, y + 1));
         const along = isWall(b, x - 1, y) && isWall(b, x + 1, y) ? x : y;
-        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) put(x, y, z, 'window');
+        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) put(x, y, z, b.wall === 'wall_temple' ? 'window_stained' : 'window'); // stained glass in the temple's stone
       });
     }
     const [dx, dy] = b.door;
@@ -1092,11 +1092,11 @@ function buildTown(m, S, runs, river) {
     if (b.sign) {
       const across = out[0] === dx, wide = b.arch ? 2 : 1, sx = across ? dx + wide : dx, sy = across ? dy : dy + 1;
       const t = m.get(sx, sy, S);
-      t.items = t.items.filter(id => id !== 'window');
+      t.items = t.items.filter(id => !id.startsWith('window'));
       sign(sx, sy, S, b.signId || 'sign_wall', b.sign);
       // ...and a lantern on the other side of the door
       const lx = across ? dx - wide : dx, ly = across ? dy : dy - 1, lt = m.get(lx, ly, S);
-      if (lt && isWall(b, lx, ly)) { lt.items = lt.items.filter(id => id !== 'window'); put(lx, ly, S, 'lantern'); }
+      if (lt && isWall(b, lx, ly)) { lt.items = lt.items.filter(id => !id.startsWith('window')); put(lx, ly, S, 'lantern'); }
     }
     if (m.get(...out, S).ground === 'grass') m.setGround(...out, S, 'gravel');
     if (b.kind !== 'temple' && b.kind !== 'depot' && b.kind !== 'tower') for (let z = S; z < S + floors; z++) for (const [x0, y0, x1, y1] of partsOf(b)) m.zones.push({ x0, y0, x1, y1, z, shelter: true });
@@ -1162,10 +1162,14 @@ function buildTown(m, S, runs, river) {
     for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
     for (const x of [cx - 4, cx + 4]) put(x, t.y1 + 1, Z, 'torch');
     sign(cx + 3, t.y1 + 1, Z, 'signpost', T.firstSteps[2]); // between the portico and the torch
-    // a garden round the temple: a paved path all the way round it, joining the terrace, with flowers beside it
-    for (let y = t.y0 - 1; y <= t.y1; y++) for (const x of [t.x0 - 1, t.x1 + 1]) { const tt = m.get(x, y, Z); if (tt && tt.ground === 'grass' && !tt.items.length) tt.ground = 'paving'; }
-    for (let x = t.x0 - 1; x <= t.x1 + 1; x++) { const tt = m.get(x, t.y0 - 1, Z); if (tt && tt.ground === 'grass' && !tt.items.length) tt.ground = 'paving'; }
-    for (let y = t.y1 + 1; y < mt.y1; y++) for (const x of [t.x0 - 1, t.x1 + 1]) { const tt = m.get(x, y, Z); if (tt && tt.ground === 'grass' && !tt.items.length) tt.ground = 'paving'; }
+    // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace, and
+    // a wide way of it east to the bell tower's door, with lamps along it; flowers beside them
+    const pave = (x, y) => { const tt = m.get(x, y, Z); if (tt && (tt.ground === 'grass' || tt.ground === 'gravel' || tt.ground === 'paving')) { tt.ground = 'temple_paving'; tt.items = tt.items.filter(id => !THINGS[id].block && id !== 'flowers' && id !== 'grass_tuft'); } };
+    for (let y = t.y0 - 1; y < mt.y1; y++) { pave(t.x0 - 1, y); pave(t.x1 + 1, y); }
+    for (let x = t.x0 - 1; x <= t.x1 + 1; x++) pave(x, t.y0 - 1);
+    const bt = B.belltower, [bdx, bdy] = bt.door;
+    for (let x = t.x1 + 2; x <= bdx + 1; x++) for (const y of [bdy + 1, bdy + 2]) pave(x, y);
+    for (const y of [bdy, bdy + 3]) put(t.x1 + 2, y, Z, 'lamppost'); // either side of where it leaves the temple's path
     for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
       const tt = m.get(x, y, Z);
       if (tt && tt.ground === 'grass' && !tt.items.length && hash(x, y) < 0.35) put(x, y, Z, hash(x + 3, y) < 0.5 ? 'flowers' : 'grass_tuft');

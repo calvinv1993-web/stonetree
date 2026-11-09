@@ -98,6 +98,7 @@ const THINGS = {
   fence:       { name: 'fence', cat: 'Walls', block: true, low: true },
 
   window:      { name: 'window', cat: 'Wall decor', onWall: true },
+  window_stained: { name: 'stained-glass window', cat: 'Wall decor', onWall: true },
   wall_torch:  { name: 'wall torch', cat: 'Wall decor', onWall: true, light: 3, fireSwap: 'wall_torch_out' },
   wall_torch_out: { name: 'unlit wall torch', cat: 'Wall decor', onWall: true, fireSwap: 'wall_torch' },
   painting:    { name: 'painting', cat: 'Wall decor', onWall: true },

@@ -798,6 +798,36 @@ const Sprites = (() => {
     for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, '#d8a830', 1.5, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7.5, sy + Math.sin(a) * 7.5); }
     ellipse(g, '#d8a830', sx, sy, 4.2, 4.2); ellipse(g, '#f8dc70', sx - 0.6, sy - 0.6, 3, 3);
   } };
+  // A window of stained glass in face coordinates (x along the face, y up it): an arch w wide, from zb to the
+  // top of its arch; inside, a sun low in the middle, its rays, and panes round it, all held in lead.
+  const SKY = ['#2f5fb8', '#c8323c', '#3e8ef7', '#6a3ab0', '#2f5fb8'];
+  const sunWindow = (f, x, w, zb, zt) => {
+    const rr = w / 2, cx = x + rr, cy = zb + (zt - zb) * 0.62, R = w * 0.3;
+    const arch = pad => { f.beginPath(); f.moveTo(x - pad, zb - pad); f.lineTo(x - pad, zt); f.arc(cx, zt, rr + pad, Math.PI, 0, true); f.lineTo(x + w + pad, zb - pad); f.closePath(); };
+    f.fillStyle = '#b4aa94'; arch(1.6); f.fill();                                  // the stone frame
+    f.fillStyle = '#2a2018'; arch(0.5); f.fill();                                  // the lead round it
+    f.save(); arch(0); f.clip();
+    const N = 10;                                                                    // panes fanning out from the sun
+    for (let k = 0; k < N; k++) {
+      const a0 = (k / N) * Math.PI * 2, a1 = ((k + 1) / N) * Math.PI * 2;
+      f.fillStyle = SKY[k % SKY.length]; f.beginPath(); f.moveTo(cx, cy); f.arc(cx, cy, 40, a0, a1); f.closePath(); f.fill();
+    }
+    for (let k = 0; k < N; k++) { // its rays: golden wedges between the panes
+      const a = (k / N) * Math.PI * 2 + Math.PI / N;
+      f.fillStyle = k % 2 ? '#f2c94c' : '#f08a3c'; f.beginPath();
+      f.moveTo(cx + Math.cos(a - 0.2) * R, cy + Math.sin(a - 0.2) * R); f.lineTo(cx + Math.cos(a) * R * 2.1, cy + Math.sin(a) * R * 2.1); f.lineTo(cx + Math.cos(a + 0.2) * R, cy + Math.sin(a + 0.2) * R); f.closePath(); f.fill();
+    }
+    f.fillStyle = '#ffd860'; f.beginPath(); f.arc(cx, cy, R, 0, Math.PI * 2); f.fill();   // the sun
+    f.fillStyle = '#fff4c0'; f.beginPath(); f.arc(cx - R * 0.3, cy + R * 0.3, R * 0.45, 0, Math.PI * 2); f.fill();
+    f.strokeStyle = '#2a2018'; f.lineWidth = 0.5;                                    // the lead: round the sun, along the panes, two rings
+    f.beginPath(); f.arc(cx, cy, R, 0, Math.PI * 2); f.stroke();
+    for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; f.beginPath(); f.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); f.lineTo(cx + Math.cos(a) * 40, cy + Math.sin(a) * 40); f.stroke(); }
+    for (const q of [2.4]) { f.beginPath(); f.arc(cx, cy, R * q, 0, Math.PI * 2); f.stroke(); }
+    f.fillStyle = 'rgba(255,250,225,0.28)'; f.fillRect(x + 0.8, zb, 1.2, zt - zb + rr * 0.6); // light on the glass
+    f.restore();
+    rect(f, '#fffcf4', x - 2, zb - 2.2, w + 4, 1.4); rect(f, '#a89e88', x - 2, zb - 2.8, w + 4, 0.6); // the sill
+    rect(f, '#e8b54a', cx - 1, zt + rr + 0.6, 2, 2.2);                                  // a gilded keystone
+  };
   // The temple's lantern on the middle of its roof, two tiles square: a marble turret with tall arched windows of
   // stained glass, each a sunrise in lead (a golden sun with its rays, ringed by panes of blue, red and violet),
   // lit from inside (it glows at night, see defs.js), a cornice, and a marble roof gilded like the temple's own,
@@ -810,36 +840,6 @@ const Sprites = (() => {
     prism(g, 8, 8, 56, 56, 0, 2.5, marble2);                                           // the base
     prism(g, 7.5, 7.5, 56.5, 56.5, 2.5, 4, gold);                                      // a gilded band
     prism(g, u0, u0, u1, u1, 4, H, marble);                                            // the turret
-    // A window of stained glass in face coordinates (x along the face, y up it): an arch w wide, from zb to the
-    // top of its arch; inside, a sun low in the middle, its rays, and panes round it, all held in lead.
-    const SKY = ['#2f5fb8', '#c8323c', '#3e8ef7', '#6a3ab0', '#2f5fb8'];
-    const sunWindow = (f, x, w, zb, zt) => {
-      const rr = w / 2, cx = x + rr, cy = zb + (zt - zb) * 0.62, R = w * 0.3;
-      const arch = pad => { f.beginPath(); f.moveTo(x - pad, zb - pad); f.lineTo(x - pad, zt); f.arc(cx, zt, rr + pad, Math.PI, 0, true); f.lineTo(x + w + pad, zb - pad); f.closePath(); };
-      f.fillStyle = '#b4aa94'; arch(1.6); f.fill();                                  // the stone frame
-      f.fillStyle = '#2a2018'; arch(0.5); f.fill();                                  // the lead round it
-      f.save(); arch(0); f.clip();
-      const N = 10;                                                                    // panes fanning out from the sun
-      for (let k = 0; k < N; k++) {
-        const a0 = (k / N) * Math.PI * 2, a1 = ((k + 1) / N) * Math.PI * 2;
-        f.fillStyle = SKY[k % SKY.length]; f.beginPath(); f.moveTo(cx, cy); f.arc(cx, cy, 40, a0, a1); f.closePath(); f.fill();
-      }
-      for (let k = 0; k < N; k++) { // its rays: golden wedges between the panes
-        const a = (k / N) * Math.PI * 2 + Math.PI / N;
-        f.fillStyle = k % 2 ? '#f2c94c' : '#f08a3c'; f.beginPath();
-        f.moveTo(cx + Math.cos(a - 0.2) * R, cy + Math.sin(a - 0.2) * R); f.lineTo(cx + Math.cos(a) * R * 2.1, cy + Math.sin(a) * R * 2.1); f.lineTo(cx + Math.cos(a + 0.2) * R, cy + Math.sin(a + 0.2) * R); f.closePath(); f.fill();
-      }
-      f.fillStyle = '#ffd860'; f.beginPath(); f.arc(cx, cy, R, 0, Math.PI * 2); f.fill();   // the sun
-      f.fillStyle = '#fff4c0'; f.beginPath(); f.arc(cx - R * 0.3, cy + R * 0.3, R * 0.45, 0, Math.PI * 2); f.fill();
-      f.strokeStyle = '#2a2018'; f.lineWidth = 0.5;                                    // the lead: round the sun, along the panes, two rings
-      f.beginPath(); f.arc(cx, cy, R, 0, Math.PI * 2); f.stroke();
-      for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; f.beginPath(); f.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); f.lineTo(cx + Math.cos(a) * 40, cy + Math.sin(a) * 40); f.stroke(); }
-      for (const q of [2.4]) { f.beginPath(); f.arc(cx, cy, R * q, 0, Math.PI * 2); f.stroke(); }
-      f.fillStyle = 'rgba(255,250,225,0.28)'; f.fillRect(x + 0.8, zb, 1.2, zt - zb + rr * 0.6); // light on the glass
-      f.restore();
-      rect(f, '#fffcf4', x - 2, zb - 2.2, w + 4, 1.4); rect(f, '#a89e88', x - 2, zb - 2.8, w + 4, 0.6); // the sill
-      rect(f, '#e8b54a', cx - 1, zt + rr + 0.6, 2, 2.2);                                  // a gilded keystone
-    };
     onSouth(g, u1, f => sunWindow(f, 20, 24, 8, 32));                                    // one big window on the south face
     // and one on the east face, drawn in its own plane
     g.save(); g.setTransform(0, 1, -LEAN * HEIGHT, -HEIGHT, 64 + u1, 64); sunWindow(g, 20, 24, 8, 32); g.restore();
@@ -2325,6 +2325,14 @@ const Sprites = (() => {
       wallBox(g, shape, u0 - 2, u0, 0, 1, h0, h1, STONE);           // the jambs
       wallBox(g, shape, u1, u1 + 2, 0, 1, h0, h1, STONE);
       wallBox(g, shape, u0 - 3, u1 + 3, 0, 3, h0 - 2, h0, STONE);   // the sill, sticking out
+    },
+    // A temple window: a tall arch of stained glass like the lantern's (a sun in leaded panes) set a little into the
+    // wall, its shadow along the top and west of the recess, a stone sill standing out below it.
+    window_stained: (g, r, frame, shape) => {
+      const D = 1.5;
+      wallPoly(g, shape, 0, 'rgba(20,14,8,0.35)', [9, 9, 23, 9, 23, 22, 16, 29, 9, 22]);          // the recess
+      onWallPlane(g, shape, -D, () => { g.transform(1, 0, 0, -1, 0, 32); sunWindow(g, 10, 12, 10, 22); });
+      wallBox(g, shape, 7, 25, 0, 2.5, 6.6, 8.2, STONE);                                         // the sill, sticking out
     },
     // A torch in an iron ring on a bracket out from the wall, soot on the wall above it.
     wall_torch: (g, r, frame, shape) => wallTorch(g, shape, frame, true),
