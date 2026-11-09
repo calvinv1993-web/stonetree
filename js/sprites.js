@@ -5176,6 +5176,74 @@ const Sprites = (() => {
     solidify(g0); // whole pixels: chunky, no soft edges
   }
 
+  // ---- people as a tilted figure (Sprites.PEOPLE 'tilt') -----------------------------------------------------------
+  // A plain figure seen from the front (or the back, or the side), tilted as a whole along the world's lean: feet at
+  // the bottom right of the tile, head up to the left. Big simple shapes (a head with hair, a body, arms, legs, boots),
+  // two or three tones each, lit from the top left, drawn at a pixel per world pixel with a black edge: chunky.
+  const tiltable = p => p && !p.ribs && !p.wings && !p.tail && !p.oneEye && !p.bigEyes && !p.horns && !(p.scale && p.scale !== 1);
+  function tiltPerson(g0, p, dir, frame) {
+    const FX = 21, FY = 28.5, D = [-0.6, -0.8], N = [0.8, -0.6]; // the feet; along the figure (up), across it (to its left on the picture: right)
+    const at = (t, s) => [FX + D[0] * t + N[0] * s, FY + D[1] * t + N[1] * s];
+    const step = frame === 1 ? 1 : frame === 2 ? -1 : 0, front = dir === 2, back = dir === 0, side = !front && !back;
+    const flip = dir === 3 ? -1 : 1; // which way a profile looks across the figure
+    const skin = p.skin || '#f0c090', hair = p.hair || shade(skin, 0.6), body = p.body || '#6a6a72', arms = p.arms || body;
+    const legs = p.legs || body, feet = p.feet || shade(legs, 0.55), hs = p.hairStyle || 'short', hat = p.hat || null;
+    const hooded = hat && hat.style === 'hood';
+    const tone = (g, c, a, b) => { const gr = g.createLinearGradient(a[0] - 3, a[1] - 3, b[0] + 3, b[1] + 3); gr.addColorStop(0, shade(c, 1.25)); gr.addColorStop(0.5, c); gr.addColorStop(1, shade(c, 0.68)); g.fillStyle = gr; };
+    const limb = (g, t0, s0, r0, t1, s1, r1, c) => { const [x0, y0] = at(t0, s0), [x1, y1] = at(t1, s1), a = Math.atan2(y1 - y0, x1 - x0);
+      g.beginPath(); g.arc(x0, y0, r0, a + Math.PI / 2, a + Math.PI * 1.5); g.arc(x1, y1, r1, a - Math.PI / 2, a + Math.PI / 2); g.closePath(); tone(g, c, [Math.min(x0, x1) - r0, Math.min(y0, y1) - r0], [Math.max(x0, x1) + r0, Math.max(y0, y1) + r0]); g.fill(); };
+    const blob = (g, t, s, rt, rs, c) => { const [x, y] = at(t, s), a = Math.atan2(D[1], D[0]); g.beginPath(); g.ellipse(x, y, rt, rs, a, 0, Math.PI * 2); tone(g, c, [x - rt, y - rt], [x + rt, y + rt]); g.fill(); };
+    const W = side ? 0.7 : 1; // from the side the figure is narrower
+    shadow(g0, FX - 1, FY + 0.5, 6.5, 2.6);
+    outlined(g0, g => {
+      // legs and boots, one ahead of the other when walking
+      const legSides = side ? [0.8, -0.8] : [-2.6, 2.6];
+      legSides.forEach((s, k) => {
+        const sw = (k ? step : -step) * (side ? 2.2 : 1.2);
+        if (!p.robe) { limb(g, 12, s * W, 2.4, 3 + sw, s * W + (side ? flip * sw * 0.6 : 0), 2, legs); blob(g, 1.6 + sw, s * W + (side ? flip * (sw * 0.6 + 1) : 0), 2.4, 2.2, feet); }
+      });
+      if (p.robe) { const [a, b, c, d] = [at(22, -6 * W), at(22, 6 * W), at(0.5, 7.4 * W), at(0.5, -7.4 * W)]; g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.lineTo(...c); g.lineTo(...d); g.closePath(); tone(g, body, d, b); g.fill(); if (p.trim) limb(g, 1, -7 * W, 1, 1, 7 * W, 1, p.trim); }
+      if (p.cape && !front) blob(g, 14, 0, 11, 7 * W, p.cape);
+      // the body
+      limb(g, 13, 0, 5.4 * W, 21.5, 0, 6.4 * W, p.armor || body);
+      if (p.skirt) limb(g, 8, 0, 6 * W, 13, 0, 5.4 * W, p.skirt);
+      limb(g, 13.4, -5.2 * W, 0.9, 13.4, 5.2 * W, 0.9, p.sash || p.belt || shade(legs, 0.5)); // the belt, across
+      if (p.tabard && !side) limb(g, 7, 0, 2, 21, 0, 2.2, p.tabard);
+      // arms swinging against the legs, hands
+      const armSides = side ? [-0.4] : [-7.2, 7.2];
+      armSides.forEach((s, k) => {
+        const sw = (k ? -step : step) * 1.6;
+        limb(g, 21, s * W, 2.2, 13.5 + sw, s * W * 1.06 + (side ? flip * sw : 0), 1.9, p.armor && !p.bareArms ? p.armor : p.bareArms ? skin : arms);
+        blob(g, 12.4 + sw, s * W * 1.06 + (side ? flip * sw : 0), 1.8, 1.8, skin);
+      });
+      if (p.held && !back) { const s = side ? -0.4 : 7.2, [x0, y0] = at(12, s), [x1, y1] = at(/staff/.test(p.held) ? 34 : 26, s + 2.5); g.strokeStyle = /staff|bow/.test(p.held) ? '#7a5030' : '#dde2ea'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+      if (p.shield && front) blob(g, 17, -7.6, 4.2, 3.6, p.shield);
+      // the head, big; the face on its front (or its side, for a profile); the hair over it
+      if (!back && (hs === 'long' || hs === 'braids')) limb(g, 21, 0, 5.6, 28, 0, 5.8, shade(hair, 0.85)); // long hair behind
+      blob(g, 27.8, side ? flip * 0.8 : 0, 6, 5.6, skin);
+      if (!back && !hooded) {
+        const eye = (t, s) => { const [x, y] = at(t, s); rect(g, '#141010', Math.round(x), Math.round(y), 1, 1); };
+        if (front) { eye(27.2, -2.2); eye(27.2, 2.2); } else eye(27.4, flip * 3.2);
+      }
+      if (p.beard && !back) limb(g, 24.6, side ? flip * 2 : -2, 2.2, 24.6, side ? flip * 3.4 : 2, 2.2, p.beard);
+      if (hs !== 'bald' && !hooded) {
+        if (back) blob(g, 28.4, 0, 6.4, 6, hair);
+        else if (side) { blob(g, 31, -flip * 1.4, 4.4, 5, hair); limb(g, 30, -flip * 4.6, 1.8, 25.4, -flip * 4.2, 1.6, hair); }
+        else { blob(g, 31.2, 0, 4, 6.2, hair); limb(g, 30, -5, 1.8, 25.4, -5.2, 1.4, hair); limb(g, 30, 5, 1.8, 25.4, 5.2, 1.4, hair); }
+        if (hs === 'ponytail' && !front) limb(g, 28, side ? -flip * 5.6 : 0, 1.6, 20, side ? -flip * 6 : 0, 1.2, hair);
+      }
+      if (hat) {
+        const c = hat.color || '#8a8a92', st = hat.style;
+        if (st === 'hood') { blob(g, 28.6, 0, 7, 6.6, c); if (!back) { blob(g, 27.4, side ? flip * 1.6 : 0, 4.4, side ? 2.6 : 4, '#1e1612'); blob(g, 27.2, side ? flip * 1.8 : 0, 3.6, side ? 2 : 3.2, skin); } }
+        else if (st === 'pointy') { const [a, b, c2] = [at(31, -7.6), at(31, 7.6), at(43, 1)]; g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.lineTo(...c2); g.closePath(); tone(g, c, a, b); g.fill(); limb(g, 31, -7.6, 1, 31, 7.6, 1, shade(c, 0.7)); }
+        else if (st === 'crown') limb(g, 32, -4, 1.4, 32, 4, 1.4, GOLD);
+        else if (st === 'wide' || st === 'tricorn' || st === 'feather' || st === 'hunter') { limb(g, 31, -8, 1.2, 31, 8, 1.2, shade(c, 0.8)); blob(g, 33.4, 0, 2.8, 4.6, c); }
+        else blob(g, 30.4, 0, 4.8, 6.4, c); // helmets and the rest
+      }
+    });
+    solidify(g0); // whole pixels
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -5496,7 +5564,7 @@ const Sprites = (() => {
   }
   function creatureDrawer(key) {
     const look = lookFor(key);
-    if (look) return (g, d, f) => (Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
+    if (look) return (g, d, f) => (Sprites.PEOPLE === 'tilt' && tiltable(look) ? tiltPerson(g, look, d, f) : Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
@@ -5849,8 +5917,14 @@ const Sprites = (() => {
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
     BUILD: 'classic', // how people are built: see BUILDS
-    PEOPLE: 'art', // people as pixel art a little over a tile tall ('art'); tried before: large shapes ('hd'), dolls ('doll'), small pixels ('pixel')
+    PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
+    // where a person's head and shoulders are on its picture [x, y, w, h], for portraits; null: the usual place
+    faceBox(c) {
+      if (Sprites.PEOPLE !== 'tilt' || !c) return null;
+      const def = c.type === 'npc' && NPCS[c.npcId];
+      return c.type === 'player' || (def && !def.creature && tiltable(def.look)) ? [TILE - 6, TILE - 4, 20, 20] : null;
+    },
     headroom(c) {
       const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : 0, able = Sprites.PEOPLE === 'art' ? artable : hdable;
       if (!rise || !c) return 0;
@@ -5871,7 +5945,7 @@ const Sprites = (() => {
       }
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)), R = Sprites.PEOPLE === 'lean' && leanable(look) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
