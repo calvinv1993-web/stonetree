@@ -842,7 +842,7 @@ const Sprites = (() => {
     };
     onSouth(g, u1, f => sunWindow(f, 20, 24, 8, 32));                                    // one big window on the south face
     // and one on the east face, drawn in its own plane
-    g.save(); g.setTransform(0, 1, -LEAN * HEIGHT, -HEIGHT, 64 + u1, 64); sunWindow(g, 24.5, 15, 8, 36); g.restore();
+    g.save(); g.setTransform(0, 1, -LEAN * HEIGHT, -HEIGHT, 64 + u1, 64); sunWindow(g, 20, 24, 8, 32); g.restore();
     for (const [a, b] of [[u0 - 1, u1 - 3], [u1 - 3, u1 - 3], [u1 - 3, u0 - 1]]) prism(g, a, b, a + 4, b + 4, 4, H, marble2); // corner pilasters
     onSouth(g, u1 + 1, f => { for (let u = u0; u < u1; u += 2.5) rect(f, '#b4aa94', u, H + 0.4, 1.2, 1.2); }); // dentils
     prism(g, u0 - 2, u0 - 2, u1 + 2, u1 + 2, H, H + 2, marble2);                        // the cornice
