@@ -153,10 +153,14 @@ const OAKVALE = {
   belltower: { stairs: [[146, 100], [148, 100], [146, 100], [148, 100]], shaft: [148, 101], bell: [146, 101],
     rules: [147, 99, 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
-  // The temple mount: a block of rock north of the square, its top one floor up, with the temple on it and
-  // a terrace in front; a broad flight of stone steps runs down from the terrace to the square.
-  mount: { x0: 128, y0: 99, x1: 143, y1: 109, steps: [136, 137, 138],
-    wings: [[144, 99, 149, 105], [144, 106, 144, 109]] }, // its east end, under the bell tower (up to the depot), and a ledge back to the terrace
+  // The temple mount: a knoll of rock north of the square, its top one floor up, with the temple on it, a terrace
+  // in front and the bell tower on its east shoulder; a broad flight of stone steps runs down from the terrace to the
+  // square. outline: its foot, roughened a little (see the mount below); keep: what must stand on it (the temple with
+  // its path round it, the terrace, the bell tower and the way to it); x0..y1: the box it lies in (y1: the steps' row).
+  mount: { x0: 128, y0: 99, x1: 149, y1: 109, steps: [136, 137, 138],
+    outline: [[128.6, 103.4], [129.8, 100.6], [132.4, 99.8], [136.8, 99.5], [141.4, 100.1], [144, 99.4], [149.6, 99.2],
+      [150, 102], [149.6, 106.2], [146.4, 106.4], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
+    keep: [[132, 100, 142, 108], [134, 109, 140, 109], [144, 99, 149, 105], [142, 104, 144, 105]] },
   streets: [
     { line: [[126, 92], [126, 110]], width: 3, ground: 'cobble' },              // from the north gate, past the temple mount
     { line: [[128, 121], [128, 150]], width: 3, ground: 'cobble' },             // from the square to the south gate
@@ -169,7 +173,7 @@ const OAKVALE = {
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_marble', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 145, y0: 99, x1: 149, y1: 103, door: [147, 103], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 106, x1: 149, y1: 111, door: [147, 111], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 108, x1: 149, y1: 113, door: [147, 113], floor: 'marble', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 109, x1: 108, y1: 116, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 131, y0: 122, x1: 137, y1: 127, door: [134, 127], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
@@ -210,7 +214,7 @@ const OAKVALE = {
   // The training yard: a fenced sandy yard with dummies.
   yard: { x0: 108, y0: 134, x1: 114, y1: 144, gate: [111, 134] },
   paths: [
-    [[147, 112], [147, 114]],                   // the depot, down to the east street
+    [[147, 114], [147, 114]],                   // the depot, onto the east street
     [[112, 111], [112, 111]], [[112, 120], [112, 120]],                          // the houses on the lane
     [[134, 128], [134, 128]], [[141, 128], [141, 128]],                          // the smithy and the armourer
     [[119, 132], [119, 132]], [[135, 132], [135, 132]], [[145, 132], [145, 132]], // the general store, the inn, Ivy Cottage
@@ -226,7 +230,7 @@ const OAKVALE = {
     [137, 119, 'stall'], [138, 119, 'sack'], [148, 128, 'barrel'], [149, 128, 'crate'], [150, 128, 'firewood'],
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
   ],
-  lamps: [[124, 98], [126, 144], [130, 144], [103, 128], [103, 132], [150, 114], [150, 118], [123, 111], [146, 111],
+  lamps: [[124, 98], [126, 144], [130, 144], [103, 128], [103, 132], [150, 114], [150, 118], [123, 111], [143, 111],
     [123, 121], [109, 107], [112, 123], [112, 127]],
   benches: [[126, 112], [142, 112], [126, 118], [142, 118]],
   planters: [[132, 113], [140, 113]],
@@ -240,13 +244,13 @@ const OAKVALE = {
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
-    ['ama', 136, 103, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 108, 8], ['pip', 119, 136, 8],
+    ['ama', 136, 103, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 110, 8], ['pip', 119, 136, 8],
     ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8],
     ['gate_north', 126, 100, 8], ['gate_east', 149, 116, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 130, 8],
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
   notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
-  firstSteps: [140, 107, 'Welcome to Oakvale Isle! Below you lies the town. Down the steps is the square; the depot is east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
+  firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; this is the square. The depot is just east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
 // The sewers under Oakvale, one floor down: brick tunnels under the main streets, each with a channel of
@@ -1021,25 +1025,41 @@ function buildTown(m, S, runs, river) {
   });
   for (const [x0, y0, x1, y1] of T.square) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.setGround(x, y, S, 'cobble');
 
-  // The temple mount: rock walls on the surface, and on top (one floor up) grass, with the corners cut off.
+  const inPoly = (p, x, y) => { let hit = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+    const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit; } return hit; };
+  // The temple mount: rock walls on the surface, and on top (one floor up) grass, with bare rock showing along the
+  // edge here and there and the odd crag. Its foot follows the outline, roughened by a tile or so (a fixed smooth noise, without lone tiles sticking
+  // out or bites taken in); what it must carry is always on it, and in front of the steps its face runs straight.
   {
-    const t = T.mount;
+    const t = T.mount, inR = (r, x, y) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3];
+    const kept = (x, y) => t.keep.some(r => inR(r, x, y)), flat = (x, y) => y > t.y1 && x >= t.steps[0] - 4 && x <= t.steps[2] + 4;
+    let on = new Set();
     for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
-      if (x === t.x0 && y === t.y1) continue; // a rounded front corner (the east one meets the ledge to the depot)
+      const rough = inPoly(t.outline, x + 0.5 + (smooth(x, y, 3, 11) - 0.5) * 2.4, y + 0.5 + (smooth(x, y, 3, 12) - 0.5) * 2.4);
+      if ((rough || kept(x, y)) && !flat(x, y)) on.add(`${x},${y}`);
+    }
+    const n4 = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => on.has(`${x + dx},${y + dy}`)).length;
+    for (let pass = 0; pass < 3; pass++) { // smooth it: no tile hanging on by one side, no notch with rock on three
+      const next = new Set();
+      for (let y = t.y0; y <= t.y1; y++) for (let x = t.x0; x <= t.x1; x++) {
+        const k = `${x},${y}`, n = n4(x, y);
+        if (kept(x, y) || (on.has(k) ? n >= 2 : n >= 3 && !flat(x, y))) next.add(k);
+      }
+      on = next;
+    }
+    const all8 = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].every(([dx, dy]) => on.has(`${x + dx},${y + dy}`));
+    for (const k of on) {
+      const [x, y] = k.split(',').map(Number), rim = !all8(x, y);
       m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
-      m.set(x, y, S + 1, { ground: 'grass', items: [] });
+      const bare = rim && !kept(x, y) && smooth(x, y, 2, 13) > 0.55; // rock showing through here and there along the edge
+      m.set(x, y, S + 1, { ground: bare ? 'mountain' : 'grass', items: [] });
+      if (rim && !kept(x, y) && hash(x + 77, y) < 0.2) put(x, y, S + 1, 'crag');
     }
     for (const x of t.steps) { m.get(x, t.y1, S).items = ['steps']; m.setGround(x, t.y1, S + 1, 'steps_top'); }
-    for (const [x0, y0, x1, y1] of t.wings || []) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
-      m.set(x, y, S + 1, { ground: 'grass', items: [] });
-    }
   }
 
   // The hills: rock walls with a rugged top you can't walk on; a second tier stands back two tiles,
   // with crags on it.
-  const inPoly = (p, x, y) => { let hit = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
-    const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit; } return hit; };
   for (const hill of T.hills) {
     const tiles = new Set();
     // The outline, roughened by a tile or so (a fixed smooth noise), without lone tiles sticking out.
@@ -1160,8 +1180,7 @@ function buildTown(m, S, runs, river) {
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
     for (const [x, id] of [[t.x0 + 1, 'statue'], [t.x1 - 1, 'statue']]) put(x, mt.y1 - 1, Z, id);
     for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
-    for (const x of [cx - 4, cx + 4]) put(x, t.y1 + 1, Z, 'torch');
-    sign(cx + 3, t.y1 + 1, Z, 'signpost', T.firstSteps[2]); // between the portico and the torch
+    sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
     // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace, and
     // a wide way of it east to the bell tower's door, with lamps along it; flowers beside them
     const pave = (x, y) => { const tt = m.get(x, y, Z); if (tt && (tt.ground === 'grass' || tt.ground === 'gravel' || tt.ground === 'paving')) { tt.ground = 'temple_paving'; tt.items = tt.items.filter(id => !THINGS[id].block && id !== 'flowers' && id !== 'grass_tuft'); } };

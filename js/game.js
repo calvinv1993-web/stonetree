@@ -39,6 +39,25 @@ function setMapZoom(near) {
   fitView();
 }
 
+// On a phone that can't keep up, the map is drawn with fewer pixels: sharpDrop steps below the screen's own (at most
+// down to 2 per world pixel). It goes down a step when frames come too slowly for a few seconds running, and is
+// remembered per browser, so a slow phone starts where it ended.
+let sharpDrop = (() => { try { return Math.max(0, +localStorage.getItem('tilequest.sharpDrop') || 0); } catch (e) { return 0; } })();
+const keepUp = { from: 0, frames: 0 };
+function checkKeepingUp(t) {
+  if (!document.body.classList.contains('touch-ui') || document.hidden) { keepUp.from = 0; return; }
+  if (!keepUp.from || t - keepUp.last > 500) { Object.assign(keepUp, { from: t, last: t, frames: 0 }); return; } // (after a pause: start over)
+  keepUp.frames++;
+  keepUp.last = t;
+  if (t - keepUp.from < 4000) return;
+  const fps = (keepUp.frames * 1000) / (t - keepUp.from);
+  keepUp.from = 0;
+  if (fps >= 22 || Sprites.CREATURE_RES <= 2) return;
+  sharpDrop++;
+  try { localStorage.setItem('tilequest.sharpDrop', sharpDrop); } catch (e) { /* not remembered */ }
+  fitView();
+}
+
 // Scale the map to the largest rectangle that fits the space left for it. On a phone the view itself adapts to
 // the screen (see below).
 function fitView() {
@@ -57,10 +76,13 @@ function fitView() {
       rows = Math.ceil(H / (TILE * p));
       if (cols <= 25 && rows <= 21) break;
     }
-    Sprites.CREATURE_RES = Math.max(2, p); // (figures drawn just as finely)
-    setViewSize(Math.max(7, cols), Math.max(7, rows), p / SCALE);
-    canvas.style.width = `${canvas.width / dpr}px`;
-    canvas.style.height = `${canvas.height / dpr}px`;
+    // The canvas is drawn r pixels per world pixel: p, or fewer on a phone too slow for that (see keepUp); the
+    // browser then blows it up to p, which costs next to nothing.
+    const r = Math.max(2, p - sharpDrop);
+    Sprites.CREATURE_RES = r; // (figures drawn just as finely)
+    setViewSize(Math.max(7, cols), Math.max(7, rows), r / SCALE);
+    canvas.style.width = `${(VIEW_W * TILE * p) / dpr}px`;
+    canvas.style.height = `${(VIEW_H * TILE * p) / dpr}px`;
     return;
   }
   setViewSize(VIEW_W, VIEW_H, 1);
@@ -769,6 +791,7 @@ function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
   if (document.body.classList.contains('touch-ui') && t - lastFrameAt < FRAME_INTERVAL - 1) return;
   lastFrameAt = t;
+  checkKeepingUp(t);
   try {
     if (online()) {
       now = Net.clock();

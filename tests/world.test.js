@@ -211,7 +211,7 @@ test('in Oakvale, every building stands at least two tiles clear of the town wal
   assert.deepStrictEqual(close, []);
 });
 
-test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch', () => {
+test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch (what stands on the mount aside)', () => {
   const T = require('vm').runInContext('OAKVALE', ctx), rects = [];
   for (const b of T.buildings) for (const r of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) rects.push([b.id, ...r]);
   T.gardens.forEach((gd, i) => rects.push([`garden ${i}`, gd.x0, gd.y0, gd.x1, gd.y1]));
@@ -222,8 +222,11 @@ test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, 
     if (a === b) continue; // the wings of one building
     if (ax0 <= bx1 && bx0 <= ax1 && ay0 <= by1 && by0 <= ay1) clash.push(`${a} / ${b}`);
   }
-  const m = T.mount;
-  for (const b of T.buildings) if (b.id !== 'temple' && b.x0 <= m.x1 && m.x0 <= b.x1 && b.y0 <= m.y1 && m.y0 <= b.y1) clash.push(`${b.id} / mount`);
+  // the mount's rock itself (not its box), with a tile of room round it
+  const S = map.surfaceZ, rock = (x, y) => (map.get(x, y, S)?.items || []).includes('cliff');
+  for (const b of T.buildings) if (!b.level) for (let y = b.y0 - 1; y <= b.y1 + 1; y++) for (let x = b.x0 - 1; x <= b.x1 + 1; x++) {
+    if (rock(x, y) && !clash.includes(`${b.id} / mount`)) clash.push(`${b.id} / mount`);
+  }
   assert.deepStrictEqual(clash, []);
 });
 
