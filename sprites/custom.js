@@ -32,6 +32,7 @@ const CUSTOM_SPRITES = {
   sheet_gate_north: 'npc-gate_north.png', // Captain Osric
   sheet_gate_east: 'npc-gate_east.png', // Guard Hilde
   sheet_gate_south: 'npc-gate_south.png', // Guard Tilda
+  sheet_gate_west: 'npc-gate_west.png', // Sergeant Bram
   sheet_townsman: 'npc-townsman.png', // Townsman
   sheet_townswoman: 'npc-townswoman.png', // Townswoman
   sheet_child: 'npc-child.png', // Child
