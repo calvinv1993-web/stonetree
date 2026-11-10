@@ -15,6 +15,7 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   hangs flat against it, with its shadow on the wall.
 - Only flames rise straight up the screen (fire goes up), and the figures: people, and the figures of statues (`stoneFigure()`: a person's figure in marble or bronze, upright on a plinth that leans as things do).
 - **Players** are drawn from the owner's own picture, `sprites/player-sheet.png` (`playerFromSheet()`): front, side and back, standing and two steps, at 4 pixels a world pixel; their hair, shirt, trousers and boots take the outfit's colours. A new sheet for other outfits follows the same layout (cells of 32 x 48 world pixels, feet at 16, 46).
+- **An NPC with its own sheet** (`sprites/custom.js`: `sheet_<npc id>`, laid out as the player sheet, e.g. Sister Ama: `npc-ama.png`) is drawn from it as it is (`npcFromSheet()`).
 - **Other people** stand upright (`tiltPerson()`, `Sprites.PEOPLE = 'tilt'`, `Sprites.TILT = 0`): a plain figure seen from the front, back or side, big simple shapes (head with hair and a face, body, belt, arms and hands, legs and boots) in two or three tones, lit from the top left, at a pixel per world pixel with a black edge. `TILT` can lean them along the world's slant (degrees); the owner chose upright. Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: `'art'`, `'hd'`, `'pixel'`, `'lean'`.
 - Nothing with thickness is a flat picture: give it its sides and its shadow in this camera.
 

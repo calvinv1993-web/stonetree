@@ -5338,6 +5338,17 @@ const Sprites = (() => {
     return sheetPixels;
   }
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
+  // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is.
+  function npcFromSheet(id, dir, frame) {
+    const img = customImage(`sheet_${id}`), R = SHEET.res, [CW, CH] = SHEET.cell;
+    return cached(`npcsheet:${id}:${dir}:${frame}`, g => {
+      g.canvas.res = R;
+      const sx = (frame || 0) * CW * R, sy = SHEET.rows[dir] * CH * R, ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
+      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * R, CH * R, 0, 0, CW * R, CH * R); }
+      else g.drawImage(img, sx, sy, CW * R, CH * R, ox, oy, CW * R, CH * R);
+    }, 2 * TILE * R);
+  }
+  const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && customImage(`sheet_${c.npcId}`)));
   function playerFromSheet(key, dir, frame) {
     const img = customImage('player_sheet'), R = SHEET.res, look = lookFor(key) || {};
     return cached(`sheet:${key}:${dir}:${frame}`, g => {
@@ -5941,7 +5952,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' || id === 'player_sheet') img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' || id === 'player_sheet' || id.startsWith('sheet_')) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -6120,7 +6131,7 @@ const Sprites = (() => {
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
     // where a person's head and shoulders are on its picture [x, y, w, h], for portraits; null: the usual place
     faceBox(c) {
-      if (c && c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) return [TILE + 6, TILE - 8, 20, 20]; // (the sheet's head)
+      if (ownSheet(c)) return [TILE + 6, TILE - 8, 20, 20]; // (a sheet's head)
       if (Sprites.PEOPLE !== 'tilt' || !c) return null;
       const def = c.type === 'npc' && NPCS[c.npcId];
       if (!(c.type === 'player' || (def && !def.creature && tiltable(def.look)))) return null;
@@ -6128,7 +6139,7 @@ const Sprites = (() => {
       return [TILE + hx - 10, TILE + hy - 8, 20, 20]; // (the head a little above the middle)
     },
     headroom(c) {
-      if (c && c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) return 7; // (the sheet's figures reach 7 above their tile)
+      if (ownSheet(c)) return 7; // (the sheets' figures reach 7 above their tile)
       const tiltRise = Math.max(0, Math.ceil(34 * Math.cos((Sprites.TILT || 0) * Math.PI / 180) - 28.5)); // (a tilted figure's head reaches higher the straighter it stands)
       const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : Sprites.PEOPLE === 'tilt' ? tiltRise : 0;
       const able = Sprites.PEOPLE === 'art' ? artable : Sprites.PEOPLE === 'tilt' ? tiltable : hdable;
@@ -6151,6 +6162,7 @@ const Sprites = (() => {
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       if (key.startsWith('player:') && Sprites.PLAYER_SHEET && customImage('player_sheet')) return playerFromSheet(key, dir, frame);
+      if (key.startsWith('npc:') && customImage(`sheet_${key.slice(4)}`)) return npcFromSheet(key.slice(4), dir, frame);
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}:${Sprites.TILT}`, g => {
         g.canvas.res = R;
