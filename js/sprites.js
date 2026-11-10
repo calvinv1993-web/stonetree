@@ -6422,6 +6422,14 @@ const Sprites = (() => {
     // tile-sized pictures (2 pixels a world pixel) of that ground's border reaching into a tile from its north (east...)
     // side, over nothing (transparent). Long borders run on through the strip's pictures by position; an inside corner
     // is two sides; a corner on its own (an outer corner) is the north side's border bent round the corner.
+    // Blades of grass to draw over the foot of a thing standing beside grass (sprites/custom.js grass_fringe: a strip of
+    // tile-wide pieces, roots along the bottom, at 2 pixels a world pixel), or null
+    grassFringe() {
+      const img = customImage('grass_fringe');
+      if (!img) return null;
+      const res = 2;
+      return { img, res, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: img.naturalHeight / res * 0.7 };
+    },
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     ownEdge(ground, mask, x, y) {
       const pics = {};

@@ -467,8 +467,25 @@ const Render = {
         const up = above[by * map.width + bx], gid = up && up.ground;
         return !!gid && !SEE_THROUGH.has(gid) && !THINGS[gid].roof && blockAt(bx, by + 1) && blockAt(bx + 1, by) && blockAt(bx + 1, by + 1);
       };
+      // Grass grows up round the foot of what stands next to it: blades over the bottom of the thing north or west of a
+      // grass tile (its south or east face), so it stands in the grass instead of on it (Sprites.grassFringe)
+      const standing = (sx, sy) => {
+        const n = tileAt(sx, sy);
+        return !!n && n.items.some(id => { const d = THINGS[id]; return (d.wall || d.tall || (d.block && !d.low)) && !d.change && !d.onWall && !d.roof; });
+      };
+      const fringe = Sprites.grassFringe && Sprites.grassFringe();
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = floor[y * map.width + x];
+        if (t && fringe && t.ground === 'grass' && !standing(x, y)) {
+          const f = fringe, piece = (((x + y * 7) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE, fh = f.height;
+          if (standing(x, y - 1)) g.drawImage(f.img, piece * fw, 0, fw, fh, ox + x * TILE, oy + y * TILE - f.reach, TILE, fh / f.res);
+          if (standing(x - 1, y)) { // (turned: the blades lean out west over the east face)
+            g.save();
+            g.transform(0, 1 / f.res, 1 / f.res, 0, ox + x * TILE - f.reach, oy + y * TILE);
+            g.drawImage(f.img, ((piece + 5) % f.pieces) * fw, 0, fw, fh, 0, 0, fw, fh);
+            g.restore();
+          }
+        }
         if (t) {
           let wallShape = null;
           for (const id of t.items) {

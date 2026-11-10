@@ -15,6 +15,7 @@ const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
   cobble: 'cobble-mock.png',
+  grass_fringe: 'grass-fringe.png', // blades of grass over the foot of what stands beside grass (see Sprites.grassFringe)
   edge_grass_n: 'edge-grass-n.png', // the grass's border reaching into a tile from the north, east, south and west (see Sprites.ownEdge)
   edge_grass_e: 'edge-grass-e.png',
   edge_grass_s: 'edge-grass-s.png',
