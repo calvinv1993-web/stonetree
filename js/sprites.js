@@ -2916,7 +2916,11 @@ const Sprites = (() => {
     marble: { tiles: 4, draw: g => {
       const image = customImage('marble');
       if (image) {
-        g.imageSmoothingEnabled = false; g.drawImage(image, 0, 0);
+        g.imageSmoothingEnabled = false;
+        // A 64x64 custom tile repeats to fill the 128x128 seamless atlas.
+        if (image.naturalWidth === 64 && image.naturalHeight === 64) {
+          for (let ay = 0; ay < 128; ay += 64) for (let ax = 0; ax < 128; ax += 64) g.drawImage(image, ax, ay);
+        } else g.drawImage(image, 0, 0);
         for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
           const px = x * TILE, py = y * TILE;
           g.fillStyle = '#e8dfcd';
