@@ -984,6 +984,15 @@ const Sprites = (() => {
     cape: '#d9d0bc', eye: '#a89e8a', held: 'staff', heldColor: '#d8a030' };
   const BRONZE_HERO = { skin: '#6a9a86', hair: '#3e6656', body: '#6a9a86', legs: '#5e8c7a', feet: '#3e6656', belt: '#d8c070', cape: '#4e7e6c',
     eye: '#22382f', held: 'sword', heldColor: '#b4dccb', armor: '#7aa898' };
+  // A statue's figure (from stoneFigure) with its feet at (px, py): upright, or leaning up-left with the camera as
+  // everything with height does (Sprites.FIGURE_LEAN, 0 .. 1 of the world's lean), k times as big.
+  function standFigure(g, fig, px, py, k = 1) {
+    const lean = Sprites.FIGURE_LEAN * LEAN; // (screen pixels left per pixel up, as P() moves things that rise)
+    g.save();
+    g.transform(1, 0, lean, 1, -lean * py, 0); // (x moves left by lean for every pixel above the feet)
+    g.drawImage(fig, Math.round(px - 20 * k), Math.round(py - 40.5 * k), 40 * k, 48 * k);
+    g.restore();
+  }
   function stoneFigure(key, look) {
     return cached(`stonefig:${key}`, g => {
       const tilt = Sprites.TILT;
@@ -1877,8 +1886,8 @@ const Sprites = (() => {
       prism(g, 4, 4, 28, 28, 0, 8, stone);
       prism(g, 6, 6, 26, 26, 8, 12, stone);
       onSouth(g, 28, f => rect(f, '#86867f', 9, 2, 14, 4)); // a plaque
-      const [px, py] = P(16, 17, 12); // a bronze hero gone green, upright as people stand, a sword in hand
-      g.drawImage(stoneFigure('hero', BRONZE_HERO), Math.round(px - 20), Math.round(py - 40.5));
+      const [px, py] = P(16, 17, 12); // a bronze hero gone green, a sword in hand
+      standFigure(g, stoneFigure('hero', BRONZE_HERO), px, py);
     },
     // A saint of the temple: a figure in white marble robes and a hood, a gilded sun behind its head, on a stepped plinth
     // with a gilded band.
@@ -1891,8 +1900,8 @@ const Sprites = (() => {
       prism(g, 4.5, 4.5, 27.5, 27.5, 12, 13.5, gold); // a gilded band
       prism(g, 6, 6, 26, 26, 13.5, 16, m2);          // and its top
       onSouth(g, 27, f => { rect(f, '#c9bfa8', 10, 6, 12, 4); rect(f, '#f2c94c', 15, 7, 2, 2); }); // a panel with a little sun
-      const [px, py] = P(16, 17, 16);              // the figure stands upright on it, as people do
-      g.drawImage(stoneFigure('saint', MARBLE_SAINT), Math.round(px - 20), Math.round(py - 40.5));
+      const [px, py] = P(16, 17, 16);              // the figure stands on it
+      standFigure(g, stoneFigure('saint', MARBLE_SAINT), px, py);
     },
     // A temple pew: dark polished wood, its ends carved and capped, a seat and a high back (it faces the altar, north:
     // you see its back), a gilded rail along the top.
@@ -6144,6 +6153,7 @@ const Sprites = (() => {
     },
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
+    FIGURE_LEAN: 0, // statues' figures: 0 upright, 1 leaning with the camera (see standFigure)
     BUILD: 'classic', // how people are built: see BUILDS
     // for tests/bake-ground.js: the ground's pictures made so far ([key, canvas]), and the fingerprint they're made with
     bakeable: () => [...cache].filter(([k]) => BAKED_KINDS.some(p => k.startsWith(p))),
