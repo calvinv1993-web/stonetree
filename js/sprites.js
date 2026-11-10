@@ -352,27 +352,19 @@ const Sprites = (() => {
   }
   // A thin wall from its own PNGs, when sprites/custom.js lists all three: <id>_post (the post alone), <id>_n (the post
   // with its arm running north) and <id>_w (with its arm running west), each 64 x 64 world pixels with the wall's tile
-  // in the bottom-right corner, at any number of pixels a world pixel. The wall to the south or east brings its own arm. Kept no finer than the screen shows it, so it's never scaled down per frame.
+  // in the bottom-right corner, at any number of pixels a world pixel. A wall that goes on south or east is just the
+  // post: the wall there brings its own arm. Kept no finer than the screen shows it, so it's never scaled down per frame.
   function wallFromPictures(id, shape) {
     const def = THINGS[id];
     if (!def || def.wall !== 'thin') return null;
     const post = customImage(`${id}_post`), north = customImage(`${id}_n`), west = customImage(`${id}_w`);
     if (!post || !north || !west) return null;
     const s = wallSides(shape), k = Math.min(post.naturalWidth / (2 * TILE), Sprites.CREATURE_RES), size = Math.round(2 * TILE * k);
-    return cached(`ownwall:${id}:${shape}:${k}`, g => {
+    return cached(`ownwall:${id}:${s.n ? 'n' : ''}${s.w ? 'w' : ''}:${k}`, g => {
       g.canvas.res = k;
       g.imageSmoothingEnabled = true;
       g.imageSmoothingQuality = 'high';
       for (const img of s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
-      // Where the wall goes on south or east, the post's own end there (its south or east face) is cut away: the wall
-      // next to it carries on in its place, and a picture's end never lines up exactly with the next one's start.
-      g.globalCompositeOperation = 'destination-out';
-      g.scale(size / (2 * TILE), size / (2 * TILE)); // (in world pixels from here; the tile is the bottom-right 32 x 32)
-      const end = pts => { g.beginPath(); pts.forEach(([x, y]) => g.lineTo(x, y)); g.fill(); };
-      // (a few pixels of it are left, under the next wall's start, so no gap opens between them)
-      const o = 4;
-      if (s.s) end([[TILE - 7, TILE + o], [TILE, TILE + o], [2 * TILE - o, 2 * TILE], [TILE - 7, 2 * TILE]]);
-      if (s.e) end([[TILE + o, TILE - 7], [2 * TILE, TILE - 7], [2 * TILE, 2 * TILE - o], [TILE + o, TILE]]);
     }, size);
   }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
