@@ -78,14 +78,15 @@ const Render = {
       const tx0 = cx * C, ty0 = cy * C;
       if (!c) { // (seeing what's in it is quick: done even without time to spare)
         // what's in it: nothing (an empty upper floor), moving ground (drawn live), or ground to keep
-        let any = false, moving = false;
+        let any = false, moving = false, bx0 = C, by0 = C, bx1 = -1, by1 = -1; // (and the box of its tiles with ground: only that is put down)
         for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
           const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
           const gid = t ? t.ground : beyond;
           if (gid || (t && t.items.length)) any = true;
+          if (gid) { bx0 = Math.min(bx0, x - tx0); by0 = Math.min(by0, y - ty0); bx1 = Math.max(bx1, x - tx0); by1 = Math.max(by1, y - ty0); }
           if (MOVING.includes(gid)) moving = true;
         }
-        c = { tag, empty: !any, canvas: null, made: PARTS };
+        c = { tag, empty: !any, canvas: null, made: PARTS, box: bx1 < 0 ? null : [bx0, by0, bx1 - bx0 + 1, by1 - by0 + 1] };
         if (any && !moving) { // (a picture freed by a chunk let go of, if there is one: making new ones is slow)
           c.canvas = Render.spare.pop();
           if (!c.canvas) { c.canvas = document.createElement('canvas'); c.canvas.width = c.canvas.height = C * TILE * R; }
@@ -123,7 +124,10 @@ const Render = {
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
       const c = chunk(cx, cy), tx0 = cx * C, ty0 = cy * C;
       if (c && c.empty) continue;
-      if (c && c.canvas && c.made >= PARTS) { g.drawImage(c.canvas, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); continue; }
+      if (c && c.canvas && c.made >= PARTS) { // only the part with ground on it: on an upper floor often a thin strip
+        if (c.box) { const [bx, by, bw, bh] = c.box, k = TILE * R; g.drawImage(c.canvas, bx * k, by * k, bw * k, bh * k, ox + (tx0 + bx) * TILE, oy + (ty0 + by) * TILE, bw * TILE, bh * TILE); }
+        continue;
+      }
       // moving ground, or not made yet: this chunk's part of the view, drawn live
       if (!c || c.canvas) Render.stats.live++;
       const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);

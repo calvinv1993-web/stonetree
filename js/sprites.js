@@ -5933,7 +5933,7 @@ const Sprites = (() => {
     try {
       const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
       probe.canvas.width = probe.canvas.height = 16;
-      for (const [id, img] of [...custom].sort()) {
+      for (const [id, img] of [...custom].filter(([id]) => SEAMLESS[id] || (THINGS[id] && THINGS[id].ground)).sort()) { // (only the ground's own textures: not people, statues...)
         if (!img.naturalWidth) { parts.push(id, 'none'); continue; }
         probe.clearRect(0, 0, 16, 16); probe.drawImage(img, 0, 0, 16, 16);
         parts.push(id, img.naturalWidth, img.naturalHeight, Array.from(probe.getImageData(0, 0, 16, 16).data).join(','));
@@ -5952,7 +5952,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' || id === 'player_sheet' || id.startsWith('sheet_')) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' ) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
