@@ -488,6 +488,9 @@ const Render = {
               material = wall ? THINGS[wall].sprite || wall : 'wall_stone';
             } else if (def.onWall) {
               shape = wallShape || '1000';
+            } else if (id === 'steps') { // a flight of steps several tiles wide: its ends and its middle
+              const stepsAt = sx => { const n = tileAt(sx, y); return n && n.items.includes('steps') ? '1' : '0'; };
+              shape = stepsAt(x - 1) + stepsAt(x + 1);
             } else if (id === 'fence') { // fences join up with the fences next to them
               const fenceAt = (fx, fy) => { const n = tileAt(fx, fy); return n && n.items.includes('fence') ? '1' : '0'; };
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);

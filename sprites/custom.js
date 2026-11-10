@@ -57,6 +57,7 @@ const CUSTOM_SPRITES = {
   pew: 'pew@2x.png',
   pillar: 'pillar@2x.png',
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
+  steps_slope: 'steps-slope.png', // the temple's stone steps: their slope seen straight on, left end, middle, right end (see stepsFromPicture)
   grate: 'grate@2x.png', // the sewer grates in the streets
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };

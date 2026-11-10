@@ -408,6 +408,26 @@ const Sprites = (() => {
     }
     return edgePixelCache.get(img);
   }
+  // Stone steps from their own picture (sprites/custom.js steps_slope): the slope seen straight on (u across, v down
+  // the slope), three tiles across - the left end, the middle, the right end - at any number of pixels a world pixel.
+  // shape: whether there are steps west and east of this one ('10'...), from the renderer.
+  function stepsFromPicture(shape = '00') {
+    const pic = customImage('steps_slope'), res = Math.min(pic.naturalHeight / TILE, Sprites.CREATURE_RES), src = pic.naturalHeight;
+    const piece = shape === '11' ? 1 : shape === '10' ? 2 : shape === '01' ? 0 : 1, rightEnd = shape[1] !== '1';
+    return cached(`ownsteps:${piece}:${rightEnd}:${res}`, g => {
+      g.canvas.res = res;
+      if (rightEnd) { // its east side, stone, where nothing goes on
+        g.save(); g.setTransform(...FACES.east.map(v => v * res));
+        g.beginPath(); g.moveTo(0, 0); g.lineTo(0, TILE); g.lineTo(TILE, TILE); g.closePath(); g.clip();
+        stoneBlocks(g, makeRng(hashStr('steps')), 96, '#2e2e32');
+        g.restore();
+      }
+      g.save(); g.setTransform(res, 0, res, 2 * res, 0, 0); // (u, v) on the slope -> (u + v, 2v)
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      g.drawImage(pic, piece * src, 0, src, src, 0, 0, TILE, TILE);
+      g.restore();
+    }, 2 * TILE * res);
+  }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
   // the face the wall runs along (south for a wall running east-west, east for
   // one running north-south). Through an open door you see what's behind it, with
@@ -6192,6 +6212,7 @@ const Sprites = (() => {
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y);
       if (ownBlock) return ownBlock;
+      if (id === 'steps' && customImage('steps_slope')) return stepsFromPicture(shape);
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
         const anim = ANIMATED[PARTS[sprite][0]];
