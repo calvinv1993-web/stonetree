@@ -372,6 +372,42 @@ const Sprites = (() => {
       for (const img of corner ? [corner] : s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
     }, size);
   }
+  // A block (a mountain side...) whose faces come from its own picture: sprites/custom.js <id>_face, a strip of faces
+  // TILE world pixels high, in face coordinates (as face() paints them), at any number of pixels a world pixel. Each
+  // tile shows the part of the strip for its place, so a long side runs on without repeating tile by tile; the east
+  // face (in shade) shows the strip too, darker. The top keeps its own drawing (the floor above mostly covers it).
+  function blockFromPicture(id, x, y) {
+    const pic = customImage(`${id}_face`), def = THINGS[id];
+    if (!pic || !def || def.wall !== 'block') return null;
+    const res = Math.min(pic.naturalHeight / TILE, Sprites.CREATURE_RES), n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
+    const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
+    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${res}`, g => {
+      g.canvas.res = res;
+      const side = (which, i, shade) => {
+        g.save();
+        g.setTransform(...FACES[which].map((v, k) => v * res));
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        g.drawImage(pic, i * src, 0, src, src, 0, 0, TILE, TILE);
+        if (shade) { g.fillStyle = `rgba(20,16,12,${shade})`; g.fillRect(0, 0, TILE, TILE); }
+        g.restore();
+      };
+      side('south', at(x), 0);
+      side('east', at(y), 0.38);
+      g.save(); g.scale(res, res);
+      g.beginPath(); g.rect(0, 0, TILE, TILE); g.clip(); rockSurface(g, makeRng(hashStr(id) + at(x) * 7 + at(y)));
+      g.restore();
+    }, 2 * TILE * res);
+  }
+  // A picture's pixels (for reading a border strip pixel by pixel), kept
+  const edgePixelCache = new Map();
+  function edgePixels(img) {
+    if (!edgePixelCache.has(img)) {
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      edgePixelCache.set(img, { width: c.width, data: g.getImageData(0, 0, c.width, c.height).data });
+    }
+    return edgePixelCache.get(img);
+  }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
   // the face the wall runs along (south for a wall running east-west, east for
   // one running north-south). Through an open door you see what's behind it, with
@@ -6154,6 +6190,8 @@ const Sprites = (() => {
       if (own) return own;
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
+      const ownBlock = blockFromPicture(id, x, y);
+      if (ownBlock) return ownBlock;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
         const anim = ANIMATED[PARTS[sprite][0]];
@@ -6362,7 +6400,8 @@ const Sprites = (() => {
     // A ground's own border pictures, if sprites/custom.js lists them: edge_<ground>_n, _e, _s, _w, each a strip of
     // tile-sized pictures (2 pixels a world pixel) of that ground's border reaching into a tile from its north (east...)
     // side, over nothing (transparent). Long borders run on through the strip's pictures by position; an inside corner
-    // is two sides; a corner on its own is the end of a side's picture, rounded off.
+    // is two sides; a corner on its own (an outer corner) is the north side's border bent round the corner.
+    hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     ownEdge(ground, mask, x, y) {
       const pics = {};
       for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_${ground}_${d}`))) return null;
@@ -6371,21 +6410,24 @@ const Sprites = (() => {
       const res = pics.n.naturalHeight / TILE, T = TILE * res, count = d => Math.max(1, Math.round(pics[d].naturalWidth / T));
       const at = (d, along) => ((along % count(d)) + count(d)) % count(d);
       const parts = [[1, 'n', at('n', x)], [2, 'e', at('e', y)], [4, 's', at('s', x)], [8, 'w', at('w', y)]].filter(([bit]) => mask & bit);
-      const ends = [[16, 'n', 'right'], [32, 's', 'right'], [64, 's', 'left'], [128, 'n', 'left']].filter(([bit]) => mask & bit);
-      return cached(`ownedge:${ground}:${mask}:${parts.map(p => p[2]).join(',')}`, g => {
+      const corners2 = [[16, T, 0], [32, T, T], [64, 0, T], [128, 0, 0]].filter(([bit]) => mask & bit);
+      return cached(`ownedge:${ground}:${mask}:${parts.map(p => p[2]).join(',')}:${at('n', x)}`, g => {
         g.canvas.res = res;
         for (const [, d, i] of parts) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
-        for (const [, d, side] of ends) { // the corner of a side's border: its last few pixels, fading round the corner
-          const w = Math.round(T * 0.3), part = document.createElement('canvas');
-          part.width = part.height = T;
-          const pg = part.getContext('2d');
-          pg.drawImage(pics[d], (at(d, x) + (side === 'left' ? 1 : 0)) * T - (side === 'left' ? w : 0), 0, w, T, side === 'left' ? 0 : T - w, 0, w, T);
-          pg.globalCompositeOperation = 'destination-in';
-          const cx = side === 'left' ? 0 : T, cy = d === 'n' ? 0 : T, grad = pg.createRadialGradient(cx, cy, 0, cx, cy, w * 1.2);
-          grad.addColorStop(0, '#000'); grad.addColorStop(0.75, '#000'); grad.addColorStop(1, 'rgba(0,0,0,0)');
-          pg.fillStyle = grad; pg.fillRect(0, 0, T, T);
-          g.drawImage(part, 0, 0);
+        if (!corners2.length) return;
+        // an outer corner: the north side's border bent round the corner point, a ring of it at each distance from there
+        const strip = edgePixels(pics.n), img = g.getImageData(0, 0, T, T), d = img.data, col0 = at('n', x) * T;
+        for (const [, cx, cy] of corners2) for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+          const dx = px + 0.5 - cx, dy = py + 0.5 - cy, r = Math.hypot(dx, dy);
+          if (r >= T / 2) continue;
+          const turn = Math.atan2(Math.abs(dy), Math.abs(dx)), col = col0 + Math.min(T - 1, Math.floor(turn * r * 1.2 + 6));
+          const si = (Math.floor(r) * strip.width + col) * 4, a = strip.data[si + 3] / 255;
+          if (!a) continue;
+          const i = (py * T + px) * 4, o = d[i + 3] / 255, na = a + o * (1 - a);
+          for (let k = 0; k < 3; k++) d[i + k] = (strip.data[si + k] * a + d[i + k] * o * (1 - a)) / na;
+          d[i + 3] = na * 255;
         }
+        g.putImageData(img, 0, 0);
       }, T);
     },
     edge(ground, mask, variant, x, y, crisp = false) { // crisp: over built ground (paving, floors): square corners

@@ -390,6 +390,7 @@ const Render = {
           if (Sprites.cornerCut) for (const [d, dx, dy, a, b] of BORDER_DIRS) {
             const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
             if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
+            if (Sprites.hasOwnEdge(here)) continue; // (a ground with its own border pictures bends its border round the corner instead)
             if (walled(x + dx, y) || walled(x, y + dy) || walled(x + dx, y + dy)) continue;
             g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
           }

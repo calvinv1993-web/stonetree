@@ -56,6 +56,7 @@ const CUSTOM_SPRITES = {
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',
   pillar: 'pillar@2x.png',
+  cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
   grate: 'grate@2x.png', // the sewer grates in the streets
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
