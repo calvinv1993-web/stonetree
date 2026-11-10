@@ -576,14 +576,11 @@ const Fx = (() => {
       dctx.fillStyle = underground ? `rgba(4,3,10,${amount})` : `rgba(6,12,40,${Math.min(0.92, amount * 1.3)})`;
       dctx.fillRect(0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       dctx.globalCompositeOperation = 'destination-out';
+      dctx.imageSmoothingEnabled = true;
+      const W = dark.width / LIGHT_RES, H = dark.height / LIGHT_RES, onView = (sx, sy, r) => sx + r > 0 && sy + r > 0 && sx - r < W && sy - r < H;
       for (const l of lights) { // pools of light: yours clear, the others leave a little of the night
         const yours = l === lights[0] || l.carried, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (yours ? 1 : l.soft ? 0.7 : 0.75);
-        const grad = dctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-        grad.addColorStop(0, `rgba(0,0,0,${yours ? 1 : l.soft ? 0.5 : 0.85})`);
-        grad.addColorStop(0.45, `rgba(0,0,0,${yours ? 0.85 : l.soft ? 0.25 : 0.55})`);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        dctx.fillStyle = grad;
-        dctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+        if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : l.soft ? 'soft' : 'lamp'), sx - r, sy - r, r * 2, r * 2);
       }
       // warm and cold glows in the pools, stronger the darker it is: each a soft round picture made once per colour
       // (by day there's no night to glow in; a gradient per light per frame was slow where there are many, as in the temple)
@@ -591,6 +588,7 @@ const Fx = (() => {
       for (const l of lights) {
         if (l === lights[0]) continue;
         const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
+        if (!onView(sx, sy, r)) continue;
         dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
@@ -599,6 +597,24 @@ const Fx = (() => {
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
     }
+  }
+  // A pool of light, made once: how much of the night it takes away, from its middle out
+  // (yours clears it; a lamp leaves a little; a lit window only a glimmer)
+  const HOLES = { yours: [1, 0.85], lamp: [0.85, 0.55], soft: [0.5, 0.25] }, holes = new Map();
+  function holePicture(kind) {
+    let c = holes.get(kind);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32), [a, b] = HOLES[kind];
+      grad.addColorStop(0, `rgba(0,0,0,${a})`);
+      grad.addColorStop(0.45, `rgba(0,0,0,${b})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 64, 64);
+      holes.set(kind, c);
+    }
+    return c;
   }
   const glows = new Map();
   function glowPicture(color) {

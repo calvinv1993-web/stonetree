@@ -5,8 +5,8 @@ const canvas = $('view');
 canvas.width = VIEW_W * TILE * SCALE;
 canvas.height = VIEW_H * TILE * SCALE;
 const ctx = canvas.getContext('2d');
-// The night is soft, so it's drawn at half the overlay's pixels (LIGHT_RES) and spread out.
-const LIGHT_RES = 0.5;
+// The night is soft, so it's drawn at a quarter of the overlay's pixels each way (LIGHT_RES) and spread out.
+const LIGHT_RES = 0.25;
 const dark = document.createElement('canvas');
 dark.width = canvas.width * LIGHT_RES;
 dark.height = canvas.height * LIGHT_RES;
