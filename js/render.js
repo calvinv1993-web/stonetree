@@ -396,7 +396,9 @@ const Render = {
           if (!higher) continue;
           const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
           for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
-            g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
+            const own = Sprites.ownEdge(n, mask, x, y); // (a ground's own border pictures, if it has any)
+            if (own) g.drawImage(own, ox + x * TILE, oy + y * TILE, TILE, TILE);
+            else g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
           }
         }
 

@@ -14,7 +14,11 @@
 const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
-  cobble: 'cobble-mock.png', // the square's cobbles, the same way
+  cobble: 'cobble-mock.png',
+  edge_grass_n: 'edge-grass-n.png', // the grass's border reaching into a tile from the north, east, south and west (see Sprites.ownEdge)
+  edge_grass_e: 'edge-grass-e.png',
+  edge_grass_s: 'edge-grass-s.png',
+  edge_grass_w: 'edge-grass-w.png', // the square's cobbles, the same way
   carpet_texture: 'carpet-atlas.png',
   temple_wall_texture: 'temple-wall-atlas.png',
   grass: 'grass-atlas.png',
@@ -52,6 +56,7 @@ const CUSTOM_SPRITES = {
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',
   pillar: 'pillar@2x.png',
+  grate: 'grate@2x.png', // the sewer grates in the streets
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
