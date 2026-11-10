@@ -17,7 +17,7 @@ const CUSTOM_SPRITES = {
   carpet_texture: 'carpet-atlas.png',
   temple_wall_texture: 'temple-wall-atlas.png',
   grass: 'grass-atlas.png',
-  marble: 'marble-original-v2.png',
+  marble: 'temple_marble_64.png',
   player_sheet: 'player-sheet.png', // the players: front, side (east) and back rows, standing and two steps, at 4 pixels a world pixel (see playerFromSheet)
   sheet_ama: 'npc-ama.png', // an NPC's own sheet: sheet_<npc id>, laid out as the player sheet (drawn as it is, no recolouring)
   sheet_oak_armourer: 'npc-oak_armourer.png', // Armourer Brenna
