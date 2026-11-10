@@ -2937,10 +2937,11 @@ const Sprites = (() => {
       }
     } },
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
-    grass: { tiles: 4, draw: g => {
+    grass: { tiles: 4, res: () => { const im = customImage('grass'); return im ? Math.max(1, Math.round(im.naturalWidth / (4 * TILE))) : 1; }, draw: g => {
       const image = customImage('grass');
       if (image) {
-        g.imageSmoothingEnabled = false;
+        g.imageSmoothingEnabled = true; // (scaled down only for the edges, which read it a pixel a world pixel)
+        g.imageSmoothingQuality = 'high';
         g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
       } else grassField(g, makeRng(hashStr('grass')), 4 * TILE);
     } },
@@ -5854,8 +5855,8 @@ const Sprites = (() => {
     default: { shade: 'rgba(0,0,0,0.16)', rim: 'rgba(0,0,0,0.28)' },
     // raised grounds (raise: how many pixels high their edge stands): side = [facing south, facing east, roots/stones],
     // rim = the darker south-east edge of the top, light = its lit north-west lip, blades = what hangs over the edge
-    grass: { raise: 3, clumps: 1.1, shade: 'rgba(28,20,8,0.32)', rim: '#3e6a22', light: 'rgba(170,220,110,0.7)',
-      side: ['#7a5430', '#5a3c1e', '#3c2812'], blades: ['#4f8a2c', '#3e7424', '#62a034'] },
+    grass: { raise: 3, clumps: 1.1, shade: 'rgba(40,24,10,0.36)', rim: '#3a4610', light: 'rgba(176,206,58,0.6)', // (as the owner's picture has it:
+      side: ['#7c5030', '#5e3c20', '#3e2810'], blades: ['#4a6a06', '#5e7c08', '#87a20c'] },                              // dark olive over red-brown earth)
     jungle: { raise: 3, clumps: 1.1, shade: 'rgba(10,20,8,0.35)', rim: '#1e4a1a', light: 'rgba(90,150,70,0.6)',
       side: ['#5a4228', '#3e2c18', '#241a0e'], blades: ['#275a22', '#3a7a32', '#1e4a1a'] },
     snow: { raise: 3, clumps: 1, shade: 'rgba(60,80,110,0.28)', rim: '#b8c8dc', light: 'rgba(255,255,255,0.9)',
@@ -5884,10 +5885,12 @@ const Sprites = (() => {
     return texturePixels.cache.get(key);
   };
   texturePixels.cache = new Map();
-  function seamlessPart(id, x, y) {
-    const k = SEAMLESS[id], n = k.tiles, px = ((x % n) + n) % n, py = ((y % n) + n) % n;
-    const big = cached(`big:${id}`, g => k.draw(g), n * TILE);
-    return cached(`${id}:part:${px}:${py}`, g => g.drawImage(big, -px * TILE, -py * TILE));
+  // fine: as finely as the texture is drawn (k.res: its own PNG may have more pixels than a world pixel each), for
+  // the ground itself; otherwise a pixel a world pixel, as the edges and borders read it (texturePixels)
+  function seamlessPart(id, x, y, fine = false) {
+    const k = SEAMLESS[id], n = k.tiles, px = ((x % n) + n) % n, py = ((y % n) + n) % n, res = fine && k.res ? k.res() : 1;
+    const big = cached(`big:${id}:${res}`, g => { g.scale(res, res); k.draw(g); }, n * TILE * res);
+    return cached(`${id}:part:${px}:${py}${res > 1 ? ':' + res : ''}`, g => { g.canvas.res = res; g.drawImage(big, -px * TILE * res, -py * TILE * res); }, TILE * res);
   }
   // Neighbour bits for edge(): n e s w, then the corners ne se sw nw.
   const EDGE_BITS = { n: 1, e: 2, s: 4, w: 8, ne: 16, se: 32, sw: 64, nw: 128 };
@@ -6124,7 +6127,7 @@ const Sprites = (() => {
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
       const own = customImage(id);
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y, true);
       if (own) return own;
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
@@ -6133,7 +6136,7 @@ const Sprites = (() => {
         const anim = ANIMATED[PARTS[sprite][0]];
         return bigPart(sprite, anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0);
       }
-      if (SEAMLESS[sprite]) return seamlessPart(sprite, x, y); // a part of one big texture, by position
+      if (SEAMLESS[sprite]) return seamlessPart(sprite, x, y, true); // a part of one big texture, by position
       const variant = hashXY(x, y) % variantsOf(id);
       const anim = ANIMATED[sprite];
       const frame = anim ? anim.frames[Math.floor(time / anim.ms) % anim.frames.length] : 0;

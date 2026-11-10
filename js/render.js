@@ -337,7 +337,11 @@ const Render = {
             g.save(); g.imageSmoothingEnabled = true;
             g.drawImage(Sprites.water(x, y, v.time) || Sprites.thing(id, x, y, v.time), ox + x * TILE, oy + y * TILE, TILE, TILE);
             g.restore();
-          } else g.drawImage(Sprites.thing(id, x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
+          } else {
+            const img = Sprites.thing(id, x, y, v.time, shape);
+            if (img.res > 1) g.drawImage(img, ox + x * TILE, oy + y * TILE, TILE, TILE); // (a finer texture, at its world size)
+            else g.drawImage(img, ox + x * TILE, oy + y * TILE);
+          }
           if (shape && v.roofSnow > 0.05) { // snow settles on the roofs, in patches that grow together
             g.globalAlpha = 0.95;
             g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
