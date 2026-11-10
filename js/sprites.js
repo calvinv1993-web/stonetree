@@ -3501,7 +3501,7 @@ const Sprites = (() => {
   // People (players, NPCs and humanoid monsters) are drawn from a look: colours plus
   // what they wear, see person() below. A player's look comes from their outfit: its
   // type and cut, its four colours (head, primary, secondary, detail) and addons.
-  const DEFAULT_OUTFIT = { hair: '#6b3e1a', body: '#2e6fd0', legs: '#2b3a67', feet: '#3a2a1a' };
+  const DEFAULT_OUTFIT = { hair: '#8d5029', body: '#274dae', legs: '#584e46', feet: '#573925' }; // (the player sheet's own colours: see SHEET)
   const rgbOf = c => {
     if (c[0] === '#') {
       const n = parseInt(c.length === 4 ? c.slice(1).replace(/./g, x => x + x) : c.slice(1), 16);
@@ -5305,6 +5305,66 @@ const Sprites = (() => {
     solidify(g0); // whole pixels
   }
 
+  // ---- players from a picture: sprites/player-sheet.png ---------------------------------------------------------------
+  // Drawn by hand (the owner's own), at 4 pixels a world pixel: rows front, side (facing east) and back, columns standing
+  // and two steps; cells of 32 x 48 world pixels with the feet at (16, 46). West is the side row mirrored. Its hair, shirt,
+  // trousers and boots take the colours of the player's outfit: each pixel is sorted into one of them by its colour (and,
+  // for the browns, by its height: hair above the neck, boots below the knee) and recoloured, keeping its light and
+  // shade; in the sheet's own colours (DEFAULT_OUTFIT) it's drawn exactly as it is.
+  const SHEET = { res: 4, cell: [32, 48], feet: [16, 46], rows: { 2: 0, 1: 1, 3: 1, 0: 2 }, parts: ['hair', 'body', 'legs', 'feet'] };
+  let sheetPixels = null; // { data, width, part: Uint8Array (0 none, 1 hair, 2 body, 3 legs, 4 feet) }, or false if it can't be read
+  function sheetParts(img) {
+    if (sheetPixels !== null) return sheetPixels;
+    try {
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+      const data = g.getImageData(0, 0, c.width, c.height).data, part = new Uint8Array(c.width * c.height), CH = SHEET.cell[1] * SHEET.res;
+      for (let i = 0; i < part.length; i++) {
+        const r = data[i * 4] / 255, gg = data[i * 4 + 1] / 255, b = data[i * 4 + 2] / 255, a = data[i * 4 + 3];
+        if (a < 128) continue;
+        const v = Math.max(r, gg, b), d = v - Math.min(r, gg, b), s = v ? d / v : 0;
+        let h = !d ? 0 : v === r ? ((gg - b) / d) % 6 : v === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
+        h = (h * 60 + 360) % 360;
+        const yy = (Math.floor(i / c.width) % CH) / SHEET.res;
+        if (v < 0.22) continue;                                                        // the outline
+        if (h > 185 && h < 265 && s > 0.3) part[i] = 2;                               // the shirt
+        else if ((h < 50 || h > 330) && s < 0.33 && v < 0.7) part[i] = 3;            // the trousers
+        else if (h > 15 && h < 42 && s < 0.68 && v > 0.84) continue;                  // skin
+        else if (h > 30 && h < 55 && s > 0.55 && v > 0.75 && yy >= 28 && yy < 38) continue; // the buckle
+        else if ((h < 45 || h > 330) && s >= 0.33) { if (yy < 27) part[i] = 1; else if (yy >= 37) part[i] = 4; } // hair, boots (the belt between stays)
+      }
+      sheetPixels = { data, width: c.width, part };
+    } catch (e) { sheetPixels = false; } // (over file:// it can't be read: drawn in its own colours)
+    return sheetPixels;
+  }
+  const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
+  function playerFromSheet(key, dir, frame) {
+    const img = customImage('player_sheet'), R = SHEET.res, look = lookFor(key) || {};
+    return cached(`sheet:${key}:${dir}:${frame}`, g => {
+      g.canvas.res = R;
+      const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * R, sy = row * CH * R;
+      const cell = document.createElement('canvas'); cell.width = CW * R; cell.height = CH * R;
+      const cg = cell.getContext('2d');
+      const px = sheetParts(img);
+      const targets = SHEET.parts.map(p => (look[p] && look[p] !== DEFAULT_OUTFIT[p] ? hexRgb(look[p]) : null));
+      if (px && targets.some(Boolean)) { // recolour: each part's pixels, as light or dark against the part's own colour
+        const out = cg.createImageData(cell.width, cell.height), o = out.data, base = SHEET.parts.map(p => hexRgb(DEFAULT_OUTFIT[p]));
+        const lum = (r, gg, b) => 0.3 * r + 0.59 * gg + 0.11 * b;
+        for (let y = 0; y < cell.height; y++) for (let x = 0; x < cell.width; x++) {
+          const i = (sy + y) * px.width + sx + x, j = (y * cell.width + x) * 4, p = px.part[i], t = p && targets[p - 1];
+          let r = px.data[i * 4], gg = px.data[i * 4 + 1], b = px.data[i * 4 + 2];
+          if (t) { const f = lum(r, gg, b) / Math.max(1, lum(...base[p - 1])); r = Math.min(255, t[0] * f); gg = Math.min(255, t[1] * f); b = Math.min(255, t[2] * f); }
+          o[j] = r; o[j + 1] = gg; o[j + 2] = b; o[j + 3] = px.data[i * 4 + 3];
+        }
+        cg.putImageData(out, 0, 0);
+      } else cg.drawImage(img, sx, sy, CW * R, CH * R, 0, 0, CW * R, CH * R);
+      // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
+      const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
+      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0); }
+      else g.drawImage(cell, ox, oy);
+    }, 2 * TILE * R);
+  }
+
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
   // robe, trim, coat, skirt, vest, collar, buttons, stripes, tabard, armor, cape, fur, ribs, wraps; beard, ears,
   // horns, tail, wings, oneEye, bigEyes, female; hat ({ style, color }); held (sword, axe, staff, bow); scale.
@@ -5881,7 +5941,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture') img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' || id === 'player_sheet') img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
@@ -6054,11 +6114,13 @@ const Sprites = (() => {
     bakeable: () => [...cache].filter(([k]) => BAKED_KINDS.some(p => k.startsWith(p))),
     groundFingerprint: () => groundFingerprint(),
     WATER_MOVES: true, // the water ripples: open water shows a loop of WATER_PHASES pictures, made ahead (see waterFrame)
+    PLAYER_SHEET: true, // players drawn from sprites/player-sheet.png, when it's there (playerFromSheet)
     TILT: 0, // how far people lean, in degrees (along the world's lean: head up to the left); upright, as the owner chose
     PEOPLE: 'tilt', // people as a plain figure tilted along the world's lean ('tilt'); tried before: 'art', 'hd', 'doll', 'pixel', 'lean'
     // how far above its tile a creature's head reaches (a large person's does), for its name and bars
     // where a person's head and shoulders are on its picture [x, y, w, h], for portraits; null: the usual place
     faceBox(c) {
+      if (c && c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) return [TILE + 6, TILE - 8, 20, 20]; // (the sheet's head)
       if (Sprites.PEOPLE !== 'tilt' || !c) return null;
       const def = c.type === 'npc' && NPCS[c.npcId];
       if (!(c.type === 'player' || (def && !def.creature && tiltable(def.look)))) return null;
@@ -6066,6 +6128,7 @@ const Sprites = (() => {
       return [TILE + hx - 10, TILE + hy - 8, 20, 20]; // (the head a little above the middle)
     },
     headroom(c) {
+      if (c && c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) return 7; // (the sheet's figures reach 7 above their tile)
       const tiltRise = Math.max(0, Math.ceil(34 * Math.cos((Sprites.TILT || 0) * Math.PI / 180) - 28.5)); // (a tilted figure's head reaches higher the straighter it stands)
       const rise = Sprites.PEOPLE === 'art' ? ART_RISE : Sprites.PEOPLE === 'hd' ? HD_RISE : Sprites.PEOPLE === 'tilt' ? tiltRise : 0;
       const able = Sprites.PEOPLE === 'art' ? artable : Sprites.PEOPLE === 'tilt' ? tiltable : hdable;
@@ -6087,6 +6150,7 @@ const Sprites = (() => {
       }
       // Drawn at CREATURE_RES canvas pixels per world pixel (the picture says so in its .res), so a figure is as sharp
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
+      if (key.startsWith('player:') && Sprites.PLAYER_SHEET && customImage('player_sheet')) return playerFromSheet(key, dir, frame);
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}:${Sprites.TILT}`, g => {
         g.canvas.res = R;
