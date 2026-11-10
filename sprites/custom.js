@@ -24,6 +24,10 @@ const CUSTOM_SPRITES = {
   sheet_postmaster: 'npc-postmaster.png', // Postmaster Hobb
   sheet_pip: 'npc-pip.png', // Pip
   sheet_corwin: 'npc-corwin.png', // Master Corwin
+  sheet_oak_oracle: 'npc-oak_oracle.png', // The Oracle
+  sheet_oak_smith: 'npc-oak_smith.png', // Smith Dunstan
+  sheet_oak_mage: 'npc-oak_mage.png', // Moonpetal
+  sheet_oak_baker: 'npc-oak_baker.png', // Baker Willa
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
