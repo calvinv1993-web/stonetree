@@ -119,8 +119,6 @@ const ISLE_DESIGN = {
   ],
 };
 
-const FOUNDER_STATUE = false; // the founder's statue west of the temple (see OAKVALE.founder): off for now, to measure the temple without it
-
 // Oakvale, the town: a walled town in a ring of water, as the old starter towns were. Willow River
 // comes in from the north and runs through the middle of town before it turns west and out, so the
 // town falls into three quarters joined by bridges:
@@ -256,7 +254,7 @@ const OAKVALE = {
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
   notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
-  founder: [129, 103], // (FOUNDER_STATUE) the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
+  founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
   firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; this is the square. The depot is just east of it, and over the bridge to the west is the academy, where the oracle lives upstairs. The shops line the main street to the south. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
@@ -1300,8 +1298,7 @@ function buildTown(m, S, runs, river) {
     for (let x = t.x1 + 2; x <= bdx + 1; x++) for (const y of [bdy + 1, bdy + 2]) pave(x, y);
     for (const y of [bdy, bdy + 3]) put(t.x1 + 2, y, Z, 'lamppost'); // either side of where it leaves the temple's path
     // the statue of the founder, three tiles square, on the open ground west of the temple, facing the town
-    // (taken away for now, FOUNDER_STATUE, to measure how fast the temple is without it)
-    if (FOUNDER_STATUE) { const [fx, fy] = T.founder;
+    { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         const ft = m.get(fx + c, fy + r, Z); ft.ground = 'grass'; ft.items = [`founder_${c}${r}`];
         m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale in white marble, a golden laurel on his brow, his hands folded on a sword. On the blue banner below him, the oak of Oakvale. The plinth reads: "He found this island in a storm, and called it home."' });
