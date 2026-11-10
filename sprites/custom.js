@@ -41,6 +41,13 @@ const CUSTOM_SPRITES = {
   wall_temple_post: 'wall-temple-post.png', // the temple's walls: the post alone, with its arm north, with its arm west (see wallFromPictures)
   wall_temple_n: 'wall-temple-n.png',
   wall_temple_w: 'wall-temple-w.png',
+  wall_temple_n_in: 'wall-temple-n-in.png', // the same, where the face looks into the temple (a roof in front of it)
+  wall_temple_w_in: 'wall-temple-w-in.png',
+  wall_temple_post_in: 'wall-temple-post-in.png',
+  wall_temple_corner_0011: 'wall-temple-corner-0011.png', // the temple's four corners as they are (w n s e: where the wall goes on)
+  wall_temple_corner_1010: 'wall-temple-corner-1010.png',
+  wall_temple_corner_0101: 'wall-temple-corner-0101.png',
+  wall_temple_corner_1100: 'wall-temple-corner-1100.png',
   saint: 'saint@2x.png', // a name ending in @2x: two pixels a world pixel (96 x 96 world pixels in 192 x 192)
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',

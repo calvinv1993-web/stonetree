@@ -357,14 +357,19 @@ const Sprites = (() => {
   function wallFromPictures(id, shape) {
     const def = THINGS[id];
     if (!def || def.wall !== 'thin') return null;
-    const post = customImage(`${id}_post`), north = customImage(`${id}_n`), west = customImage(`${id}_w`);
+    // (inside: the face looks into a building - shape ends in ':' and i or o for its east face, then its south face -
+    // and <id>_n_in, <id>_w_in, <id>_post_in, if there are any, are drawn there instead)
+    const inE = shape[5] === 'i', inS = shape[6] === 'i', pic = (name, inside) => (inside && customImage(`${id}_${name}_in`)) || customImage(`${id}_${name}`);
+    const post = pic('post', inE && inS), north = pic('n', inE), west = pic('w', inS);
     if (!post || !north || !west) return null;
     const s = wallSides(shape), k = Math.min(post.naturalWidth / (2 * TILE), Sprites.CREATURE_RES), size = Math.round(2 * TILE * k);
-    return cached(`ownwall:${id}:${s.n ? 'n' : ''}${s.w ? 'w' : ''}:${k}`, g => {
+    // a corner (the wall turns here) can have a picture of its own: <id>_corner_<w n s e>, e.g. wall_temple_corner_0011
+    const corner = s.n !== s.s && s.w !== s.e && !(s.n && s.s) && customImage(`${id}_corner_${shape.slice(0, 4)}`);
+    return cached(`ownwall:${id}:${corner ? 'c' + shape.slice(0, 4) : (s.n ? 'n' + (inE ? 'i' : '') : '') + (s.w ? 'w' + (inS ? 'i' : '') : '') + (s.n || s.w ? '' : inE && inS ? 'pi' : 'p')}:${k}`, g => {
       g.canvas.res = k;
       g.imageSmoothingEnabled = true;
       g.imageSmoothingQuality = 'high';
-      for (const img of s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
+      for (const img of corner ? [corner] : s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
     }, size);
   }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on

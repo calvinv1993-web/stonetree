@@ -476,6 +476,10 @@ const Render = {
             if (def.wall === 'thin') {
               const sides = [wallAt(x - 1, y), wallAt(x, y - 1), wallAt(x, y + 1), wallAt(x + 1, y)]; // w n s e
               shape = wallShape = sides.map(w => (w ? '1' : '0')).join('');
+              // which of its faces (east, south) look into a building (a roof over the tile in front of it): a wall's own
+              // pictures can have an inside and an outside (see wallFromPictures)
+              const roofed = (rx, ry) => { const up = map.floors[z + 1], t2 = up && up[ry * map.width + rx]; return !!(t2 && t2.ground && THINGS[t2.ground].roof); };
+              shape += `:${roofed(x + 1, y) ? 'i' : 'o'}${roofed(x, y + 1) ? 'i' : 'o'}`;
               const plain = w => w && THINGS[w].wall === 'thin' && !(THINGS[THINGS[w].sprite || w] || {}).toggle && !(THINGS[w].sprite || w).startsWith('door');
               const wall = sides.find(plain);
               material = wall ? THINGS[wall].sprite || wall : 'wall_stone';
