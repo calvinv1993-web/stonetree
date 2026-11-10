@@ -22,6 +22,7 @@ const CUSTOM_SPRITES = {
   sheet_ama: 'npc-ama.png', // an NPC's own sheet: sheet_<npc id>, laid out as the player sheet (drawn as it is, no recolouring)
   sheet_oak_armourer: 'npc-oak_armourer.png', // Armourer Brenna
   sheet_postmaster: 'npc-postmaster.png', // Postmaster Hobb
+  sheet_pip: 'npc-pip.png', // Pip
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
