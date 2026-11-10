@@ -40,6 +40,8 @@ const CUSTOM_SPRITES = {
   wall_temple_post: 'wall-temple-post.png', // the temple's walls: the post alone, with its arm north, with its arm west (see wallFromPictures)
   wall_temple_n: 'wall-temple-n.png',
   wall_temple_w: 'wall-temple-w.png',
+  plant: 'plant@2x.png', // a name ending in @2x: two pixels a world pixel (96 x 96 world pixels in 192 x 192)
+  saint: 'saint@2x.png',
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 

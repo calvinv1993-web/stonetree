@@ -5984,6 +5984,8 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' ) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
+      const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
+      if (res) img.res = +res[1];
       img.src = `sprites/${file}`;
       custom.set(id, img);
     }
