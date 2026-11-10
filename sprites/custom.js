@@ -13,11 +13,12 @@
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
-  temple_paving: 'temple-paving-atlas.png',
+  temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
+  cobble: 'cobble-mock.png', // the square's cobbles, the same way
   carpet_texture: 'carpet-atlas.png',
   temple_wall_texture: 'temple-wall-atlas.png',
   grass: 'grass-atlas.png',
-  marble: 'temple_marble_64.png',
+  marble: 'temple-marble-mock.png', // 4 x 4 slabs at two pixels a world pixel, from the owner's picture of the temple (temple_marble_64.png: the owner's own one tile)
   player_sheet: 'player-sheet.png', // the players: front, side (east) and back rows, standing and two steps, at 4 pixels a world pixel (see playerFromSheet)
   sheet_ama: 'npc-ama.png', // an NPC's own sheet: sheet_<npc id>, laid out as the player sheet (drawn as it is, no recolouring)
   sheet_oak_armourer: 'npc-oak_armourer.png', // Armourer Brenna
@@ -43,6 +44,7 @@ const CUSTOM_SPRITES = {
   saint: 'saint@2x.png', // a name ending in @2x: two pixels a world pixel (96 x 96 world pixels in 192 x 192)
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',
+  pillar: 'pillar@2x.png',
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 

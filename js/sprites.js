@@ -2904,18 +2904,24 @@ const Sprites = (() => {
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
+  // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
+  const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SEAMLESS = {
-    temple_paving: { tiles: 4, draw: g => {
+    temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
       const image = customImage('temple_paving');
-      if (image) { g.imageSmoothingEnabled = false; g.drawImage(image, 0, 0); }
+      if (image) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE); }
       else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
         g.save(); g.translate(x * TILE, y * TILE);
         DRAW.paving(g, makeRng(hashStr('paving') + y * 4 + x)); g.restore();
       }
     } },
-    marble: { tiles: 4, draw: g => {
+    marble: { tiles: 4, res: () => ownRes('marble', 4), draw: g => {
       const image = customImage('marble');
-      if (image) {
+      if (image && image.naturalWidth >= 8 * TILE) { // a finer atlas of 4 x 4 slabs, grout and all: drawn as it is
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else if (image) {
         g.imageSmoothingEnabled = false;
         // A 64x64 custom tile repeats to fill the 128x128 seamless atlas.
         if (image.naturalWidth === 64 && image.naturalHeight === 64) {
@@ -2937,7 +2943,15 @@ const Sprites = (() => {
       }
     } },
     rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
-    grass: { tiles: 4, res: () => { const im = customImage('grass'); return im ? Math.max(1, Math.round(im.naturalWidth / (4 * TILE))) : 1; }, draw: g => {
+    cobble: { tiles: 4, res: () => ownRes('cobble', 4), draw: g => { // its own PNG (sprites/custom.js), or drawn stone by stone
+      const image = customImage('cobble');
+      if (image) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE); }
+      else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.cobble(g, makeRng(hashStr('cobble') + y * 4 + x), 0); g.restore();
+      }
+    } },
+    grass: { tiles: 4, res: () => ownRes('grass', 4), draw: g => {
       const image = customImage('grass');
       if (image) {
         g.imageSmoothingEnabled = true; // (scaled down only for the edges, which read it a pixel a world pixel)
@@ -5931,7 +5945,7 @@ const Sprites = (() => {
   const EDGE_RECTS = [[1, 0, -32, 32, 0], [2, 32, 0, 64, 32], [4, 0, 32, 32, 64], [8, -32, 0, 0, 32],
     [16, 32, -32, 64, 0], [32, 32, 32, 64, 64], [64, -32, 32, 0, 64], [128, -32, -32, 0, 0]];
   function groundTexture(id) {
-    if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, 0, 0);
+    if (SEAMLESS[id]) return seamlessPart(id, 0, 0);
     return cached(`${id}::0:0`, g => DRAW[id](g, makeRng(hashStr(id)), 0));
   }
 
@@ -5990,7 +6004,7 @@ const Sprites = (() => {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' ) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
+      if (id === 'temple_paving' || id === 'grass' || id === 'marble' || id === 'cobble' || id === 'temple_wall_texture' || id === 'carpet_texture' || id === 'water_texture' ) img.onload = () => { cache.clear(); texturePixels.cache.clear(); baked.ok = undefined; };
       const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
       if (res) img.res = +res[1];
       img.src = `sprites/${file}`;
@@ -6127,7 +6141,7 @@ const Sprites = (() => {
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
       const own = customImage(id);
-      if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y, true);
+      if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if (own) return own;
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
