@@ -26,6 +26,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
   - Pages reconnect within a second. They reload by themselves when the game files changed and log straight back in, so everyone gets the new version within a few seconds.
   - A plain page reload also keeps you logged in.
 - **Test mode**: add `--test`, e.g. `node server/dev.js 8090 --test`. Every new character becomes level 20 in Valoria. The login screen asks for a vocation, and you get good gear, potions, runes and gold. Or choose **Start fresh on Brightwater Isle** to begin at level 1 with the guide, as on a real server.
+- **Test character (playing alone)**: when you make a new character (Menu, **New character**), pick **Test: level 100 knight** (or paladin, sorcerer, druid) under your name. You start promoted at level 100 with high skills, the best gear your vocation can wear (legendary grade), potions, 100000 gold and a million in the bank. For trying things out only.
 
 **On a phone:** open the same address. Touch screens get on-screen controls automatically.
 - Upright, the map fills the screen and the controls sit over its bottom corners. Sideways, the controls are on both sides of the map.

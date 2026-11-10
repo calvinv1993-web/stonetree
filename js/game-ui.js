@@ -1670,10 +1670,17 @@ function showCharacterCreation(onDone) {
   const dialog = $('create');
   dialog.hidden = false;
   const input = $('createName');
+  // for testing: start as a level 100 character with the best gear (see makeTestHero)
+  const start = document.createElement('select');
+  start.id = 'createTest';
+  start.add(new Option('Normal start (level 1, with the guide)', ''));
+  for (const v of Object.keys(TEST_HERO_SKILLS)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${v}, best gear`, v));
+  input.after(start);
   input.focus();
   const done = () => {
     player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20) || 'Adventurer');
     dialog.hidden = true;
+    if (start.value) makeTestHero(start.value);
     openOutfit(onDone);
   };
   $('createStart').addEventListener('click', done);

@@ -853,6 +853,52 @@ function giveItem(id, count = 1) {
   }
 }
 
+// For testing: makes you a level 100 character of a vocation, with its skills trained high and the best gear it can
+// wear (legendary grade, from ITEMS), potions, runes and gold, in a backpack.
+const TEST_HERO_LEVEL = 100;
+const TEST_HERO_SKILLS = {
+  knight: { sword: 95, axe: 95, club: 95, shielding: 90, magic: 9 },
+  paladin: { distance: 95, shielding: 80, magic: 25, sword: 40 },
+  sorcerer: { magic: 80, shielding: 30 },
+  druid: { magic: 80, shielding: 30 },
+};
+function makeTestHero(vocation) {
+  if (!TEST_HERO_SKILLS[vocation]) return false;
+  const p = player, v = VOCATIONS[vocation], L = TEST_HERO_LEVEL;
+  Object.assign(p, { vocation, promoted: true, level: L, xp: xpForLevel(L), tutorial: 0,
+    maxHp: 150 + (L - 1) * v.hp, maxMana: 50 + (L - 1) * v.mana, gold: 100000, bank: 1000000 });
+  p.hp = p.maxHp;
+  p.mana = p.maxMana;
+  for (const [skill, level] of Object.entries(TEST_HERO_SKILLS[vocation])) p.skills[skill] = { level, tries: 0 };
+  // the best of each slot that this vocation may wear
+  const wearable = d => !d.quest && !d.keeping && (!d.vocations || d.vocations.includes(vocation)) && (d.level || 0) <= L;
+  const hit = w => (w.dmg ? (w.dmg[0] + w.dmg[1]) / 2 : w.attack || 0);
+  const best = (ok, score) => {
+    let top = null, topScore = -Infinity;
+    for (const [id, d] of Object.entries(ITEMS)) if (wearable(d) && ok(d) && score(d) > topScore) { top = id; topScore = score(d); }
+    return top;
+  };
+  const kind = vocation === 'knight' ? ['sword', 'axe', 'club'] : vocation === 'paladin' ? ['distance'] : ['wand'];
+  const weapon = best(d => d.slot === 'weapon' && d.weapon && kind.includes(d.weapon.type) && !d.weapon.thrown, d => hit(d.weapon) * 10 + (d.defense || 0));
+  const eq = p.equipment, w = ITEMS[weapon].weapon, legendary = id => ({ ...makeItem(id), q: QUALITIES.length - 1 });
+  for (const slot of ['head', 'neck', 'body', 'legs', 'feet']) {
+    const id = best(d => d.slot === slot, d => (d.armor || 0) * 10 + (d.defense || 0));
+    eq[slot] = id ? legendary(id) : null;
+  }
+  eq.weapon = legendary(weapon);
+  const shield = w.twoHanded ? null : best(d => d.slot === 'shield', d => d.defense || 0);
+  eq.shield = shield ? legendary(shield) : null;
+  const ring = best(d => d.slot === 'ring' && d.ring, d => (d.ring.regen ? d.ring.regen[0] + d.ring.regen[1] : 0) + (d.ring.speed || 0));
+  eq.ring = ring ? makeItem(ring) : null;
+  const ammo = w.ammo && best(d => d.slot === 'ammo' && d.ammo && d.ammo.type === w.ammo, d => d.ammo.attack);
+  eq.ammo = ammo ? makeItem(ammo, MAX_STACK) : null;
+  eq.backpack = { ...makeItem('backpack'), contents: [] };
+  for (const [id, n] of [['health_potion', 50], ['mana_potion', 50], ['rope', 1], ['shovel', 1], ['meat', 20]]) if (ITEMS[id]) giveItem(id, n);
+  log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank.`, 'quest');
+  uiDirty();
+  return true;
+}
+
 // Takes plain items only: forged gear (with a grade) is never taken by mistake.
 function removeItem(id, count = 1) {
   if (bagItems().filter(i => i.id === id && !i.q).reduce((n, i) => n + i.count, 0) < count) return false;

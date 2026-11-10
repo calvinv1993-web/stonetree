@@ -850,6 +850,23 @@ test('walking: speed grows with your level, ground counts, a diagonal step takes
   assert(run('speedOf(player)') < wolf.def.speed && run('speedOf(player)') > rat.def.speed, 'a wolf outruns a new character; a rat does not');
 });
 
+test('a test character: level 100 with the best gear its vocation may wear, for every vocation', () => {
+  for (const voc of ['knight', 'paladin', 'sorcerer', 'druid']) {
+    const { ctx } = quietGame(), run = code => require('vm').runInContext(code, ctx);
+    assert(run(`makeTestHero('${voc}')`), voc);
+    const p = run('player');
+    assert.strictEqual(p.level, 100);
+    assert(p.hp === p.maxHp && p.maxHp > 150, 'full health');
+    for (const slot of ['head', 'body', 'legs', 'feet', 'weapon']) {
+      const it = p.equipment[slot];
+      assert(it, `${voc}: something on ${slot}`);
+      assert.strictEqual(run(`canWear('${it.id}')`), null, `${voc} can wear ${it.id}`);
+    }
+    if (voc === 'paladin') assert(p.equipment.ammo, 'ammunition for the bow');
+    assert(run('bagItems().some(i => i.id === "health_potion")'), 'potions in the backpack');
+  }
+});
+
 let failed = 0;
 for (const t of tests) {
   try {
