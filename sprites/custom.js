@@ -37,6 +37,9 @@ const CUSTOM_SPRITES = {
   sheet_townswoman: 'npc-townswoman.png', // Townswoman
   sheet_child: 'npc-child.png', // Child
   sheet_old_man: 'npc-old_man.png', // Old Man
+  wall_temple_post: 'wall-temple-post.png', // the temple's walls: the post alone, with its arm north, with its arm west (see wallFromPictures)
+  wall_temple_n: 'wall-temple-n.png',
+  wall_temple_w: 'wall-temple-w.png',
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 

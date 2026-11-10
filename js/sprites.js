@@ -350,6 +350,23 @@ const Sprites = (() => {
     const st = WALL_STYLES[material];
     wallBlock(g, shape, { south: () => st.south(g, r), east: () => st.east(g, r), top: typeof st.top === 'function' ? () => st.top(g, r) : st.top });
   }
+  // A thin wall from its own PNGs, when sprites/custom.js lists all three: <id>_post (the post alone), <id>_n (the post
+  // with its arm running north) and <id>_w (with its arm running west), each 64 x 64 world pixels with the wall's tile
+  // in the bottom-right corner, at any number of pixels a world pixel. A wall that goes on south or east is just the
+  // post: the wall there brings its own arm. Kept no finer than the screen shows it, so it's never scaled down per frame.
+  function wallFromPictures(id, shape) {
+    const def = THINGS[id];
+    if (!def || def.wall !== 'thin') return null;
+    const post = customImage(`${id}_post`), north = customImage(`${id}_n`), west = customImage(`${id}_w`);
+    if (!post || !north || !west) return null;
+    const s = wallSides(shape), k = Math.min(post.naturalWidth / (2 * TILE), Sprites.CREATURE_RES), size = Math.round(2 * TILE * k);
+    return cached(`ownwall:${id}:${s.n ? 'n' : ''}${s.w ? 'w' : ''}:${k}`, g => {
+      g.canvas.res = k;
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = 'high';
+      for (const img of s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
+    }, size);
+  }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
   // the face the wall runs along (south for a wall running east-west, east for
   // one running north-south). Through an open door you see what's behind it, with
@@ -6094,6 +6111,8 @@ const Sprites = (() => {
       const own = customImage(id);
       if (id === 'temple_paving' || id === 'grass' || id === 'marble') return seamlessPart(id, x, y);
       if (own) return own;
+      const ownWall = wallFromPictures(id, shape);
+      if (ownWall) return ownWall;
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
         const anim = ANIMATED[PARTS[sprite][0]];
