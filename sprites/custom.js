@@ -28,6 +28,14 @@ const CUSTOM_SPRITES = {
   sheet_oak_smith: 'npc-oak_smith.png', // Smith Dunstan
   sheet_oak_mage: 'npc-oak_mage.png', // Moonpetal
   sheet_oak_baker: 'npc-oak_baker.png', // Baker Willa
+  sheet_oak_innkeeper: 'npc-oak_innkeeper.png', // Innkeeper Rolf
+  sheet_gate_north: 'npc-gate_north.png', // Captain Osric
+  sheet_gate_east: 'npc-gate_east.png', // Guard Hilde
+  sheet_gate_south: 'npc-gate_south.png', // Guard Tilda
+  sheet_townsman: 'npc-townsman.png', // Townsman
+  sheet_townswoman: 'npc-townswoman.png', // Townswoman
+  sheet_child: 'npc-child.png', // Child
+  sheet_old_man: 'npc-old_man.png', // Old Man
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
