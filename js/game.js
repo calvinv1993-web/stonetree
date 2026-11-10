@@ -5,9 +5,11 @@ const canvas = $('view');
 canvas.width = VIEW_W * TILE * SCALE;
 canvas.height = VIEW_H * TILE * SCALE;
 const ctx = canvas.getContext('2d');
+// The night is soft, so it's drawn at half the overlay's pixels (LIGHT_RES) and spread out.
+const LIGHT_RES = 0.5;
 const dark = document.createElement('canvas');
-dark.width = canvas.width;
-dark.height = canvas.height;
+dark.width = canvas.width * LIGHT_RES;
+dark.height = canvas.height * LIGHT_RES;
 const dctx = dark.getContext('2d');
 const LIFT = 4; // creatures stand a little raised, like on a 3D floor
 // Creatures lean into the walls' slant (see Render.slanted): their heads are this far left of their feet, so
@@ -28,8 +30,8 @@ function setViewSize(w, h, zoom = ZOOM) {
   ZOOM = zoom;
   canvas.width = VIEW_W * TILE * SCALE * ZOOM;
   canvas.height = VIEW_H * TILE * SCALE * ZOOM;
-  dark.width = VIEW_W * TILE * SCALE;
-  dark.height = VIEW_H * TILE * SCALE;
+  dark.width = VIEW_W * TILE * SCALE * LIGHT_RES;
+  dark.height = VIEW_H * TILE * SCALE * LIGHT_RES;
 }
 
 // How close the camera is on a phone: 'near' (default) or 'far' (Menu, Game), remembered per browser.

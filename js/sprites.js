@@ -1026,18 +1026,23 @@ const Sprites = (() => {
     const [name, col, row] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name);
     const at = (f, fn) => { f.save(); f.translate(R - 64, R - 64); fn(f); f.restore(); }; // (its drawing has the corner at 64, 64, as P() has)
     const whole = own || cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R);
-    const k = own ? own.naturalWidth / (b.w * TILE + R) : 1; // (its own PNG may be finer than a pixel a world pixel: k times)
-    return cached(`part:${id}:${frame}:${own ? 'own' : ''}`, g => {
+    // (its own PNG may be finer than a pixel a world pixel; a part is kept only as fine as the screen shows it, k canvas
+    // pixels a world pixel, and only as big as what it shows: scaling a big fine picture down every frame is slow)
+    const k = own ? Math.min(own.naturalWidth / (b.w * TILE + R), Sprites.CREATURE_RES) : 1;
+    const box = b.upright ? (row === b.h - 1 ? [col ? R : 0, 0] : [R, R]) : [0, 0]; // the part's north-west corner; it ends at R + 32, R + 32
+    const w = R + TILE - box[0], h = R + TILE - box[1];
+    return cached(`part:${id}:${frame}:${own ? 'own' : ''}:${k}`, g => {
       g.canvas.res = k;
       g.scale(k, k);
+      g.translate(-box[0], -box[1]);
       g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = 'high';
       g.beginPath();
       if (!b.upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
-      else if (row === b.h - 1) g.rect(col ? R : 0, 0, col ? 32 : R + 32, R + 32); // (upright: the south row's tiles draw everything straight above them,
-      else g.rect(R, R, 32, 32);                                                     // the westmost also what leans out west; the others their own tile)
+      else g.rect(box[0], box[1], w, h); // (upright: the south row's tiles draw everything straight above them, the westmost also what leans out west; the others their own tile)
       g.clip();
-      g.drawImage(whole, -col * TILE, -row * TILE, whole.width / k, whole.height / k);
-    }, Math.round((R + TILE) * k));
+      g.drawImage(whole, -col * TILE, -row * TILE, b.w * TILE + R, b.h * TILE + R);
+    }, Math.round(w * k), Math.round(h * k));
   }
 
   // A street lamp: a stone foot, an iron post and a lantern (glowing when lit) under a little roof.

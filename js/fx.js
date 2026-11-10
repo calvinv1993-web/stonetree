@@ -545,6 +545,7 @@ const Fx = (() => {
     cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
   };
   function light(view, screen, pv, amount, underground) {
+    if (amount <= 0.02) return; // (broad day)
     const lights = [{ x: pv.x, y: pv.y, r: now < player.lightUntil ? 6.5 : 3.5, color: LIGHT_COLORS.you, flicker: false }];
     // other players' torchlight lights up the night for everyone, as in Tibia
     for (const c of players) {
@@ -569,10 +570,11 @@ const Fx = (() => {
     const flick = l => 1 + 0.05 * Math.sin(now / 160 + l.x * 7 + l.y * 3) + 0.035 * Math.sin(now / 47 + l.x * 13) + 0.025 * Math.sin(now / 19 + l.y * 5);
     const rad = l => l.r * TILE * SCALE * (l.flicker ? flick(l) : 1);
     if (amount > 0.02) {
+      dctx.setTransform(LIGHT_RES, 0, 0, LIGHT_RES, 0, 0); // (drawn in overlay pixels, kept at LIGHT_RES)
       dctx.globalCompositeOperation = 'source-over';
-      dctx.clearRect(0, 0, dark.width, dark.height);
+      dctx.clearRect(0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       dctx.fillStyle = underground ? `rgba(4,3,10,${amount})` : `rgba(6,12,40,${Math.min(0.92, amount * 1.3)})`;
-      dctx.fillRect(0, 0, dark.width, dark.height);
+      dctx.fillRect(0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       dctx.globalCompositeOperation = 'destination-out';
       for (const l of lights) { // pools of light: yours clear, the others leave a little of the night
         const yours = l === lights[0] || l.carried, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (yours ? 1 : l.soft ? 0.7 : 0.75);
@@ -583,23 +585,35 @@ const Fx = (() => {
         dctx.fillStyle = grad;
         dctx.fillRect(sx - r, sy - r, r * 2, r * 2);
       }
+      // warm and cold glows in the pools, stronger the darker it is: each a soft round picture made once per colour
+      // (by day there's no night to glow in; a gradient per light per frame was slow where there are many, as in the temple)
+      dctx.globalCompositeOperation = 'source-over';
+      for (const l of lights) {
+        if (l === lights[0]) continue;
+        const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
+        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
+        dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
+      }
+      dctx.globalAlpha = 1;
       ctx.imageSmoothingEnabled = true; // (the night is soft: no blocks when it's spread over a finer canvas)
-      ctx.drawImage(dark, 0, 0);
+      ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
     }
-    // warm and cold glows, stronger the darker it is
-    const glow = Math.max(0.12, amount);
-    ctx.globalCompositeOperation = 'lighter';
-    for (const l of lights) {
-      if (l === lights[0]) continue;
-      const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
-      const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-      grad.addColorStop(0, `rgba(${l.color},${0.34 * glow * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1)})`);
-      grad.addColorStop(1, `rgba(${l.color},0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+  }
+  const glows = new Map();
+  function glowPicture(color) {
+    let c = glows.get(color);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, `rgba(${color},1)`);
+      grad.addColorStop(1, `rgba(${color},0)`);
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 64, 64);
+      glows.set(color, c);
     }
-    ctx.globalCompositeOperation = 'source-over';
+    return c;
   }
 
   // Over everything, in canvas pixels: clouds, the colours of dawn and dusk and of the
