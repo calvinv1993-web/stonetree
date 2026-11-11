@@ -2362,6 +2362,15 @@ const Sprites = (() => {
     },
     fountain_rim() {}, // the fountain on the tile south-east of it draws over this one
     // big things' parts are drawn by bigPart (see BIG); these are never called
+    // A floor mosaic's own picture is drawn with the ground (Sprites.mosaic); without it, a small golden sun on its tile.
+    sun_mosaic(g) {
+      ellipse(g, '#5a4c3c', 16, 16, 14, 14);
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, r = i % 3 ? 9 : 13;
+        poly(g, '#c8963c', [16 + Math.cos(a) * r, 16 + Math.sin(a) * r, 16 + Math.cos(a + 0.3) * 5, 16 + Math.sin(a + 0.3) * 5, 16 + Math.cos(a - 0.3) * 5, 16 + Math.sin(a - 0.3) * 5]);
+      }
+      ellipse(g, '#d8a848', 16, 16, 5, 5);
+    },
     fountain_nw() {}, fountain_ne() {}, fountain_sw() {}, fountain_se() {}, bed_head() {}, bed_foot() {},
     lamppost_off(g) { streetLamp(g, false); },
     // A street lamp: a stone foot, an iron post and a glowing lantern with a little roof.
@@ -6097,7 +6106,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture'].includes(id)) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
@@ -6478,6 +6487,8 @@ const Sprites = (() => {
     // the left of x = 20 and the land to its right), or null
     // A bridge's corner post (sprites/custom.js bridge_post, 2 pixels a world pixel): its size in world pixels and the
     // point of it that sits on the beam's end (ax, ay)
+    // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
+    mosaic: id => customImage(id),
     bridgePost() {
       const img = customImage('bridge_post');
       return img ? { img, w: img.naturalWidth / 2, h: img.naturalHeight / 2, ax: 9, ay: 22 } : null;

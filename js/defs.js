@@ -26,6 +26,8 @@ const DY = [-1, 0, 1, 0];
 //             neighbours) or 'block' (solid rock and dungeon stone)
 //   onWall:   decoration drawn on the face of the wall on the same tile
 //   tall:     a 64x64 sprite that rises up-left from its tile (trees)
+//   mosaic:   a flat picture laid in the floor, this many tiles across, centred on its tile and drawn with the ground
+//             (you walk over it); its picture is sprites/custom.js <id>, at 2 pixels a world pixel
 //   roof:     a roof (a ground on the floor above a building), shaped by the
 //             building under it: slopes, ridges, hips and eaves
 //   movable:  can be dragged to another tile
@@ -221,6 +223,7 @@ const THINGS = {
   fountain_ne: { name: 'fountain', cat: 'Town', block: true, low: true },
   fountain_sw: { name: 'fountain', cat: 'Town', block: true, low: true },
   fountain_se: { name: 'fountain', cat: 'Town', block: true, low: true },
+  sun_mosaic:  { name: 'sun mosaic', cat: 'Town', mosaic: 5 }, // a golden sun set in the paving of a square
   lamppost:    { name: 'street lamp', cat: 'Town', block: true, low: true, tall: true, light: 4, fireSwap: 'lamppost_off' },
   lamppost_off:{ name: 'street lamp (out)', cat: 'Town', block: true, low: true, tall: true, fireSwap: 'lamppost' },
   bench:       { name: 'bench', cat: 'Town', block: true, low: true },

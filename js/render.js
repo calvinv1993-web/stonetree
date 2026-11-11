@@ -11,6 +11,9 @@ const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw not
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const STANDING = new WeakMap(); // tile -> whether something stands on it filling it (for the grass round things' feet)
+// how far (in tiles) a floor mosaic reaches from its centre tile (THINGS mosaic), so the ground around it knows to draw it
+const MOSAIC_REACH = Math.max(0, ...Object.values(THINGS).map(d => Math.floor((d.mosaic || 0) / 2)));
+const NEAR = Math.max(1, MOSAIC_REACH), NEAR_CORNERS = [[-NEAR, -NEAR], [NEAR, -NEAR], [-NEAR, NEAR], [NEAR, NEAR], [0, 0]]; // (what a changed tile reaches)
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
@@ -64,7 +67,7 @@ const Render = {
     if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; }
     if (map.dirty && map.dirty.length) { // forget the chunks round what changed
       if (map.dirty.length > 400) for (const k of [...keep.keys()]) Render.forget(k);
-      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]]) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
+      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of NEAR_CORNERS) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
       map.dirty.length = 0;
     }
     const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = ['lava', 'sewer_water'];
@@ -118,7 +121,7 @@ const Render = {
         c.warm = true;
         for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
           const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
-          if (t) for (const id of t.items) { const d = THINGS[id]; if (!d.wall && !d.roof && !d.onWall && id !== 'carpet_rug') Sprites.thing(id, x, y, 0); }
+          if (t) for (const id of t.items) { const d = THINGS[id]; if (!d.wall && !d.roof && !d.onWall && !d.mosaic && id !== 'carpet_rug') Sprites.thing(id, x, y, 0); }
         }
       }
       return c.made >= PARTS ? c : null;
@@ -578,6 +581,17 @@ const Render = {
             .map(([dx, dy]) => rugAt(x + dx, y + dy) ? '1' : '0').join('');
           g.drawImage(Sprites.thing('carpet_rug', x, y, v.time, shape), ox + x * TILE, oy + y * TILE);
         }
+        // Mosaics laid in the floor, several tiles across: each drawn whole from its centre tile, kept to this part.
+        g.save();
+        g.beginPath(); g.rect(ox + gx0 * TILE, oy + gy0 * TILE, (gx1 - gx0 + 1) * TILE, (gy1 - gy0 + 1) * TILE); g.clip();
+        for (let y = gy0 - MOSAIC_REACH; y <= gy1 + MOSAIC_REACH; y++) for (let x = gx0 - MOSAIC_REACH; x <= gx1 + MOSAIC_REACH; x++) {
+          const t = tileAt(x, y);
+          if (t) for (const id of t.items) {
+            const n = THINGS[id].mosaic, img = n && Sprites.mosaic(id);
+            if (img) g.drawImage(img, ox + (x - (n - 1) / 2) * TILE, oy + (y - (n - 1) / 2) * TILE, n * TILE, n * TILE);
+          }
+        }
+        g.restore();
       };
       Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, 0, groundPass, beyond);
       // The water ripples: a picture of its loop over the still water kept in the chunks, once that picture is made
@@ -664,6 +678,7 @@ const Render = {
           for (const id of t.items) {
             if (id === 'carpet_rug') continue;
             const def = THINGS[id];
+            if (def.mosaic && Sprites.mosaic(id)) continue; // (drawn with the ground)
             if (def.wall === 'block' && t.items.length === 1 && buried(x, y)) continue;
             let shape, material;
             if (def.wall === 'thin') {

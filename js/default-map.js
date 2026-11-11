@@ -237,8 +237,8 @@ const OAKVALE = {
   lamps: [[124, 98], [126, 144], [130, 144], [103, 128], [103, 132], [150, 114], [150, 118], [123, 111], [143, 111],
     [123, 121], [109, 107], [112, 123], [112, 127]],
   benches: [[126, 112], [142, 112], [126, 118], [142, 118]],
-  planters: [[132, 113], [140, 113]],
-  fountain: [134, 113],
+  planters: [[130, 113], [138, 113]],
+  mosaic: [134, 115], // the sun mosaic in the middle of the square (5x5)
   statue: [140, 119],
   signs: [
     [124, 90, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
@@ -1447,8 +1447,7 @@ function buildTown(m, S, runs, river) {
       if (t.ground === 'grass') { t.ground = 'gravel'; t.items = t.items.filter(id => !THINGS[id].block); }
     }
   }
-  const [fx, fy] = T.fountain;
-  put(fx, fy, S, 'fountain_nw'); put(fx + 1, fy, S, 'fountain_ne'); put(fx, fy + 1, S, 'fountain_sw'); put(fx + 1, fy + 1, S, 'fountain_se');
+  put(...T.mosaic, S, 'sun_mosaic');
   for (const [x, y] of T.lamps) put(x, y, S, 'lamppost');
   for (const [x, y] of T.benches) put(x, y, S, 'bench');
   for (const [x, y] of T.planters) put(x, y, S, 'planter');

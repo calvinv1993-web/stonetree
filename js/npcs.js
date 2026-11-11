@@ -629,7 +629,7 @@ const ASHPORT = { x: 53, y: 93, z: 4 }, VALORIA_PIER = { x: 79, y: 72, z: 4 }, G
 
 // Every port's captain sails to every other port; the fare goes by distance.
 // key: what you say ({...} is the clickable word in the captain's greeting).
-// Where a ship from elsewhere puts you ashore: the town square, beside the fountain.
+// Where a ship from elsewhere puts you ashore: the town square, beside the sun mosaic.
 const PORTS = {
   valoria: { name: 'Valoria', key: '{Valoria}', at: VALORIA_PIER },
   ashport: { name: 'Ashport', key: '{Ashport}', at: ASHPORT },
