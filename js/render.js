@@ -263,7 +263,7 @@ const Render = {
       const shownCache = new Map();
       const groundAt = (x, y) => {
         const t = tileAt(x, y);
-        if (!t || !t.items.some(id => THINGS[id].wall === 'thin')) return rawGroundAt(x, y);
+        if (!t || !t.items.some(id => THINGS[id].wall)) return rawGroundAt(x, y);
         const k = y * map.width + x;
         if (!shownCache.has(k)) shownCache.set(k, groundShown(x, y, t) || t.ground);
         return shownCache.get(k);
@@ -282,6 +282,13 @@ const Render = {
       // through a doorway is the ground on the north (west) side of the wall.
       // (On an upper floor there's often nothing on that side - open air - and then nothing shows.)
       const groundShown = (x, y, t) => {
+        if (t.items.some(id => THINGS[id].wall === 'block')) { // a mountain side stands on the ground at its foot (seen through its ragged foot)
+          for (const [dx, dy] of [[0, 1], [1, 0]]) {
+            const g2 = rawGroundAt(x + dx, y + dy);
+            if (g2 && !wallAt(x + dx, y + dy) && !THINGS[g2].block && !LIQUID.has(g2)) return g2;
+          }
+          return t.ground;
+        }
         if (!t.items.some(id => THINGS[id].wall === 'thin')) return t.ground;
         let beside = wallAt(x - 1, y) || !wallAt(x, y - 1) ? rawGroundAt(x, y - 1) : rawGroundAt(x - 1, y);
         // a building's corner on its terrace or street: the wall stands on that paving, not on the grass beside it
@@ -696,6 +703,9 @@ const Render = {
               material = wall ? THINGS[wall].sprite || wall : 'wall_stone';
             } else if (def.onWall) {
               shape = wallShape || '1000';
+            } else if (def.wall === 'block') { // a mountain side: whether more of it stands south and east (its open corners are rounded)
+              const blockAt = (bx, by) => { const w = wallAt(bx, by); return w && THINGS[w].wall === 'block' ? '1' : '0'; };
+              shape = blockAt(x, y + 1) + blockAt(x + 1, y);
             } else if (id === 'steps') { // a flight of steps several tiles wide: its ends and its middle
               const stepsAt = sx => { const n = tileAt(sx, y); return n && n.items.includes('steps') ? '1' : '0'; };
               shape = stepsAt(x - 1) + stepsAt(x + 1);

@@ -377,23 +377,56 @@ const Sprites = (() => {
   // TILE world pixels high, in face coordinates (as face() paints them), at any number of pixels a world pixel. Each
   // tile shows the part of the strip for its place, so a long side runs on without repeating tile by tile; the east
   // face (in shade) shows the strip too, darker. The top keeps its own drawing (the floor above mostly covers it).
-  function blockFromPicture(id, x, y) {
+  // shape: whether more rock stands south and east of it ('10'...), from the renderer. So it doesn't look like a built
+  // wall, its foot is ragged where it meets the ground (by world position, so it runs on from tile to tile, repeating
+  // with the strip), and an open corner (nothing south or east) is rounded: the light turns softly round it.
+  function blockFromPicture(id, x, y, shape = '00') {
     const pic = customImage(`${id}_face`), def = THINGS[id];
     if (!pic || !def || def.wall !== 'block') return null;
     const res = Sprites.CREATURE_RES, n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
     const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
-    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${res}`, g => {
+    const open = shape === '00' || !/^[01]{2}$/.test(shape) ? '00' : shape, corner = open === '00';
+    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${open}:${res}`, g => {
       g.canvas.res = res;
       const side = (which, i, shade) => {
         g.save();
         g.setTransform(...FACES[which].map((v, k) => v * res));
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
         g.drawImage(pic, i * src, 0, src, src, 0, 0, TILE, TILE);
-        if (shade) { g.fillStyle = `rgba(20,16,12,${shade})`; g.fillRect(0, 0, TILE, TILE); }
+        // (at an open corner the light turns softly round it: the south face darkens towards the corner, and the east
+        // face, in shade, is lighter next to it)
+        if (corner) {
+          const grad = g.createLinearGradient(which === 'south' ? 20 : 12, 0, TILE, 0);
+          grad.addColorStop(0, `rgba(20,16,12,${which === 'south' ? 0 : shade})`);
+          grad.addColorStop(1, `rgba(20,16,12,${which === 'south' ? 0.2 : 0.14})`);
+          g.fillStyle = grad;
+        } else g.fillStyle = `rgba(20,16,12,${shade})`;
+        if (shade || corner) g.fillRect(0, 0, TILE, TILE);
         g.restore();
       };
       side('south', at(x), 0);
       side('east', at(y), 0.38);
+      // its foot, ragged: bites out of each face's lower edge, a smooth wave that repeats with the strip (n tiles)
+      const L = n * TILE, bite = w => {
+        const k = 2 * Math.PI / L;
+        return Math.max(0, 2 + 1.8 * Math.sin(w * k * 3 + 1) + 1.2 * Math.sin(w * k * 7 + 2.3) + 0.8 * Math.sin(w * k * 13 + 0.7));
+      };
+      const cut = (which, i) => {
+        g.save();
+        g.setTransform(...FACES[which].map((v, k) => v * res));
+        g.globalCompositeOperation = 'destination-out';
+        g.beginPath(); g.moveTo(0, TILE + 1);
+        for (let u = 0; u <= TILE; u += 1) g.lineTo(u, TILE - bite(i * TILE + u));
+        g.lineTo(TILE, TILE + 1); g.closePath(); g.fill();
+        if (corner) { // the corner where both feet meet, rounded off
+          const r = 11;
+          g.beginPath(); g.moveTo(TILE - r, TILE + 1); g.lineTo(TILE + 1, TILE + 1); g.lineTo(TILE + 1, TILE - r);
+          g.arc(TILE - r, TILE - r, r, 0, Math.PI / 2, false); g.closePath(); g.fill();
+        }
+        g.restore();
+      };
+      if (open[0] === '0') cut('south', at(x));
+      if (open[1] === '0') cut('east', at(y));
       g.save(); g.scale(res, res);
       g.beginPath(); g.rect(0, 0, TILE, TILE); g.clip(); rockSurface(g, makeRng(hashStr(id) + at(x) * 7 + at(y)));
       g.restore();
@@ -6267,7 +6300,7 @@ const Sprites = (() => {
       }
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
-      const ownBlock = blockFromPicture(id, x, y);
+      const ownBlock = blockFromPicture(id, x, y, shape);
       if (ownBlock) return ownBlock;
       if (id === 'steps' && customImage('steps_slope')) return stepsFromPicture(shape);
       const def = THINGS[id], sprite = spriteOf(id);
