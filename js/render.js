@@ -484,6 +484,12 @@ const Render = {
           if (!t || !t.items.length) continue;
           for (const id of t.items) {
             if (!Sprites.dropsShadow(id)) continue;
+            // (a wall whose shadow would fall into a building - a roof over the tile south or east of it - casts none:
+            // indoors the light doesn't come from one side)
+            if (THINGS[id].wall === 'thin') {
+              const up = map.floors[z + 1], roofed = (rx, ry) => { const t2 = up && up[ry * map.width + rx]; return !!(t2 && t2.ground && THINGS[t2.ground].roof); };
+              if (roofed(x, y + 1) || roofed(x + 1, y) || roofed(x, y)) continue;
+            }
             let shape;
             if (THINGS[id].wall === 'thin') shape = [wallAt(x - 1, y), wallAt(x, y - 1), wallAt(x, y + 1), wallAt(x + 1, y)].map(w => (w ? '1' : '0')).join('');
             const img = Sprites.thing(id, x, y, 0, shape), iw = Sprites.w(img), ih = Sprites.h(img);

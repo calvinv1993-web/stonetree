@@ -15,7 +15,7 @@ const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
   cobble: 'cobble-mock.png',
-  lip_rock: 'lip-rock.png', // the rim of stones along a mountain top's open edges, from the owner's picture (see Sprites.ownLip)
+  lip_rock: 'lip-quay.png', // the rim of stones along a mountain top's open edges, from the owner's picture (see Sprites.ownLip)
   flowers_0: 'flowers-0@2x.png', // the patches of flowers on the map, from the same flowers (three variants)
   flowers_1: 'flowers-1@2x.png',
   flowers_2: 'flowers-2@2x.png',
