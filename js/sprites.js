@@ -6606,7 +6606,6 @@ const Sprites = (() => {
     // with a dark line where it drops away. variant 0-2.
     // A mountain top's rim from its own picture, if sprites/custom.js has one (lip_rock: a strip of tile-wide pieces of the
     // rim along a north edge, 2 pixels a world pixel): the piece for this place, turned to the side asked for
-    lipCorner: () => customImage('lip_rock_corner'), // (one stone of it, for where the rim turns a corner)
     ownLip(d, x, y) {
       const pic = customImage('lip_rock');
       if (!pic) return null;

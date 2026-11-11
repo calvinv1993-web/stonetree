@@ -427,13 +427,42 @@ const Render = {
           const open = (dx, dy) => !tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height;
           const sides = [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]].filter(([, dx, dy]) => open(dx, dy));
           const owns = sides.map(([d]) => Sprites.ownLip(d, x, y));
+          // Where the rim turns, two sides' stones meet on the corner's diagonal, as a frame's corner does: each side keeps
+          // its half of the corner square (B wide). A corner whose diagonal neighbour alone is open (the rim turning the
+          // other way) is filled the same way from the two sides that run into it.
+          const X0 = ox + x * TILE, Y0 = oy + y * TILE, B = 12;
+          const CORNERS = { nw: [0, 0, 1, 1, 'n', 'w'], ne: [TILE, 0, -1, 1, 'n', 'e'], se: [TILE, TILE, -1, -1, 's', 'e'], sw: [0, TILE, 1, -1, 's', 'w'] };
+          const half = (c, h) => { // the triangle of corner c's square that side h (the n or s side) keeps; otherwise the other one's
+            const C = B + 3, [cx, cy, sx, sy] = CORNERS[c], pts = h ? [[0, 0], [C, 0], [C, C]] : [[0, 0], [0, C], [C, C]]; // (a little past the stones' outline)
+            g.moveTo(X0 + cx + sx * pts[0][0], Y0 + cy + sy * pts[0][1]);
+            for (const [u, v] of pts.slice(1)) g.lineTo(X0 + cx + sx * u, Y0 + cy + sy * v);
+            g.closePath();
+          };
+          const has = d => sides.some(s => s[0] === d);
+          const pictureOf = d => Sprites.ownLip(d, x, y);
           sides.forEach(([d], i) => {
-            if (owns[i]) g.drawImage(owns[i], ox + x * TILE, oy + y * TILE, TILE, TILE);
-            else g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+            if (!owns[i]) { g.drawImage(Sprites.lip(d, variant % 3), X0, Y0); return; }
+            const horiz = d === 'n' || d === 's', turns = Object.entries(CORNERS).filter(([, c]) => (c[4] === d || c[5] === d) && has(c[4]) && has(c[5]));
+            g.save();
+            if (turns.length) { // (cut away the other side's half of each corner it shares)
+              g.beginPath(); g.rect(X0, Y0, TILE, TILE);
+              for (const [c] of turns) half(c, !horiz);
+              g.clip('evenodd');
+            }
+            g.drawImage(owns[i], X0, Y0, TILE, TILE);
+            g.restore();
           });
+          for (const [c, [, , , , h, v]] of Object.entries(CORNERS)) { // the rim turning the other way round this tile's corner
+            const [dx, dy] = { nw: [-1, -1], ne: [1, -1], se: [1, 1], sw: [-1, 1] }[c];
+            if (!open(dx, dy) || open(dx, 0) || open(0, dy)) continue;
+            const ph = pictureOf(h), pv = pictureOf(v);
+            if (!ph || !pv) continue;
+            for (const [pic, hWins] of [[ph, true], [pv, false]]) {
+              g.save(); g.beginPath(); half(c, hWins); g.clip(); g.drawImage(pic, X0, Y0, TILE, TILE); g.restore();
+            }
+          }
           const f = here === 'grass' && owns.some(Boolean) && Sprites.grassFringe && Sprites.grassFringe();
           if (f) { // the top's grass grows up over the stones' inner side (kept off the stones of the other sides)
-            const has = d => sides.some(s => s[0] === d), B = 12;
             g.save();
             g.beginPath();
             g.rect(ox + x * TILE + (has('w') ? B : 0), oy + y * TILE + (has('n') ? B : 0), TILE - (has('w') ? B : 0) - (has('e') ? B : 0), TILE - (has('n') ? B : 0) - (has('s') ? B : 0));
@@ -455,17 +484,10 @@ const Render = {
               g.save();
               g.translate(ox + x * TILE + TILE / 2, oy + y * TILE + TILE / 2);
               g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
-              g.beginPath(); g.rect(-TILE / 2 + 4, -TILE / 2 + B - 6, TILE - 8, 6); g.clip();
+              g.beginPath(); g.rect(-TILE / 2 + B, -TILE / 2 + B - 6, TILE - 2 * B, 6); g.clip(); // (not into the corners, where the stones turn)
               g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 + B - f.reach, TILE, f.height / f.res);
               g.restore();
             });
-          }
-          const cornerStone = Sprites.lipCorner && Sprites.lipCorner();
-          if (cornerStone) for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { // a stone where the rim turns a corner
-            if ((open(cx, 0) && open(0, cy)) || (open(cx, cy) && !open(cx, 0) && !open(0, cy))) {
-              const s = 13;
-              g.drawImage(cornerStone, ox + x * TILE + (cx < 0 ? -1 : TILE - s + 1), oy + y * TILE + (cy < 0 ? -1 : TILE - s + 1), s, s);
-            }
           }
         }
 
