@@ -240,8 +240,10 @@ function bumpDoor(x, y, z) {
 // Walking as in Tibia: everyone has a speed (players 220 at level 1 and 2 more each level; monsters their own,
 // so at a low level a wolf is quicker than you), and a step takes 1000 x the ground's speed / your speed in ms
 // (see GROUND_SPEED), three times as long on a diagonal, rounded up to whole ticks of 50 ms.
+// A new character walks as quickly as a level 20 one used to (240 + 2 a level from 1): 278, and 2 more each level
+const PLAYER_SPEED = 278;
 function speedOf(c) {
-  let speed = c.type === 'player' ? 240 + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
+  let speed = c.type === 'player' ? PLAYER_SPEED + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
   const cond = c.conditions || {};
   if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
   if (cond.haste) speed /= CONDITIONS.haste.speed;

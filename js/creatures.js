@@ -1,7 +1,7 @@
 'use strict';
 // Monsters, conditions, fields, vocations, skills and spells.
 
-// dmg: melee [min, max]; speed: how fast it walks, as a player's speed (240 at level 1; see stepTime); attackSpeed: ms between attacks;
+// dmg: melee [min, max]; speed: how fast it walks, as a player's speed (278 at level 1; see stepTime); attackSpeed: ms between attacks;
 // aggro: tiles at which it notices you (and anything on your screen sees you, see monsterTarget);
 // defense: blocks weapon hits (half of it to all of it); armor: absorbs physical damage (about half of it to all);
 // weak: damage multipliers per element; immune: elements/conditions it ignores;

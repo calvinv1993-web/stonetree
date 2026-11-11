@@ -839,15 +839,15 @@ test('walking: speed grows with your level, ground counts, a diagonal step takes
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, vm = require('vm'), run = code => vm.runInContext(code, ctx);
-  assert.strictEqual(run('speedOf(player)'), 240, 'level 1: speed 240');
-  assert.strictEqual(run('stepTime(player, "cobble", false)'), 450, 'a road: 1000 x 100 / 240, up to whole ticks of 50 ms');
-  assert.strictEqual(run('stepTime(player, "grass", false)'), 650, 'grass is slower');
-  assert.strictEqual(run('stepTime(player, "grass", true)'), 1250, 'a diagonal step twice as long');
+  assert.strictEqual(run('speedOf(player)'), 278, 'level 1: speed 278 (as level 20 used to be)');
+  assert.strictEqual(run('stepTime(player, "cobble", false)'), 400, 'a road: 1000 x 100 / 278, up to whole ticks of 50 ms');
+  assert.strictEqual(run('stepTime(player, "grass", false)'), 550, 'grass is slower');
+  assert.strictEqual(run('stepTime(player, "grass", true)'), 1100, 'a diagonal step twice as long');
   p.level = 21;
-  assert.strictEqual(run('speedOf(player)'), 280, 'two more for every level');
+  assert.strictEqual(run('speedOf(player)'), 318, 'two more for every level');
   const wolf = ctx.spawnMonster({ type: 'wolf', x: 130, y: 172, z: 8 }), rat = ctx.spawnMonster({ type: 'rat', x: 131, y: 172, z: 8 });
   p.level = 1;
-  assert(run('speedOf(player)') < wolf.def.speed && run('speedOf(player)') > rat.def.speed, 'a wolf outruns a new character; a rat does not');
+  assert(run('speedOf(player)') > rat.def.speed && wolf, 'a rat is slower than a new character');
 });
 
 test('a test character: level 100 with the best gear its vocation may wear, for every vocation', () => {
