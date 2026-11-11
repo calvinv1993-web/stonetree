@@ -4,7 +4,7 @@
 const Sprites = (() => {
   const cache = new Map();
   const urls = new Map();
-  const silhouettes = new WeakMap(), dropShadows = new WeakMap();
+  const silhouettes = new WeakMap(), dropShadows = new WeakMap(), contactShadows = new WeakMap();
 
   function cached(key, draw, size = TILE, height = size) {
     let c = cache.get(key);
@@ -6487,20 +6487,21 @@ const Sprites = (() => {
     },
     // The shadow a piece of furniture or a statue casts on the floor: the shape of its foot in a soft warm dark, drawn a
     // few pixels south-east of it, under it (only things that stand on the floor: see dropsShadow)
-    dropShadow(img) {
-      let sh = dropShadows.get(img);
+    dropShadow(img, contact = false) {
+      const store = contact ? contactShadows : dropShadows;
+      let sh = store.get(img);
       if (!sh) {
         sh = document.createElement('canvas'); sh.width = img.width; sh.height = img.height; sh.res = img.res;
-        const g = sh.getContext('2d');
-        g.filter = `blur(${(img.res || 1) * 1.2}px)`; // (soft at the edges)
+        const g = sh.getContext('2d'), k = img.res || 1;
+        g.filter = `blur(${k * (contact ? 0.5 : 1.2)}px)`; // (the soft one wide, the one where it touches the floor tight)
         // only its foot, on its own tile (the bottom-right TILE square): what stands up off the floor casts no shape on it
-        const T = TILE * (img.res || 1);
+        const T = TILE * k;
         g.drawImage(img, img.width - T, img.height - T, T, T, img.width - T, img.height - T, T, T);
         g.filter = 'none';
         g.globalCompositeOperation = 'source-in';
-        g.fillStyle = 'rgba(40,26,14,0.5)';
+        g.fillStyle = contact ? 'rgba(22,14,6,0.8)' : 'rgba(40,26,14,0.5)';
         g.fillRect(0, 0, sh.width, sh.height);
-        dropShadows.set(img, sh);
+        store.set(img, sh);
       }
       return sh;
     },
