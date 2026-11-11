@@ -2967,6 +2967,7 @@ const Sprites = (() => {
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
+  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
       const image = customImage('temple_paving');
@@ -6428,8 +6429,15 @@ const Sprites = (() => {
       const img = customImage('grass_fringe');
       if (!img) return null;
       const res = 2;
-      return { img, res, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: img.naturalHeight / res * 0.7 };
+      // the shadow the grass and the ground cast on what stands right behind them: dark at the foot, gone 5 pixels up
+      const shade = cached('fringe-shade', g => {
+        const grad = g.createLinearGradient(0, 0, 0, 12);
+        grad.addColorStop(0, 'rgba(12,10,4,0)'); grad.addColorStop(0.55, 'rgba(12,10,4,0.45)'); grad.addColorStop(1, 'rgba(12,10,4,0.8)');
+        g.fillStyle = grad; g.fillRect(0, 0, TILE * res, 12);
+      }, TILE * res, 12);
+      return { img, res, shade, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: img.naturalHeight / res * 0.7 };
     },
+    fillsTile: id => !!PARTS[spriteOf(id)] || FILLS_TILE.has(id), // (its foot fills its tile: grass grows up against it, see render)
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     ownEdge(ground, mask, x, y) {
       const pics = {};
