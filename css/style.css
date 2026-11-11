@@ -187,7 +187,9 @@ body.game { height: 100vh; height: 100dvh; overflow: hidden; }
 .actions { display: flex; flex-direction: column; gap: 5px; }
 
 /* ---- editor ---- */
-.editor { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+/* (as tall as what the browser really shows: 100vh is taller than that in some phone browsers, Samsung Internet among
+   them, whose toolbar then hides the bottom of the editor; --app-h is set from the page's own height, see editor.js) */
+.editor { display: flex; flex-direction: column; height: 100vh; height: 100dvh; height: var(--app-h, 100dvh); overflow: hidden; }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -640,9 +642,9 @@ body.touch-ui .tb-status{justify-content:flex-start;max-width:230px}
   .editor-body.palette-open .palette { transform: translateX(0); }
   
   .editor #canvas { touch-action: none; }
-  .mobile-map-controls { display: flex; position: absolute; z-index: 6; right: 8px; bottom: 10px; gap: 5px; }
+  .mobile-map-controls { display: flex; position: absolute; z-index: 6; right: 8px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); gap: 5px; }
   .mobile-map-controls button { min-width: 42px; min-height: 44px; background: #262420ee; }
-  .editor .statusbar { min-height: 24px; }
+  .editor .statusbar { min-height: 24px; padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 
 /* ---- phones and tablets: what the UI test round found ------------------------------------------------

@@ -1,4 +1,10 @@
 'use strict';
+// The editor fills what the browser really shows (its visible height, not 100vh), so a phone browser's toolbar
+// doesn't cover the controls at the bottom
+const fitEditorHeight = () => document.documentElement.style.setProperty('--app-h', `${Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight)}px`);
+fitEditorHeight();
+window.addEventListener('resize', fitEditorHeight);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fitEditorHeight);
 // Map editor: paint grounds/items/spawns/NPCs on any floor, set up teleports,
 // levers, signs and special doors, mark houses, and copy/paste areas. Changes
 // are saved to browser storage automatically, which is where the game loads the map from.
