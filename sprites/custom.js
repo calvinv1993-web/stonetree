@@ -72,6 +72,7 @@ const CUSTOM_SPRITES = {
   window_stained_e: 'banner-temple-e.png', // running east-west (its south face) and north-south (its east face)
   banner_s: 'banner-temple-s.png',
   banner_e: 'banner-temple-e.png',
+  altar: 'altar@2x.png', // the temple's altar, from the owner's picture
   torch: 'torch@2x.png', // the standing torches and the torches on walls running north-south, from the owner's picture
   wall_torch_e: 'wall-torch-e.png',
   grate: 'grate@2x.png', // the sewer grates in the streets
