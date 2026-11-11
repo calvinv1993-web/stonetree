@@ -6125,10 +6125,7 @@ const Sprites = (() => {
     const px = ((x % 16) + 16) % 16, py = ((y % 16) + 16) % 16;
     const big = cached('water:surface', g => {
       g.imageSmoothingEnabled = true;
-      for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
-        g.save(); g.translate(x ? 1024 : 0, y ? 1024 : 0);
-        g.scale(x ? -1 : 1, y ? -1 : 1); g.drawImage(image, 0, 0, 512, 512); g.restore();
-      }
+      for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) g.drawImage(image, x * 512, y * 512, 512, 512); // (the texture repeats seamlessly)
     }, 1024);
     // Every frame of every place is kept once worked out (the ripples go round in 80 frames), up to WATER_KEEP bytes;
     // past that, the rest are worked out again each time in one canvas per place, as before.
@@ -6473,6 +6470,12 @@ const Sprites = (() => {
     // grass_fringe: a strip of tile-wide pieces at 2 pixels a world pixel, the ground line 11 world pixels down), or null
     // Clumps of little flowers to scatter over grass (sprites/custom.js grass_flowers: a strip of tile-sized pictures at
     // 2 pixels a world pixel, made of the flowers in the owner's picture), or null
+    // The round stones of a bank (sprites/custom.js quay_stones: a strip 48 x 64 n pixels, 2 a world pixel, the water to
+    // the left of x = 20 and the land to its right), or null
+    quayStones() {
+      const img = customImage('quay_stones');
+      return img ? { img, src: 2 * TILE, count: Math.max(1, Math.floor(img.naturalHeight / (2 * TILE))), width: img.naturalWidth / 2, at: 10 } : null;
+    },
     grassFlowers() {
       const img = customImage('grass_flowers');
       return img ? { img, res: 2, count: Math.max(1, Math.floor(img.naturalWidth / (2 * TILE))) } : null;

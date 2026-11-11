@@ -404,6 +404,36 @@ const Render = {
           }
         }
 
+        // A bank of round stones where water meets the land (Sprites.quayStones: a strip of them, the water on its left,
+        // the boundary at QUAY_AT pixels in): drawn on both tiles of the boundary, each clipped to its own, so it runs on
+        // across the ground's chunks. A wall standing in the water, a bridge, or a sandy or swampy shore has none.
+        const quay = Sprites.quayStones && Sprites.quayStones();
+        if (quay) {
+          const QW = quay.width, QA = quay.at, ANG = { e: 0, s: Math.PI / 2, w: Math.PI, n: -Math.PI / 2 }, OPP = { e: 'w', w: 'e', n: 's', s: 'n' };
+          const SIGN = { e: 1, s: -1, w: -1, n: 1 }; // (which way the strip runs, turned, against x or y)
+          const banked = id => !!id && id !== 'water' && id !== 'lava' && !id.includes('bridge') && !['sand', 'swamp', 'mountain', 'rock_top', 'snow', 'ash'].includes(id);
+          const piece = (frameSide, along, isWater, X0, Y0) => { // frameSide: the side, seen from this tile, where the boundary is
+            const rot = isWater ? frameSide : OPP[frameSide], i = ((SIGN[rot] * along) % quay.count + quay.count) % quay.count;
+            g.save();
+            g.beginPath(); g.rect(X0, Y0, TILE, TILE); g.clip();
+            g.translate(X0 + TILE / 2, Y0 + TILE / 2); g.rotate(ANG[rot]);
+            // (drawn as if the water were west and the land east of x = 0 relative to the boundary)
+            const bx = isWater ? TILE / 2 : -TILE / 2;
+            g.drawImage(quay.img, 0, i * quay.src, quay.img.naturalWidth, quay.src, bx - QA, -TILE / 2, QW, TILE);
+            g.restore();
+          };
+          for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+            const here = groundAt(x, y), w = wet(here);
+            if (!w && !banked(here)) continue;
+            for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
+              const n = groundAt(x + dx, y + dy);
+              if (w ? !(banked(n) && !wallAt(x + dx, y + dy)) : !wet(n)) continue;
+              if (!w && wallAt(x, y)) continue;
+              piece(d, d === 'n' || d === 's' ? x : y, w, ox + x * TILE, oy + y * TILE);
+            }
+          }
+        }
+
         // Around the foot of rock walls: scree on the ground next to them (not under walls themselves).
         const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
         for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
