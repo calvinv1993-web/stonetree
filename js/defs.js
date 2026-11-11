@@ -27,7 +27,8 @@ const DY = [-1, 0, 1, 0];
 //   onWall:   decoration drawn on the face of the wall on the same tile
 //   tall:     a 64x64 sprite that rises up-left from its tile (trees)
 //   mosaic:   a flat picture laid in the floor, this many tiles across, centred on its tile and drawn with the ground
-//             (you walk over it); its picture is sprites/custom.js <id>, at 2 pixels a world pixel
+//             (you walk over it); its picture is sprites/custom.js <id>, at 2 pixels a world pixel, with room round it
+//             for its joint and shadow (up to half a tile)
 //   roof:     a roof (a ground on the floor above a building), shaped by the
 //             building under it: slopes, ridges, hips and eaves
 //   movable:  can be dragged to another tile

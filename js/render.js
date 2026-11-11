@@ -12,7 +12,7 @@ const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1,
 
 const STANDING = new WeakMap(); // tile -> whether something stands on it filling it (for the grass round things' feet)
 // how far (in tiles) a floor mosaic reaches from its centre tile (THINGS mosaic), so the ground around it knows to draw it
-const MOSAIC_REACH = Math.max(0, ...Object.values(THINGS).map(d => Math.floor((d.mosaic || 0) / 2)));
+const MOSAIC_REACH = Math.max(0, ...Object.values(THINGS).map(d => Math.ceil((d.mosaic || 0) / 2)));
 const NEAR = Math.max(1, MOSAIC_REACH), NEAR_CORNERS = [[-NEAR, -NEAR], [NEAR, -NEAR], [-NEAR, NEAR], [NEAR, NEAR], [0, 0]]; // (what a changed tile reaches)
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
@@ -588,7 +588,10 @@ const Render = {
           const t = tileAt(x, y);
           if (t) for (const id of t.items) {
             const n = THINGS[id].mosaic, img = n && Sprites.mosaic(id);
-            if (img) g.drawImage(img, ox + (x - (n - 1) / 2) * TILE, oy + (y - (n - 1) / 2) * TILE, n * TILE, n * TILE);
+            if (img) { // (at 2 pixels a world pixel, centred on its tile: its picture can reach past its tiles with its shadow)
+              const w = img.naturalWidth / 2, h = img.naturalHeight / 2;
+              g.drawImage(img, ox + (x + 0.5) * TILE - w / 2, oy + (y + 0.5) * TILE - h / 2, w, h);
+            }
           }
         }
         g.restore();
