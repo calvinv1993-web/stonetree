@@ -6525,7 +6525,7 @@ const Sprites = (() => {
     // (ax, ay: the centre of its foot)
     bridgePost() {
       const img = customImage('bridge_post'), res = (img && img.res) || 2;
-      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 20.5, ay: 20.5 } : null;
+      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 17.7, ay: 18 } : null;
     },
     quayStones() {
       const img = customImage('quay_stones');
