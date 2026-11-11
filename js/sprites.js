@@ -6450,7 +6450,7 @@ const Sprites = (() => {
           while (t <= L && !inCaster(px + 0.5 - t, py + 0.5 - t)) t += 0.5;
           if (t > L) continue;
           const i = (py * TILE + px) * 4, k = 1 - t / L;
-          d[i] = 18; d[i + 1] = 14; d[i + 2] = 30; d[i + 3] = 255 * SHADOW_DARK * k * k;
+          d[i] = 40; d[i + 1] = 26; d[i + 2] = 14; d[i + 3] = 255 * SHADOW_DARK * k * k; // (a warm dark: the ground darker, not greyer)
         }
         g.putImageData(img, 0, 0);
       });

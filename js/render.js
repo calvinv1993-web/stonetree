@@ -375,8 +375,9 @@ const Render = {
           if (p === undefined) continue;
           if (Sprites.paved(here)) {
             const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
-            if (n && n !== here && Sprites.paved(n)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
-            if (w && w !== here && Sprites.paved(w)) g.drawImage(Sprites.kerb('w'), ox + x * TILE, oy + y * TILE);
+            // (not along a wall: the two pavings don't meet there, the wall stands between them)
+            if (n && n !== here && Sprites.paved(n) && !walled(x, y - 1)) g.drawImage(Sprites.kerb('n'), ox + x * TILE, oy + y * TILE);
+            if (w && w !== here && Sprites.paved(w) && !walled(x - 1, y)) g.drawImage(Sprites.kerb('w'), ox + x * TILE, oy + y * TILE);
           }
           // Each higher ground around this tile spills its edge in, all its sides and corners at once (lowest first).
           let higher = null;
