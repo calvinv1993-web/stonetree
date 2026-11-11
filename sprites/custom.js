@@ -61,7 +61,11 @@ const CUSTOM_SPRITES = {
   saint: 'saint@2x.png', // a name ending in @2x: two pixels a world pixel (96 x 96 world pixels in 192 x 192)
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',
-  pillar: 'pillar@2x.png',
+  pillar: 'pillar_white@2x.png',
+  pillar_amethyst: 'pillar_amethyst@2x.png',
+  pillar_emerald: 'pillar_emerald@2x.png',
+  pillar_royalblue: 'pillar_royalblue@2x.png',
+  pillar_terracotta: 'pillar_terracotta@2x.png',
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
   steps_slope: 'steps-slope.png', // the temple's stone steps: their slope seen straight on, left end, middle, right end (see stepsFromPicture)
   window_stained_s: 'banner-temple-s.png', // the temple's blue banners with a golden star, from the owner's picture: on a wall
