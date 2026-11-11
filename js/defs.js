@@ -224,6 +224,7 @@ const THINGS = {
   fountain_ne: { name: 'fountain', cat: 'Town', block: true, low: true },
   fountain_sw: { name: 'fountain', cat: 'Town', block: true, low: true },
   fountain_se: { name: 'fountain', cat: 'Town', block: true, low: true },
+  bridge_lantern: { name: 'lantern', cat: 'Town', light: 3 }, // on top of a bridge's corner posts on this tile (drawn with them)
   sun_mosaic:  { name: 'sun mosaic', cat: 'Town', mosaic: 5 }, // a golden sun set in the paving of a square
   lamppost:    { name: 'street lamp', cat: 'Town', block: true, low: true, tall: true, light: 4, fireSwap: 'lamppost_off' },
   lamppost_off:{ name: 'street lamp (out)', cat: 'Town', block: true, low: true, tall: true, fireSwap: 'lamppost' },

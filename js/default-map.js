@@ -1456,6 +1456,15 @@ function buildTown(m, S, runs, river) {
   for (const [x, y, text] of T.signs) { m.ensure(x, y, S).items = []; sign(x, y, S, 'signpost', text); }
   sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
 
+  // ---- lanterns on the corner posts of the bridges in town ---------------------------------------------------------
+  for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+    const g = (m.get(x, y, S) || {}).ground;
+    if (g !== 'bridge_ew' && g !== 'bridge_ns') continue;
+    const same = (dx, dy) => (m.get(x + dx, y + dy, S) || {}).ground === g, ns = g === 'bridge_ns';
+    const end = ns ? !same(0, -1) || !same(0, 1) : !same(-1, 0) || !same(1, 0), edge = ns ? !same(-1, 0) || !same(1, 0) : !same(0, -1) || !same(0, 1);
+    if (end && edge) put(x, y, S, 'bridge_lantern'); // (a post stands where a bridge's end meets its side)
+  }
+
   // ---- the graveyard ---------------------------------------------------------------------------------------------
   {
     const gy = T.graveyard;
