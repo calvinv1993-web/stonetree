@@ -2969,7 +2969,7 @@ const Sprites = (() => {
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
   const DROPS_SHADOW = new Set(['pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
-  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'pew', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
+  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
       const image = customImage('temple_paving');
@@ -6183,11 +6183,13 @@ const Sprites = (() => {
         g.drawImage(image, sx, py * TILE, TILE, TILE, 0, 0, TILE, TILE);
       } else DRAW.carpet(g);
       g.restore();
-      // A cloth binding with small muted stitches, rather than a metallic frame.
+      // Its edge, as the owner's picture has it: a dark outline, a gold braid inside it, and a thin dark line inside that
       g.save();
-      outline(1); g.lineWidth = 2; g.strokeStyle = '#62262a'; g.stroke();
-      outline(1.5); g.lineWidth = 0.75; g.strokeStyle = '#a5824b';
-      g.setLineDash([1, 2]); g.stroke();
+      outline(0.5); g.lineWidth = 1; g.strokeStyle = '#2c0a0c'; g.stroke();
+      outline(1.5); g.lineWidth = 1.2; g.strokeStyle = '#c9963e'; g.stroke();
+      outline(1.5); g.lineWidth = 0.5; g.strokeStyle = '#f0cf7a'; g.setLineDash([1.5, 1.5]); g.stroke();
+      g.setLineDash([]);
+      outline(2.6); g.lineWidth = 0.6; g.strokeStyle = 'rgba(60,10,12,0.8)'; g.stroke();
       g.restore();
     });
   }
