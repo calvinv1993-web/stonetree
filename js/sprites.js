@@ -2967,6 +2967,7 @@ const Sprites = (() => {
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
   // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
+  const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
   const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
@@ -6437,6 +6438,24 @@ const Sprites = (() => {
       return { img, res, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: 11 };
     },
     fillsTile: id => !!PARTS[spriteOf(id)] || FILLS_TILE.has(id), // (its foot fills its tile: grass grows up against it, see render)
+    // The shadow that things standing north, west and north-west of a tile cast on its ground, the light coming from the
+    // north-west (mask: 1 north, 2 west, 4 north-west): each pixel is as dark as it is close to them along the light's way,
+    // fading out over SHADOW_LEN pixels. Soft and light: the ground keeps its colour.
+    castShadow(mask) {
+      return cached(`cast:${mask}`, g => {
+        const img = g.createImageData(TILE, TILE), d = img.data, L = SHADOW_LEN;
+        const inCaster = (px, py) => ((mask & 1) && py < 0 && px >= 0) || ((mask & 2) && px < 0 && py >= 0) || ((mask & 4) && px < 0 && py < 0);
+        for (let py = 0; py < TILE; py++) for (let px = 0; px < TILE; px++) {
+          let t = 0;
+          while (t <= L && !inCaster(px + 0.5 - t, py + 0.5 - t)) t += 0.5;
+          if (t > L) continue;
+          const i = (py * TILE + px) * 4, k = 1 - t / L;
+          d[i] = 18; d[i + 1] = 14; d[i + 2] = 30; d[i + 3] = 255 * SHADOW_DARK * k * k;
+        }
+        g.putImageData(img, 0, 0);
+      });
+    },
+    castsShadow: id => { const d = THINGS[id]; return (!!d.wall && !d.onWall && !d.roof && !d.change) || FILLS_TILE.has(id) || !!PARTS[spriteOf(id)]; },
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     ownEdge(ground, mask, x, y) {
       const pics = {};

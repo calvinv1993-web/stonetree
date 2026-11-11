@@ -418,6 +418,15 @@ const Render = {
           }
         }
 
+        // Shadows: what stands north, west or north-west of a tile shades its ground, the light coming from the north-west
+        const casts = (cx, cy) => { const n = tileAt(cx, cy); return !!n && n.items.some(id => Sprites.castsShadow(id)); };
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const t = tileAt(x, y);
+          if (!t || !t.ground || casts(x, y) || THINGS[t.ground].roof) continue;
+          const mask = (casts(x, y - 1) ? 1 : 0) | (casts(x - 1, y) ? 2 : 0) | (casts(x - 1, y - 1) ? 4 : 0);
+          if (mask) g.drawImage(Sprites.castShadow(mask), ox + x * TILE, oy + y * TILE);
+        }
+
         // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
         // straight line.
         for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
