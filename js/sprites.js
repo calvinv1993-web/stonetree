@@ -6599,6 +6599,20 @@ const Sprites = (() => {
     hasLip: id => ['rock_top', 'grass', 'mountain', 'dirt', 'snow', 'sand', 'ash', 'jungle', 'swamp'].includes(id),
     // The lip along side d (n, e, s, w) of a raised tile: a ragged band of rock, lit on top,
     // with a dark line where it drops away. variant 0-2.
+    // A mountain top's rim from its own picture, if sprites/custom.js has one (lip_rock: a strip of tile-wide pieces of the
+    // rim along a north edge, 2 pixels a world pixel): the piece for this place, turned to the side asked for
+    lipCorner: () => customImage('lip_rock_corner'), // (one stone of it, for where the rim turns a corner)
+    ownLip(d, x, y) {
+      const pic = customImage('lip_rock');
+      if (!pic) return null;
+      const res = pic.naturalHeight / TILE, T = TILE * res, n = Math.max(1, Math.round(pic.naturalWidth / T));
+      const along = d === 'n' || d === 's' ? x : y, i = ((along % n) + n) % n;
+      return cached(`ownlip:${d}:${i}`, g => {
+        g.canvas.res = res;
+        g.translate(T / 2, T / 2); g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2); g.translate(-T / 2, -T / 2);
+        g.drawImage(pic, i * T, 0, T, T, 0, 0, T, T);
+      }, T);
+    },
     lip(d, variant = 0) {
       // A rim of rocks along an open edge of a mountain top: big boulders lying over the edge (as the classic
       // maps edge a mountain), half on the top and half hanging over, the gaps between them in shadow.

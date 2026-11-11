@@ -424,9 +424,47 @@ const Render = {
           const lt = tileAt(x, y), here = lt && lt.items.some(id => THINGS[id].wall === 'thin') ? groundShown(x, y, lt) : groundAt(x, y); // (a wall at the edge stands on the ground beside it, rocks and all)
           if (!Sprites.hasLip(here)) continue;
           const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
-          for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
-            if (!tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height) {
-              g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+          const open = (dx, dy) => !tileAt(x + dx, y + dy) && x + dx >= 0 && y + dy >= 0 && x + dx < map.width && y + dy < map.height;
+          const sides = [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]].filter(([, dx, dy]) => open(dx, dy));
+          const owns = sides.map(([d]) => Sprites.ownLip(d, x, y));
+          sides.forEach(([d], i) => {
+            if (owns[i]) g.drawImage(owns[i], ox + x * TILE, oy + y * TILE, TILE, TILE);
+            else g.drawImage(Sprites.lip(d, variant % 3), ox + x * TILE, oy + y * TILE);
+          });
+          const f = here === 'grass' && owns.some(Boolean) && Sprites.grassFringe && Sprites.grassFringe();
+          if (f) { // the top's grass grows up over the stones' inner side (kept off the stones of the other sides)
+            const has = d => sides.some(s => s[0] === d), B = 12;
+            g.save();
+            g.beginPath();
+            g.rect(ox + x * TILE + (has('w') ? B : 0), oy + y * TILE + (has('n') ? B : 0), TILE - (has('w') ? B : 0) - (has('e') ? B : 0), TILE - (has('n') ? B : 0) - (has('s') ? B : 0));
+            g.clip();
+            sides.forEach(([d], i) => {
+              if (!owns[i]) return;
+              const piece = (((x * 3 + y * 5 + i) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE;
+              g.save();
+              g.translate(ox + x * TILE + TILE / 2, oy + y * TILE + TILE / 2);
+              g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
+              g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 + B - f.reach, TILE, f.height / f.res);
+              g.restore();
+            });
+            g.restore();
+            // the blades over the stones: drawn again, only where the stones are, so they cross the stones' lower edge
+            sides.forEach(([d], i) => {
+              if (!owns[i]) return;
+              const piece = (((x * 3 + y * 5 + i) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE;
+              g.save();
+              g.translate(ox + x * TILE + TILE / 2, oy + y * TILE + TILE / 2);
+              g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
+              g.beginPath(); g.rect(-TILE / 2 + 4, -TILE / 2 + B - 6, TILE - 8, 6); g.clip();
+              g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 + B - f.reach, TILE, f.height / f.res);
+              g.restore();
+            });
+          }
+          const cornerStone = Sprites.lipCorner && Sprites.lipCorner();
+          if (cornerStone) for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { // a stone where the rim turns a corner
+            if ((open(cx, 0) && open(0, cy)) || (open(cx, cy) && !open(cx, 0) && !open(0, cy))) {
+              const s = 13;
+              g.drawImage(cornerStone, ox + x * TILE + (cx < 0 ? -1 : TILE - s + 1), oy + y * TILE + (cy < 0 ? -1 : TILE - s + 1), s, s);
             }
           }
         }
