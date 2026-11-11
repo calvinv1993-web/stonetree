@@ -1156,12 +1156,10 @@ function buildTown(m, S, runs, river) {
       }
       on = next;
     }
-    const all8 = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].every(([dx, dy]) => on.has(`${x + dx},${y + dy}`));
     for (const k of on) {
-      const [x, y] = k.split(',').map(Number), rim = !all8(x, y);
+      const [x, y] = k.split(',').map(Number); // (no crags on its edge: the rim of stones round it is enough)
       m.set(x, y, S, { ground: 'mountain', items: ['cliff'] });
       m.set(x, y, S + 1, { ground: 'grass', items: [] });
-      if (rim && !kept(x, y) && hash(x + 77, y) < 0.1) put(x, y, S + 1, 'crag');
     }
     for (const x of t.steps) { m.get(x, t.y1, S).items = ['steps']; m.setGround(x, t.y1, S + 1, 'steps_top'); }
   }

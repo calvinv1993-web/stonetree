@@ -6215,6 +6215,16 @@ const Sprites = (() => {
       const own = customImage(id);
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if (own) return own;
+      // a thing on a wall with its own pictures for the two faces (sprites/custom.js <id>_s for a wall running east-west,
+      // <id>_e for one running north-south): 64 x 64 world pixels, the wall's tile in the bottom-right corner, any res
+      if (THINGS[id] && THINGS[id].onWall && customImage(`${id}_s`) && customImage(`${id}_e`)) {
+        const pic = customImage(runsNorthSouth(wallSides(shape || '1100')) ? `${id}_e` : `${id}_s`);
+        const res = Math.min(pic.naturalWidth / (2 * TILE), Sprites.CREATURE_RES);
+        return cached(`ownonwall:${id}:${runsNorthSouth(wallSides(shape || '1100')) ? 'e' : 's'}:${res}`, g => {
+          g.canvas.res = res; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+          g.drawImage(pic, 0, 0, 2 * TILE * res, 2 * TILE * res);
+        }, 2 * TILE * res);
+      }
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y);
