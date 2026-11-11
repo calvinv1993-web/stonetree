@@ -429,6 +429,20 @@ const Sprites = (() => {
       g.restore();
     }, 2 * TILE * res);
   }
+  // A wooden bridge from its own picture (sprites/custom.js bridge_deck): 4 rows of 3 tiles, drawn as a bridge you cross
+  // east-west (planks running north-south, a beam along an edge where the bridge ends): the rows for shape 00, 10, 01, 11
+  // (whether the bridge goes on north, south), the columns by place along it. A bridge you cross north-south is the same
+  // turned a quarter round.
+  function bridgeFromPicture(northSouth, shape = '00', x, y) {
+    const pic = customImage('bridge_deck'), src = pic.naturalWidth / 3, res = Sprites.CREATURE_RES;
+    const row = { '00': 0, '10': 1, '01': 2, '11': 3 }[shape] || 0, col = (((northSouth ? y : x) % 3) + 3) % 3;
+    return cached(`ownbridge:${northSouth ? 'ns' : 'ew'}:${row}:${col}:${res}`, g => {
+      g.canvas.res = res;
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      if (northSouth) { g.translate(0, TILE * res); g.rotate(-Math.PI / 2); } // (its north beam to the west, its south beam to the east)
+      g.drawImage(pic, col * src, row * src, src, src, 0, 0, TILE * res, TILE * res);
+    }, TILE * res);
+  }
   // A door: a doorway cut out of the wall's own texture, with a wooden frame, on
   // the face the wall runs along (south for a wall running east-west, east for
   // one running north-south). Through an open door you see what's behind it, with
@@ -6222,6 +6236,7 @@ const Sprites = (() => {
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
       const own = customImage(id) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
+      if ((id === 'bridge_ns' || id === 'bridge_ew') && customImage('bridge_deck')) return bridgeFromPicture(id === 'bridge_ns', shape, x, y);
       if (own && own.res > 1) { // (a fine PNG: put once on a canvas exactly as fine as the screen, so it's drawn 1:1, never scaled per frame)
         const k = Sprites.CREATURE_RES, w = Math.round(own.naturalWidth / own.res * k), h = Math.round(own.naturalHeight / own.res * k);
         return cached(`ownfine:${id}:${own.naturalWidth}:${own.src.length}:${hashStr(own.src)}:${k}`, g => {

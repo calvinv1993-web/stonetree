@@ -75,6 +75,7 @@ const CUSTOM_SPRITES = {
   altar: 'altar@2x.png', // the temple's altar, from the owner's picture
   torch: 'torch@2x.png', // the standing torches and the torches on walls running north-south, from the owner's picture
   wall_torch_e: 'wall-torch-e.png',
+  bridge_deck: 'bridge-mock.png', // the wooden bridges, from the owner's picture of a pier (see bridgeFromPicture)
   grate: 'grate@2x.png', // the sewer grates in the streets
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
