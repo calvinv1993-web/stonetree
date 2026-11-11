@@ -68,6 +68,9 @@ const CUSTOM_SPRITES = {
   window_stained_e: 'banner-temple-e.png', // running east-west (its south face) and north-south (its east face)
   banner_s: 'banner-temple-s.png',
   banner_e: 'banner-temple-e.png',
+  lamppost: 'lamppost@2x.png', // the street lamps, the standing torches and the torches on walls running north-south,
+  torch: 'torch@2x.png',        // from the owner's picture
+  wall_torch_e: 'wall-torch-e.png',
   grate: 'grate@2x.png', // the sewer grates in the streets
   founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
 };
