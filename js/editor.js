@@ -454,7 +454,7 @@
         b.title = nameOf(entry);
         b.dataset.key = keyOf(entry);
         const im = new Image();
-        im.src = img.toDataURL();
+        im.src = typeof img.toDataURL === 'function' ? img.toDataURL() : img.src;
         b.appendChild(im);
         b.addEventListener('click', () => select(entry));
         grid.appendChild(b);
