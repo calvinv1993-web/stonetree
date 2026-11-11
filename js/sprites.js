@@ -6485,7 +6485,7 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       });
     },
-    // The shadow a piece of furniture or a statue casts on the floor: its own shape in a soft warm dark, to be drawn a
+    // The shadow a piece of furniture or a statue casts on the floor: the shape of its foot in a soft warm dark, drawn a
     // few pixels south-east of it, under it (only things that stand on the floor: see dropsShadow)
     dropShadow(img) {
       let sh = dropShadows.get(img);
@@ -6493,7 +6493,9 @@ const Sprites = (() => {
         sh = document.createElement('canvas'); sh.width = img.width; sh.height = img.height; sh.res = img.res;
         const g = sh.getContext('2d');
         g.filter = `blur(${(img.res || 1) * 1.2}px)`; // (soft at the edges)
-        g.drawImage(img, 0, 0);
+        // only its foot, on its own tile (the bottom-right TILE square): what stands up off the floor casts no shape on it
+        const T = TILE * (img.res || 1);
+        g.drawImage(img, img.width - T, img.height - T, T, T, img.width - T, img.height - T, T, T);
         g.filter = 'none';
         g.globalCompositeOperation = 'source-in';
         g.fillStyle = 'rgba(40,26,14,0.5)';
