@@ -6472,6 +6472,12 @@ const Sprites = (() => {
     // 2 pixels a world pixel, made of the flowers in the owner's picture), or null
     // The round stones of a bank (sprites/custom.js quay_stones: a strip 48 x 64 n pixels, 2 a world pixel, the water to
     // the left of x = 20 and the land to its right), or null
+    // A bridge's corner post (sprites/custom.js bridge_post, 2 pixels a world pixel): its size in world pixels and the
+    // point of it that sits on the beam's end (ax, ay)
+    bridgePost() {
+      const img = customImage('bridge_post');
+      return img ? { img, w: img.naturalWidth / 2, h: img.naturalHeight / 2, ax: 9, ay: 22 } : null;
+    },
     quayStones() {
       const img = customImage('quay_stones');
       return img ? { img, src: 2 * TILE, count: Math.max(1, Math.floor(img.naturalHeight / (2 * TILE))), width: img.naturalWidth / 2, at: 10 } : null;

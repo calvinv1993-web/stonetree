@@ -422,12 +422,15 @@ const Render = {
             g.drawImage(quay.img, 0, i * quay.src, quay.img.naturalWidth, quay.src, bx - QA, -TILE / 2, QW, TILE);
             g.restore();
           };
-          for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          // (only in town: the zones marked town on this floor, its walls and moat; out in the wilds the shores stay natural)
+          const towns = (map.zones || []).filter(r => r.town && r.z === z && r.x1 >= gx0 && r.x0 <= gx1 && r.y1 >= gy0 && r.y0 <= gy1);
+          const inTown = (tx, ty) => towns.some(r => tx >= r.x0 && tx <= r.x1 && ty >= r.y0 && ty <= r.y1);
+          if (towns.length) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
             const here = groundAt(x, y), w = wet(here);
-            if (!w && !banked(here)) continue;
+            if ((!w && !banked(here)) || !inTown(x, y)) continue;
             for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
               const n = groundAt(x + dx, y + dy);
-              if (w ? !(banked(n) && !wallAt(x + dx, y + dy)) : !wet(n)) continue;
+              if ((w ? !(banked(n) && !wallAt(x + dx, y + dy)) : !wet(n)) || !inTown(x + dx, y + dy)) continue;
               if (!w && wallAt(x, y)) continue;
               piece(d, d === 'n' || d === 's' ? x : y, w, ox + x * TILE, oy + y * TILE);
             }
@@ -598,6 +601,21 @@ const Render = {
             g.transform(0, 1 / f.res, 1 / f.res, 0, ox + x * TILE - f.reach, oy + y * TILE);
             g.drawImage(f.img, ((piece + 5) % f.pieces) * fw, 0, fw, fh, 0, 0, fw, fh);
             g.restore();
+          }
+        }
+        // the thick posts at a wooden bridge's corners, where its edge beams meet the land (Sprites.bridgePost)
+        const post = t && (t.ground === 'bridge_ew' || t.ground === 'bridge_ns') && Sprites.bridgePost && Sprites.bridgePost();
+        if (post) {
+          const id = t.ground, ns = id === 'bridge_ns', same = (bx, by) => groundAt(bx, by) === id;
+          // (ends: along the way you cross it; edges: its sides, where a beam runs)
+          const ends = ns ? [[0, -1, same(x, y - 1)], [0, 1, same(x, y + 1)]] : [[-1, 0, same(x - 1, y)], [1, 0, same(x + 1, y)]];
+          const edges = ns ? [[-1, 0, same(x - 1, y)], [1, 0, same(x + 1, y)]] : [[0, -1, same(x, y - 1)], [0, 1, same(x, y + 1)]];
+          for (const [ex, ey, eSame] of ends) for (const [sx, sy, sSame] of edges) {
+            if (eSame || sSame) continue;
+            // the corner: the end's edge of the tile, along the beam's middle (5.5 world pixels in from the side)
+            const cx = ox + x * TILE + (ex ? (ex < 0 ? 0 : TILE) : (sx < 0 ? 5.5 : TILE - 5.5));
+            const cy = oy + y * TILE + (ey ? (ey < 0 ? 0 : TILE) : (sy < 0 ? 5.5 : TILE - 5.5));
+            g.drawImage(post.img, cx - post.ax, cy - post.ay, post.w, post.h);
           }
         }
         if (t) {
