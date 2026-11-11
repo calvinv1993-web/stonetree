@@ -253,6 +253,10 @@ const THINGS = {
   scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
   dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true, trainer: true },
   pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
+  pillar_amethyst: { name: 'amethyst pillar', cat: 'Town', block: true, tall: true },
+  pillar_emerald: { name: 'emerald pillar', cat: 'Town', block: true, tall: true },
+  pillar_royalblue: { name: 'royal blue pillar', cat: 'Town', block: true, tall: true },
+  pillar_terracotta: { name: 'terracotta pillar', cat: 'Town', block: true, tall: true },
   // Out in the wilds
   windmill:    { name: 'windmill', cat: 'Wilds', block: true, tall: true },
   igloo:       { name: 'igloo', cat: 'Wilds', block: true, low: true },
