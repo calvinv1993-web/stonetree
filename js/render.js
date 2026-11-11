@@ -10,6 +10,7 @@ const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
+const STANDING = new WeakMap(); // tile -> whether something stands on it filling it (for the grass round things' feet)
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
@@ -40,7 +41,7 @@ const Render = {
   // the view, so walking into new ground never stops the game.
   CHUNK: 8,
   CHUNK_RES: 2,
-  CHUNKS_KEPT: 110,
+  CHUNKS_KEPT: typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 64 : 110, // (fewer on a phone, where memory is tight)
   CHUNK_MS: 4, // how long a frame may spend making chunks (Render.budget: until when)
   budget: 0,
   chunks: new Map(),
@@ -49,7 +50,9 @@ const Render = {
   stats: { live: 0, finished: 0 }, // (how often a chunk in view wasn't ready: for measuring)
   later: new Map(), // chunks in view that weren't made in their frame
   chores: [], // small jobs for the quiet time between frames: making pictures before they're needed
+  shoreTiles: new Map(), // the borders drawn over the ripples by a shore, per tile, kept (see world)
   forget(key) {
+    Render.shoreTiles.clear(); // (the ground changed: they're drawn again as needed)
     const c = Render.chunks.get(key);
     if (!c) return;
     Render.chunks.delete(key);
@@ -423,7 +426,9 @@ const Render = {
             g.restore();
           };
           // (only in town: the zones marked town on this floor, its walls and moat; out in the wilds the shores stay natural)
-          const towns = (map.zones || []).filter(r => r.town && r.z === z && r.x1 >= gx0 && r.x0 <= gx1 && r.y1 >= gy0 && r.y0 <= gy1);
+          const allTowns = map.townZones && map.townZones.zones === map.zones && map.townZones.count === map.zones.length ? map.townZones.list
+            : (map.townZones = { zones: map.zones, count: (map.zones || []).length, list: (map.zones || []).filter(r => r.town) }).list;
+          const towns = allTowns.filter(r => r.z === z && r.x1 >= gx0 && r.x0 <= gx1 && r.y1 >= gy0 && r.y0 <= gy1);
           const inTown = (tx, ty) => towns.some(r => tx >= r.x0 && tx <= r.x1 && ty >= r.y0 && ty <= r.y1);
           if (towns.length) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
             const here = groundAt(x, y), w = wet(here);
@@ -470,6 +475,20 @@ const Render = {
           if (!t || !t.ground || casts(x, y) || THINGS[t.ground].roof) continue;
           const mask = (casts(x, y - 1) ? 1 : 0) | (casts(x - 1, y) ? 2 : 0) | (casts(x - 1, y - 1) ? 4 : 0);
           if (mask) g.drawImage(Sprites.castShadow(mask), ox + x * TILE, oy + y * TILE);
+        }
+
+        // The shadows things cast on the floor in their own shape (Sprites.dropShadow), kept with the ground in its chunks,
+        // not drawn every frame: the things of these tiles and of the tiles just north and west, whose shadows reach in
+        for (let y = gy0 - 2; y <= gy1; y++) for (let x = gx0 - 2; x <= gx1; x++) {
+          const t = tileAt(x, y);
+          if (!t || !t.items.length) continue;
+          for (const id of t.items) {
+            if (!Sprites.dropsShadow(id)) continue;
+            let shape;
+            if (THINGS[id].wall === 'thin') shape = [wallAt(x - 1, y), wallAt(x, y - 1), wallAt(x, y + 1), wallAt(x + 1, y)].map(w => (w ? '1' : '0')).join('');
+            const img = Sprites.thing(id, x, y, 0, shape), iw = Sprites.w(img), ih = Sprites.h(img);
+            g.drawImage(Sprites.dropShadow(img), ox + x * TILE - (iw - TILE), oy + y * TILE - (ih - TILE), iw + 8, ih + 8);
+          }
         }
 
         // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
@@ -565,7 +584,18 @@ const Render = {
         g.drawImage(f, ox + x * TILE, oy + y * TILE);
         let open = true;
         for (let dy = -1; dy <= 1 && open; dy++) for (let dx = -1; dx <= 1; dx++) if (groundAt(x + dx, y + dy) !== 'water' || wallAt(x + dx, y + dy)) { open = false; break; }
-        if (!open) groundPass(g, ox, oy, x, x, y, y, x, x, y, y, 0, true);
+        if (open) continue;
+        // (its borders over the ripples: drawn once into a picture of the tile and kept, not worked out every frame)
+        const key = `${z}:${x}:${y}`, R = Render.CHUNK_RES;
+        let over = Render.shoreTiles.get(key);
+        if (!over) {
+          if (Render.shoreTiles.size > 600) Render.shoreTiles.clear();
+          over = document.createElement('canvas'); over.width = over.height = TILE * R;
+          const og = over.getContext('2d'); og.scale(R, R); og.imageSmoothingEnabled = false;
+          groundPass(og, -x * TILE, -y * TILE, x, x, y, y, x, x, y, y, 0, true);
+          Render.shoreTiles.set(key, over);
+        }
+        g.drawImage(over, ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
       if (v.afterGround) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
@@ -586,7 +616,12 @@ const Render = {
       // (what fills its tile to the edge: walls, rock sides, a statue's plinth... - not a tree, whose trunk stands in the middle)
       const standing = (sx, sy) => {
         const n = tileAt(sx, sy);
-        return !!n && n.items.some(id => { const d = THINGS[id]; return (d.wall && !d.onWall && !d.roof) || Sprites.fillsTile(id); });
+        if (!n || !n.items.length) return false;
+        const sig = n.items.length === 1 ? n.items[0] : n.items.join(','), memo = STANDING.get(n); // (worked out once per tile's things)
+        if (memo && memo.sig === sig) return memo.val;
+        const val = n.items.some(id => { const d = THINGS[id]; return (d.wall && !d.onWall && !d.roof) || Sprites.fillsTile(id); });
+        STANDING.set(n, { sig, val });
+        return val;
       };
       const fringe = Sprites.grassFringe && Sprites.grassFringe();
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
@@ -649,7 +684,6 @@ const Render = {
             if (fine) g.imageSmoothingEnabled = true;
             const st = v.seeThrough, hides = def.tall && !def.wall && st && st.z === z && st.x >= x - 1 && st.x <= x && st.y >= y - 1 && st.y <= y && !(st.x === x && st.y === y);
             if (hides) g.globalAlpha = 0.45;
-            if (Sprites.dropsShadow(id)) g.drawImage(Sprites.dropShadow(img), ox + x * TILE - lift, oy + y * TILE - rise, iw + 8, ih + 8); // (its shadow on the floor, south-east: see dropShadow)
             if (v.wind && SWAYING.has(id)) { // anchored at its foot, its top sways
               const bx = ox + x * TILE + TILE / 2, by = oy + y * TILE + TILE - 2;
               const lean = v.wind * Math.sin(v.time / 700 + x * 0.9 + y * 1.7) * (id === 'tallgrass' ? 0.12 : 0.035);

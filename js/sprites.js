@@ -5471,21 +5471,24 @@ const Sprites = (() => {
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is.
   function npcFromSheet(id, dir, frame) {
-    const img = customImage(`sheet_${id}`), R = SHEET.res, [CW, CH] = SHEET.cell;
-    return cached(`npcsheet:${id}:${dir}:${frame}`, g => {
+    // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
+    // keeps far smaller pictures, and nothing is scaled when they're drawn)
+    const img = customImage(`sheet_${id}`), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), [CW, CH] = SHEET.cell;
+    return cached(`npcsheet:${id}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
-      const sx = (frame || 0) * CW * R, sy = SHEET.rows[dir] * CH * R, ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
-      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * R, CH * R, 0, 0, CW * R, CH * R); }
-      else g.drawImage(img, sx, sy, CW * R, CH * R, ox, oy, CW * R, CH * R);
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
+      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * R, CH * R); }
+      else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * R, CH * R);
     }, 2 * TILE * R);
   }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && customImage(`sheet_${c.npcId}`)));
   function playerFromSheet(key, dir, frame) {
-    const img = customImage('player_sheet'), R = SHEET.res, look = lookFor(key) || {};
-    return cached(`sheet:${key}:${dir}:${frame}`, g => {
+    const img = customImage('player_sheet'), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
+    return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
-      const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * R, sy = row * CH * R;
-      const cell = document.createElement('canvas'); cell.width = CW * R; cell.height = CH * R;
+      const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * S, sy = row * CH * S;
+      const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       const cg = cell.getContext('2d');
       const px = sheetParts(img);
       const targets = SHEET.parts.map(p => (look[p] && look[p] !== DEFAULT_OUTFIT[p] ? hexRgb(look[p]) : null));
@@ -5499,11 +5502,12 @@ const Sprites = (() => {
           o[j] = r; o[j + 1] = gg; o[j + 2] = b; o[j + 3] = px.data[i * 4 + 3];
         }
         cg.putImageData(out, 0, 0);
-      } else cg.drawImage(img, sx, sy, CW * R, CH * R, 0, 0, CW * R, CH * R);
+      } else cg.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * S, CH * S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
-      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0); }
-      else g.drawImage(cell, ox, oy);
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
+      else g.drawImage(cell, ox, oy, CW * R, CH * R);
     }, 2 * TILE * R);
   }
 
