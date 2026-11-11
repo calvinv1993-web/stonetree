@@ -4,7 +4,8 @@
 const Sprites = (() => {
   const cache = new Map();
   const urls = new Map();
-  const silhouettes = new WeakMap(), dropShadows = new WeakMap(), contactShadows = new WeakMap();
+  const silhouettes = new WeakMap(), dropShadows = new WeakMap();
+  const SHADOW_PAD = 8; // (how far a shadow picture reaches past its thing, right and down)
 
   function cached(key, draw, size = TILE, height = size) {
     let c = cache.get(key);
@@ -6487,21 +6488,26 @@ const Sprites = (() => {
     },
     // The shadow a piece of furniture or a statue casts on the floor: the shape of its foot in a soft warm dark, drawn a
     // few pixels south-east of it, under it (only things that stand on the floor: see dropsShadow)
-    dropShadow(img, contact = false) {
-      const store = contact ? contactShadows : dropShadows;
-      let sh = store.get(img);
+    // (one picture for both: the soft wide one 5, 7 pixels south-east, the tight dark one 1.5, 2 where it stands; it is
+    // SHADOW_PAD world pixels bigger than the thing, right and down, and drawn at the thing's top-left corner)
+    dropShadow(img) {
+      let sh = dropShadows.get(img);
       if (!sh) {
-        sh = document.createElement('canvas'); sh.width = img.width; sh.height = img.height; sh.res = img.res;
-        const g = sh.getContext('2d'), k = img.res || 1;
-        g.filter = `blur(${k * (contact ? 0.5 : 1.2)}px)`; // (the soft one wide, the one where it touches the floor tight)
-        // only its foot, on its own tile (the bottom-right TILE square): what stands up off the floor casts no shape on it
-        const T = TILE * k;
-        g.drawImage(img, img.width - T, img.height - T, T, T, img.width - T, img.height - T, T, T);
-        g.filter = 'none';
-        g.globalCompositeOperation = 'source-in';
-        g.fillStyle = contact ? 'rgba(22,14,6,0.8)' : 'rgba(40,26,14,0.5)';
-        g.fillRect(0, 0, sh.width, sh.height);
-        store.set(img, sh);
+        const k = img.res || 1, T = TILE * k, pad = SHADOW_PAD * k;
+        sh = document.createElement('canvas'); sh.width = img.width + pad; sh.height = img.height + pad; sh.res = img.res;
+        const g = sh.getContext('2d');
+        const layer = (dx, dy, blur, colour) => {
+          const c = document.createElement('canvas'); c.width = sh.width; c.height = sh.height;
+          const cg = c.getContext('2d');
+          cg.filter = `blur(${k * blur}px)`;
+          // only its foot, on its own tile (the bottom-right TILE square): what stands up off the floor casts no shape on it
+          cg.drawImage(img, img.width - T, img.height - T, T, T, img.width - T + dx * k, img.height - T + dy * k, T, T);
+          cg.filter = 'none'; cg.globalCompositeOperation = 'source-in'; cg.fillStyle = colour; cg.fillRect(0, 0, c.width, c.height);
+          g.drawImage(c, 0, 0);
+        };
+        layer(5, 7, 1.2, 'rgba(40,26,14,0.5)');
+        layer(1.5, 2, 0.5, 'rgba(22,14,6,0.8)');
+        dropShadows.set(img, sh);
       }
       return sh;
     },
