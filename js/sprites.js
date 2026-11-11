@@ -2960,6 +2960,8 @@ const Sprites = (() => {
   const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
+  // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded
+  for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) if (!DRAW[id]) DRAW[id] = DRAW.pillar;
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
