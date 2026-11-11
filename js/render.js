@@ -681,14 +681,12 @@ const Render = {
             const cx = ox + x * TILE + (ex ? (ex < 0 ? 0 : TILE) : (sx < 0 ? 5.5 : TILE - 5.5));
             const cy = oy + y * TILE + (ey ? (ey < 0 ? 0 : TILE) : (sy < 0 ? 5.5 : TILE - 5.5));
             g.drawImage(post.img, cx - post.ax, cy - post.ay, post.w, post.h);
-            const lamp = t.items.includes('bridge_lantern') && Sprites.bridgeLantern(); // (and a lantern on its top)
-            if (lamp) g.drawImage(lamp.img, cx - post.top - lamp.ax, cy - post.top - lamp.ay, lamp.w, lamp.h);
           }
         }
         if (t) {
           let wallShape = null;
           for (const id of t.items) {
-            if (id === 'carpet_rug' || id === 'bridge_lantern') continue; // (a rug goes with the ground, a bridge's lantern with its posts)
+            if (id === 'carpet_rug') continue;
             const def = THINGS[id];
             if (def.mosaic && Sprites.mosaic(id)) continue; // (drawn with the ground)
             if (def.wall === 'block' && t.items.length === 1 && buried(x, y)) continue;

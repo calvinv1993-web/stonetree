@@ -2404,7 +2404,6 @@ const Sprites = (() => {
       }
       ellipse(g, '#d8a848', 16, 16, 5, 5);
     },
-    bridge_lantern() {}, // (drawn on the bridge's posts, see Sprites.bridgeLantern)
     fountain_nw() {}, fountain_ne() {}, fountain_sw() {}, fountain_se() {}, bed_head() {}, bed_foot() {},
     lamppost_off(g) { streetLamp(g, false); },
     // A street lamp: a stone foot, an iron post and a glowing lantern with a little roof.
@@ -6524,15 +6523,9 @@ const Sprites = (() => {
     // A bridge's corner post (sprites/custom.js bridge_post: a round post in the world's camera, rising up and left, its
     // pixels a world pixel in its name, @4x): its size in world pixels and the point of it that sits on the beam's end
     // (ax, ay: the centre of its foot)
-    // The lantern on top of a bridge post (sprites/custom.js bridge_lantern, in the world's camera): its size in world
-    // pixels and the centre of its base (ax, ay), which sits on the post's top
-    bridgeLantern() {
-      const img = customImage('bridge_lantern'), res = (img && img.res) || 2;
-      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 18, ay: 19.5 } : null;
-    },
     bridgePost() {
       const img = customImage('bridge_post'), res = (img && img.res) || 2;
-      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 17.7, ay: 18, top: 11.7 } : null; // (top: how far up and left of its foot its top's centre is)
+      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 17.7, ay: 18 } : null;
     },
     quayStones() {
       const img = customImage('quay_stones');
