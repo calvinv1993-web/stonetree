@@ -6505,8 +6505,8 @@ const Sprites = (() => {
           cg.filter = 'none'; cg.globalCompositeOperation = 'source-in'; cg.fillStyle = colour; cg.fillRect(0, 0, c.width, c.height);
           g.drawImage(c, 0, 0);
         };
-        layer(5, 7, 1.2, 'rgba(40,26,14,0.5)');
-        layer(1.5, 2, 0.5, 'rgba(22,14,6,0.8)');
+        layer(3, 4, 2.2, 'rgba(46,32,18,0.3)');   // (soft and wide, light: indoor light comes from more than one side)
+        layer(1, 1.5, 0.9, 'rgba(30,20,10,0.45)'); // (where it touches the floor, a little darker, still soft)
         dropShadows.set(img, sh);
       }
       return sh;
