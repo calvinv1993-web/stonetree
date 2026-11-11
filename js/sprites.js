@@ -6505,8 +6505,8 @@ const Sprites = (() => {
       }
       return sh;
     },
-    dropsShadow: id => DROPS_SHADOW.has(id),
-    castsShadow: id => { const d = THINGS[id]; return (!!d.wall && !d.onWall && !d.roof && !d.change) || (FILLS_TILE.has(id) && !DROPS_SHADOW.has(id)) || !!PARTS[spriteOf(id)]; }, // (what has a shadow of its own shape doesn't shade the whole tile beside it too)
+    dropsShadow: id => { const d = THINGS[id]; return DROPS_SHADOW.has(id) || (d.wall === 'thin' && !d.roof) || FILLS_TILE.has(id) || !!PARTS[spriteOf(id)]; },
+    castsShadow: id => { const d = THINGS[id]; return d.wall === 'block' && !d.roof && !d.change; }, // (only what fills its tile to the edge, a block: the rest has a shadow of its own shape, see dropsShadow)
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     ownEdge(ground, mask, x, y) {
       const pics = {};

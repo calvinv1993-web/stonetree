@@ -24,9 +24,10 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
 - From the **north-west**, high up. Lit: tops, north and west edges. In shade: south faces a little, **east faces
   most**. Shadows fall **south-east**, soft, on the ground below.
 - Every raised thing touches the ground with a contact shadow (a dark line or soft patch on its south-east side).
-- Walls, rock sides, statues and other things that fill their tile also cast a soft shadow on the ground south and east of
-  them (`Sprites.castShadow`, `SHADOW_LEN` and `SHADOW_DARK` in `sprites.js`), drawn with the ground's chunks, so it costs
-  nothing per frame.
+- Shadows follow things' shapes, not the tiles: walls, statues, furniture and big things cast a soft shadow of their foot's
+  shape, a few pixels south-east, with a tight dark one where they touch the floor (`Sprites.dropShadow`). Only blocks that
+  fill their tile to the edge (rock sides, the town wall) shade the ground of the tiles south and east of them
+  (`Sprites.castShadow`), drawn with the ground's chunks.
 
 ## Outline
 
