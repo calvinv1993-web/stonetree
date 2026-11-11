@@ -16,6 +16,10 @@ const CUSTOM_SPRITES = {
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
   cobble: 'cobble-mock.png',
   lip_rock: 'lip-rock.png', // the rim of stones along a mountain top's open edges, from the owner's picture (see Sprites.ownLip)
+  flowers_0: 'flowers-0@2x.png', // the patches of flowers on the map, from the same flowers (three variants)
+  flowers_1: 'flowers-1@2x.png',
+  flowers_2: 'flowers-2@2x.png',
+  grass_flowers: 'grass-flowers.png', // clumps of little flowers scattered over the grass (see Sprites.grassFlowers)
   grass_fringe: 'grass-fringe.png', // blades of grass over the foot of what stands beside grass (see Sprites.grassFringe)
   edge_grass_n: 'edge-grass-n.png', // the grass's border reaching into a tile from the north, east, south and west (see Sprites.ownEdge)
   edge_grass_e: 'edge-grass-e.png',

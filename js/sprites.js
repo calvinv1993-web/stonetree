@@ -6212,7 +6212,7 @@ const Sprites = (() => {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
-      const own = customImage(id);
+      const own = customImage(id) || customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`); // (or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if (own) return own;
       // a thing on a wall with its own pictures for the two faces (sprites/custom.js <id>_s for a wall running east-west,
@@ -6441,6 +6441,12 @@ const Sprites = (() => {
     // is two sides; a corner on its own (an outer corner) is the north side's border bent round the corner.
     // Blades of grass to draw over the foot of a thing standing beside grass, with their soft shadow on it (sprites/custom.js
     // grass_fringe: a strip of tile-wide pieces at 2 pixels a world pixel, the ground line 11 world pixels down), or null
+    // Clumps of little flowers to scatter over grass (sprites/custom.js grass_flowers: a strip of tile-sized pictures at
+    // 2 pixels a world pixel, made of the flowers in the owner's picture), or null
+    grassFlowers() {
+      const img = customImage('grass_flowers');
+      return img ? { img, res: 2, count: Math.max(1, Math.floor(img.naturalWidth / (2 * TILE))) } : null;
+    },
     grassFringe() {
       const img = customImage('grass_fringe');
       if (!img) return null;

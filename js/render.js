@@ -419,6 +419,17 @@ const Render = {
           }
         }
 
+        // Flowers here and there in the grass (Sprites.grassFlowers: a few clumps, picked by place, about one tile in three)
+        const flowers = Sprites.grassFlowers && Sprites.grassFlowers();
+        if (flowers) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const t = tileAt(x, y);
+          if (!t || t.ground !== 'grass' || t.items.length) continue;
+          const h = (Math.imul(x, 2654435761) ^ Math.imul(y, 2246822519)) >>> 0;
+          if (h % 100 >= 30) continue;
+          const i = (h >>> 8) % flowers.count, fw = flowers.res * TILE;
+          g.drawImage(flowers.img, i * fw, 0, fw, fw, ox + x * TILE, oy + y * TILE, TILE, TILE);
+        }
+
         // Shadows: what stands north, west or north-west of a tile shades its ground, the light coming from the north-west
         const casts = (cx, cy) => { const n = tileAt(cx, cy); return !!n && n.items.some(id => Sprites.castsShadow(id)); };
         for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
