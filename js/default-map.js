@@ -1282,11 +1282,10 @@ function buildTown(m, S, runs, river) {
     for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, t.y0 + 3, Z, 'pew');
     for (const y of [t.y0 + 2]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
-    // the terrace in front: paving, statues, lamps and flowers, with the steps down to the square
+    // the terrace in front: paving, pillars, lamps and flowers, with the steps down to the square
     const mt = T.mount;
     for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0; x <= t.x1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
-    for (const [x, id] of [[t.x0 + 1, 'saint'], [t.x1 - 1, 'saint']]) put(x, mt.y1 - 1, Z, id);
     for (const x of [cx - 2, cx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
     sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
     // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace, and
