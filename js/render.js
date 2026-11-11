@@ -601,7 +601,6 @@ const Render = {
             if (fine) g.imageSmoothingEnabled = true;
             const st = v.seeThrough, hides = def.tall && !def.wall && st && st.z === z && st.x >= x - 1 && st.x <= x && st.y >= y - 1 && st.y <= y && !(st.x === x && st.y === y);
             if (hides) g.globalAlpha = 0.45;
-            if (Sprites.dropsShadow(id)) g.drawImage(Sprites.dropShadow(img), ox + x * TILE - lift + 5, oy + y * TILE - rise + 7, iw, ih); // (its shadow on the floor, south-east)
             if (v.wind && SWAYING.has(id)) { // anchored at its foot, its top sways
               const bx = ox + x * TILE + TILE / 2, by = oy + y * TILE + TILE - 2;
               const lean = v.wind * Math.sin(v.time / 700 + x * 0.9 + y * 1.7) * (id === 'tallgrass' ? 0.12 : 0.035);
