@@ -385,7 +385,8 @@ const Sprites = (() => {
     if (!pic || !def || def.wall !== 'block') return null;
     const res = Sprites.CREATURE_RES, n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
     const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
-    const open = shape === '00' || !/^[01]{2}$/.test(shape) ? '00' : shape, corner = open === '00';
+    // (only natural rock gets a ragged foot and rounded corners: a built wall such as the town wall keeps its edges)
+    const open = !def.natural ? '11' : shape === '00' || !/^[01]{2}$/.test(shape) ? '00' : shape, corner = open === '00';
     return cached(`ownblock:${id}:${at(x)}:${at(y)}:${open}:${res}`, g => {
       g.canvas.res = res;
       const side = (which, i, shade) => {
@@ -1568,7 +1569,8 @@ const Sprites = (() => {
         top: () => rockSurface(g, r),
       });
     },
-    // The town wall: big dressed blocks of grey stone, three courses a floor; its walkway is the floor above.
+    // The town wall: big dressed blocks of grey stone, three courses a floor; its walkway is the floor above. (Drawn from
+    // its own picture once that's in, see blockFromPicture: sandstone, sprites/rampart-face.png.)
     rampart(g, r) {
       wallBlock(g, 'block', {
         south: () => { ashlar(g, r, false); rect(g, 'rgba(255,250,235,0.3)', 0, 0, TILE, 1); },

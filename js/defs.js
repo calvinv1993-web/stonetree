@@ -91,7 +91,7 @@ const THINGS = {
   wall_sewer:  { name: 'old brickwork', cat: 'Walls', block: true, wall: 'block' },
   wall_crypt:  { name: 'carved crypt stone', cat: 'Walls', block: true, wall: 'block' },
   ore_vein:    { name: 'ore vein', cat: 'Walls', block: true, wall: 'block', oreVein: true },
-  cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block' },
+  cliff:       { name: 'mountain', cat: 'Walls', block: true, wall: 'block', natural: true }, // (natural: drawn from its picture with a ragged foot and rounded corners)
   rampart:     { name: 'town wall', cat: 'Walls', block: true, wall: 'block' },       // the town wall: solid masonry, its walkway on the floor above
   // the parapet along the outer edge of a wall's walkway (on the n, e, s or w edge of its tile), merlons and crenels
   battlement_n: { name: 'battlements', cat: 'Walls', tall: true },
