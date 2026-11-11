@@ -353,7 +353,7 @@ const Sprites = (() => {
   // A thin wall from its own PNGs, when sprites/custom.js lists all three: <id>_post (the post alone), <id>_n (the post
   // with its arm running north) and <id>_w (with its arm running west), each 64 x 64 world pixels with the wall's tile
   // in the bottom-right corner, at any number of pixels a world pixel. A wall that goes on south or east is just the
-  // post: the wall there brings its own arm. Kept no finer than the screen shows it, so it's never scaled down per frame.
+  // post: the wall there brings its own arm. Kept exactly as fine as the screen shows it, so it's never scaled per frame.
   function wallFromPictures(id, shape) {
     const def = THINGS[id];
     if (!def || def.wall !== 'thin') return null;
@@ -362,7 +362,7 @@ const Sprites = (() => {
     const inE = shape[5] === 'i', inS = shape[6] === 'i', pic = (name, inside) => (inside && customImage(`${id}_${name}_in`)) || customImage(`${id}_${name}`);
     const post = pic('post', inE && inS), north = pic('n', inE), west = pic('w', inS);
     if (!post || !north || !west) return null;
-    const s = wallSides(shape), k = Math.min(post.naturalWidth / (2 * TILE), Sprites.CREATURE_RES), size = Math.round(2 * TILE * k);
+    const s = wallSides(shape), k = Sprites.CREATURE_RES, size = Math.round(2 * TILE * k);
     // a corner (the wall turns here) can have a picture of its own: <id>_corner_<w n s e>, e.g. wall_temple_corner_0011
     const corner = s.n !== s.s && s.w !== s.e && !(s.n && s.s) && customImage(`${id}_corner_${shape.slice(0, 4)}`);
     return cached(`ownwall:${id}:${corner ? 'c' + shape.slice(0, 4) : (s.n ? 'n' + (inE ? 'i' : '') : '') + (s.w ? 'w' + (inS ? 'i' : '') : '') + (s.n || s.w ? '' : inE && inS ? 'pi' : 'p')}:${k}`, g => {
@@ -379,7 +379,7 @@ const Sprites = (() => {
   function blockFromPicture(id, x, y) {
     const pic = customImage(`${id}_face`), def = THINGS[id];
     if (!pic || !def || def.wall !== 'block') return null;
-    const res = Math.min(pic.naturalHeight / TILE, Sprites.CREATURE_RES), n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
+    const res = Sprites.CREATURE_RES, n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
     const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
     return cached(`ownblock:${id}:${at(x)}:${at(y)}:${res}`, g => {
       g.canvas.res = res;
@@ -412,7 +412,7 @@ const Sprites = (() => {
   // the slope), three tiles across - the left end, the middle, the right end - at any number of pixels a world pixel.
   // shape: whether there are steps west and east of this one ('10'...), from the renderer.
   function stepsFromPicture(shape = '00') {
-    const pic = customImage('steps_slope'), res = Math.min(pic.naturalHeight / TILE, Sprites.CREATURE_RES), src = pic.naturalHeight;
+    const pic = customImage('steps_slope'), res = Sprites.CREATURE_RES, src = pic.naturalHeight;
     const piece = shape === '11' ? 1 : shape === '10' ? 2 : shape === '01' ? 0 : 1, rightEnd = shape[1] !== '1';
     return cached(`ownsteps:${piece}:${rightEnd}:${res}`, g => {
       g.canvas.res = res;
@@ -1115,7 +1115,7 @@ const Sprites = (() => {
     const whole = own || cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R);
     // (its own PNG may be finer than a pixel a world pixel; a part is kept only as fine as the screen shows it, k canvas
     // pixels a world pixel, and only as big as what it shows: scaling a big fine picture down every frame is slow)
-    const k = own ? Math.min(own.naturalWidth / (b.w * TILE + R), Sprites.CREATURE_RES) : 1;
+    const k = own ? Sprites.CREATURE_RES : 1;
     const box = b.upright ? (row === b.h - 1 ? [col ? R : 0, 0] : [R, R]) : [0, 0]; // the part's north-west corner; it ends at R + 32, R + 32
     const w = R + TILE - box[0], h = R + TILE - box[1];
     return cached(`part:${id}:${frame}:${own ? 'own' : ''}:${k}`, g => {
@@ -6068,6 +6068,8 @@ const Sprites = (() => {
     try { const m = /[?&]v=([\w.-]+)/.exec(document.currentScript.src); return m ? `?v=${m[1]}` : ''; } catch (e) { return ''; }
   })();
   const custom = new Map();
+  // the things with a picture of their own for each variant (<id>_0, <id>_1...), so the others needn't be looked up every frame
+  const OWN_VARIANTS = new Set(typeof CUSTOM_SPRITES === 'undefined' ? [] : Object.keys(CUSTOM_SPRITES).filter(k => /_\d$/.test(k)).map(k => k.replace(/_\d$/, '')));
   if (typeof CUSTOM_SPRITES !== 'undefined') {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
@@ -6212,14 +6214,20 @@ const Sprites = (() => {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
-      const own = customImage(id) || customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`); // (or its own picture for each variant: <id>_0, _1...)
+      const own = customImage(id) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
+      if (own && own.res > 1) { // (a fine PNG: put once on a canvas exactly as fine as the screen, so it's drawn 1:1, never scaled per frame)
+        const k = Sprites.CREATURE_RES, w = Math.round(own.naturalWidth / own.res * k), h = Math.round(own.naturalHeight / own.res * k);
+        return cached(`ownfine:${id}:${own.naturalWidth}:${own.src.length}:${hashStr(own.src)}:${k}`, g => {
+          g.canvas.res = k; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(own, 0, 0, w, h);
+        }, w, h);
+      }
       if (own) return own;
       // a thing on a wall with its own pictures for the two faces (sprites/custom.js <id>_s for a wall running east-west,
       // <id>_e for one running north-south): 64 x 64 world pixels, the wall's tile in the bottom-right corner, any res
       if (THINGS[id] && THINGS[id].onWall && customImage(`${id}_s`) && customImage(`${id}_e`)) {
         const pic = customImage(runsNorthSouth(wallSides(shape || '1100')) ? `${id}_e` : `${id}_s`);
-        const res = Math.min(pic.naturalWidth / (2 * TILE), Sprites.CREATURE_RES);
+        const res = Sprites.CREATURE_RES;
         return cached(`ownonwall:${id}:${runsNorthSouth(wallSides(shape || '1100')) ? 'e' : 's'}:${res}`, g => {
           g.canvas.res = res; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
           g.drawImage(pic, 0, 0, 2 * TILE * res, 2 * TILE * res);
