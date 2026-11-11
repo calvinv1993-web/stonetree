@@ -75,7 +75,7 @@ const CUSTOM_SPRITES = {
   altar: 'altar@2x.png', // the temple's altar, from the owner's picture
   torch: 'torch@2x.png', // the standing torches and the torches on walls running north-south, from the owner's picture
   wall_torch_e: 'wall-torch-e.png',
-  bridge_post: 'bridge-post.png', // the thick posts at a bridge's corners, from the owner's picture
+  bridge_post: 'bridge-post@4x.png', // the round posts at a bridge's corners, drawn in the world's camera (rising up and left)
   bridge_deck: 'bridge-mock.png', // the wooden bridges, from the owner's picture of a pier (see bridgeFromPicture)
   quay_stones: 'quay-stones.png', // the round stones along a bank, from the owner's picture (see Sprites.quayStones)
   sun_mosaic: 'sun-mosaic.png', // the golden sun laid in the paving of Oakvale's square (5 tiles across), from the owner's picture

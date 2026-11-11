@@ -6518,13 +6518,14 @@ const Sprites = (() => {
     // 2 pixels a world pixel, made of the flowers in the owner's picture), or null
     // The round stones of a bank (sprites/custom.js quay_stones: a strip 48 x 64 n pixels, 2 a world pixel, the water to
     // the left of x = 20 and the land to its right), or null
-    // A bridge's corner post (sprites/custom.js bridge_post, 2 pixels a world pixel): its size in world pixels and the
-    // point of it that sits on the beam's end (ax, ay)
     // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
     mosaic: id => customImage(id),
+    // A bridge's corner post (sprites/custom.js bridge_post: a round post in the world's camera, rising up and left, its
+    // pixels a world pixel in its name, @4x): its size in world pixels and the point of it that sits on the beam's end
+    // (ax, ay: the centre of its foot)
     bridgePost() {
-      const img = customImage('bridge_post');
-      return img ? { img, w: img.naturalWidth / 2, h: img.naturalHeight / 2, ax: 9, ay: 22 } : null;
+      const img = customImage('bridge_post'), res = (img && img.res) || 2;
+      return img ? { img, w: img.naturalWidth / res, h: img.naturalHeight / res, ax: 20.5, ay: 20.5 } : null;
     },
     quayStones() {
       const img = customImage('quay_stones');
