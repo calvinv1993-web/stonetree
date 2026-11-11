@@ -6061,6 +6061,11 @@ const Sprites = (() => {
   // Your own PNGs: list them in sprites/custom.js as CUSTOM_SPRITES = { id: 'file.png' }.
   // Creature images can be a single 32x32 picture or a 96x128 sheet: 3 frames
   // (standing, step, step) across, directions north, east, south, west down.
+  // Our own pictures carry the page's version (index.html loads this file as js/sprites.js?v=...), so a browser that kept
+  // an older picture of the same name fetches the new one when the game is updated
+  const SPRITE_VERSION = (() => {
+    try { const m = /[?&]v=([\w.-]+)/.exec(document.currentScript.src); return m ? `?v=${m[1]}` : ''; } catch (e) { return ''; }
+  })();
   const custom = new Map();
   if (typeof CUSTOM_SPRITES !== 'undefined') {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
@@ -6073,7 +6078,7 @@ const Sprites = (() => {
       };
       const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
       if (res) img.res = +res[1];
-      img.src = `sprites/${file}`;
+      img.src = `sprites/${file}${SPRITE_VERSION}`;
       custom.set(id, img);
     }
   }
@@ -6235,7 +6240,7 @@ const Sprites = (() => {
     // URL of an item icon, for <img> tags in the UI.
     DOLLS: DOLLS_ON,
     itemURL(id) {
-      if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}`;
+      if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}${SPRITE_VERSION}`;
       if (!urls.has(id)) urls.set(id, this.item(id).toDataURL());
       return urls.get(id);
     },
