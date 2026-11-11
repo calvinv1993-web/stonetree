@@ -480,14 +480,9 @@ const Render = {
         if (t && fringe && t.ground === 'grass' && !standing(x, y)) {
           const f = fringe, piece = (((x + y * 7) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE, fh = f.height;
           if (standing(x, y - 1)) {
-            g.drawImage(f.shade, ox + x * TILE, oy + y * TILE - 6, TILE, 6); // (its shadow at the foot of what's behind, then the blades)
             g.drawImage(f.img, piece * fw, 0, fw, fh, ox + x * TILE, oy + y * TILE - f.reach, TILE, fh / f.res);
           }
-          if (standing(x - 1, y)) { // (turned: the shadow and the blades along the east face)
-            g.save();
-            g.transform(0, 1, 1, 0, ox + x * TILE - 6, oy + y * TILE);
-            g.drawImage(f.shade, 0, 0, TILE, 6);
-            g.restore();
+          if (standing(x - 1, y)) { // (turned: the blades and their shadow along the east face)
             g.save();
             g.transform(0, 1 / f.res, 1 / f.res, 0, ox + x * TILE - f.reach, oy + y * TILE);
             g.drawImage(f.img, ((piece + 5) % f.pieces) * fw, 0, fw, fh, 0, 0, fw, fh);

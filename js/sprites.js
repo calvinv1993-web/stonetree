@@ -6423,19 +6423,13 @@ const Sprites = (() => {
     // tile-sized pictures (2 pixels a world pixel) of that ground's border reaching into a tile from its north (east...)
     // side, over nothing (transparent). Long borders run on through the strip's pictures by position; an inside corner
     // is two sides; a corner on its own (an outer corner) is the north side's border bent round the corner.
-    // Blades of grass to draw over the foot of a thing standing beside grass (sprites/custom.js grass_fringe: a strip of
-    // tile-wide pieces, roots along the bottom, at 2 pixels a world pixel), or null
+    // Blades of grass to draw over the foot of a thing standing beside grass, with their soft shadow on it (sprites/custom.js
+    // grass_fringe: a strip of tile-wide pieces at 2 pixels a world pixel, the ground line 11 world pixels down), or null
     grassFringe() {
       const img = customImage('grass_fringe');
       if (!img) return null;
       const res = 2;
-      // the shadow the grass and the ground cast on what stands right behind them: dark at the foot, gone 5 pixels up
-      const shade = cached('fringe-shade', g => {
-        const grad = g.createLinearGradient(0, 0, 0, 12);
-        grad.addColorStop(0, 'rgba(12,10,4,0)'); grad.addColorStop(0.55, 'rgba(12,10,4,0.45)'); grad.addColorStop(1, 'rgba(12,10,4,0.8)');
-        g.fillStyle = grad; g.fillRect(0, 0, TILE * res, 12);
-      }, TILE * res, 12);
-      return { img, res, shade, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: img.naturalHeight / res * 0.7 };
+      return { img, res, pieces: Math.max(1, Math.floor(img.naturalWidth / (TILE * res))), height: img.naturalHeight, reach: 11 };
     },
     fillsTile: id => !!PARTS[spriteOf(id)] || FILLS_TILE.has(id), // (its foot fills its tile: grass grows up against it, see render)
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
