@@ -687,6 +687,52 @@ const Sprites = (() => {
     g.putImageData(img, 0, 0);
   }
 
+  // A roof of clay tiles from its own picture (sprites/custom.js <id>_tiles: one tile's worth of pan tiles, four rows,
+  // seamless both ways, the eave at its bottom), at 2 pixels a world pixel (as fine as the ground's chunks). Each slope
+  // shows the picture turned so its rows run along its eave, lit as that slope; rounded ridge tiles cap the ridge and
+  // the hips, and the eave is dark along its edge. The same slopes as roofTile, so it joins up across the tiles.
+  const ROOF_LIT = [1.12, 0.84, 1.0, 0.9]; // facing north, south, west, east (the picture is a south slope, lit)
+  function roofFromPicture(id, shape) {
+    const pic = customImage(`${spriteOf(id)}_tiles`);
+    if (!pic) return null;
+    if (!/^[0-2]{4}[io]$/.test(shape)) shape = '0000o';
+    const R = 2, N = TILE * R;
+    return cached(`ownroof:${id}:${shape}`, g => {
+      g.canvas.res = R;
+      const k = [...shape.slice(0, 4)].map(Number), outer = shape[4] === 'o';
+      const tex = edgePixels(pic), TW = pic.naturalWidth, TH = pic.naturalHeight;
+      const img = g.createImageData(N, N), data = img.data;
+      for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+        const wx = (px + 0.5) / R, wy = (py + 0.5) / R, u = wx / TILE, v = wy / TILE;
+        const d = [k[0] + v, k[1] + 1 - v, k[2] + u, k[3] + 1 - u];
+        let f = 0, s = -1;
+        for (let i = 1; i < 4; i++) if (d[i] < d[f] - 1e-9) f = i;
+        for (let i = 0; i < 4; i++) if (i !== f && (s < 0 || d[i] < d[s])) s = i;
+        const h = d[f], along = f < 2 ? wx : wy;
+        const fr = h - Math.floor(h), tx = Math.floor((along / TILE - Math.floor(along / TILE)) * TW) % TW;
+        const ty = Math.min(TH - 1, Math.floor((1 - fr) * TH) % TH);
+        const ti = (ty * TW + tx) * 4;
+        let r0 = tex.data[ti], g0 = tex.data[ti + 1], b0 = tex.data[ti + 2], light = ROOF_LIT[f];
+        // the ridge tiles: a rounded cap along where two slopes meet (straight along a ridge, slanting along a hip)
+        const straight = (f >> 1) === (s >> 1), dist = (d[s] - d[f]) * TILE / (straight ? 2 : Math.SQRT2), CAP = 3.4;
+        if (dist < CAP) {
+          const c = dist / CAP, pair = (1 << f) | (1 << s), run = straight ? (f < 2 ? wx : wy) : pair === 5 || pair === 10 ? wx + wy : wx - wy; // (north-west and south-east hips run down-right)
+          r0 = 184; g0 = 86; b0 = 52;
+          light = c > 0.84 ? 0.42 : 1.3 - 0.75 * c * c; // (round: bright along its crown, dark at its edges)
+          const j = ((run % 7) + 7) % 7;
+          if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
+        }
+        if (outer) { // the eave: the tiles' ends in shade, and a dark edge
+          const eave = Math.min(k[0] ? 9 : wy, k[1] ? 9 : TILE - wy, k[2] ? 9 : wx, k[3] ? 9 : TILE - wx);
+          if (eave < 0.8) light = 0.4; else if (eave < 1.8) light *= 0.74;
+        }
+        const i = (py * N + px) * 4;
+        data[i] = Math.min(255, r0 * light); data[i + 1] = Math.min(255, g0 * light); data[i + 2] = Math.min(255, b0 * light); data[i + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+    }, N);
+  }
+
   // Snow lying on a roof: the same slopes, ridges and eaves, in white (shadows a little
   // blue), thinning out at the eaves where the roof shows through. Drawn over the roof.
   // level 1-5: how far it has settled - patches first (the ridge and the middle), which
@@ -6282,6 +6328,7 @@ const Sprites = (() => {
       const own = customImage(id) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if ((id === 'bridge_ns' || id === 'bridge_ew') && customImage('bridge_deck')) return bridgeFromPicture(id === 'bridge_ns', shape, x, y);
+      if (THINGS[id] && THINGS[id].roof) { const ownRoof = roofFromPicture(id, shape); if (ownRoof) return ownRoof; }
       if (own && own.res > 1) { // (a fine PNG: put once on a canvas exactly as fine as the screen, so it's drawn 1:1, never scaled per frame)
         const k = Sprites.CREATURE_RES, w = Math.round(own.naturalWidth / own.res * k), h = Math.round(own.naturalHeight / own.res * k);
         return cached(`ownfine:${id}:${own.naturalWidth}:${own.src.length}:${hashStr(own.src)}:${k}`, g => {
