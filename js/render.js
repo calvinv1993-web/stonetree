@@ -608,7 +608,7 @@ const Render = {
               g.translate(bx, by);
               g.transform(1, 0, -lean, 1, 0, 0);
               g.translate(-bx, -by);
-              g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - rise);
+              g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - rise, iw, ih); // (at its world size, however fine the picture)
               g.restore();
             } else g.drawImage(img, ox + x * TILE - lift, oy + y * TILE - rise, iw, ih);
             if (hides) g.globalAlpha = 1;
