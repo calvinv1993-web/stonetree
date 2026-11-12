@@ -82,6 +82,11 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  chimney: 'chimney@4x.png', // the owner's chimney, cannonballs, stone coffin and bones, in the world's camera
+  cannonballs: 'cannonballs@4x.png',
+  sarcophagus: 'sarcophagus@4x.png',
+  bones: 'bones@4x.png',
+  window_box_s: 'window-box-s.png', // the owner's window box, on a wall running east-west (its south face)
   tallgrass_0: 'tallgrass-0@4x.png', // the owner's tall grass (a tuft for each variant), mushrooms and pebbles
   tallgrass_1: 'tallgrass-1@4x.png',
   tallgrass_2: 'tallgrass-2@4x.png',
