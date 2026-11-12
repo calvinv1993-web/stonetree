@@ -707,36 +707,56 @@ const Sprites = (() => {
   // inner corners meet on the diagonal without overlapping and its outer corners turn round in a curve. The stones come
   // from the rim's picture (a strip along a north edge, its band of stones BAND world pixels deep at its top).
   const RIM_BAND = 16, RIM_SQUARES = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]];
-  let rimCanvas = null;
   function rimTile(mask, x, y) {
     const pic = customImage('lip_rock');
     if (!pic) return null;
-    const tex = edgePixels(pic), TW = pic.naturalWidth, TH = pic.naturalHeight, res = TH / TILE, R = 2, N = TILE * R;
-    if (!rimCanvas) { rimCanvas = document.createElement('canvas'); rimCanvas.width = rimCanvas.height = N; rimCanvas.res = R; }
-    const g = rimCanvas.getContext('2d'), img = g.createImageData(N, N), data = img.data;
-    const tops = RIM_SQUARES.filter((s, i) => mask[i] === '1');
+    const TW = pic.naturalWidth, TH = pic.naturalHeight, res = TH / TILE, R = 2, N = TILE * R;
+    // (the stones repeat with the strip, n tiles long: a tile's rim is kept by its shape and its place along the strip)
+    const n = Math.max(1, Math.round(TW / res / TILE)), m = v => ((v % n) + n) % n;
+    x = m(x); y = m(y);
+    return cached(`rim:${mask}:${x}:${y}`, g => { g.canvas.res = R; rimPaint(g, pic, mask, x, y, TW, TH, res, R, N); }, N);
+  }
+  // A rim's shape, worked out once per mask: for each of its pixels, how far it is from the nearest top (d, RIM_BAND or
+  // more: none), and where along the strip of stones it is: kind 0 along x, 1 along y, 2 round a corner (x + y),
+  // plus an offset within the tile.
+  const rimFields = new Map();
+  function rimField(mask, N, R) {
+    let f = rimFields.get(mask);
+    if (f) return f;
+    const tops = RIM_SQUARES.filter((s, i) => mask[i] === '1'), d = new Float32Array(N * N), kind = new Uint8Array(N * N), off = new Float32Array(N * N);
     for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
-      const wx = (px + 0.5) / R, wy = (py + 0.5) / R;
-      let d = 99, along = 0;
+      const wx = (px + 0.5) / R, wy = (py + 0.5) / R, k = py * N + px;
+      let best = 99;
       for (const [sx, sy] of tops) { // the distance to that top's square (its corner, or its nearest edge)
         const x0 = sx * TILE, y0 = sy * TILE, dx = Math.max(x0 - wx, 0, wx - x0 - TILE), dy = Math.max(y0 - wy, 0, wy - y0 - TILE);
         const dd = Math.hypot(dx, dy);
-        if (dd >= d) continue;
-        d = dd;
-        if (dx === 0) along = x * TILE + wx;          // (beside a north or south edge: along x)
-        else if (dy === 0) along = y * TILE + wy;     // (an east or west edge: along y)
+        if (dd >= best) continue;
+        best = dd;
+        if (dx === 0) { kind[k] = 0; off[k] = wx; }           // (beside a north or south edge: along x)
+        else if (dy === 0) { kind[k] = 1; off[k] = wy; }      // (an east or west edge: along y)
         else { // round a corner: along its curve
           const cx = wx < x0 ? x0 : x0 + TILE, cy = wy < y0 ? y0 : y0 + TILE;
-          along = (x + y) * TILE + cx + cy + Math.atan2(wy - cy, wx - cx) * RIM_BAND;
+          kind[k] = 2; off[k] = cx + cy + Math.atan2(wy - cy, wx - cx) * RIM_BAND;
         }
       }
-      if (d >= RIM_BAND) continue;
-      const tx = ((Math.floor(along * res) % TW) + TW) % TW, ty = Math.min(TH - 1, Math.max(0, Math.floor((RIM_BAND - d) * res)));
-      const ti = (ty * TW + tx) * 4, i = (py * N + px) * 4;
+      d[k] = best;
+    }
+    f = { d, kind, off };
+    rimFields.set(mask, f);
+    return f;
+  }
+  function rimPaint(g, pic, mask, x, y, TW, TH, res, R, N) {
+    const tex = edgePixels(pic), img = g.createImageData(N, N), data = img.data, f = rimField(mask, N, R);
+    const base = [x * TILE, y * TILE, (x + y) * TILE];
+    for (let k = 0; k < N * N; k++) {
+      const dd = f.d[k];
+      if (dd >= RIM_BAND) continue;
+      const along = base[f.kind[k]] + f.off[k];
+      const tx = ((Math.floor(along * res) % TW) + TW) % TW, ty = Math.min(TH - 1, Math.max(0, Math.floor((RIM_BAND - dd) * res)));
+      const ti = (ty * TW + tx) * 4, i = k * 4;
       data[i] = tex.data[ti]; data[i + 1] = tex.data[ti + 1]; data[i + 2] = tex.data[ti + 2]; data[i + 3] = tex.data[ti + 3];
     }
     g.putImageData(img, 0, 0);
-    return rimCanvas;
   }
   // The ridge and edge tiles' colour of a roof with its own picture: the picture's average, a little lighter (kept)
   const roofCaps = new Map();
@@ -6663,8 +6683,8 @@ const Sprites = (() => {
     // the left of x = 20 and the land to its right), or null
     // The overhang of a roof's eave onto a tile beside it (see roofEave), or null for a roof without its own picture
     roofEave: (id, sides) => roofEave(id, sides),
-    // The rim of stones on an open tile beside mountain tops (sprites/custom.js lip_rock, see rimTile), on a canvas made
-    // afresh each time (it's only needed while the ground's chunks are made): mask says which of this tile's neighbours
+    // The rim of stones on an open tile beside mountain tops (sprites/custom.js lip_rock, see rimTile), kept by its shape
+    // and its place along the strip of stones: mask says which of this tile's neighbours
     // (n, e, s, w, ne, se, sw, nw) are tops; x, y place it, so the stones run on from tile to tile.
     rimTile: (mask, x, y) => rimTile(mask, x, y),
     // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
