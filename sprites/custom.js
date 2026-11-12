@@ -82,6 +82,13 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  rock: 'rock@4x.png', // the owner's boulders, wild flowers, fern and reeds (flowers and reeds: a picture for each variant)
+  flowers_0: 'flowers-0@4x.png',
+  flowers_1: 'flowers-1@4x.png',
+  flowers_2: 'flowers-2@4x.png',
+  fern: 'fern@4x.png',
+  reeds_0: 'reeds-0@4x.png',
+  reeds_1: 'reeds-1@4x.png',
   counter: 'counter@4x.png', // the owner's counter, bookshelf, sack and training dummy, in the world's camera
   bookshelf: 'bookshelf@4x.png',
   sack: 'sack@4x.png',
