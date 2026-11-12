@@ -82,6 +82,11 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  grass_tuft: 'grass-tuft@4x.png', // the owner's tuft of grass, crag, chairs facing east and west, and depot locker
+  crag: 'crag@4x.png',
+  chair_east: 'chair-east@4x.png',
+  chair_west: 'chair-west@4x.png',
+  depot: 'depot@4x.png',
   leaves_0: 'leaves-0@4x.png', // the owner's fallen leaves (all of them, the western drift, the eastern), puddle and driftwood
   leaves_1: 'leaves-1@4x.png',
   leaves_2: 'leaves-2@4x.png',
