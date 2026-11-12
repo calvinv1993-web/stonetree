@@ -82,6 +82,8 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  bed: 'bed@4x.png', // the owner's bed (both its tiles, as one picture: see BIG.bed) and anvil
+  anvil: 'anvil@4x.png',
   statue: 'statue@4x.png', // the owner's statue, woodpile, haystack, table, chair (facing south) and chest
   woodpile: 'woodpile@4x.png',
   haystack: 'haystack@4x.png',
