@@ -811,16 +811,22 @@ function setSpeedMeter(on) {
   $('speedMeter').hidden = !on;
 }
 if (speedMeter.on) $('speedMeter').hidden = false;
-function meterFrame(t, dt, work) {
+// Each frame also notes what it had to do (ground drawn live, chunks made, a floor change) and where you were, so the
+// worst stall of the last 10 seconds says where and why: what to send us from a slow phone.
+function meterFrame(t, dt, work, did) {
   const f = speedMeter.frames;
-  if (dt < 1000) f.push([t, dt, work]); // (not the first frame after a pause)
+  if (dt < 1000) f.push([t, dt, work, did]); // (not the first frame after a pause)
   while (f.length && f[0][0] < t - 10000) f.shift();
   if (t - speedMeter.shownAt < 250) return;
   speedMeter.shownAt = t;
   const second = f.filter(([ft]) => ft > t - 1000), works = second.map(x => x[2]).sort((a, b) => a - b);
-  const stalls = f.filter(x => x[1] >= 50), worst = Math.max(0, ...f.map(x => x[1]));
-  const el = $('speedMeter');
-  el.textContent = `${second.length} fps · ${(works[works.length >> 1] || 0).toFixed(1)} ms work\n${stalls.length} stalls in 10 s · worst ${Math.round(worst)} ms`;
+  const stalls = f.filter(x => x[1] >= 50), wi = f.reduce((a, b, i) => (b[1] > (f[a] || [0, 0])[1] ? i : a), -1), worst = f[wi] || [0, 0];
+  // (a long gap comes after the frame that took long: what that one did)
+  const el = $('speedMeter'), w = wi > 0 && worst[1] >= 50 ? f[wi - 1][3] : null;
+  const why = w ? [w.live && `${w.live} ground live`, w.made && `${w.made} chunks made`, w.floor && 'floor change', w.work > 30 && `${Math.round(w.work)} ms work`].filter(Boolean).join(', ') : '';
+  el.textContent = `${second.length} fps · ${(works[works.length >> 1] || 0).toFixed(1)} ms work\n${stalls.length} stalls in 10 s · worst ${Math.round(worst[1])} ms`
+    + (w ? `\nat ${w.x},${w.y},${w.z}${why ? `: ${why}` : ''}` : '')
+    + `\nscreen ${canvas.width}x${canvas.height} · sharp ${Sprites.CREATURE_RES} · ${Render.pictures}/${Render.CHUNKS_KEPT} kept`;
   el.classList.toggle('bad', stalls.length > 0 || second.length < 50);
 }
 
@@ -837,7 +843,7 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
   if (t - lastFrameAt < FRAME_INTERVAL - 2) return;
-  const dt = t - lastFrameAt, started = performance.now();
+  const dt = t - lastFrameAt, started = performance.now(), live0 = Render.stats.live, made0 = Render.stats.finished, z0 = player && player.z;
   lastFrameAt = t;
   checkKeepingUp(t);
   try {
@@ -869,7 +875,10 @@ function frame(t) {
   } catch (err) {
     reportError(err);
   }
-  if (speedMeter.on) meterFrame(t, dt, performance.now() - started);
+  if (speedMeter.on) {
+    const work = performance.now() - started;
+    meterFrame(t, dt, work, { x: player.x, y: player.y, z: player.z, live: Render.stats.live - live0, made: Render.stats.finished - made0, floor: player.z !== z0, work });
+  }
 }
 
 function startWorld() {
