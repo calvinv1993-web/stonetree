@@ -71,6 +71,7 @@ const CUSTOM_SPRITES = {
   roof_green_tiles: 'roof-copper.png',
   roof_thatch_tiles: 'roof-thatch.png',
   roof_tiles: 'roof-tiles.png', // the clay roofs: one tile of pan tiles, four rows, seamless, from the owner's picture (see roofFromPicture)
+  tree: 'tree@4x.png', // the leafy trees, the owner's picture in the world's camera (its own shadow made from its shape)
   rampart_face: 'rampart-face.png', // the town wall's sides: dressed sandstone with moss and ivy, a seamless strip (see blockFromPicture)
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
   steps_slope: 'steps-slope.png', // the temple's stone steps: their slope seen straight on, left end, middle, right end (see stepsFromPicture)
