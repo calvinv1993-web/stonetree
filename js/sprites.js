@@ -944,7 +944,7 @@ const Sprites = (() => {
   }
   // Battlements on one edge of a tile (n, e, s, w): a parapet T thick, merlons on it with gaps between, drawn back
   // to front.
-  const PARAPET = { top: '#ddd4c2', south: '#bab09c', east: '#8e8574', edge: '#f4ecdc' }; // (the limestone of the wall)
+  const PARAPET = { top: '#e4cc9e', south: '#c4a674', east: '#937650', edge: '#f4e2bc' }; // (the sandstone of the wall and its walkway)
   function battlements(g, side) {
     const T = 6, H0 = 17, H1 = 29, along = side === 'n' || side === 's';
     const [a0, a1] = side === 'n' || side === 'w' ? [0, T] : [TILE - T, TILE];

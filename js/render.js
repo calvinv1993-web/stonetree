@@ -8,6 +8,7 @@ const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'de
 const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can stand in
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
 const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]; // n e s w ne se sw nw (see Sprites.roofEave)
+const BRIDGE_GROUNDS = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
@@ -384,7 +385,7 @@ const Render = {
 
         // Along the shores: shallow water and foam (under the sand or grass spilling over it).
         const wet = id => id === 'water';
-        const dry = id => !!id && id !== 'water' && id !== 'lava';
+        const dry = id => !!id && id !== 'water' && id !== 'lava' && !BRIDGE_GROUNDS.has(id); // (a bridge stands over the water: no beach along it)
         for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
           if (!wet(groundAt(x, y))) continue;
           // (a wall rises straight out of the water: no beach along it)
