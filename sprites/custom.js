@@ -79,6 +79,12 @@ const CUSTOM_SPRITES = {
   roof_green_tiles: 'roof-copper.png',
   roof_thatch_tiles: 'roof-thatch.png',
   roof_tiles: 'roof-tiles.png', // the clay roofs: one tile of pan tiles, four rows, seamless, from the owner's picture (see roofFromPicture)
+  fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
+  fence_west: 'fence-west.png',
+  fence_north: 'fence-north.png',
+  well: 'well@4x.png', // the owner's well, bench and signpost, in the world's camera
+  bench: 'bench@4x.png',
+  signpost: 'signpost@4x.png',
   pine: 'pine@4x.png', // the owner's pine, bush, street lamp and market stall, in the world's camera
   bush: 'bush@4x.png',
   lamppost: 'lamppost@4x.png',

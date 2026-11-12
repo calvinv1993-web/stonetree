@@ -373,6 +373,21 @@ const Sprites = (() => {
       for (const img of corner ? [corner] : s.n || s.w ? [s.n && north, s.w && west].filter(Boolean) : [post]) g.drawImage(img, 0, 0, size, size);
     }, size);
   }
+  // A fence from its own pictures (sprites/custom.js fence_post, fence_west, fence_north: 64 x 64 world pixels at 4 pixels
+  // a world pixel, the tile in the bottom-right corner, the post's foot at its middle): the rails west and north reach
+  // the next post; east and south are the neighbours' (their west and north rails), as walls join. A post alone shows
+  // its post only. shape: 'wnse' of fences round it.
+  function fenceFromPictures(shape) {
+    const post = customImage('fence_post'), west = customImage('fence_west'), north = customImage('fence_north');
+    if (!post || !west || !north) return null;
+    const s = /^[01]{4}$/.test(shape) ? shape : '0000', k = Sprites.CREATURE_RES, size = Math.round(2 * TILE * k);
+    return cached(`ownfence:${s[0]}${s[1]}:${k}`, g => {
+      g.canvas.res = k; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      if (s[1] === '1') g.drawImage(north, 0, 0, size, size);
+      if (s[0] === '1') g.drawImage(west, 0, 0, size, size);
+      g.drawImage(post, 0, 0, size, size);
+    }, size);
+  }
   // A block (a mountain side...) whose faces come from its own picture: sprites/custom.js <id>_face, a strip of faces
   // TILE world pixels high, in face coordinates (as face() paints them), at any number of pixels a world pixel. Each
   // tile shows the part of the strip for its place, so a long side runs on without repeating tile by tile; the east
@@ -3189,7 +3204,7 @@ const Sprites = (() => {
   // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
-  const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
+  const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
   const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
@@ -6461,6 +6476,7 @@ const Sprites = (() => {
           g.drawImage(pic, 0, 0, 2 * TILE * res, 2 * TILE * res);
         }, 2 * TILE * res);
       }
+      if (id === 'fence') { const ownFence = fenceFromPictures(shape); if (ownFence) return ownFence; }
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y, shape);
