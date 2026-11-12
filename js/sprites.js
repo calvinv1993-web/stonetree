@@ -691,7 +691,59 @@ const Sprites = (() => {
   // seamless both ways, the eave at its bottom), at 2 pixels a world pixel (as fine as the ground's chunks). Each slope
   // shows the picture turned so its rows run along its eave, lit as that slope; rounded ridge tiles cap the ridge and
   // the hips, and the eave is dark along its edge. The same slopes as roofTile, so it joins up across the tiles.
-  const ROOF_LIT = [1.12, 0.84, 1.0, 0.9]; // facing north, south, west, east (the picture is a south slope, lit)
+  const ROOF_LIT = [1.12, 0.84, 1.0, 0.9];
+  // The roll of edge tiles along a roof's eave: EAVE_IN world pixels on the roof, EAVE_OUT overhanging the wall below it.
+  // u: across it, from the roof's edge (negative on the roof); along: where along the eave (for the tiles' joints).
+  const EAVE_IN = 2.5, EAVE_OUT = 3.5;
+  const eaveLight = (u, along) => {
+    const c = (u + EAVE_IN) / (EAVE_IN + EAVE_OUT), j = ((along % 6) + 6) % 6;
+    let l = c > 0.86 ? 0.42 : 1.28 - 1.9 * (c - 0.38) * (c - 0.38);
+    if (j < 0.8) l *= 0.62; else if (j < 1.8) l *= 1.08;
+    return l;
+  };
+  // The ridge and edge tiles' colour of a roof with its own picture: the picture's average, a little lighter (kept)
+  const roofCaps = new Map();
+  function roofCap(id) {
+    const pic = customImage(`${spriteOf(id)}_tiles`);
+    if (!pic) return null;
+    if (!roofCaps.has(pic)) {
+      const tex = edgePixels(pic), cap = [0, 0, 0];
+      for (let i = 0; i < tex.data.length; i += 4) for (let ch = 0; ch < 3; ch++) cap[ch] += tex.data[i + ch];
+      roofCaps.set(pic, cap.map(v => v / (tex.data.length / 4) * 1.12));
+    }
+    return roofCaps.get(pic);
+  }
+  // The part of a roof's eave that overhangs the tile beside it (the wall's top below), and its soft shadow, on a
+  // tile with no roof. sides: for n, e, s, w, ne, se, sw, nw, whether that neighbour is a roof ('1'); a corner counts
+  // only where neither side next to it is. Drawn with the ground, over the floor below.
+  function roofEave(id, sides) {
+    const cap = roofCap(id);
+    if (!cap) return null;
+    const R = 2, N = TILE * R;
+    return cached(`roofeave:${id}:${sides}`, g => {
+      g.canvas.res = R;
+      const has = [...sides].map(c => c === '1');
+      const img = g.createImageData(N, N), data = img.data;
+      for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+        const wx = (px + 0.5) / R, wy = (py + 0.5) / R;
+        let d = 99, along = 0;
+        const near = (dd, al) => { if (dd < d) { d = dd; along = al; } };
+        if (has[0]) near(wy, wx); if (has[1]) near(TILE - wx, wy); if (has[2]) near(TILE - wy, wx); if (has[3]) near(wx, wy);
+        const corner = (on, a, b, cx, cy) => { if (on && !has[a] && !has[b]) { const dx = wx - cx, dy = wy - cy; near(Math.hypot(dx, dy), Math.atan2(dy, dx) * 6); } };
+        corner(has[4], 0, 1, TILE, 0); corner(has[5], 1, 2, TILE, TILE); corner(has[6], 2, 3, 0, TILE); corner(has[7], 3, 0, 0, 0);
+        const i = (py * N + px) * 4;
+        if (d < EAVE_OUT) {
+          const l = eaveLight(d, along), a = Math.min(1, (EAVE_OUT - d) * 2);
+          for (let ch = 0; ch < 3; ch++) data[i + ch] = Math.min(255, cap[ch] * l);
+          data[i + 3] = a * 255;
+          if (a < 1) data[i + 3] = Math.max(data[i + 3], 0.4 * 255); // (its edge fades into the shadow below)
+        } else if (d < EAVE_OUT + 3) { // the shadow it casts on the wall's top and face
+          data[i] = 20; data[i + 1] = 12; data[i + 2] = 6; data[i + 3] = 0.4 * (1 - (d - EAVE_OUT) / 3) * 255;
+        }
+      }
+      g.putImageData(img, 0, 0);
+    }, N);
+  } // facing north, south, west, east (the picture is a south slope, lit)
   function roofFromPicture(id, shape) {
     const pic = customImage(`${spriteOf(id)}_tiles`);
     if (!pic) return null;
@@ -701,10 +753,7 @@ const Sprites = (() => {
       g.canvas.res = R;
       const k = [...shape.slice(0, 4)].map(Number), outer = shape[4] === 'o';
       const tex = edgePixels(pic), TW = pic.naturalWidth, TH = pic.naturalHeight, straw = !!(ROOF_STYLES[spriteOf(id)] || {}).straw;
-      // the ridge tiles in the roof's own colour (its picture's average, a little lighter)
-      const cap = [0, 0, 0];
-      for (let i = 0; i < tex.data.length; i += 4) for (let ch = 0; ch < 3; ch++) cap[ch] += tex.data[i + ch];
-      for (let ch = 0; ch < 3; ch++) cap[ch] = cap[ch] / (tex.data.length / 4) * 1.12;
+      const cap = roofCap(id); // (the ridge and edge tiles in the roof's own colour)
       const img = g.createImageData(N, N), data = img.data;
       for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
         const wx = (px + 0.5) / R, wy = (py + 0.5) / R, u = wx / TILE, v = wy / TILE;
@@ -727,9 +776,12 @@ const Sprites = (() => {
           if (straw) light *= 0.92 + 0.16 * ((wx * 7 + wy * 3) % 2 < 1 ? 1 : 0); // (thatch: a bound ridge of straw, no tiles)
           else if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
         }
-        if (outer) { // the eave: the tiles' ends in shade, and a dark edge
+        if (outer) { // the eave: its inner half of the roll of edge tiles (the rest overhangs the wall, see roofEave)
           const eave = Math.min(k[0] ? 9 : wy, k[1] ? 9 : TILE - wy, k[2] ? 9 : wx, k[3] ? 9 : TILE - wx);
-          if (eave < 0.8) light = 0.4; else if (eave < 1.8) light *= 0.74;
+          if (eave < EAVE_IN) {
+            const along = eave === wy || eave === TILE - wy ? wx : wy;
+            [r0, g0, b0] = cap; light = eaveLight(-eave, along);
+          }
         }
         const i = (py * N + px) * 4;
         data[i] = Math.min(255, r0 * light); data[i + 1] = Math.min(255, g0 * light); data[i + 2] = Math.min(255, b0 * light); data[i + 3] = 255;
@@ -6572,6 +6624,8 @@ const Sprites = (() => {
     // 2 pixels a world pixel, made of the flowers in the owner's picture), or null
     // The round stones of a bank (sprites/custom.js quay_stones: a strip 48 x 64 n pixels, 2 a world pixel, the water to
     // the left of x = 20 and the land to its right), or null
+    // The overhang of a roof's eave onto a tile beside it (see roofEave), or null for a roof without its own picture
+    roofEave: (id, sides) => roofEave(id, sides),
     // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
     mosaic: id => customImage(id),
     // A bridge's corner post (sprites/custom.js bridge_post: a round post in the world's camera, rising up and left, its

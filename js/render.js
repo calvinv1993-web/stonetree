@@ -7,6 +7,7 @@
 const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'dead_tree', 'ancient_tree', 'tallgrass', 'reeds', 'fern', 'flowers', 'bush']);
 const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can stand in
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
+const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]; // n e s w ne se sw nw (see Sprites.roofEave)
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
@@ -91,6 +92,15 @@ const Render = {
           if (gid || (t && t.items.length)) any = true;
           if (gid) { bx0 = Math.min(bx0, x - tx0); by0 = Math.min(by0, y - ty0); bx1 = Math.max(bx1, x - tx0); by1 = Math.max(by1, y - ty0); }
           if (MOVING.includes(gid)) moving = true;
+        }
+        // a roof's eave overhangs the tiles round it (see the eaves in groundPass): they're in the box too, even in a
+        // chunk next to the roof's
+        for (let y = ty0 - 1; y <= ty0 + C; y++) for (let x = tx0 - 1; x <= tx0 + C; x++) {
+          const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
+          if (!t || !t.ground || !THINGS[t.ground].roof) continue;
+          const ax0 = Math.max(0, x - 1 - tx0), ax1 = Math.min(C - 1, x + 1 - tx0), ay0 = Math.max(0, y - 1 - ty0), ay1 = Math.min(C - 1, y + 1 - ty0);
+          if (ax0 > ax1 || ay0 > ay1) continue;
+          any = true; bx0 = Math.min(bx0, ax0); by0 = Math.min(by0, ay0); bx1 = Math.max(bx1, ax1); by1 = Math.max(by1, ay1);
         }
         c = { tag, empty: !any, canvas: null, made: PARTS, box: bx1 < 0 ? null : [bx0, by0, bx1 - bx0 + 1, by1 - by0 + 1] };
         if (any && !moving) { // (a picture freed by a chunk let go of, if there is one: making new ones is slow)
@@ -360,6 +370,16 @@ const Render = {
             g.drawImage(Sprites.roofSnow(id, shape, Math.min(5, Math.ceil(v.roofSnow * 5))), ox + x * TILE, oy + y * TILE);
             g.globalAlpha = 1;
           }
+        }
+
+        // The eaves of roofs overhanging the tiles beside them (over the tops of the walls below), drawn from those tiles.
+        if (!noBase) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          const here = rawGroundAt(x, y);
+          if (here && THINGS[here].roof) continue;
+          let roof = null;
+          const sides = EAVE_NEIGHBOURS.map(([dx, dy]) => { const n = rawGroundAt(x + dx, y + dy); if (n && THINGS[n].roof) { roof = roof || n; return '1'; } return '0'; }).join('');
+          const eave = roof && Sprites.roofEave(roof, sides);
+          if (eave) g.drawImage(eave, ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
 
         // Along the shores: shallow water and foam (under the sand or grass spilling over it).
