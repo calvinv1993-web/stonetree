@@ -65,7 +65,7 @@ const Render = {
     if (c.canvas) Render.pictures--;
     if (c.canvas && Render.spare.length < 16) Render.spare.push(c.canvas);
   },
-  ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond) {
+  ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond, prepare) {
     const C = Render.CHUNK, R = Render.CHUNK_RES, keep = Render.chunks;
     if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; }
     if (map.dirty && map.dirty.length) { // forget the chunks round what changed
@@ -139,6 +139,14 @@ const Render = {
       return c.made >= PARTS ? c : null;
     };
     const cx0 = Math.floor(gx0 / C), cx1 = Math.floor(gx1 / C), cy0 = Math.floor(gy0 / C), cy1 = Math.floor(gy1 / C);
+    if (prepare) { // a floor not drawn now (hidden above you): its chunks in view made with the time to spare, nothing drawn
+      for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+        if (performance.now() >= Render.budget) return;
+        const k = keep.get(`${z}:${cx}:${cy}`);
+        if (!k || k.made < PARTS) chunk(cx, cy, true);
+      }
+      return;
+    }
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
       const c = chunk(cx, cy), tx0 = cx * C, ty0 = cy * C;
       if (c && c.empty) continue;
@@ -253,14 +261,18 @@ const Render = {
     }
 
     let lit = 1; // how bright what's drawn so far still is, after the floors above it darkened it
-    for (let z = v.minZ; z <= v.maxZ; z++) {
+    // (and one floor more, not drawn: the floor above that's hidden while you're under a roof, so its chunks are ready
+    // when you step out from under it; made only with time to spare, see prepare in Render.ground)
+    const hiddenAbove = v.maxZ + 1 < map.depth && v.maxZ >= v.z ? v.maxZ + 1 : -1;
+    for (let z = v.minZ; z <= Math.max(v.maxZ, hiddenAbove); z++) {
+      const prepare = z === hiddenAbove;
       // what's drawn so far lies below this floor: darker, a floor at a time down to the camera floor
       let shade = z > v.minZ && z <= v.z ? (v.dimLower ? (z === v.z ? 0.5 : 0) : v.depth || 0) : 0;
       if (shade && !v.dimLower) { // however deep, what's below stays at least DEEPEST lit: not night under a tower
         shade = Math.max(0, Math.min(shade, 1 - Render.DEEPEST / lit));
         lit *= 1 - shade;
       }
-      if (shade) {
+      if (shade && !prepare) {
         g.fillStyle = `rgba(0,0,0,${shade})`;
         g.fillRect(0, 0, v.w, v.h);
       }
@@ -684,7 +696,8 @@ const Render = {
         }
         g.restore();
       };
-      Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, 0, groundPass, beyond);
+      Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, 0, groundPass, beyond, prepare);
+      if (prepare) continue;
       // The water ripples: a picture of its loop over the still water kept in the chunks, once that picture is made
       // (between frames: until then it lies still). Water by a shore, a quay or a bridge has its borders drawn again
       // over the ripples.
