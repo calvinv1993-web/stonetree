@@ -700,7 +700,11 @@ const Sprites = (() => {
     return cached(`ownroof:${id}:${shape}`, g => {
       g.canvas.res = R;
       const k = [...shape.slice(0, 4)].map(Number), outer = shape[4] === 'o';
-      const tex = edgePixels(pic), TW = pic.naturalWidth, TH = pic.naturalHeight;
+      const tex = edgePixels(pic), TW = pic.naturalWidth, TH = pic.naturalHeight, straw = !!(ROOF_STYLES[spriteOf(id)] || {}).straw;
+      // the ridge tiles in the roof's own colour (its picture's average, a little lighter)
+      const cap = [0, 0, 0];
+      for (let i = 0; i < tex.data.length; i += 4) for (let ch = 0; ch < 3; ch++) cap[ch] += tex.data[i + ch];
+      for (let ch = 0; ch < 3; ch++) cap[ch] = cap[ch] / (tex.data.length / 4) * 1.12;
       const img = g.createImageData(N, N), data = img.data;
       for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
         const wx = (px + 0.5) / R, wy = (py + 0.5) / R, u = wx / TILE, v = wy / TILE;
@@ -717,10 +721,11 @@ const Sprites = (() => {
         const straight = (f >> 1) === (s >> 1), dist = (d[s] - d[f]) * TILE / (straight ? 2 : Math.SQRT2), CAP = 3.4;
         if (dist < CAP) {
           const c = dist / CAP, pair = (1 << f) | (1 << s), run = straight ? (f < 2 ? wx : wy) : pair === 5 || pair === 10 ? wx + wy : wx - wy; // (north-west and south-east hips run down-right)
-          r0 = 184; g0 = 86; b0 = 52;
-          light = c > 0.84 ? 0.42 : 1.3 - 0.75 * c * c; // (round: bright along its crown, dark at its edges)
+          [r0, g0, b0] = cap;
+          light = c > 0.84 ? (straw ? 0.7 : 0.42) : straw ? 1.08 - 0.3 * c * c : 1.3 - 0.75 * c * c; // (round: bright along its crown, dark at its edges; straw softer)
           const j = ((run % 7) + 7) % 7;
-          if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
+          if (straw) light *= 0.92 + 0.16 * ((wx * 7 + wy * 3) % 2 < 1 ? 1 : 0); // (thatch: a bound ridge of straw, no tiles)
+          else if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
         }
         if (outer) { // the eave: the tiles' ends in shade, and a dark edge
           const eave = Math.min(k[0] ? 9 : wy, k[1] ? 9 : TILE - wy, k[2] ? 9 : wx, k[3] ? 9 : TILE - wx);

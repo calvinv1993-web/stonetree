@@ -66,6 +66,10 @@ const CUSTOM_SPRITES = {
   pillar_emerald: 'pillar_emerald@2x.png',
   pillar_royalblue: 'pillar_royalblue@2x.png',
   pillar_terracotta: 'pillar_terracotta@2x.png',
+  roof_slate_tiles: 'roof-slate.png', // the other roofs, drawn the same way: slates, wooden shingles, copper gone green, thatch
+  roof_shingle_tiles: 'roof-shingle.png',
+  roof_green_tiles: 'roof-copper.png',
+  roof_thatch_tiles: 'roof-thatch.png',
   roof_tiles: 'roof-tiles.png', // the clay roofs: one tile of pan tiles, four rows, seamless, from the owner's picture (see roofFromPicture)
   rampart_face: 'rampart-face.png', // the town wall's sides: dressed sandstone with moss and ivy, a seamless strip (see blockFromPicture)
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
