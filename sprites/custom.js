@@ -82,6 +82,11 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  counter: 'counter@4x.png', // the owner's counter, bookshelf, sack and training dummy, in the world's camera
+  bookshelf: 'bookshelf@4x.png',
+  sack: 'sack@4x.png',
+  dummy: 'dummy@4x.png',
+  shelf_s: 'shelf-s.png', // the owner's shelves with books, on a wall running east-west (its south face)
   bed: 'bed@4x.png', // the owner's bed (both its tiles, as one picture: see BIG.bed) and anvil
   anvil: 'anvil@4x.png',
   statue: 'statue@4x.png', // the owner's statue, woodpile, haystack, table, chair (facing south) and chest
