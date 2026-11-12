@@ -408,7 +408,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${mapZoomNear()}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
+  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -432,7 +432,6 @@ function renderMenu() {
     h('div', { className: 'menu-head' }, 'Game'),
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
-    row(['Close-up view', h('small', {}, mapZoomNear() ? 'On: a closer camera, everything bigger' : 'Off: see more of the world around you')], toggle(mapZoomNear()), () => { setMapZoom(!mapZoomNear()); renderMenu(); }),
     h('div', { className: 'menu-sub' }, h('span', {}, 'Quality ', h('small', {}, { high: 'everything', medium: 'no drifting clouds or weather, a little less sharp', low: 'the smoothest: also no ripples, coarser' }[quality]))),
     h('div', { className: 'seg' }, ...['low', 'medium', 'high'].map(q => {
       const b = h('button', { className: quality === q ? 'active' : '' }, q[0].toUpperCase() + q.slice(1));

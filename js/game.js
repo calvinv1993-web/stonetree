@@ -43,18 +43,13 @@ function setQuality(q) {
   quality = QUALITY[q] ? q : 'high';
   Render.quality.clear();
   for (const part of QUALITY[quality]) Render.quality.add(part);
+try { localStorage.removeItem('tilequest.zoom'); } catch (e) { /* (the camera's setting, gone: always close-up now) */ }
   try { localStorage.setItem('tilequest.quality', quality); } catch (e) { /* not remembered */ }
   if (document.body.classList.contains('touch-ui')) reloadForView(); // (a phone draws the map at another sharpness: see reloadForView)
   else fitView();
 }
 for (const part of QUALITY[quality]) Render.quality.add(part);
-// How close the camera is on a phone: 'near' (default) or 'far' (Menu, Game), remembered per browser.
-const mapZoomNear = () => { try { return localStorage.getItem('tilequest.zoom') !== 'far'; } catch (e) { return true; } };
-function setMapZoom(near) {
-  try { localStorage.setItem('tilequest.zoom', near ? 'near' : 'far'); } catch (e) { /* not remembered */ }
-  reloadForView();
-}
-// A new view (the camera, the quality) means pictures of another size: on a phone the old ones stayed in its memory
+// A new view (the quality) means pictures of another size: on a phone the old ones stayed in its memory
 // beside the new ones, and the game crawled until the page was loaded again. So it's loaded again at once, behind the
 // loading screen, the game saved first (online, it logs straight back in).
 function reloadForView() {
@@ -95,8 +90,9 @@ function fitView() {
     // the next: as many tiles as cover the space (the last ones may be cut a little at the edges), up to what the
     // server sends round you (25 across, 21 down); fewer, bigger pixels if that's not enough.
     const dpr = window.devicePixelRatio || 1, W = box.width * dpr, H = box.height * dpr;
-    // Near (the default) is one step closer: 4 screen pixels per world pixel on most iPhones, still whole pixels.
-    let p = Math.max(2, Math.round(dpr) + (mapZoomNear() ? 1 : 0)), cols, rows;
+    // A step closer than the screen's own: 4 screen pixels per world pixel on most iPhones, still whole pixels (a camera
+    // further out was tried: it drew nearly twice as much for little more to see, and a phone couldn't keep up).
+    let p = Math.max(2, Math.round(dpr) + 1), cols, rows;
     for (;; p++) {
       cols = Math.ceil(W / (TILE * p));
       rows = Math.ceil(H / (TILE * p));
