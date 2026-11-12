@@ -6687,6 +6687,10 @@ const Sprites = (() => {
     // and its place along the strip of stones: mask says which of this tile's neighbours
     // (n, e, s, w, ne, se, sw, nw) are tops; x, y place it, so the stones run on from tile to tile.
     rimTile: (mask, x, y) => rimTile(mask, x, y),
+    // Getting ready to play (see the preloading in game.js): how many of the custom pictures are still loading, and
+    // jobs that work out the mountain rim's shapes ahead of time (one per shape a tile can have)
+    picturesLoading: () => [...custom.values()].filter(i => !i.complete).length,
+    warmRim: () => Array.from({ length: 255 }, (_, k) => () => { const m = (k + 1).toString(2).padStart(8, '0'); rimField(m, TILE * 2, 2); }),
     // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
     mosaic: id => customImage(id),
     // A bridge's corner post (sprites/custom.js bridge_post: a round post in the world's camera, rising up and left, its

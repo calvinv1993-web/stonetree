@@ -54,7 +54,7 @@ function checkKeepingUp(t) {
   if (t - keepUp.from < 4000) return;
   const fps = (keepUp.frames * 1000) / (t - keepUp.from);
   keepUp.from = 0;
-  if (fps >= 45 || Sprites.CREATURE_RES <= 2) return; // (aiming at 60: a step coarser when it can't keep up)
+  if (fps >= 0.75 * (1000 / FRAME_INTERVAL) || Sprites.CREATURE_RES <= 2) return; // (a step coarser when it can't keep up with the frame rate asked for)
   sharpDrop++;
   try { localStorage.setItem('tilequest.sharpDrop60', sharpDrop); } catch (e) { /* not remembered */ }
   fitView();
@@ -791,7 +791,12 @@ let waterWarmed = false; // (the water's ripples, made between frames once the g
 const MAP_DRAW_INTERVAL = 100;
 // The game runs at the screen's own rate, 60 frames a second (a phone too: the ground is kept in chunks now, see
 // Render.ground). FRAME_INTERVAL is the shortest time between two frames: a 120 Hz screen still draws 60.
-const FRAME_INTERVAL = 1000 / 60;
+// A slower phone can choose 30 (Menu, Game: Frame rate): cooler and kinder to the battery. Remembered per browser.
+let FRAME_INTERVAL = 1000 / ((() => { try { return +localStorage.getItem('tilequest.fps') === 30 ? 30 : 60; } catch (e) { return 60; } })());
+function setFrameRate(fps) {
+  FRAME_INTERVAL = 1000 / fps;
+  try { localStorage.setItem('tilequest.fps', fps); } catch (e) { /* not remembered */ }
+}
 let lastFrameAt = -Infinity;
 
 // ---- the speed meter (Menu, Game; Speed on a computer): frames a second, the work in a frame, and the stalls --------
@@ -843,7 +848,10 @@ function frame(t) {
       if (!paused) updateWorld();
     }
     handleEvents();
+    preloadJump();
+    Render.noLive = !Preload.ready;
     draw();
+    preloadFrame();
     exploreAround();
     if (now - lastMapDraw >= MAP_DRAW_INTERVAL || now < lastMapDraw) {
       drawMinimap();
@@ -907,6 +915,78 @@ function startOffline() {
   });
 }
 
+// ---- getting ready to play ------------------------------------------------------------------------------------
+// The first time something comes into view its pictures are made, and that's what makes the game stop for a moment.
+// So from the moment the page opens (while you log in or make your character) everything that can be is made ahead:
+// the custom pictures loaded, every map thing, item and creature of the isle drawn, the mountain rim's shapes worked
+// out. Once you're in the world, the ground round you is made too (behind a loading screen, a few frames at most)
+// before you play, so the first steps are smooth. The whole map isn't: its pictures wouldn't fit in a phone's memory.
+const Preload = { jobs: [], total: 0, ready: false, settled: 0, since: 0 };
+function preloadJobs() {
+  const jobs = [() => Sprites.picturesLoading() === 0]; // (false: not yet, try again in a moment)
+  const safely = f => () => { try { f(); } catch (e) { /* drawn when it's needed instead */ } };
+  for (const id of Object.keys(THINGS)) {
+    const d = THINGS[id];
+    if (d.ground || d.roof || d.wall === 'thin' || d.onWall || d.mosaic) continue; // (the ground's are in the chunks; walls by their shape)
+    for (let x = 0; x < 3; x++) jobs.push(safely(() => Sprites.thing(id, x, 0, 0)));
+  }
+  for (const id of Object.keys(ITEMS)) jobs.push(safely(() => Sprites.item(id)));
+  const types = new Set((map.spawns || []).map(s => s.type));
+  for (const n of map.npcs || []) types.add(NPCS[n.type] ? NPCS[n.type].creature || `npc:${n.type}` : null);
+  for (const key of types) if (key) for (const d of [0, 1, 2, 3]) for (const f of [0, 1, 2]) jobs.push(safely(() => { warmed.add(key); Sprites.creature(key, d, f); }));
+  jobs.push(...Sprites.warmRim().map(safely));
+  return jobs;
+}
+function startPreload() {
+  Preload.jobs = preloadJobs();
+  Preload.total = Preload.jobs.length;
+  const run = () => {
+    const end = performance.now() + 10;
+    while (Preload.jobs.length && performance.now() < end) {
+      if (Preload.jobs[0]() === false) break; // (waiting for the pictures to load)
+      Preload.jobs.shift();
+    }
+    showPreload();
+    if (Preload.jobs.length) setTimeout(run, Preload.jobs.length && Preload.total - Preload.jobs.length === 0 ? 50 : 0);
+  };
+  setTimeout(run, 0);
+}
+// A jump to somewhere far (death, a boat, a teleport): the loading screen again while the ground there is made, so the
+// first frame there doesn't draw it all at once.
+const lastSpot = { x: 0, y: 0, z: 0, set: false };
+function preloadJump() {
+  const far = lastSpot.set && (Math.abs(player.x - lastSpot.x) + Math.abs(player.y - lastSpot.y) > 12 || Math.abs(player.z - lastSpot.z) > 1);
+  Object.assign(lastSpot, { x: player.x, y: player.y, z: player.z, set: true });
+  if (far && Preload.ready) Object.assign(Preload, { ready: false, settled: 0, since: 0 });
+}
+// Each frame until ready: the loading screen over the world, and the ground round you made in big steps behind it.
+function preloadFrame() {
+  if (Preload.ready) return;
+  if (!Preload.since) Preload.since = performance.now();
+  Render.CHUNK_MS = 40;
+  Render.budget = performance.now() + 40;
+  const ground = (!Render.ahead || Render.ahead()) && !Render.later.size;
+  if (ground) while (Render.chores.length && performance.now() < Render.budget) Render.chores.shift()();
+  const done = !Preload.jobs.length && ground && !Render.chores.length;
+  Preload.settled = done ? Preload.settled + 1 : 0;
+  if (Preload.settled >= 3 || performance.now() - Preload.since > 15000) { // (never kept waiting long)
+    Preload.ready = true;
+    Render.CHUNK_MS = 4;
+  }
+  showPreload();
+}
+function showPreload() {
+  const el = $('loading');
+  if (!el) return;
+  const inWorld = !!Preload.since, show = inWorld && !Preload.ready;
+  el.hidden = !show;
+  if (!show) return;
+  const pictures = Preload.total ? (Preload.total - Preload.jobs.length) / Preload.total : 1;
+  $('loadingBar').style.width = `${Math.round(100 * (0.8 * pictures + (Preload.jobs.length ? 0 : 0.2 * Math.min(1, Preload.settled / 3))))}%`;
+  $('loadingText').textContent = Preload.jobs.length ? 'Getting the world ready...' : 'Almost there...';
+}
+
 initUI();
+startPreload();
 if (typeof Net !== 'undefined' && Net.wanted()) Net.start(() => requestAnimationFrame(frame));
 else startOffline();

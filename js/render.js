@@ -52,6 +52,7 @@ const Render = {
   chunks: new Map(),
   pictures: 0, // how many of them hold a picture
   spare: [], // pictures of chunks let go of, to use again
+  noLive: false, // (the ground not drawn live while it's being made behind the loading screen: see Preload in game.js)
   stats: { live: 0, finished: 0 }, // (how often a chunk in view wasn't ready: for measuring)
   later: new Map(), // chunks in view that weren't made in their frame
   chores: [], // small jobs for the quiet time between frames: making pictures before they're needed
@@ -145,7 +146,9 @@ const Render = {
         if (c.box) { const [bx, by, bw, bh] = c.box, k = TILE * R; g.drawImage(c.canvas, bx * k, by * k, bw * k, bh * k, ox + (tx0 + bx) * TILE, oy + (ty0 + by) * TILE, bw * TILE, bh * TILE); }
         continue;
       }
-      // moving ground, or not made yet: this chunk's part of the view, drawn live
+      // moving ground, or not made yet: this chunk's part of the view, drawn live (except behind the loading screen,
+      // Render.noLive: there it's only made, a bit each frame, so no frame takes long)
+      if (!c && Render.noLive) continue;
       if (!c || c.canvas) Render.stats.live++;
       const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
       g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();

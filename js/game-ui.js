@@ -1633,6 +1633,10 @@ function initUI() {
   $('outfitBtn').addEventListener('click', () => { if (!paused && $('outfit').hidden) openOutfit(); }); // not while making a character
   $('soundBtn').addEventListener('click', () => { Sound.toggle(); updateSoundButtons(); });
   $('speedBtn').addEventListener('click', () => setSpeedMeter(!speedMeter.on));
+  // the frame rate: 60 (smoothest) or 30 (a cooler phone, a longer battery)
+  const fpsLabel = () => { $('fpsBtn').textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; };
+  fpsLabel();
+  $('fpsBtn').addEventListener('click', () => { setFrameRate(Math.round(1000 / FRAME_INTERVAL) === 60 ? 30 : 60); fpsLabel(); });
   $('musicBtn').addEventListener('click', () => { Sound.toggleMusic(); updateSoundButtons(); });
   $('rightBtn').addEventListener('click', () => { rightClickAttacks = !rightClickAttacks; saveSetting('rightClickAttacks', rightClickAttacks); updateSoundButtons(); });
   updateSoundButtons();

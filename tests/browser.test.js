@@ -76,6 +76,8 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
   await page.fill('#createName', 'Soak');
   await page.click('#createStart');
   await page.click('#outfitDone');
+  await page.waitForFunction(() => Preload.ready, null, { timeout: 30000 }); // (the loading screen gone: the world ready)
+  await page.evaluate(() => { window.__slowest = 0; }); // (frames behind the loading screen don't count: that's what it's for)
 
   const view = await page.locator('#view').boundingBox();
   const clickables = '#containers .slot, #equipment .slot, #loot .slot, #lootAll, .hot, #log .kw, #shopList button, [data-shoptab], [data-tab], '

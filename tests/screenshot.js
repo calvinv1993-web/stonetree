@@ -54,6 +54,7 @@ const [out = 'screenshot.png', x, y, z] = args;
   await page.fill('#createName', 'Screenshot');
   await page.click('#createStart');
   await page.click('#outfitDone', { timeout: 2000 }).catch(() => {});
+  await page.waitForFunction(() => Preload.ready, null, { timeout: 30000 }).catch(() => {}); // (the loading screen gone)
   if (x !== undefined) await page.evaluate(([px, py, pz]) => teleport({ x: px, y: py, z: pz }), [+x, +y, +(z ?? 4)]);
   if (code) await page.evaluate(code);
   await page.waitForTimeout(1200); // let the light, the weather and the place name settle
