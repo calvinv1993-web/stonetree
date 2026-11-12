@@ -653,7 +653,7 @@ const Fx = (() => {
   function overlay(screen) {
     const W = viewPxW(), H = viewPxH(), w = weather(), h = worldMinutes() / 60, el = skyLayer();
     if (el) {
-      const off = typeof Render !== 'undefined' && Render.off.has('sky');
+      const off = typeof Render !== 'undefined' && Render.skip('sky');
       el.hidden = off;
       if (!off) {
         const view = document.getElementById('view');

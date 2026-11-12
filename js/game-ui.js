@@ -1633,6 +1633,10 @@ function initUI() {
   $('outfitBtn').addEventListener('click', () => { if (!paused && $('outfit').hidden) openOutfit(); }); // not while making a character
   $('soundBtn').addEventListener('click', () => { Sound.toggle(); updateSoundButtons(); });
   $('speedBtn').addEventListener('click', () => setSpeedMeter(!speedMeter.on));
+  // the quality: high, medium or low (see setQuality)
+  const qualityLabel = () => { $('qualityBtn').textContent = `Quality: ${quality}`; };
+  qualityLabel();
+  $('qualityBtn').addEventListener('click', () => { setQuality({ high: 'medium', medium: 'low', low: 'high' }[quality]); qualityLabel(); });
   // the frame rate: 60 (smoothest) or 30 (a cooler phone, a longer battery)
   const fpsLabel = () => { $('fpsBtn').textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; };
   fpsLabel();

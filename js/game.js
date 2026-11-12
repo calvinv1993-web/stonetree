@@ -34,6 +34,19 @@ function setViewSize(w, h, zoom = ZOOM) {
   dark.height = VIEW_H * TILE * SCALE * LIGHT_RES;
 }
 
+// The quality (Menu, Game), remembered per browser: high - everything; medium - no clouds or weather drifting over
+// the view, and the map a step less sharp on a phone; low - also no ripples on the water and no blades of grass over
+// things' feet, and the map as coarse as a phone may draw it. (The speed meter's test shows what each part costs.)
+const QUALITY = { high: [], medium: ['sky', 'fx'], low: ['sky', 'fx', 'water', 'fringe'] };
+let quality = (() => { try { const q = localStorage.getItem('tilequest.quality'); return QUALITY[q] ? q : 'high'; } catch (e) { return 'high'; } })();
+function setQuality(q) {
+  quality = QUALITY[q] ? q : 'high';
+  Render.quality.clear();
+  for (const part of QUALITY[quality]) Render.quality.add(part);
+  try { localStorage.setItem('tilequest.quality', quality); } catch (e) { /* not remembered */ }
+  fitView();
+}
+for (const part of QUALITY[quality]) Render.quality.add(part);
 // How close the camera is on a phone: 'near' (default) or 'far' (Menu, Game), remembered per browser.
 const mapZoomNear = () => { try { return localStorage.getItem('tilequest.zoom') !== 'far'; } catch (e) { return true; } };
 function setMapZoom(near) {
@@ -80,7 +93,7 @@ function fitView() {
     }
     // The canvas is drawn r pixels per world pixel: p, or fewer on a phone too slow for that (see keepUp); the
     // browser then blows it up to p, which costs next to nothing.
-    const r = Math.max(2, p - sharpDrop);
+    const r = Math.max(2, p - sharpDrop - (quality === 'low' ? 9 : quality === 'medium' ? 1 : 0)); // (low: as coarse as it goes)
     Sprites.CREATURE_RES = r; // (figures drawn just as finely)
     setViewSize(Math.max(7, cols), Math.max(7, rows), r / SCALE);
     canvas.style.width = `${(VIEW_W * TILE * p) / dpr}px`;
@@ -422,14 +435,14 @@ function draw() {
     drawVehicle(p.ride.kind, ox + v.x * TILE, oy + v.y * TILE, true, p.dir === 3, p.ride.start);
   }
   drawEffects(ox, oy, z);
-  if (!Render.off.has('fx')) Fx.world(ctx, ox, oy, z);
+  if (!Render.skip('fx')) Fx.world(ctx, ox, oy, z);
 
   // Overlays are drawn in canvas pixels so text stays crisp.
   ctx.setTransform(ZOOM, 0, 0, ZOOM, 0, 0);
   const screen = (tx, ty) => [(ox + tx * TILE) * SCALE, (oy + ty * TILE) * SCALE];
   const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
-  if (!Render.off.has('sky')) Fx.overlay(screen);
+  if (!Render.skip('sky')) Fx.overlay(screen);
   // Who just hit you: 1 right after the hit, fading to 0.
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);
