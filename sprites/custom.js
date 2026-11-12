@@ -82,6 +82,15 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  tallgrass_0: 'tallgrass-0@4x.png', // the owner's tall grass (all four tufts, the upper two, the lower two), mushrooms, pebbles,
+  tallgrass_1: 'tallgrass-1@4x.png', // dead tree, and lantern on a wall running east-west
+  tallgrass_2: 'tallgrass-2@4x.png',
+  mushrooms: 'mushrooms@4x.png',
+  pebbles_0: 'pebbles-0@4x.png',
+  pebbles_1: 'pebbles-1@4x.png',
+  pebbles_2: 'pebbles-2@4x.png',
+  dead_tree: 'dead_tree@4x.png',
+  lantern_s: 'lantern-s.png',
   rock: 'rock@4x.png', // the owner's boulders, wild flowers, fern and reeds (flowers and reeds: a picture for each variant)
   flowers_0: 'flowers-0@4x.png',
   flowers_1: 'flowers-1@4x.png',
