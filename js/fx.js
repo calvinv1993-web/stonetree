@@ -634,32 +634,83 @@ const Fx = (() => {
 
   // Over everything, in canvas pixels: clouds, the colours of dawn and dusk and of the
   // season, the weather's tint, lightning, and the name of the place you arrive at.
+  // The sky over the view - the clouds' shadows drifting over the land, the colours of dawn, dusk and the season, the
+  // weather's tint and the soft dark edge - isn't painted into the canvas each frame: it's a few layers of the page laid
+  // over it (#sky), which the browser puts on top for next to nothing; only where they are and how strong changes.
+  const sky = { el: null, clouds: [], tint: null, edge: null, at: 0, k: 1, key: '' };
+  function skyLayer() {
+    if (sky.el || typeof document === 'undefined') return sky.el;
+    const view = document.getElementById('view');
+    if (!view) return null;
+    sky.el = document.createElement('div');
+    sky.el.id = 'sky';
+    view.after(sky.el);
+    for (let i = 0; i < 4; i++) { const c = document.createElement('div'); c.className = 'sky-cloud'; sky.el.append(c); sky.clouds.push(c); }
+    sky.tint = document.createElement('div'); sky.tint.className = 'sky-fill'; sky.el.append(sky.tint);
+    sky.edge = document.createElement('div'); sky.edge.className = 'sky-fill'; sky.el.append(sky.edge);
+    return sky.el;
+  }
   function overlay(screen) {
-    const W = viewPxW(), H = viewPxH(), w = weather(), h = worldMinutes() / 60;
-    if (!climate.underground) {
-      // clouds drifting over the land (the sky is the same for everyone: it follows the clock)
-      if (daylight() > 0.5) for (let i = 0; i < 4; i++) {
-        const span = 3000, wx = ((i * 977 + now * 0.012) % span) - span / 2 + player.x * TILE * 0.0, wy = ((i * 613) % 1200) - 600;
-        const [px] = screen(player.x, player.y);
-        const cx = (wx - (player.x * TILE) % span) * SCALE + px, cy = H / 2 + wy * SCALE * 0.5;
-        const r = (180 + (i * 53) % 120) * SCALE;
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        grad.addColorStop(0, `rgba(0,0,20,${0.1 + (w ? 0.08 : 0)})`);
-        grad.addColorStop(1, 'rgba(0,0,20,0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    const W = viewPxW(), H = viewPxH(), w = weather(), h = worldMinutes() / 60, el = skyLayer();
+    if (el) {
+      const off = typeof Render !== 'undefined' && Render.off.has('sky');
+      el.hidden = off;
+      if (!off) {
+        const view = document.getElementById('view');
+        if (now - sky.at > 500 || now < sky.at) { // (where the canvas is on the page: looked up now and then)
+          sky.at = now;
+          Object.assign(el.style, { left: `${view.offsetLeft + view.clientLeft}px`, top: `${view.offsetTop + view.clientTop}px`, width: `${view.clientWidth}px`, height: `${view.clientHeight}px` });
+          sky.k = view.clientWidth / W; // (page pixels per overlay pixel)
+        }
+        const k = sky.k;
+        // clouds drifting over the land (the sky is the same for everyone: it follows the clock)
+        const clouds = !climate.underground && daylight() > 0.5;
+        sky.clouds.forEach((c, i) => {
+          if (!clouds) { c.style.display = 'none'; return; }
+          const span = 3000, wx = ((i * 977 + now * 0.012) % span) - span / 2, wy = ((i * 613) % 1200) - 600;
+          const [px] = screen(player.x, player.y);
+          const cx = (wx - (player.x * TILE) % span) * SCALE + px, cy = H / 2 + wy * SCALE * 0.5, r = (180 + (i * 53) % 120) * SCALE;
+          c.style.display = '';
+          c.style.width = c.style.height = `${Math.round(2 * r * k)}px`;
+          const shade = w ? 'wet' : 'dry';
+          if (c.dataset.shade !== shade) { c.dataset.shade = shade; c.style.background = `radial-gradient(closest-side, rgba(0,0,20,${w ? 0.18 : 0.1}), rgba(0,0,20,0))`; }
+          c.style.transform = `translate(${Math.round((cx - r) * k)}px, ${Math.round((cy - r) * k)}px)`;
+        });
+        // one tint: dawn and dusk, the season, the weather (blended into a single colour)
+        const tints = [];
+        if (!climate.underground) {
+          if (h >= 5 && h < 8) tints.push([255, 150, 110, 0.15 * (1 - Math.abs(h - 6.4) / 1.6)]);
+          else if (h >= 18 && h < 21.2) tints.push([255, 110, 40, 0.2 * (1 - Math.abs(h - 19.6) / 1.6)]);
+          const sea = season();
+          if (sea === 'autumn') tints.push([255, 160, 70, 0.05]);
+          if (sea === 'winter') tints.push([170, 200, 255, 0.06]);
+          if (w && w.kind === 'rain') tints.push([24, 34, 56, 0.26 * w.strength]);
+          if (w && w.kind === 'sand') tints.push([210, 170, 100, 0.22 * w.strength]);
+          if (w && w.kind === 'snow' && w.strength > 0.8) tints.push([230, 240, 255, 0.16]);
+        }
+        let a = 0, rgb = [0, 0, 0];
+        for (const [r0, g0, b0, a0] of tints.filter(t => t[3] > 0)) { // (painted one over another, as before)
+          const na = a0 + a * (1 - a0);
+          rgb = [0, 1, 2].map(c => ([r0, g0, b0][c] * a0 + rgb[c] * a * (1 - a0)) / (na || 1));
+          a = na;
+        }
+        const tint = a > 0.001 ? `rgba(${rgb.map(Math.round).join(',')},${a.toFixed(3)})` : 'transparent';
+        if (sky.tint.style.backgroundColor !== tint) sky.tint.style.backgroundColor = tint;
+        // a soft dark edge round the view, deeper at night and below ground
+        const edge = (climate.underground ? 0.5 : 0.18 + (1 - daylight()) * 0.3).toFixed(2);
+        const key = `${edge}:${Math.round(W * k)}x${Math.round(H * k)}`;
+        if (key !== sky.key) {
+          sky.key = key;
+          const inner = Math.min(W, H) * 0.35 * k, outer = Math.max(W, H) * 0.75 * k;
+          sky.edge.style.background = `radial-gradient(circle closest-side at 50% 50%, rgba(0,0,0,0) 0, rgba(0,0,0,0) ${Math.round(inner)}px, rgba(0,0,0,${edge}) ${Math.round(outer)}px)`;
+          sky.edge.style.backgroundSize = `${Math.round(outer * 2)}px ${Math.round(outer * 2)}px`;
+          sky.edge.style.backgroundPosition = 'center';
+          sky.edge.style.backgroundColor = 'transparent';
+        }
       }
-      let tint = null;
-      if (h >= 5 && h < 8) tint = [`255,150,110`, 0.15 * (1 - Math.abs(h - 6.4) / 1.6)];
-      else if (h >= 18 && h < 21.2) tint = [`255,110,40`, 0.2 * (1 - Math.abs(h - 19.6) / 1.6)];
-      if (tint && tint[1] > 0) { ctx.fillStyle = `rgba(${tint[0]},${tint[1]})`; ctx.fillRect(0, 0, W, H); }
-      const sea = season();
-      if (sea === 'autumn') { ctx.fillStyle = 'rgba(255,160,70,0.05)'; ctx.fillRect(0, 0, W, H); }
-      if (sea === 'winter') { ctx.fillStyle = 'rgba(170,200,255,0.06)'; ctx.fillRect(0, 0, W, H); }
-      if (w && w.kind === 'rain') { ctx.fillStyle = `rgba(24,34,56,${0.26 * w.strength})`; ctx.fillRect(0, 0, W, H); }
+    }
+    if (!climate.underground) {
       if (w && w.kind === 'sand') {
-        ctx.fillStyle = `rgba(210,170,100,${0.22 * w.strength})`;
-        ctx.fillRect(0, 0, W, H);
         for (let i = 0; i < 4; i++) { // bands of dust blowing through
           const by = ((i * 211 + now * 0.02) % (H + 200)) - 100, bx = W - ((now * (0.35 + i * 0.07) + i * 400) % (W + 600));
           const grad = ctx.createLinearGradient(0, by - 40, 0, by + 40);
@@ -670,17 +721,9 @@ const Fx = (() => {
           ctx.fillRect(bx - 300, by - 40, W + 300, 80);
         }
       }
-      if (w && w.kind === 'snow' && w.strength > 0.8) { ctx.fillStyle = 'rgba(230,240,255,0.16)'; ctx.fillRect(0, 0, W, H); }
       const flash = now - thunderAt;
       if (flash < 400) { ctx.fillStyle = `rgba(230,240,255,${0.5 * (1 - flash / 400) * (flash < 80 || flash > 160 ? 1 : 0.3)})`; ctx.fillRect(0, 0, W, H); }
     }
-    // a soft dark edge round the view, deeper at night and below ground
-    const edge = climate.underground ? 0.5 : 0.18 + (1 - daylight()) * 0.3;
-    const vignette = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
-    vignette.addColorStop(0, 'rgba(0,0,0,0)');
-    vignette.addColorStop(1, `rgba(0,0,0,${edge})`);
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, W, H);
     if (levelBanner) {
       const t = (now - levelBanner.at) / 3000;
       if (t > 1) levelBanner = null;

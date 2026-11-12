@@ -1225,3 +1225,9 @@ body.touch-ui:has(#talk:not([hidden])) .fight-bar { display: none !important; }
 .loading-box { width: min(320px, 80vw); text-align: center; color: #e8dcc0; font-size: 15px; letter-spacing: 0.04em; }
 .loading-track { margin-top: 12px; height: 8px; border-radius: 4px; background: #3a3326; overflow: hidden; }
 #loadingBar { width: 0; height: 100%; background: linear-gradient(90deg, #c8901c, #f2c94c); transition: width 0.15s; }
+
+/* The sky over the map (see Fx.overlay): clouds' shadows, the light's tint and the dark edge, laid over the canvas */
+#sky { position: absolute; pointer-events: none; overflow: hidden; z-index: 1; }
+#sky[hidden] { display: none; }
+#sky .sky-cloud { position: absolute; left: 0; top: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,20,0.1), rgba(0,0,20,0)); will-change: transform; }
+#sky .sky-fill { position: absolute; inset: 0; }
