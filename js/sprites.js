@@ -3208,7 +3208,7 @@ const Sprites = (() => {
   // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
-  const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'noticeboard', 'gravestone', 'apple_crate', 'planter', 'woodpile', 'haystack', 'chest', 'anvil', 'bookshelf', 'sack', 'dummy', 'rock', 'fern', 'mushrooms', 'cannonballs', 'sarcophagus', 'dead_tree', 'rubble', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
+  const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'noticeboard', 'gravestone', 'apple_crate', 'planter', 'woodpile', 'haystack', 'chest', 'anvil', 'bookshelf', 'sack', 'dummy', 'rock', 'fern', 'mushrooms', 'cannonballs', 'sarcophagus', 'dead_tree', 'rubble', 'driftwood', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
   const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {

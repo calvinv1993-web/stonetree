@@ -82,6 +82,11 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  leaves_0: 'leaves-0@4x.png', // the owner's fallen leaves (all of them, the western drift, the eastern), puddle and driftwood
+  leaves_1: 'leaves-1@4x.png',
+  leaves_2: 'leaves-2@4x.png',
+  puddle: 'puddle@4x.png',
+  driftwood: 'driftwood@4x.png',
   dead_tree: 'dead_tree@4x.png', // the owner's dead tree, rubble, seashells and spider web
   rubble: 'rubble@4x.png',
   shells: 'shells@4x.png',
