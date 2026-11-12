@@ -118,7 +118,7 @@ const CUSTOM_SPRITES = {
   quay_stones: 'quay-stones.png', // the round stones along a bank, from the owner's picture (see Sprites.quayStones)
   sun_mosaic: 'sun-mosaic.png', // the golden sun laid in the paving of Oakvale's square (5 tiles across), from the owner's picture
   grate: 'grate@2x.png', // the sewer grates in the streets
-  founder: 'founder-statue.png', // the statue of the founder, west of the temple (3 x 3 tiles, at 4 pixels a world pixel)
+  founder: 'founder-statue.png', // the statue west of the temple: the owner's picture, leaning as things do (3 x 3 tiles, at 4 pixels a world pixel)
 };
 
 

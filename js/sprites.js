@@ -1247,7 +1247,7 @@ const Sprites = (() => {
   // with the golden sun of the dawn on a rod above it.
   // The statue of the founder, three tiles square, west of the temple: a stepped marble plinth with a gilded band and a
   // plaque, and on it the founder in a long cloak, the left hand on a sword's hilt, the right holding a golden sun high.
-  BIG.founder = { w: 3, h: 3, rise: 160, upright: true, draw(g) {
+  BIG.founder = { w: 3, h: 3, rise: 160, upright: true, ownLeans: true, draw(g) {
     const m1 = { top: '#fbf7ee', south: '#e6dfcf', east: '#bdb4a2', edge: '#ffffff' }, m2 = { top: '#efe8d8', south: '#d6cdb8', east: '#aaa18e', edge: '#fffcf4' };
     const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
     shadow(g, 64 + 52, 64 + 60, 40, 15);
@@ -1343,7 +1343,8 @@ const Sprites = (() => {
     // (its own PNG may be finer than a pixel a world pixel; a part is kept only as fine as the screen shows it, k canvas
     // pixels a world pixel, and only as big as what it shows: scaling a big fine picture down every frame is slow)
     const k = own ? Sprites.CREATURE_RES : 1;
-    const box = b.upright ? (row === b.h - 1 ? [col ? R : 0, 0] : [R, R]) : [0, 0]; // the part's north-west corner; it ends at R + 32, R + 32
+    const upright = b.upright && !(own && b.ownLeans); // (its own picture may lean up-left as things do, not stand upright)
+    const box = upright ? (row === b.h - 1 ? [col ? R : 0, 0] : [R, R]) : [0, 0]; // the part's north-west corner; it ends at R + 32, R + 32
     const w = R + TILE - box[0], h = R + TILE - box[1];
     return cached(`part:${id}:${frame}:${own ? 'own' : ''}:${k}`, g => {
       g.canvas.res = k;
@@ -1352,7 +1353,7 @@ const Sprites = (() => {
       g.imageSmoothingEnabled = true;
       g.imageSmoothingQuality = 'high';
       g.beginPath();
-      if (!b.upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
+      if (!upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
       else g.rect(box[0], box[1], w, h); // (upright: the south row's tiles draw everything straight above them, the westmost also what leans out west; the others their own tile)
       g.clip();
       g.drawImage(whole, -col * TILE, -row * TILE, b.w * TILE + R, b.h * TILE + R);
