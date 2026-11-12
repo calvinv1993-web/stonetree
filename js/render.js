@@ -608,7 +608,6 @@ const Render = {
         // half of the corner on the diagonal; a top's outer corner (only the diagonal neighbour is top) is filled from
         // its two sides the same way. The top's grass grows over the stones' inner edge.
         if (ownRim) {
-          const BAND = 16, DIRS = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
           const isOpen = (x, y) => !tileAt(x, y) && x >= 0 && y >= 0 && x < map.width && y < map.height;
           const topAt = (x, y) => { // the ground of a mountain top's tile (as it shows), or null
             const t = tileAt(x, y);
@@ -616,62 +615,32 @@ const Render = {
             const id = t.items.some(i => THINGS[i].wall === 'thin') ? groundShown(x, y, t) : groundAt(x, y);
             return Sprites.hasLip(id) ? id : null;
           };
-          // the stones of side d of the top at (sx, sy), drawn where they lie (outside it), clipped to clip()
-          const stones = (d, sx, sy, clip) => {
-            const [dx, dy] = DIRS[d];
-            g.save(); g.beginPath(); clip(); g.clip();
-            g.drawImage(Sprites.ownLip(d, sx, sy), ox + sx * TILE + dx * BAND, oy + sy * TILE + dy * BAND, TILE, TILE);
-            g.restore();
-          };
           const fringe = Sprites.grassFringe && Sprites.grassFringe();
-          const blades = (d, sx, sy, clip) => { // the top's grass over the stones' inner edge
-            if (!fringe || topAt(sx, sy) !== 'grass') return;
-            const f = fringe, piece = (((sx * 3 + sy * 5 + d.charCodeAt(0)) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE;
-            g.save(); g.beginPath(); clip(); g.clip();
-            g.translate(ox + sx * TILE + TILE / 2, oy + sy * TILE + TILE / 2);
-            g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
-            g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 - f.reach, TILE, f.height / f.res);
-            g.restore();
-          };
           for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
             if (!isOpen(x, y)) continue;
+            const mask = EAVE_NEIGHBOURS.map(([dx, dy]) => (topAt(x + dx, y + dy) ? '1' : '0')).join(''); // (n e s w ne se sw nw)
+            if (!mask.includes('1')) continue;
             const X0 = ox + x * TILE, Y0 = oy + y * TILE;
-            // the sides of tops that face this tile: [side, the top's x, y]
-            const faces = Object.entries(DIRS).filter(([, [dx, dy]]) => topAt(x - dx, y - dy)).map(([d, [dx, dy]]) => [d, x - dx, y - dy]);
-            const facing = d => faces.some(f => f[0] === d);
-            // corner c of this tile: [its x, y offsets (0 or 1), the side whose stones run along the tile's top or bottom
-            // there, the one along its left or right]
-            const CORNER = { nw: [0, 0, 's', 'e'], ne: [1, 0, 's', 'w'], se: [1, 1, 'n', 'w'], sw: [0, 1, 'n', 'e'] };
-            const tri = (c, horizontal) => { // corner c's square (BAND wide) cut on its diagonal: the half by the top/bottom edge
-              const [cx, cy] = CORNER[c], px = X0 + cx * TILE, py = Y0 + cy * TILE, sx = cx ? -1 : 1, sy = cy ? -1 : 1, Q = BAND + 2;
-              g.moveTo(px, py); g.lineTo(px + sx * Q, py + sy * Q);
-              if (horizontal) g.lineTo(px + sx * TILE * 2, py); else g.lineTo(px, py + sy * TILE * 2);
-              g.closePath();
-            };
-            const tile = () => g.rect(X0, Y0, TILE, TILE);
-            for (const [d, sx, sy] of faces) {
-              const horizontal = d === 'n' || d === 's';
-              // a corner where this side meets another facing this tile: keep only this side's half of it
-              const shared = Object.entries(CORNER).filter(([, [, , h, v]]) => (horizontal ? h === d : v === d) && facing(horizontal ? v : h));
-              const clipped = () => {
-                if (!shared.length) return tile();
-                g.rect(X0, Y0, TILE, TILE);
-                for (const [c] of shared) tri(c, !horizontal);
-              };
-              g.save(); g.beginPath(); clipped(); g.clip('evenodd');
-              g.drawImage(Sprites.ownLip(d, sx, sy), ox + sx * TILE + DIRS[d][0] * BAND, oy + sy * TILE + DIRS[d][1] * BAND, TILE, TILE);
+            g.drawImage(Sprites.rimTile(mask, x, y), X0, Y0, TILE, TILE);
+            // the top's grass growing over the stones' inner edge, along each straight side (kept out of the corners,
+            // where another side turns: the stones are one band there)
+            if (!fringe) continue;
+            [[0, -1, 's'], [1, 0, 'w'], [0, 1, 'n'], [-1, 0, 'e']].forEach(([dx, dy, side], k) => {
+              if (mask[k] !== '1' || topAt(x + dx, y + dy) !== 'grass') return;
+              const f = fringe, piece = ((((x + dx) * 3 + (y + dy) * 5 + k) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE;
+              // kept to this tile, and out of a corner where the side before or after it turns (both are tops there)
+              const cut = 16;
+              let cx0 = X0, cy0 = Y0, cx1 = X0 + TILE, cy1 = Y0 + TILE;
+              if (dx === 0) { if (mask[3] === '1') cx0 += cut; if (mask[1] === '1') cx1 -= cut; }
+              else { if (mask[0] === '1') cy0 += cut; if (mask[2] === '1') cy1 -= cut; }
+              g.save();
+              g.beginPath(); g.rect(cx0, cy0, cx1 - cx0, cy1 - cy0); g.clip();
+              // drawn from the top's tile: its edge on our side is the blades' ground line, the blades reach out over the stones
+              g.translate(X0 + dx * TILE + TILE / 2, Y0 + dy * TILE + TILE / 2);
+              g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[side] * Math.PI / 2);
+              g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 - f.reach, TILE, f.height / f.res);
               g.restore();
-              blades(d, sx, sy, tile);
-            }
-            // a top's outer corner in this tile's corner: its two sides' stones carried round, each its half
-            for (const [c, [cx, cy, h, v]] of Object.entries(CORNER)) {
-              const dx = cx ? 1 : -1, dy = cy ? 1 : -1;
-              if (!topAt(x + dx, y + dy) || !isOpen(x + dx, y) || !isOpen(x, y + dy)) continue;
-              // h: the side of the top at (x + dx, y + dy) running along this tile's top or bottom (n or s), from its
-              // neighbour beside this tile; v likewise along this tile's left or right
-              stones(h, x, y + dy, () => tri(c, true));
-              stones(v, x + dx, y, () => tri(c, false));
-            }
+            });
           }
         }
 

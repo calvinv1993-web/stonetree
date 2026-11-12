@@ -53,8 +53,9 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
   in the neighbouring tile, against the edge it borders, so it joins that tile exactly: a mountain top's rim of stones
   in the open tile north of its north edge (against that tile's south side), a roof's eave in the tile beside the roof,
   a quay's stones in the water against the land. Draw it from the tile it lies on (looking at its neighbours), so it
-  is never cut off where the ground's chunks meet; a corner where two sides meet keeps each side's half on the
-  diagonal, and an outer corner is filled from the two sides that run into it.
+  is never cut off where the ground's chunks meet; never lay two sides' strips over each other in a
+  corner: make the border one band by its distance from what it borders (each pixel takes the border at its distance
+  from the nearest edge), so inner corners meet on the diagonal and outer corners turn round (see rimTile).
 - **Border jitter**: the edge wanders a little, never in a repeating zigzag; tufts and pebbles break it here and there.
 
 ## Checking
