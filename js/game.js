@@ -369,7 +369,7 @@ function draw() {
     cx: pv.x * TILE + TILE / 2, cy: pv.y * TILE + TILE / 2, z,
     // Above ground you see down to the surface; underground only two floors deep.
     minZ: z >= map.surfaceZ ? map.surfaceZ : Math.max(0, z - 2),
-    maxZ: z < map.surfaceZ ? z : map.visibleMaxZ(player.x, player.y, z), // underground there's rock above you
+    maxZ: z < map.surfaceZ || Render.off.has('floors') ? z : map.visibleMaxZ(player.x, player.y, z), // underground there's rock above you
     w: VIEW_W * TILE, h: VIEW_H * TILE, time: now, objects: [],
     depth: 0.15, // what lies below you is darker
   };
@@ -422,19 +422,21 @@ function draw() {
     drawVehicle(p.ride.kind, ox + v.x * TILE, oy + v.y * TILE, true, p.dir === 3, p.ride.start);
   }
   drawEffects(ox, oy, z);
-  Fx.world(ctx, ox, oy, z);
+  if (!Render.off.has('fx')) Fx.world(ctx, ox, oy, z);
 
   // Overlays are drawn in canvas pixels so text stays crisp.
   ctx.setTransform(ZOOM, 0, 0, ZOOM, 0, 0);
   const screen = (tx, ty) => [(ox + tx * TILE) * SCALE, (oy + ty * TILE) * SCALE];
   const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
-  Fx.overlay(screen);
+  if (!Render.off.has('sky')) Fx.overlay(screen);
   // Who just hit you: 1 right after the hit, fading to 0.
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);
-  for (const c of shown) if (c.z === z && (!c.def || !c.def.invisible || canSee(c))) drawCreatureInfo(c, screen, struck.get(c.id));
-  drawTexts(screen, z);
+  if (!Render.off.has('names')) {
+    for (const c of shown) if (c.z === z && (!c.def || !c.def.invisible || canSee(c))) drawCreatureInfo(c, screen, struck.get(c.id));
+    drawTexts(screen, z);
+  }
   drawGuideArrow(screen);
   if (useWith) outlinedText(`Use ${useWith.name} on...`, viewPxW() / 2, 24, '#ffe080', 'bold 14px sans-serif');
   if (raidBanner && now < raidBanner.until) {
@@ -811,17 +813,45 @@ function setSpeedMeter(on) {
   $('speedMeter').hidden = !on;
 }
 if (speedMeter.on) $('speedMeter').hidden = false;
+// Tap the meter for a test: the game leaves out one part at a time for a few seconds (the floors above you, the sky's
+// clouds and shading, the water's ripples, the weather and footprints, the names over heads) and shows the frames a
+// second each time, so a screenshot of it says what costs a phone the most. Stand still while it runs (about 20 s).
+const PERF_PARTS = [['all', null], ['no floors above', 'floors'], ['no sky', 'sky'], ['no ripples', 'water'], ['no weather', 'fx'], ['no names', 'names']];
+let perfTest = null;
+function startPerfTest() {
+  if (perfTest) return;
+  perfTest = { i: 0, from: performance.now(), frames: 0, results: [] };
+}
+function perfTestFrame(t) {
+  const p = perfTest, settle = 600, span = 2400;
+  const part = PERF_PARTS[p.i];
+  Render.off.clear(); if (part[1]) Render.off.add(part[1]);
+  if (t - p.from > settle) p.frames++;
+  if (t - p.from < settle + span) return `testing: ${part[0]} (${p.i + 1}/${PERF_PARTS.length})`;
+  p.results.push(`${part[0]}: ${Math.round(p.frames * 1000 / span)} fps`);
+  Object.assign(p, { i: p.i + 1, from: t, frames: 0 });
+  if (p.i >= PERF_PARTS.length) { Render.off.clear(); speedMeter.result = `at ${player.x},${player.y},${player.z}\n${p.results.join('\n')}`; perfTest = null; }
+  return 'testing...';
+}
+$('speedMeter').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); speedMeter.result = null; startPerfTest(); });
+for (const type of ['touchstart', 'mousedown', 'click']) $('speedMeter').addEventListener(type, e => e.stopPropagation());
 // Each frame also notes what it had to do (ground drawn live, chunks made, a floor change) and where you were, so the
 // worst stall of the last 10 seconds says where and why: what to send us from a slow phone.
 function meterFrame(t, dt, work, did) {
   const f = speedMeter.frames;
   if (dt < 1000) f.push([t, dt, work, did]); // (not the first frame after a pause)
   while (f.length && f[0][0] < t - 10000) f.shift();
+  if (perfTest) { // (counted every frame, shown a few times a second)
+    const s = perfTestFrame(t);
+    if (t - speedMeter.shownAt >= 250) { speedMeter.shownAt = t; $('speedMeter').textContent = s; }
+    return;
+  }
   if (t - speedMeter.shownAt < 250) return;
   speedMeter.shownAt = t;
   const second = f.filter(([ft]) => ft > t - 1000), works = second.map(x => x[2]).sort((a, b) => a - b);
   const stalls = f.filter(x => x[1] >= 50), wi = f.reduce((a, b, i) => (b[1] > (f[a] || [0, 0])[1] ? i : a), -1), worst = f[wi] || [0, 0];
   // (a long gap comes after the frame that took long: what that one did)
+  if (speedMeter.result) { $('speedMeter').textContent = `test (tap to run again)\n${speedMeter.result}`; return; }
   const el = $('speedMeter'), w = wi > 0 && worst[1] >= 50 ? f[wi - 1][3] : null;
   const why = w ? [w.live && `${w.live} ground live`, w.made && `${w.made} chunks made`, w.floor && 'floor change', w.work > 30 && `${Math.round(w.work)} ms work`].filter(Boolean).join(', ') : '';
   el.textContent = `${second.length} fps · ${(works[works.length >> 1] || 0).toFixed(1)} ms work\n${stalls.length} stalls in 10 s · worst ${Math.round(worst[1])} ms`

@@ -52,6 +52,7 @@ const Render = {
   chunks: new Map(),
   pictures: 0, // how many of them hold a picture
   spare: [], // pictures of chunks let go of, to use again
+  off: new Set(), // parts left out, to measure what they cost on a phone (the speed meter's test: see game.js)
   noLive: false, // (the ground not drawn live while it's being made behind the loading screen: see Preload in game.js)
   stats: { live: 0, finished: 0 }, // (how often a chunk in view wasn't ready: for measuring)
   later: new Map(), // chunks in view that weren't made in their frame
@@ -701,7 +702,7 @@ const Render = {
       // The water ripples: a picture of its loop over the still water kept in the chunks, once that picture is made
       // (between frames: until then it lies still). Water by a shore, a quay or a bridge has its borders drawn again
       // over the ripples.
-      if (Sprites.WATER_MOVES) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+      if (Sprites.WATER_MOVES && !Render.off.has('water')) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
         if (groundAt(x, y) !== 'water' || wallAt(x, y)) continue;
         const f = Sprites.waterFrame(x, y, v.time);
         if (!f) continue;
@@ -721,7 +722,7 @@ const Render = {
         }
         g.drawImage(over, ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
-      if (v.afterGround) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
+      if (v.afterGround && !Render.off.has('fx')) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
 
       const objects = byFloor.get(z);
