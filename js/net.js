@@ -220,6 +220,7 @@ const Net = (() => {
   }
 
   return {
+    saveExplored, // (before a reload: see reloadForView in game.js)
     online: false,
     reconnecting: false,
     wanted,

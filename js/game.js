@@ -44,14 +44,25 @@ function setQuality(q) {
   Render.quality.clear();
   for (const part of QUALITY[quality]) Render.quality.add(part);
   try { localStorage.setItem('tilequest.quality', quality); } catch (e) { /* not remembered */ }
-  fitView();
+  if (document.body.classList.contains('touch-ui')) reloadForView(); // (a phone draws the map at another sharpness: see reloadForView)
+  else fitView();
 }
 for (const part of QUALITY[quality]) Render.quality.add(part);
 // How close the camera is on a phone: 'near' (default) or 'far' (Menu, Game), remembered per browser.
 const mapZoomNear = () => { try { return localStorage.getItem('tilequest.zoom') !== 'far'; } catch (e) { return true; } };
 function setMapZoom(near) {
   try { localStorage.setItem('tilequest.zoom', near ? 'near' : 'far'); } catch (e) { /* not remembered */ }
-  fitView();
+  reloadForView();
+}
+// A new view (the camera, the quality) means pictures of another size: on a phone the old ones stayed in its memory
+// beside the new ones, and the game crawled until the page was loaded again. So it's loaded again at once, behind the
+// loading screen, the game saved first (online, it logs straight back in).
+function reloadForView() {
+  if (!player || typeof Preload === 'undefined' || !Preload.since) return fitView(); // (not playing yet: nothing to clear)
+  const el = $('loading');
+  if (el) { el.hidden = false; $('loadingText').textContent = 'Setting up the view...'; $('loadingBar').style.width = '100%'; }
+  try { if (!online()) saveGame(); else Net.saveExplored(); } catch (e) { /* reloaded all the same */ }
+  setTimeout(() => location.reload(), 60);
 }
 
 // On a phone that can't keep up, the map is drawn with fewer pixels: sharpDrop steps below the screen's own (at most
