@@ -112,6 +112,7 @@ const CUSTOM_SPRITES = {
   sack: 'sack@4x.png',
   dummy: 'dummy@4x.png',
   shelf_s: 'shelf-s.png', // the owner's shelves with books, on a wall running east-west (its south face)
+  bell: 'bell@4x.png', // the owner's bell in its oak frame, both by two tiles as one picture (see BIG.bell)
   bed: 'bed@4x.png', // the owner's bed (both its tiles, as one picture: see BIG.bed) and anvil
   anvil: 'anvil@4x.png',
   statue: 'statue@4x.png', // the owner's statue, woodpile, haystack, table, chair (facing south) and chest
