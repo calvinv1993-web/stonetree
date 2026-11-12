@@ -82,6 +82,12 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  dead_tree: 'dead_tree@4x.png', // the owner's dead tree, rubble, seashells and spider web
+  rubble: 'rubble@4x.png',
+  shells: 'shells@4x.png',
+  web: 'web@4x.png',
+  wall_torch_s: 'wall-torch-s.png', // the owner's wall torch on a wall running east-west, lit and burnt out
+  wall_torch_out_s: 'wall-torch-out-s.png',
   chimney: 'chimney@4x.png', // the owner's chimney, cannonballs, stone coffin and bones, in the world's camera
   cannonballs: 'cannonballs@4x.png',
   sarcophagus: 'sarcophagus@4x.png',
