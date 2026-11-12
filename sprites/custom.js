@@ -82,6 +82,10 @@ const CUSTOM_SPRITES = {
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',
   fence_north: 'fence-north.png',
+  crate: 'crate@4x.png', // the owner's crate, barrel, noticeboard and gravestone, in the world's camera
+  barrel: 'barrel@4x.png',
+  noticeboard: 'noticeboard@4x.png',
+  gravestone: 'gravestone@4x.png',
   well: 'well@4x.png', // the owner's well, bench and signpost, in the world's camera
   bench: 'bench@4x.png',
   signpost: 'signpost@4x.png',
