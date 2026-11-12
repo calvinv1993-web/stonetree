@@ -839,14 +839,17 @@ const Sprites = (() => {
         const ti = (ty * TW + tx) * 4;
         let r0 = tex.data[ti], g0 = tex.data[ti + 1], b0 = tex.data[ti + 2], light = ROOF_LIT[f];
         // the ridge tiles: a rounded cap along where two slopes meet (straight along a ridge, slanting along a hip)
-        const straight = (f >> 1) === (s >> 1), dist = (d[s] - d[f]) * TILE / (straight ? 2 : Math.SQRT2), CAP = 3.4;
+        const straight = (f >> 1) === (s >> 1), dist = (d[s] - d[f]) * TILE / (straight ? 2 : Math.SQRT2), CAP = straw ? 5.6 : 3.4;
         if (dist < CAP) {
           const c = dist / CAP, pair = (1 << f) | (1 << s), run = straight ? (f < 2 ? wx : wy) : pair === 5 || pair === 10 ? wx + wy : wx - wy; // (north-west and south-east hips run down-right)
           [r0, g0, b0] = cap;
-          light = c > 0.84 ? (straw ? 0.7 : 0.42) : straw ? 1.08 - 0.3 * c * c : 1.3 - 0.75 * c * c; // (round: bright along its crown, dark at its edges; straw softer)
+          light = c > 0.84 ? (straw ? 0.5 : 0.42) : straw ? 1.22 - 0.55 * c * c : 1.3 - 0.75 * c * c; // (round: bright along its crown, dark at its edges)
           const j = ((run % 7) + 7) % 7;
-          if (straw) light *= 0.92 + 0.16 * ((wx * 7 + wy * 3) % 2 < 1 ? 1 : 0); // (thatch: a bound ridge of straw, no tiles)
-          else if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
+          if (straw) { // thatch: a thick roll of straw along the ridge, its stalks running along it, bound with rope every few feet
+            light *= 0.9 + 0.2 * (((Math.floor(run * 1.6) * 7 + Math.floor(c * 5) * 3) % 5) / 4);
+            const b = ((run % 20) + 20) % 20;
+            if (b < 2.2 && c < 0.92) { [r0, g0, b0] = [168, 150, 112]; light = b < 0.5 || b > 1.8 ? 0.5 : 1.15 - 0.5 * c * c; } // (a wrap of rope, lit along its top)
+          } else if (j < 0.9) light *= 0.58; else if (j < 2) light *= 1.1; // (each ridge tile overlapping the next)
         }
         if (outer) { // the eave: its inner half of the roll of edge tiles (the rest overhangs the wall, see roofEave)
           const eave = Math.min(k[0] ? 9 : wy, k[1] ? 9 : TILE - wy, k[2] ? 9 : wx, k[3] ? 9 : TILE - wx);
