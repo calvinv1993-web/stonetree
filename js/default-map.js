@@ -1086,7 +1086,7 @@ function buildTown(m, S, runs, river) {
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const edge = x === x0 || x === x1 || y === y0 || y === y1, through = across ? y === my : x === mx; // (where the walkway comes in)
         m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_temple'] : [] });
-        m.set(x, y, S + 2, { ground: 'roof_slate', items: [] });
+        if (x > x0 && y > y0) m.set(x, y, S + 2, { ground: 'roof_slate', items: [] }); // (its north and west rows left out, as a building's)
       }
       const [bx, by] = across ? [mx, gy0 === R.y0 ? y1 : y0] : [gx0 === R.x0 ? x1 : x0, my]; // the side towards town
       put(bx, by, S + 1, 'banner');
@@ -1210,7 +1210,9 @@ function buildTown(m, S, runs, river) {
     const [dx, dy] = b.door;
     m.ensure(dx, dy, S).items = [b.kind === 'house' ? 'door_house' : 'door'];
     if (b.arch) for (const [k, id] of [[-1, 'arch_w'], [0, 'arch_m'], [1, 'arch_e']]) m.ensure(dx + k, dy, S).items = [id]; // in a south wall
-    if (b.roof) eachOf(b, (x, y) => m.set(x, y, S + floors, { ground: b.roof, items: [] }));
+    // (the roof leaves out the building's north and west rows: drawn a floor up, it shifts up and left, and with its
+    // eaves overhanging, the rest sits right over the walls)
+    if (b.roof) eachOf(b, (x, y) => { if (inB(b, x, y - 1) && inB(b, x - 1, y)) m.set(x, y, S + floors, { ground: b.roof, items: [] }); });
     if (b.roof && b.kind !== 'temple' && b.kind !== 'depot') put(b.x1 - 1, b.y0 + 1, S + floors, 'chimney');
     const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
     // A sign on the wall beside the door, and a step of gravel in front of it.
