@@ -474,8 +474,20 @@ function showTalk(speaker, text) {
     p.appendChild(u);
     if (!seen.includes(m[1].toLowerCase())) seen.push(m[1].toLowerCase());
   }
+  // the word for a quest (what this NPC has for you, or what you're to tell them) stands out
+  const questWords = new Set();
+  if (npc) {
+    const news = questNews(npc.npcId);
+    if (news && news.word) questWords.add(news.word.toLowerCase());
+    for (const id of Object.keys(player.quests || {})) {
+      if (!QUESTS[id] || player.quests[id].status !== 'active' || (questStep(id).npc || QUESTS[id].giver) !== npc.npcId) continue;
+      const w = questWord(npc.npcId, id);
+      if (w) questWords.add(w.toLowerCase());
+    }
+  }
   words.replaceChildren(...seen.map(w => {
     const b = document.createElement('button');
+    if (questWords.has(w)) b.className = 'quest';
     b.textContent = w;
     b.addEventListener('click', () => Actions.say(w));
     return b;

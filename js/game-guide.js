@@ -142,7 +142,9 @@ function guideTarget(step) {
       if (m) return m;
     }
     if (t.hunt) { // the nearest monster that one of these quests still asks you to kill, or else where they live
-      const wanted = t.hunt.filter(id => questState(id) === 'active' && !stepReady(id)).flatMap(id => Object.keys(questStep(id).kill || {}));
+      // (only those still short: once the pack is done, the arrow goes to its leader, the boss)
+      const wanted = t.hunt.filter(id => questState(id) === 'active' && !stepReady(id))
+        .flatMap(id => Object.entries(questStep(id).kill || {}).filter(([type, n]) => ((player.quests[id].kills || {})[type] || 0) < n).map(([type]) => type));
       const m = near(monsters.filter(c => !c.dead && wanted.includes(c.type)));
       if (m) return m;
       const home = map.spawns.filter(s => s.z === player.z && wanted.includes(s.type)).sort((a, b) => dist(a, player) - dist(b, player))[0];

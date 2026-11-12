@@ -134,13 +134,17 @@ function guideNow(step) {
 }
 let guideKey = '', guideFolded = false;
 try { guideFolded = localStorage.getItem('tilequest.guideFolded') === '1'; } catch (e) { /* no storage: start unfolded */ }
-function renderGuide() {
+// The guide's step as it reads now: { step, text, now } (also shown at the top of the Quests tab)
+function guideState() {
   const step = player.tutorial ? GUIDE[player.tutorial - 1] : null;
   // $progress: how far the task you're on has come (the first active quest still asking you to kill something)
   const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
   const progress = hunting ? questProgress(hunting) : 'done';
   const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress).replace('$trained', `${Math.min(5, player.trainHits || 0)}/5`) : ''; // ($trained: hits on a dummy)
-  const now = guideNow(step);
+  return { step, text, now: guideNow(step) };
+}
+function renderGuide() {
+  const { step, text, now } = guideState();
   const key = `${player.tutorial}|${text}|${now}|${guideFolded}`;
   if (key === guideKey) return;
   const before = +guideKey.split('|')[0];
@@ -485,15 +489,39 @@ function slotEl(item, { label, slot, dragRef, dropRef, onClick, onRight, hint } 
   return el;
 }
 
-// Left click on an item: shift = look, ctrl = drop; otherwise use it. Right click always uses.
+// Left click on an item: shift = look, ctrl = drop; otherwise use it. Right click always uses. On a phone (no keys to
+// hold) a tap shows what it is and what you can do with it: use it, or drop it (all, or one) at your feet.
 function itemClick(ref) {
   return e => {
     const item = resolveForUi(ref);
     if (!item) return;
+    if (touchScreen && !e.shiftKey && !e.ctrlKey) return itemMenu(ref, item, e);
     if (e.shiftKey) log(`You see ${itemInfo(item.id, item.q)}.`, 'look');
     else if (e.ctrlKey || e.metaKey) Actions.moveItem(ref, { root: 'ground', x: player.x, y: player.y, z: player.z });
     else Actions.useItem(ref);
   };
+}
+
+function itemMenu(ref, item, e) {
+  const old = $('itemMenu');
+  if (old) old.remove();
+  const box = h('div', { id: 'itemMenu', className: 'item-menu' });
+  const close = () => { box.remove(); document.removeEventListener('pointerdown', outside, true); };
+  const outside = ev => { if (!box.contains(ev.target)) close(); };
+  const act = (label, f, cls) => { const b = h('button', { className: cls || '' }, label); b.addEventListener('click', () => { close(); f(); }); return b; };
+  const ground = { root: 'ground', x: player.x, y: player.y, z: player.z };
+  box.append(
+    h('b', {}, itemName(item.id, item.count)),
+    h('small', {}, itemInfo(item.id, item.q)),
+    h('div', { className: 'item-menu-buttons' },
+      act('Use', () => Actions.useItem(ref), 'primary'),
+      act(item.count > 1 ? 'Drop all' : 'Drop', () => Actions.moveItem(ref, ground)),
+      item.count > 1 ? act('Drop one', () => Actions.moveItem(ref, ground, 1)) : null),
+  );
+  document.body.append(box);
+  const r = box.getBoundingClientRect(), x = Math.min(window.innerWidth - r.width - 8, Math.max(8, e.clientX - r.width / 2)), y = e.clientY - r.height - 12;
+  Object.assign(box.style, { left: `${x}px`, top: `${y < 8 ? e.clientY + 24 : y}px` });
+  setTimeout(() => document.addEventListener('pointerdown', outside, true), 0);
 }
 
 // ---- equipment and containers -----------------------------------------------------------------
@@ -732,6 +760,21 @@ function renderSkills() {
 function renderQuests() {
   const root = $('tab-quests');
   root.replaceChildren();
+  // the guide's step, in full: on a phone it can be folded away over the map, and read here
+  const gs = guideState();
+  if (gs.step) {
+    const box = document.createElement('div');
+    box.className = 'story guide-card';
+    const head = document.createElement('b'); head.textContent = `Guide ${player.tutorial} / ${GUIDE.length}`;
+    const p = document.createElement('div'); p.textContent = gs.text;
+    box.append(head, p);
+    if (gs.now) { const n = document.createElement('div'); n.className = 'guide-now'; n.textContent = gs.now; box.append(n); }
+    const show = document.createElement('button');
+    show.textContent = guideFolded ? 'Show the guide over the map' : 'Fold the guide away';
+    show.addEventListener('click', () => { $('guideHead').click(); renderQuests(); });
+    box.append(show);
+    root.append(box);
+  }
   // Where to go now in an active quest, and what to say there.
   const goTo = id => {
     const s = questStep(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);

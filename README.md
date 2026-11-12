@@ -134,6 +134,11 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 | Drag | Move items between bags, equipment, corpses and the map |
 
 On a touch screen:
+- **The guide** folds away to a small tab: tap its header. Its step in full stays at the top of the Quests tab, with a button to show it over the map again.
+- **Your things on a phone:** tap one to see what it is, and to use it or drop it (all, or one) at your feet: handy when you carry too much.
+- **Quest words** an NPC gives you stand out in gold with a "!". Say a word meant for someone else and they tell you who to ask.
+- **Choosing a chest** (the crypt's weapons): look at a chest first to see what's in it (attack, defense, weight); you may take from only one.
+- **The guide's arrow** points to what a task still needs: once a pack is done, to its leader.
 - **Walking:** use the joystick at the bottom left, or swipe on the map. A short swipe walks one tile, diagonals too; keep your finger down to keep walking. Messages show near the top of the map, under the status bar and the guide, so they never cover you. Or tap a tile to walk there: a gold mark shows where you're going. Don't want the joystick? Turn it off under Menu, Game.
 - **The map:** a tap walks, attacks, talks or opens a corpse. A long press uses something.
 - **Training:** in the training yard, south-west of town, click (or tap) a dummy and you keep hitting it, as long as you like, until you walk away. Every hit raises your weapon's skill (club, sword, axe, or distance with a bow), as hitting a monster does; a higher skill hits harder. Wands and rods train nothing there: magic grows by casting. The guide sends you there first.

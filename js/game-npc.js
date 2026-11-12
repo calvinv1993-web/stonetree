@@ -86,6 +86,16 @@ function say(text) {
   answer(lower);
 }
 
+// Who else knows a word you said (the NPC your quest goes on to first), and where they are: { name, where } or null
+function otherToAsk(text, npcId) {
+  const knows = id => Object.keys((NPCS[id] && NPCS[id].keywords) || {}).some(keys => mentions(text, keys.toLowerCase()));
+  const next = Object.keys(player.quests).filter(id => QUESTS[id] && player.quests[id].status === 'active').map(id => questStep(id).npc || QUESTS[id].giver);
+  const id = next.find(n => n !== npcId && knows(n)) || Object.keys(NPCS).find(n => n !== npcId && knows(n) && map.npcs.some(m => m.type === n));
+  if (!id) return null;
+  const where = map.npcs.find(m => m.type === id), label = where && (map.labels || []).find(l => l.z === where.z && Math.abs(l.x - where.x) < 12 && Math.abs(l.y - where.y) < 12);
+  return { name: NPCS[id].name, where: label ? `You'll find them near ${label.text}.` : '' };
+}
+
 function startConversation(npc) {
   if (player.conversation && player.conversation.npc !== npc) endConversation();
   player.conversation = { npc, pending: null };
@@ -180,6 +190,9 @@ function answer(text) {
   const landlord = Object.values(def.keywords || {}).some(r => r && r.houses);
   if (landlord && map.houses.some(h => text.includes(h.name.toLowerCase()))) return reply(houseTalk(text));
   if (mentions(text, 'name')) return reply(`I am ${npc.name}.`);
+  // a word that's for someone else (one NPC sends you on to the next with it): say who to ask
+  const other = otherToAsk(text, npc.npcId);
+  if (other) return reply(`That's for ${other.name} to hear, $name, not me.${other.where ? ` ${other.where}` : ''} The Quests tab says where to go.`);
   reply("I'm not sure what you mean. Try one of the highlighted words.");
 }
 

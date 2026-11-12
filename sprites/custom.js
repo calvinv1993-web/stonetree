@@ -48,6 +48,10 @@ const CUSTOM_SPRITES = {
   sheet_townswoman: 'npc-townswoman.png', // Townswoman
   sheet_child: 'npc-child.png', // Child
   sheet_old_man: 'npc-old_man.png', // Old Man
+  wall_wood_post: 'wall-wood-post.png', // the wooden houses' walls: the post alone, its arm north, its arm west, the corner of both (the owner's picture)
+  wall_wood_n: 'wall-wood-n.png',
+  wall_wood_w: 'wall-wood-w.png',
+  wall_wood_corner_1100: 'wall-wood-corner-1100.png',
   wall_temple_post: 'wall-temple-post.png', // the temple's walls: the post alone, with its arm north, with its arm west (see wallFromPictures)
   wall_temple_n: 'wall-temple-n.png',
   wall_temple_w: 'wall-temple-w.png',

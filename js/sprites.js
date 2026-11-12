@@ -6691,6 +6691,16 @@ const Sprites = (() => {
     // jobs that work out the mountain rim's shapes ahead of time (one per shape a tile can have)
     picturesLoading: () => [...custom.values()].filter(i => !i.complete).length,
     warmRim: () => Array.from({ length: 255 }, (_, k) => () => { const m = (k + 1).toString(2).padStart(8, '0'); rimField(m, TILE * 2, 2); }),
+    // A tree crown's shadow on the ground: a soft dark round patch, centred down and right of the trunk's foot, about a
+    // tile and a half across; ax, ay: where its picture goes from the tree's tile's corner (made once)
+    crownShadow() {
+      const c = cached('crownshadow', g => {
+        const W = 2 * TILE * 2, grad = g.createRadialGradient(W / 2, W / 2, 0, W / 2, W / 2, W / 2);
+        grad.addColorStop(0, 'rgba(18,24,8,0.5)'); grad.addColorStop(0.55, 'rgba(18,24,8,0.36)'); grad.addColorStop(1, 'rgba(20,28,10,0)');
+        g.fillStyle = grad; g.save(); g.scale(1, 0.72); g.translate(0, W * 0.19); g.fillRect(0, 0, W, W); g.restore();
+      }, 2 * TILE * 2);
+      return { img: c, w: 1.8 * TILE, h: 1.8 * TILE, ax: 0.3 * TILE, ay: 0.35 * TILE };
+    },
     // A floor mosaic's picture (THINGS mosaic, sprites/custom.js <id>), or null until it has loaded
     mosaic: id => customImage(id),
     // A bridge's corner post (sprites/custom.js bridge_post: a round post in the world's camera, rising up and left, its

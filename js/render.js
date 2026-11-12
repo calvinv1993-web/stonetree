@@ -9,6 +9,7 @@ const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can 
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
 const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]; // n e s w ne se sw nw (see Sprites.roofEave)
 const BRIDGE_GROUNDS = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
+const CROWN_SHADOW = new Set(['tree', 'pine', 'ancient_tree', 'jungle_tree', 'snow_pine', 'palm']); // (trees whose crown shades the ground)
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
@@ -530,6 +531,22 @@ const Render = {
           if (!t || !t.ground || casts(x, y) || THINGS[t.ground].roof) continue;
           const mask = (casts(x, y - 1) ? 1 : 0) | (casts(x - 1, y) ? 2 : 0) | (casts(x - 1, y - 1) ? 4 : 0);
           if (mask) g.drawImage(Sprites.castShadow(mask), ox + x * TILE, oy + y * TILE);
+        }
+
+        // Trees' crowns cast a soft round shadow on the ground beside their trunk, down and to the right (the light from the
+        // north-west): kept with the ground in its chunks, so it costs nothing a frame. Drawn per tile it falls on, so it
+        // runs on across chunks.
+        const crown = Sprites.crownShadow && Sprites.crownShadow();
+        if (crown) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          const t = tileAt(x, y);
+          if (!t || !t.ground || THINGS[t.ground].roof || wallAt(x, y)) continue;
+          for (let dy = -1; dy <= 0; dy++) for (let dx = -1; dx <= 0; dx++) {
+            const n = tileAt(x + dx, y + dy);
+            if (!n || !n.items.some(id => CROWN_SHADOW.has(id))) continue;
+            g.save(); g.beginPath(); g.rect(ox + x * TILE, oy + y * TILE, TILE, TILE); g.clip();
+            g.drawImage(crown.img, ox + (x + dx) * TILE + crown.ax, oy + (y + dy) * TILE + crown.ay, crown.w, crown.h);
+            g.restore();
+          }
         }
 
         // The shadows things cast on the floor in their own shape (Sprites.dropShadow), kept with the ground in its chunks,

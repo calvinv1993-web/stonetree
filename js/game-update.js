@@ -212,6 +212,11 @@ function look(x, y, monster) {
   const house = map.houseAt(x, y, z), meta = map.getMeta(x, y, z);
   let extra = house && t && t.items.some(i => THINGS[i].houseDoor) ? ` It belongs to ${house.name}${house.owner ? `, rented by ${house.owner}` : ', which is for rent'}.` : '';
   if (meta && meta.look && id && !THINGS[id].ground) extra += ` ${meta.look}`; // an inscription, say
+  // a chest you may choose from (one of several): what's in it, so you can choose
+  const chest = id && THINGS[id].chest;
+  if (chest && chest.choice && !player.chests[chest.flag]) {
+    extra += ` It holds ${(chest.items || []).map(([iid, n]) => `${itemName(iid, n)} (${itemInfo(iid)})`).join(' and ')}. You may take from only one of these chests.`;
+  }
   log(id ? `You see ${withArticle(THINGS[id].name)}.${extra}` : 'You see nothing special.', 'look');
 }
 

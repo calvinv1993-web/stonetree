@@ -1234,3 +1234,21 @@ body.touch-ui:has(#talk:not([hidden])) .fight-bar { display: none !important; }
 /* the quality's line above its choice in the phone's Menu */
 body.touch-ui .menu-sub { margin: 10px 4px 6px; font: 500 15px var(--ui); text-align: left; }
 body.touch-ui .menu-sub small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+/* On a phone the guide folds away to a small tab (its step in full stays at the top of the Quests tab) */
+body.touch-ui .guide.folded { width: auto !important; padding: 2px 6px !important; }
+body.touch-ui .guide.folded #guideNow { display: none !important; }
+.guide-card .guide-now { color: var(--accent, #ffd84a); margin-top: 4px; }
+.guide-card button { margin-top: 6px; }
+
+/* a tapped item on a phone: what it is, Use, Drop */
+.item-menu { position: fixed; z-index: 60; width: min(280px, 86vw); padding: 10px 12px; border-radius: 12px; background: #1c1a16f2;
+  border: 1px solid #5a4a30; color: #f0e6d0; box-shadow: 0 6px 24px #000a; font: 14px var(--ui, sans-serif); }
+.item-menu b { display: block; color: #ffd84a; }
+.item-menu small { display: block; color: #b8a888; margin: 3px 0 8px; line-height: 1.35; }
+.item-menu-buttons { display: flex; gap: 6px; }
+.item-menu-buttons button { flex: 1; min-height: 38px; }
+
+/* a quest's word among an NPC's words: gold, with a mark */
+body.touch-ui #talkWords button.quest { background: #c8901c !important; color: #1c1408 !important; border-color: #f2c94c !important; font-weight: 700; }
+body.touch-ui #talkWords button.quest::before { content: '! '; }
