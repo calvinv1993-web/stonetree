@@ -93,11 +93,11 @@ const Render = {
           if (gid) { bx0 = Math.min(bx0, x - tx0); by0 = Math.min(by0, y - ty0); bx1 = Math.max(bx1, x - tx0); by1 = Math.max(by1, y - ty0); }
           if (MOVING.includes(gid)) moving = true;
         }
-        // a roof's eave overhangs the tiles round it (see the eaves in groundPass): they're in the box too, even in a
-        // chunk next to the roof's
+        // a roof's eave and a mountain top's rim lie on the tiles round them (see groundPass): they're in the box too,
+        // even in a chunk next to theirs
         for (let y = ty0 - 1; y <= ty0 + C; y++) for (let x = tx0 - 1; x <= tx0 + C; x++) {
           const t = x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null;
-          if (!t || !t.ground || !THINGS[t.ground].roof) continue;
+          if (!t || !t.ground || !(THINGS[t.ground].roof || Sprites.hasLip(t.ground))) continue; // (and a mountain top's rim)
           const ax0 = Math.max(0, x - 1 - tx0), ax1 = Math.min(C - 1, x + 1 - tx0), ay0 = Math.max(0, y - 1 - ty0), ay1 = Math.min(C - 1, y + 1 - ty0);
           if (ax0 > ax1 || ay0 > ay1) continue;
           any = true; bx0 = Math.min(bx0, ax0); by0 = Math.min(by0, ay0); bx1 = Math.max(bx1, ax1); by1 = Math.max(by1, ay1);
@@ -527,9 +527,10 @@ const Render = {
           }
         }
 
-        // The open edges of raised ground (mountain tops): a rocky lip, so they don't end in a
-        // straight line.
-        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        // The open edges of raised ground (mountain tops): a rim of stones, so they don't end in a straight line. With the
+        // rim's own picture it lies outside the top, against its edge: drawn from the open tile beside it (see below).
+        const ownRim = Sprites.ownLip('n', 0, 0);
+        if (!ownRim) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
           const lt = tileAt(x, y), here = lt && lt.items.some(id => THINGS[id].wall === 'thin') ? groundShown(x, y, lt) : groundAt(x, y); // (a wall at the edge stands on the ground beside it, rocks and all)
           if (!Sprites.hasLip(here)) continue;
           const variant = ((x * 73856093) ^ (y * 19349663)) >>> 0;
@@ -597,6 +598,79 @@ const Render = {
               g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 + B - f.reach, TILE, f.height / f.res);
               g.restore();
             });
+          }
+        }
+
+        // The rim of stones from its own picture, drawn from each open tile (nothing on this floor) beside a mountain top:
+        // each side's stones lie in this tile against the edge they belong to, so the top keeps all of its ground and the
+        // rim joins it exactly. Where two sides meet in a corner of this tile (the top turning round it), each keeps its
+        // half of the corner on the diagonal; a top's outer corner (only the diagonal neighbour is top) is filled from
+        // its two sides the same way. The top's grass grows over the stones' inner edge.
+        if (ownRim) {
+          const BAND = 16, DIRS = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
+          const isOpen = (x, y) => !tileAt(x, y) && x >= 0 && y >= 0 && x < map.width && y < map.height;
+          const topAt = (x, y) => { // the ground of a mountain top's tile (as it shows), or null
+            const t = tileAt(x, y);
+            if (!t) return null;
+            const id = t.items.some(i => THINGS[i].wall === 'thin') ? groundShown(x, y, t) : groundAt(x, y);
+            return Sprites.hasLip(id) ? id : null;
+          };
+          // the stones of side d of the top at (sx, sy), drawn where they lie (outside it), clipped to clip()
+          const stones = (d, sx, sy, clip) => {
+            const [dx, dy] = DIRS[d];
+            g.save(); g.beginPath(); clip(); g.clip();
+            g.drawImage(Sprites.ownLip(d, sx, sy), ox + sx * TILE + dx * BAND, oy + sy * TILE + dy * BAND, TILE, TILE);
+            g.restore();
+          };
+          const fringe = Sprites.grassFringe && Sprites.grassFringe();
+          const blades = (d, sx, sy, clip) => { // the top's grass over the stones' inner edge
+            if (!fringe || topAt(sx, sy) !== 'grass') return;
+            const f = fringe, piece = (((sx * 3 + sy * 5 + d.charCodeAt(0)) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE;
+            g.save(); g.beginPath(); clip(); g.clip();
+            g.translate(ox + sx * TILE + TILE / 2, oy + sy * TILE + TILE / 2);
+            g.rotate(({ n: 0, e: 1, s: 2, w: 3 })[d] * Math.PI / 2);
+            g.drawImage(f.img, piece * fw, 0, fw, f.height, -TILE / 2, -TILE / 2 - f.reach, TILE, f.height / f.res);
+            g.restore();
+          };
+          for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+            if (!isOpen(x, y)) continue;
+            const X0 = ox + x * TILE, Y0 = oy + y * TILE;
+            // the sides of tops that face this tile: [side, the top's x, y]
+            const faces = Object.entries(DIRS).filter(([, [dx, dy]]) => topAt(x - dx, y - dy)).map(([d, [dx, dy]]) => [d, x - dx, y - dy]);
+            const facing = d => faces.some(f => f[0] === d);
+            // corner c of this tile: [its x, y offsets (0 or 1), the side whose stones run along the tile's top or bottom
+            // there, the one along its left or right]
+            const CORNER = { nw: [0, 0, 's', 'e'], ne: [1, 0, 's', 'w'], se: [1, 1, 'n', 'w'], sw: [0, 1, 'n', 'e'] };
+            const tri = (c, horizontal) => { // corner c's square (BAND wide) cut on its diagonal: the half by the top/bottom edge
+              const [cx, cy] = CORNER[c], px = X0 + cx * TILE, py = Y0 + cy * TILE, sx = cx ? -1 : 1, sy = cy ? -1 : 1, Q = BAND + 2;
+              g.moveTo(px, py); g.lineTo(px + sx * Q, py + sy * Q);
+              if (horizontal) g.lineTo(px + sx * TILE * 2, py); else g.lineTo(px, py + sy * TILE * 2);
+              g.closePath();
+            };
+            const tile = () => g.rect(X0, Y0, TILE, TILE);
+            for (const [d, sx, sy] of faces) {
+              const horizontal = d === 'n' || d === 's';
+              // a corner where this side meets another facing this tile: keep only this side's half of it
+              const shared = Object.entries(CORNER).filter(([, [, , h, v]]) => (horizontal ? h === d : v === d) && facing(horizontal ? v : h));
+              const clipped = () => {
+                if (!shared.length) return tile();
+                g.rect(X0, Y0, TILE, TILE);
+                for (const [c] of shared) tri(c, !horizontal);
+              };
+              g.save(); g.beginPath(); clipped(); g.clip('evenodd');
+              g.drawImage(Sprites.ownLip(d, sx, sy), ox + sx * TILE + DIRS[d][0] * BAND, oy + sy * TILE + DIRS[d][1] * BAND, TILE, TILE);
+              g.restore();
+              blades(d, sx, sy, tile);
+            }
+            // a top's outer corner in this tile's corner: its two sides' stones carried round, each its half
+            for (const [c, [cx, cy, h, v]] of Object.entries(CORNER)) {
+              const dx = cx ? 1 : -1, dy = cy ? 1 : -1;
+              if (!topAt(x + dx, y + dy) || !isOpen(x + dx, y) || !isOpen(x, y + dy)) continue;
+              // h: the side of the top at (x + dx, y + dy) running along this tile's top or bottom (n or s), from its
+              // neighbour beside this tile; v likewise along this tile's left or right
+              stones(h, x, y + dy, () => tri(c, true));
+              stones(v, x + dx, y, () => tri(c, false));
+            }
           }
         }
 

@@ -692,9 +692,10 @@ const Sprites = (() => {
   // shows the picture turned so its rows run along its eave, lit as that slope; rounded ridge tiles cap the ridge and
   // the hips, and the eave is dark along its edge. The same slopes as roofTile, so it joins up across the tiles.
   const ROOF_LIT = [1.12, 0.84, 1.0, 0.9];
-  // The roll of edge tiles along a roof's eave: EAVE_IN world pixels on the roof, EAVE_OUT overhanging the wall below it.
+  // The roll of edge tiles along a roof's eave: EAVE_IN world pixels on the roof (none: a border lies beside what it
+  // borders, against its edge), EAVE_OUT overhanging the wall below it.
   // u: across it, from the roof's edge (negative on the roof); along: where along the eave (for the tiles' joints).
-  const EAVE_IN = 2.5, EAVE_OUT = 3.5;
+  const EAVE_IN = 0, EAVE_OUT = 5;
   const eaveLight = (u, along) => {
     const c = (u + EAVE_IN) / (EAVE_IN + EAVE_OUT), j = ((along % 6) + 6) % 6;
     let l = c > 0.86 ? 0.42 : 1.28 - 1.9 * (c - 0.38) * (c - 0.38);
@@ -6637,7 +6638,7 @@ const Sprites = (() => {
     },
     quayStones() {
       const img = customImage('quay_stones');
-      return img ? { img, src: 2 * TILE, count: Math.max(1, Math.floor(img.naturalHeight / (2 * TILE))), width: img.naturalWidth / 2, at: 10 } : null;
+      return img ? { img, src: 2 * TILE, count: Math.max(1, Math.floor(img.naturalHeight / (2 * TILE))), width: img.naturalWidth / 2, at: 20 } : null; // (at 20: the stones lie in the water, against the land's edge)
     },
     grassFlowers() {
       const img = customImage('grass_flowers');

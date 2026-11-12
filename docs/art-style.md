@@ -49,6 +49,12 @@ their own), applied to our own camera. Everything is still drawn in code (`js/sp
 - A transition is a **layer of its own**, not a line: a higher ground shows its **side** (turf over soil, a sand bank,
   a crust of snow) on its south and east edges, as a box would, with its top edge lit on the north-west and a shadow
   on the lower ground.
+- **A border lies beside what it borders** (the owner's rule): it never eats into the tile it belongs to. It's drawn
+  in the neighbouring tile, against the edge it borders, so it joins that tile exactly: a mountain top's rim of stones
+  in the open tile north of its north edge (against that tile's south side), a roof's eave in the tile beside the roof,
+  a quay's stones in the water against the land. Draw it from the tile it lies on (looking at its neighbours), so it
+  is never cut off where the ground's chunks meet; a corner where two sides meet keeps each side's half on the
+  diagonal, and an outer corner is filled from the two sides that run into it.
 - **Border jitter**: the edge wanders a little, never in a repeating zigzag; tufts and pebbles break it here and there.
 
 ## Checking
