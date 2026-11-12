@@ -608,7 +608,12 @@ const Render = {
         // half of the corner on the diagonal; a top's outer corner (only the diagonal neighbour is top) is filled from
         // its two sides the same way. The top's grass grows over the stones' inner edge.
         if (ownRim) {
-          const isOpen = (x, y) => !tileAt(x, y) && x >= 0 && y >= 0 && x < map.width && y < map.height;
+          // open: nothing on this floor, or only the top of a path up (a ramp's or steps' top, which shows what's below)
+          const isOpen = (x, y) => {
+            if (x < 0 || y < 0 || x >= map.width || y >= map.height) return false;
+            const t = tileAt(x, y);
+            return !t || (SEE_THROUGH.has(t.ground) && !t.items.length);
+          };
           const topAt = (x, y) => { // the ground of a mountain top's tile (as it shows), or null
             const t = tileAt(x, y);
             if (!t) return null;
@@ -618,7 +623,16 @@ const Render = {
           const fringe = Sprites.grassFringe && Sprites.grassFringe();
           for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
             if (!isOpen(x, y)) continue;
-            const mask = EAVE_NEIGHBOURS.map(([dx, dy]) => (topAt(x + dx, y + dy) ? '1' : '0')).join(''); // (n e s w ne se sw nw)
+            let mask = EAVE_NEIGHBOURS.map(([dx, dy]) => (topAt(x + dx, y + dy) ? '1' : '0')).join(''); // (n e s w ne se sw nw)
+            const t = tileAt(x, y);
+            if (t && t.ground === 'steps_top') continue; // (stone steps have their own stone sides)
+            // no corner turning round into the foot of a path up beside it (its top on this floor shows the path below)
+            const pathUp = (dx, dy) => { const n = tileAt(x + dx, y + dy); return !!(n && SEE_THROUGH.has(n.ground)); };
+            mask = [...mask].map((c, i) => (i >= 4 && c === '1' && (pathUp(EAVE_NEIGHBOURS[i][0], 0) || pathUp(0, EAVE_NEIGHBOURS[i][1])) ? '0' : c)).join('');
+            if (t) { // a ramp's top: no rim on the side it leads onto (north, or else west), nor round its corners there
+              const up = tileAt(x, y - 1) ? 0 : tileAt(x - 1, y) ? 3 : -1;
+              if (up >= 0) mask = [...mask].map((c, i) => (i === up || (up === 0 ? i === 4 || i === 7 : i === 6 || i === 7) ? '0' : c)).join('');
+            }
             if (!mask.includes('1')) continue;
             const X0 = ox + x * TILE, Y0 = oy + y * TILE;
             g.drawImage(Sprites.rimTile(mask, x, y), X0, Y0, TILE, TILE);
