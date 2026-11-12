@@ -63,7 +63,7 @@ const Render = {
     const c = Render.chunks.get(key);
     if (!c) return;
     Render.chunks.delete(key);
-    if (c.canvas) Render.pictures--;
+    if (c.canvas) Render.pictures -= c.weight || 1;
     if (c.canvas && Render.spare.length < 16) Render.spare.push(c.canvas);
   },
   ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond, prepare) {
@@ -105,18 +105,22 @@ const Render = {
           if (ax0 > ax1 || ay0 > ay1) continue;
           any = true; bx0 = Math.min(bx0, ax0); by0 = Math.min(by0, ay0); bx1 = Math.max(bx1, ax1); by1 = Math.max(by1, ay1);
         }
-        c = { tag, empty: !any, canvas: null, made: PARTS, box: bx1 < 0 ? null : [bx0, by0, bx1 - bx0 + 1, by1 - by0 + 1] };
-        if (any && !moving) { // (a picture freed by a chunk let go of, if there is one: making new ones is slow)
-          c.canvas = Render.spare.pop();
-          if (!c.canvas) { c.canvas = document.createElement('canvas'); c.canvas.width = c.canvas.height = C * TILE * R; }
+        c = { tag, empty: !any || bx1 < 0, canvas: null, made: PARTS, box: bx1 < 0 ? null : [bx0, by0, bx1 - bx0 + 1, by1 - by0 + 1] }; // (no ground at all: nothing to put down)
+        if (any && !moving && c.box) { // (a picture freed by a chunk let go of, if there is one: making new ones is slow)
+          // only as big as its box (on an upper floor often a roof or a strip of wall: a fraction of the chunk), so a phone
+          // has far fewer pixels to keep and to put down each frame where floors are seen over each other
+          const [bx, by, bw, bh] = c.box, W = bw * TILE * R, H = bh * TILE * R;
+          c.canvas = Render.spare.pop() || document.createElement('canvas');
+          if (c.canvas.width !== W || c.canvas.height !== H) { c.canvas.width = W; c.canvas.height = H; }
           const cg = c.canvas.getContext('2d');
-          cg.setTransform(R, 0, 0, R, 0, 0);
-          cg.clearRect(0, 0, C * TILE, C * TILE);
+          cg.setTransform(R, 0, 0, R, -bx * TILE * R, -by * TILE * R);
+          cg.clearRect(bx * TILE, by * TILE, bw * TILE, bh * TILE);
           cg.imageSmoothingEnabled = false;
           c.made = 0;
+          c.weight = (bw * bh) / (C * C);
         }
-        if (c.canvas) { // at most CHUNKS_KEPT pictures: the least recently used one goes (empty chunks cost nothing: they stay)
-          Render.pictures++;
+        if (c.canvas) { // at most CHUNKS_KEPT pictures' worth (a part of one counts as its part): the least recently used go first (empty chunks cost nothing: they stay)
+          Render.pictures += c.weight;
           for (const [k, o] of keep) { if (Render.pictures <= Render.CHUNKS_KEPT) break; if (o.canvas) Render.forget(k); }
         }
         keep.set(key, c);
@@ -127,7 +131,9 @@ const Render = {
       if (!ahead) Render.stats.finished++;
       while (c.made < PARTS && (!ahead || performance.now() < Render.budget)) {
         const px = tx0 + (c.made % (C / PART)) * PART, py = ty0 + Math.floor(c.made / (C / PART)) * PART;
-        pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
+        const [bx, by, bw, bh] = c.box;
+        if (px + PART > tx0 + bx && px < tx0 + bx + bw && py + PART > ty0 + by && py < ty0 + by + bh) // (a part outside the box has nothing to draw)
+          pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
         c.made++;
       }
       if (ahead && c.made >= PARTS && !c.warm && !c.empty && performance.now() < Render.budget) { // and the pictures of what stands there (trees, bushes, things), ready too
@@ -152,7 +158,7 @@ const Render = {
       const c = chunk(cx, cy), tx0 = cx * C, ty0 = cy * C;
       if (c && c.empty) continue;
       if (c && c.canvas && c.made >= PARTS) { // only the part with ground on it: on an upper floor often a thin strip
-        if (c.box) { const [bx, by, bw, bh] = c.box, k = TILE * R; g.drawImage(c.canvas, bx * k, by * k, bw * k, bh * k, ox + (tx0 + bx) * TILE, oy + (ty0 + by) * TILE, bw * TILE, bh * TILE); }
+        if (c.box) { const [bx, by, bw, bh] = c.box; g.drawImage(c.canvas, ox + (tx0 + bx) * TILE, oy + (ty0 + by) * TILE, bw * TILE, bh * TILE); }
         continue;
       }
       // moving ground, or not made yet: this chunk's part of the view, drawn live (except behind the loading screen,
