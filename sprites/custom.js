@@ -48,6 +48,10 @@ const CUSTOM_SPRITES = {
   sheet_townswoman: 'npc-townswoman.png', // Townswoman
   sheet_child: 'npc-child.png', // Child
   sheet_old_man: 'npc-old_man.png', // Old Man
+  wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
+  wall_stone_n: 'wall-stone-n.png',
+  wall_stone_w: 'wall-stone-w.png',
+  wall_stone_corner_1100: 'wall-stone-corner-1100.png',
   wall_wood_post: 'wall-wood-post.png', // the wooden houses' walls: the post alone, its arm north, its arm west, the corner of both (the owner's picture)
   wall_wood_n: 'wall-wood-n.png',
   wall_wood_w: 'wall-wood-w.png',
@@ -75,6 +79,11 @@ const CUSTOM_SPRITES = {
   roof_green_tiles: 'roof-copper.png',
   roof_thatch_tiles: 'roof-thatch.png',
   roof_tiles: 'roof-tiles.png', // the clay roofs: one tile of pan tiles, four rows, seamless, from the owner's picture (see roofFromPicture)
+  pine: 'pine@4x.png', // the owner's pine, bush, street lamp and market stall, in the world's camera
+  bush: 'bush@4x.png',
+  lamppost: 'lamppost@4x.png',
+  lamppost_off: 'lamppost-off@4x.png', // (by day: its glass dark)
+  stall: 'stall@4x.png',
   tree: 'tree@4x.png', // the leafy trees, the owner's picture in the world's camera (its own shadow made from its shape)
   rampart_face: 'rampart-face.png', // the town wall's sides: dressed sandstone with moss and ivy, a seamless strip (see blockFromPicture)
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
