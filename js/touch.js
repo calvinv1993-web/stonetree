@@ -408,7 +408,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${mapZoomNear()}`;
+  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${mapZoomNear()}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -433,6 +433,13 @@ function renderMenu() {
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
     row(['Close-up view', h('small', {}, mapZoomNear() ? 'On: a closer camera, everything bigger' : 'Off: see more of the world around you')], toggle(mapZoomNear()), () => { setMapZoom(!mapZoomNear()); renderMenu(); }),
+    h('div', { className: 'menu-sub' }, h('span', {}, 'Quality ', h('small', {}, { high: 'everything', medium: 'no drifting clouds or weather, a little less sharp', low: 'the smoothest: also no ripples, coarser' }[quality]))),
+    h('div', { className: 'seg' }, ...['low', 'medium', 'high'].map(q => {
+      const b = h('button', { className: quality === q ? 'active' : '' }, q[0].toUpperCase() + q.slice(1));
+      b.addEventListener('click', () => { setQuality(q); const l = $('qualityBtn'); if (l) l.textContent = `Quality: ${quality}`; renderMenu(); });
+      return b;
+    })),
+    row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
     row(['Joystick', h('small', {}, joystickOn() ? 'On: walk with the stick, bottom left' : 'Off: tap where to go, or swipe the map')], toggle(joystickOn()), () => setJoystick(!joystickOn())),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),

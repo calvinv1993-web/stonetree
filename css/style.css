@@ -1231,3 +1231,6 @@ body.touch-ui:has(#talk:not([hidden])) .fight-bar { display: none !important; }
 #sky[hidden] { display: none; }
 #sky .sky-cloud { position: absolute; left: 0; top: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,20,0.1), rgba(0,0,20,0)); will-change: transform; }
 #sky .sky-fill { position: absolute; inset: 0; }
+/* the quality's line above its choice in the phone's Menu */
+body.touch-ui .menu-sub { margin: 10px 4px 6px; font: 500 15px var(--ui); text-align: left; }
+body.touch-ui .menu-sub small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
