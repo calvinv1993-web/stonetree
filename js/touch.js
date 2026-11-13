@@ -66,8 +66,9 @@ function setChat(open, focus) {
 const FAV_HOLD = 650;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
-const FAV_SLOTS = 2, FAV_PAGES = 1, FAV_FIXED = 2; // two of your own (spells), and the two potions
-const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + slot - FAV_SLOTS;
+const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 9; // two of your own (spells), and the two potions
+let favItemPage = 0;
+const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + favItemPage * 3 + slot - FAV_SLOTS;
 
 function favourites() {
   const saved = touchStorage.get(favKey());
@@ -92,13 +93,21 @@ function useFav(slot) {
   else if (!e.locked && player && !paused) e.act();
 }
 
+let favPageOwner = '';
 function renderFavs() {
   if (!touchScreen || !player) return;
+  if (favPageOwner !== player.name) {
+    favPageOwner = player.name;
+    const saved = touchStorage.get(favKey() + '.pages') || [0, 0];
+    favPageIndex = Math.max(0, Math.min(2, Number(saved[0]) || 0));
+    favItemPage = Math.max(0, Math.min(2, Number(saved[1]) || 0));
+    favShown = '';
+  }
   const entries = hotbarEntries();
   const favs = favourites();
-  const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(FAV_SLOTS * FAV_PAGES)];
+  const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(9 + favItemPage * 3, 12 + favItemPage * 3)];
   const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
-  if (shown.join() === favShown) return; // redrawing mid-press would lose the press
+  if (favHold || shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
   const root = $('favs');
   root.replaceChildren();
@@ -117,7 +126,8 @@ function renderFavs() {
       ev.preventDefault();
       if (favHold) clearTimeout(favHold.timer);
       b.classList.add('holding');
-      favHold = { slot, el: b, held: false };
+      favHold = { slot, el: b, held: false, id: ev.pointerId, x: ev.clientX, y: ev.clientY };
+      b.setPointerCapture(ev.pointerId);
       favHold.timer = setTimeout(() => {
         favHold.held = true;
         b.classList.remove('holding');
@@ -125,6 +135,13 @@ function renderFavs() {
         openFavPicker(slot);
       }, FAV_HOLD);
     });
+    b.addEventListener('pointermove', ev => {
+      if (!favHold || favHold.id !== ev.pointerId || favHold.held) return;
+      const dx = ev.clientX - favHold.x, dy = ev.clientY - favHold.y;
+      if (Math.hypot(dx, dy) > 12) { clearTimeout(favHold.timer); favHold.moved = true; b.classList.remove('holding'); }
+      favHold.dx = dx; favHold.dy = dy;
+    });
+    b.addEventListener('contextmenu', ev => ev.preventDefault());
     root.appendChild(b);
   });
 }
@@ -133,14 +150,24 @@ function endFavPress(use) {
   if (!favHold) return;
   clearTimeout(favHold.timer);
   favHold.el.classList.remove('holding');
-  if (use && !favHold.held) useFav(favHold.slot);
-  favHold = null;
+  const press = favHold; favHold = null;
+  if (use && !press.held && press.moved && Math.abs(press.dx) > 35 && Math.abs(press.dx) > Math.abs(press.dy) * 1.3) {
+    const delta = press.dx < 0 ? 1 : -1;
+    if (press.slot < 3) favPageIndex = (favPageIndex + delta + 3) % 3;
+    else favItemPage = (favItemPage + delta + 3) % 3;
+    touchStorage.set(favKey() + '.pages', [favPageIndex, favItemPage]);
+    favShown = ''; renderFavs();
+  } else if (use && !press.held && !press.moved) useFav(press.slot);
+  document.getElementById('slotPages').textContent = `${favPageIndex + 1}/3                                      ${favItemPage + 1}/3`;
 }
 
 function openFavPicker(slot) {
   favPickSlot = slot;
   const list = $('favList');
   list.replaceChildren();
+  const clear = document.createElement('button'); clear.textContent = 'Empty slot';
+  clear.onclick = () => { const favs = favourites(); favs[favIndex(slot)] = null; touchStorage.set(favKey(), favs); $('favPicker').hidden = true; favShown = ''; renderFavs(); };
+  list.appendChild(clear);
   for (const e of hotbarEntries()) {
     const b = document.createElement('button');
     b.className = 'hot';
@@ -311,7 +338,7 @@ function initTouch() {
   initJoystick();
   $('chatClose').addEventListener('click', () => setChat(false));
   $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
-  document.addEventListener('pointerup', () => endFavPress(true));
+  document.addEventListener('pointerup', e => { if (favHold && favHold.id === e.pointerId) endFavPress(true); });
   document.addEventListener('pointercancel', () => endFavPress(false));
   // Touching the map puts the drawer away.
   canvas.addEventListener('pointerdown', () => document.body.classList.remove('panel-open'));

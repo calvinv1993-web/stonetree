@@ -237,3 +237,5 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 - Water has smoother blue ripples, more visible wave motion and a clear animated shoreline.
 
+
+- Mobile HUD preview: swipe either group of three action slots to switch its page; hold a slot to edit or clear it. Tap the map to walk, or drag to show a temporary joystick. The map and menu are in the top bar.

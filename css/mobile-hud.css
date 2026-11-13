@@ -1,0 +1,24 @@
+body.touch-ui { --tabbar: 82px; --rail: 0px; }
+body.touch-ui .hud { display:grid; grid-template-columns:58px minmax(0,1fr) 48px; grid-template-rows:20px 16px 16px; gap:4px 9px; padding:8px 10px 10px; background:linear-gradient(110deg,#171610,#050606); border-bottom:1px solid #ae8847; }
+body.touch-ui .hud-lvl,body.touch-ui .hud-gold,body.touch-ui .hud-xp { display:none; }
+body.touch-ui .hud-name { grid-column:2;grid-row:1;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;font-family:Georgia,serif; }
+body.touch-ui .hud-name small { color:#d4a74d;font-size:10px; }
+body.touch-ui .hud .tbar { grid-column:2; height:16px;border-radius:10px;border:1px solid #51372a;box-shadow:inset 0 1px 3px #000; }
+body.touch-ui .hud .tbar span {font-size:11px;line-height:14px;}
+body.touch-ui #hudMap,body.touch-ui #hudMenu { grid-row:1/4;align-self:center;border:2px solid #c79b50;background:radial-gradient(ellipse at top,#333029,#080808 70%);border-radius:50%;box-shadow:inset 0 0 0 2px #352211,0 2px 5px #000;padding:3px; }
+#hudMap {grid-column:1;width:58px;height:58px;overflow:hidden;} #hudMap canvas {width:100%;height:100%;border-radius:50%;}
+#hudMenu {grid-column:3;width:46px;height:46px;color:#f3c66c;font-size:27px;}
+body.touch-ui #actionDock {position:absolute;bottom:0;left:0;right:0;height:var(--tabbar);background:linear-gradient(#171811,#050505);border-top:1px solid #98753f;pointer-events:auto;z-index:12;}
+body.touch-ui #radialControls {position:absolute;inset:9px 8px 18px;width:auto;height:auto;transform:none;}
+body.touch-ui #favs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 64px repeat(3,minmax(0,1fr));gap:5px;width:100%;height:100%;position:static;}
+body.touch-ui #favs .fav {position:static!important;transform:none!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;border:1px solid #b58d49!important;border-radius:7px!important;background:radial-gradient(ellipse at top,#363128,#0a0a09 80%)!important;box-shadow:inset 0 0 0 2px #272014!important;touch-action:none;user-select:none;-webkit-touch-callout:none;}
+body.touch-ui #favs .fav:nth-child(4) {grid-column:5;}
+body.touch-ui #favs .fav small {position:static;display:block;font-size:9px;max-width:100%;overflow:hidden;}
+body.touch-ui #tAttack {position:absolute!important;left:50%!important;right:auto!important;bottom:16px!important;transform:translateX(-50%)!important;width:62px!important;height:62px!important;border:2px solid #efc36b!important;box-shadow:0 0 0 3px #382a16,inset 0 2px 5px #e28353!important;background:radial-gradient(ellipse at top,#c64a2d,#711610 75%);}
+#slotPages {position:absolute;bottom:3px;left:10%;right:10%;text-align:center;white-space:pre;font-size:9px;color:#ba9a60;pointer-events:none;}
+body.touch-ui .joystick {display:none!important;}
+body.touch-ui .joystick.floating {display:block!important;position:fixed!important;width:104px!important;height:104px!important;bottom:auto!important;pointer-events:none!important;z-index:50;opacity:.6;}
+body.touch-ui #tabbar {position:static;display:flex;width:100%;height:auto;padding:6px 24px 6px 0;}
+body.touch-ui #tabbar button {font-size:9px;min-width:0;flex:1;}
+body.touch-ui.panel-open #actionDock,body.touch-ui.chat-open #actionDock {visibility:hidden;}
+body:not(.touch-ui) #hudMap,body:not(.touch-ui) #hudMenu {display:none;}
