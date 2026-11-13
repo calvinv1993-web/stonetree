@@ -9,8 +9,8 @@ body.touch-ui #hudMap,body.touch-ui #hudMenu { grid-row:1/4;align-self:center;bo
 #hudMap {grid-column:1;width:58px;height:58px;overflow:hidden;} #hudMap canvas {width:100%;height:100%;border-radius:50%;}
 #hudMenu {grid-column:3;width:46px;height:46px;color:#f3c66c;font-size:27px;}
 body.touch-ui #actionDock {position:absolute;bottom:0;left:0;right:0;height:var(--tabbar);background:linear-gradient(#171811,#050505);border-top:1px solid #98753f;pointer-events:auto;z-index:12;}
-body.touch-ui #radialControls {position:absolute;inset:9px 8px 18px;width:auto;height:auto;transform:none;}
-body.touch-ui #favs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 64px repeat(3,minmax(0,1fr));gap:5px;width:100%;height:100%;position:static;}
+body.touch-ui #radialControls {position:absolute;inset:9px 8px 18px!important;width:auto!important;height:auto!important;transform:none;}
+body.touch-ui #favs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 64px repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:5px;width:100%;height:100%;position:static;}
 body.touch-ui #favs .fav {position:static!important;transform:none!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;border:1px solid #b58d49!important;border-radius:7px!important;background:radial-gradient(ellipse at top,#363128,#0a0a09 80%)!important;box-shadow:inset 0 0 0 2px #272014!important;touch-action:none;user-select:none;-webkit-touch-callout:none;}
 body.touch-ui #favs .fav:nth-child(4) {grid-column:5;}
 body.touch-ui #favs .fav small {position:static;display:block;font-size:9px;max-width:100%;overflow:hidden;}
