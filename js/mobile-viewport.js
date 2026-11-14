@@ -10,3 +10,7 @@
   });
   observer.observe($('viewport'));
 })();
+
+// The phone's layout is in place now (this is the last script): show the page, hidden till now so the computer's
+// layout doesn't flash up while the scripts load (see the top of index.html)
+requestAnimationFrame(() => document.documentElement.classList.remove('booting'));

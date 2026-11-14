@@ -8,6 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="theme-color" content="#1b1a17">
   <link rel="manifest" href="manifest.json">
+  <!-- On a phone, the page stays hidden until the phone's layout is in place (mobile-viewport.js, the last script, shows
+       it): otherwise the computer's layout flashes up while the scripts load. Shown anyway after 10 s, should one fail. -->
+  <script>
+    if (matchMedia('(pointer: coarse)').matches || /[?&]mobile\b/.test(location.search)) {
+      document.documentElement.classList.add('booting');
+      setTimeout(() => document.documentElement.classList.remove('booting'), 10000);
+    }
+  </script>
+  <style>html.booting { background: #0d0c09; } html.booting body { visibility: hidden; }</style>
   <link rel="stylesheet" href="css/base.css?v=ui240">
   <link rel="stylesheet" href="css/game.css?v=ui240">
   <link rel="stylesheet" href="css/phone/layout.css?v=ui240">
