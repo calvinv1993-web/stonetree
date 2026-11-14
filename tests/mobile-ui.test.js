@@ -39,6 +39,12 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
       const small = c.n === 'drawer tab' || c.n === 'chat line' ? 16 : MIN_TARGET; // (the tab and the line are wide: their height may be less)
       check(`${c.n}: ${c.w} x ${c.h}, under the finger`, c.hit && Math.min(c.w, c.h) >= small, JSON.stringify(c));
     }
+    // the map lies between the status bar and the action bar, never under either (the tiles that don't fit are cut off)
+    const fit = await page.evaluate(() => {
+      const v = $('view'), q = v.getBoundingClientRect(), m = /inset\(([\d.]+)px/.exec(v.style.clipPath) || [0, 0];
+      return { top: q.top + +m[1], bottom: q.bottom - +m[1], hud: document.querySelector('.hud').getBoundingClientRect().bottom, dock: $('actionDock').getBoundingClientRect().top };
+    });
+    check('the map shows only between the status bar and the action bar', fit.top >= fit.hud - 0.5 && fit.bottom <= fit.dock + 0.5, JSON.stringify(fit));
     // one hand: nothing to tap up in the status bar; the drawer's tabs (map, quests, settings) sit low, in reach of the thumb
     check('nothing to tap in the status bar (map and menu are drawer tabs)', await page.evaluate(() => !document.querySelector('.hud button')));
     const tabs = await page.evaluate(() => { InventoryDrawer.show('map'); return new Promise(res => setTimeout(() => res([...document.querySelectorAll('.drawer-tabs button')].map(el => {

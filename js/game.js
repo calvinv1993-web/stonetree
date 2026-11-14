@@ -103,11 +103,17 @@ function fitView() {
     const r = Math.max(2, p - sharpDrop - (quality === 'low' ? 9 : quality === 'medium' ? 1 : 0)); // (low: as coarse as it goes)
     Sprites.CREATURE_RES = r; // (figures drawn just as finely)
     setViewSize(Math.max(7, cols), Math.max(7, rows), r / SCALE);
-    canvas.style.width = `${(VIEW_W * TILE * p) / dpr}px`;
-    canvas.style.height = `${(VIEW_H * TILE * p) / dpr}px`;
+    const w = (VIEW_W * TILE * p) / dpr, h = (VIEW_H * TILE * p) / dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    // The tiles that don't quite fit stick out past the map's space, over the status bar and under the action bar:
+    // cut the map at the space's edges (it lies in the middle of it, so as much on each side)
+    const cx = Math.max(0, (w - box.width) / 2), cy = Math.max(0, (h - box.height) / 2);
+    canvas.style.clipPath = cx || cy ? `inset(${cy}px ${cx}px)` : '';
     return;
   }
   setViewSize(VIEW_W, VIEW_H, 1);
+  canvas.style.clipPath = '';
   const s = Math.max(1, Math.min((box.width - 4) / VIEW_W, (box.height - 4) / VIEW_H));
   canvas.style.width = `${Math.floor(VIEW_W * s)}px`;
   canvas.style.height = `${Math.floor(VIEW_H * s)}px`;
