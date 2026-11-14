@@ -8,7 +8,7 @@
 // Swipe down on the tab or the top edge to go back a step; while it's open the smart button closes it (smart-button.js).
 // The action bar stays where it is and works; the chat line steps aside.
 // Along its bottom, in reach of the thumb, four tabs say what it shows: Gear (the above), Map (the minimap, as big as
-// the drawer, with its floors, zoom and the world map), Quests and Settings (what the Menu held, and the help). So the
+// the drawer, with its floors and zoom; it opens half way, and Full map opens the drawer all the way on the whole world), Quests and Settings (what the Menu held, and the help). So the
 // phone needs no menu or map up top, and everything is a thumb's reach from the action bar.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
 // stacks), moved in while it's open and put back after, so the Character sheet still finds them in their places.
@@ -29,6 +29,8 @@ const InventoryDrawer = (() => {
     homes.clear();
     const mm = document.getElementById('minimap');
     if (mm && mm.width !== 236) Object.assign(mm, { width: 236, height: 130 }); // (its size in the side panel)
+    const world = document.getElementById('mmWorld');
+    if (world) world.textContent = 'Map';
     if (seg !== null) { if (seg) document.body.dataset.seg = seg; else delete document.body.dataset.seg; seg = null; }
   }
 
@@ -42,6 +44,7 @@ const InventoryDrawer = (() => {
       put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
     } else if (page === 'map') {
       put('.drawer-map', document.querySelector('.minimap-box'));
+      document.getElementById('mmWorld').textContent = 'Full map'; // ("Map" again in the side panel)
       if (!zoomed && typeof minimap !== 'undefined') { zoomed = true; minimap.zoom = Math.max(minimap.zoom, 4); } // (closer on a phone, the first time)
     } else if (page === 'quests') put('.drawer-quests', byId('tab-quests'));
     else if (page === 'settings') {
@@ -80,7 +83,7 @@ const InventoryDrawer = (() => {
       if (typeof uiDirty === 'function') uiDirty();
     } else { giveBack(); dock.appendChild(tab); }
     // the minimap round you again (not the whole world) once the Map page is left or the drawer shut
-    if ((!stage || page !== 'map') && typeof minimap !== 'undefined' && minimap.whole) wholeMap(false);
+    if ((stage !== 2 || page !== 'map') && typeof minimap !== 'undefined' && minimap.whole) wholeMap(false); // (the whole world: only all the way open)
     drawer.setAttribute('aria-hidden', String(!stage));
     tab.setAttribute('aria-expanded', String(stage > 0));
     tab.title = ['Your equipment and backpack (swipe up)', 'Swipe up for more, down to close', 'Swipe down for less'][stage];
@@ -153,7 +156,8 @@ const InventoryDrawer = (() => {
   function show(id, s) {
     if (!PAGES.some(([p]) => p === id)) return;
     page = id;
-    set(s || (id === 'gear' ? stage || 1 : 2)); // (the map, quests and settings need the room: the whole drawer)
+    set(s || (id === 'gear' || id === 'map' ? stage || 1 : 2)); // (quests and settings need the room: the whole drawer; the map
+    // opens half way, and its Full map button opens it all the way: game-ui.js)
   }
 
   return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage, show, page: () => page };

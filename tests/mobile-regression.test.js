@@ -67,11 +67,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   check('13 the drawer closes, its things go home (the Character sheet has them)', await E(() => InventoryDrawer.stage() === 0 && !!$('panel').querySelector('#equipment')));
   // 11: minimap
   await p.tap('#drawerTab'); await p.waitForTimeout(300); await p.tap('.drawer-tabs button[data-page="map"]'); await p.waitForTimeout(500);
-  check('11 the drawer\'s Map tab shows the minimap, big', await E(() => $('inventoryDrawer').contains($('minimap')) && $('minimap').width > 300 && $('minimap').height > 200));
-  await p.tap('#mmWorld'); await p.waitForTimeout(300);
-  check('11 its Map button fits the whole world in it, no window', await E(() => minimap.whole && $('worldmap').hidden));
-  await p.tap('#mmWorld'); await p.waitForTimeout(300);
-  check('11 and again: round you', await E(() => !minimap.whole));
+  check('11 the drawer\'s Map tab shows the minimap, the drawer half way open', await E(() => $('inventoryDrawer').contains($('minimap')) && InventoryDrawer.stage() === 1 && $('minimap').width > 300 && !minimap.whole));
+  await p.tap('#mmWorld'); await p.waitForTimeout(500);
+  check('11 Full map: the drawer all the way open on the whole world, no window', await E(() => minimap.whole && InventoryDrawer.stage() === 2 && $('worldmap').hidden && $('minimap').height > 300));
+  await p.tap('#mmWorld'); await p.waitForTimeout(500);
+  check('11 and again: half way, round you', await E(() => !minimap.whole && InventoryDrawer.stage() === 1));
   const mm = await p.locator('#minimap').boundingBox();
   await p.tap('#minimap', { position: { x: mm.width / 2, y: mm.height / 2 + 12 } }); await p.waitForTimeout(400);
   check('11 a tap on the map walks there and folds the drawer away', await E(() => InventoryDrawer.stage() === 0));

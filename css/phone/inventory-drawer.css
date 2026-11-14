@@ -80,8 +80,9 @@ body.touch-ui .inventory-drawer #mmUp, body.touch-ui .inventory-drawer #mmZoomIn
 body.touch-ui .inventory-drawer #mmDown, body.touch-ui .inventory-drawer #mmZoomOut { border-left: 0 !important; border-radius: 0 10px 10px 0 !important; }
 body.touch-ui .inventory-drawer #mmZoomIn, body.touch-ui .inventory-drawer #mmWorld { margin-left: 8px; }
 body.touch-ui .inventory-drawer #mmUp, body.touch-ui .inventory-drawer #mmDown { font-size: 12px; }
-body.touch-ui .inventory-drawer #mmWorld { padding: 0 16px; border-radius: 10px !important; font: 600 14px/1 Inter, sans-serif; letter-spacing: 0.3px; }
-body.touch-ui .inventory-drawer #minimapFloor { color: #a89c80; font: 500 12px/1.2 Inter, sans-serif; }
+body.touch-ui .inventory-drawer #mmWorld { padding: 0 12px; white-space: nowrap; border-radius: 10px !important; font: 600 14px/1 Inter, sans-serif; letter-spacing: 0.3px; }
+body.touch-ui .inventory-drawer #minimapFloor { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a89c80; font: 500 12px/1.2 Inter, sans-serif; }
+body.touch-ui .inventory-drawer .minimap-box button { min-width: 40px; }
 /* quests and settings: as in the side panel, in the drawer's own look */
 body.touch-ui .inventory-drawer #tab-quests, body.touch-ui .inventory-drawer #tab-help { display: block !important; }
 body.touch-ui .inventory-drawer #menuSec { display: block !important; }

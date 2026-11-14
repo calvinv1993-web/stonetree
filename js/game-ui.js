@@ -1616,8 +1616,13 @@ function initMaps() {
   };
   $('mmUp').addEventListener('click', () => look(1));
   $('mmDown').addEventListener('click', () => look(-1));
-  // in the phone's drawer the minimap is big enough: Map fits the whole world in it (again: back round you), no window
-  $('mmWorld').addEventListener('click', () => (c.closest('.inventory-drawer') ? wholeMap(!minimap.whole) : toggleWorldMap()));
+  // in the phone's drawer: Full map, the whole world in it (no window); on a computer, the world map window
+  $('mmWorld').addEventListener('click', () => {
+    if (!c.closest('.inventory-drawer')) return toggleWorldMap();
+    const on = !minimap.whole; // Full map: the drawer all the way open on the whole world; again, half way and round you
+    InventoryDrawer.open(on ? 2 : 1);
+    wholeMap(on);
+  });
 
   const wc = $('worldCanvas');
   $('worldRide').addEventListener('click', () => setRideMode(!worldMap.ride));
