@@ -1,4 +1,4 @@
-name: Deploy Tilequest to GitHub Pages
+name: Deploy Lickii Adventures to GitHub Pages
 
 on:
   push:

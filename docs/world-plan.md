@@ -1,6 +1,6 @@
 # Oakvale Isle: the world plan
 
-A new starter island for Tilequest, built from a blank map. It's in the classic style (a small
+A new starter island for Lickii Adventures, built from a blank map. It's in the classic style (a small
 walled town, a temple, a river, beginner hunting grounds that get harder further out, caves
 below), with a layout, names, people and story of its own. It's **not** a copy of any existing
 game's map.

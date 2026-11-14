@@ -1,6 +1,6 @@
-# Taking over Tilequest
+# Taking over Lickii Adventures
 
-Welcome! Tilequest is a Tibia-style 2D RPG: a starter island, four vocations, a big world with towns, dungeons and islands, parties and guilds, PvP with skulls, houses, a forge and a main story. It runs in a browser on PCs and phones, alone or together on your local network. This page gets you set up and shows you around. After that:
+Welcome! Lickii Adventures (called Tilequest before; its saves and files still carry that name) is a Tibia-style 2D RPG: a starter island, four vocations, a big world with towns, dungeons and islands, parties and guilds, PvP with skulls, houses, a forge and a main story. It runs in a browser on PCs and phones, alone or together on your local network. This page gets you set up and shows you around. After that:
 
 - **`README.md`**: what's in the game and how to play it.
 - **`AGENTS.md`**: how the code works and the rules that keep it working. Read it before you change much; an AI assistant reads it on its own.

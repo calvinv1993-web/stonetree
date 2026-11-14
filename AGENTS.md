@@ -1,4 +1,6 @@
-# Working on Tilequest
+# Working on Lickii Adventures
+
+The game was called Tilequest; that name stays in what it stores and sends (`tilequest.*` browser storage, the `tilequest-map-*` map format, the `X-Tilequest` header, the package name), so saves, settings and maps keep working. Everything a player sees says Lickii Adventures.
 
 This is a guide for AI agents (and developers) who continue the project: how the code works, the rules that keep it working, and how to check a change. `README.md` is the player-facing reference (features, controls, rules of play). `HANDOVER.md` covers setup.
 

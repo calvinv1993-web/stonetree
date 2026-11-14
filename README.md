@@ -1,4 +1,4 @@
-# Tilequest
+# Lickii Adventures
 
 A small top-down 2D RPG with floors, a starter island, vocations, multiplayer, a map editor and a data editor. It's plain HTML5 canvas and JavaScript, with no build step and no dependencies.
 
