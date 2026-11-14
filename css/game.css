@@ -271,10 +271,17 @@ body.game:not(.touch-ui) .muted { color: var(--muted); }
 body.game:not(.touch-ui) .panel h2 button { padding: 1px 6px; font-size: 11px; border-radius: 6px; text-transform: none; letter-spacing: 0; }
 body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
 /* Getting ready to play: over the world while its pictures are made (see Preload in game.js) */
-#loading { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: #14110d; }
+/* the loading screen (game.js Preload): the painted valley at dusk, the logo high in the sky, the text and a gold bar low
+   on the path. The picture follows the screen's shape: a phone upright, a tablet, or a wide screen */
+#loading { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: max(9vh, env(safe-area-inset-top)) 24px max(10vh, calc(env(safe-area-inset-bottom) + 24px));
+  background: #14110d url(../sprites/ui/loading/background-desktop.jpg) center / cover no-repeat; }
+@media (max-aspect-ratio: 1/1) { #loading { background-image: url(../sprites/ui/loading/background-tablet.jpg); background-position: center bottom; } }
+@media (max-aspect-ratio: 3/5) { #loading { background-image: url(../sprites/ui/loading/background-phone.jpg); } }
 #loading[hidden] { display: none; }
-.loading-box { width: min(320px, 80vw); text-align: center; color: #e8dcc0; font-size: 15px; letter-spacing: 0.04em; }
-.loading-track { margin-top: 12px; height: 8px; border-radius: 4px; background: #3a3326; overflow: hidden; }
+.loading-logo { width: min(78vw, 46vh, 520px); height: auto; filter: drop-shadow(0 6px 18px #000a); }
+.loading-box { width: min(560px, 76vw); text-align: center; color: #f3e6c4; font: 500 clamp(15px, 1.3vw, 19px)/1.3 Inter, system-ui, sans-serif; letter-spacing: 0.04em; text-shadow: 0 1px 3px #000, 0 0 10px #000a; }
+.loading-track { margin-top: 12px; height: 10px; border: 1px solid #c79b50; border-radius: 6px; background: #120e09cc; box-shadow: 0 2px 8px #000a; overflow: hidden; }
 #loadingBar { width: 0; height: 100%; background: linear-gradient(90deg, #c8901c, #f2c94c); transition: width 0.15s; }
 /* The sky over the map (see Fx.overlay): clouds' shadows, the light's tint and the dark edge, laid over the canvas */
 #sky { position: absolute; pointer-events: none; overflow: hidden; z-index: 1; }

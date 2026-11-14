@@ -8,6 +8,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="theme-color" content="#1b1a17">
   <link rel="manifest" href="manifest.json">
+  <!-- the loading screen's pictures, fetched while you log in: only the background for this screen's shape -->
+  <link rel="preload" as="image" href="sprites/ui/loading/logo.png">
+  <link rel="preload" as="image" href="sprites/ui/loading/background-phone.jpg" media="(max-aspect-ratio: 3/5)">
+  <link rel="preload" as="image" href="sprites/ui/loading/background-tablet.jpg" media="(min-aspect-ratio: 3/5) and (max-aspect-ratio: 1/1)">
+  <link rel="preload" as="image" href="sprites/ui/loading/background-desktop.jpg" media="(min-aspect-ratio: 1/1)">
   <!-- On a phone, the page stays hidden until the phone's layout is in place (mobile-viewport.js, the last script, shows
        it): otherwise the computer's layout flashes up while the scripts load. Shown anyway after 10 s, should one fail. -->
   <script>
@@ -295,7 +300,10 @@
   <script src="js/chat-line.js?v=ui243"></script>
   <script src="js/inventory-drawer.js?v=ui243"></script>
   <script src="js/touch.js?v=ui243"></script>
-  <div id="loading" hidden><div class="loading-box"><div id="loadingText">Getting the world ready...</div><div class="loading-track"><div id="loadingBar"></div></div></div></div>
+  <div id="loading" hidden>
+    <img class="loading-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
+    <div class="loading-box"><div id="loadingText">Getting the world ready...</div><div class="loading-track"><div id="loadingBar"></div></div></div>
+  </div>
 <script src="js/mobile-hud.js?v=ui243"></script>
 <script src="js/mobile-viewport.js?v=ui243"></script>
 </body>
