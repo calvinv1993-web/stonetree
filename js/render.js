@@ -848,6 +848,8 @@ const Render = {
             } else if (id === 'steps') { // a flight of steps several tiles wide: its ends and its middle
               const stepsAt = sx => { const n = tileAt(sx, y); return n && n.items.includes('steps') ? '1' : '0'; };
               shape = stepsAt(x - 1) + stepsAt(x + 1);
+            } else if (id === 'stairs_up') { // stairs of the floor they stand on: wood in a house, stone in a tower or the crypt
+              shape = t.ground === 'wood' ? 'wood' : 'stone';
             } else if (id === 'fence') { // fences join up with the fences next to them
               const fenceAt = (fx, fy) => { const n = tileAt(fx, fy); return n && n.items.includes('fence') ? '1' : '0'; };
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);
