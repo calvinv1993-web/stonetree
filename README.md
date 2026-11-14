@@ -244,9 +244,9 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 Phone, one-handed: nothing to tap up top. The status bar shows only your level, health, mana and experience; the map, quests and settings are tabs of the drawer, along its bottom, in reach of your thumb.
 
-Mobile viewport: standalone launches use an opaque status bar. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
+Mobile viewport: as an app on the home screen the page goes on under the phone's status bar (the clock and battery): the loading screen fills the whole screen; in play the strip under the clock stays dark. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
 
-The compact phone HUD shows level, current/max HP and mana, and progress to the next level. The map editor now requests the same opaque iOS status bar as the game; device verification is still required.
+The compact phone HUD shows level, current/max HP and mana, and progress to the next level. The map editor keeps an opaque iOS status bar; device verification is still required.
 
 - Phone action bar: three spells on the left, the big button in the middle, three spells, potions or food on the right. Each shows its picture: a spell its mana under it with a little drop (red when you have too little), a potion how many are left. A gold edge means you can use it now; dimmed means not enough mana or none left. While a spell or potion cools down a shade sweeps off it and the seconds count down.
 - The big round button in the middle does what the moment asks: attack a monster in sight (press again for the next one; never in a protection zone), loot a nearby corpse when there's nothing to fight, talk to someone in reach, or use a door, chest or dummy next to you. Its colour says which: red, amber, blue, green; dark when there's nothing to do.
