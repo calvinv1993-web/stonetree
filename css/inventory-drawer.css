@@ -11,7 +11,7 @@ body.touch-ui .drawer-chevrons { width: 18px; height: 9px; fill: none; stroke: c
 body.touch-ui.drawer-open .drawer-chevrons { transform: scaleY(-1); }
 
 body.touch-ui .inventory-drawer {
-  display: flex; flex-direction: column; position: absolute; left: 0; right: 0; bottom: var(--tabbar); z-index: 13; pointer-events: auto;
+  display: flex; flex-direction: column; position: absolute; left: 0; right: 0; bottom: var(--tabbar); z-index: 11; pointer-events: auto; /* (under the action bar: the smart button and the tab show over its edge) */
   height: calc((100% - var(--hud-h) - var(--tabbar)) * 0.42); min-height: 200px; max-height: calc(100% - var(--hud-h) - var(--tabbar));
   border-top: 1px solid #a8823f; border-radius: 14px 14px 0 0; background: linear-gradient(#1c1913, #0d0c09);
   box-shadow: 0 -4px 18px #000a; transform: translateY(calc(100% + var(--tabbar))); visibility: hidden;

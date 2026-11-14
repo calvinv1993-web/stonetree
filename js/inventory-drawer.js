@@ -6,7 +6,8 @@
 // Swipe down on its handle to go back a step; the action bar stays where it is and works, the chat line steps aside.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
 // stacks), moved in while it's open and put back after, so the Character sheet still finds them in their places.
-// A swipe on the tab or the handle never walks: its pointer is caught here, not by the map.
+// A swipe on the tab or the handle never walks: its pointer is caught here, not by the map. Drag a thing out of it onto
+// the map and it closes as you leave it, so you can drop it where it was.
 const InventoryDrawer = (() => {
   const SWIPE = 28; // px up or down before a drag counts as a swipe
   let drawer = null, tab = null, stage = 0;
@@ -77,6 +78,14 @@ const InventoryDrawer = (() => {
     swipeable(tab, () => set(stage ? 0 : 1));
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));
   }
+
+  // Dragging something out of the drawer onto the map: as soon as it leaves the drawer (and the action bar), the drawer
+  // closes, so it can be dropped on the tiles the drawer covered too (game-ui.js's drag goes on, and drops it there).
+  window.addEventListener('pointermove', e => {
+    if (!stage || !drawer || typeof drag === 'undefined' || !drag.active) return;
+    const inside = el => { const r = el && el.getBoundingClientRect(); return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
+    if (!inside(drawer) && !inside(document.getElementById('actionDock'))) set(0);
+  });
 
   return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage };
 })();
