@@ -34,6 +34,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Phone action buttons: their gestures, and their mana, cooldowns and pictures | `node tests/mobile-slots.test.cjs`, `node tests/action-slots.test.cjs` |
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
 | The phone's interface on three iPhone sizes: every control in reach, each gesture doing one thing (needs Playwright) | `node tests/mobile-ui.test.js [screenshot-folder]` |
+| The phone's interface driving the game: walking, floors, talk, loot, spells, potions, the drawer, map, chat, turning (needs Playwright) | `node tests/mobile-regression.test.js` |
 | Syntax check | `node --check js/<file>.js` |
 
 - **Node 22 or newer**: the online test uses the built-in `WebSocket`.
