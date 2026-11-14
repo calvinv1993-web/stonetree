@@ -8,7 +8,7 @@
 //   use     a door, chest, lever, depot, sign, bookshelf or training dummy next to you: use it (interact; "train" for a
 //           dummy)
 //   idle    nothing to do: the button rests, dark
-//   close   while the inventory drawer is open: closes it (inventory-drawer.js)
+//   close   while the inventory drawer or the chat is open: closes it (inventory-drawer.js, chat-line.js)
 // It only chooses: the game's own rules (protection zones, targeting, reach, paths) decide what happens. context() is
 // plain game logic and needs no page (tests/smart-button.test.js); refresh and press are for the button.
 const SmartButton = (() => {
@@ -16,6 +16,7 @@ const SmartButton = (() => {
 
   function context() {
     if (typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage()) return { kind: 'close', label: 'Close your backpack' };
+    if (document.body.classList.contains('chat-open')) return { kind: 'close', label: 'Close the chat' };
     if (!player || player.dead) return { kind: 'idle', label: 'Nothing to do' };
     const safe = inPZ();
     if (!safe && monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m))) return { kind: 'attack', label: 'Attack' };
@@ -34,7 +35,7 @@ const SmartButton = (() => {
 
   function press() {
     const a = context();
-    if (a.kind === 'close') return InventoryDrawer.close();
+    if (a.kind === 'close') return document.body.classList.contains('chat-open') ? setChat(false) : InventoryDrawer.close();
     if (!player || paused) return;
     if (a.kind === 'attack') Actions.targetNext();
     else if (a.kind === 'loot') Actions.lootNearest(a.pile.id);

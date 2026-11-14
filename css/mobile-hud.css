@@ -19,5 +19,5 @@ body.touch-ui .joystick {display:none!important;}
 body.touch-ui .joystick.floating {display:block!important;position:fixed!important;width:104px!important;height:104px!important;bottom:auto!important;pointer-events:none!important;z-index:50;opacity:.6;}
 body.touch-ui #tabbar {position:static;display:flex;width:100%;height:auto;padding:6px 24px 6px 0;}
 body.touch-ui #tabbar button {font-size:9px;min-width:0;flex:1;}
-body.touch-ui.panel-open #actionDock,body.touch-ui.chat-open #actionDock {visibility:hidden;}
+body.touch-ui.panel-open #actionDock {visibility:hidden;}
 body:not(.touch-ui) #hudMap,body:not(.touch-ui) #hudMenu {display:none;}

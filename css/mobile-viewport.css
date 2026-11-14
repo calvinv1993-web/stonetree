@@ -15,5 +15,4 @@ body.touch-ui .hud { background: #1b1a17; -webkit-backdrop-filter: none; backdro
   body.touch-ui #radialControls { top: 7px !important; bottom: calc(7px + env(safe-area-inset-bottom, 0px)) !important; }
   body.touch-ui #tAttack { bottom: calc(1px + env(safe-area-inset-bottom, 0px)) !important; }
   body.touch-ui.panel-open .panel { bottom: 0 !important; height: calc(100% - var(--hud-h)) !important; padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
-  body.touch-ui.chat-open .console { bottom: env(safe-area-inset-bottom, 0px) !important; }
 }

@@ -3,7 +3,7 @@
 const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert');
 const { loadGame, ROOT } = require('./harness');
 const g = loadGame(), { ctx, state } = g;
-vm.runInContext('var paused = false;' + fs.readFileSync(path.join(ROOT, 'js', 'smart-button.js'), 'utf8') + ';this.SmartButton = SmartButton;', ctx);
+vm.runInContext('var paused = false; var chatOpen = false; var document = { body: { classList: { contains: c => c === "chat-open" && chatOpen } } };' + fs.readFileSync(path.join(ROOT, 'js', 'smart-button.js'), 'utf8') + ';this.SmartButton = SmartButton;', ctx);
 const S = ctx.SmartButton, P = state.player, map = state.map;
 const kind = () => S.context().kind;
 let pass = 0;
@@ -39,5 +39,6 @@ check('someone to talk to in reach: talk', () => {
   clear(); at(safe); const npc = { npcId: 'test', name: 'Tester NPC', x: safe.x + 1, y: safe.y, z: 8 }; state.npcs = [npc];
   const c = S.context(); assert.equal(c.kind, 'talk'); assert.equal(c.x, npc.x);
 });
+check('with the chat open it is a close button', () => { vm.runInContext('chatOpen = true', ctx); assert.equal(kind(), 'close'); vm.runInContext('chatOpen = false', ctx); });
 check('dead: nothing to do', () => { P.dead = true; assert.equal(kind(), 'idle'); P.dead = false; });
 console.log(`all ${pass} passed`);

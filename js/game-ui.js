@@ -52,7 +52,8 @@ function showLook(text) {
 // Dialog lines: {keyword} becomes a link that says the keyword when clicked.
 function logDialog(speaker, text, isPlayer) {
   // On a phone what an NPC says to you comes up as a card, its keywords as buttons (the chat keeps it too).
-  if (!isPlayer && touchScreen && typeof showTalk === 'function') showTalk(speaker, text);
+  // (with the chat open it stays in the chat, as you type your answers there)
+  if (!isPlayer && touchScreen && typeof showTalk === 'function' && !document.body.classList.contains('chat-open')) showTalk(speaker, text);
   else if (!isPlayer) document.body.classList.add('chat-open');
   addLogLine(line => {
     const who = document.createElement('b');

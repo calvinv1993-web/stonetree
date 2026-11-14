@@ -160,14 +160,20 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('blur', () => player && Actions.releaseKeys());
 
+// Say what's typed in the chat line (Enter, or the phone's send button: chat-line.js); keep: stay in the line to go on
+function sendChat(keep) {
+  const input = $('chat'), tab = $('log').dataset.filter, text = input.value; // the Party and Guild tabs talk on their channel
+  if (!text.trim()) return;
+  if (tab === 'party' && !text.startsWith('/')) Actions.partySay(text);
+  else if (tab === 'guild' && !text.startsWith('/')) Actions.guildSay(text);
+  else Actions.say(text);
+  input.value = '';
+  if (!keep) input.blur();
+}
 $('chat').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
-    const tab = $('log').dataset.filter, text = e.target.value; // the Party and Guild tabs talk on their channel
-    if (tab === 'party' && !text.startsWith('/')) Actions.partySay(text);
-    else if (tab === 'guild' && !text.startsWith('/')) Actions.guildSay(text);
-    else Actions.say(text);
-    e.target.value = '';
-    e.target.blur();
+    e.preventDefault();
+    sendChat(touchScreen); // (on a phone the keyboard stays up, to say the next thing)
   } else if (e.key === 'Escape') {
     e.target.blur();
   }
