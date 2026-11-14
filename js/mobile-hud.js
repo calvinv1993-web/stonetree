@@ -15,9 +15,7 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   for (const [bar, icon] of [['hp', 'heart'], ['mana', 'drop']]) { const i = Icons.img(icon, 18); i.classList.add(`hud-icon-${bar}`); hud.appendChild(i); }
   const expLabel = document.createElement('span'); expLabel.className = 'hud-exp-label'; expLabel.textContent = 'EXP'; hud.appendChild(expLabel);
   const xp = document.createElement('span'); xp.id = 'hudXpText'; hud.appendChild(xp);
-  const mapButton = document.createElement('button'); mapButton.id = 'hudMap'; mapButton.title = 'Open map';
-  mapButton.innerHTML = '<canvas width="96" height="96"></canvas>'; mapButton.onclick = () => { closeSheet(); toggleWorldMap(); }; hud.appendChild(mapButton);
-  const menu = document.createElement('button'); menu.id = 'hudMenu'; menu.textContent = '☰'; menu.title = 'Menu'; menu.onclick = () => toggleSheet('menu'); hud.appendChild(menu);
+  // (no map or menu up here: both are tabs of the drawer, in reach of the thumb: inventory-drawer.js)
   const bar = document.createElement('div'); bar.id = 'actionDock'; $('touch').appendChild(bar);
   bar.appendChild($('radialControls')); bar.appendChild($('tAttack'));
   ChatLine.attach(bar); // (the newest message, under the buttons: chat-line.js)
@@ -28,10 +26,5 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   if (Array.isArray(saved)) { favPageIndex = Math.max(0, Math.min(2, +saved[0] || 0)); favItemPage = Math.max(0, Math.min(2, +saved[1] || 0)); }
   window.addEventListener('blur', () => { hideFloatingStick(); endFavPress(false); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { hideFloatingStick(); endFavPress(false); } });
-  setInterval(() => {
-    if (!touchScreen || !player || document.hidden) return;
-    const source = minimap.layers[player.z];
-    if (source && source.width) { const c = mapButton.firstChild, g = c.getContext('2d'); g.fillStyle = '#132018'; g.fillRect(0, 0, 96, 96); g.imageSmoothingEnabled = false; g.drawImage(source, player.x - 24, player.y - 24, 48, 48, 0, 0, 96, 96); g.fillStyle = '#ffe49b'; g.fillRect(46, 46, 4, 4); }
-  }, 500);
   fitView();
 })();

@@ -11,7 +11,7 @@
 const GUIDE = [
   {
     text: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Walk to her with W A S D or the arrow keys (or click where to go), then click her to talk.',
-    touch: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Walk with the joystick (or tap where to go), then tap her to talk.',
+    touch: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Tap where to go (or drag over the map) to walk there, then tap her to talk.',
     target: [{ npc: 'ama' }],
     done: () => talkingTo('ama'),
   },

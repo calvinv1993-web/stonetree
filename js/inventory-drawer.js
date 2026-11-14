@@ -7,14 +7,18 @@
 //             numbers, and your skills across the whole width under both; the tab points down
 // Swipe down on the tab or the top edge to go back a step; while it's open the smart button closes it (smart-button.js).
 // The action bar stays where it is and works; the chat line steps aside.
+// Along its bottom, in reach of the thumb, four tabs say what it shows: Gear (the above), Map (the minimap, as big as
+// the drawer, with its floors, zoom and the world map), Quests and Settings (what the Menu held, and the help). So the
+// phone needs no menu or map up top, and everything is a thumb's reach from the action bar.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
 // stacks), moved in while it's open and put back after, so the Character sheet still finds them in their places.
 // A swipe on the tab or the handle never walks: its pointer is caught here, not by the map. Drag a thing out of it onto
 // the map and it closes as you leave it, so you can drop it where it was.
 const InventoryDrawer = (() => {
   const SWIPE = 28; // px up or down before a drag counts as a swipe
-  let drawer = null, tab = null, dock = null, stage = 0;
+  let drawer = null, tab = null, dock = null, stage = 0, page = 'gear', seg = null, zoomed = false;
   const homes = new Map(); // what was moved in: where to put it back
+  const PAGES = [['gear', 'Gear', 'character'], ['map', 'Map', 'map'], ['quests', 'Quests', 'quests'], ['settings', 'Settings', 'menu']];
 
   function borrow(el) {
     if (!el || homes.has(el)) return;
@@ -23,6 +27,38 @@ const InventoryDrawer = (() => {
   function giveBack() {
     for (const [el, { parent, next }] of homes) parent.insertBefore(el, next && next.parentNode === parent ? next : null);
     homes.clear();
+    const mm = document.getElementById('minimap');
+    if (mm && mm.width !== 236) Object.assign(mm, { width: 236, height: 130 }); // (its size in the side panel)
+    if (seg !== null) { if (seg) document.body.dataset.seg = seg; else delete document.body.dataset.seg; seg = null; }
+  }
+
+  // What the page shown needs, moved in from where the side panel keeps it
+  function fill() {
+    const byId = id => document.getElementById(id);
+    const put = (where, ...els) => { for (const el of els) if (el) { borrow(el); drawer.querySelector(where).append(el); } };
+    if (page === 'gear') {
+      put('.drawer-gear', byId('equipment'), byId('gearStats'));
+      put('.drawer-bags', byId('containers'));
+      put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
+    } else if (page === 'map') {
+      put('.drawer-map', document.querySelector('.minimap-box'));
+      if (!zoomed && typeof minimap !== 'undefined') { zoomed = true; minimap.zoom = Math.max(minimap.zoom, 4); } // (closer on a phone, the first time)
+    } else if (page === 'quests') put('.drawer-quests', byId('tab-quests'));
+    else if (page === 'settings') {
+      // (the Menu's settings draw only while its "settings" part is chosen: touch.js renderMenu)
+      seg = document.body.dataset.seg || '';
+      document.body.dataset.seg = 'settings';
+      put('.drawer-settings', byId('menuSec'), byId('tab-help'));
+      if (typeof renderMenu === 'function') { menuShown = ''; renderMenu(); }
+    }
+  }
+  // the minimap as big as its page: its picture one pixel a screen pixel, so tiles stay the size its zoom says
+  function fitMap() {
+    const mm = document.getElementById('minimap'), box = drawer && drawer.querySelector('.drawer-map');
+    if (!mm || !box || page !== 'map' || !stage) return;
+    const row = box.querySelector('.mm-row'), w = Math.floor(box.clientWidth - 20), h = Math.floor(box.clientHeight - (row ? row.offsetHeight : 0) - 16);
+    if (w > 50 && h > 50 && (mm.width !== w || mm.height !== h)) Object.assign(mm, { width: w, height: h });
+    if (typeof drawMinimap === 'function') drawMinimap();
   }
 
   function set(next) {
@@ -35,13 +71,12 @@ const InventoryDrawer = (() => {
       if (typeof closeSheet === 'function' && document.body.classList.contains('panel-open')) closeSheet();
       document.body.classList.remove('bag-open');
       if (typeof setChat === 'function' && document.body.classList.contains('chat-open')) setChat(false);
-      const eq = document.getElementById('equipment'), stats = document.getElementById('gearStats'), bags = document.getElementById('containers');
-      const skills = document.getElementById('tab-skills'); // (your skills, under both columns: shown only expanded)
-      for (const el of [eq, stats, bags, skills]) borrow(el);
-      drawer.querySelector('.drawer-gear').append(eq, stats);
-      drawer.querySelector('.drawer-bags').append(bags);
-      drawer.querySelector('.drawer-skills').append(skills);
+      giveBack();
+      fill();
+      drawer.dataset.page = page;
+      for (const b of drawer.querySelectorAll('.drawer-tabs button')) b.classList.toggle('active', b.dataset.page === page);
       drawer.prepend(tab); // (the tab on the drawer's top edge)
+      setTimeout(fitMap, 260); // (its size changes with the stage, once the drawer has slid there)
       if (typeof uiDirty === 'function') uiDirty();
     } else { giveBack(); dock.appendChild(tab); }
     drawer.setAttribute('aria-hidden', String(!stage));
@@ -84,8 +119,22 @@ const InventoryDrawer = (() => {
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
       + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
-      + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>';
+      + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>'
+      + '<div class="drawer-page drawer-map"></div><div class="drawer-page drawer-quests"></div><div class="drawer-page drawer-settings"></div>';
+    drawer.dataset.page = page;
+    const tabs = document.createElement('nav');
+    tabs.className = 'drawer-tabs';
+    for (const [id, label, icon] of PAGES) {
+      const b = document.createElement('button');
+      b.dataset.page = id;
+      b.classList.toggle('active', id === page);
+      b.append(Icons.img(icon, 20), Object.assign(document.createElement('span'), { textContent: label }));
+      b.addEventListener('click', () => show(id));
+      tabs.appendChild(b);
+    }
+    drawer.appendChild(tabs);
     dock.parentNode.insertBefore(drawer, dock);
+    window.addEventListener('resize', () => setTimeout(fitMap, 50));
     swipeable(tab, () => set(stage === 1 ? 2 : stage === 2 ? 1 : 1)); // (a tap: open, or the other open stage)
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));
   }
@@ -98,5 +147,12 @@ const InventoryDrawer = (() => {
     if (!inside(drawer) && !inside(document.getElementById('actionDock'))) set(0);
   });
 
-  return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage };
+  // Show a page of the drawer, opening it if it was shut: gear, map, quests or settings
+  function show(id, s) {
+    if (!PAGES.some(([p]) => p === id)) return;
+    page = id;
+    set(s || (id === 'gear' ? stage || 1 : 2)); // (the map, quests and settings need the room: the whole drawer)
+  }
+
+  return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage, show, page: () => page };
 })();

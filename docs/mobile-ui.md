@@ -8,9 +8,9 @@ ever needed.
 
 From top to bottom:
 
-- **The status bar** (`css/phone/layout.css`, built in `js/mobile-hud.js`): the round map (tap: the world map), the
-  level, health with a heart and mana with a drop (current / max), a thin experience bar with its percent, and the
-  round menu button.
+- **The status bar** (`css/phone/layout.css`, built in `js/mobile-hud.js`): the level, health with a heart and mana
+  with a drop (current / max), and a thin experience bar with its percent. Nothing to tap up here: one hand reaches
+  everything at the bottom.
 - **The map**, as big as the space between the bars allows.
 - **The action bar** (`js/mobile-hud.js` puts it together):
   - three spells on the left, three spells, potions or food on the right (`js/action-slots.js`,
@@ -22,6 +22,8 @@ From top to bottom:
   - the drawer tab above it (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`): swipe up for equipment and
     backpack side by side, up again for everything, with other opened bags and the skills; down on its handle to go
     back. Dragging a thing out over the map closes it.
+    Along its bottom, four tabs: Gear, Map (the minimap as big as the drawer), Quests and Settings (what the Menu
+    held, and the help); they borrow those parts from the side panel while shown, as the gear does.
 - **The chat line** under the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
   which opens at the newest line above the action bar, with a send button; the smart button or the tab on its edge
   closes it.

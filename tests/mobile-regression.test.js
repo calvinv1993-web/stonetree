@@ -66,8 +66,11 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   await E(() => InventoryDrawer.close()); await p.waitForTimeout(300);
   check('13 the drawer closes, its things go home (the Character sheet has them)', await E(() => InventoryDrawer.stage() === 0 && !!$('panel').querySelector('#equipment')));
   // 11: minimap
-  await p.tap('#hudMap'); await p.waitForTimeout(300);
-  check('11 the round map opens the world map', await E(() => !$('worldmap').hidden)); await E(() => toggleWorldMap());
+  await p.tap('#drawerTab'); await p.waitForTimeout(300); await p.tap('.drawer-tabs button[data-page="map"]'); await p.waitForTimeout(500);
+  check('11 the drawer\'s Map tab shows the minimap, big', await E(() => $('inventoryDrawer').contains($('minimap')) && $('minimap').width > 300 && $('minimap').height > 200));
+  await p.tap('#mmWorld'); await p.waitForTimeout(300);
+  check('11 and its Map button opens the world map', await E(() => !$('worldmap').hidden)); await E(() => { toggleWorldMap(); InventoryDrawer.close(); });
+  check('11 closed, the minimap goes home at its own size', await E(() => !!$('panel').querySelector('#minimap') && $('minimap').width === 236));
   // 12: chat
   await p.tap('#chatLine'); await p.waitForTimeout(300);
   check('12 the chat opens from its line, at the newest message', await E(() => document.body.classList.contains('chat-open') && Math.abs($('log').scrollTop + $('log').clientHeight - $('log').scrollHeight) < 4));

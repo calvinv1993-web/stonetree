@@ -31,7 +31,7 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     // every control: its size, and that a finger on its middle lands on it (nothing over it)
     const controls = await page.evaluate(() => {
       const list = [...document.querySelectorAll('#favs .fav')].map((el, i) => [`action button ${i + 1}`, el]);
-      list.push(['smart button', $('tAttack')], ['drawer tab', $('drawerTab')], ['chat line', $('chatLine')], ['round map', $('hudMap')], ['menu button', $('hudMenu')]);
+      list.push(['smart button', $('tAttack')], ['drawer tab', $('drawerTab')], ['chat line', $('chatLine')]);
       return list.map(([n, el]) => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         return { n, w: Math.round(r.width), h: Math.round(r.height), hit: !!hit && (hit === el || el.contains(hit)), bottom: Math.round(r.bottom) }; });
     });
@@ -39,6 +39,14 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
       const small = c.n === 'drawer tab' || c.n === 'chat line' ? 16 : MIN_TARGET; // (the tab and the line are wide: their height may be less)
       check(`${c.n}: ${c.w} x ${c.h}, under the finger`, c.hit && Math.min(c.w, c.h) >= small, JSON.stringify(c));
     }
+    // one hand: nothing to tap up in the status bar; the drawer's tabs (map, quests, settings) sit low, in reach of the thumb
+    check('nothing to tap in the status bar (map and menu are drawer tabs)', await page.evaluate(() => !document.querySelector('.hud button')));
+    const tabs = await page.evaluate(() => { InventoryDrawer.show('map'); return new Promise(res => setTimeout(() => res([...document.querySelectorAll('.drawer-tabs button')].map(el => {
+      const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return { n: el.dataset.page, h: Math.round(r.height), w: Math.round(r.width), hit: !!hit && (hit === el || el.contains(hit)), top: Math.round(r.top / innerHeight * 100) }; })), 400)); });
+    check(`the drawer's four tabs, low and big enough: ${tabs.map(t => `${t.n} ${t.w}x${t.h} at ${t.top}%`).join(', ')}`,
+      tabs.length === 4 && tabs.every(t => t.hit && t.h >= MIN_TARGET && t.top >= 60), JSON.stringify(tabs));
+    await page.evaluate(() => InventoryDrawer.close()); await page.waitForTimeout(300);
     const view = await page.evaluate(() => { const v = innerHeight, b = $('actionDock').getBoundingClientRect(); return { dockBottom: Math.round(b.bottom), v }; });
     check('the action bar reaches the bottom, its buttons clear of the home indicator', view.dockBottom === view.v && controls.every(c => c.bottom <= view.v - home), JSON.stringify(view));
 

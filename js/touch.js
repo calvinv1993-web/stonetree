@@ -231,10 +231,9 @@ function initTouch() {
     <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, or opens a corpse.</li>
     <li><b>Tap</b> a monster to attack it, someone to talk to them. <b>Hold</b> them for more (follow, look, open a corpse under them).</li>
     <li><b>Action buttons</b> either side of the big one: spells on the left, potions and food on the right. Tap to use, hold to choose what goes there, swipe sideways for the next set.</li>
-    <li><b>Talking</b>: tap the gold words, or open Chat from the menu to type. Say "hi" to someone to start.</li>
-    <li><b>Character</b>: your equipment, bag and skills. Drag things between them.</li>
-    <li><b>Quests</b>: what you are doing and where to go. <b>The round map</b>, top left: the whole map; tap a spot to walk there.</li>
-    <li><b>Menu</b>, top right: sound, quality, chat, outfit and more. While fighting, buttons by the map set how you fight and whether you chase.</li>
+    <li><b>Talking</b>: tap the gold words, or tap the chat line under the buttons to type. Say "hi" to someone to start.</li>
+    <li><b>The tab</b> above the big button (swipe it up): your gear and backpack, and along its bottom the tabs <b>Map</b> (tap a spot to walk there), <b>Quests</b> and <b>Settings</b> (sound, quality, outfit and more).</li>
+    <li>While fighting, buttons by the map set how you fight and whether you chase.</li>
   </ul>`;
 
   const tap = (id, fn) => (typeof id === 'string' ? $(id) : id).addEventListener('click', e => {
@@ -313,6 +312,8 @@ const SHEETS = {
   menu: { title: () => 'Menu', segs: [['settings', 'Settings'], ['help', 'Help']] },
 };
 function openSheet(kind, seg) {
+  // on a phone the drawer has them all now, as tabs in reach of the thumb (inventory-drawer.js)
+  if (typeof InventoryDrawer !== 'undefined' && $('inventoryDrawer')) return InventoryDrawer.show(kind === 'quests' ? 'quests' : kind === 'menu' ? 'settings' : 'gear');
   const sheet = SHEETS[kind];
   if (typeof InventoryDrawer !== 'undefined') InventoryDrawer.close(); // (it holds the equipment and bags: they go home first)
   setChat(false);
@@ -377,8 +378,8 @@ function renderMenu() {
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
     row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
-    row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
-    row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
+    row('Outfit', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); openOutfit(); }),
+    row('Party & guild', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); $('guildBtn').click(); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
     h('div', { className: 'menu-head' }, 'Make'),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),
