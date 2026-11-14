@@ -245,7 +245,7 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 Phone, one-handed: nothing to tap up top. The status bar shows only your level, health, mana and experience; the map, quests and settings are tabs of the drawer, along its bottom, in reach of your thumb.
 
-Mobile viewport: as an app on the home screen the page goes on under the phone's status bar (the clock and battery): the loading screen fills the whole screen; in play the strip under the clock stays dark. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
+Mobile viewport: as an app on the home screen the phone's status bar (the clock and battery) stays opaque: a see-through one let iOS soften what lies under it, the health and mana bars among it. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
 
 The compact phone HUD shows level, current/max HP and mana, and progress to the next level. The map editor keeps an opaque iOS status bar; device verification is still required.
 

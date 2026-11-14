@@ -444,9 +444,7 @@ body.touch-ui.panel-open #actionDock { visibility: hidden; }
    each safe inset. Installed on an iPhone the page starts below the status bar (apple-mobile-web-app-status-bar-style
    black, so nothing lies behind it to blur), or under it with the top inset as padding where a browser puts it there. */
 body.touch-ui { overscroll-behavior: none; height: 100dvh; bottom: auto; background: #1b1a17; }
-/* (a quarter more than the phone's own strip up top: iOS softens what lies just under its clock, so the bars stay clear of
-   that; none where the phone has no strip) */
-body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; padding: calc(env(safe-area-inset-top, 0px) * 1.25) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); background: #1b1a17; }
+body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); background: #1b1a17; }
 /* Upright: the action bar hugs the home indicator's safe area (its own height plus that inset, nothing more), and an
    open drawer or the chat takes the bar's place down to that safe area, so no strip of the map shows under them. */
 @media (orientation: portrait) {
