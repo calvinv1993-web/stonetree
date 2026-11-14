@@ -55,14 +55,19 @@ const InventoryDrawer = (() => {
       if (typeof renderMenu === 'function') { menuShown = ''; renderMenu(); }
     }
   }
-  // the minimap as big as its page: its picture one pixel a screen pixel, so tiles stay the size its zoom says
+  // The minimap fills its page at once (the stylesheet stretches it); here its picture follows, one pixel a screen
+  // pixel, so tiles stay the size its zoom says. A ResizeObserver calls it whenever the page changes size (opening,
+  // sliding open further, turning the phone), so it is sharp again within a frame, never left waiting.
+  let fitting = 0;
   function fitMap() {
-    const mm = document.getElementById('minimap'), box = drawer && drawer.querySelector('.drawer-map');
-    if (!mm || !box || page !== 'map' || !stage) return;
-    const row = box.querySelector('.mm-row'), w = Math.floor(box.clientWidth - 20), h = Math.floor(box.clientHeight - (row ? row.offsetHeight : 0) - 16);
+    fitting = 0;
+    const mm = document.getElementById('minimap');
+    if (!mm || page !== 'map' || !stage || !drawer.contains(mm)) return;
+    const w = Math.round(mm.clientWidth), h = Math.round(mm.clientHeight);
     if (w > 50 && h > 50 && (mm.width !== w || mm.height !== h)) Object.assign(mm, { width: w, height: h });
     if (typeof drawMinimap === 'function') drawMinimap();
   }
+  const refit = () => { if (!fitting) fitting = requestAnimationFrame(fitMap); };
 
   function set(next) {
     stage = Math.max(0, Math.min(2, next));
@@ -79,7 +84,7 @@ const InventoryDrawer = (() => {
       drawer.dataset.page = page;
       for (const b of drawer.querySelectorAll('.drawer-tabs button')) b.classList.toggle('active', b.dataset.page === page);
       drawer.prepend(tab); // (the tab on the drawer's top edge)
-      setTimeout(fitMap, 260); // (its size changes with the stage, once the drawer has slid there)
+      if (page === 'map') fitMap(); // (at once: drawn at its size before the drawer is even seen)
       if (typeof uiDirty === 'function') uiDirty();
     } else { giveBack(); dock.appendChild(tab); }
     // the minimap round you again (not the whole world) once the Map page is left or the drawer shut
@@ -139,7 +144,8 @@ const InventoryDrawer = (() => {
     }
     drawer.appendChild(tabs);
     dock.parentNode.insertBefore(drawer, dock);
-    window.addEventListener('resize', () => setTimeout(fitMap, 50));
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(refit).observe(drawer.querySelector('.drawer-map'));
+    else window.addEventListener('resize', refit);
     swipeable(tab, () => set(stage === 1 ? 2 : stage === 2 ? 1 : 1)); // (a tap: open, or the other open stage)
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));
   }
