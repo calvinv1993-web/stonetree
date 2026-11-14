@@ -505,6 +505,52 @@ function itemClick(ref) {
 
 // A tapped item on a phone: what it is (its numbers), and what you can do with it. Gear you could wear also shows what
 // you wear there now, to compare; gear you wear (worn) offers Take off.
+// A piece of gear's fighting stats at its grade (what the equipment window adds up), by name
+function gearValues(id, q = 0) {
+  const d = ITEMS[id], w = d.weapon, out = {};
+  if (w && w.type === 'wand') out.Attack = `${w.element} ${wandDamage(w, q).join('-')}`;
+  else if (w) out.Attack = qualityStat(w.attack, q);
+  if (d.ammo) out.Attack = d.ammo.attack;
+  if (d.defense) out.Defense = qualityStat(d.defense, q);
+  if (d.armor) out.Armor = qualityStat(d.armor, q);
+  return out;
+}
+
+// What an item is, for a card: its name, what it does, and for gear its stats beside what you wear there now:
+// how much more (green) or less (red) each would be
+function itemDetails(item, worn = false) {
+  const slot = ITEMS[item.id].slot, gear = slot && slot !== 'backpack', now = !worn && gear ? player.equipment[slot] : null;
+  const mine = gearValues(item.id, item.q), theirs = now ? gearValues(now.id, now.q) : {};
+  const names = [...new Set([...Object.keys(mine), ...Object.keys(theirs)])];
+  const rows = names.map(name => {
+    const a = mine[name], b = theirs[name], diff = !worn && typeof (a || 0) === 'number' && typeof (b || 0) === 'number' ? (a || 0) - (b || 0) : 0;
+    return h('div', { className: 'gear-stat' }, h('span', {}, name), h('b', {}, a === undefined ? '-' : String(a),
+      diff ? h('em', { className: diff > 0 ? 'up' : 'down' }, ` ${diff > 0 ? '+' : '−'}${Math.abs(diff)}`) : null));
+  });
+  return [
+    h('b', {}, itemName(item.id, item.count || 1, item.q)),
+    rows.length ? h('div', { className: 'gear-stats item-stats' }, ...rows) : null,
+    h('small', {}, itemInfo(item.id, item.q)),
+    !worn && gear ? h('small', { className: 'item-menu-now' }, now ? `Compared with what you wear: ${itemName(now.id, 1, now.q)}.` : `You wear nothing there (${SLOT_LABELS[slot] || slot}).`) : null,
+  ].filter(Boolean);
+}
+
+// A card beside a thing showing what it is (the shop's wares): over it with the mouse, or tapped on a phone
+function itemCard(id, near) {
+  hideItemCard();
+  const box = h('div', { id: 'itemCard', className: 'item-menu item-card' }, ...itemDetails({ id, count: 1 }));
+  document.body.append(box);
+  const a = near.getBoundingClientRect(), r = box.getBoundingClientRect(), win = near.closest('.window');
+  const side = !touchScreen && win && win.getBoundingClientRect(); // (on a computer: beside the window, not over the list)
+  if (side && side.right + r.width + 16 < window.innerWidth) {
+    Object.assign(box.style, { left: `${side.right + 8}px`, top: `${Math.max(8, Math.min(window.innerHeight - r.height - 8, a.top))}px` });
+    return;
+  }
+  const x = Math.min(window.innerWidth - r.width - 8, Math.max(8, a.left + a.width / 2 - r.width / 2)), y = a.top - r.height - 6;
+  Object.assign(box.style, { left: `${x}px`, top: `${y < 8 ? a.bottom + 6 : y}px` });
+}
+const hideItemCard = () => { const c = $('itemCard'); if (c) c.remove(); };
+
 function itemMenu(ref, item, e, worn = false) {
   const old = $('itemMenu');
   if (old) old.remove();
@@ -513,11 +559,9 @@ function itemMenu(ref, item, e, worn = false) {
   const outside = ev => { if (!box.contains(ev.target)) close(); };
   const act = (label, f, cls) => { const b = h('button', { className: cls || '' }, label); b.addEventListener('click', () => { close(); f(); }); return b; };
   const ground = { root: 'ground', x: player.x, y: player.y, z: player.z };
-  const slot = ITEMS[item.id].slot, now = !worn && slot && slot !== 'backpack' ? player.equipment[slot] : null;
+  const slot = ITEMS[item.id].slot;
   box.append(...[
-    h('b', {}, itemName(item.id, item.count)),
-    h('small', {}, itemInfo(item.id, item.q)),
-    !worn && slot && slot !== 'backpack' ? h('small', { className: 'item-menu-now' }, now ? `You wear: ${itemInfo(now.id, now.q)}` : `You wear nothing there (${SLOT_LABELS[slot] || slot}).`) : null,
+    ...itemDetails(item, worn),
     worn
       ? h('div', { className: 'item-menu-buttons' }, act('Take off', () => Actions.unequip(ref.slot), 'primary'))
       : h('div', { className: 'item-menu-buttons' },
@@ -551,10 +595,20 @@ function renderEquipment() {
       hint: 'Click to take it off, or drag it.',
     }));
   }
-  const w = playerWeapon();
-  const attack = w.kind === 'magic' ? `${w.dmg[0]}-${w.dmg[1]} ${w.element}` : w.noAmmo ? `no ${w.noAmmo}s!` : `attack ${w.attack}`;
-  $('gearStats').textContent = `${player.gold} gold${player.bank ? ` (+${player.bank} in bank)` : ''} · armor ${totalArmor()} · ${attack}`;
+  const stats = $('gearStats');
+  stats.replaceChildren(
+    h('div', { className: 'gear-stats' }, ...GEAR_STATS.map(([name, value, hint]) => h('div', { className: 'gear-stat', title: hint }, h('span', {}, name), h('b', {}, String(value()))))),
+    h('div', { className: 'gear-gold' }, `${player.gold} gold${player.bank ? ` (+${player.bank} in bank)` : ''}`));
 }
+
+// The stats of what you wear, in the equipment window: a name, its value and what it does. More (critical hits...)
+// go here as one line each.
+const GEAR_STATS = [
+  ['Attack', () => { const w = playerWeapon(); return w.kind === 'magic' ? `${w.dmg[0]}-${w.dmg[1]} ${w.element}` : w.noAmmo ? `no ${w.noAmmo}s!` : w.attack; },
+    'Your weapon: how hard you hit'],
+  ['Defense', totalDefense, 'Your shield (or without one, your weapon): blocks part of each blow you take'],
+  ['Armor', totalArmor, 'All you wear together: takes something off every hit'],
+];
 
 // Open container windows: the bag is always open; others open by using them.
 let openContainers = [];
@@ -662,8 +716,16 @@ function shopRow(id, info, buttons) {
   const small = document.createElement('small');
   small.textContent = info;
   text.appendChild(small);
-  row.title = itemInfo(id);
   row.append(icon, text);
+  // what it is: a card over the row with the mouse, or on a tap of its picture or name on a phone
+  row.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') itemCard(id, row); });
+  row.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hideItemCard(); });
+  for (const el of [icon, text]) el.addEventListener('click', () => {
+    if (!touchScreen) return;
+    if ($('itemCard')) return hideItemCard();
+    itemCard(id, row);
+    setTimeout(() => document.addEventListener('pointerdown', ev => { if (!row.contains(ev.target)) hideItemCard(); }, { capture: true, once: true }), 0);
+  });
   if (ITEMS[id].slot && canWear(id)) row.classList.add('unusable');
   for (const [label, act] of buttons) {
     const b = document.createElement('button');
@@ -677,6 +739,7 @@ function shopRow(id, info, buttons) {
 function renderShop() {
   const npc = player.shopNpc;
   $('shop').hidden = !npc;
+  hideItemCard(); // (the list is drawn anew)
   if (!npc) return;
   $('shopTitle').textContent = `Trade with ${npc.name}`;
   $('shopGold').textContent = `${player.gold} gold · cap ${freeCapacity()} oz`;

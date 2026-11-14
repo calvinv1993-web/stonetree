@@ -29,7 +29,9 @@ body.touch-ui .drawer-col h3 { margin: 0 0 6px; color: #e6b85f; font: 700 11px/1
 body.touch-ui .drawer-gear { padding-right: 10px; border-right: 1px solid #3a2e1c; }
 /* the equipment and the bags as they are drawn for the side panel, made compact here */
 body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, 40px); gap: 4px; margin: 0; transform: none; }
-body.touch-ui .inventory-drawer #gearStats { margin-top: 6px; max-width: 132px; color: #a89c80; font: 500 10px/1.3 Inter, sans-serif; }
+body.touch-ui .inventory-drawer #gearStats { margin-top: 8px; max-width: 132px; color: #a89c80; font: 500 11px/1.35 Inter, sans-serif; }
+body.touch-ui .inventory-drawer .gear-stats { padding: 4px 8px; border-color: #3a2e1c; border-radius: 8px; background: #15120d; }
+body.touch-ui .inventory-drawer .gear-stat { padding: 2px 0; }
 body.touch-ui:not(.drawer-full) .inventory-drawer #gearStats { display: none; }
 body.touch-ui .inventory-drawer #containers { display: block !important; position: static !important; max-height: none !important; width: auto !important;
   transform: none !important; margin: 0; padding: 0; background: none !important; border: 0 !important; box-shadow: none !important; }

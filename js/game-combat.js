@@ -262,7 +262,7 @@ function damagePlayer(attacker, dmg, element, cause, source = attacker) {
   if (element === 'physical' && attacker) {
     // A shield (or a melee weapon, without a shield) blocks part of physical hits.
     const shield = eq.shield && ITEMS[eq.shield.id];
-    const defense = (shield ? qualityStat(shield.defense, eq.shield.q) : (eq.weapon && qualityStat(ITEMS[eq.weapon.id].defense, eq.weapon.q)) || 0) * fightMode().defense;
+    const defense = totalDefense() * fightMode().defense;
     if (shield) addSkillTries('shielding');
     dmg -= randInt(0, Math.floor((defense * (player.skills.shielding.level + 10)) / 80));
   }

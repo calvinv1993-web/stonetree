@@ -867,6 +867,18 @@ test('a test character: level 100 with the best gear its vocation may wear, for 
   }
 });
 
+test('the equipment\'s defense: the shield\'s, or without one the weapon\'s, a better grade counting more', () => {
+  const { ctx } = quietGame(), run = code => require('vm').runInContext(code, ctx);
+  run(`player.equipment.weapon = { id: 'wooden_club', count: 1 }; player.equipment.shield = null;`);
+  assert.strictEqual(run('totalDefense()'), run('ITEMS.wooden_club.defense'), 'no shield: the weapon defends');
+  run(`player.equipment.shield = { id: 'wooden_shield', count: 1 };`);
+  assert.strictEqual(run('totalDefense()'), 12, 'the shield, not the weapon');
+  run(`player.equipment.shield.q = 2;`);
+  assert(run('totalDefense()') > 12, 'a better shield defends more');
+  run(`player.equipment.shield = null; player.equipment.weapon = null;`);
+  assert.strictEqual(run('totalDefense()'), 0, 'nothing worn: nothing blocks');
+});
+
 let failed = 0;
 for (const t of tests) {
   try {

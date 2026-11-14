@@ -1205,6 +1205,12 @@ function addSkillTries(skill, n = 1) {
   uiDirty();
 }
 
+// What blocks part of a physical hit: the shield's defense, or without a shield the weapon's (before the fight mode)
+function totalDefense() {
+  const eq = player.equipment, shield = eq.shield && ITEMS[eq.shield.id];
+  return (shield ? qualityStat(shield.defense, eq.shield.q) : (eq.weapon && qualityStat(ITEMS[eq.weapon.id].defense, eq.weapon.q))) || 0;
+}
+
 function totalArmor() {
   return SLOTS.reduce((sum, slot) => { const it = player.equipment[slot]; return sum + (it ? qualityStat(ITEMS[it.id].armor, it.q) : 0); }, 0);
 }

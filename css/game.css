@@ -283,3 +283,16 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 #sky .sky-fill { position: absolute; inset: 0; }
 .guide-card .guide-now { color: var(--accent, #ffd84a); margin-top: 4px; }
 .guide-card button { margin-top: 6px; }
+/* the stats of what you wear (game-ui.js GEAR_STATS): a line each, its name left and its value right */
+.gear-stats { display: grid; grid-template-columns: 1fr; padding: 3px 8px; border: 1px solid #3a3631; border-radius: 6px; background: #0003; }
+.gear-stat { display: flex; justify-content: space-between; gap: 6px; padding: 1px 0; white-space: nowrap; }
+.gear-stat + .gear-stat { border-top: 1px solid #ffffff0d; }
+.gear-stat b { color: #f0c36a; font-weight: 600; }
+.gear-gold { margin-top: 4px; }
+/* a card with what a ware is (the shop): it only shows, so it never catches the mouse */
+.item-menu.item-card { pointer-events: none; background: #17140f; }
+.item-menu .item-stats { margin: 6px 0 2px; border: 0; background: #0006; }
+.item-menu .item-stats b { color: #f0c36a; }
+.gear-stat em { font-style: normal; font-weight: 700; }
+.gear-stat em.up { color: #7fd36b; }
+.gear-stat em.down { color: #ff8a7a; }
