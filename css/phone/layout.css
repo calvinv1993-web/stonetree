@@ -456,18 +456,19 @@ body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; pad
 /* The phone's status bar (js/mobile-hud.js builds what the old HUD lacks; touch.js keeps the values up to date):
    the round map left, the round menu right, between them the level, health and mana (a heart and a drop before them)
    and under them the experience to the next level, thin, its label left and its percent right. */
-body.touch-ui .hud { grid-template-columns: 44px 16px minmax(0,1fr) 16px minmax(0,1fr) 30px; grid-template-rows: 22px 12px; gap: 5px 5px; padding: 7px 12px 8px; align-items: center; background: linear-gradient(#1e1c16, #0e0d0a) !important; border-bottom: 1px solid #a8823f; box-shadow: 0 1px 0 #2d220f, 0 2px 6px #0008; }
+body.touch-ui .hud { grid-template-columns: auto minmax(0,1fr) minmax(0,1fr) auto auto; grid-template-rows: 22px 12px; gap: 6px 8px; padding: 7px 12px 8px; align-items: center; background: linear-gradient(#1e1c16, #0e0d0a) !important; border-bottom: 1px solid #a8823f; box-shadow: 0 1px 0 #2d220f, 0 2px 6px #0008; }
 body.touch-ui .hud-name, body.touch-ui .hud-gold, body.touch-ui .hud-lvl { display: none; }
-body.touch-ui .hud-level { grid-column: 1; grid-row: 1; color: #e8bd62; font: 700 13px/1 Georgia, serif; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 2px #000; }
+/* the status bar: health and mana the whole width, each its icon on its start; under them experience, the level and the percent */
+body.touch-ui .hud-level { grid-column: 4; grid-row: 2; color: #e8bd62; font: 700 12px/1 Georgia, serif; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 2px #000; }
 body.touch-ui .hud-level #hudLvl { position: static; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
-body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; width: 16px; height: 16px; filter: drop-shadow(0 1px 1px #000); }
-body.touch-ui .hud .hud-icon-hp { grid-column: 2; }
-body.touch-ui .hud .hud-icon-mana { grid-column: 4; }
+body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; justify-self: start; position: relative; z-index: 2; width: 22px; height: 22px; margin-left: -6px; filter: drop-shadow(0 1px 1px #000) drop-shadow(0 0 2px #000a); }
+body.touch-ui .hud .hud-icon-hp { grid-column: 1 / 3; }
+body.touch-ui .hud .hud-icon-mana { grid-column: 3 / 6; }
 body.touch-ui .hud .tbar { width: 100%; min-width: 0; height: 18px; grid-row: 1; border: 1px solid #4a3a24; border-radius: 9px; box-shadow: inset 0 1px 3px #000; }
-body.touch-ui .hud .tbar.hp { grid-column: 3; grid-row: 1; }
-body.touch-ui .hud .tbar.mana { grid-column: 5; grid-row: 1; } /* (as long as the health bar; both end where the experience bar does) */
+body.touch-ui .hud .tbar.hp { grid-column: 1 / 3; grid-row: 1; }
+body.touch-ui .hud .tbar.mana { grid-column: 3 / 6; grid-row: 1; } /* (as long as the health bar) */
 body.touch-ui .hud .tbar span { line-height: 14px; font: 700 11px/16px Inter, sans-serif; text-shadow: 0 1px 2px #000; }
 body.touch-ui .hud-exp-label { grid-column: 1; grid-row: 2; color: #e8e0cc; font: 700 10px/1 Inter, sans-serif; letter-spacing: 0.5px; }
-body.touch-ui .hud .hud-xp { display: block; position: relative; grid-column: 2 / 6; grid-row: 2; width: 100%; height: 9px; border-radius: 5px; overflow: hidden; background: #1c1922; box-shadow: inset 0 1px 2px #000; }
+body.touch-ui .hud .hud-xp { display: block; position: relative; grid-column: 2 / 4; grid-row: 2; width: 100%; height: 9px; border-radius: 5px; overflow: hidden; background: #1c1922; box-shadow: inset 0 1px 2px #000; }
 body.touch-ui #hudXp { height: 100%; background: linear-gradient(#b878ea, #6a34a0); }
-body.touch-ui #hudXpText { grid-column: 6; grid-row: 2; color: #e8e0cc; font: 700 10px/1 Inter, sans-serif; text-align: right; white-space: nowrap; }
+body.touch-ui #hudXpText { grid-column: 5; grid-row: 2; color: #e8e0cc; font: 700 10px/1 Inter, sans-serif; text-align: right; white-space: nowrap; }
