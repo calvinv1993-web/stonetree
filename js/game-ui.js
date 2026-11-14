@@ -896,7 +896,7 @@ function handleEvents() {
     else if (kind === 'openContainer') {
       openContainer(data);
       // on a phone, open bags show in the inventory drawer (inventory-drawer.js), or else over the map
-      if (touchScreen && typeof InventoryDrawer !== 'undefined' && document.getElementById('inventoryDrawer')) InventoryDrawer.open(Math.max(1, InventoryDrawer.stage()));
+      if (touchScreen && typeof InventoryDrawer !== 'undefined' && document.getElementById('inventoryDrawer')) InventoryDrawer.open(2); // (expanded: where the other bags show)
       else document.body.classList.add(touchScreen ? 'bag-open' : 'panel-open');
     } else if (kind === 'useWith') {
       document.body.classList.remove('panel-open'); // out of the way, to tap the target
