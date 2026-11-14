@@ -486,7 +486,15 @@ const Render = {
             : (map.townZones = { zones: map.zones, count: (map.zones || []).length, list: (map.zones || []).filter(r => r.town) }).list;
           const towns = allTowns.filter(r => r.z === z && r.x1 >= gx0 && r.x0 <= gx1 && r.y1 >= gy0 && r.y0 <= gy1);
           const inTown = (tx, ty) => towns.some(r => tx >= r.x0 && tx <= r.x1 && ty >= r.y0 && ty <= r.y1);
-          if (towns.length) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          // With the owner's border kit the bank is its band of stones, lying in the water against the land (a border lies
+          // beside what it borders), joined round the corners as a mountain top's rim is
+          const kitBank = Sprites.kitTile && Sprites.kitTile('10000000', 0, 0);
+          if (towns.length && kitBank) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+            if (!wet(groundAt(x, y)) || !inTown(x, y)) continue;
+            const mask = EAVE_NEIGHBOURS.map(([dx, dy]) => (banked(groundAt(x + dx, y + dy)) && !wallAt(x + dx, y + dy) && inTown(x + dx, y + dy) ? '1' : '0')).join('');
+            if (mask.includes('1')) g.drawImage(Sprites.kitTile(mask, x, y), ox + x * TILE, oy + y * TILE, TILE, TILE);
+          }
+          if (towns.length && !kitBank) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
             const here = groundAt(x, y), w = wet(here);
             if ((!w && !banked(here)) || !inTown(x, y)) continue;
             for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {

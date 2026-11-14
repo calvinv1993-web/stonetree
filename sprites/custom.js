@@ -15,6 +15,14 @@ const CUSTOM_SPRITES = {
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
   cobble: 'cobble-mock.png',
+  rim_kit_n: 'rim-kit-n.png', // the owner's border kit of stones: beside an edge by where the inside lies (n e s w), and
+  rim_kit_e: 'rim-kit-e.png', // round an outside corner by which diagonal is the inside (ne se sw nw); a mountain top's rim
+  rim_kit_s: 'rim-kit-s.png', // and the bank along water in town are laid from them (see kitTile)
+  rim_kit_w: 'rim-kit-w.png',
+  rim_kit_ne: 'rim-kit-ne.png',
+  rim_kit_se: 'rim-kit-se.png',
+  rim_kit_sw: 'rim-kit-sw.png',
+  rim_kit_nw: 'rim-kit-nw.png',
   lip_rock: 'lip-quay.png', // the rim of stones along a mountain top's open edges, from the owner's picture (see Sprites.ownLip)
   flowers_0: 'flowers-0@2x.png', // the patches of flowers on the map, from the same flowers (three variants)
   flowers_1: 'flowers-1@2x.png',

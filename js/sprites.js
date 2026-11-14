@@ -723,6 +723,8 @@ const Sprites = (() => {
   // from the rim's picture (a strip along a north edge, its band of stones BAND world pixels deep at its top).
   const RIM_BAND = 16, RIM_SQUARES = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]];
   function rimTile(mask, x, y) {
+    const kit = kitTile(mask, x, y);
+    if (kit) return kit;
     const pic = customImage('lip_rock');
     if (!pic) return null;
     const TW = pic.naturalWidth, TH = pic.naturalHeight, res = TH / TILE, R = 2, N = TILE * R;
@@ -770,6 +772,73 @@ const Sprites = (() => {
       const tx = ((Math.floor(along * res) % TW) + TW) % TW, ty = Math.min(TH - 1, Math.max(0, Math.floor((RIM_BAND - dd) * res)));
       const ti = (ty * TW + tx) * 4, i = k * 4;
       data[i] = tex.data[ti]; data[i + 1] = tex.data[ti + 1]; data[i + 2] = tex.data[ti + 2]; data[i + 3] = tex.data[ti + 3];
+    }
+    g.putImageData(img, 0, 0);
+  }
+  // A band of stones from the owner's border kit, lying on a tile against the edges of what it borders (the inside: a
+  // mountain top, or the land beside water), never turned, so each side keeps its light from the top left.
+  // sprites/custom.js rim_kit_n, _e, _s, _w: the stones beside an edge, by where the inside lies (a strip KIT_LEN tiles
+  // long, KIT_BAND world pixels deep, its inner side against the edge); rim_kit_ne, _se, _sw, _nw: the square of stones
+  // round an outside corner of the inside, by which diagonal neighbour the inside is. Each pixel takes the stones of the
+  // nearest inside square: beside an edge from that edge's strip, round its corner from the corner's square, and where
+  // two edges meet in this tile, on the diagonal. mask: which neighbours (n e s w ne se sw nw) are inside.
+  const KIT_BAND = 12, KIT_LEN = 3, KIT_K = 4, KIT_SIDES = ['n', 'e', 's', 'w', 'ne', 'se', 'sw', 'nw'];
+  const kitPics = () => {
+    const pics = KIT_SIDES.map(d => customImage(`rim_kit_${d}`));
+    return pics.every(p => p && p.complete && p.naturalWidth) ? pics : null;
+  };
+  function kitTile(mask, x, y) {
+    const pics = kitPics();
+    if (!pics) return null;
+    const R = 2, N = TILE * R, m = v => ((v % KIT_LEN) + KIT_LEN) % KIT_LEN, mx = m(x), my = m(y);
+    return cached(`kit:${mask}:${mx}:${my}`, g => { g.canvas.res = R; kitPaint(g, pics, mask, mx, my, R, N); }, N);
+  }
+  const kitFields = new Map();
+  function kitField(mask, N, R) { // for each pixel: which piece (an index into KIT_SIDES, 255: none), how deep, where along
+    let f = kitFields.get(mask);
+    if (f) return f;
+    const tops = RIM_SQUARES.filter((s, i) => mask[i] === '1'), side = new Uint8Array(N * N).fill(255), u = new Float32Array(N * N), v = new Float32Array(N * N);
+    for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+      const wx = (px + 0.5) / R, wy = (py + 0.5) / R, k = py * N + px;
+      let best = 99;
+      for (const [sx, sy] of tops) {
+        const x0 = sx * TILE, y0 = sy * TILE, dx = Math.max(x0 - wx, 0, wx - x0 - TILE), dy = Math.max(y0 - wy, 0, wy - y0 - TILE);
+        const dd = Math.hypot(dx, dy);
+        if (dd >= best) continue;
+        best = dd;
+        if (dx === 0) { side[k] = wy < y0 ? 2 : 0; u[k] = dy; v[k] = wx; }        // (beside its north edge, the inside is south)
+        else if (dy === 0) { side[k] = wx < x0 ? 1 : 3; u[k] = dx; v[k] = wy; }   // (beside its west edge, the inside is east)
+        else { side[k] = wx < x0 ? (wy < y0 ? 5 : 4) : (wy < y0 ? 6 : 7); u[k] = dx; v[k] = dy; } // round a corner: how far out
+      }
+      if (best >= KIT_BAND * 1.5) side[k] = 255;
+    }
+    f = { side, u, v };
+    kitFields.set(mask, f);
+    return f;
+  }
+  function kitPaint(g, pics, mask, mx, my, R, N) {
+    const tex = pics.map(edgePixels), img = g.createImageData(N, N), data = img.data, f = kitField(mask, N, R), B = KIT_BAND, K = KIT_K;
+    const L = KIT_LEN * TILE * K, base = [mx * TILE, my * TILE];
+    for (let k = 0; k < N * N; k++) {
+      const s = f.side[k];
+      if (s === 255) continue;
+      const t = tex[s], W = t.width, H = t.data.length / 4 / W, a = f.u[k], b = f.v[k];
+      let tx, ty;
+      if (s < 4) { // beside an edge: a is how far from it, b where along it
+        if (a >= B) continue;
+        const along = ((Math.floor((b + base[s % 2 ? 1 : 0]) * K) % L) + L) % L;
+        if (s === 0) { tx = along; ty = Math.floor(a * K); }                 // inside north: the strip's top against it
+        else if (s === 2) { tx = along; ty = Math.floor((B - a) * K); }      // inside south: its bottom
+        else if (s === 1) { tx = Math.floor((B - a) * K); ty = along; }      // inside east: its right side
+        else { tx = Math.floor(a * K); ty = along; }                         // inside west: its left side
+      } else { // round a corner: a, b how far out west/east and north/south of it
+        if (a >= B || b >= B) continue;
+        const west = s === 5 || s === 4, north = s === 5 || s === 6;           // (se: the pixel is north-west of the corner)
+        tx = Math.floor((west ? B - a : a) * K); ty = Math.floor((north ? B - b : b) * K);
+      }
+      tx = Math.min(W - 1, Math.max(0, tx)); ty = Math.min(H - 1, Math.max(0, ty));
+      const ti = (ty * W + tx) * 4, i = k * 4;
+      data[i] = t.data[ti]; data[i + 1] = t.data[ti + 1]; data[i + 2] = t.data[ti + 2]; data[i + 3] = t.data[ti + 3];
     }
     g.putImageData(img, 0, 0);
   }
@@ -6717,10 +6786,12 @@ const Sprites = (() => {
     // and its place along the strip of stones: mask says which of this tile's neighbours
     // (n, e, s, w, ne, se, sw, nw) are tops; x, y place it, so the stones run on from tile to tile.
     rimTile: (mask, x, y) => rimTile(mask, x, y),
+    // The same band of stones from the owner's border kit alone (see kitTile), or null without it: the bank along water
+    kitTile: (mask, x, y) => kitTile(mask, x, y),
     // Getting ready to play (see the preloading in game.js): how many of the custom pictures are still loading, and
     // jobs that work out the mountain rim's shapes ahead of time (one per shape a tile can have)
     picturesLoading: () => [...custom.values()].filter(i => !i.complete).length,
-    warmRim: () => Array.from({ length: 255 }, (_, k) => () => { const m = (k + 1).toString(2).padStart(8, '0'); rimField(m, TILE * 2, 2); }),
+    warmRim: () => Array.from({ length: 255 }, (_, k) => () => { const m = (k + 1).toString(2).padStart(8, '0'); rimField(m, TILE * 2, 2); kitField(m, TILE * 2, 2); }),
     // A tree crown's shadow on the ground: a soft dark round patch, centred down and right of the trunk's foot, about a
     // tile and a half across; ax, ay: where its picture goes from the tree's tile's corner (made once)
     crownShadow() {
