@@ -195,53 +195,6 @@ function toast(text, kind) {
   setTimeout(() => line.remove(), 3500);
 }
 
-// Mobile action priority is independent from the button layout.
-function smartActionContext() {
-  if (!player || player.dead) return { kind: 'idle', label: 'Action' };
-  const protectedZone = inPZ();
-  const nearbyMonsters = !protectedZone && monsters.some(m =>
-    !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m));
-  if (nearbyMonsters) return { kind: 'attack', label: 'Attack' };
-
-  // Corpses and ground piles can be reached by pathfinding, even when covered by controls.
-  const nearbyPiles = piles.filter(p => p.z === player.z && p.items && p.items.length &&
-    dist(p, player) <= 7).sort((a, b) => dist(a, player) - dist(b, player));
-  if (nearbyPiles.length) return { kind: 'loot', label: 'Loot', pile: nearbyPiles[0] };
-
-  const npc = npcs.filter(n => n.z === player.z && dist(n, player) <= TALK_RANGE)
-    .sort((a, b) => dist(a, player) - dist(b, player))[0];
-  if (npc) return { kind: 'talk', label: 'Talk', x: npc.x, y: npc.y, z: npc.z };
-
-  const nearby = [{ x: player.x, y: player.y, z: player.z }];
-  for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++)
-    if (dx || dy) nearby.push({ x: player.x + dx, y: player.y + dy, z: player.z });
-  for (const t of nearby) {
-    const tile = map.get(t.x, t.y, t.z);
-    if (tile && tile.items && tile.items.some(id => {
-      const d = THINGS[id];
-      return d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor ||
-        d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache || d.trainer);
-    })) return { kind: 'use', label: tile.items.some(id => THINGS[id].trainer) ? 'Train' : 'Use', ...t };
-  }
-  return { kind: protectedZone ? 'idle' : 'attack', label: protectedZone ? 'Action' : 'Attack' };
-}
-function pressSmartAction() {
-  const action = smartActionContext();
-  if (action.kind === 'attack') Actions.targetNext();
-  else if (action.kind === 'loot') Actions.lootNearest(action.pile.id);
-  else if (action.kind === 'talk' || action.kind === 'use')
-    Actions.interact(action.kind, action.x, action.y, action.z);
-}
-function updateSmartAction() {
-  const action = smartActionContext(), button = $('tAttack');
-  if (button.dataset.action !== action.kind) {
-    button.dataset.action = action.kind;
-    button.replaceChildren(Icons.img(action.kind in { attack: 1, talk: 1, loot: 1, use: 1 } ? action.kind : 'idle', 34));
-    button.title = action.label;
-    button.setAttribute('aria-label', action.label);
-  }
-}
-
 function initTouch() {
   if (!touchScreen) return;
   document.body.classList.add('touch-ui');
@@ -280,7 +233,7 @@ function initTouch() {
     e.preventDefault();
     if (player && !paused) fn();
   });
-  tap('tAttack', pressSmartAction);
+  tap('tAttack', () => SmartButton.press());
   tap('panelClose', () => closeSheet());
   for (const id of ['tabChar', 'tabQuests']) tap(id, () => toggleSheet($(id).dataset.sheet));
   tap('talkClose', () => { if (player.conversation) Actions.say('bye'); hideTalk(); });
@@ -302,7 +255,7 @@ function initTouch() {
   let fightShown = '', fightingUntil = 0, lastHp = 0;
   setInterval(() => {
     if (!player) return;
-    updateSmartAction();
+    SmartButton.refresh($('tAttack'));
     const fight = `${player.fightMode}|${player.chase}|${player.secure}`;
     if (fight !== fightShown) {
       fightShown = fight;

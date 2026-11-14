@@ -1,0 +1,16 @@
+/* The phone's smart button (js/smart-button.js): round, a little bigger than the action buttons, in the middle of the
+   bar, a gold ring round a colour that says what a press does: red to attack, blue to talk, amber to loot, green to
+   use, dark when there's nothing to do. Pressed, it gives a little; nothing else moves. */
+body.touch-ui #tAttack {
+  width: 64px !important; height: 64px !important; color: #fff;
+  border: 2px solid #e6b85f !important;
+  box-shadow: 0 0 0 3px #2a1f0f, 0 0 0 4px #7a5a28, 0 4px 10px #000a !important;
+  background: radial-gradient(circle at 50% 28%, #ffffff40, transparent 55%), radial-gradient(circle at 50% 60%, var(--act-1), var(--act-2) 78%) !important;
+  --act-1: #d04a38; --act-2: #6e1610;
+}
+body.touch-ui #tAttack[data-action="talk"] { --act-1: #4a8fd8; --act-2: #173c74; }
+body.touch-ui #tAttack[data-action="loot"] { --act-1: #d0a040; --act-2: #6a4610; }
+body.touch-ui #tAttack[data-action="use"] { --act-1: #56a065; --act-2: #1d4a26; }
+body.touch-ui #tAttack[data-action="idle"] { --act-1: #3a372f; --act-2: #15140f; color: #9a8f78; border-color: #8a6e3c !important; }
+body.touch-ui #tAttack .icon { width: 32px; height: 32px; filter: drop-shadow(0 1px 2px #0009); }
+body.touch-ui #tAttack:active { transform: translateX(-50%) scale(0.94) !important; }
