@@ -11,7 +11,9 @@ const ActionSlots = (() => {
     // sorcerer and druid
     'fire_bolt', 'conjure_missile', 'conjure_fire_field', 'conjure_fireball', 'flame_burst', 'magic_shield', 'conjure_energy_field',
     'conjure_magic_wall', 'energy_beam', 'inferno', 'ice_bolt', 'conjure_heal', 'conjure_poison_field', 'thorn_burst', 'conjure_paralyze',
-    'frost_wave', 'blizzard']);
+    'frost_wave', 'blizzard',
+    // paladin (Greater Heal for the druid too)
+    'holy_bolt', 'conjure_arrows', 'greater_heal', 'conjure_bolts', 'holy_wave', 'holy_storm']);
   const art = id => (ART.has(id) ? `sprites/ui/actions/${id}.png` : null);
 
   // What stands in the way of an action right now: wait (ms of cooldown left, out of total), short (too little mana)

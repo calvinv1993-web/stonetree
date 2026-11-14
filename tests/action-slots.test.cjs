@@ -20,10 +20,10 @@ ctx.player.potionReady = 5250;
 assert.equal(S.state('m').wait, 250, 'potions have their own');
 assert.equal(json(S.state('f')), '{}', 'food has neither');
 assert.equal(S.art('power_strike'), 'sprites/ui/actions/power_strike.png');
-assert.equal(S.art('holy_bolt'), null, 'no picture yet: initials');
+assert.equal(S.art('final_blaze'), null, 'no picture: initials');
 for (const id of ['light', 'light_heal', 'cure_poison', 'power_strike', 'haste', 'whirlwind', 'shield_bash', 'earthshaker', 'h', 'm', 'f',
   'fire_bolt', 'conjure_missile', 'conjure_fire_field', 'conjure_fireball', 'flame_burst', 'magic_shield', 'conjure_energy_field',
   'conjure_magic_wall', 'energy_beam', 'inferno', 'ice_bolt', 'conjure_heal', 'conjure_poison_field', 'thorn_burst', 'conjure_paralyze',
-  'frost_wave', 'blizzard'])
+  'frost_wave', 'blizzard', 'holy_bolt', 'conjure_arrows', 'greater_heal', 'conjure_bolts', 'holy_wave', 'holy_storm'])
   assert.ok(fs.existsSync(path.join(__dirname, '..', S.art(id))), `${id} has its picture`);
 console.log('PASS: action slot mana, cooldowns, potions and pictures');
