@@ -17,6 +17,8 @@ const STILL = `#view, #minimap, #hudMap canvas, #hudFace, #talkFace, #worldCanva
   #toasts, .toast, #speedMeter { display: none !important; } .chat-line { opacity: 1 !important; }`;
 
 const game = async (page, url) => {
+  // (the same day and hour every time: the log's times and the world's clock read the date)
+  await page.addInitScript(() => { const T = Date.UTC(2026, 0, 1, 12, 0, 0), D = Date; Date = class extends D { constructor(...a) { super(...(a.length ? a : [T])); } static now() { return T; } }; });
   await page.addInitScript(() => { localStorage.clear(); Math.random = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })(); });
   await page.goto(`${url}/index.html`);
   await page.fill('#createName', 'Snap'); await page.click('#createStart'); await page.click('#outfitDone', { timeout: 3000 }).catch(() => {});
@@ -137,7 +139,8 @@ async function compare(browser, a, b, diffAt) {
   await Promise.all(Array.from({ length: 4 }, async () => { while (queue.length) await one(queue.shift()); }));
   for (const [name, page0] of [['editor', 'editor.html'], ['data', 'data.html']]) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-    await page.goto(`${url}/${page0}`); await page.waitForTimeout(1500); await page.addStyleTag({ content: STILL }); await page.waitForTimeout(200);
+    await page.addInitScript(() => { const T = Date.UTC(2026, 0, 1, 12, 0, 0), D = Date; Date = class extends D { constructor(...a) { super(...(a.length ? a : [T])); } static now() { return T; } }; });
+    await page.goto(`${url}/${page0}`); await page.waitForTimeout(2500); await page.addStyleTag({ content: STILL }); await page.waitForTimeout(200);
     const file = path.join(out, `${name}.png`);
     await page.screenshot({ path: file });
     if (ref) { const r = await compare(browser, path.join(ref, `${name}.png`), file, path.join(out, `${name}.diff.png`)); if (r.changed > 4) { differ++; console.log(`  DIFF ${name}: ${r.changed} pixels`); } else same++; }
