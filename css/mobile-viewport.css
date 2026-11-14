@@ -1,12 +1,20 @@
-/* One owner for each safe inset; the canvas keeps its existing scale calculation. */
+/* The page fills the phone's screen (js/mobile-viewport.js keeps the canvas fitted when it changes): one owner for
+   each safe inset. Installed on an iPhone the page starts below the status bar (apple-mobile-web-app-status-bar-style
+   black, so nothing lies behind it to blur), or under it with the top inset as padding where a browser puts it there. */
 body.touch-ui { height: 100vh; height: 100dvh; bottom: auto; background: #1b1a17; }
 body.touch-ui .layout {
   height: 100%; min-height: 0; box-sizing: border-box;
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   background: #1b1a17;
 }
-body.touch-ui { --tabbar: calc(82px + env(safe-area-inset-bottom, 0px)); }
 body.touch-ui .hud { background: #1b1a17; -webkit-backdrop-filter: none; backdrop-filter: none; }
-body.touch-ui #radialControls { bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important; }
-body.touch-ui #tAttack { bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important; }
-body.touch-ui #slotPages { bottom: calc(3px + env(safe-area-inset-bottom, 0px)); }
+/* Upright: the action bar hugs the home indicator's safe area (its own height plus that inset, nothing more), and an
+   open drawer or the chat takes the bar's place down to that safe area, so no strip of the map shows under them. */
+@media (orientation: portrait) {
+  body.touch-ui { --tabbar: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  body.touch-ui #radialControls { top: 7px !important; bottom: calc(7px + env(safe-area-inset-bottom, 0px)) !important; }
+  body.touch-ui #tAttack { bottom: calc(1px + env(safe-area-inset-bottom, 0px)) !important; }
+  body.touch-ui #slotPages { display: none; }
+  body.touch-ui.panel-open .panel { bottom: 0 !important; height: calc(100% - var(--hud-h)) !important; padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
+  body.touch-ui.chat-open .console { bottom: env(safe-area-inset-bottom, 0px) !important; }
+}

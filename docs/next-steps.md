@@ -144,3 +144,5 @@ Two or three townsfolk wander about with gossip that points to secrets.
 2. The places outside town, one at a time.
 3. The caves.
 4. The sprite sheets, in parallel, whenever there's art.
+
+**With the mainland's PvP and skulls:** put a way to turn secure mode off back on the phone (the owner's choice, November 2026). On Oakvale Isle players can't fight each other, so the phone's menu has no Fighting section; fight mode and chase stay in the bar that shows while fighting.
