@@ -597,8 +597,7 @@ function renderEquipment() {
   }
   const stats = $('gearStats');
   stats.replaceChildren(
-    h('div', { className: 'gear-stats' }, ...GEAR_STATS.map(([name, value, hint]) => h('div', { className: 'gear-stat', title: hint }, h('span', {}, name), h('b', {}, String(value()))))),
-    h('div', { className: 'gear-gold' }, `${player.gold} gold${player.bank ? ` (+${player.bank} in bank)` : ''}`));
+    h('div', { className: 'gear-stats' }, ...GEAR_STATS.map(([name, value, hint]) => h('div', { className: 'gear-stat', title: hint }, h('span', {}, name), h('b', {}, String(value()))))));
 }
 
 // The stats of what you wear, in the equipment window: a name, its value and what it does. More (critical hits...)
@@ -656,6 +655,16 @@ function containerWindow(root, path, heading, closable) {
     h.appendChild(x);
   }
   box.append(h, grid);
+  // your gold (kept apart from the bag's places), under the bag you carry
+  if (root === 'bag' && !path.length) {
+    const coin = new Image(), gold = document.createElement('div'), sum = document.createElement('b');
+    coin.src = Sprites.itemURL('gold');
+    sum.textContent = player.gold;
+    gold.className = 'bag-gold'; gold.title = 'Your gold';
+    gold.append(coin, sum, ' gold');
+    if (player.bank) gold.append(Object.assign(document.createElement('small'), { textContent: ` (+${player.bank} in the bank)` }));
+    box.append(gold);
+  }
   // A bigger bag in your bag (a backpack): one tap to carry everything in it instead (the old one goes inside).
   // Dragging it onto the bag slot does the same, but on a phone that slot is rarely in sight.
   if (root === 'bag' && path.length === 1 && ITEMS[c.id].slot === 'backpack' && capacityOf(c) > capacityOf(bag())) {

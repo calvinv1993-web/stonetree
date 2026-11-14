@@ -288,7 +288,9 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 .gear-stat { display: flex; justify-content: space-between; gap: 6px; padding: 1px 0; white-space: nowrap; }
 .gear-stat + .gear-stat { border-top: 1px solid #ffffff0d; }
 .gear-stat b { color: #f0c36a; font-weight: 600; }
-.gear-gold { margin-top: 4px; }
+.bag-gold { display: flex; align-items: center; gap: 4px; margin-top: 6px; color: #b8a888; }
+.bag-gold img { width: 22px; height: 22px; image-rendering: pixelated; }
+.bag-gold b { color: #f0c36a; }
 /* a card with what a ware is (the shop): it only shows, so it never catches the mouse */
 .item-menu.item-card { pointer-events: none; background: #17140f; }
 .item-menu .item-stats { margin: 6px 0 2px; border: 0; background: #0006; }
