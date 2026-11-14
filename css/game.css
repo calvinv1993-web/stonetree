@@ -317,3 +317,6 @@ body.welcome::before { content: ''; position: fixed; inset: 0 0 -120px; z-index:
 body.welcome #create, body.welcome #outfit { z-index: 30; }
 body.game.welcome:not(.touch-ui) #create, body.game.welcome:not(.touch-ui) #outfit { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; }
 body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #chatLine { visibility: hidden !important; }
+/* the painted pictures (potions: Sprites.itemURL) are smoothed, not blown up in blocks as the pixel art is, and fill
+   the slot a little more, as on the action buttons */
+.slot img[src*="ui/actions/"], .shop-row img[src*="ui/actions/"] { image-rendering: auto; transform: scale(1.15); }

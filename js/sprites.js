@@ -6399,6 +6399,7 @@ const Sprites = (() => {
       custom.set(id, img);
     }
   }
+  const UI_ART = { health_potion: 'h.png', mana_potion: 'm.png' }; // (see itemURL)
   const customImage = id => {
     const img = custom.get(id);
     return img && img.complete && img.naturalWidth ? img : null;
@@ -6585,7 +6586,10 @@ const Sprites = (() => {
     },
     // URL of an item icon, for <img> tags in the UI.
     DOLLS: DOLLS_ON,
+    // An item's picture for the page (bag slots, shops, corpses, dragging; never the map): the painted action
+    // pictures where there's one, so a potion looks the same in the backpack as on its action button
     itemURL(id) {
+      if (UI_ART[id]) return `sprites/ui/actions/${UI_ART[id]}${SPRITE_VERSION}`;
       if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}${SPRITE_VERSION}`;
       if (!urls.has(id)) urls.set(id, this.item(id).toDataURL());
       return urls.get(id);
