@@ -102,9 +102,7 @@ body.touch-ui .ctx-menu button { padding: 11px 16px; font-size: 16px; }
 body.touch-ui .worldmap:not([hidden]) { z-index: 80; }
 body.touch-ui .radial-controls { position: absolute; right: max(7px,env(safe-area-inset-right)); pointer-events: none; }
 body.touch-ui .radial-controls .favs { position: absolute; inset: 0; display: block; pointer-events: none; }
-body.touch-ui .radial-controls .fav { position: absolute; }
 body.touch-ui .radial-controls .fav:active,body.touch-ui .radial-controls .fav.holding { opacity: 1; }
-body.touch-ui .radial-controls .fav:nth-child(5) { right: 8px; top: 110px; }
 body.touch-ui .radial-controls .fav span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
 body.touch-ui .attack-btn { z-index: 2; border-radius: 50%; }
 body.touch-ui .attack-btn[data-action="loot"] { background: #715328e3; }
@@ -172,9 +170,6 @@ body.touch-ui .radial-controls { bottom: calc(var(--tabbar) + 8px) !important; }
 body.touch-ui .attack-btn { right: calc(max(7px, env(safe-area-inset-right)) + 62px) !important; bottom: calc(var(--tabbar) + 30px) !important; width: 82px !important; height: 82px !important; font-size: 34px; }
 /* four round quick buttons round it: the two potions on its left, your two below the top and right */
 body.touch-ui .radial-controls .fav { width: 52px !important; height: 52px !important; border-radius: 50% !important; padding: 2px !important; }
-body.touch-ui .radial-controls .fav:nth-child(1) { left: auto !important; top: 6px !important; }
-body.touch-ui .radial-controls .fav:nth-child(3) { left: 4px !important; top: 96px !important; }
-body.touch-ui .radial-controls .fav:nth-child(4) { left: 16px !important; top: 36px !important; }
 body.touch-ui .radial-controls .fav small { position: absolute; line-height: 14px; }
 /* sheets: the panel comes up from the bottom, showing only what belongs to the sheet */
 body.touch-ui .panel { top: auto !important; bottom: var(--tabbar) !important; left: 0 !important; right: 0 !important; width: auto !important; border-width: 2px 0 0; border-color: #8a6a30; transform: translateY(105%); z-index: 52; }
@@ -240,14 +235,6 @@ body.touch-ui:has(.dialog:not([hidden])) .talk-card { display: none !important; 
 body.touch-ui .panel { visibility: hidden; transition: transform 0.18s ease-out, visibility 0s linear 0.18s; }
 body.touch-ui.panel-open .panel { visibility: visible; transition: transform 0.18s ease-out, visibility 0s; }
 body.touch-ui .radial-controls { width: 220px !important; height: 180px !important; }
-body.touch-ui .radial-controls .fav:nth-child(3) { right: 157px !important; bottom: 37px !important; }
-/* health potion: left of the big button */
-body.touch-ui .radial-controls .fav:nth-child(4) { right: 134px !important; bottom: 94px !important; }
-/* mana potion: up and left */
-body.touch-ui .radial-controls .fav:nth-child(1) { right: 77px !important; bottom: 117px !important; }
-/* yours: above */
-body.touch-ui .radial-controls .fav:nth-child(2) { right: 20px !important; bottom: 94px !important; }
-/* yours: up and right */
 body.touch-ui .radial-controls .fav small:empty { display: none; }
 body.touch-ui .radial-controls .fav small { font-size: 11px !important; }
 body.touch-ui .radial-controls .fav.empty span { font-size: 22px; color: #e8d8b0; }
@@ -273,7 +260,7 @@ body.touch-ui .hud-xp div { background: var(--xp); border-radius: 2px; box-shado
 body.touch-ui .hud-gold { grid-column: 3; grid-row: 1 / 4; align-self: center; display: flex; align-items: center; gap: 5px; padding: 5px 10px 5px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-3); color: var(--text); font: 600 13px var(--ui); font-variant-numeric: tabular-nums; text-shadow: none; }
 body.touch-ui .hud-gold img { width: 18px; height: 18px; image-rendering: auto; }
 /* -- the guide: the same glass, an accent line for what to do now -- */
-body.touch-ui .guide { border: 1px solid var(--line-2) !important; border-left: 3px solid var(--accent) !important; border-radius: 12px !important; background: var(--glass) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow) !important; color: var(--text); }
+body.touch-ui .guide { border: 1px solid var(--line-2) !important; border-left: 3px solid var(--accent) !important; border-radius: 12px !important; background: var(--glass) !important; box-shadow: var(--shadow) !important; color: var(--text); }
 body.touch-ui .guide header b { font: 600 12px var(--ui); color: var(--accent); }
 body.touch-ui .guide header button { background: var(--bg-3); border: 1px solid var(--line); border-radius: 8px; box-shadow: none; color: var(--muted); }
 /* -- the bottom bar: solid, a hairline on top; the open tab in gold with a short bar over it -- */
@@ -284,9 +271,9 @@ body.touch-ui .tabbar button.active { color: var(--accent); background: none; }
 body.touch-ui .tabbar button.active::after { content: ''; position: absolute; top: -7px; left: 50%; width: 22px; height: 3px; transform: translateX(-50%); border-radius: 0 0 3px 3px; background: var(--accent); }
 body.touch-ui .tabbar button:active span { transform: scale(0.92); }
 /* -- the controls: glass discs, the big button in the colour of what it does -- */
-body.touch-ui .joystick { border: 1px solid var(--line-2); background: rgba(20, 19, 17, 0.42); box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.02); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+body.touch-ui .joystick { border: 1px solid var(--line-2); background: rgba(20, 19, 17, 0.42); box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.02); }
 body.touch-ui .joystick .knob { border: 1.5px solid rgba(255, 255, 255, 0.55); background: rgba(238, 234, 227, 0.22); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); }
-body.touch-ui .radial-controls .fav { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2) !important; opacity: 1 !important; background: var(--glass) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important; color: var(--text); font: 600 10px/1.1 var(--ui); text-align: center; }
+body.touch-ui .radial-controls .fav { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2) !important; opacity: 1 !important; background: var(--glass) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important; color: var(--text); font: 600 10px/1.1 var(--ui); text-align: center; }
 body.touch-ui .radial-controls .fav span { display: flex; align-items: center; justify-content: center; }
 body.touch-ui .radial-controls .fav small { z-index: 1; right: -3px !important; bottom: -3px !important; min-width: 18px; padding: 0 5px !important; border: 0 !important; border-radius: 9px !important; background: var(--bg-4) !important; box-shadow: 0 0 0 2px var(--bg) !important; color: var(--text) !important; font: 600 10px/16px var(--ui) !important; text-align: center; font-variant-numeric: tabular-nums; }
 body.touch-ui .radial-controls .fav.empty { border: 1px dashed rgba(255, 255, 255, 0.2) !important; background: rgba(20, 19, 17, 0.4) !important; box-shadow: none !important; color: var(--muted); }
@@ -358,7 +345,7 @@ body.touch-ui input, body.touch-ui select { border: 1px solid var(--line-2); bor
 body.touch-ui input:focus { outline: 2px solid var(--accent-line); outline-offset: 0; }
 body.touch-ui .sheet-head .seg { margin-right: -48px; }
 /* messages over the map: small glass pills */
-body.touch-ui .toast { border: 1px solid var(--line); background: rgba(20, 19, 17, 0.82); color: var(--text); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+body.touch-ui .toast { border: 1px solid var(--line); background: rgba(20, 19, 17, 0.82); color: var(--text); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
 body.touch-ui .toast.damage { color: #ff9a9c; }
 body.touch-ui .toast.quest, body.touch-ui .toast.level { color: var(--accent); }
 /* the story card in the Quests sheet, quests, close buttons in windows, checkboxes, the chat line */
@@ -408,10 +395,10 @@ body.touch-ui .radial-controls .fav span:not(:has(svg)) { font: 600 9px/1.1 var(
 /* ---- while you fight: the fight mode and Follow, small icon buttons in a column at the left edge ------------------- */
 .fight-bar { display: none; }
 body.touch-ui.fighting .fight-bar { display: flex; flex-direction: column; gap: 6px; }
-body.touch-ui #fightModes { display: flex; flex-direction: column; gap: 2px; padding: 2px; border-radius: 20px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--line-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+body.touch-ui #fightModes { display: flex; flex-direction: column; gap: 2px; padding: 2px; border-radius: 20px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--line-2); }
 body.touch-ui #fightModes button, body.touch-ui .fight-bar .follow { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; color: var(--text); }
 body.touch-ui #fightModes button.active { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-line); }
-body.touch-ui .fight-bar .follow { margin-top: 2px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--line-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+body.touch-ui .fight-bar .follow { margin-top: 2px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--line-2); }
 body.touch-ui .fight-bar .follow.active { background: rgba(40, 32, 14, 0.85); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-line); }
 body.touch-ui.fighting .fight-bar { position: absolute; left: max(8px, env(safe-area-inset-left)); z-index: 3; pointer-events: auto; bottom: calc(var(--tabbar) + 16px); }
 @media (orientation: landscape) {
@@ -462,7 +449,6 @@ body:not(.touch-ui) #hudMap,body:not(.touch-ui) #hudMenu { display: none; }
    black, so nothing lies behind it to blur), or under it with the top inset as padding where a browser puts it there. */
 body.touch-ui { overscroll-behavior: none; height: 100dvh; bottom: auto; background: #1b1a17; }
 body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); background: #1b1a17; }
-body.touch-ui .hud { -webkit-backdrop-filter: none; }
 /* Upright: the action bar hugs the home indicator's safe area (its own height plus that inset, nothing more), and an
    open drawer or the chat takes the bar's place down to that safe area, so no strip of the map shows under them. */
 @media (orientation: portrait) {
@@ -474,7 +460,7 @@ body.touch-ui .hud { -webkit-backdrop-filter: none; }
 /* The phone's status bar (js/mobile-hud.js builds what the old HUD lacks; touch.js keeps the values up to date):
    the round map left, the round menu right, between them the level, health and mana (a heart and a drop before them)
    and under them the experience to the next level, thin, its label left and its percent right. */
-body.touch-ui .hud { backdrop-filter: none; grid-template-columns: 52px 50px 16px minmax(0,1fr) 16px minmax(0,1fr) 30px 46px; grid-template-rows: 22px 12px; gap: 5px 5px; padding: 6px 8px 7px; align-items: center; background: linear-gradient(#1e1c16, #0e0d0a) !important; border-bottom: 1px solid #a8823f; box-shadow: 0 1px 0 #2d220f, 0 2px 6px #0008; }
+body.touch-ui .hud { grid-template-columns: 52px 50px 16px minmax(0,1fr) 16px minmax(0,1fr) 30px 46px; grid-template-rows: 22px 12px; gap: 5px 5px; padding: 6px 8px 7px; align-items: center; background: linear-gradient(#1e1c16, #0e0d0a) !important; border-bottom: 1px solid #a8823f; box-shadow: 0 1px 0 #2d220f, 0 2px 6px #0008; }
 body.touch-ui .hud-name, body.touch-ui .hud-gold, body.touch-ui .hud-lvl { display: none; }
 body.touch-ui .hud-level { grid-column: 2; grid-row: 1; color: #e8bd62; font: 700 13px/1 Georgia, serif; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 2px #000; }
 body.touch-ui .hud-level #hudLvl { position: static; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
