@@ -21,6 +21,7 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   const bar = document.createElement('div'); bar.id = 'actionDock'; $('touch').appendChild(bar);
   bar.appendChild($('radialControls')); bar.appendChild($('tAttack'));
   ChatLine.attach(bar); // (the newest message, under the buttons: chat-line.js)
+  InventoryDrawer.attach(bar); // (equipment and backpack, swiped up from the bar: inventory-drawer.js)
   // Existing navigation remains accessible from the menu drawer.
   const nav = $('tabbar'); $('panel').prepend(nav);
   const saved = player && touchStorage.get(favKey() + '.pages');

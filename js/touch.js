@@ -42,6 +42,7 @@ function toggleFullscreen() {
 }
 
 function setChat(open, focus) {
+  if (open && typeof InventoryDrawer !== 'undefined') InventoryDrawer.close();
   document.body.classList.toggle('chat-open', open);
   if (open && typeof hideTalk === 'function') hideTalk(); // (the chat shows the talk too)
   if (open && focus) $('chat').focus();
@@ -310,6 +311,7 @@ const SHEETS = {
 };
 function openSheet(kind, seg) {
   const sheet = SHEETS[kind];
+  if (typeof InventoryDrawer !== 'undefined') InventoryDrawer.close(); // (it holds the equipment and bags: they go home first)
   setChat(false);
   document.body.classList.add('panel-open');
   document.body.classList.remove('bag-open');
