@@ -274,8 +274,8 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 /* Getting ready to play: over the world while its pictures are made (see Preload in game.js) */
 /* the loading screen (game.js Preload): the painted valley at dusk, the logo high in the sky, the text and a gold bar low
    on the path. The picture follows the screen's shape: a phone upright, a tablet, or a wide screen */
-#loading { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: max(9vh, env(safe-area-inset-top)) 24px max(10vh, calc(env(safe-area-inset-bottom) + 24px));
+#loading { position: fixed; inset: 0 0 -120px; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: max(9vh, env(safe-area-inset-top)) 24px calc(120px + max(10vh, calc(env(safe-area-inset-bottom) + 24px)));
   background: #14110d url(../sprites/ui/loading/background-desktop.jpg) center / cover no-repeat; }
 @media (max-aspect-ratio: 1/1) { #loading { background-image: url(../sprites/ui/loading/background-tablet.jpg); background-position: center bottom; } }
 @media (max-aspect-ratio: 3/5) { #loading { background-image: url(../sprites/ui/loading/background-phone.jpg); } }
@@ -310,7 +310,8 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 .gear-stat em.down { color: #ff8a7a; }
 /* the welcome (game-ui.js welcome()): naming a character, its outfit, logging in. The loading screen's picture behind
    the window; on a phone none of the game's controls (they come once you're in) */
-body.welcome::before { content: ''; position: fixed; inset: 0; z-index: 25; background: #14110d url(../sprites/ui/loading/background-desktop.jpg) center / cover no-repeat; }
+/* (past the bottom edge: as an app on an iPhone the screen's bottom strip, under the home bar, lies outside it) */
+body.welcome::before { content: ''; position: fixed; inset: 0 0 -120px; z-index: 25; background: #14110d url(../sprites/ui/loading/background-desktop.jpg) center / cover no-repeat; }
 @media (max-aspect-ratio: 1/1) { body.welcome::before { background-image: url(../sprites/ui/loading/background-tablet.jpg); background-position: center bottom; } }
 @media (max-aspect-ratio: 3/5) { body.welcome::before { background-image: url(../sprites/ui/loading/background-phone.jpg); } }
 body.welcome #create, body.welcome #outfit { z-index: 30; }
