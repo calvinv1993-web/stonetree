@@ -87,9 +87,13 @@ const Render = {
       const key = `${z}:${cx}:${cy}`;
       let c = keep.get(key);
       if (c && c.tag !== tag) { Render.forget(key); c = null; }
+      if (!ahead && c) c.seen = Render.frameNo; // (in view: not let go of while it is, see below)
       if (c && c.made >= PARTS) { keep.delete(key); keep.set(key, c); return c; } // (to the back of the line: just used)
       const tx0 = cx * C, ty0 = cy * C;
       if (!c) { // (seeing what's in it is quick: done even without time to spare)
+        // (round the view, only while there's room: one made ahead would push out one in view, to be made again next
+        // frame, and that one another... a place with many floors over each other went round in that circle: a stall)
+        if (ahead && Render.pictures + 1 > Render.CHUNKS_KEPT) return null; // (a whole one must fit, or it pushes one out)
         // what's in it: nothing (an empty upper floor), moving ground (drawn live), or ground to keep
         let any = false, moving = false, bx0 = C, by0 = C, bx1 = -1, by1 = -1; // (and the box of its tiles with ground: only that is put down)
         for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
@@ -124,7 +128,8 @@ const Render = {
         }
         if (c.canvas) { // at most CHUNKS_KEPT pictures' worth (a part of one counts as its part): the least recently used go first (empty chunks cost nothing: they stay)
           Render.pictures += c.weight;
-          for (const [k, o] of keep) { if (Render.pictures <= Render.CHUNKS_KEPT) break; if (o.canvas) Render.forget(k); }
+          // (never one shown this frame or the last: those are made again at once; if every one is, more are kept a while)
+          for (const [k, o] of keep) { if (Render.pictures <= Render.CHUNKS_KEPT) break; if (o.canvas && !(o.seen >= Render.frameNo - 1)) Render.forget(k); }
         }
         keep.set(key, c);
       }
@@ -259,6 +264,7 @@ const Render = {
   // }
   world(g, map, v) {
     Render.budget = performance.now() + Render.CHUNK_MS;
+    Render.frameNo = (Render.frameNo || 0) + 1; // (which chunks this frame shows: see seen in ground)
     g.fillStyle = '#000';
     g.fillRect(0, 0, v.w, v.h);
 
