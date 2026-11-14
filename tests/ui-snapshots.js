@@ -2,6 +2,8 @@
 // blanked), to tell whether a change to the CSS moved anything: take them before, again after, and compare.
 //   node tests/ui-snapshots.js <folder>                 take them
 //   node tests/ui-snapshots.js <folder> --compare <ref>  take them and compare each with the one in <ref>
+// Beside each picture it keeps every element's computed style (<state>.json): that is what the compare goes by, since
+// it doesn't move with the clock or the map. A difference is listed by element and property; the pictures show it.
 // Desktop, phones upright (iPhone SE, 15) and on their side, the map editor and the data editor. Needs Playwright.
 const fs = require('fs'), path = require('path');
 const { serve } = require('./serve');
@@ -83,36 +85,42 @@ const RUNS = [
   ['phone-side', { width: 852, height: 393, isMobile: true, hasTouch: true, inset: 21 }, PHONE.filter(([n]) => ['start', 'menu', 'character', 'talk', 'chat', 'shop', 'loot', 'fighting'].includes(n))],
 ];
 
-// two PNGs: how many pixels differ (by more than a little, for antialiasing), and a picture of where (red), read and
-// compared in the browser itself (no PNG library needed)
-async function compare(browser, a, b, diffAt) {
-  if (!fs.existsSync(a)) return { changed: -1 };
-  const page = await browser.newPage();
-  const url = f => `data:image/png;base64,${fs.readFileSync(f).toString('base64')}`;
-  const r = await page.evaluate(async ([ua, ub]) => {
-    const load = u => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.src = u; });
-    const [A, B] = await Promise.all([load(ua), load(ub)]);
-    if (A.width !== B.width || A.height !== B.height) return { changed: 1e9 };
-    const px = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height); };
-    const pa = px(A), pb = px(B), out = new ImageData(A.width, A.height);
-    let changed = 0;
-    for (let i = 0; i < pa.data.length; i += 4) {
-      const d = Math.abs(pa.data[i] - pb.data[i]) + Math.abs(pa.data[i + 1] - pb.data[i + 1]) + Math.abs(pa.data[i + 2] - pb.data[i + 2]);
-      if (d > 24) { changed++; out.data[i] = 255; } else { out.data[i] = out.data[i + 1] = out.data[i + 2] = pb.data[i] / 3; }
-      out.data[i + 3] = 255;
+// Every element's computed style, by its place in the page (tag#id.class:nth path), only what differs from a plain
+// element of the same tag (to keep it small)
+const STYLES = () => {
+  const out = {}, plain = {}, frame = document.createElement('iframe');
+  document.body.appendChild(frame);
+  const base = tag => { if (!plain[tag]) { const e = frame.contentDocument.createElement(tag); frame.contentDocument.body.appendChild(e); plain[tag] = getComputedStyle(e); } return plain[tag]; };
+  const key = el => { const parts = []; for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+    const i = e.parentElement ? [...e.parentElement.children].indexOf(e) : 0;
+    parts.unshift(`${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${typeof e.className === 'string' && e.className ? '.' + e.className.trim().split(/\s+/).join('.') : ''}:${i}`); } return parts.join('>'); };
+  for (const el of [document.documentElement, ...document.querySelectorAll('*')]) {
+    if (el === frame || frame.contains(el)) continue;
+    for (const pseudo of ['', '::before', '::after']) {
+      const cs = getComputedStyle(el, pseudo || null), b = base(el.tagName), st = {};
+      if (pseudo && cs.content === 'none') continue;
+      for (let i = 0; i < cs.length; i++) { const p = cs[i]; if (/^(transition|animation)/.test(p)) continue; const v = cs.getPropertyValue(p); if (v !== b.getPropertyValue(p)) st[p] = v; }
+      out[key(el) + pseudo] = st;
     }
-    if (!changed) return { changed };
-    const c = document.createElement('canvas'); c.width = A.width; c.height = A.height; c.getContext('2d').putImageData(out, 0, 0);
-    return { changed, png: c.toDataURL('image/png') };
-  }, [url(a), url(b)]);
-  await page.close();
-  if (r.png) fs.writeFileSync(diffAt, Buffer.from(r.png.split(',')[1], 'base64'));
-  return r;
+  }
+  frame.remove();
+  return out;
+};
+// two style dumps: what differs, element by element (sizes that follow text, like a width in px of an auto box, are
+// compared too: the same page with the same text gives the same numbers)
+function check(name, a, b) {
+  if (!fs.existsSync(a)) { console.log(`  NEW  ${name}`); return; }
+  const A = JSON.parse(fs.readFileSync(a)), B = JSON.parse(fs.readFileSync(b)), lines = [];
+  for (const k of new Set([...Object.keys(A), ...Object.keys(B)])) {
+    if (!A[k] || !B[k]) { lines.push(`${A[k] ? 'gone' : 'new '} ${k}`); continue; }
+    for (const p of new Set([...Object.keys(A[k]), ...Object.keys(B[k])])) if (A[k][p] !== B[k][p]) lines.push(`${k.split('>').slice(-2).join('>')} ${p}: ${A[k][p]} -> ${B[k][p]}`);
+  }
+  if (lines.length) { differ++; console.log(`  DIFF ${name}: ${lines.length}\n${lines.slice(0, 12).map(l => '       ' + l).join('\n')}`); } else same++;
 }
+let differ = 0, same = 0;
 
 (async () => {
   const url = await serve(), browser = await chromium.launch();
-  let differ = 0, same = 0;
   // every state on a page of its own, four at a time
   const jobs = [];
   for (const [run, view, states] of RUNS) for (const [name, go] of states) jobs.push({ run, view, name, go });
@@ -128,12 +136,10 @@ async function compare(browser, a, b, diffAt) {
     await go(page); await page.waitForTimeout(250);
     const file = path.join(out, `${run}-${name}.png`);
     await page.screenshot({ path: file });
+    fs.writeFileSync(file.replace(/\.png$/, '.json'), JSON.stringify(await page.evaluate(STYLES)));
     if (errors.length) console.log(`  ${run}-${name}: page errors: ${errors.join(' | ')}`);
     await page.close();
-    if (ref) {
-      const r = await compare(browser, path.join(ref, `${run}-${name}.png`), file, path.join(out, `${run}-${name}.diff.png`));
-      if (r.changed > 4) { differ++; console.log(`  DIFF ${run}-${name}: ${r.changed} pixels`); } else same++;
-    }
+    if (ref) check(`${run}-${name}`, path.join(ref, `${run}-${name}.json`), file.replace(/\.png$/, '.json'));
   };
   const queue = [...jobs];
   await Promise.all(Array.from({ length: 4 }, async () => { while (queue.length) await one(queue.shift()); }));
@@ -143,7 +149,8 @@ async function compare(browser, a, b, diffAt) {
     await page.goto(`${url}/${page0}`); await page.waitForTimeout(2500); await page.addStyleTag({ content: STILL }); await page.waitForTimeout(200);
     const file = path.join(out, `${name}.png`);
     await page.screenshot({ path: file });
-    if (ref) { const r = await compare(browser, path.join(ref, `${name}.png`), file, path.join(out, `${name}.diff.png`)); if (r.changed > 4) { differ++; console.log(`  DIFF ${name}: ${r.changed} pixels`); } else same++; }
+    fs.writeFileSync(file.replace(/\.png$/, '.json'), JSON.stringify(await page.evaluate(STYLES)));
+    if (ref) check(name, path.join(ref, `${name}.json`), file.replace(/\.png$/, '.json'));
     await page.close();
   }
   await browser.close();
