@@ -502,7 +502,9 @@ function itemClick(ref) {
   };
 }
 
-function itemMenu(ref, item, e) {
+// A tapped item on a phone: what it is (its numbers), and what you can do with it. Gear you could wear also shows what
+// you wear there now, to compare; gear you wear (worn) offers Take off.
+function itemMenu(ref, item, e, worn = false) {
   const old = $('itemMenu');
   if (old) old.remove();
   const box = h('div', { id: 'itemMenu', className: 'item-menu' });
@@ -510,14 +512,18 @@ function itemMenu(ref, item, e) {
   const outside = ev => { if (!box.contains(ev.target)) close(); };
   const act = (label, f, cls) => { const b = h('button', { className: cls || '' }, label); b.addEventListener('click', () => { close(); f(); }); return b; };
   const ground = { root: 'ground', x: player.x, y: player.y, z: player.z };
-  box.append(
+  const slot = ITEMS[item.id].slot, now = !worn && slot && slot !== 'backpack' ? player.equipment[slot] : null;
+  box.append(...[
     h('b', {}, itemName(item.id, item.count)),
     h('small', {}, itemInfo(item.id, item.q)),
-    h('div', { className: 'item-menu-buttons' },
-      act('Use', () => Actions.useItem(ref), 'primary'),
-      act(item.count > 1 ? 'Drop all' : 'Drop', () => Actions.moveItem(ref, ground)),
-      item.count > 1 ? act('Drop one', () => Actions.moveItem(ref, ground, 1)) : null),
-  );
+    !worn && slot && slot !== 'backpack' ? h('small', { className: 'item-menu-now' }, now ? `You wear: ${itemInfo(now.id, now.q)}` : `You wear nothing there (${SLOT_LABELS[slot] || slot}).`) : null,
+    worn
+      ? h('div', { className: 'item-menu-buttons' }, act('Take off', () => Actions.unequip(ref.slot), 'primary'))
+      : h('div', { className: 'item-menu-buttons' },
+        act(slot && slot !== 'backpack' ? 'Wear' : 'Use', () => Actions.useItem(ref), 'primary'), // (gear: put it on)
+        act(item.count > 1 ? 'Drop all' : 'Drop', () => Actions.moveItem(ref, ground)),
+        item.count > 1 ? act('Drop one', () => Actions.moveItem(ref, ground, 1)) : null),
+  ].filter(Boolean));
   document.body.append(box);
   const r = box.getBoundingClientRect(), x = Math.min(window.innerWidth - r.width - 8, Math.max(8, e.clientX - r.width / 2)), y = e.clientY - r.height - 12;
   Object.assign(box.style, { left: `${x}px`, top: `${y < 8 ? e.clientY + 24 : y}px` });
@@ -538,7 +544,9 @@ function renderEquipment() {
     const ref = { root: 'equip', slot };
     root.appendChild(slotEl(player.equipment[slot], {
       label: SLOT_LABELS[slot], slot, dragRef: slot === 'backpack' ? null : ref, dropRef: ref,
-      onClick: slot === 'backpack' ? null : () => Actions.unequip(slot), onRight: () => Actions.unequip(slot),
+      // (on a phone a tap shows what it is, with Take off; on a computer a click takes it off)
+      onClick: slot === 'backpack' ? null : e => (touchScreen && player.equipment[slot] ? itemMenu(ref, player.equipment[slot], e, true) : Actions.unequip(slot)),
+      onRight: () => Actions.unequip(slot),
       hint: 'Click to take it off, or drag it.',
     }));
   }

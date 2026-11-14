@@ -8,7 +8,10 @@ body.touch-ui .drawer-tab {
   background: linear-gradient(#262117, #12100b); touch-action: none; color: #e6b85f;
 }
 body.touch-ui .drawer-chevrons { width: 18px; height: 9px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-body.touch-ui.drawer-open .drawer-chevrons { transform: scaleY(-1); }
+body.touch-ui.drawer-full .drawer-chevrons { transform: scaleY(-1); }
+/* open, the tab rides on the drawer's top edge (inventory-drawer.js moves it there) */
+body.touch-ui .inventory-drawer > .drawer-tab { top: -16px; z-index: 2; }
+body.touch-ui .inventory-drawer .drawer-handle i { visibility: hidden; }
 
 body.touch-ui .inventory-drawer {
   display: flex; flex-direction: column; position: absolute; left: 0; right: 0; bottom: var(--tabbar); z-index: 11; pointer-events: auto; /* (under the action bar: the smart button and the tab show over its edge) */
@@ -40,13 +43,15 @@ body.touch-ui .inventory-drawer .slot { width: 40px; height: 40px; border-color:
 body.touch-ui .inventory-drawer .bag-close { display: none; }
 /* while it's open the chat line steps aside; the action bar stays */
 body.touch-ui.drawer-open .chat-line { visibility: hidden; }
-/* expanded: your skills under the backpack (the Character sheet's list, borrowed while it's open) */
-body.touch-ui .inventory-drawer .drawer-skills-head, body.touch-ui .inventory-drawer #tab-skills { display: none; }
-body.touch-ui.drawer-full .inventory-drawer .drawer-skills-head { display: block; margin-top: 10px; }
-body.touch-ui.drawer-full .inventory-drawer #tab-skills { display: block !important; font-size: 12px; }
+/* expanded: your skills across the whole width, under the equipment and the backpack */
+body.touch-ui .inventory-drawer .drawer-skills { display: none; grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid #3a2e1c; }
+body.touch-ui.drawer-full .inventory-drawer .drawer-skills { display: block; }
+body.touch-ui .inventory-drawer #tab-skills { display: block !important; font-size: 12px; }
 /* another bag you opened: its heading with a round close button, and its "carry my things in it" as a slim gold line */
 body.touch-ui .inventory-drawer #containers > .container > h2 { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 body.touch-ui .inventory-drawer #containers > .container > h2 button { flex: none; width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%;
   border: 1px solid var(--line-2) !important; background: var(--bg-3) !important; color: var(--muted) !important; font: 600 14px/1 Inter, sans-serif !important; }
 body.touch-ui .inventory-drawer .bag-swap { width: auto !important; min-height: 0 !important; margin: 0 0 6px !important; padding: 5px 10px !important;
   border: 1px solid var(--accent-line) !important; border-radius: 8px; background: var(--accent-soft) !important; color: var(--accent) !important; font: 600 11px/1.2 Inter, sans-serif !important; }
+/* a tapped piece of gear: what you wear there now, to compare */
+.item-menu .item-menu-now { margin-top: -4px; padding-top: 6px; border-top: 1px solid #3a2e1c; color: #9fb4c8; }

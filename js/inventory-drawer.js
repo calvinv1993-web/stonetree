@@ -1,17 +1,19 @@
 'use strict';
 // The phone's inventory drawer (browser only): your equipment and backpack side by side, pulled up from the action bar.
 //   closed    only the tab above the smart button shows
-//   compact   swipe the tab up (or tap it): the drawer over the bottom ~42% of the map, equipment left, backpack right
-//   expanded  swipe up again: up to the status bar, with your other open containers, your gear's numbers and your
-//             skills under the backpack too
-// Swipe down on its handle to go back a step; the action bar stays where it is and works, the chat line steps aside.
+//   compact   swipe the tab up (or tap it): the drawer over the bottom ~42% of the map, equipment left, backpack right;
+//             the tab rides up on its top edge, pointing up: there's more
+//   expanded  swipe up again (or tap the tab): up to the status bar, with your other open containers, your gear's
+//             numbers, and your skills across the whole width under both; the tab points down
+// Swipe down on the tab or the top edge to go back a step; while it's open the smart button closes it (smart-button.js).
+// The action bar stays where it is and works; the chat line steps aside.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
 // stacks), moved in while it's open and put back after, so the Character sheet still finds them in their places.
 // A swipe on the tab or the handle never walks: its pointer is caught here, not by the map. Drag a thing out of it onto
 // the map and it closes as you leave it, so you can drop it where it was.
 const InventoryDrawer = (() => {
   const SWIPE = 28; // px up or down before a drag counts as a swipe
-  let drawer = null, tab = null, stage = 0;
+  let drawer = null, tab = null, dock = null, stage = 0;
   const homes = new Map(); // what was moved in: where to put it back
 
   function borrow(el) {
@@ -34,14 +36,19 @@ const InventoryDrawer = (() => {
       document.body.classList.remove('bag-open');
       if (typeof setChat === 'function' && document.body.classList.contains('chat-open')) setChat(false);
       const eq = document.getElementById('equipment'), stats = document.getElementById('gearStats'), bags = document.getElementById('containers');
-      const skills = document.getElementById('tab-skills'); // (your skills, under the backpack: shown only expanded)
+      const skills = document.getElementById('tab-skills'); // (your skills, under both columns: shown only expanded)
       for (const el of [eq, stats, bags, skills]) borrow(el);
       drawer.querySelector('.drawer-gear').append(eq, stats);
-      drawer.querySelector('.drawer-bags').append(bags, drawer.querySelector('.drawer-skills-head'), skills);
+      drawer.querySelector('.drawer-bags').append(bags);
+      drawer.querySelector('.drawer-skills').append(skills);
+      drawer.prepend(tab); // (the tab on the drawer's top edge)
       if (typeof uiDirty === 'function') uiDirty();
-    } else giveBack();
+    } else { giveBack(); dock.appendChild(tab); }
     drawer.setAttribute('aria-hidden', String(!stage));
     tab.setAttribute('aria-expanded', String(stage > 0));
+    tab.title = ['Your equipment and backpack (swipe up)', 'Swipe up for more, down to close', 'Swipe down for less'][stage];
+    // (the smart button turns into a close button and back at once, not at its next look round)
+    if (typeof SmartButton !== 'undefined') SmartButton.refresh(document.getElementById('tAttack'));
   }
 
   // A vertical swipe on el: up a step, or down a step; a tap (no move) does tap()
@@ -65,8 +72,9 @@ const InventoryDrawer = (() => {
     });
   }
 
-  function attach(dock) {
-    if (!dock || drawer) return;
+  function attach(bar) {
+    if (!bar || drawer) return;
+    dock = bar;
     tab = document.createElement('button');
     tab.id = 'drawerTab'; tab.className = 'drawer-tab'; tab.title = 'Your equipment and backpack (swipe up)';
     tab.setAttribute('aria-label', 'Equipment and backpack');
@@ -75,9 +83,10 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3><h3 class="drawer-skills-head">Skills</h3></div></div>';
+      + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
+      + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>';
     dock.parentNode.insertBefore(drawer, dock);
-    swipeable(tab, () => set(stage ? 0 : 1));
+    swipeable(tab, () => set(stage === 1 ? 2 : stage === 2 ? 1 : 1)); // (a tap: open, or the other open stage)
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));
   }
 
