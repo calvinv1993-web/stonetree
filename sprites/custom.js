@@ -12,6 +12,10 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  battlement_n: 'battlement-n@4x.png', // the owner's battlements along the town wall's walkway: its north, south, west and
+  battlement_s: 'battlement-s@4x.png', // east edges, each placed as the drawn ones were (96 x 96 world px, their tile bottom right)
+  battlement_w: 'battlement-w@4x.png',
+  battlement_e: 'battlement-e@4x.png',
   health_potion: 'items/health-potion@4x.png', // the owner's painted potions, lying on the ground (the bag and the action
   mana_potion: 'items/mana-potion@4x.png',     // buttons show the same: sprites/ui/actions/h.png and m.png)
   water_texture: 'water-atlas.png',
