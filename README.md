@@ -246,4 +246,5 @@ Mobile viewport: standalone launches use an opaque status bar. The layout reserv
 
 The compact phone HUD shows level, current/max HP and mana, and progress to the next level. Use the round minimap and menu buttons for navigation. The map editor now requests the same opaque iOS status bar as the game; device verification is still required.
 
-- Phone action buttons show each action's picture, with its mana cost (red when you have too little) or how many potions are left. A shade sweeps off a spell or potion while it cools down. Spells without a picture yet show their initials.
+- Phone action bar: three spells on the left, the big button in the middle, three spells, potions or food on the right. Each shows its picture: a spell its mana under it with a little drop (red when you have too little), a potion how many are left. A gold edge means you can use it now; dimmed means not enough mana or none left. While a spell or potion cools down a shade sweeps off it and the seconds count down.
+- Swipe sideways over either group for its next set (three each); dots show which set for a moment. Hold a button to choose what goes there (each choice with its picture and mana) or to empty it. Spells without a picture yet show their initials.

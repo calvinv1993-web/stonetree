@@ -2,8 +2,8 @@
 // The faces of the phone's action buttons (browser only): each spell, potion or food shows its own picture
 // (sprites/ui/actions/<id>.png), what it costs or how many are left, and what keeps it from being used right now:
 // too little mana (dimmed, its cost red), a level or promotion still to reach (dimmed, the level shown), or the spell or
-// potion still cooling down (a shade sweeping off it). It only shows: the game's rules (castSpell, drink) decide, and
-// say why when they refuse. touch.js builds the buttons and calls paint; the cooldowns and mana keep themselves up to
+// potion still cooling down (a shade sweeping off it, and the seconds left). Ready, its edge is gold. It only shows: the
+// game's rules (castSpell, drink) decide, and say why when they refuse. touch.js builds the buttons and calls paint; the cooldowns and mana keep themselves up to
 // date (see tick), without rebuilding a button, so a press in progress is never lost.
 const ActionSlots = (() => {
   // the actions with a picture of their own; the others show their initials until they have one
@@ -15,7 +15,8 @@ const ActionSlots = (() => {
     if (!player) return {};
     const spell = SPELLS[id];
     if (spell) return { mana: spell.mana, short: player.mana < spell.mana, wait: Math.max(0, (player.spellReady || 0) - now), total: SPELL_COOLDOWN };
-    if (id === 'h' || id === 'm') return { wait: Math.max(0, (player.potionReady || 0) - now), total: POTION_COOLDOWN };
+    if (id === 'h' || id === 'm') // (none left: dimmed as a spell without the mana for it)
+      return { wait: Math.max(0, (player.potionReady || 0) - now), total: POTION_COOLDOWN, short: countItem(id === 'h' ? 'health_potion' : 'mana_potion') === 0 };
     return {};
   }
 
@@ -35,11 +36,12 @@ const ActionSlots = (() => {
     } else face.appendChild(Icons.img('plus', 20));
     const spell = entry && SPELLS[entry.id];
     if (entry && entry.locked) badge.textContent = spell && spell.promoted && !player.promoted ? 'promo' : `lv ${spell ? spell.level : ''}`;
-    else if (spell) { badge.textContent = String(spell.mana); badge.classList.add('mana'); }
-    else if (entry && entry.id !== 'f') badge.textContent = entry.sub.replace('×', '');
-    const cool = document.createElement('i');
+    else if (spell) { badge.replaceChildren(Icons.img('drop', 11), String(spell.mana)); badge.classList.add('mana'); } // (a drop and its mana, under it)
+    else if (entry && entry.id !== 'f') { badge.textContent = entry.sub.replace('×', ''); badge.classList.add('count'); } // (how many are left)
+    const cool = document.createElement('i'), left = document.createElement('b');
     cool.className = 'slot-cool';
-    button.replaceChildren(face, badge, cool);
+    left.className = 'slot-left'; // (the seconds of cooldown left)
+    button.replaceChildren(face, badge, cool, left);
     button.dataset.action = entry ? entry.id : '';
     button.setAttribute('aria-label', entry ? `${entry.name}${spell ? `, ${spell.mana} mana` : entry.sub ? `, ${entry.sub}` : ''}` : 'Empty: hold to choose');
     refresh(button);
@@ -51,8 +53,13 @@ const ActionSlots = (() => {
     if (!id) return;
     const s = state(id), p = s.wait && s.total ? Math.min(1, s.wait / s.total) : 0;
     button.classList.toggle('short', !!s.short);
-    const cool = button.lastElementChild, shown = p ? p.toFixed(2) : '';
+    button.classList.toggle('cooling', p > 0);
+    button.classList.toggle('ready', !s.short && !p && !button.classList.contains('locked'));
+    const cool = button.querySelector('.slot-cool'), left = button.querySelector('.slot-left'), shown = p ? p.toFixed(2) : '';
     if (cool && cool.dataset.p !== shown) { cool.dataset.p = shown; cool.style.setProperty('--p', shown || '0'); }
+    // its countdown: whole seconds, or tenths under two seconds (the spells' shared cooldown is one)
+    const text = !p ? '' : s.wait >= 2000 ? String(Math.ceil(s.wait / 1000)) : (s.wait / 1000).toFixed(1);
+    if (left && left.textContent !== text) left.textContent = text;
   }
 
   // Every frame while the buttons are on screen: their cooldowns sweep and their mana follows the player's
@@ -64,5 +71,18 @@ const ActionSlots = (() => {
   }
   requestAnimationFrame(tick);
 
-  return { art, state, paint, refresh };
+  // After a swipe to another set: which one shows, for a moment, over that group (no arrows or numbers stay on screen)
+  let setHint = null, setTimer = 0;
+  function showSet(right, index, count) {
+    const dock = document.getElementById('actionDock');
+    if (!dock) return;
+    if (!setHint) { setHint = document.createElement('div'); setHint.className = 'slot-set-hint'; dock.appendChild(setHint); }
+    setHint.replaceChildren(...Array.from({ length: count }, (_, i) => Object.assign(document.createElement('i'), { className: i === index ? 'on' : '' })));
+    setHint.classList.toggle('right', right);
+    setHint.classList.add('show');
+    clearTimeout(setTimer);
+    setTimer = setTimeout(() => setHint.classList.remove('show'), 900);
+  }
+
+  return { art, state, paint, refresh, showSet };
 })();

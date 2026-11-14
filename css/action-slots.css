@@ -19,3 +19,24 @@ body.touch-ui #favs .fav .slot-cool {
   background: conic-gradient(rgba(5, 4, 2, 0.68) calc(var(--p, 0) * 1turn), transparent 0);
 }
 body.touch-ui #favs .fav.holding { outline: 2px solid #f4d68e; outline-offset: -2px; }
+/* The edge: gold when it can be used now, dark when it can't (too little mana, cooling down, a level still to reach) */
+body.touch-ui #favs .fav { border-color: #5c4a2c !important; }
+body.touch-ui #favs .fav.ready { border-color: #c99a4c !important; box-shadow: inset 0 0 0 1px #3a2a12, 0 0 4px #c99a4c44 !important; }
+/* A spell's mana: a small drop and the number, under its picture */
+body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 1px; font-size: 11px !important; }
+body.touch-ui #favs .fav .slot-badge.mana .icon { width: 10px; height: 10px; }
+body.touch-ui #favs .fav.short .slot-badge.mana .icon path { fill: #ff7e70; stroke: #6a1a14; }
+/* The seconds of cooldown left, over the shade */
+body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 14px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
+/* Pressed: a thin light edge (no animation that gets in the way) */
+body.touch-ui #favs .fav.holding { border-color: #f4d68e !important; }
+/* Which set a group shows, for a moment after a swipe: three dots over it */
+body.touch-ui .slot-set-hint { position: absolute; top: -12px; left: 8%; width: 30%; display: flex; justify-content: center; gap: 5px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+body.touch-ui .slot-set-hint.right { left: auto; right: 8%; }
+body.touch-ui .slot-set-hint.show { opacity: 1; }
+body.touch-ui .slot-set-hint i { width: 6px; height: 6px; border-radius: 50%; background: #5c4a2c; box-shadow: 0 0 2px #000; }
+body.touch-ui .slot-set-hint i.on { background: #f0c36a; }
+/* The chooser: each action's picture before its whole name, its mana with a drop */
+.fav-list .pick-art { width: 26px; height: 26px; vertical-align: middle; margin-right: 8px; }
+.fav-list small { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.fav-list small .icon { width: 12px; height: 12px; }

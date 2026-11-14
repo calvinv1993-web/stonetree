@@ -15,7 +15,6 @@ body.touch-ui #favs .fav {position:static!important;transform:none!important;wid
 body.touch-ui #favs .fav:nth-child(4) {grid-column:5;}
 body.touch-ui #favs .fav small {position:static;display:block;font-size:9px;max-width:100%;overflow:hidden;}
 body.touch-ui #tAttack {position:absolute!important;left:50%!important;right:auto!important;bottom:16px!important;transform:translateX(-50%)!important;width:62px!important;height:62px!important;border:2px solid #efc36b!important;box-shadow:0 0 0 3px #382a16,inset 0 2px 5px #e28353!important;background:radial-gradient(ellipse at top,#c64a2d,#711610 75%);}
-#slotPages {position:absolute;bottom:3px;left:10%;right:10%;text-align:center;white-space:pre;font-size:9px;color:#ba9a60;pointer-events:none;}
 body.touch-ui .joystick {display:none!important;}
 body.touch-ui .joystick.floating {display:block!important;position:fixed!important;width:104px!important;height:104px!important;bottom:auto!important;pointer-events:none!important;z-index:50;opacity:.6;}
 body.touch-ui #tabbar {position:static;display:flex;width:100%;height:auto;padding:6px 24px 6px 0;}

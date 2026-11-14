@@ -144,8 +144,8 @@ function endFavPress(use) {
     else favItemPage = (favItemPage + delta + 3) % 3;
     touchStorage.set(favKey() + '.pages', [favPageIndex, favItemPage]);
     favShown = ''; renderFavs();
+    ActionSlots.showSet(press.slot >= 3, press.slot < 3 ? favPageIndex : favItemPage, 3);
   } else if (use && !press.held && !press.moved) useFav(press.slot);
-  document.getElementById('slotPages').textContent = `${favPageIndex + 1}/3                                      ${favItemPage + 1}/3`;
 }
 
 function openFavPicker(slot) {
@@ -160,8 +160,12 @@ function openFavPicker(slot) {
     b.className = 'hot';
     b.disabled = !!e.locked;
     b.innerHTML = '<span></span> <small></small>';
-    b.querySelector('span').textContent = e.name;
-    b.querySelector('small').textContent = e.sub;
+    b.querySelector('span').textContent = e.name; // (its whole name, and what it costs: or the level it needs)
+    const art = ActionSlots.art(e.id);
+    if (art) b.querySelector('span').prepend(Object.assign(new Image(), { src: art, alt: '', className: 'pick-art' }));
+    const cost = SPELLS[e.id] && !e.locked ? SPELLS[e.id].mana : null;
+    if (cost !== null) b.querySelector('small').replaceChildren(Icons.img('drop', 12), ` ${cost} mana`);
+    else b.querySelector('small').textContent = e.sub;
     b.addEventListener('click', () => {
       const favs = favourites();
       favs[favIndex(favPickSlot)] = e.id;

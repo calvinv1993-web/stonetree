@@ -5,7 +5,7 @@ const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'action-slots.js'),
 const ctx = vm.createContext({
   requestAnimationFrame() {}, document: { hidden: false, getElementById: () => null },
   SPELLS: { power_strike: { mana: 20 }, whirlwind: { mana: 45 } }, SPELL_COOLDOWN: 1000, POTION_COOLDOWN: 1000,
-  player: { mana: 40, spellReady: 0, potionReady: 0 }, now: 5000,
+  player: { mana: 40, spellReady: 0, potionReady: 0 }, now: 5000, countItem: id => (id === 'health_potion' ? 3 : 0),
 });
 vm.runInContext(src + ';this.ActionSlots = ActionSlots;', ctx);
 const S = ctx.ActionSlots, json = v => JSON.stringify(v);
@@ -14,6 +14,8 @@ assert.equal(S.state('whirlwind').short, true, 'too little mana');
 ctx.player.spellReady = 5600;
 assert.equal(S.state('power_strike').wait, 600, 'spells share one cooldown');
 assert.equal(S.state('h').wait, 0);
+assert.equal(S.state('h').short, false, 'potions left');
+assert.equal(S.state('m').short, true, 'none left: dimmed');
 ctx.player.potionReady = 5250;
 assert.equal(S.state('m').wait, 250, 'potions have their own');
 assert.equal(json(S.state('f')), '{}', 'food has neither');
