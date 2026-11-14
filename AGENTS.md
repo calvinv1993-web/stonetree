@@ -31,6 +31,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
 | Bake the ground's borders ahead of time (after changing how they're drawn, the ground textures, or the world's grounds) | `node tests/bake-ground.js` |
+| Phone action buttons: their gestures, and their mana, cooldowns and pictures | `node tests/mobile-slots.test.cjs`, `node tests/action-slots.test.cjs` |
 | Syntax check | `node --check js/<file>.js` |
 
 - **Node 22 or newer**: the online test uses the built-in `WebSocket`.

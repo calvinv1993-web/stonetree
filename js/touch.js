@@ -115,16 +115,11 @@ function renderFavs() {
     const e = entries.find(x => x.id === id);
     const b = document.createElement('button');
     b.className = `fav${e && e.locked ? ' locked' : ''}${e ? '' : ' empty'}`;
-    b.innerHTML = '<span></span><small></small>';
-    const icon = e && { h: 'health_potion', m: 'mana_potion', f: 'bread' }[e.id]; // potions and food: their picture, not a cut-off name
-    if (icon) b.querySelector('span').replaceChildren(Icons.img({ h: 'health', m: 'mana', f: 'food' }[e.id], 28));
-    else if (!e) b.querySelector('span').replaceChildren(Icons.img('plus', 20));
-    else b.querySelector('span').textContent = e.name;
-    b.querySelector('small').textContent = e ? e.sub : ''; // (an empty one: just a +; hold it to choose)
+    ActionSlots.paint(b, e); // (its picture, cost and cooldown: see action-slots.js; an empty one is a +, hold it to choose)
     b.title = e ? e.name : 'Hold to choose a spell or potion for this button';
     b.addEventListener('pointerdown', ev => {
       ev.preventDefault();
-      if (favHold) clearTimeout(favHold.timer);
+      if (favHold) { clearTimeout(favHold.timer); favHold.el.classList.remove('holding'); }
       b.classList.add('holding');
       favHold = { slot, el: b, held: false, id: ev.pointerId, x: ev.clientX, y: ev.clientY };
       b.setPointerCapture(ev.pointerId);

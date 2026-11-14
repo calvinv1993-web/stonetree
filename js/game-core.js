@@ -20,6 +20,7 @@ const customMap = (() => {
 const map = customMap || createDefaultMap();
 
 let now = 0;           // time of the current frame (ms)
+const POTION_COOLDOWN = 1000; // ms between two potions
 let monsters = [];
 let npcs = [];
 const players = [];    // everyone in the world (offline: just you)
@@ -1056,7 +1057,7 @@ function eat(ref) {
 function drink(ref) {
   const use = ITEMS[resolve(ref).item.id].use;
   if (now < player.potionReady) return;
-  player.potionReady = now + 1000;
+  player.potionReady = now + POTION_COOLDOWN;
   if (use.heal) {
     player.hp = Math.min(player.maxHp, player.hp + randInt(...use.heal));
     addSparkle(player, '#ff8080');
