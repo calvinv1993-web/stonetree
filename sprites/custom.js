@@ -14,7 +14,8 @@
 const CUSTOM_SPRITES = {
   stairs_up_stone: 'stairs-stone@4x.png', // the owner's stairs up, by the floor they stand on: stone (the wall's towers, the
   stairs_up_wood: 'stairs-wood@4x.png',   // crypt) and wood (houses, the bell tower); render.js picks by the tile's ground
-  stairs_down_wood: 'stairs-down-wood@4x.png', // the owner's way down through a wooden floor (on stone the drawn one stays)
+  stairs_down_wood: 'stairs-down-wood@4x.png', // the owner's ways down through a wooden floor and a stone one
+  stairs_down_stone: 'stairs-down-stone@4x.png',
   battlement_n: 'battlement-n@4x.png', // the owner's battlements along the town wall's walkway: its north, south, west and
   battlement_s: 'battlement-s@4x.png', // east edges, each placed as the drawn ones were (96 x 96 world px, their tile bottom right)
   battlement_w: 'battlement-w@4x.png',
