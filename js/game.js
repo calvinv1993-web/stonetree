@@ -910,12 +910,28 @@ function reportError(err) {
 }
 window.addEventListener('error', e => reportError(e.error || e.message));
 
+// Calm: you stand still, with no target, no monster near, and haven't touched the screen or a key for a moment. Then
+// the game draws 30 frames a second instead of 60 (only the small movements round you, water, leaves, torches, are a
+// little less smooth): half the work, a cooler phone and a longer battery. Anything happening brings 60 back at once.
+let lastInputAt = 0, calmCheckedAt = 0, calmNow = false;
+for (const kind of ['pointerdown', 'pointermove', 'keydown', 'wheel']) window.addEventListener(kind, () => { lastInputAt = performance.now(); calmNow = false; }, { passive: true, capture: true });
+function calm(t) {
+  if (t - calmCheckedAt < 250 && t >= calmCheckedAt) return calmNow;
+  calmCheckedAt = t;
+  const p = player;
+  calmNow = !!p && Preload.ready && !p.dead && t - lastInputAt > 1500 && !(p.path && p.path.length) && !p.target && !p.follow
+    && !(p.walk && now < p.walk.start + p.walk.dur + 300) && !document.body.classList.contains('fighting')
+    && !monsters.some(m => !m.dead && m.z === p.z && Math.abs(m.x - p.x) <= 8 && Math.abs(m.y - p.y) <= 8);
+  return calmNow;
+}
+
 function frame(t) {
   requestAnimationFrame(frame); // first, so an exception below can't freeze the game
-  if (t - lastFrameAt < FRAME_INTERVAL - 2) return;
+  if (t - lastFrameAt < (calm(t) ? Math.max(FRAME_INTERVAL, 1000 / 30) : FRAME_INTERVAL) - 2) return;
   const dt = t - lastFrameAt, started = performance.now(), live0 = Render.stats.live, made0 = Render.stats.finished, z0 = player && player.z;
   lastFrameAt = t;
-  checkKeepingUp(t);
+  if (calmNow) keepUp.from = 0; // (30 a second on purpose while calm: not a phone that can't keep up, so not measured)
+  else checkKeepingUp(t);
   try {
     if (online()) {
       now = Net.clock();

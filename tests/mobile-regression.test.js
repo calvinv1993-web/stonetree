@@ -47,8 +47,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   await E(() => { player.level = 5; player.mana = player.maxMana; player.hp = 10; player.spellReady = 0; });
   await E(() => Actions.castSpell('light_heal'));
   check('8  a spell heals, spends its mana and starts the cooldown', await E(() => player.hp > 10 && player.mana === player.maxMana - SPELLS.light_heal.mana && player.spellReady > now));
-  const hp1 = await E(() => player.hp); await E(() => Actions.castSpell('light_heal'));
-  check('8  cast again at once: "exhausted", nothing happens', await E(h => player.hp === h, hp1));
+  // (no mana spent: the spell wasn't cast; health may tick up by itself meanwhile, so that isn't what's checked)
+  const mana1 = await E(() => player.mana); await E(() => Actions.castSpell('light_heal'));
+  check('8  cast again at once: "exhausted", nothing happens', await E(m => player.mana === m, mana1));
   // 9: a potion and its count
   await p.waitForTimeout(1100);
   const n0 = await E(() => countItem('health_potion')); await E(() => { player.hp = 10; Actions.hotkey('h'); });
