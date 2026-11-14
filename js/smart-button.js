@@ -8,13 +8,16 @@
 //   use     a door, chest, lever, depot, sign, bookshelf or training dummy next to you: use it (interact; "train" for a
 //           dummy)
 //   idle    nothing to do: the button rests, dark
-//   close   while the inventory drawer or the chat is open: closes it (inventory-drawer.js, chat-line.js)
+//   close   while the inventory drawer, the chat or an action button's chooser is open: closes it (inventory-drawer.js,
+//           chat-line.js, touch.js)
 // It only chooses: the game's own rules (protection zones, targeting, reach, paths) decide what happens. context() is
 // plain game logic and needs no page (tests/smart-button.test.js); refresh and press are for the button.
 const SmartButton = (() => {
   const USABLE = d => d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor || d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache || d.trainer);
 
   function context() {
+    const picker = document.getElementById && document.getElementById('favPicker');
+    if (picker && !picker.hidden) return { kind: 'close', label: 'Close the choice' };
     if (typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage()) return { kind: 'close', label: 'Close your backpack' };
     if (document.body.classList.contains('chat-open')) return { kind: 'close', label: 'Close the chat' };
     if (!player || player.dead) return { kind: 'idle', label: 'Nothing to do' };
@@ -35,7 +38,11 @@ const SmartButton = (() => {
 
   function press() {
     const a = context();
-    if (a.kind === 'close') return document.body.classList.contains('chat-open') ? setChat(false) : InventoryDrawer.close();
+    if (a.kind === 'close') {
+      const picker = document.getElementById && document.getElementById('favPicker');
+      if (picker && !picker.hidden) return closeFavPicker();
+      return document.body.classList.contains('chat-open') ? setChat(false) : InventoryDrawer.close();
+    }
     if (!player || paused) return;
     if (a.kind === 'attack') Actions.targetNext();
     else if (a.kind === 'loot') Actions.lootNearest(a.pile.id);

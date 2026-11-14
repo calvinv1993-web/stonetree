@@ -156,31 +156,48 @@ function openFavPicker(slot) {
   favPickSlot = slot;
   const list = $('favList');
   list.replaceChildren();
-  const clear = document.createElement('button'); clear.textContent = 'Empty slot';
-  clear.onclick = () => { const favs = favourites(); favs[favIndex(slot)] = null; touchStorage.set(favKey(), favs); $('favPicker').hidden = true; favShown = ''; renderFavs(); };
-  list.appendChild(clear);
+  const clear = document.createElement('button'); clear.textContent = 'Empty slot'; clear.className = 'pick-clear';
+  clear.onclick = () => { const favs = favourites(); favs[favIndex(slot)] = null; touchStorage.set(favKey(), favs); closeFavPicker(); favShown = ''; renderFavs(); };
   for (const e of hotbarEntries()) {
     const b = document.createElement('button');
     b.className = 'hot';
     b.disabled = !!e.locked;
-    b.innerHTML = '<span></span> <small></small>';
-    b.querySelector('span').textContent = e.name; // (its whole name, and what it costs: or the level it needs)
+    // its picture, its whole name with what it does under it, and what it costs (or the level it needs)
+    b.innerHTML = '<span class="pick-main"><span class="pick-text"><b></b><em></em></span></span><small></small>';
+    b.querySelector('b').textContent = e.name;
+    b.querySelector('em').textContent = favWhat(e.id);
     const art = ActionSlots.art(e.id);
-    if (art) b.querySelector('span').prepend(Object.assign(new Image(), { src: art, alt: '', className: 'pick-art' }));
+    if (art) b.querySelector('.pick-main').prepend(Object.assign(new Image(), { src: art, alt: '', className: 'pick-art' }));
     const cost = SPELLS[e.id] && !e.locked ? SPELLS[e.id].mana : null;
-    if (cost !== null) b.querySelector('small').replaceChildren(Icons.img('drop', 12), ` ${cost} mana`);
+    if (cost !== null) b.querySelector('small').replaceChildren(Icons.img('drop', 12), ` ${cost}`);
     else b.querySelector('small').textContent = e.sub;
     b.addEventListener('click', () => {
       const favs = favourites();
       favs[favIndex(favPickSlot)] = e.id;
       touchStorage.set(favKey(), favs);
-      $('favPicker').hidden = true;
+      closeFavPicker();
       favShown = '';
       renderFavs();
     });
     list.appendChild(b);
   }
+  list.appendChild(clear); // (last: at the bottom, by the thumb)
   $('favPicker').hidden = false;
+  list.scrollTop = list.scrollHeight; // (the list rises from the action bar: its end, by the thumb, in sight)
+  if (typeof SmartButton !== 'undefined') SmartButton.refresh($('tAttack')); // (a close button while it's open)
+}
+function closeFavPicker() {
+  $('favPicker').hidden = true;
+  if (typeof SmartButton !== 'undefined') SmartButton.refresh($('tAttack'));
+}
+// What a choice for an action button does, in a few words: a spell's own description, a potion's numbers
+function favWhat(id) {
+  if (SPELLS[id]) return SPELLS[id].desc || '';
+  const use = id => (ITEMS[id] && ITEMS[id].use) || {};
+  if (id === 'h') { const h = use('health_potion').heal; return h ? `Heals ${h[0]}-${h[1]} hitpoints. From your backpack.` : 'Drink a health potion.'; }
+  if (id === 'm') { const m = use('mana_potion').mana; return m ? `Restores ${m[0]}-${m[1]} mana. From your backpack.` : 'Drink a mana potion.'; }
+  if (id === 'f') return 'Eats something from your backpack: you heal slowly while fed.';
+  return '';
 }
 
 // Messages pop up near the top of the map (under the status bar and the guide) for a few seconds, as the log is put away on a phone.
@@ -251,7 +268,7 @@ function initTouch() {
   $('fightFollow').replaceChildren(Icons.img('mode-follow', 24));
   tap('fightFollow', () => Actions.setChase(!player.chase));
   $('chatClose').addEventListener('click', () => setChat(false));
-  $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
+  $('favPickerClose').addEventListener('click', closeFavPicker);
   document.addEventListener('pointerup', e => { if (favHold && favHold.id === e.pointerId) endFavPress(true); });
   document.addEventListener('pointercancel', () => endFavPress(false));
   // Touching the map puts the drawer away.
