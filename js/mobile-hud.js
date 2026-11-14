@@ -9,6 +9,10 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
 (() => {
   if (!touchScreen) return;
   const hud = document.querySelector('.hud');
+  const level = document.createElement('div'); level.className = 'hud-level';
+  level.append('Lv. ', $('hudLvl')); hud.appendChild(level);
+  const xp = document.createElement('span'); xp.id = 'hudXpText';
+  document.querySelector('.hud-xp').appendChild(xp);
   const mapButton = document.createElement('button'); mapButton.id = 'hudMap'; mapButton.title = 'Open map';
   mapButton.innerHTML = '<canvas width="96" height="96"></canvas>'; mapButton.onclick = () => { closeSheet(); toggleWorldMap(); }; hud.appendChild(mapButton);
   const menu = document.createElement('button'); menu.id = 'hudMenu'; menu.textContent = '☰'; menu.title = 'Menu'; menu.onclick = () => toggleSheet('menu'); hud.appendChild(menu);

@@ -243,3 +243,5 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 Mobile menu cleanup: open the map from the round minimap and Settings from the round menu button. Chat is temporarily available in Settings. Joystick, fighting controls and ride ordering are no longer listed in Settings; their underlying gameplay remains unchanged.
 
 Mobile viewport: standalone launches use an opaque status bar. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
+
+The compact phone HUD shows level, current/max HP and mana, and progress to the next level. Use the round minimap and menu buttons for navigation. The map editor now requests the same opaque iOS status bar as the game; device verification is still required.

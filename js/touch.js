@@ -377,7 +377,10 @@ function initTouch() {
       else f.drawImage(img, (big ? TILE + 5 : 5) * r, (big ? TILE - 6 : -6) * r, 22 * r, 22 * r, 0, 0, 128, 128);
     }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
-    $('hudXp').style.width = `${Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)))}%`;
+    const xpProgress = Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)));
+    $('hudXp').style.width = `${xpProgress}%`;
+    const xpText = $('hudXpText');
+    if (xpText) xpText.textContent = `EXP ${Math.floor(xpProgress)}%`;
     $('hudGold').innerHTML = `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`;
     document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
     if (document.body.dataset.sheet === 'menu') renderMenu();
