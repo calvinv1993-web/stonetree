@@ -739,20 +739,25 @@ const Render = {
         if (groundAt(x, y) !== 'water' || wallAt(x, y)) continue;
         const f = Sprites.waterFrame(x, y, v.time);
         if (!f) continue;
-        g.drawImage(f, ox + x * TILE, oy + y * TILE);
         let open = true;
         for (let dy = -1; dy <= 1 && open; dy++) for (let dx = -1; dx <= 1; dx++) if (groundAt(x + dx, y + dy) !== 'water' || wallAt(x + dx, y + dy)) { open = false; break; }
-        if (open) continue;
-        // (its borders over the ripples: drawn once into a picture of the tile and kept, not worked out every frame)
+        if (open) { g.drawImage(f, ox + x * TILE, oy + y * TILE); continue; }
+        // (its borders over the ripples: drawn once into a picture of the tile and kept, not worked out every frame.
+        // Made only while the frame has time for it, as the chunks are: a shore coming into view by the dozen made them
+        // all in one frame, a stall; until its picture is made the tile's water lies still a moment, borders and all)
         const key = `${z}:${x}:${y}`, R = Render.CHUNK_RES;
         let over = Render.shoreTiles.get(key);
-        if (!over) {
-          if (Render.shoreTiles.size > 600) Render.shoreTiles.clear();
+        if (over) { Render.shoreTiles.delete(key); Render.shoreTiles.set(key, over); } // (the most recently used last)
+        else {
+          if (performance.now() > Render.budget) continue;
+          // (too many kept: the least recently used go, a few at a time, not all at once)
+          for (const k of Render.shoreTiles.keys()) { if (Render.shoreTiles.size <= 600) break; Render.shoreTiles.delete(k); }
           over = document.createElement('canvas'); over.width = over.height = TILE * R;
           const og = over.getContext('2d'); og.scale(R, R); og.imageSmoothingEnabled = false;
           groundPass(og, -x * TILE, -y * TILE, x, x, y, y, x, x, y, y, 0, true);
           Render.shoreTiles.set(key, over);
         }
+        g.drawImage(f, ox + x * TILE, oy + y * TILE);
         g.drawImage(over, ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
       if (v.afterGround && !Render.skip('fx')) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
