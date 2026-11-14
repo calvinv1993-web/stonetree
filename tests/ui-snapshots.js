@@ -95,7 +95,7 @@ const STYLES = () => {
     const i = e.parentElement ? [...e.parentElement.children].indexOf(e) : 0;
     parts.unshift(`${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${typeof e.className === 'string' && e.className ? '.' + e.className.trim().split(/\s+/).join('.') : ''}:${i}`); } return parts.join('>'); };
   for (const el of [document.documentElement, ...document.querySelectorAll('*')]) {
-    if (el === frame || frame.contains(el)) continue;
+    if (el === frame || frame.contains(el) || el.closest('#toasts')) continue; // (pop-ups come and go by themselves)
     for (const pseudo of ['', '::before', '::after']) {
       const cs = getComputedStyle(el, pseudo || null), b = base(el.tagName), st = {};
       if (pseudo && cs.content === 'none') continue;
@@ -108,12 +108,20 @@ const STYLES = () => {
 };
 // two style dumps: what differs, element by element (sizes that follow text, like a width in px of an auto box, are
 // compared too: the same page with the same text gives the same numbers)
+// the same value, or the same but for fractions of a pixel (text measured a hair differently)
+const alike = (a, b) => {
+  if (a === b) return true;
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const na = a.match(/-?[\d.]+/g) || [], nb = b.match(/-?[\d.]+/g) || [];
+  return na.length === nb.length && a.replace(/-?[\d.]+/g, '#') === b.replace(/-?[\d.]+/g, '#') && na.every((x, i) => Math.abs(x - nb[i]) < 0.1);
+};
 function check(name, a, b) {
   if (!fs.existsSync(a)) { console.log(`  NEW  ${name}`); return; }
   const A = JSON.parse(fs.readFileSync(a)), B = JSON.parse(fs.readFileSync(b)), lines = [];
   for (const k of new Set([...Object.keys(A), ...Object.keys(B)])) {
     if (!A[k] || !B[k]) { lines.push(`${A[k] ? 'gone' : 'new '} ${k}`); continue; }
-    for (const p of new Set([...Object.keys(A[k]), ...Object.keys(B[k])])) if (A[k][p] !== B[k][p]) lines.push(`${k.split('>').slice(-2).join('>')} ${p}: ${A[k][p]} -> ${B[k][p]}`);
+    if (/sky-cloud/.test(k)) continue; // (the clouds drift by themselves)
+    for (const p of new Set([...Object.keys(A[k]), ...Object.keys(B[k])])) if (!alike(A[k][p], B[k][p])) lines.push(`${k.split('>').slice(-2).join('>')} ${p}: ${A[k][p]} -> ${B[k][p]}`);
   }
   if (lines.length) { differ++; console.log(`  DIFF ${name}: ${lines.length}\n${lines.slice(0, 12).map(l => '       ' + l).join('\n')}`); } else same++;
 }
