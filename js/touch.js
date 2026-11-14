@@ -292,7 +292,7 @@ function initTouch() {
   $('viewport').appendChild($('lootBox'));
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
-  for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests'], ['tabMap', 'map'], ['tabChat', 'chat'], ['tabMenu', 'menu']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
+  for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
   document.body.classList.toggle('no-joystick', !joystickOn());
   // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
   const hud = document.querySelector('#touch .hud');
@@ -325,9 +325,7 @@ function initTouch() {
   });
   tap('tAttack', pressSmartAction);
   tap('panelClose', () => closeSheet());
-  for (const id of ['tabChar', 'tabQuests', 'tabMenu']) tap(id, () => toggleSheet($(id).dataset.sheet));
-  tap('tabMap', () => { closeSheet(); toggleWorldMap(); });
-  tap('tabChat', () => { closeSheet(); setChat(!document.body.classList.contains('chat-open'), true); });
+  for (const id of ['tabChar', 'tabQuests']) tap(id, () => toggleSheet($(id).dataset.sheet));
   tap('talkClose', () => { if (player.conversation) Actions.say('bye'); hideTalk(); });
   for (const b of document.querySelectorAll('#fightModes button')) {
     b.replaceChildren(Icons.img({ offensive: 'mode-attack', balanced: 'mode-balanced', defensive: 'mode-defend' }[b.dataset.mode], 24));
@@ -435,7 +433,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
+  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -445,17 +443,7 @@ function renderMenu() {
     return r;
   };
   const toggle = on => h('span', { className: `toggle${on ? ' on' : ''}` });
-  const modes = h('div', { className: 'seg' }, ...[['offensive', 'Attack'], ['balanced', 'Balanced'], ['defensive', 'Defend']].map(([m, label]) => {
-    const b = h('button', { className: player.fightMode === m ? 'active' : '' }, label);
-    b.addEventListener('click', () => Actions.setFightMode(m));
-    return b;
-  }));
-  const secureOn = player.secure !== false;
   root.replaceChildren(
-    h('div', { className: 'menu-head' }, 'Fighting'), modes,
-    row('Chase your target', toggle(player.chase), () => Actions.setChase(!player.chase)),
-    row(['Secure mode', h('small', { className: secureOn ? '' : 'warn' }, secureOn ? 'On: you can\'t hurt players without a skull' : 'Off: your attacks can hurt other players')],
-      toggle(secureOn), () => Actions.setSecure(!secureOn)),
     h('div', { className: 'menu-head' }, 'Game'),
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
@@ -467,10 +455,9 @@ function renderMenu() {
     })),
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
-    row(['Joystick', h('small', {}, joystickOn() ? 'On: walk with the stick, bottom left' : 'Off: tap where to go, or swipe the map')], toggle(joystickOn()), () => setJoystick(!joystickOn())),
+    row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
-    row('Order a ride', h('span', {}, '›'), () => { closeSheet(); if ($('worldmap').hidden) toggleWorldMap(true); else setRideMode(true); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
     h('div', { className: 'menu-head' }, 'Make'),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),

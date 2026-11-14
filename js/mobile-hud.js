@@ -10,8 +10,8 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   if (!touchScreen) return;
   const hud = document.querySelector('.hud');
   const mapButton = document.createElement('button'); mapButton.id = 'hudMap'; mapButton.title = 'Open map';
-  mapButton.innerHTML = '<canvas width="96" height="96"></canvas>'; mapButton.onclick = () => $('tabMap').click(); hud.appendChild(mapButton);
-  const menu = document.createElement('button'); menu.id = 'hudMenu'; menu.textContent = '☰'; menu.title = 'Menu'; menu.onclick = () => $('tabMenu').click(); hud.appendChild(menu);
+  mapButton.innerHTML = '<canvas width="96" height="96"></canvas>'; mapButton.onclick = () => { closeSheet(); toggleWorldMap(); }; hud.appendChild(mapButton);
+  const menu = document.createElement('button'); menu.id = 'hudMenu'; menu.textContent = '☰'; menu.title = 'Menu'; menu.onclick = () => toggleSheet('menu'); hud.appendChild(menu);
   const bar = document.createElement('div'); bar.id = 'actionDock'; $('touch').appendChild(bar);
   bar.appendChild($('radialControls')); bar.appendChild($('tAttack'));
   const pages = document.createElement('div'); pages.id = 'slotPages'; pages.textContent = '1/3                                      1/3'; bar.appendChild(pages);

@@ -1,0 +1,12 @@
+/* One owner for each safe inset; the canvas keeps its existing scale calculation. */
+body.touch-ui { height: 100vh; height: 100dvh; bottom: auto; background: #1b1a17; }
+body.touch-ui .layout {
+  height: 100%; min-height: 0; box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+  background: #1b1a17;
+}
+body.touch-ui { --tabbar: calc(82px + env(safe-area-inset-bottom, 0px)); }
+body.touch-ui .hud { background: #1b1a17; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.touch-ui #radialControls { bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important; }
+body.touch-ui #tAttack { bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important; }
+body.touch-ui #slotPages { bottom: calc(3px + env(safe-area-inset-bottom, 0px)); }

@@ -1,0 +1,10 @@
+{
+  "name": "TileQuest",
+  "short_name": "TileQuest",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1a17",
+  "theme_color": "#1b1a17"
+}
