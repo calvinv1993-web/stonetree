@@ -281,8 +281,10 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 #loading[hidden] { display: none; }
 .loading-logo { width: min(78vw, 46vh, 520px); height: auto; filter: drop-shadow(0 6px 18px #000a); }
 .loading-box { width: min(560px, 76vw); text-align: center; color: #f3e6c4; font: 500 clamp(15px, 1.3vw, 19px)/1.3 Inter, system-ui, sans-serif; letter-spacing: 0.04em; text-shadow: 0 1px 3px #000, 0 0 10px #000a; }
-.loading-track { margin-top: 12px; height: 10px; border: 1px solid #c79b50; border-radius: 6px; background: #120e09cc; box-shadow: 0 2px 8px #000a; overflow: hidden; }
-#loadingBar { width: 0; height: 100%; background: linear-gradient(90deg, #c8901c, #f2c94c); transition: width 0.15s; }
+.loading-track { position: relative; margin-top: 12px; height: 14px; padding: 2px; border: 1px solid #c79b50; border-radius: 9px; background: #120e09d9;
+  box-shadow: 0 0 0 2px #3a2a12, 0 0 0 3px #8a6a3266, 0 3px 10px #000b, inset 0 1px 3px #000; }
+#loadingPercent { margin-top: 8px; color: #f3e6c4; font: 600 clamp(13px, 1.1vw, 16px)/1 Inter, system-ui, sans-serif; letter-spacing: 0.06em; }
+#loadingBar { width: 0; height: 100%; border-radius: 6px; background: linear-gradient(#ffe08a, #e2a531 55%, #b97a1c); box-shadow: 0 0 8px #f2b84a99; transition: width 0.15s; }
 /* The sky over the map (see Fx.overlay): clouds' shadows, the light's tint and the dark edge, laid over the canvas */
 #sky { position: absolute; pointer-events: none; overflow: hidden; z-index: 1; }
 #sky[hidden] { display: none; }

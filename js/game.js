@@ -1055,7 +1055,9 @@ function showPreload() {
   el.hidden = !show;
   if (!show) return;
   const pictures = Preload.total ? (Preload.total - Preload.jobs.length) / Preload.total : 1;
-  $('loadingBar').style.width = `${Math.round(100 * (0.8 * pictures + (Preload.jobs.length ? 0 : 0.2 * Math.min(1, Preload.settled / 3))))}%`;
+  const percent = Math.round(100 * (0.8 * pictures + (Preload.jobs.length ? 0 : 0.2 * Math.min(1, Preload.settled / 3))));
+  $('loadingBar').style.width = `${percent}%`;
+  $('loadingPercent').textContent = `${percent}%`;
   $('loadingText').textContent = Preload.jobs.length ? 'Getting the world ready...' : 'Almost there...';
 }
 
