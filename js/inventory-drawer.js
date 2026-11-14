@@ -2,7 +2,8 @@
 // The phone's inventory drawer (browser only): your equipment and backpack side by side, pulled up from the action bar.
 //   closed    only the tab above the smart button shows
 //   compact   swipe the tab up (or tap it): the drawer over the bottom ~42% of the map, equipment left, backpack right
-//   expanded  swipe up again: up to the status bar, with your other open containers and your gear's numbers too
+//   expanded  swipe up again: up to the status bar, with your other open containers, your gear's numbers and your
+//             skills under the backpack too
 // Swipe down on its handle to go back a step; the action bar stays where it is and works, the chat line steps aside.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
 // stacks), moved in while it's open and put back after, so the Character sheet still finds them in their places.
@@ -33,9 +34,10 @@ const InventoryDrawer = (() => {
       document.body.classList.remove('bag-open');
       if (typeof setChat === 'function' && document.body.classList.contains('chat-open')) setChat(false);
       const eq = document.getElementById('equipment'), stats = document.getElementById('gearStats'), bags = document.getElementById('containers');
-      for (const el of [eq, stats, bags]) borrow(el);
+      const skills = document.getElementById('tab-skills'); // (your skills, under the backpack: shown only expanded)
+      for (const el of [eq, stats, bags, skills]) borrow(el);
       drawer.querySelector('.drawer-gear').append(eq, stats);
-      drawer.querySelector('.drawer-bags').append(bags);
+      drawer.querySelector('.drawer-bags').append(bags, drawer.querySelector('.drawer-skills-head'), skills);
       if (typeof uiDirty === 'function') uiDirty();
     } else giveBack();
     drawer.setAttribute('aria-hidden', String(!stage));
@@ -73,7 +75,7 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div></div>';
+      + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3><h3 class="drawer-skills-head">Skills</h3></div></div>';
     dock.parentNode.insertBefore(drawer, dock);
     swipeable(tab, () => set(stage ? 0 : 1));
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));

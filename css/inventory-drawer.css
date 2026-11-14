@@ -40,3 +40,7 @@ body.touch-ui .inventory-drawer .slot { width: 40px; height: 40px; border-color:
 body.touch-ui .inventory-drawer .bag-close { display: none; }
 /* while it's open the chat line steps aside; the action bar stays */
 body.touch-ui.drawer-open .chat-line { visibility: hidden; }
+/* expanded: your skills under the backpack (the Character sheet's list, borrowed while it's open) */
+body.touch-ui .inventory-drawer .drawer-skills-head, body.touch-ui .inventory-drawer #tab-skills { display: none; }
+body.touch-ui.drawer-full .inventory-drawer .drawer-skills-head { display: block; margin-top: 10px; }
+body.touch-ui.drawer-full .inventory-drawer #tab-skills { display: block !important; font-size: 12px; }
