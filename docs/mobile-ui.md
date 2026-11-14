@@ -9,7 +9,7 @@ ever needed.
 From top to bottom:
 
 - **The status bar** (`css/phone/layout.css`, built in `js/mobile-hud.js`): health and mana (current / max) the
-  whole width, a heart and a drop on their start; under them a thin experience bar, the level and its percent. Nothing to tap up here: one hand reaches
+  whole width, a heart and a drop on their start; under them the experience bar with its percent inside, and the level. Nothing to tap up here: one hand reaches
   everything at the bottom.
 - **The map**, as big as the space between the bars allows.
 - **The action bar** (`js/mobile-hud.js` puts it together):
