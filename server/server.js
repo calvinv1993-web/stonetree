@@ -376,7 +376,8 @@ const CLIENT_DIRS = ['js', 'css', 'sprites'];
 function clientVersion() {
   let newest = 0;
   for (const dir of CLIENT_DIRS) {
-    for (const f of fs.readdirSync(path.join(ROOT, dir))) newest = Math.max(newest, fs.statSync(path.join(ROOT, dir, f)).mtimeMs);
+    // (with their folders, such as css/phone)
+    for (const f of fs.readdirSync(path.join(ROOT, dir), { recursive: true })) newest = Math.max(newest, fs.statSync(path.join(ROOT, dir, f)).mtimeMs);
   }
   for (const f of fs.readdirSync(ROOT)) if (/\.(html|json)$/.test(f)) newest = Math.max(newest, fs.statSync(path.join(ROOT, f)).mtimeMs);
   return String(Math.floor(newest));
@@ -391,7 +392,7 @@ const changed = () => {
     for (const conn of conns) if (conn.player) conn.reply({ t: 'updated', version });
   }, 1000);
 };
-for (const dir of CLIENT_DIRS) fs.watch(path.join(ROOT, dir), changed);
+for (const dir of CLIENT_DIRS) fs.watch(path.join(ROOT, dir), { recursive: true }, changed);
 fs.watch(ROOT, (event, file) => file && /\.(html|json)$/.test(file) && changed());
 
 // ---- HTTP: the game files, and the WebSocket ------------------------------------------------

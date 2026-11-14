@@ -52,7 +52,7 @@ Keep `node server/dev.js 8090 --test` running and the game open in your browser.
 | How anything looks (everything is drawn in code) | `js/sprites.js` |
 | Light, weather, particles | `js/fx.js` |
 | The rules (combat, quests, trading...) | `js/game-*.js` |
-| Windows and panels | `index.html`, `css/style.css`, `js/game-ui.js` |
+| Windows and panels | `index.html`, `css/game.css` (`css/phone/` on a phone), `js/game-ui.js` |
 | The server | `server/server.js` |
 
 - Each data file explains its fields at the top.

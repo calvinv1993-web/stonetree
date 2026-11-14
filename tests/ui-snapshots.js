@@ -95,7 +95,7 @@ const STYLES = () => {
     const i = e.parentElement ? [...e.parentElement.children].indexOf(e) : 0;
     parts.unshift(`${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${typeof e.className === 'string' && e.className ? '.' + e.className.trim().split(/\s+/).join('.') : ''}:${i}`); } return parts.join('>'); };
   for (const el of [document.documentElement, ...document.querySelectorAll('*')]) {
-    if (el === frame || frame.contains(el) || el.closest('#toasts')) continue; // (pop-ups come and go by themselves)
+    if (el === frame || frame.contains(el) || el.closest('#toasts') || el.closest('head')) continue; // (pop-ups come and go by themselves; the head isn't drawn)
     for (const pseudo of ['', '::before', '::after']) {
       const cs = getComputedStyle(el, pseudo || null), b = base(el.tagName), st = {};
       if (pseudo && cs.content === 'none') continue;

@@ -35,6 +35,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
 | The phone's interface on three iPhone sizes: every control in reach, each gesture doing one thing (needs Playwright) | `node tests/mobile-ui.test.js [screenshot-folder]` |
 | The phone's interface driving the game: walking, floors, talk, loot, spells, potions, the drawer, map, chat, turning (needs Playwright) | `node tests/mobile-regression.test.js` |
+| Stylesheets: pictures and computed styles of ~60 interface states (desktop, phones, editors), to compare before and after a CSS change | `node tests/ui-snapshots.js <folder> [--compare <reference folder>]` |
 | Syntax check | `node --check js/<file>.js` |
 
 - **Node 22 or newer**: the online test uses the built-in `WebSocket`.
@@ -160,6 +161,7 @@ Some details of the online client:
 | `touch.js` | Phone controls. |
 | `sound.js` | Synthesized sounds and music. Sound names are used by `addSound`. |
 
+- **The stylesheets**: `css/base.css` for every page; the game adds `css/game.css` and then the phone's files in `css/phone/` (`layout.css`, one per phone module, `theme.css` last); the editors add `css/editor.css`. Check a CSS change with `tests/ui-snapshots.js`.
 - **The art style** (camera, light, outline, shading, ground transitions, what stands upright) is in `docs/art-style.md`. Every new sprite follows it.
 - **The phone's interface** (status bar, action bar, smart button, inventory drawer, chat line, their modules and tests) is in `docs/mobile-ui.md`.
 - **Every item needs an `ITEM_DRAW` entry, and every thing a `DRAW` entry.** A missing one crashes drawing. The browser soak test draws them all.

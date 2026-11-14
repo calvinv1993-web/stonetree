@@ -1,0 +1,285 @@
+/* The game on a computer, and what a phone shares with it: the layout, the map's frame, windows and dialogs, panels,
+   the guide, the log, the hotbar. The phone's own parts come after it, in css/phone/ (they win where they differ). */
+.game .layout { display: flex; gap: 8px; padding: 8px; height: 100vh; }
+.game main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.viewport { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+#view { display: block; image-rendering: pixelated; border: 2px solid #4a453e; background: #000; }
+.hotbar { display: flex; flex-wrap: wrap; gap: 4px; }
+.hot { display: flex; gap: 5px; align-items: baseline; padding: 3px 7px; }
+.hot small { color: #a8c8ff; font-size: 11px; }
+.console { display: flex; flex-direction: column; flex-shrink: 0; height: 22vh; min-height: 110px; border: 2px solid #4a453e; background: #12110f; }
+.log { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 8px; font: 12px/1.45 ui-monospace, monospace; color: #b8b0a0; }
+.log .time { color: #6a6458; }
+.log .damage { color: #ff7a7a; }
+.log .xp { color: #f4f4f4; }
+.log .level { color: #ffd84a; font-weight: bold; }
+.log .quest { color: #ffcf6a; }
+.log .npc { color: #8fd0ff; }
+.log .say { color: #e8e070; }
+.log .kw { color: #ffffff; text-decoration: underline; cursor: pointer; }
+.log .kw:hover { color: #ffd84a; }
+.window { position: absolute; background: #262420f2; border: 2px solid #8a7a5a; border-radius: 4px; box-shadow: 0 6px 30px #000a; }
+.shop { top: 16px; right: 16px; width: 330px; max-height: calc(100% - 32px); display: flex; flex-direction: column; padding: 8px; }
+.shop header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.shop-list { overflow-y: auto; }
+.shop-row { display: flex; gap: 6px; align-items: center; padding: 2px 0; border-bottom: 1px solid #3a3631; }
+.shop-row img { width: 32px; height: 32px; image-rendering: pixelated; flex-shrink: 0; }
+.shop-name { flex: 1; min-width: 0; }
+.shop-name small { display: block; color: #9a907e; }
+.shop-row.unusable .shop-name { color: #c08080; }
+.create { top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 28px; text-align: center; }
+.create h1 { margin: 0 0 6px; font: bold 28px Georgia, serif; color: #f0d090; }
+.create input, .create select { display: block; width: 220px; margin: 8px auto 12px; }
+.panel { width: 262px; flex-shrink: 0; height: 100%; overflow-y: auto; background: #262420; border: 2px solid #4a453e; padding: 8px 10px; }
+.panel section { margin-bottom: 10px; }
+.panel h2 { display: flex; justify-content: space-between; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #a89c84; margin: 0 0 5px; }
+.charline { font-weight: bold; color: #f0d090; margin-bottom: 4px; }
+.bar { position: relative; height: 16px; background: #111; border: 1px solid #000; margin: 3px 0; }
+.bar > div { height: 100%; }
+.bar span { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 16px; color: #fff; text-shadow: 0 1px 1px #000; }
+#minimap { display: block; width: 236px; height: 140px; image-rendering: pixelated; border: 1px solid #000; cursor: crosshair; }
+.mm-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; }
+.mm-row button { padding: 0 6px; }
+.slot { position: relative; width: 38px; height: 38px; background: #1a1916; border: 1px solid #4a453e; border-radius: 2px; padding: 2px; cursor: pointer; }
+.slot img { display: block; width: 32px; height: 32px; image-rendering: pixelated; }
+.slot .count { position: absolute; right: 2px; bottom: 0; font: bold 11px sans-serif; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+.slot.empty { cursor: default; }
+.slot.empty::after { content: attr(data-label); position: absolute; inset: 0; display: grid; place-items: center; font-size: 9px; color: #5a544b; }
+.equipment { display: grid; grid-template-columns: repeat(3, 38px); gap: 4px; justify-content: center; margin-bottom: 4px; }
+.grid { display: grid; grid-template-columns: repeat(6, 38px); gap: 3px; }
+.skill { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; margin-bottom: 4px; }
+.skill b { text-align: right; }
+.skill .mini { grid-column: 1 / -1; height: 3px; background: #111; }
+.skill .mini div { height: 100%; background: #4a9a3c; }
+.quest { margin-bottom: 8px; }
+.quest b { color: #ffcf6a; }
+.quest.done b { color: #8ac07a; }
+.quest div { font-size: 12px; color: #b8b0a0; }
+.actions { display: flex; flex-direction: column; gap: 5px; }
+/* ---- added: battle list, containers, dialogs, world map, dragging ---- */
+.panel h2 > span { display: flex; gap: 2px; }
+.panel h2 button { padding: 0 5px; font-size: 10px; }
+.battle { max-height: 150px; overflow-y: auto; }
+.battle-row { display: flex; gap: 6px; align-items: center; padding: 1px 2px; cursor: pointer; border: 1px solid transparent; }
+.battle-row img { width: 24px; height: 24px; image-rendering: pixelated; }
+.battle-row span { flex: 1; font-size: 12px; }
+.battle-row .mini { height: 3px; background: #111; margin-top: 2px; }
+.battle-row .mini div { height: 100%; background: #30c030; }
+.battle-row.target { border-color: #ff3030; }
+.battle-row.followed { border-color: #30e040; }
+.battle-row:hover { background: #3a3631; border-color: #fff; }
+.battle-row.struck { box-shadow: inset 0 0 0 2px #ffa030; }
+.container { margin-bottom: 10px; }
+.grid { grid-template-columns: repeat(auto-fill, 38px); }
+.status-row { min-height: 18px; }
+.conditions span { font-size: 14px; margin-right: 2px; }
+.log-tabs { margin: 2px 4px 0; }
+.log-tabs button { padding: 0 8px; font-size: 11px; }
+.log[data-filter="server"] .npc, .log[data-filter="server"] .say, .log[data-filter="server"] .party, .log[data-filter="server"] .guild { display: none; }
+.log[data-filter="npc"] > div:not(.npc):not(.say):not(.party):not(.guild) { display: none; }
+.log[data-filter="party"] > div:not(.party) { display: none; }
+.log[data-filter="guild"] > div:not(.guild) { display: none; }
+.log .party { color: #8fd8ff; }
+.log .guild { color: #9cf08c; }
+/* the party: who's in it, their health and mana */
+.party-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+.party-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.party-row .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.party-row .bars { width: 70px; display: flex; flex-direction: column; gap: 1px; }
+.party-row .bars div { height: 3px; background: #111; }
+.party-row .bars i { display: block; height: 100%; background: #30c030; }
+.party-row .bars div + div i { background: #4060e0; }
+.party-row.dead { opacity: 0.5; }
+.party-row button { font-size: 11px; padding: 1px 6px; }
+.party-icon { font-size: 11px; }
+#partyStatus.on { color: #7ee07e; }
+#partyShare.on { border-color: #7ee07e; color: #9cf08c; }
+/* the guild window */
+.guild-window { width: min(480px, 94vw); }
+.guild-window .motd { background: #00000040; border-left: 3px solid #9cf08c; padding: 4px 8px; margin: 6px 0; font-style: italic; }
+.guild-window .row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+.guild-window .row input { flex: 1; min-width: 120px; }
+.guild-members { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+.guild-members td { padding: 3px 4px; border-bottom: 1px solid #ffffff14; }
+.guild-members .online { color: #7ee07e; }
+.guild-members .offline { color: #8a8070; }
+.guild-members td:last-child { text-align: right; white-space: nowrap; }
+.guild-members button { font-size: 11px; padding: 1px 5px; }
+.story { border: 1px solid #8a6a2a; background: linear-gradient(#2a2216, #1e1a14); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; font-size: 12px; }
+.story > b { display: block; color: #e8c878; margin-bottom: 4px; letter-spacing: 0.5px; }
+.story .done { color: #8a8070; }
+.story .now b { display: block; color: #ffd84a; }
+.story .now span { display: block; color: #e8e0d0; margin: 1px 0 3px; }
+.story .now i { display: block; color: #8fd0ff; font-style: normal; }
+.guild-window h3, .forge-window h3 { font-size: 12px; color: #e8c878; margin: 10px 0 4px; }
+/* the forge: pick your gear, put four ore in, see your chances */
+.forge-window { width: min(520px, 95vw); }
+.forge-gear { display: flex; flex-wrap: wrap; gap: 4px; }
+.forge-gear .slot.chosen { outline: 2px solid #e8c878; outline-offset: 1px; }
+.forge-main { display: flex; align-items: center; gap: 14px; margin: 8px 0; flex-wrap: wrap; }
+.forge-arrow { font-size: 13px; text-align: center; min-width: 90px; }
+.forge-arrow b { display: block; font-size: 15px; }
+.forge-ores { display: flex; gap: 4px; }
+.forge-chance { font-size: 30px; font-weight: bold; min-width: 80px; text-align: center; line-height: 1; }
+.forge-chance small { display: block; font-size: 11px; font-weight: normal; color: #b8ac90; margin-top: 3px; }
+.forge-supply { display: flex; flex-wrap: wrap; gap: 4px; }
+.forge-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 3px 0; }
+.forge-row span { flex: 1; }
+.forge-row button { font-size: 11px; padding: 2px 7px; }
+.log .raid { color: #ff7a40; font-weight: bold; }
+.drag-ghost { position: fixed; width: 32px; height: 32px; pointer-events: none; image-rendering: pixelated; z-index: 100; opacity: 0.85; }
+#view.targeting, #worldCanvas.targeting { cursor: crosshair; }
+.dialog { top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 320px; max-width: 90%; max-height: 90%; overflow-y: auto; padding: 10px 14px; }
+.dialog header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.dialog-buttons { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; }
+.read-text { white-space: pre-wrap; max-width: 420px; line-height: 1.5; }
+.hotkey-row { display: flex; gap: 6px; align-items: center; margin: 3px 0; }
+.hotkey-row kbd { width: 34px; text-align: center; }
+.hotkey-row select { font: inherit; background: #12110f; color: #eee; border: 1px solid #5a544b; max-width: 260px; }
+.mark-icons { display: grid; grid-template-columns: repeat(10, 30px); gap: 3px; margin: 6px 0; justify-content: center; }
+.mark-icons button { width: 30px; height: 30px; padding: 2px; background: #1e1c19; }
+.mark-icons button.active { background: #7a5a24; outline: 2px solid #f0d090; }
+.mark-icons canvas { display: block; width: 24px; height: 24px; }
+#markLabel { width: 100%; box-sizing: border-box; margin-bottom: 6px; font-size: 16px; }
+.outfit-type { display: flex; gap: 4px; align-items: center; justify-content: center; margin: 4px 0; }
+.outfit-type b { min-width: 86px; text-align: center; }
+.outfit-addons { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 6px; font-size: 12px; }
+.outfit-parts { margin-bottom: 4px; }
+.outfit-palette { display: grid; grid-template-columns: repeat(19, 15px); gap: 1px; justify-content: center; }
+.swatch-color { width: 15px; height: 15px; padding: 0; border: 1px solid #000; }
+.swatch-color.active { outline: 2px solid #fff; outline-offset: -1px; z-index: 1; }
+#outfitPreview { display: block; margin: 0 auto 6px; image-rendering: pixelated; background: #2a2622; }
+.worldmap { inset: 8px; display: flex; flex-direction: column; padding: 6px; }
+.worldmap header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+#worldCanvas { flex: 1; min-height: 0; width: 100%; image-rendering: pixelated; cursor: crosshair; }
+.button-row { display: flex; gap: 5px; }
+.button-row button { flex: 1; }
+.status small { font-size: 12px; margin-left: 2px; color: #fff; font-weight: bold; }
+.skull-icon { width: 15px; height: 15px; vertical-align: -2px; }
+/* what you look at, in green over the game, like Tibia */
+.look-text { position: absolute; left: 50%; transform: translateX(-50%); max-width: min(90%, 560px); z-index: 6; color: #3fef3f; font: bold 14px/1.35 Verdana, sans-serif; text-align: center; pointer-events: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
+.look-text.fade { transition: opacity 0.6s; opacity: 0; }
+/* The speed meter (Menu, Game): frames a second and stalls, top right of the map; amber when the game isn't smooth */
+.speed-meter { position: absolute; top: 8px; right: 8px; z-index: 7; padding: 4px 8px; border-radius: 6px; cursor: pointer; background: rgba(0, 0, 0, 0.62); color: #8fef8f; font: 600 12px/1.35 ui-monospace, Menlo, Consolas, monospace; white-space: pre; }
+.speed-meter.bad { color: #ffc24a; }
+/* the guide for new adventurers, top left over the game */
+.guide { position: absolute; z-index: 7; width: min(310px, 42%); padding: 6px 9px 8px; border-radius: 8px; background: #1c1914e8; border: 1px solid #c89a48; color: #f0e6d0; font-size: 13px; line-height: 1.4; box-shadow: 0 2px 10px #0008; }
+.guide header { display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffd84a; user-select: none; }
+.guide header span { flex: 1; color: #b8a888; font-size: 11px; }
+.guide header button { padding: 0 6px; line-height: 18px; }
+.guide p { margin: 4px 0 0; }
+.guide #guideDone { margin-top: 6px; }
+.guide.folded { width: auto; }
+.guide.folded p, .guide.folded #guideDone { display: none; }
+.guide #guideNow { color: #ffd84a; }
+.container .bag-swap { display: block; width: 100%; margin-top: 4px; }
+.guide.folded #guideNow:not([hidden]) { display: block; max-width: 220px; }
+.toasts { position: absolute; left: 50%; top: 92px; transform: translateX(-50%); width: min(calc(100% - 140px), 420px); display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.toast { background: #000000b0; color: #f0e6d0; font-size: 13px; padding: 3px 10px; border-radius: 10px; text-align: center; animation: toast-fade 3.5s forwards; }
+.toast.damage { color: #ff9a9a; }
+@keyframes toast-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.ctx-menu { position: fixed; z-index: 60; display: flex; flex-direction: column; min-width: 150px; padding: 3px; background: #262420f8; border: 2px solid #8a7a5a; border-radius: 4px; box-shadow: 0 6px 24px #000c; }
+.ctx-menu button { text-align: left; padding: 7px 12px; background: none; border: 0; color: #f0e6d0; font-size: 14px; }
+.ctx-menu button:hover, .ctx-menu button:active { background: #7a5a24; }
+#view { border: 3px solid #5e4c32; box-shadow: 0 0 0 1px #000, 0 8px 32px #000c; }
+.console { border: 2px solid #5e4c32; background: linear-gradient(180deg, #17150f, #0f0e0b); box-shadow: inset 0 2px 6px #000; }
+.bar { border: 1px solid #000; box-shadow: inset 0 1px 3px #000; }
+.bar.hp > div { background: linear-gradient(180deg, #e8484a, #a01c1e); }
+.bar.mana > div { background: linear-gradient(180deg, #4a6ae8, #1c34a0); }
+.bar.xp > div { background: linear-gradient(180deg, #ecc048, #a07818); }
+.slot[data-rarity="uncommon"] { border-color: #3c7a3a; box-shadow: inset 0 0 7px rgba(90, 210, 100, 0.5), inset 0 2px 4px #000; }
+.slot[data-rarity="rare"] { border-color: #3a62b0; box-shadow: inset 0 0 8px rgba(90, 150, 255, 0.6), inset 0 2px 4px #000; }
+.slot[data-rarity="epic"] { border-color: #8a4ac0; box-shadow: inset 0 0 9px rgba(190, 110, 255, 0.65), inset 0 2px 4px #000; }
+.slot[data-rarity="legendary"] { border-color: #d08a30; animation: legendary 1.6s ease-in-out infinite; }
+@keyframes legendary {
+  0%, 100% { box-shadow: inset 0 0 8px rgba(255, 170, 60, 0.55), inset 0 2px 4px #000; }
+  50% { box-shadow: inset 0 0 14px rgba(255, 190, 80, 0.95), 0 0 6px rgba(255, 170, 60, 0.6); }
+}
+/* a sign's text: on a dark card, readable over any ground */
+.look-text { background: #1c1a16e6; border: 1px solid #8a7a5a; border-radius: 6px; padding: 8px 10px; }
+/* a sign being read in its window: not its words over the map too */
+body:has(#read:not([hidden])) .look-text { display: none; }
+/* ---- computers: what the UI test round found ---------------------------------------------------------- */
+/* a corpse's contents float over the game, near the top, where you can drag from them into the bag */
+body:not(.touch-ui) #lootBox { position: fixed; top: 64px; left: calc((100vw - 280px) / 2); transform: translateX(-50%); z-index: 30; width: 320px; margin: 0; padding: 6px 8px; background: #262420f2; border: 2px solid #8a7a5a; border-radius: 4px; box-shadow: 0 6px 30px #000a; }
+/* a laptop (wide, not very tall): the side panel in two columns, so the bag and the tabs aren't below the screen */
+@media (min-width: 1180px) and (max-height: 920px) {
+  body.game:not(.touch-ui) .panel { width: 520px; column-count: 2; column-gap: 8px; }
+  body.game:not(.touch-ui) .panel > section, body.game:not(.touch-ui) .panel > #containers, body.game:not(.touch-ui) #containers > * { break-inside: avoid; }
+}
+.slot.empty:has(svg)::after { display: none; }
+.slot.empty svg { position: absolute; inset: 0; margin: auto; color: #4a443c; pointer-events: none; }
+/* ==== the same look on computers: the side panel as a column of cards, the log and hotbar beneath the view ========== */
+body.game:not(.touch-ui) { background: #0d0c0b; color: var(--text); }
+body.game:not(.touch-ui) *:not(canvas) { font-family: var(--ui); }
+body.game:not(.touch-ui) .log, body.game:not(.touch-ui) .log * { font: 400 13px/1.55 var(--ui); }
+body.game:not(.touch-ui) .log .time { color: var(--faint); font-variant-numeric: tabular-nums; }
+body.game:not(.touch-ui) .log .level, body.game:not(.touch-ui) .log .quest { color: var(--accent); font-weight: 600; }
+body.game:not(.touch-ui) .log .npc { color: #8cbcff; }
+body.game:not(.touch-ui) .log .kw { color: var(--accent); text-decoration: none; font-weight: 600; }
+body.game:not(.touch-ui) #view { border: 1px solid var(--line-2); border-radius: 12px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); }
+body.game:not(.touch-ui) .panel { padding: 12px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: var(--bg); box-shadow: none; }
+body.game:not(.touch-ui) .panel section, body.game:not(.touch-ui) .panel #containers > * { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); box-shadow: none; }
+body.game:not(.touch-ui) .panel h2 { margin: 0 0 10px; padding: 0; border: 0; color: var(--muted); font: 600 11px var(--ui); letter-spacing: 0.8px; text-transform: uppercase; text-shadow: none; }
+body.game:not(.touch-ui) .charline { color: var(--text); font: 600 14px var(--ui); margin-bottom: 8px; }
+body.game:not(.touch-ui) .bar { height: 16px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, 0.07); box-shadow: none; overflow: hidden; margin-bottom: 5px; }
+body.game:not(.touch-ui) .bar > div { border-radius: 8px; }
+body.game:not(.touch-ui) .bar.hp > div { background: linear-gradient(#ee6266, var(--hp)); }
+body.game:not(.touch-ui) .bar.mana > div { background: linear-gradient(#5aa0ff, var(--mana)); }
+body.game:not(.touch-ui) .bar.xp { height: 10px; }
+body.game:not(.touch-ui) .bar.xp > div { background: var(--xp); }
+body.game:not(.touch-ui) .bar span { font: 600 10.5px/16px var(--ui); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+body.game:not(.touch-ui) .bar.xp span { font-size: 9px; line-height: 10px; }
+body.game:not(.touch-ui) button, body.game:not(.touch-ui) .button { border: 1px solid var(--line-2); border-radius: 8px; background: var(--bg-3); box-shadow: none; color: var(--text); font: 500 12.5px var(--ui); text-shadow: none; transition: background-color 0.12s, border-color 0.12s; }
+body.game:not(.touch-ui) button:hover:not(:disabled), body.game:not(.touch-ui) .button:hover { background: var(--bg-4); }
+body.game:not(.touch-ui) button.active { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent); }
+body.game:not(.touch-ui) button.primary { border-color: transparent; background: var(--accent); color: #1d1404; font-weight: 600; }
+body.game:not(.touch-ui) button.primary:hover:not(:disabled) { background: #f0c25e; }
+body.game:not(.touch-ui) input, body.game:not(.touch-ui) select { border: 1px solid var(--line-2); border-radius: 8px; background: #0e0d0c; box-shadow: none; color: var(--text); font: 400 13px var(--ui); }
+body.game:not(.touch-ui) input:focus { outline: 2px solid var(--accent-line); outline-offset: 0; }
+body.game:not(.touch-ui) .slot { border: 1px solid var(--line) !important; border-radius: 7px; background: #0e0d0c; box-shadow: none; }
+body.game:not(.touch-ui) .slot.empty svg { color: rgba(255, 255, 255, 0.16); }
+body.game:not(.touch-ui) .slot:hover { border-color: var(--line-2) !important; }
+body.game:not(.touch-ui) .slot[data-rarity="uncommon"] { border-color: #3f9a55 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="rare"] { border-color: #3e8ef7 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="epic"] { border-color: #a26bf0 !important; }
+body.game:not(.touch-ui) .slot[data-rarity="legendary"] { border-color: var(--accent) !important; }
+body.game:not(.touch-ui) .slot .count { font: 600 10px var(--ui); }
+body.game:not(.touch-ui) .console { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); box-shadow: none; overflow: hidden; }
+body.game:not(.touch-ui) .console #chat { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: var(--bg-2); padding: 9px 12px; }
+body.game:not(.touch-ui) .log-tabs { margin: 8px 10px 2px; gap: 2px; padding: 3px; border-radius: 9px; background: var(--bg-2); width: max-content; }
+body.game:not(.touch-ui) .log-tabs button { border: 0; background: none; color: var(--muted); padding: 3px 10px; font: 600 12px var(--ui); }
+body.game:not(.touch-ui) .log-tabs button.active { background: var(--bg-4); color: var(--text); }
+body.game:not(.touch-ui) .hotbar button { border-radius: 9px; background: var(--bg-2); border-color: var(--line); padding: 5px 10px; }
+body.game:not(.touch-ui) .hotbar kbd, body.game:not(.touch-ui) .hotbar .key { border: 1px solid var(--line-2); border-radius: 4px; background: var(--bg-3); color: var(--muted); }
+body.game:not(.touch-ui) .battle-row { border-radius: 8px; padding: 3px 6px; }
+body.game:not(.touch-ui) .battle-row:hover { background: var(--bg-3); border-color: transparent; }
+body.game:not(.touch-ui) .battle-row.target { border-color: var(--hp); background: rgba(229, 72, 77, 0.08); }
+body.game:not(.touch-ui) .battle-row.followed { border-color: #3f9a55; }
+body.game:not(.touch-ui) .battle-row .mini { height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }
+body.game:not(.touch-ui) .battle-row .mini div { border-radius: 2px; background: #3fbf5f; }
+body.game:not(.touch-ui) .window, body.game:not(.touch-ui) .dialog, body.game:not(.touch-ui) #lootBox { border: 1px solid var(--line-2); border-radius: 14px; background: var(--bg); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); color: var(--text); }
+body.game:not(.touch-ui) .window header, body.game:not(.touch-ui) .dialog header { padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+body.game:not(.touch-ui) .window header b, body.game:not(.touch-ui) .dialog header b { color: var(--text); font: 600 15px var(--ui); text-shadow: none; letter-spacing: 0; }
+body.game:not(.touch-ui) .guide { border: 1px solid var(--line-2); border-left: 3px solid var(--accent); border-radius: 12px; background: var(--glass); box-shadow: var(--shadow); color: var(--text); }
+body.game:not(.touch-ui) .guide header b { color: var(--accent); font-weight: 600; }
+body.game:not(.touch-ui) .toast { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(20, 19, 17, 0.85); color: var(--text); font: 500 13px var(--ui); }
+body.game:not(.touch-ui) .story { border: 1px solid var(--accent-line); border-radius: 10px; background: var(--accent-soft); }
+body.game:not(.touch-ui) .story > b { color: var(--accent); }
+body.game:not(.touch-ui) .story .next { color: var(--muted); font-style: normal; }
+body.game:not(.touch-ui) .muted { color: var(--muted); }
+body.game:not(.touch-ui) .panel h2 button { padding: 1px 6px; font-size: 11px; border-radius: 6px; text-transform: none; letter-spacing: 0; }
+body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+/* Getting ready to play: over the world while its pictures are made (see Preload in game.js) */
+#loading { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: #14110d; }
+#loading[hidden] { display: none; }
+.loading-box { width: min(320px, 80vw); text-align: center; color: #e8dcc0; font-size: 15px; letter-spacing: 0.04em; }
+.loading-track { margin-top: 12px; height: 8px; border-radius: 4px; background: #3a3326; overflow: hidden; }
+#loadingBar { width: 0; height: 100%; background: linear-gradient(90deg, #c8901c, #f2c94c); transition: width 0.15s; }
+/* The sky over the map (see Fx.overlay): clouds' shadows, the light's tint and the dark edge, laid over the canvas */
+#sky { position: absolute; pointer-events: none; overflow: hidden; z-index: 1; }
+#sky[hidden] { display: none; }
+#sky .sky-cloud { position: absolute; left: 0; top: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,20,0.1), rgba(0,0,20,0)); will-change: transform; }
+#sky .sky-fill { position: absolute; inset: 0; }
+.guide-card .guide-now { color: var(--accent, #ffd84a); margin-top: 4px; }
+.guide-card button { margin-top: 6px; }

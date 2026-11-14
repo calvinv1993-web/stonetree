@@ -1,5 +1,5 @@
 /* The phone's look in one place: the colours every window, card, button and chip uses (the variables the touch
-   layer of style.css draws with), turned from neutral grey to the bars' dark wood and thin gold. Then the windows
+   layer (layout.css) draws with), turned from neutral grey to the bars' dark wood and thin gold. Then the windows
    themselves get the same gold edge as the status bar, the action bar and the drawer. Nothing moves; only colours. */
 body.touch-ui {
   --bg: #12100c; --bg-2: #1a1712; --bg-3: #241f17; --bg-4: #31291c;

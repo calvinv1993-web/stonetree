@@ -8,25 +8,26 @@ ever needed.
 
 From top to bottom:
 
-- **The status bar** (`css/compact-hud.css`, built in `js/mobile-hud.js`): the round map (tap: the world map), the
+- **The status bar** (`css/phone/layout.css`, built in `js/mobile-hud.js`): the round map (tap: the world map), the
   level, health with a heart and mana with a drop (current / max), a thin experience bar with its percent, and the
   round menu button.
 - **The map**, as big as the space between the bars allows.
 - **The action bar** (`js/mobile-hud.js` puts it together):
   - three spells on the left, three spells, potions or food on the right (`js/action-slots.js`,
-    `css/action-slots.css`): each its picture, a spell's mana with a drop, a potion's count; a gold edge when it can be
+    `css/phone/action-slots.css`): each its picture, a spell's mana with a drop, a potion's count; a gold edge when it can be
     used, dimmed without the mana or with none left; a shade and the seconds while it cools down. Tap to use, hold to
     choose what goes there, swipe sideways for the next set of three (both groups apart, kept per player).
-  - the smart button in the middle (`js/smart-button.js`, `css/smart-button.css`): attack, loot, talk, use, or
+  - the smart button in the middle (`js/smart-button.js`, `css/phone/smart-button.css`): attack, loot, talk, use, or
     nothing, by what is about; its colour says which.
-  - the drawer tab above it (`js/inventory-drawer.js`, `css/inventory-drawer.css`): swipe up for equipment and
+  - the drawer tab above it (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`): swipe up for equipment and
     backpack side by side, up again for everything, with other opened bags and the skills; down on its handle to go
     back. Dragging a thing out over the map closes it.
-- **The chat line** under the bar (`js/chat-line.js`, `css/chat-line.css`): the newest message; tap it for the chat,
-  which opens at the newest line.
+- **The chat line** under the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
+  which opens at the newest line above the action bar, with a send button; the smart button or the tab on its edge
+  closes it.
 
-Windows (menu, character, chooser, talk, chat, shop) share one dark and gold look: `css/mobile-theme.css`.
-The page fits the phone's screen and its safe areas (status bar, home indicator): `css/mobile-viewport.css`,
+Windows (menu, character, chooser, talk, chat, shop) share one dark and gold look: `css/phone/theme.css`.
+The page fits the phone's screen and its safe areas (status bar, home indicator): `css/phone/layout.css`,
 `js/mobile-viewport.js`, `manifest.json`.
 
 ## How it is built
@@ -36,7 +37,9 @@ The page fits the phone's screen and its safe areas (status bar, home indicator)
   which decide and say why they refuse.
 - They use what the page already has instead of copies: the action bar the favourites of `touch.js`, the drawer the
   equipment and container windows of `game-ui.js` (borrowed while it is open, given back after), the chat line the log.
-- The old layers of `css/style.css` are left as they were; the new stylesheets come after it and win where they must.
+- The stylesheets: `css/base.css` (every page), `css/game.css` (the game, on a computer and what a phone shares),
+  then `css/phone/`: `layout.css` (the phone's layout), a file per module, and `theme.css` (colours) last.
+  `tests/ui-snapshots.js` checks a change to them moves nothing that shouldn't: take a reference before, compare after.
 - Upright only: on its side the phone keeps the earlier layout.
 
 ## Tests

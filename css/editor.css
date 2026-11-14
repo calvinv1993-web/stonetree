@@ -1,0 +1,42 @@
+/* The map editor (editor.html) and the data editor (data.html): their toolbars, palettes, canvas and side panels,
+   and their narrow-screen layout. Loaded after base.css; the game never loads it. */
+/* ---- editor ---- */
+/* (as tall as what the browser really shows: 100vh is taller than that in some phone browsers, Samsung Internet among
+   them, whose toolbar then hides the bottom of the editor; --app-h is set from the page's own height, see editor.js) */
+.editor { display: flex; flex-direction: column; height: 100vh; height: 100dvh; height: var(--app-h, 100dvh); overflow: hidden; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 6px 10px; background: #262420; border-bottom: 2px solid #4a453e; }
+.toolbar .group { display: flex; gap: 4px; align-items: center; }
+.toolbar .right { margin-left: auto; }
+.toolbar label { display: flex; gap: 4px; align-items: center; cursor: pointer; }
+.floor-label { min-width: 96px; text-align: center; font-weight: bold; }
+.editor-body { flex: 1; display: flex; min-height: 0; }
+.palette { width: 246px; flex-shrink: 0; overflow-y: auto; background: #211f1b; border-right: 2px solid #4a453e; padding: 8px 10px; }
+.palette h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #a89c84; margin: 12px 0 5px; }
+.palette .selected { font-weight: bold; color: #f0d090; }
+.swatches { display: grid; grid-template-columns: repeat(5, 40px); gap: 4px; }
+.swatch { width: 40px; height: 40px; padding: 3px; }
+.swatch img { display: block; width: 32px; height: 32px; image-rendering: pixelated; }
+.palette p { font-size: 12px; }
+.canvas-wrap { flex: 1; position: relative; min-width: 0; }
+#canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+.statusbar { display: flex; justify-content: space-between; gap: 12px; padding: 3px 10px; background: #262420; border-top: 2px solid #4a453e; font-size: 12px; white-space: nowrap; overflow: hidden; }
+/* ---- data editor ---- */
+.data-main { flex: 1; display: flex; min-width: 0; }
+#json { flex: 1; resize: none; border: 0; border-radius: 0; padding: 10px 12px; font: 12px/1.5 ui-monospace, monospace; background: #12110f; color: #ddd6c4; tab-size: 2; }
+.data-help { font-size: 12px; }
+.data-help p { color: #b8b0a0; }
+/* Tighter visual hierarchy: clean slots and unobtrusive page arrows. */
+/* Mobile map editor: canvas first, compact scrollable tools and touch controls. */
+.mobile-map-controls { display: none; }
+@media (max-width: 760px) {
+  .editor .toolbar { flex: 0 0 auto; flex-wrap: nowrap; overflow-x: auto; gap: 10px; padding: 5px; -webkit-overflow-scrolling: touch; }
+  .editor .toolbar .group { flex: 0 0 auto; }
+  .editor .toolbar button { min-height: 38px; }
+  .editor-body { position: relative; }
+  .editor .palette { position: absolute; z-index: 5; left: 0; top: 0; bottom: 0; width: min(80vw, 285px); box-shadow: 4px 0 18px #0008; transform: translateX(-105%); transition: transform .15s; }
+  .editor-body.palette-open .palette { transform: translateX(0); }
+  .editor #canvas { touch-action: none; }
+  .mobile-map-controls { display: flex; position: absolute; z-index: 6; right: 8px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); gap: 5px; }
+  .mobile-map-controls button { min-width: 42px; min-height: 44px; background: #262420ee; }
+  .editor .statusbar { min-height: 24px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+}

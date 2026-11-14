@@ -212,7 +212,7 @@ function initTouch() {
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
   for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
-  // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
+  // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (css/phone/layout.css)
   const hud = document.querySelector('#touch .hud');
   let hudH = -1;
   const hudHeight = () => requestAnimationFrame(() => { // (after the layout, so the observer doesn't loop)
@@ -306,7 +306,7 @@ function initTouch() {
 }
 
 // ---- sheets: Character, Quests and Menu come up from the bottom, over the map ----------------------------------
-// They are the side panel, showing only what belongs to them (body[data-sheet], body[data-seg]; see style.css).
+// They are the side panel, showing only what belongs to them (body[data-sheet], body[data-seg]; see css/phone/layout.css).
 const SHEETS = {
   character: { title: () => `${player.name} · level ${player.level}`, segs: [['equipment', 'Equipment'], ['bag', 'Bag'], ['skills', 'Skills']] },
   quests: { title: () => 'Quests' },

@@ -1,7 +1,7 @@
 'use strict';
 // Tilequest's interface icons: one consistent set of line icons on a 24-unit grid, drawn as vectors (SVG) with rounded
 // strokes, so they're sharp at any size. They take the colour of the text around them (currentColor): grey when idle,
-// gold when chosen, set in style.css. Potions, food and gold keep a fill of their own colour: you look for those in a fight.
+// gold when chosen, set in css/game.css. Potions, food and gold keep a fill of their own colour: you look for those in a fight.
 //   Icons.svg(name): the icon's SVG text
 //   Icons.img(name, size = 24): an <svg> element of it (class "icon")
 //   Icons.url(name, colour = '#e9e4da'): a data URL of it, for an <img> or a CSS background
