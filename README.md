@@ -245,3 +245,5 @@ Mobile menu cleanup: open the map from the round minimap and Settings from the r
 Mobile viewport: standalone launches use an opaque status bar. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.
 
 The compact phone HUD shows level, current/max HP and mana, and progress to the next level. Use the round minimap and menu buttons for navigation. The map editor now requests the same opaque iOS status bar as the game; device verification is still required.
+
+Action slots show approved Knight artwork, spell mana costs and shared cooldown seconds. Low mana dims the icon and marks the cost red; potion slots show counts. Hold to edit or clear, swipe each group independently. Other spells temporarily show initials until approved artwork is available. The supplied reference sheet retains its white background.

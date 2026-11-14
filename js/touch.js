@@ -90,7 +90,10 @@ function favourites() {
 function useFav(slot) {
   const e = hotbarEntries().find(x => x.id === favourites()[favIndex(slot)]);
   if (!e) openFavPicker(slot);
-  else if (!e.locked && player && !paused) e.act();
+  else if (!e.locked && player && !paused) {
+    const state = actionSlotState(e.id);
+    if (!state || (!state.insufficientMana && !state.cooldown)) e.act();
+  }
 }
 
 let favPageOwner = '';
@@ -106,7 +109,7 @@ function renderFavs() {
   const entries = hotbarEntries();
   const favs = favourites();
   const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(9 + favItemPage * 3, 12 + favItemPage * 3)];
-  const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
+  const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}|${JSON.stringify(actionSlotState(e.id))}` : '-'));
   if (favHold || shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
   const root = $('favs');
@@ -116,15 +119,11 @@ function renderFavs() {
     const b = document.createElement('button');
     b.className = `fav${e && e.locked ? ' locked' : ''}${e ? '' : ' empty'}`;
     b.innerHTML = '<span></span><small></small>';
-    const icon = e && { h: 'health_potion', m: 'mana_potion', f: 'bread' }[e.id]; // potions and food: their picture, not a cut-off name
-    if (icon) b.querySelector('span').replaceChildren(Icons.img({ h: 'health', m: 'mana', f: 'food' }[e.id], 28));
-    else if (!e) b.querySelector('span').replaceChildren(Icons.img('plus', 20));
-    else b.querySelector('span').textContent = e.name;
-    b.querySelector('small').textContent = e ? e.sub : ''; // (an empty one: just a +; hold it to choose)
+    renderActionSlot(b, e);
     b.title = e ? e.name : 'Hold to choose a spell or potion for this button';
     b.addEventListener('pointerdown', ev => {
       ev.preventDefault();
-      if (favHold) clearTimeout(favHold.timer);
+      if (favHold) { clearTimeout(favHold.timer); favHold.el.classList.remove('holding'); }
       b.classList.add('holding');
       favHold = { slot, el: b, held: false, id: ev.pointerId, x: ev.clientX, y: ev.clientY };
       b.setPointerCapture(ev.pointerId);
@@ -174,7 +173,7 @@ function openFavPicker(slot) {
     b.disabled = !!e.locked;
     b.innerHTML = '<span></span> <small></small>';
     b.querySelector('span').textContent = e.name;
-    b.querySelector('small').textContent = e.sub;
+    b.querySelector('small').textContent = SPELLS[e.id] ? `${SPELLS[e.id].mana} mana${e.locked ? ' · ' + e.sub : ''}` : e.sub;
     b.addEventListener('click', () => {
       const favs = favourites();
       favs[favIndex(favPickSlot)] = e.id;
