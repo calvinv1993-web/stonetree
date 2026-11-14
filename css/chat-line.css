@@ -23,7 +23,10 @@ body.touch-ui .chat-line { display: none; }
 body.touch-ui.chat-open .console { bottom: var(--tabbar) !important; overflow: visible !important; }
 body.touch-ui.chat-open .chat-line { visibility: hidden; }
 body.touch-ui .console .chat-close { display: none !important; }
-body.touch-ui .chat-tab { top: -16px; z-index: 2; }
+/* the same tab as the drawer's (inventory-drawer.css), over the console's own button look */
+body.touch-ui .console > .chat-tab { top: -16px; z-index: 2; width: 46px; height: 16px; min-width: 0; min-height: 0; padding: 0; margin: 0;
+  border: 1px solid #8a6a32 !important; border-bottom: 0 !important; border-radius: 10px 10px 0 0 !important;
+  background: linear-gradient(#262117, #12100b) !important; color: #e6b85f; box-shadow: none; }
 body.touch-ui .chat-tab .drawer-chevrons { transform: none !important; }
 body.touch-ui .chat-input-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-top: 1px solid var(--line, #3a2e1c); }
 body.touch-ui .chat-input-row #chat { flex: 1; min-width: 0; border: 1px solid var(--line-2) !important; border-radius: 18px !important; padding: 8px 14px; }
