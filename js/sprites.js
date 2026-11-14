@@ -6528,7 +6528,7 @@ const Sprites = (() => {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
-      const own = (id === 'stairs_up' && shape && customImage(`stairs_up_${shape}`)) || customImage(id) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or its own picture for each variant: <id>_0, _1...)
+      const own = ((id === 'stairs_up' || id === 'stairs_down') && shape && customImage(`${id}_${shape}`)) || customImage(id) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if ((id === 'bridge_ns' || id === 'bridge_ew') && customImage('bridge_deck')) return bridgeFromPicture(id === 'bridge_ns', shape, x, y);
       if (THINGS[id] && THINGS[id].roof) { const ownRoof = roofFromPicture(id, shape); if (ownRoof) return ownRoof; }
