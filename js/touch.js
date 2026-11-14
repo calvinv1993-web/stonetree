@@ -332,7 +332,7 @@ function initTouch() {
     const xpProgress = Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)));
     $('hudXp').style.width = `${xpProgress}%`;
     const xpText = $('hudXpText');
-    if (xpText) xpText.textContent = `EXP ${Math.floor(xpProgress)}%`;
+    if (xpText) xpText.textContent = `${Math.floor(xpProgress)}%`;
     $('hudGold').innerHTML = `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`;
     document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
     if (document.body.dataset.sheet === 'menu') renderMenu();

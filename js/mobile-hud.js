@@ -11,8 +11,10 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   const hud = document.querySelector('.hud');
   const level = document.createElement('div'); level.className = 'hud-level';
   level.append('Lv. ', $('hudLvl')); hud.appendChild(level);
-  const xp = document.createElement('span'); xp.id = 'hudXpText';
-  document.querySelector('.hud-xp').appendChild(xp);
+  // a heart before the health bar and a drop before the mana; experience as a thin bar, its label left, its percent right
+  for (const [bar, icon] of [['hp', 'heart'], ['mana', 'drop']]) { const i = Icons.img(icon, 18); i.classList.add(`hud-icon-${bar}`); hud.appendChild(i); }
+  const expLabel = document.createElement('span'); expLabel.className = 'hud-exp-label'; expLabel.textContent = 'EXP'; hud.appendChild(expLabel);
+  const xp = document.createElement('span'); xp.id = 'hudXpText'; hud.appendChild(xp);
   const mapButton = document.createElement('button'); mapButton.id = 'hudMap'; mapButton.title = 'Open map';
   mapButton.innerHTML = '<canvas width="96" height="96"></canvas>'; mapButton.onclick = () => { closeSheet(); toggleWorldMap(); }; hud.appendChild(mapButton);
   const menu = document.createElement('button'); menu.id = 'hudMenu'; menu.textContent = '☰'; menu.title = 'Menu'; menu.onclick = () => toggleSheet('menu'); hud.appendChild(menu);

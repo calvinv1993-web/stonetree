@@ -58,6 +58,8 @@ const Icons = (() => {
     // things you carry: line drawings with a fill of their own colour
     health: flask(RED),
     mana: flask(BLUE),
+    heart: `<path d="M12 20.5 4.3 12.8a4.6 4.6 0 0 1 6.5-6.5L12 7.5l1.2-1.2a4.6 4.6 0 0 1 6.5 6.5z" fill="${RED}" stroke="#7a1a1a"/>`, // (health and mana on the phone's status bar)
+    drop: `<path d="M12 3.2C9 7.4 6.2 10.6 6.2 14.2a5.8 5.8 0 0 0 11.6 0c0-3.6-2.8-6.8-5.8-11z" fill="${BLUE}" stroke="#123a6a"/>`,
     food: `<path d="M12 7.2c-1.7-1.3-7-1.6-7 4.6 0 4.6 2.8 9.2 5 9.2 1 0 1.3-.5 2-.5s1 .5 2 .5c2.2 0 5-4.6 5-9.2 0-6.2-5.3-5.9-7-4.6z" fill="${FOOD}"/>
       <path d="M12 7.2c0-1.9.9-3.4 2.8-4.2"/><path d="M12.4 5.4c1.2-1.3 3-1.6 4.4-1-.4 1.6-2.3 2.6-4.4 1z" fill="#6aa84f" stroke="none"/>`,
     coins: `<circle cx="12" cy="12" r="8.5" fill="${GOLD}" stroke="#7a5414"/><circle cx="12" cy="12" r="5.6" stroke="#a87420" stroke-width="1.3"/>
