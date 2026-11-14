@@ -458,25 +458,28 @@ const Sprites = (() => {
     }
     return edgePixelCache.get(img);
   }
-  // Stone steps from their own picture (sprites/custom.js steps_slope): the slope seen straight on (u across, v down
-  // the slope), three tiles across - the left end, the middle, the right end - at any number of pixels a world pixel.
-  // shape: whether there are steps west and east of this one ('10'...), from the renderer.
-  function stepsFromPicture(shape = '00') {
-    const pic = customImage('steps_slope'), res = Sprites.CREATURE_RES, src = pic.naturalHeight;
-    const piece = shape === '11' ? 1 : shape === '10' ? 2 : shape === '01' ? 0 : 1, rightEnd = shape[1] !== '1';
-    return cached(`ownsteps:${piece}:${rightEnd}:${res}`, g => {
+  // A flight of stone steps several tiles wide from the stone stairs' own picture (sprites/custom.js stairs_up_stone): one
+  // tile of treads each, cut where a tread ends so the treads of the tiles side by side run on into each other; only the
+  // flight's east end keeps the stairs' side wall. shape: whether there are steps west and east of this one ('10'...).
+  // (The treads, in the picture's own pixels at 4x: the top of each and where it ends on the east; a tread is a tile wide.)
+  const STAIR_TREADS = { tops: [133, 173, 217, 257, 297, 338], ends: [268, 285, 305, 322, 342, 360], size: 384 };
+  function stepsFromStairs(shape = '00') {
+    const pic = customImage('stairs_up_stone'), res = Sprites.CREATURE_RES, west = shape[0] === '1', east = shape[1] === '1';
+    return cached(`ownflight:${shape}:${res}`, g => {
       g.canvas.res = res;
-      if (rightEnd) { // its east side, stone, where nothing goes on
-        g.save(); g.setTransform(...FACES.east.map(v => v * res));
-        g.beginPath(); g.moveTo(0, 0); g.lineTo(0, TILE); g.lineTo(TILE, TILE); g.closePath(); g.clip();
-        stoneBlocks(g, makeRng(hashStr('steps')), 96, '#2e2e32');
-        g.restore();
-      }
-      g.save(); g.setTransform(res, 0, res, 2 * res, 0, 0); // (u, v) on the slope -> (u + v, 2v)
+      const k = (3 * TILE * res) / STAIR_TREADS.size, { tops, ends, size } = STAIR_TREADS, tile = size / 3;
+      g.save(); g.scale(k, k);
+      g.beginPath();
+      tops.forEach((top, i) => { // each tread's band: from its top to the next one's
+        const y0 = i ? top : 0, y1 = i < tops.length - 1 ? tops[i + 1] : size;
+        const x0 = west ? ends[i] - tile : 0, x1 = east ? ends[i] : size;
+        g.rect(x0, y0, x1 - x0, y1 - y0);
+      });
+      g.clip();
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-      g.drawImage(pic, piece * src, 0, src, src, 0, 0, TILE, TILE);
+      g.drawImage(pic, 0, 0, size, size);
       g.restore();
-    }, 2 * TILE * res);
+    }, 3 * TILE * res);
   }
   // A wooden bridge from its own picture (sprites/custom.js bridge_deck): 4 rows of 3 tiles, drawn as a bridge you cross
   // east-west (planks running north-south, a beam along an edge where the bridge ends): the rows for shape 00, 10, 01, 11
@@ -6572,7 +6575,7 @@ const Sprites = (() => {
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y, shape);
       if (ownBlock) return ownBlock;
-      if (id === 'steps' && customImage('steps_slope')) return stepsFromPicture(shape);
+      if (id === 'steps' && customImage('stairs_up_stone')) return stepsFromStairs(shape);
       const def = THINGS[id], sprite = spriteOf(id);
       if (PARTS[sprite]) {
         const anim = ANIMATED[PARTS[sprite][0]];

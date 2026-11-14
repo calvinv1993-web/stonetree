@@ -793,6 +793,10 @@ const Render = {
         return val;
       };
       const fringe = !Render.skip('fringe') && Sprites.grassFringe && Sprites.grassFringe(); // (the blades over things' feet: drawn each frame)
+      // Stairs are pictures wider than their tile: a wall beside them that is drawn after them (east, or south-west) would cut a
+      // piece out, so they wait until that wall is drawn (late, by the wall's tile)
+      const late = new Map();
+      const isWall = (wx, wy) => wx >= x0 && wx <= x1 && wy <= y1 && (tileAt(wx, wy)?.items || []).some(id => { const d = THINGS[id]; return d.wall && !d.onWall && !d.roof; });
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = floor[y * map.width + x];
         if (t && fringe && t.ground === 'grass' && !standing(x, y)) {
@@ -855,6 +859,16 @@ const Render = {
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);
             }
             const img = Sprites.thing(id, x, y, v.time, shape, material), iw = Sprites.w(img), ih = Sprites.h(img), lift = iw - TILE, rise = ih - TILE; // tall things rise up-left
+            if (id === 'stairs_up' || id === 'stairs_down') {
+              const wait = isWall(x - 1, y + 1) ? (y + 1) * map.width + x - 1 : isWall(x + 1, y) ? y * map.width + x + 1 : -1;
+              const draw = (dx, dy) => { g.imageSmoothingEnabled = img.res > 1; g.drawImage(img, dx, dy, iw, ih); g.imageSmoothingEnabled = false; };
+              if (wait >= 0) {
+                const dx = ox + x * TILE - lift, dy = oy + y * TILE - rise;
+                if (!late.has(wait)) late.set(wait, []);
+                late.get(wait).push(() => draw(dx, dy));
+              } else draw(ox + x * TILE - lift, oy + y * TILE - rise);
+              continue;
+            }
             const fine = img.res > 1; // (a picture finer than a pixel a world pixel: drawn at its world size, smoothly)
             if (fine) g.imageSmoothingEnabled = true;
             const st = v.seeThrough, hides = def.tall && !def.wall && st && st.z === z && st.x >= x - 1 && st.x <= x && st.y >= y - 1 && st.y <= y && !(st.x === x && st.y === y);
@@ -873,6 +887,8 @@ const Render = {
             if (fine) g.imageSmoothingEnabled = false;
           }
         }
+        const waiting = late.size && late.get(y * map.width + x);
+        if (waiting) for (const draw of waiting) draw();
         const here = objects && objects.get(y * map.width + x);
         if (here) for (const o of here) {
           const iw = Sprites.w(o.img), ih = Sprites.h(o.img), lift = iw - TILE + (o.lift || 0);

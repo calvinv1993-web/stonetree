@@ -14,7 +14,8 @@
 const CUSTOM_SPRITES = {
   window_front: 'window-front.png', // the owner's window, painted straight on: laid onto the wall in its slant (both directions)
   stairs_up_stone: 'stairs-stone@4x.png', // the owner's stairs up, by the floor they stand on: stone (the wall's towers, the
-  stairs_up_wood: 'stairs-wood@4x.png',   // crypt) and wood (houses, the bell tower); render.js picks by the tile's ground
+  stairs_up_wood: 'stairs-wood@4x.png',   // crypt) and wood (houses, the bell tower); render.js picks by the tile's ground. The stone one also makes the temple
+                                          // mount's wide flight of steps, a tile of treads each (stepsFromStairs)
   stairs_down_wood: 'stairs-down-wood@4x.png', // the owner's ways down through a wooden floor and a stone one
   stairs_down_stone: 'stairs-down-stone@4x.png',
   battlement_n: 'battlement-n@4x.png', // the owner's battlements along the town wall's walkway: its north, south, west and
@@ -167,7 +168,6 @@ const CUSTOM_SPRITES = {
   tree: 'tree@4x.png', // the leafy trees, the owner's picture in the world's camera (its own shadow made from its shape)
   rampart_face: 'rampart-face.png', // the town wall's sides: dressed sandstone with moss and ivy, a seamless strip (see blockFromPicture)
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
-  steps_slope: 'steps-slope.png', // the temple's stone steps: their slope seen straight on, left end, middle, right end (see stepsFromPicture)
   window_stained_s: 'banner-temple-s.png', // the temple's blue banners with a golden star, from the owner's picture: on a wall
   window_stained_e: 'banner-temple-e.png', // running east-west (its south face) and north-south (its east face)
   banner_s: 'banner-temple-s.png',
