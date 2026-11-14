@@ -66,8 +66,9 @@ function setChat(open, focus) {
 const FAV_HOLD = 650;
 const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
-const FAV_SLOTS = 2, FAV_PAGES = 1, FAV_FIXED = 2; // two of your own (spells), and the two potions
-const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + slot - FAV_SLOTS;
+const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 9; // two of your own (spells), and the two potions
+let favItemPage = 0;
+const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + favItemPage * 3 + slot - FAV_SLOTS;
 
 function favourites() {
   const saved = touchStorage.get(favKey());
@@ -92,13 +93,21 @@ function useFav(slot) {
   else if (!e.locked && player && !paused) e.act();
 }
 
+let favPageOwner = '';
 function renderFavs() {
   if (!touchScreen || !player) return;
+  if (favPageOwner !== player.name) {
+    favPageOwner = player.name;
+    const saved = touchStorage.get(favKey() + '.pages') || [0, 0];
+    favPageIndex = Math.max(0, Math.min(2, Number(saved[0]) || 0));
+    favItemPage = Math.max(0, Math.min(2, Number(saved[1]) || 0));
+    favShown = '';
+  }
   const entries = hotbarEntries();
   const favs = favourites();
-  const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(FAV_SLOTS * FAV_PAGES)];
+  const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(9 + favItemPage * 3, 12 + favItemPage * 3)];
   const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
-  if (shown.join() === favShown) return; // redrawing mid-press would lose the press
+  if (favHold || shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
   const root = $('favs');
   root.replaceChildren();
@@ -117,7 +126,8 @@ function renderFavs() {
       ev.preventDefault();
       if (favHold) clearTimeout(favHold.timer);
       b.classList.add('holding');
-      favHold = { slot, el: b, held: false };
+      favHold = { slot, el: b, held: false, id: ev.pointerId, x: ev.clientX, y: ev.clientY };
+      b.setPointerCapture(ev.pointerId);
       favHold.timer = setTimeout(() => {
         favHold.held = true;
         b.classList.remove('holding');
@@ -125,6 +135,13 @@ function renderFavs() {
         openFavPicker(slot);
       }, FAV_HOLD);
     });
+    b.addEventListener('pointermove', ev => {
+      if (!favHold || favHold.id !== ev.pointerId || favHold.held) return;
+      const dx = ev.clientX - favHold.x, dy = ev.clientY - favHold.y;
+      if (Math.hypot(dx, dy) > 12) { clearTimeout(favHold.timer); favHold.moved = true; b.classList.remove('holding'); }
+      favHold.dx = dx; favHold.dy = dy;
+    });
+    b.addEventListener('contextmenu', ev => ev.preventDefault());
     root.appendChild(b);
   });
 }
@@ -133,14 +150,24 @@ function endFavPress(use) {
   if (!favHold) return;
   clearTimeout(favHold.timer);
   favHold.el.classList.remove('holding');
-  if (use && !favHold.held) useFav(favHold.slot);
-  favHold = null;
+  const press = favHold; favHold = null;
+  if (use && !press.held && press.moved && Math.abs(press.dx) > 35 && Math.abs(press.dx) > Math.abs(press.dy) * 1.3) {
+    const delta = press.dx < 0 ? 1 : -1;
+    if (press.slot < 3) favPageIndex = (favPageIndex + delta + 3) % 3;
+    else favItemPage = (favItemPage + delta + 3) % 3;
+    touchStorage.set(favKey() + '.pages', [favPageIndex, favItemPage]);
+    favShown = ''; renderFavs();
+  } else if (use && !press.held && !press.moved) useFav(press.slot);
+  document.getElementById('slotPages').textContent = `${favPageIndex + 1}/3                                      ${favItemPage + 1}/3`;
 }
 
 function openFavPicker(slot) {
   favPickSlot = slot;
   const list = $('favList');
   list.replaceChildren();
+  const clear = document.createElement('button'); clear.textContent = 'Empty slot';
+  clear.onclick = () => { const favs = favourites(); favs[favIndex(slot)] = null; touchStorage.set(favKey(), favs); $('favPicker').hidden = true; favShown = ''; renderFavs(); };
+  list.appendChild(clear);
   for (const e of hotbarEntries()) {
     const b = document.createElement('button');
     b.className = 'hot';
@@ -265,7 +292,7 @@ function initTouch() {
   $('viewport').appendChild($('lootBox'));
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
-  for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests'], ['tabMap', 'map'], ['tabChat', 'chat'], ['tabMenu', 'menu']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
+  for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
   document.body.classList.toggle('no-joystick', !joystickOn());
   // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
   const hud = document.querySelector('#touch .hud');
@@ -298,9 +325,7 @@ function initTouch() {
   });
   tap('tAttack', pressSmartAction);
   tap('panelClose', () => closeSheet());
-  for (const id of ['tabChar', 'tabQuests', 'tabMenu']) tap(id, () => toggleSheet($(id).dataset.sheet));
-  tap('tabMap', () => { closeSheet(); toggleWorldMap(); });
-  tap('tabChat', () => { closeSheet(); setChat(!document.body.classList.contains('chat-open'), true); });
+  for (const id of ['tabChar', 'tabQuests']) tap(id, () => toggleSheet($(id).dataset.sheet));
   tap('talkClose', () => { if (player.conversation) Actions.say('bye'); hideTalk(); });
   for (const b of document.querySelectorAll('#fightModes button')) {
     b.replaceChildren(Icons.img({ offensive: 'mode-attack', balanced: 'mode-balanced', defensive: 'mode-defend' }[b.dataset.mode], 24));
@@ -311,7 +336,7 @@ function initTouch() {
   initJoystick();
   $('chatClose').addEventListener('click', () => setChat(false));
   $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
-  document.addEventListener('pointerup', () => endFavPress(true));
+  document.addEventListener('pointerup', e => { if (favHold && favHold.id === e.pointerId) endFavPress(true); });
   document.addEventListener('pointercancel', () => endFavPress(false));
   // Touching the map puts the drawer away.
   canvas.addEventListener('pointerdown', () => document.body.classList.remove('panel-open'));
@@ -352,7 +377,10 @@ function initTouch() {
       else f.drawImage(img, (big ? TILE + 5 : 5) * r, (big ? TILE - 6 : -6) * r, 22 * r, 22 * r, 0, 0, 128, 128);
     }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
-    $('hudXp').style.width = `${Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)))}%`;
+    const xpProgress = Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)));
+    $('hudXp').style.width = `${xpProgress}%`;
+    const xpText = $('hudXpText');
+    if (xpText) xpText.textContent = `EXP ${Math.floor(xpProgress)}%`;
     $('hudGold').innerHTML = `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`;
     document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
     if (document.body.dataset.sheet === 'menu') renderMenu();
@@ -408,7 +436,7 @@ let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
-  const key = `${player.fightMode}|${player.chase}|${player.secure}|${sound}|${music}|${joystickOn()}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
+  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -418,17 +446,7 @@ function renderMenu() {
     return r;
   };
   const toggle = on => h('span', { className: `toggle${on ? ' on' : ''}` });
-  const modes = h('div', { className: 'seg' }, ...[['offensive', 'Attack'], ['balanced', 'Balanced'], ['defensive', 'Defend']].map(([m, label]) => {
-    const b = h('button', { className: player.fightMode === m ? 'active' : '' }, label);
-    b.addEventListener('click', () => Actions.setFightMode(m));
-    return b;
-  }));
-  const secureOn = player.secure !== false;
   root.replaceChildren(
-    h('div', { className: 'menu-head' }, 'Fighting'), modes,
-    row('Chase your target', toggle(player.chase), () => Actions.setChase(!player.chase)),
-    row(['Secure mode', h('small', { className: secureOn ? '' : 'warn' }, secureOn ? 'On: you can\'t hurt players without a skull' : 'Off: your attacks can hurt other players')],
-      toggle(secureOn), () => Actions.setSecure(!secureOn)),
     h('div', { className: 'menu-head' }, 'Game'),
     row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
@@ -440,10 +458,9 @@ function renderMenu() {
     })),
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
-    row(['Joystick', h('small', {}, joystickOn() ? 'On: walk with the stick, bottom left' : 'Off: tap where to go, or swipe the map')], toggle(joystickOn()), () => setJoystick(!joystickOn())),
+    row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); $('guildBtn').click(); }),
-    row('Order a ride', h('span', {}, '›'), () => { closeSheet(); if ($('worldmap').hidden) toggleWorldMap(true); else setRideMode(true); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
     h('div', { className: 'menu-head' }, 'Make'),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),

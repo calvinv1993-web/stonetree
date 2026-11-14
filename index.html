@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="theme-color" content="#262420">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="theme-color" content="#1b1a17">
   <link rel="manifest" href="manifest.json">
   <title>Tilequest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=ui221">
+  <link rel="stylesheet" href="css/style.css?v=ui227">
+<link rel="stylesheet" href="css/mobile-hud.css?v=ui227">
+<link rel="stylesheet" href="css/mobile-viewport.css?v=ui227">
+<link rel="stylesheet" href="css/compact-hud.css?v=ui227">
 </head>
 <body class="game">
   <div class="layout">
@@ -58,9 +60,6 @@
           <nav id="tabbar" class="tabbar">
             <button id="tabChar" data-sheet="character"><span>&#127890;</span>Character</button>
             <button id="tabQuests" data-sheet="quests"><span>&#128220;</span>Quests</button>
-            <button id="tabMap"><span>&#128506;&#65039;</span>Map</button>
-            <button id="tabChat"><span>&#128172;</span>Chat</button>
-            <button id="tabMenu" data-sheet="menu"><span>&#9776;</span>Menu</button>
           </nav>
           <div id="radialControls" class="radial-controls"><div id="favs" class="favs"></div></div>
         </div>
@@ -253,33 +252,35 @@
     </aside>
   </div>
 
-  <script src="js/defs.js?v=ui221"></script>
-  <script src="js/items.js?v=ui221"></script>
-  <script src="js/creatures.js?v=ui221"></script>
-  <script src="js/npcs.js?v=ui221"></script>
-  <script src="js/data.js?v=ui221"></script>
-  <script src="sprites/custom.js?v=ui221"></script>
-  <script src="sprites/baked-ground.js?v=ui221"></script>
-  <script src="js/sprites.js?v=ui221"></script>
-  <script src="js/map.js?v=ui221"></script>
-  <script src="js/default-map.js?v=ui221"></script>
-  <script src="js/render.js?v=ui221"></script>
-  <script src="js/icons.js?v=ui221"></script>
-  <script src="js/sound.js?v=ui221"></script>
-  <script src="js/fx.js?v=ui221"></script>
-  <script src="js/game-core.js?v=ui221"></script>
-  <script src="js/game-combat.js?v=ui221"></script>
-  <script src="js/game-npc.js?v=ui221"></script>
-  <script src="js/game-social.js?v=ui221"></script>
-  <script src="js/game-forge.js?v=ui221"></script>
-  <script src="js/game-guide.js?v=ui221"></script>
-  <script src="js/game-tales.js?v=ui221"></script>
-  <script src="js/game-update.js?v=ui221"></script>
-  <script src="js/game-ui.js?v=ui221"></script>
-  <script src="js/net.js?v=ui221"></script>
-  <script src="js/game.js?v=ui221"></script>
-  <script src="js/touch.js?v=ui221"></script>
+  <script src="js/defs.js?v=ui227"></script>
+  <script src="js/items.js?v=ui227"></script>
+  <script src="js/creatures.js?v=ui227"></script>
+  <script src="js/npcs.js?v=ui227"></script>
+  <script src="js/data.js?v=ui227"></script>
+  <script src="sprites/custom.js?v=ui227"></script>
+  <script src="sprites/baked-ground.js?v=ui227"></script>
+  <script src="js/sprites.js?v=ui227"></script>
+  <script src="js/map.js?v=ui227"></script>
+  <script src="js/default-map.js?v=ui227"></script>
+  <script src="js/render.js?v=ui227"></script>
+  <script src="js/icons.js?v=ui227"></script>
+  <script src="js/sound.js?v=ui227"></script>
+  <script src="js/fx.js?v=ui227"></script>
+  <script src="js/game-core.js?v=ui227"></script>
+  <script src="js/game-combat.js?v=ui227"></script>
+  <script src="js/game-npc.js?v=ui227"></script>
+  <script src="js/game-social.js?v=ui227"></script>
+  <script src="js/game-forge.js?v=ui227"></script>
+  <script src="js/game-guide.js?v=ui227"></script>
+  <script src="js/game-tales.js?v=ui227"></script>
+  <script src="js/game-update.js?v=ui227"></script>
+  <script src="js/game-ui.js?v=ui227"></script>
+  <script src="js/net.js?v=ui227"></script>
+  <script src="js/game.js?v=ui227"></script>
+  <script src="js/touch.js?v=ui227"></script>
   <div id="loading" hidden><div class="loading-box"><div id="loadingText">Getting the world ready...</div><div class="loading-track"><div id="loadingBar"></div></div></div></div>
+<script src="js/mobile-hud.js?v=ui227"></script>
+<script src="js/mobile-viewport.js?v=ui227"></script>
 </body>
 </html>
 

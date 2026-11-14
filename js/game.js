@@ -317,7 +317,8 @@ const SWIPE = 22; // px before a touch counts as a swipe
 const SWIPE_KEYS = ['d', 'c', 's', 'z', 'a', 'q', 'w', 'e']; // by angle: east, south-east, south... (screen y is down)
 const swipeKey = (dx, dy) => SWIPE_KEYS[(Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8];
 function touchGesture(down, t, wx, wy) {
-  let pressed = false, key = null;
+  let pressed = false, key = null, moved = false;
+  canvas.setPointerCapture(down.pointerId);
   const timer = setTimeout(() => {
     pressed = true;
     if (navigator.vibrate) navigator.vibrate(15);
@@ -327,9 +328,12 @@ function touchGesture(down, t, wx, wy) {
   }, LONG_PRESS);
   const move = e => {
     if (e.pointerId !== down.pointerId) return;
+    if (pressed) return;
     const dx = e.clientX - down.clientX, dy = e.clientY - down.clientY;
     if (!key && Math.hypot(dx, dy) < SWIPE) return;
+    moved = true;
     clearTimeout(timer);
+    if (typeof showFloatingStick === 'function') showFloatingStick(down.clientX, down.clientY, dx, dy);
     const k = swipeKey(dx, dy);
     if (k === key) return;
     if (key) Actions.keyUp(key);
@@ -338,12 +342,16 @@ function touchGesture(down, t, wx, wy) {
   };
   const up = e => {
     if (e.pointerId !== down.pointerId) return;
+    window.removeEventListener('blur', cancelGesture);
     clearTimeout(timer);
-    for (const [ev, fn] of [['pointermove', move], ['pointerup', up], ['pointercancel', up]]) canvas.removeEventListener(ev, fn);
+    if (typeof hideFloatingStick === 'function') hideFloatingStick();
+    for (const [ev, fn] of [['pointermove', move], ['pointerup', up], ['pointercancel', up], ['lostpointercapture', up]]) canvas.removeEventListener(ev, fn);
     if (key) Actions.keyUp(key);
-    else if (!pressed && e.type === 'pointerup') clickTile(e, t, wx, wy);
+    else if (!pressed && !moved && e.type === 'pointerup') clickTile(e, t, wx, wy);
   };
-  for (const [ev, fn] of [['pointermove', move], ['pointerup', up], ['pointercancel', up]]) canvas.addEventListener(ev, fn);
+  const cancelGesture = () => up({ pointerId: down.pointerId, type: 'pointercancel' });
+  window.addEventListener('blur', cancelGesture);
+  for (const [ev, fn] of [['pointermove', move], ['pointerup', up], ['pointercancel', up], ['lostpointercapture', up]]) canvas.addEventListener(ev, fn);
 }
 // On a touch screen, a long press is the right click (use). The touch buttons can
 // also make the next tap a use or a look.
