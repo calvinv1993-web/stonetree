@@ -44,6 +44,8 @@ function toggleFullscreen() {
 function setChat(open, focus) {
   if (open && typeof InventoryDrawer !== 'undefined') InventoryDrawer.close();
   document.body.classList.toggle('chat-open', open);
+  // opened, it shows the newest messages: scrolled to the bottom (while it was shut the log couldn't follow them)
+  if (open) requestAnimationFrame(() => { const l = $('log'); l.scrollTop = l.scrollHeight; });
   if (open && typeof hideTalk === 'function') hideTalk(); // (the chat shows the talk too)
   if (open && focus) $('chat').focus();
   if (!open) {
