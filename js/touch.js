@@ -1,9 +1,9 @@
 'use strict';
 // Touch controls for phones and tablets. The map itself is the controller: tap
 // to click, long-press to use, swipe or hold-and-steer to walk (see game.js).
-// Around it: a joystick bottom left; the favourites (spells, potions), attack and
-// backpack buttons bottom right; fight mode and chase top right; the chat behind a
-// button and the side panel as a drawer.
+// Around it: the status bar on top (round map, health, mana, experience, menu); the action bar at the bottom (spells
+// left, potions and food right, the smart button between); fight mode and chase while fighting; the chat and the side
+// panel as drawers. (A stick shows under your thumb only while you drag over the map: mobile-hud.js.)
 // Shown on touch screens, or anywhere with ?mobile in the address.
 
 // (touchScreen: whether this is a touch screen, is defined in game-ui.js, which loads first and needs it from the first frame)
@@ -23,14 +23,6 @@ const touchStorage = {
     } catch (e) { /* not remembered */ }
   },
 };
-
-// The joystick can be put away (Menu, Game): then you walk by tapping the map or swiping. Remembered per browser.
-const joystickOn = () => touchStorage.get('tilequest.joystick') !== false;
-function setJoystick(on) {
-  touchStorage.set('tilequest.joystick', !!on);
-  document.body.classList.toggle('no-joystick', !on);
-  renderMenu();
-}
 
 function setTouchMode(mode) {
   touchMode = mode;
@@ -183,39 +175,6 @@ function openFavPicker(slot) {
   $('favPicker').hidden = false;
 }
 
-// The joystick, bottom left: steer with your thumb; a flick walks one tile.
-function initJoystick() {
-  const pad = $('joystick'), knob = pad.querySelector('.knob');
-  let id = null, key = null;
-  const release = () => {
-    if (key) Actions.keyUp(key);
-    key = id = null;
-    knob.style.transform = '';
-  };
-  pad.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    id = e.pointerId;
-    pad.setPointerCapture(id);
-  });
-  pad.addEventListener('pointermove', e => {
-    if (e.pointerId !== id || !player || paused) return;
-    const r = pad.getBoundingClientRect(), max = r.width / 2 - 14;
-    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-    const d = Math.hypot(dx, dy);
-    if (d > max) {
-      dx *= max / d;
-      dy *= max / d;
-    }
-    knob.style.transform = `translate(${dx}px, ${dy}px)`;
-    const k = d > 12 ? swipeKey(dx, dy) : null;
-    if (k === key) return;
-    if (key) Actions.keyUp(key);
-    key = k;
-    if (k) Actions.keyDown(k, false);
-  });
-  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, release);
-}
-
 // Messages pop up near the top of the map (under the status bar and the guide) for a few seconds, as the log is put away on a phone.
 function toast(text, kind) {
   if (!touchScreen || document.body.classList.contains('chat-open')) return;
@@ -288,7 +247,6 @@ function initTouch() {
   $('viewport').appendChild($('containers'));
   // the game's own icons on the bottom buttons and the close buttons
   for (const [id, icon] of [['tabChar', 'character'], ['tabQuests', 'quests']]) $(id).querySelector('span').replaceChildren(Icons.img(icon, 24));
-  document.body.classList.toggle('no-joystick', !joystickOn());
   // the map starts under the status bar: keep its height in --hud-h for the viewport's padding (style.css)
   const hud = document.querySelector('#touch .hud');
   let hudH = -1;
@@ -304,14 +262,14 @@ function initTouch() {
   for (const id of ['panelClose', 'talkClose']) $(id).replaceChildren(Icons.img('close', 20));
   // Help for a phone, not for a keyboard
   $('tab-help').innerHTML = `<ul class="help">
-    <li><b>Walk</b>: the joystick, bottom left, or tap where to go.</li>
+    <li><b>Walk</b>: tap where to go, or drag over the map.</li>
     <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, or opens a corpse.</li>
     <li><b>Tap</b> a monster to attack it, someone to talk to them. <b>Hold</b> them for more (follow, look, open a corpse under them).</li>
-    <li><b>Round buttons</b> by the big one: your potions and two spells or foods. Hold one to choose what goes there.</li>
-    <li><b>Talking</b>: tap the gold words, or Chat to type. Say "hi" to someone to start.</li>
+    <li><b>Action buttons</b> either side of the big one: spells on the left, potions and food on the right. Tap to use, hold to choose what goes there, swipe sideways for the next set.</li>
+    <li><b>Talking</b>: tap the gold words, or open Chat from the menu to type. Say "hi" to someone to start.</li>
     <li><b>Character</b>: your equipment, bag and skills. Drag things between them.</li>
-    <li><b>Quests</b>: what you are doing and where to go. <b>Map</b>: tap a spot to walk there.</li>
-    <li><b>Menu</b>: how you fight (attack, balanced, defend), chase, secure mode, sound and more.</li>
+    <li><b>Quests</b>: what you are doing and where to go. <b>The round map</b>, top left: the whole map; tap a spot to walk there.</li>
+    <li><b>Menu</b>, top right: sound, quality, chat, outfit and more. While fighting, buttons by the map set how you fight and whether you chase.</li>
   </ul>`;
 
   const tap = (id, fn) => (typeof id === 'string' ? $(id) : id).addEventListener('click', e => {
@@ -328,7 +286,6 @@ function initTouch() {
   }
   $('fightFollow').replaceChildren(Icons.img('mode-follow', 24));
   tap('fightFollow', () => Actions.setChase(!player.chase));
-  initJoystick();
   $('chatClose').addEventListener('click', () => setChat(false));
   $('favPickerClose').addEventListener('click', () => { $('favPicker').hidden = true; });
   document.addEventListener('pointerup', e => { if (favHold && favHold.id === e.pointerId) endFavPress(true); });
