@@ -411,7 +411,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { onFloor: drawWalkMark, afterGround: Fx.ground, wind: Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: drawWalkMark, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.item(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
@@ -848,9 +848,9 @@ function setSpeedMeter(on) {
 }
 if (speedMeter.on) $('speedMeter').hidden = false;
 // Tap the meter for a test: the game leaves out one part at a time for a few seconds (the floors above you, the sky's
-// clouds and shading, the water's ripples, the weather and footprints, the names over heads) and shows the frames a
+// clouds and shading, the water's ripples, the trees swaying, the weather and footprints, the names over heads) and shows the frames a
 // second each time, so a screenshot of it says what costs a phone the most. Stand still while it runs (about 20 s).
-const PERF_PARTS = [['all', null], ['no floors above', 'floors'], ['no sky', 'sky'], ['no ripples', 'water'], ['no weather', 'fx'], ['no names', 'names']];
+const PERF_PARTS = [['all', null], ['no floors above', 'floors'], ['no sky', 'sky'], ['no ripples', 'water'], ['no swaying trees', 'wind'], ['no weather', 'fx'], ['no names', 'names']];
 let perfTest = null;
 function startPerfTest() {
   if (perfTest) return;
