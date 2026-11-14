@@ -56,3 +56,4 @@ body.touch-ui .fav-list .hot { display: flex; align-items: center; gap: 8px; min
 .fav-list .pick-art { flex: none; width: 34px; height: 34px; }
 .fav-list .hot:disabled .pick-text em { color: #6e6450; }
 .fav-list .pick-clear { min-height: 44px; }
+body.touch-ui #favPicker .fav-list > * { flex: none; } /* (a long list scrolls: its rows keep their height) */

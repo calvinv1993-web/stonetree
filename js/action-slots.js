@@ -7,7 +7,11 @@
 // date (see tick), without rebuilding a button, so a press in progress is never lost.
 const ActionSlots = (() => {
   // the actions with a picture of their own; the others show their initials until they have one
-  const ART = new Set(['light', 'light_heal', 'cure_poison', 'power_strike', 'haste', 'whirlwind', 'shield_bash', 'earthshaker', 'h', 'm', 'f']);
+  const ART = new Set(['light', 'light_heal', 'cure_poison', 'power_strike', 'haste', 'whirlwind', 'shield_bash', 'earthshaker', 'h', 'm', 'f',
+    // sorcerer and druid
+    'fire_bolt', 'conjure_missile', 'conjure_fire_field', 'conjure_fireball', 'flame_burst', 'magic_shield', 'conjure_energy_field',
+    'conjure_magic_wall', 'energy_beam', 'inferno', 'ice_bolt', 'conjure_heal', 'conjure_poison_field', 'thorn_burst', 'conjure_paralyze',
+    'frost_wave', 'blizzard']);
   const art = id => (ART.has(id) ? `sprites/ui/actions/${id}.png` : null);
 
   // What stands in the way of an action right now: wait (ms of cooldown left, out of total), short (too little mana)
