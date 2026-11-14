@@ -665,16 +665,21 @@ const Fx = (() => {
         const k = sky.k;
         // clouds drifting over the land (the sky is the same for everyone: it follows the clock)
         const clouds = !climate.underground && daylight() > 0.5;
+        // (each written only when it changes: a cloud's size and look hardly ever do, and it moves a whole pixel only
+        // now and then; writing the same again each frame still made the browser work the page's look out again)
         sky.clouds.forEach((c, i) => {
-          if (!clouds) { c.style.display = 'none'; return; }
+          const was = c.__sky || (c.__sky = {});
+          if (!clouds) { if (was.shown !== false) { was.shown = false; c.style.display = 'none'; } return; }
           const span = 3000, wx = ((i * 977 + now * 0.012) % span) - span / 2, wy = ((i * 613) % 1200) - 600;
           const [px] = screen(player.x, player.y);
           const cx = (wx - (player.x * TILE) % span) * SCALE + px, cy = H / 2 + wy * SCALE * 0.5, r = (180 + (i * 53) % 120) * SCALE;
-          c.style.display = '';
-          c.style.width = c.style.height = `${Math.round(2 * r * k)}px`;
+          if (was.shown !== true) { was.shown = true; c.style.display = ''; }
+          const size = `${Math.round(2 * r * k)}px`;
+          if (was.size !== size) { was.size = size; c.style.width = c.style.height = size; }
           const shade = w ? 'wet' : 'dry';
-          if (c.dataset.shade !== shade) { c.dataset.shade = shade; c.style.background = `radial-gradient(closest-side, rgba(0,0,20,${w ? 0.18 : 0.1}), rgba(0,0,20,0))`; }
-          c.style.transform = `translate(${Math.round((cx - r) * k)}px, ${Math.round((cy - r) * k)}px)`;
+          if (was.shade !== shade) { was.shade = shade; c.style.background = `radial-gradient(closest-side, rgba(0,0,20,${w ? 0.18 : 0.1}), rgba(0,0,20,0))`; }
+          const at = `translate(${Math.round((cx - r) * k)}px, ${Math.round((cy - r) * k)}px)`;
+          if (was.at !== at) { was.at = at; c.style.transform = at; }
         });
         // one tint: dawn and dusk, the season, the weather (blended into a single colour)
         const tints = [];

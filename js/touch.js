@@ -274,13 +274,13 @@ function initTouch() {
     lastHp = player.hp;
     document.body.classList.toggle('fighting', now < fightingUntil && !player.dead);
     for (const [bar, v, max] of [['Hp', player.hp, player.maxHp], ['Mana', player.mana, player.maxMana]]) {
-      $(`tb${bar}`).style.width = `${(100 * v) / max}%`;
-      $(`tb${bar}Text`).textContent = `${v} / ${max}`;
+      setWidth($(`tb${bar}`), `${(100 * v) / max}%`);
+      setText($(`tb${bar}Text`), `${v} / ${max}`);
     }
     // the status bar: level, experience to the next one, gold, and a red edge when you're nearly dead
-    $('hudLvl').textContent = player.level;
-    $('hudName').textContent = player.name;
-    $('hudTitle').textContent = `Level ${player.level} · ${player.vocation === 'none' ? 'Adventurer' : capitalize(player.vocation)}`;
+    setText($('hudLvl'), player.level);
+    setText($('hudName'), player.name);
+    setText($('hudTitle'), `Level ${player.level} · ${player.vocation === 'none' ? 'Adventurer' : capitalize(player.vocation)}`);
     const faceKey = creatureKey(player) + player.dir;
     if (faceKey !== hudFaceKey) { // the portrait: your own head and shoulders, big
       hudFaceKey = faceKey;
@@ -294,10 +294,9 @@ function initTouch() {
     }
     const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
     const xpProgress = Math.max(0, Math.min(100, (100 * (player.xp - lo)) / (hi - lo)));
-    $('hudXp').style.width = `${xpProgress}%`;
-    const xpText = $('hudXpText');
-    if (xpText) xpText.textContent = `${Math.floor(xpProgress)}%`;
-    $('hudGold').innerHTML = `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`;
+    setWidth($('hudXp'), `${xpProgress}%`);
+    setText($('hudXpText'), `${Math.floor(xpProgress)}%`);
+    setHTML($('hudGold'), `<img src="${Icons.url('coins')}" alt="">${player.gold.toLocaleString('en')}`);
     document.body.classList.toggle('low-hp', player.hp > 0 && player.hp < player.maxHp * 0.25);
     if (document.body.dataset.sheet === 'menu') renderMenu();
     if (!$('talk').hidden && ((!player.conversation && now > talkShownAt + 1500) || player.shopNpc)) hideTalk(); // the talk is over, or a shop opened

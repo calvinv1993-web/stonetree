@@ -75,9 +75,15 @@ function logDialog(speaker, text, isPlayer) {
 }
 
 // ---- status (updated a few times per second) --------------------------------------------
+// Writing to the page makes the browser work the page's look out again, even when nothing changed: these write only
+// when the value is new (the bars and texts are kept up to date several times a second)
+function setText(el, text) { if (el && el.textContent !== String(text)) el.textContent = text; }
+function setHTML(el, html) { if (el && el.__html !== html) { el.__html = html; el.innerHTML = html; } }
+function setWidth(el, width) { if (el && el.style.width !== width) el.style.width = width; }
+
 function setBar(id, value, max, text) {
-  $(`${id}Fill`).style.width = `${Math.max(0, Math.min(100, (100 * value) / max))}%`;
-  $(`${id}Text`).textContent = text;
+  setWidth($(`${id}Fill`), `${Math.max(0, Math.min(100, (100 * value) / max))}%`);
+  setText($(`${id}Text`), text);
 }
 
 // "27s", "2:05" or "3h 59m" for what's left of a timer.
@@ -109,12 +115,12 @@ function updateBars() {
   setBar('mana', player.mana, player.maxMana, `${player.mana} / ${player.maxMana} mana`);
   const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
   setBar('xp', player.xp - lo, hi - lo, `${player.xp} / ${hi} XP`);
-  $('charLine').textContent = `${player.name} · level ${player.level} ${title(player)}`;
+  setText($('charLine'), `${player.name} · level ${player.level} ${title(player)}`);
   const status = statusIcons();
-  $('conditions').innerHTML = status;
-  $('tbStatus').innerHTML = status;
+  setHTML($('conditions'), status);
+  setHTML($('tbStatus'), status);
   const m = Math.floor(worldMinutes()), clock = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-  $('pos').textContent = `${player.x}, ${player.y} · floor ${map.floorLabel(player.z)} · ${clock} · cap ${freeCapacity()} oz`;
+  setText($('pos'), `${player.x}, ${player.y} · floor ${map.floorLabel(player.z)} · ${clock} · cap ${freeCapacity()} oz`);
   renderBattle();
   renderParty();
   renderGuide();
@@ -1514,14 +1520,24 @@ function wholeMap(on) {
   if (player) drawMinimap();
 }
 
+// Whether the minimap is in sight: on a phone only on the drawer's Map tab (it lives in the hidden side panel
+// otherwise); on a computer in the side panel, unless the window is too narrow for it
+function minimapShown() {
+  const c = $('minimap');
+  if (!c || !c.isConnected) return false;
+  if (touchScreen) return typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage() > 0 && InventoryDrawer.page() === 'map';
+  return c.offsetParent !== null;
+}
+
 function drawMinimap() {
+  if (!$('worldmap').hidden) drawWorldMap();
+  if (!minimapShown()) return; // (drawn the moment it comes in sight: the drawer's Map tab draws it at once)
   const z = minimap.viewZ ?? player.z, c = $('minimap');
   if (minimap.whole) { // the whole world, as big as fits, in the middle
     const scale = Math.min(c.width / map.width, c.height / map.height);
     minimap.view = { scale, ...drawMap(c, z, scale, map.width / 2 - 0.5, map.height / 2 - 0.5) };
   } else minimap.view = { scale: minimap.zoom, ...drawMap(c, z, minimap.zoom, player.x, player.y) };
-  $('minimapFloor').textContent = `floor ${map.floorLabel(z)}`;
-  if (!$('worldmap').hidden) drawWorldMap();
+  setText($('minimapFloor'), `floor ${map.floorLabel(z)}`);
 }
 
 // center: the tile in the middle of the world map (null: follow the player); drag to move it.
