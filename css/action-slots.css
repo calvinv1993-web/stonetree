@@ -1,8 +1,0 @@
-body.touch-ui #favs .fav { position:relative!important; overflow:hidden; }
-body.touch-ui #favs .fav .action-art { display:block; width:100%; height:34px; min-height:0; max-height:none; padding:0; flex:1; background-image:url('../sprites/ui/actions-reference.jpeg'); background-size:400% 300%; background-repeat:no-repeat; border-radius:4px; }
-body.touch-ui #favs .fav small { flex:none; font-size:10px!important; line-height:13px; padding:0 2px; border:0; background:none; }
-body.touch-ui #favs .fav .mana-cost { color:#70c7ff; }
-body.touch-ui #favs .fav.no-mana > span,body.touch-ui #favs .fav.locked > span { opacity:.4; }
-body.touch-ui #favs .fav.no-mana .mana-cost { color:#ff7979; }
-body.touch-ui #favs .action-cooldown { position:absolute;inset:0;background:#0009;display:grid;place-items:center;color:white;font:600 13px sans-serif;pointer-events:none; }
-body.touch-ui #favs .fav.holding { outline:2px solid #f4d68e;outline-offset:-2px; }
