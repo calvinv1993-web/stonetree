@@ -2951,6 +2951,13 @@ const Sprites = (() => {
     // A window: a recess in the wall with the glass at its back (its leading, the sky in it, the frame's shadow on
     // its north-west), the recess's sill and side showing, a stone surround standing out a little, and a sill below.
     window: (g, r, frame, shape) => {
+      // the owner's window, painted straight on (sprites/custom.js window_front: a square picture of one tile's wall
+      // face, transparent round the window): laid onto the wall's face in the world's slant, the same picture for both
+      const front = customImage('window_front');
+      if (front) {
+        onWallPlane(g, shape, 0.4, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(front, 0, 0, 32, 32); });
+        return;
+      }
       const at = wallSpot(shape), east = runsNorthSouth(wallSides(shape)), D = 4, u0 = 10, u1 = 22, h0 = 12, h1 = 26;
       g.save(); // what's in the recess shows only through the opening in the face
       g.beginPath(); for (const [u, h] of [[u0, h0], [u1, h0], [u1, h1], [u0, h1]]) g.lineTo(...at(u, 0, h)); g.closePath(); g.clip();
@@ -6389,7 +6396,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
