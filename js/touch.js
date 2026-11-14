@@ -180,9 +180,13 @@ function openFavPicker(slot) {
 }
 
 // Messages pop up near the top of the map (under the status bar and the guide) for a few seconds, as the log is put away on a phone.
+// With the chat line under the action bar (chat-line.js) every message shows there: only what matters most pops up
+// as well (a new level, a quest, a raid), so the map isn't covered for every word.
+const TOAST_KINDS = new Set(['level', 'quest', 'raid']);
 function toast(text, kind) {
   if (!touchScreen || document.body.classList.contains('chat-open')) return;
   if (kind === 'damage') return; // (the numbers over your head say it already)
+  if (document.getElementById('chatLine') && !TOAST_KINDS.has(kind)) return;
   const box = $('toasts'), line = document.createElement('div');
   // just under the status bar, or under the guide or a corpse's window when they show: clear of you in the middle of the map
   const shown = id => { const el = $(id); return el && !el.hidden && el.offsetParent && getComputedStyle(el).display !== 'none' ? el.getBoundingClientRect().bottom : 0; };
