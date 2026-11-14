@@ -56,7 +56,7 @@ const ChatLine = (() => {
     const row = document.createElement('div'), send = document.createElement('button');
     row.className = 'chat-input-row';
     send.id = 'chatSend'; send.className = 'chat-send'; send.title = 'Say it'; send.setAttribute('aria-label', 'Send');
-    send.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 12 20 4l-5 16-3-6.5z"/><path d="M12 13.5 20 4"/></svg>';
+    send.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>'; // an arrow up, as in a chat app
     send.addEventListener('pointerdown', e => e.preventDefault()); // (the keyboard stays up)
     send.addEventListener('click', () => sendChat(true));
     input.replaceWith(row); row.append(input, send);
