@@ -71,12 +71,21 @@ body.touch-ui .inventory-drawer .drawer-map { overflow: hidden; }
 body.touch-ui .inventory-drawer .minimap-box { display: block !important; height: 100%; margin: 0; padding: 0; background: none !important; border: 0 !important; box-shadow: none !important; }
 body.touch-ui .inventory-drawer #minimap { display: block; width: auto; height: auto; max-width: 100%; margin: 0 auto; border: 1px solid #3a2e1c; border-radius: 10px; }
 body.touch-ui .inventory-drawer .mm-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 8px; }
-body.touch-ui .inventory-drawer .mm-row > span:last-child { display: flex; gap: 6px; }
-body.touch-ui .inventory-drawer .minimap-box button { min-width: 44px; min-height: 42px; padding: 0 10px; border-radius: 10px; font: 600 15px/1 Inter, sans-serif; }
+body.touch-ui .inventory-drawer .mm-row > span:last-child { display: flex; gap: 0; }
+/* its buttons in the drawer's look: dark, a thin gold edge, gold signs; the floors and the zoom each a pair, Map apart */
+body.touch-ui .inventory-drawer .minimap-box button { min-width: 44px; height: 40px; min-height: 0; padding: 0; border: 1px solid #6a5430 !important; border-radius: 0 !important;
+  background: linear-gradient(#262117, #12100b) !important; color: #e6b85f !important; box-shadow: none !important; font: 600 15px/1 Inter, sans-serif; }
+body.touch-ui .inventory-drawer .minimap-box button:active { background: #3a2c14 !important; }
+body.touch-ui .inventory-drawer #mmUp, body.touch-ui .inventory-drawer #mmZoomIn { border-radius: 10px 0 0 10px !important; }
+body.touch-ui .inventory-drawer #mmDown, body.touch-ui .inventory-drawer #mmZoomOut { border-left: 0 !important; border-radius: 0 10px 10px 0 !important; }
+body.touch-ui .inventory-drawer #mmZoomIn, body.touch-ui .inventory-drawer #mmWorld { margin-left: 8px; }
+body.touch-ui .inventory-drawer #mmUp, body.touch-ui .inventory-drawer #mmDown { font-size: 12px; }
+body.touch-ui .inventory-drawer #mmWorld { padding: 0 16px; border-radius: 10px !important; font: 600 14px/1 Inter, sans-serif; letter-spacing: 0.3px; }
+body.touch-ui .inventory-drawer #minimapFloor { color: #a89c80; font: 500 12px/1.2 Inter, sans-serif; }
 /* quests and settings: as in the side panel, in the drawer's own look */
 body.touch-ui .inventory-drawer #tab-quests, body.touch-ui .inventory-drawer #tab-help { display: block !important; }
 body.touch-ui .inventory-drawer #menuSec { display: block !important; }
 body.touch-ui .inventory-drawer #tab-help { margin-top: 12px; padding-top: 10px; border-top: 1px solid #3a2e1c; font-size: 13px; }
 body.touch-ui .inventory-drawer #menuSec > .menu-head:first-child { margin-top: 4px; }
 body.touch-ui .inventory-drawer #tab-quests button { min-height: 38px; margin-top: 8px; padding: 0 14px; border: 1px solid #6a5430 !important; border-radius: 10px; background: #1f1a12 !important; color: #f0c36a !important; font: 600 13px/1 Inter, sans-serif; }
-body.touch-ui .inventory-drawer #mmWorld.active { border-color: #e6b85f !important; background: #3a2c14 !important; color: #f0c36a !important; }
+body.touch-ui .inventory-drawer #mmWorld.active { border-color: #e6b85f !important; background: linear-gradient(#d8a648, #8a5f1c) !important; color: #1d1404 !important; }

@@ -71,7 +71,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   await p.tap('#mmWorld'); await p.waitForTimeout(300);
   check('11 its Map button fits the whole world in it, no window', await E(() => minimap.whole && $('worldmap').hidden));
   await p.tap('#mmWorld'); await p.waitForTimeout(300);
-  check('11 and again: round you', await E(() => !minimap.whole)); await E(() => InventoryDrawer.close());
+  check('11 and again: round you', await E(() => !minimap.whole));
+  const mm = await p.locator('#minimap').boundingBox();
+  await p.tap('#minimap', { position: { x: mm.width / 2, y: mm.height / 2 + 12 } }); await p.waitForTimeout(400);
+  check('11 a tap on the map walks there and folds the drawer away', await E(() => InventoryDrawer.stage() === 0));
   check('11 closed, the minimap goes home at its own size', await E(() => !!$('panel').querySelector('#minimap') && $('minimap').width === 236));
   // 12: chat
   await p.tap('#chatLine'); await p.waitForTimeout(300);
