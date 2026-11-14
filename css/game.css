@@ -308,3 +308,11 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 .gear-stat em { font-style: normal; font-weight: 700; }
 .gear-stat em.up { color: #7fd36b; }
 .gear-stat em.down { color: #ff8a7a; }
+/* the welcome (game-ui.js welcome()): naming a character, its outfit, logging in. The loading screen's picture behind
+   the window; on a phone none of the game's controls (they come once you're in) */
+body.welcome::before { content: ''; position: fixed; inset: 0; z-index: 25; background: #14110d url(../sprites/ui/loading/background-desktop.jpg) center / cover no-repeat; }
+@media (max-aspect-ratio: 1/1) { body.welcome::before { background-image: url(../sprites/ui/loading/background-tablet.jpg); background-position: center bottom; } }
+@media (max-aspect-ratio: 3/5) { body.welcome::before { background-image: url(../sprites/ui/loading/background-phone.jpg); } }
+body.welcome #create, body.welcome #outfit { z-index: 30; }
+body.game.welcome:not(.touch-ui) #create, body.game.welcome:not(.touch-ui) #outfit { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; }
+body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #chatLine { visibility: hidden !important; }

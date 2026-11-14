@@ -1824,10 +1824,15 @@ function updateSoundButtons() {
   $('rightBtn').textContent = rightClickAttacks ? 'Right-click: attack' : 'Right-click: menu';
 }
 
+// The welcome: while you name a character and choose its outfit (or log in), the game's controls stay out of sight
+// and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
+function welcome(on) { document.body.classList.toggle('welcome', !!on); }
+
 // First visit: ask for a name, then an outfit.
 function showCharacterCreation(onDone) {
   const dialog = $('create');
   dialog.hidden = false;
+  welcome(true);
   const input = $('createName');
   // for testing: start as a level 100 character with the best gear (see makeTestHero)
   const start = document.createElement('select');
@@ -1840,7 +1845,7 @@ function showCharacterCreation(onDone) {
     player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20) || 'Adventurer');
     dialog.hidden = true;
     if (start.value) makeTestHero(start.value);
-    openOutfit(onDone);
+    openOutfit(() => { welcome(false); if (onDone) onDone(); });
   };
   $('createStart').addEventListener('click', done);
   input.addEventListener('keydown', e => {

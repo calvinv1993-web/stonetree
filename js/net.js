@@ -30,6 +30,7 @@ const Net = (() => {
   function showLogin(message) {
     const dialog = $('create');
     dialog.hidden = false;
+    welcome(true);
     dialog.querySelector('p').textContent = message || 'Log in or create a character';
     let pw = $('createPassword');
     if (!pw) {
@@ -151,7 +152,8 @@ const Net = (() => {
     $('create').hidden = true;
     $('mapSource').textContent = 'Playing online';
     $('newChar').textContent = 'Log out';
-    if (msg.isNew) openOutfit();
+    if (msg.isNew) openOutfit(() => welcome(false)); // (a new character: its outfit, still on the welcome)
+    else welcome(false);
     importExplored(storage(() => JSON.parse(localStorage.getItem(exploredKey()))));
     uiDirty();
     if (!started) {
