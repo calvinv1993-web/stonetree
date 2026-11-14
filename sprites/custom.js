@@ -120,6 +120,8 @@ const CUSTOM_SPRITES = {
   wall_torch_out_s: 'wall-torch-out-s.png',
   chimney: 'chimney@4x.png', // the owner's chimney, cannonballs, stone coffin and bones, in the world's camera
   cannonballs: 'cannonballs@4x.png',
+  cannon_n: 'cannon-n@4x.png', cannon_e: 'cannon-e@4x.png', // the owner's cannon on its carriage, by the way its muzzle points
+  cannon_s: 'cannon-s@4x.png', cannon_w: 'cannon-w@4x.png',
   sarcophagus: 'sarcophagus@4x.png',
   bones: 'bones@4x.png',
   window_box_s: 'window-box-s.png', // the owner's window box, on a wall running east-west (its south face)
