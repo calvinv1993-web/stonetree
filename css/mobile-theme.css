@@ -1,0 +1,28 @@
+/* The phone's look in one place: the colours every window, card, button and chip uses (the variables the touch
+   layer of style.css draws with), turned from neutral grey to the bars' dark wood and thin gold. Then the windows
+   themselves get the same gold edge as the status bar, the action bar and the drawer. Nothing moves; only colours. */
+body.touch-ui {
+  --bg: #12100c; --bg-2: #1a1712; --bg-3: #241f17; --bg-4: #31291c;
+  --glass: rgba(18, 16, 12, 0.93);
+  --line: rgba(200, 160, 90, 0.16); --line-2: rgba(200, 160, 90, 0.3);
+  --text: #eee6d4; --muted: #a89c80; --faint: #6e6450;
+  --accent: #e6b85f; --accent-soft: rgba(230, 184, 95, 0.15); --accent-line: rgba(230, 184, 95, 0.5);
+  --gold-edge: #a8823f;
+}
+/* the windows: dark, a thin gold edge, no blur of the map behind them */
+body.touch-ui .panel, body.touch-ui .fav-picker, body.touch-ui .talk-card:not([hidden]), body.touch-ui.chat-open .console,
+body.touch-ui .guide, body.touch-ui .window, body.touch-ui .dialog, body.touch-ui .shop {
+  background: linear-gradient(#1c1913, #0d0c09) !important; border-color: var(--gold-edge) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+body.touch-ui .panel, body.touch-ui.chat-open .console { border-width: 1px 0 0 !important; border-style: solid !important; }
+body.touch-ui .fav-picker, body.touch-ui .talk-card:not([hidden]), body.touch-ui .window, body.touch-ui .dialog, body.touch-ui .shop { border: 1px solid var(--gold-edge) !important; }
+body.touch-ui .guide { border: 1px solid var(--line-2) !important; border-left: 3px solid var(--accent) !important; }
+/* the choices in them: the active one gold, rows parted by a faint gold line */
+body.touch-ui .seg button.active { background: var(--accent-soft) !important; color: var(--accent) !important; box-shadow: inset 0 0 0 1px var(--accent-line) !important; }
+body.touch-ui .menu-head, body.touch-ui .panel h2 { color: var(--accent) !important; }
+/* the fight bar's round buttons, like the action bar's */
+body.touch-ui #fightModes { background: linear-gradient(#1c1913, #0d0c09) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+body.touch-ui .fight-bar .follow { background: linear-gradient(#1c1913, #0d0c09) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+/* the pop-ups over the map (a level, a quest, a raid) */
+body.touch-ui .toast { background: #12100ce8 !important; border: 1px solid var(--line-2) !important; color: var(--text) !important; }
