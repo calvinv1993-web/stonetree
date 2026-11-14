@@ -125,6 +125,8 @@ const CUSTOM_SPRITES = {
   tower_flag: 'tower-flag@4x.png', // the owner's flag of Oakvale on the lookout tower
   crops: 'crops@4x.png', // the owner's wheat: one tile of a field
   firewood: 'firewood@4x.png', // the owner's chopping block, with its axe and split logs
+  campfire: 'campfire@4x.png', wagon: 'wagon@4x.png', obelisk: 'obelisk@4x.png', // the owner's campfire (lit), farm wagon and rune stone
+  weapon_rack_s: 'weapon-rack-s.png', // the owner's weapon rack on a wall running east-west (one running north-south keeps the drawn one)
   sarcophagus: 'sarcophagus@4x.png',
   bones: 'bones@4x.png',
   window_box_s: 'window-box-s.png', // the owner's window box, on a wall running east-west (its south face)
