@@ -123,6 +123,7 @@ const CUSTOM_SPRITES = {
   cannon_n: 'cannon-n@4x.png', cannon_e: 'cannon-e@4x.png', // the owner's cannon on its carriage, by the way its muzzle points
   cannon_s: 'cannon-s@4x.png', cannon_w: 'cannon-w@4x.png',
   tower_flag: 'tower-flag@4x.png', // the owner's flag of Oakvale on the lookout tower
+  crops: 'crops@4x.png', // the owner's wheat: one tile of a field
   sarcophagus: 'sarcophagus@4x.png',
   bones: 'bones@4x.png',
   window_box_s: 'window-box-s.png', // the owner's window box, on a wall running east-west (its south face)
