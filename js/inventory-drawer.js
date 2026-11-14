@@ -79,6 +79,8 @@ const InventoryDrawer = (() => {
       setTimeout(fitMap, 260); // (its size changes with the stage, once the drawer has slid there)
       if (typeof uiDirty === 'function') uiDirty();
     } else { giveBack(); dock.appendChild(tab); }
+    // the minimap round you again (not the whole world) once the Map page is left or the drawer shut
+    if ((!stage || page !== 'map') && typeof minimap !== 'undefined' && minimap.whole) wholeMap(false);
     drawer.setAttribute('aria-hidden', String(!stage));
     tab.setAttribute('aria-expanded', String(stage > 0));
     tab.title = ['Your equipment and backpack (swipe up)', 'Swipe up for more, down to close', 'Swipe down for less'][stage];

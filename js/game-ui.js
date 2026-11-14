@@ -1206,7 +1206,9 @@ function minimapColor(t) {
 
 // Testing phase: everyone knows the whole map. Set to false to explore it bit by bit again.
 const REVEAL_MAP = true;
-const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], lastPos: '' }; // viewZ: floor looked at, or null for yours
+const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], lastPos: '', whole: false, view: null };
+// viewZ: floor looked at, or null for yours; whole: the whole world fitted in (the phone's drawer: its Map button);
+// view: where the last drawing put the map ({ scale, ox, oy }), for telling which tile a tap is on
 // Start the explored map over, sized to the current map (also when the server plays another map).
 function resetMinimap() {
   minimap.explored = Array.from({ length: map.depth }, () => new Uint8Array(map.width * map.height));
@@ -1364,7 +1366,11 @@ function drawMap(c, z, scale, cx, cy) {
   }
   if (z === player.z && Math.floor(now / 400) % 2 === 0) {
     g.fillStyle = '#fff';
-    g.fillRect(ox + player.x * scale - 1, oy + player.y * scale - 1, Math.max(3, scale), Math.max(3, scale));
+    if (minimap.whole && c.id === 'minimap') { // (the whole world: a bigger mark, ringed, to find yourself on it)
+      const px = ox + (player.x + 0.5) * scale, py = oy + (player.y + 0.5) * scale;
+      g.fillRect(px - 3, py - 3, 6, 6);
+      g.strokeStyle = '#000'; g.lineWidth = 1; g.strokeRect(px - 3.5, py - 3.5, 7, 7);
+    } else g.fillRect(ox + player.x * scale - 1, oy + player.y * scale - 1, Math.max(3, scale), Math.max(3, scale));
   }
   return { ox, oy };
 }
@@ -1500,9 +1506,20 @@ function markable(canvas, tileOf, scaleOf) {
   canvas.addEventListener('click', e => { if (hold === 'done') { e.stopImmediatePropagation(); hold = null; } }, true);
 }
 
+// The minimap showing the whole world (the phone's drawer), or round you again
+function wholeMap(on) {
+  minimap.whole = !!on;
+  $('mmWorld').classList.toggle('active', minimap.whole);
+  $('mmWorld').title = minimap.whole ? 'Back to where you are' : touchScreen ? 'The whole map' : 'World map (G)';
+  if (player) drawMinimap();
+}
+
 function drawMinimap() {
-  const z = minimap.viewZ ?? player.z;
-  drawMap($('minimap'), z, minimap.zoom, player.x, player.y);
+  const z = minimap.viewZ ?? player.z, c = $('minimap');
+  if (minimap.whole) { // the whole world, as big as fits, in the middle
+    const scale = Math.min(c.width / map.width, c.height / map.height);
+    minimap.view = { scale, ...drawMap(c, z, scale, map.width / 2 - 0.5, map.height / 2 - 0.5) };
+  } else minimap.view = { scale: minimap.zoom, ...drawMap(c, z, minimap.zoom, player.x, player.y) };
   $('minimapFloor').textContent = `floor ${map.floorLabel(z)}`;
   if (!$('worldmap').hidden) drawWorldMap();
 }
@@ -1552,10 +1569,10 @@ function importExplored(list) {
 function initMaps() {
   const c = $('minimap');
   const minimapTile = e => {
-    const r = c.getBoundingClientRect();
+    const r = c.getBoundingClientRect(), v = minimap.view || { scale: minimap.zoom, ox: 0, oy: 0 };
     return {
-      x: Math.floor(player.x + 0.5 + ((e.clientX - r.left) * (c.width / r.width) - c.width / 2) / minimap.zoom),
-      y: Math.floor(player.y + 0.5 + ((e.clientY - r.top) * (c.height / r.height) - c.height / 2) / minimap.zoom),
+      x: Math.floor(((e.clientX - r.left) * (c.width / r.width) - v.ox) / v.scale),
+      y: Math.floor(((e.clientY - r.top) * (c.height / r.height) - v.oy) / v.scale),
       z: minimap.viewZ ?? player.z,
     };
   };
@@ -1564,7 +1581,7 @@ function initMaps() {
     const t = minimapTile(e);
     Actions.walkTo(t.x, t.y, 30000);
   });
-  markable(c, minimapTile, () => minimap.zoom);
+  markable(c, minimapTile, () => (minimap.view ? minimap.view.scale : minimap.zoom));
   // two fingers on the minimap zoom it in and out
   const mmFingers = new Map();
   let mmPinch = null;
@@ -1576,7 +1593,7 @@ function initMaps() {
   c.addEventListener('pointermove', e => {
     if (!mmFingers.has(e.pointerId)) return;
     mmFingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (mmPinch && mmFingers.size >= 2) minimap.zoom = Math.max(1, Math.min(8, mmPinch.zoom * (mmSpread() / Math.max(1, mmPinch.from))));
+    if (mmPinch && mmFingers.size >= 2) { wholeMap(false); minimap.zoom = Math.max(1, Math.min(8, mmPinch.zoom * (mmSpread() / Math.max(1, mmPinch.from)))); }
   });
   for (const ev of ['pointerup', 'pointercancel']) c.addEventListener(ev, e => { mmFingers.delete(e.pointerId); if (mmFingers.size < 2) mmPinch = null; });
   c.addEventListener('click', e => { if (mmFingers.size || mmPinch) e.stopImmediatePropagation(); }, true);
@@ -1589,15 +1606,16 @@ function initMaps() {
     if (e.key === 'Enter') closeMark(true);
     if (e.key === 'Escape') closeMark(false);
   });
-  $('mmZoomIn').addEventListener('click', () => { minimap.zoom = Math.min(8, minimap.zoom * 2); });
-  $('mmZoomOut').addEventListener('click', () => { minimap.zoom = Math.max(1, minimap.zoom / 2); });
+  $('mmZoomIn').addEventListener('click', () => { wholeMap(false); minimap.zoom = Math.min(8, minimap.zoom * 2); });
+  $('mmZoomOut').addEventListener('click', () => { wholeMap(false); minimap.zoom = Math.max(1, minimap.zoom / 2); });
   const look = dz => {
     const z = Math.max(0, Math.min(map.depth - 1, (minimap.viewZ ?? player.z) + dz));
     minimap.viewZ = z === player.z ? null : z;
   };
   $('mmUp').addEventListener('click', () => look(1));
   $('mmDown').addEventListener('click', () => look(-1));
-  $('mmWorld').addEventListener('click', () => toggleWorldMap());
+  // in the phone's drawer the minimap is big enough: Map fits the whole world in it (again: back round you), no window
+  $('mmWorld').addEventListener('click', () => (c.closest('.inventory-drawer') ? wholeMap(!minimap.whole) : toggleWorldMap()));
 
   const wc = $('worldCanvas');
   $('worldRide').addEventListener('click', () => setRideMode(!worldMap.ride));

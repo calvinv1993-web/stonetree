@@ -79,3 +79,4 @@ body.touch-ui .inventory-drawer #menuSec { display: block !important; }
 body.touch-ui .inventory-drawer #tab-help { margin-top: 12px; padding-top: 10px; border-top: 1px solid #3a2e1c; font-size: 13px; }
 body.touch-ui .inventory-drawer #menuSec > .menu-head:first-child { margin-top: 4px; }
 body.touch-ui .inventory-drawer #tab-quests button { min-height: 38px; margin-top: 8px; padding: 0 14px; border: 1px solid #6a5430 !important; border-radius: 10px; background: #1f1a12 !important; color: #f0c36a !important; font: 600 13px/1 Inter, sans-serif; }
+body.touch-ui .inventory-drawer #mmWorld.active { border-color: #e6b85f !important; background: #3a2c14 !important; color: #f0c36a !important; }

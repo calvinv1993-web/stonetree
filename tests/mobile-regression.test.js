@@ -69,7 +69,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   await p.tap('#drawerTab'); await p.waitForTimeout(300); await p.tap('.drawer-tabs button[data-page="map"]'); await p.waitForTimeout(500);
   check('11 the drawer\'s Map tab shows the minimap, big', await E(() => $('inventoryDrawer').contains($('minimap')) && $('minimap').width > 300 && $('minimap').height > 200));
   await p.tap('#mmWorld'); await p.waitForTimeout(300);
-  check('11 and its Map button opens the world map', await E(() => !$('worldmap').hidden)); await E(() => { toggleWorldMap(); InventoryDrawer.close(); });
+  check('11 its Map button fits the whole world in it, no window', await E(() => minimap.whole && $('worldmap').hidden));
+  await p.tap('#mmWorld'); await p.waitForTimeout(300);
+  check('11 and again: round you', await E(() => !minimap.whole)); await E(() => InventoryDrawer.close());
   check('11 closed, the minimap goes home at its own size', await E(() => !!$('panel').querySelector('#minimap') && $('minimap').width === 236));
   // 12: chat
   await p.tap('#chatLine'); await p.waitForTimeout(300);
