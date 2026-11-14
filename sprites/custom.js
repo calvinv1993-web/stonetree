@@ -12,6 +12,8 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  health_potion: 'items/health-potion@4x.png', // the owner's painted potions, lying on the ground (the bag and the action
+  mana_potion: 'items/mana-potion@4x.png',     // buttons show the same: sprites/ui/actions/h.png and m.png)
   water_texture: 'water-atlas.png',
   temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
   cobble: 'cobble-mock.png',
