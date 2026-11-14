@@ -52,6 +52,29 @@ for (const part of QUALITY[quality]) Render.quality.add(part);
 // A new view (the quality) means pictures of another size: on a phone the old ones stayed in its memory
 // beside the new ones, and the game crawled until the page was loaded again. So it's loaded again at once, behind the
 // loading screen, the game saved first (online, it logs straight back in).
+// A new version put live: played from a plain web host (GitHub Pages), nobody tells the page, and a browser or an app on
+// a phone's home screen keeps showing the old one. So the page looks now and then (on opening, on coming back to it,
+// and every ten minutes) at the live index.html, never from a cache, and if it names a newer version (?v=uiNNN) it
+// saves the game and loads again, behind the loading screen. (Online, the server says so itself: net.js.)
+const PAGE_VERSION = (/[?&]v=([\w.-]+)/.exec([...document.scripts].map(s => s.src).find(s => /js\/game\.js/.test(s)) || '') || [])[1] || '';
+let versionLookedAt = -Infinity;
+function lookForNewVersion() {
+  if (!PAGE_VERSION || typeof online === 'function' && online() || location.protocol === 'file:' || document.hidden) return;
+  if (performance.now() - versionLookedAt < 60000) return; // (not more than once a minute)
+  versionLookedAt = performance.now();
+  fetch(`index.html?look=${Date.now()}`, { cache: 'no-store' }).then(r => (r.ok ? r.text() : '')).then(html => {
+    const live = (/js\/game\.js\?v=([\w.-]+)/.exec(html) || [])[1];
+    if (!live || live === PAGE_VERSION) return;
+    const el = $('loading');
+    if (el) { el.hidden = false; $('loadingText').textContent = 'Updating the game...'; $('loadingBar').style.width = '100%'; }
+    try { if (player && !online()) saveGame(); } catch (e) { /* loaded again all the same */ }
+    setTimeout(() => location.reload(), 60);
+  }).catch(() => { /* offline: try again later */ });
+}
+document.addEventListener('visibilitychange', lookForNewVersion);
+setInterval(lookForNewVersion, 10 * 60000);
+setTimeout(lookForNewVersion, 5000);
+
 function reloadForView() {
   if (!player || typeof Preload === 'undefined' || !Preload.since) return fitView(); // (not playing yet: nothing to clear)
   const el = $('loading');

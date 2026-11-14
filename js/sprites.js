@@ -6586,6 +6586,7 @@ const Sprites = (() => {
     },
     // URL of an item icon, for <img> tags in the UI.
     DOLLS: DOLLS_ON,
+    VERSION: SPRITE_VERSION, // ('?v=uiNNN': the version of the page, for pictures loaded by others too: action-slots.js)
     // An item's picture for the page (bag slots, shops, corpses, dragging; never the map): the painted action
     // pictures where there's one, so a potion looks the same in the backpack as on its action button
     itemURL(id) {

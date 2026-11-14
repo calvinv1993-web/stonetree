@@ -14,7 +14,7 @@ const ActionSlots = (() => {
     'frost_wave', 'blizzard',
     // paladin (Greater Heal for the druid too)
     'holy_bolt', 'conjure_arrows', 'greater_heal', 'conjure_bolts', 'holy_wave', 'holy_storm']);
-  const art = id => (ART.has(id) ? `sprites/ui/actions/${id}.png` : null);
+  const art = id => (ART.has(id) ? `sprites/ui/actions/${id}.png${typeof Sprites !== 'undefined' && Sprites.VERSION || ''}` : null);
 
   // What stands in the way of an action right now: wait (ms of cooldown left, out of total), short (too little mana)
   function state(id) {
