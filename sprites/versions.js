@@ -116,6 +116,7 @@ const SPRITE_HASHES = {
   "npc-townsman.png":"5649c8f66c",
   "npc-townswoman.png":"e0e6074ccd",
   "obelisk@4x.png":"6e6f8f5fa2",
+  "paving-own.png":"96f1f4779a",
   "pebbles-0@4x.png":"1aee958fba",
   "pebbles-1@4x.png":"be53e0ca95",
   "pebbles-2@4x.png":"e846d4ed63",

@@ -3654,6 +3654,18 @@ const Sprites = (() => {
         DRAW.dirt(g, makeRng(hashStr('dirt') + y * 4 + x)); g.restore();
       }
     } },
+    // the owner's town square paving: big sandstone slabs, one painting over 4 x 4 tiles; drawn tile by tile till it's in
+    paving: { tiles: 4, res: () => ownRes('paving', 4), draw: g => {
+      const image = customImage('paving');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.paving(g, makeRng(hashStr('paving') + y * 4 + x)); g.restore();
+      }
+    } },
     // the owner's beach sand (ground + border template): one painting over 4 x 4 tiles; drawn tile by tile till it's in
     sand: { tiles: 4, res: () => ownRes('sand', 4), draw: g => {
       const image = customImage('sand');
