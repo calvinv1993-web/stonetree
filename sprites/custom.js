@@ -12,6 +12,10 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  edge_gravel_w: 'edge-gravel-w.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
+  edge_gravel_s: 'edge-gravel-s.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
+  edge_gravel_e: 'edge-gravel-e.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
+  edge_gravel_n: 'edge-gravel-n.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
   farmland: 'farmland-own.png', // the owner's tilled field, from above (cut from furrow to furrow, 7 over 4 tiles)
   gravel: 'gravel-own.png', // the owner's gravel path, from above (ground template, made seamless)
   sewer_water: 'sewer-water-own.png', // the owner's sewer water, from above (ground template, made seamless)

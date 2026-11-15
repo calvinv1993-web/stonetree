@@ -6678,11 +6678,12 @@ const Sprites = (() => {
 
   // Ground borders: the higher of two neighbouring grounds spills a ragged edge onto the other.
   // Paved ground is lowest: the land around a square or a street spills over its edges.
-  const PAVED = { temple_paving: 0, paving: 0, cobble: 0, brick: 0, tiles: 0, gravel: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
+  const PAVED = { temple_paving: 0, paving: 0, cobble: 0, brick: 0, tiles: 0, sandstone: 0, wood: 0, farmland: 0, bridge_ns: 0, bridge_ew: 0, sewer_bridge_ns: 0, sewer_bridge_ew: 0, marble: 0, carpet: 0 };
   // Water lies lowest: paving meets it at a stone edge, like a quay. Bridges take and give no borders:
   // they have their own beams.
   const BORDER_PRIORITY = { ...PAVED, bridge_ns: undefined, bridge_ew: undefined, sewer_bridge_ns: undefined, sewer_bridge_ew: undefined,
-    water: -1, lava: -1, sewer_water: -1, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2.2, dirt: 2, grass: 3, jungle: 3, snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
+    water: -1, lava: -1, sewer_water: -1, sewer: 1, sand: 1, ash: 1, cave: 1, swamp: 2.2, dirt: 2, grass: 3, gravel: 3.5, jungle: 3, // (a gravel path's loose stones lie over the grass)
+    snow: 4, mountain: 2.5, rock_top: 6 }; // grass lies over rocky ground, as over dirt
   // How a ground's edge looks where it spills over a lower one: shade (its shadow on the lower
   // ground), rim (the edge line), light (a bright line just inside), tufts or pebbles along it.
   const EDGE_STYLE = {
