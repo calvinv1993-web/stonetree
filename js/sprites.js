@@ -1327,7 +1327,7 @@ const Sprites = (() => {
   // The temple's archway: three tiles of carved stone wall along their south edge, as thin walls stand, with a round
   // arch nearly two tiles wide cut through it, on piers with capitals; a keystone, and the temple's golden sun above it.
   // The wall's own textures are laid on its faces, so it joins the walls either side without a seam.
-  BIG.arch = { w: 3, h: 1, noInk: true, draw(g) { // (no dark outline: it's part of the wall, and walls have none)
+  BIG.arch = { w: 3, h: 1, noInk: true, fine: () => !!customImage('temple_arch_front'), draw(g) { // (no dark outline: it's part of the wall, and walls have none)
     const FZ = FLOOR_Z, v0 = W0, v1 = TILE, a0 = 12, a1 = 84, zs = 20, rise = 20, mid = (a0 + a1) / 2, half = (a1 - a0) / 2;
     const arcZ = u => zs + rise * Math.sqrt(Math.max(0, 1 - ((u - mid) / half) ** 2));
     const arc = (v, from, to) => { const pts = []; for (let i = 0; i <= 24; i++) { const u = from + ((to - from) * i) / 24; pts.push(...P(u, v, arcZ(u))); } return pts; };
@@ -1336,6 +1336,17 @@ const Sprites = (() => {
     poly(g, '#b8b09c', [...arc(v0, a0, a1), ...arc(v1, a1, a0)]);
     // the inner face of the west pier (it faces east, into the opening)
     poly(g, '#8a8476', [...P(a0, v0, 0), ...P(a0, v1, 0), ...P(a0, v1, zs), ...P(a0, v0, zs)]);
+    const own = customImage('temple_arch_front'); // the owner's arch, painted straight on: laid onto the front face
+    if (own) {
+      const m = g.getTransform();
+      g.save(); g.beginPath(); for (const [v, z] of [[v0, 0], [v1, 0], [v1, FZ], [v0, FZ]]) g.lineTo(...P(96, v, z)); g.closePath(); g.clip();
+      g.transform(0, 1, 1, 1, 128, 32); st.east(g, rnd); g.restore(); // its east end
+      g.save(); g.transform(1, 0, 1, 1, ...P(0, v1, 0)); // (x along the wall, y up from its foot: negative)
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      const h = 25; g.drawImage(own, 0, -h, 96, h); // (squeezed a little: under the roof's eaves the wall shows about this high)
+      g.restore(); g.setTransform(m);
+      return;
+    }
     // the front (south) face, the wall's own carved stone, with the arch cut out of it
     g.save();
     g.beginPath();
@@ -1499,10 +1510,13 @@ const Sprites = (() => {
   function bigPart(id, frame) {
     const [name, col, row] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name);
     const at = (f, fn) => { f.save(); f.translate(R - 64, R - 64); fn(f); f.restore(); }; // (its drawing has the corner at 64, 64, as P() has)
-    const whole = own || cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R);
+    const fine = !own && b.fine && b.fine(), K = Sprites.CREATURE_RES; // (drawn from a fine picture of its own: kept as fine)
+    const whole = own || (fine
+      ? cached(`bigthing:${name}:${frame}:fine${K}`, g => { g.scale(K, K); at(g, f => b.draw(f, frame)); }, (b.w * TILE + R) * K, (b.h * TILE + R) * K)
+      : cached(`bigthing:${name}:${frame}`, g => (b.noInk ? at(g, f => b.draw(f, frame)) : inked(g, f => at(f, h => b.draw(h, frame)))), b.w * TILE + R, b.h * TILE + R));
     // (its own PNG may be finer than a pixel a world pixel; a part is kept only as fine as the screen shows it, k canvas
     // pixels a world pixel, and only as big as what it shows: scaling a big fine picture down every frame is slow)
-    const k = own ? Sprites.CREATURE_RES : 1;
+    const k = own || fine ? Sprites.CREATURE_RES : 1;
     const upright = b.upright && !(own && b.ownLeans); // (its own picture may lean up-left as things do, not stand upright)
     const box = upright ? (row === b.h - 1 ? [col ? R : 0, 0] : [R, R]) : [0, 0]; // the part's north-west corner; it ends at R + 32, R + 32
     const w = R + TILE - box[0], h = R + TILE - box[1];
@@ -6537,7 +6551,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
