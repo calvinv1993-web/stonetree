@@ -1905,12 +1905,12 @@ const Sprites = (() => {
       }
     },
     // Gravel: small rounded stones, evenly spread.
-    gravel(g, r) {
-      rect(g, '#a49c8c', 0, 0, TILE, TILE);
+    gravel(g, r) { // (warm, as the streets and the town's sandstone)
+      rect(g, '#b29c7c', 0, 0, TILE, TILE);
       for (let j = 0; j < 6; j++) for (let i = 0; i < 6; i++) {
         if (r() < 0.35) continue;
         const x = i * 5.3 + 2 + r() * 2, y = j * 5.3 + 2 + r() * 2;
-        rect(g, '#857d6e', x, y + 1, 2, 1); rect(g, '#c4bcac', x, y, 2, 1);
+        rect(g, '#8c7458', x, y + 1, 2, 1); rect(g, '#d2bea0', x, y, 2, 1);
       }
     },
     farmland(g, r) {
