@@ -14,3 +14,10 @@ sheet came back scaled. Every sheet carries the style card (the founder's statue
 | `item.png` | items | the item alone |
 
 `tests/make-templates.py` draws the sheets again (after the style card changes).
+
+## A wall, start to finish
+
+1. Fill in `wall.png` (the face straight on, 4 tiles, seamless; the top from above).
+2. `python3 tests/install-wall.py <filled.png> wall_stone` (or `wall_wood`, `wall_rampart`, `wall_temple`; `--inside`
+   with a second sheet for the face inside a building).
+3. Every wall of that kind is built from it (`wallFromStrip`): posts, corners and both directions all cut from the one strip.

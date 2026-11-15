@@ -441,6 +441,46 @@ const Sprites = (() => {
       });
     }, 2 * TILE * res);
   }
+  // Any thin wall from the owner's straight-on strips (sprites/custom.js <id>_face, and <id>_top, <id>_face_in if there
+  // are): the face 4 (or n) tiles long, seen straight on, its left and right edges joining; the top the same tiles seen from
+  // above. Built as every thin wall is (wallBlock: posts, arms, corners, both directions, each face clipped to where it
+  // shows), a tile's piece of the strip by its place along the wall, the east faces in shade, the inside strip where the
+  // face looks into a building. So the corners always meet: every piece is cut from the same strip at the same size.
+  function wallFromStrip(id, x, y, shape = '1001:oo') {
+    const def = THINGS[id], face = def && def.wall === 'thin' && customImage(`${id}_face`);
+    if (!face) return null;
+    const [sides, io = 'oo'] = shape.split(':'), res = Sprites.CREATURE_RES;
+    const n = Math.max(1, Math.round(face.naturalWidth / face.naturalHeight)), at = v => ((v % n) + n) % n;
+    return cached(`wallstrip:${id}:${sides}:${io}:${at(x)}:${at(y)}:${res}`, g => {
+      g.canvas.res = res;
+      const set = g.setTransform.bind(g);
+      g.setTransform = (a, b, c, d, e, f) => set(a * res, b * res, c * res, d * res, e * res, f * res);
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      const side = (inside, col, dim) => () => {
+        const img = (inside && customImage(`${id}_face_in`)) || face, w = img.naturalWidth / n;
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        if (dim) g.filter = `brightness(${dim})`;
+        g.drawImage(img, col * w, 0, w, img.naturalHeight, 0, 0, TILE, TILE);
+        g.filter = 'none';
+      };
+      const top = customImage(`${id}_top`);
+      wallBlock(g, sides, {
+        south: side(io[1] === 'i', at(x)), east: side(io[0] === 'i', at(y), 0.74),
+        top: () => {
+          g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+          if (top) { // the top strip along both directions (turned for a wall running north-south)
+            const w = top.naturalWidth / n, h = top.naturalHeight;
+            g.save(); g.translate(TILE, 0); g.rotate(Math.PI / 2); g.drawImage(top, at(y) * w, 0, w, h, 0, 0, TILE, WALL_THICKNESS); g.restore();
+            g.drawImage(top, at(x) * w, 0, w, h, 0, W0, TILE, WALL_THICKNESS);
+          } else { // no top of its own: the face's top edge, lighter
+            g.filter = 'brightness(1.25)';
+            g.drawImage(face, at(x) * face.naturalWidth / n, 0, face.naturalWidth / n, face.naturalHeight / 8, 0, 0, TILE, TILE);
+            g.filter = 'none';
+          }
+        },
+      });
+    }, 2 * TILE * res);
+  }
   function wallFromPictures(id, shape) {
     const def = THINGS[id];
     if (!def || def.wall !== 'thin') return null;
@@ -6625,7 +6665,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || /^wall_[a-z]+_(face|face_in|top)$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
@@ -6797,7 +6837,9 @@ const Sprites = (() => {
         }, 2 * TILE * res);
       }
       if (id === 'fence') { const ownFence = fenceFromPictures(shape); if (ownFence) return ownFence; }
-      if (id === 'wall_rampart' && customImage('rampart_face')) return rampartFromStrip(x, y, shape);
+      if (id === 'wall_rampart' && customImage('rampart_face') && !customImage('wall_rampart_face')) return rampartFromStrip(x, y, shape);
+      const fromStrip = wallFromStrip(id, x, y, shape);
+      if (fromStrip) return fromStrip;
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y, shape);
