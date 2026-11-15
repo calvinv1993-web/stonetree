@@ -10,10 +10,20 @@ js/sprites.js): posts, corners, both directions, the east faces in shade.
 import sys, os, re, subprocess, tempfile
 here = os.path.dirname(os.path.abspath(__file__)); root = os.path.join(here, '..')
 src, wid = sys.argv[1], sys.argv[2]; inside = '--inside' in sys.argv
+# a solid block (cave, sewer, crypt, the mountains): its face from the wall sheet, its top from a ground sheet (--top)
+block = wid in ('wall_cave', 'wall_sewer', 'wall_crypt', 'cliff', 'rampart')
+if '--top' in sys.argv:  # python3 tests/install-wall.py <filled ground sheet> <id> --top
+    tmp = tempfile.mkdtemp(); subprocess.run([sys.executable, '-I', os.path.join(here, 'cut-template.py'), src, 'ground', tmp], check=True)
+    out = wid.replace('_', '-') + '-top.png'; os.replace(os.path.join(tmp, 'ground-1.png'), os.path.join(root, 'sprites', out))
+    custom = os.path.join(root, 'sprites', 'custom.js'); js = open(custom).read()
+    js = re.sub(rf"  {wid}_top: '[^']*',[^\n]*\n", '', js)
+    js = js.replace('const CUSTOM_SPRITES = {\n', f"const CUSTOM_SPRITES = {{\n  {wid}_top: '{out}', // the owner's top of {wid}, from above\n", 1)
+    open(custom, 'w').write(js); print('installed', wid + '_top'); sys.exit(0)
 tmp = tempfile.mkdtemp()
 subprocess.run([sys.executable, '-I', os.path.join(here, 'cut-template.py'), src, 'wall', tmp], check=True)
 name = wid.replace('_', '-')
 pieces = {f'{wid}_face_in': ('wall-1.png', f'{name}-face-in.png')} if inside else \
+         {f'{wid}_face': ('wall-1.png', f'{name}-face.png')} if block else \
          {f'{wid}_face': ('wall-1.png', f'{name}-face.png'), f'{wid}_top': ('wall-2.png', f'{name}-top.png')}
 custom = os.path.join(root, 'sprites', 'custom.js'); js = open(custom).read()
 for key, (cut, out) in pieces.items():

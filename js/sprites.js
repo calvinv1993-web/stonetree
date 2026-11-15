@@ -528,7 +528,7 @@ const Sprites = (() => {
     const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
     // (only natural rock gets a ragged foot and rounded corners: a built wall such as the town wall keeps its edges)
     const open = !def.natural ? '11' : shape === '00' || !/^[01]{2}$/.test(shape) ? '00' : shape, corner = open === '00';
-    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${open}:${res}`, g => {
+    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${open}:${res}`, g => {
       g.canvas.res = res;
       const side = (which, i, shade) => {
         g.save();
@@ -570,7 +570,13 @@ const Sprites = (() => {
       if (open[0] === '0') cut('south', at(x));
       if (open[1] === '0') cut('east', at(y));
       g.save(); g.scale(res, res);
-      g.beginPath(); g.rect(0, 0, TILE, TILE); g.clip(); rockSurface(g, makeRng(hashStr(id) + at(x) * 7 + at(y)));
+      g.beginPath(); g.rect(0, 0, TILE, TILE); g.clip();
+      const topPic = customImage(`${id}_top`); // its own top, seen from above (a strip of n tiles, as the face), where there is one
+      if (topPic) { // (a square of 4 x 4 tiles from above, as a ground: the ground template)
+        const k = topPic.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
+        g.imageSmoothingEnabled = true; g.drawImage(topPic, c * k, r * k, k, k, 0, 0, TILE, TILE);
+      }
+      else rockSurface(g, makeRng(hashStr(id) + at(x) * 7 + at(y)));
       g.restore();
     }, 2 * TILE * res);
   }
