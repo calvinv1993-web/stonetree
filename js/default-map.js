@@ -346,6 +346,18 @@ const DEEP_SEWERS = [
 //             [x, y, 'stairs_up' | 'stairs_down'], dais [x0, y0, x1, y1] (paved), torches on north walls,
 //             props [x, y, id], monsters [type, x, y]
 // Keep things off the row along a south wall and the column along an east wall: those walls hide them.
+// The spiders' den under the Spider Hills (z 7): steps down at the foot of the hills' south face, a winding tunnel full
+// of spiders, and the Brood Queen in her egg chamber at the end. The hardest place on the starter island.
+const SPIDER_DEN = {
+  door: [176, 198], // the steps down, cut into the foot of the hills
+  sign: [175, 199, 'Webs across the dark. Something big moves in there. TURN BACK.'],
+  // chambers (ellipses: cx, cy, rx, ry) joined in this order by a tunnel
+  chambers: [[176, 196.5, 2.2, 1.8], [173, 191, 2.5, 2], [178, 186, 3, 2.2], [176, 180, 5.5, 3.6]],
+  spiders: [[173, 191], [174, 190], [178, 186], [179, 187], [172, 181], [180, 179]],
+  queen: [176, 179],
+  props: [[176, 177, 'web'], [171, 180, 'web'], [181, 181, 'web'], [174, 182, 'bones'], [179, 182, 'bones'], [172, 192, 'web'], [180, 186, 'bones']],
+};
+
 const CRYPT = {
   door: [81, 198],
   niche: [[82, 198], [82, 199]], // the crag cut back beside the steps, so they show (the rock leans over the tile west of it)
@@ -761,6 +773,7 @@ function createDefaultMap() {
   buildTown(m, S, runs, d.rivers[0]);
   buildSewers(m, S);
   buildCrypt(m, S);
+  buildSpiderDen(m, S);
   buildDeepSewers(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
@@ -974,6 +987,34 @@ function buildDeepSewers(m, S) {
 
 // Builds the crypt under Bone Rocks (see CRYPT): the steps down from the crag, the way there and its sign,
 // and on each floor the rooms with carved walls round them, the stairs, the tombs and the dead.
+function buildSpiderDen(m, S) {
+  const D = SPIDER_DEN, Z = S - 1, [dx, dy] = D.door;
+  const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  m.get(dx, dy, S).items = ['stairs_down']; // cut into the foot of the hills
+  m.set(dx, dy, S + 1, null);               // (no rock over the steps)
+  { const [x, y, text] = D.sign; const t = m.get(x, y, S); if (t && !t.items.some(id => THINGS[id].block)) { t.items = ['signpost']; m.setMeta(x, y, S, { text }); } }
+  const carved = [];
+  const carve = (x, y) => { if (!m.get(x, y, Z) || m.get(x, y, Z).items.includes('wall_cave')) { m.set(x, y, Z, { ground: 'cave', items: [] }); carved.push([x, y]); } };
+  D.chambers.forEach(([cx, cy, rx, ry], i) => {
+    for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 0.8 + hash(x + 5, y + 9) * 0.35) carve(x, y);
+    }
+    const next = D.chambers[i + 1];
+    if (next) { // a tunnel two wide to the next chamber
+      const steps = Math.ceil(Math.hypot(next[0] - cx, next[1] - cy) * 2);
+      for (let k = 0; k <= steps; k++) { const x = Math.round(cx + (next[0] - cx) * k / steps), y = Math.round(cy + (next[1] - cy) * k / steps); carve(x, y); carve(x + 1, y); }
+    }
+  });
+  carve(dx, dy);
+  m.get(dx, dy, Z).items = ['stairs_up'];
+  for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+    if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'cave', items: ['wall_cave'] });
+  }
+  for (const [x, y, id] of D.props) { const t = m.get(x, y, Z); if (t && !t.items.length) m.addItem(x, y, Z, id); }
+  for (const [x, y] of D.spiders) m.spawns.push({ type: 'spider', x, y, z: Z });
+  m.spawns.push({ type: 'brood_queen', x: D.queen[0], y: D.queen[1], z: Z });
+}
+
 function buildCrypt(m, S) {
   const C = CRYPT, [dx, dy] = C.door;
   m.get(dx, dy, S).items = ['stairs_down']; // cut into the foot of the crag

@@ -325,6 +325,11 @@ function respawnDelay(m) {
 function killMonster(m) {
   Object.assign(m, { dead: true, respawnAt: now + respawnDelay(m), due: 0, walk: null, conditions: {} });
   if (m.def.voices && m.def.voices.death) addSpeech(m, m.def.voices.death, true); // (its last words)
+  // the first to slay the Brood Queen: told to everyone, and remembered (with the bell, in town.json)
+  if (m.type === 'brood_queen' && typeof townBell !== 'undefined' && !townBell.queenSlayer) {
+    townBell.queenSlayer = player.name;
+    for (const p of players) asPlayer(p, () => { log(`${townBell.queenSlayer} is the first to slay the Brood Queen under the Spider Hills!`, 'level'); playerEvent('banner', { message: `${townBell.queenSlayer} slew the Brood Queen!` }); });
+  }
   if (m.def.comesBack) {
     effects.push({ kind: 'speech', x: m.x, y: m.y, z: m.z, name: 'Someone', text: 'Not Lucky Tobb again! Somebody fetch the priest... no, wait, he always gets up.', start: now, dur: 3500 });
     m.diedAt = { x: m.x, y: m.y, z: m.z, by: player.id };

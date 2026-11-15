@@ -880,6 +880,18 @@ test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bell
   assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
 });
 
+test('the spiders\' den under the Spider Hills: reachable, spiders, and the Brood Queen with her rare fang', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const den = state.map.spawns.filter(s => s.z === 7 && (s.type === 'brood_queen' || (s.type === 'spider' && s.y < 200 && s.x > 165)));
+  assert(den.some(s => s.type === 'brood_queen') && den.length >= 5, 'the Queen and her spiders');
+  assert(state.map.get(176, 198, 8).items.includes('stairs_down'), 'steps down at the foot of the hills');
+  assert(state.MONSTERS.brood_queen.loot.items.some(([id]) => id === 'brood_fang'), 'her rare fang');
+  const q = ctx.spawnMonster({ type: 'brood_queen', x: 176, y: 179, z: 7 }); state.monsters.push(q);
+  ctx.damageMonster(q, 99999, 'physical');
+  assert(messages.some(m => /first to slay the Brood Queen/.test(m)), 'the first to slay her is told to everyone');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

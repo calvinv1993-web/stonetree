@@ -162,6 +162,17 @@ const MONSTERS = {
     ranged: { range: 4, dmg: [10, 40], missile: 'boulder', element: 'physical', chance: 0.2 },
     loot: { gold: [20, 90], items: [['cyclops_toe', 0.3], ['meat', 0.4, 1, 3], ['war_hammer', 0.02], ['steel_helmet', 0.03], ['plate_legs', 0.01]] },
   },
+  // The Brood Queen, deep in the spiders' den under the Spider Hills: the starter island's hardest fight, for those who
+  // stay a while before the oracle (level 12-15 alone, less in a party). A rare fang of her own.
+  brood_queen: {
+    name: 'Brood Queen', proper: true, hp: 700, xp: 600, dmg: [8, 28], defense: 6, armor: 6, speed: 150, attackSpeed: 1600, aggro: 6, corpse: 'slime',
+    respawn: 15 * 60000,
+    hitCondition: { kind: 'poison', chance: 0.4, power: 6 }, immune: ['poison', 'earth'], weak: { fire: 1.3 },
+    ranged: { range: 4, dmg: [8, 22], missile: 'poison', element: 'poison', chance: 0.35 },
+    summon: { type: 'spider', max: 3, chance: 0.1 },
+    loot: { gold: [80, 200], items: [['spider_silk', 1, 2, 5], ['health_potion', 0.6, 1, 2], ['brood_fang', 0.08], ['ring_swift', 0.05]] },
+    voices: { aggro: 'Sssss... (The Brood Queen rises from her eggs, clicking.)', low: 'Hsss! (She shrieks, and the walls answer with scuttling.)' },
+  },
   giant_spider: {
     name: 'giant spider', hp: 500, xp: 400, dmg: [15, 60], armor: 10, speed: 141, attackSpeed: 1500, aggro: 7, corpse: 'slime',
     hitCondition: { kind: 'poison', chance: 0.4, power: 10 }, immune: ['poison', 'earth'], weak: { fire: 1.2 },

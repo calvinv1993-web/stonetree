@@ -60,6 +60,7 @@ const ITEMS = {
   backpack:      { name: 'backpack', slot: 'backpack', container: 20, value: 20, weight: 18 },
 
   wooden_club:   { name: 'wooden club', slot: 'weapon', weapon: { type: 'club', attack: 7 }, defense: 3, value: 2, weight: 25 },
+  brood_fang:    { name: 'Brood Queen\'s fang', slot: 'weapon', weapon: { type: 'sword', attack: 16 }, defense: 8, value: 450, weight: 12, rare: true }, // (her rare drop: the best blade on the starter island)
   dagger:        { name: 'dagger', slot: 'weapon', weapon: { type: 'sword', attack: 8 }, defense: 4, value: 5, weight: 9.5 },
   hatchet:       { name: 'hatchet', slot: 'weapon', weapon: { type: 'axe', attack: 10 }, defense: 4, value: 8, weight: 20 },
   short_sword:   { name: 'short sword', slot: 'weapon', weapon: { type: 'sword', attack: 11 }, defense: 6, value: 12, weight: 35 },

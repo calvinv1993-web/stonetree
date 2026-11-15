@@ -4060,6 +4060,7 @@ const Sprites = (() => {
     spiked_club: g => club(g, '#7a4e26', true),
     war_hammer: hammer,
     dagger: g => sword(g, 9, '#c8c8d0', '#6a4a2a', 3),
+    brood_fang: g => sword(g, 11, '#e8e2c8', '#3a2a3a', 4), // (a curved fang, bone-white, on a dark grip)
     short_sword: g => sword(g, 13, '#c8c8d0', '#6a4a2a', 3),
     longsword: g => sword(g, 17, '#d0d0d8', '#3a3a6a', 3),
     broadsword: g => sword(g, 17, '#d8d8e0', '#6a2a2a', 5),
@@ -6583,6 +6584,12 @@ const Sprites = (() => {
     if (look) return (g, d, f) => (Sprites.PEOPLE === 'tilt' && tiltable(look) ? tiltPerson(g, look, d, f) : Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
+      brood_queen: (g, d, f) => { // a giant spider bigger still, black and violet, with a pale mark on her back
+        g.translate(16, 27); g.scale(1.25, 1.25); g.translate(-16, -27);
+        g.filter = 'hue-rotate(250deg) saturate(1.4) brightness(0.8)';
+        giantSpider(g, d, f);
+        g.filter = 'none';
+      },
       cistern_slime: (g, d, f) => { // a slime as big as a cart, dark with the filth of the cistern
         g.translate(16, 27);
         g.scale(1.7, 1.7);

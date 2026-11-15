@@ -1918,7 +1918,12 @@ Object.assign(NPCS, {
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
   gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),
   gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
-  gate_east: gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.'),
+  gate_east: (() => { // (Hilde also knows of the spiders' den, and its queen)
+    const g = gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.');
+    g.keywords['queen|brood|den|cave'] = 'Under the Spider Hills there is a den: steps cut into their south face. The spiders in there serve something big. The Brood Queen, we call her. I went in once, at your age. Once. Go much stronger than the Thornmother asks, $name: level twelve, with friends and potions.';
+    g.greet = g.greet.replace('{dangers}?', '{dangers}? Or the spiders\' {den}?');
+    return g;
+  })(),
   gate_north: gateGuard('gate_north', 'Captain Osric', '#3a3a3a', 'goblins', 'The north gate: Mirror Lake, Stony Field and the North Peaks. Goblin Hill is north-east, past the lake.', true),
   oak_baker: {
     name: 'Baker Willa',
