@@ -457,28 +457,30 @@ body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; pad
 body.touch-ui .hud, body.touch-ui .hud-map-button, body.touch-ui .hud-target, body.touch-ui #actionDock { font-family: var(--hud-font); font-variant-numeric: tabular-nums; }
 /* -- The status bar: health left, mana right, each its icon before its bar; under them EXP and its percent, one thin
       bar, the level; one faint bronze line at its foot -- */
-body.touch-ui .hud { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: 16px 13px; gap: 7px 0;
+body.touch-ui .hud { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: 18px 13px; gap: 6px 0;
   padding: 7px 11px 7px; align-items: center; background: var(--hud-bg) !important; border-bottom: 1px solid var(--hud-bronze);
   box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: auto; } /* (it takes taps: none walk you to the map behind it) */
 body.touch-ui .hud-name, body.touch-ui .hud-gold, body.touch-ui .hud-lvl { display: none; }
-body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; position: static; width: 20px; height: 20px; margin: 0 5px 0 0; filter: none; }
+/* (the heart and the drop lie half over the start of their bar, in front of it) */
+body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; position: relative; z-index: 2; width: 21px; height: 21px; margin: 0 -10px 0 0; filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.85)); }
 body.touch-ui .hud .hud-icon-hp { grid-column: 1; }
 body.touch-ui .hud .hud-icon-mana { grid-column: 3; margin-left: 11px; }
-body.touch-ui .hud .tbar { width: 100%; min-width: 0; height: 16px; grid-row: 1; border: 1px solid var(--hud-edge); border-radius: 8px;
-  background: var(--hud-empty); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); overflow: hidden; }
+body.touch-ui .hud .tbar { width: 100%; min-width: 0; height: 15px; grid-row: 1; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 8px;
+  background: #1c1d1f; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); overflow: hidden; }
 body.touch-ui .hud .tbar.hp { grid-column: 2; }
 body.touch-ui .hud .tbar.mana { grid-column: 4; }
-body.touch-ui .hud .tbar div { border-radius: 0; }
-body.touch-ui .hud .tbar.hp div { background: var(--hud-hp); }
-body.touch-ui .hud .tbar.mana div { background: var(--hud-mp); }
+/* the fill: rounded at its end, matte, a soft light along its top */
+body.touch-ui .hud .tbar div { border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+body.touch-ui .hud .tbar.hp div { background: linear-gradient(#c84b4f, #b5373c 55%, #9f2e33); }
+body.touch-ui .hud .tbar.mana div { background: linear-gradient(#4a93ea, #2c79d8 55%, #2467be); }
 /* (the value over the whole bar, not only its filled part) */
-body.touch-ui .hud .tbar span { inset: 0; color: var(--hud-text); font: 500 14px/14px var(--hud-font); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8); letter-spacing: 0; }
+body.touch-ui .hud .tbar span { inset: 0; color: var(--hud-text); font: 400 12px/12px var(--hud-font); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6); letter-spacing: 0.2px; }
 body.touch-ui .hud-exp-row { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 10px; min-width: 0; }
-body.touch-ui .hud-exp-label { flex: none; color: var(--hud-text); font: 500 13px/1 var(--hud-font); white-space: nowrap; }
+body.touch-ui .hud-exp-label { flex: none; color: var(--hud-text); font: 400 12px/1 var(--hud-font); white-space: nowrap; }
 body.touch-ui #hudXpText { color: inherit; font: inherit; }
-body.touch-ui .hud .hud-xp { display: block; position: relative; flex: 1; min-width: 0; height: 3px; border-radius: 2px; overflow: hidden; background: var(--hud-empty); box-shadow: none; }
+body.touch-ui .hud .hud-xp { display: block; position: relative; flex: 1; min-width: 0; height: 4px; border-radius: 2px; overflow: hidden; background: #3b3947; box-shadow: none; }
 body.touch-ui #hudXp { height: 100%; background: var(--hud-exp); border-radius: 0; }
-body.touch-ui .hud-level { flex: none; color: var(--hud-gold); font: 500 13px/1 var(--hud-font); white-space: nowrap; text-shadow: none; }
+body.touch-ui .hud-level { flex: none; color: #dcc495; font: 400 12px/1 var(--hud-font); white-space: nowrap; text-shadow: none; }
 body.touch-ui .hud-level #hudLvl { position: static; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
 /* -- The map: a dark rounded button in the view's top left corner (32 px to see, 44 px to tap), an ivory map -- */
 .hud-map-button { display: none; }
