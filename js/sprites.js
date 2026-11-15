@@ -7453,6 +7453,31 @@ const Sprites = (() => {
         const S = squash, rest = T * (1 - S); // (a side's cell pressed toward its own side)
         const place = { n: [0, 0, T, T * S], s: [0, rest, T, T * S], w: [0, 0, T * S, T], e: [rest, 0, T * S, T] };
         for (const [, d, i] of parts) g.drawImage(pics[d], i * T, 0, T, T, ...place[d]);
+        // An inner corner (the border on two sides that meet: the ground reaches round this tile's corner): rounded, the
+        // ground itself filling the corner beyond an arc, its ragged border just inside the arc, instead of two strips
+        // crossing in a square notch
+        const inner = [[1 | 2, T, 0], [2 | 4, T, T], [4 | 8, 0, T], [8 | 1, 0, 0]].filter(([b]) => (mask & b) === b);
+        if (inner.length) {
+          const R = T * 0.55 * S, strip = edgePixels(pics.n), img = g.getImageData(0, 0, T, T), d = img.data;
+          const tex = document.createElement('canvas'); tex.width = tex.height = T;
+          const tg = tex.getContext('2d'); tg.imageSmoothingEnabled = true; tg.drawImage(Sprites.thing(ground, x, y, 0), 0, 0, T, T);
+          const tp = tg.getImageData(0, 0, T, T).data, col0 = at('n', x) * T;
+          for (const [, kx, ky] of inner) {
+            const cx = kx ? T - R : R, cy = ky ? T - R : R; // (the arc's middle)
+            for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+              const qx = px + 0.5, qy = py + 0.5;
+              if ((kx ? qx < cx : qx > cx) || (ky ? qy < cy : qy > cy)) continue; // (only the corner's square)
+              const i = (py * T + px) * 4, dist = Math.hypot(qx - cx, qy - cy);
+              if (dist >= R) { d[i] = tp[i]; d[i + 1] = tp[i + 1]; d[i + 2] = tp[i + 2]; d[i + 3] = 255; continue; }
+              const row = Math.floor((R - dist) / S), along = Math.atan2(Math.abs(qy - cy), Math.abs(qx - cx)) * R;
+              const col = col0 + Math.min(T - 1, Math.floor(along / S) % T), si = (Math.min(strip.height - 1, row) * strip.width + col) * 4;
+              const a = row < strip.height ? strip.data[si + 3] : 0;
+              if (!a) { d[i + 3] = 0; continue; }
+              d[i] = strip.data[si]; d[i + 1] = strip.data[si + 1]; d[i + 2] = strip.data[si + 2]; d[i + 3] = a;
+            }
+          }
+          g.putImageData(img, 0, 0);
+        }
         if (!corners2.length) return;
         // an outer corner: the north side's border bent round the corner point, a ring of it at each distance from there
         const strip = edgePixels(pics.n), img = g.getImageData(0, 0, T, T), d = img.data, col0 = at('n', x) * T;
