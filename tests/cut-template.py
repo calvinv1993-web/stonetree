@@ -11,7 +11,7 @@ from PIL import Image
 from scipy import ndimage
 
 SIZES = {'wall': [(512, 128), (512, 32)], 'ground': [(512, 512)], 'on-wall': [(256, 256)],
-         'thing': [(256, 256), (384, 384), (512, 512)], 'item': [(256, 256)]}
+         'thing': [(256, 256), (384, 384), (512, 512)], 'item': [(256, 256)], 'front': [(512, 512)]}
 
 def frames(img):
     """The frames on the sheet, top-left first: [(x0, y0, x1, y1, scale)] in the sheet's pixels, the frame's own edges."""

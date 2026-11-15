@@ -75,3 +75,11 @@ page('thing','STANDING THING - fill in: a thing that stands on the ground, in th
 page('item','ITEM - fill in: an item as it shows in the bag and on the ground',
      [('one item (256 x 256)',256,256,None)],
      'The item alone, filling most of the frame, seen slightly from above, lit from the top left, a thin dark edge. Transparent background.')
+
+# 6. a standing thing from its front alone: the game builds its top and sides (tests/front-to-thing.py)
+def g_front(d,x,y,w,h):
+    d.rectangle([x,y+h-6,x+w,y+h],fill='#d8cfbc'); d.text((x+6,y+h-30),'ground: it stands here',fill='#b0a890',font=Fs)
+    for k in range(1,4): dash(d,(x+k*w//4,y),(x+k*w//4,y+h),(225,225,225),1)
+page('front','STANDING THING, FRONT ONLY - fill in: the thing seen straight from the front',
+     [('the front (512 x 512; a tile is a quarter of the width)',512,512,g_front)],
+     'Straight on from the front, flat: no top, no sides, no perspective. Standing on the ground line, as big as it is (a tile is a quarter of the frame). Built of solid chunky blocks like the statue. Transparent background. Say how deep it is (in tiles); I build its top and sides from this.')
