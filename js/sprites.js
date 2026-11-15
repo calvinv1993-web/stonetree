@@ -3012,7 +3012,7 @@ const Sprites = (() => {
         g.beginPath(); for (const [u, y] of [[u0, y0], [u1, y0], [u1, y1], [u0, y1]]) g.lineTo(...at(u, 0, 32 - y)); g.closePath(); g.clip();
         g.fillStyle = '#4a4440'; g.fillRect(-64, -64, 256, 256);            // the opening's sides: the wall's stone, small blocks
         onWallPlane(g, shape, 0, () => {
-          g.filter = 'brightness(0.72)';
+          g.filter = 'brightness(0.5)';
           for (let ty = 0; ty < 32; ty += 12.8) for (let tx = 0; tx < 32; tx += 12.8) { g.save(); g.translate(tx, ty); g.scale(0.4, 0.4); stoneBlocks(g, makeRng(hashStr('reveal') + tx * 7 + ty), 120, '#3a3430'); g.restore(); }
           g.filter = 'none';
         });
