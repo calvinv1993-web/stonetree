@@ -475,8 +475,9 @@ body.touch-ui .hud .tbar.mana { grid-column: 4; }
 body.touch-ui .hud .tbar div { border-radius: 8px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18); }
 body.touch-ui .hud .tbar.hp div { background: linear-gradient(#c84b4f, #b5373c 55%, #9f2e33); }
 body.touch-ui .hud .tbar.mana div { background: linear-gradient(#4a93ea, #2c79d8 55%, #2467be); }
-/* (the value over the whole bar, not only its filled part) */
-body.touch-ui .hud .tbar span { inset: 0; color: var(--hud-text); font: 400 12px/12px var(--hud-font); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6); letter-spacing: 0.2px; }
+/* (the value in the middle of the bar you see, past the icon lying over its start: over the empty part too, not
+   only the filled one) */
+body.touch-ui .hud .tbar span { inset: 0 0 0 13px; color: var(--hud-text); font: 400 12px/15px var(--hud-font); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6); letter-spacing: 0.2px; }
 body.touch-ui .hud-exp-row { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 10px; min-width: 0; }
 body.touch-ui .hud-exp-label { flex: none; color: var(--hud-text); font: 400 12px/1 var(--hud-font); white-space: nowrap; }
 body.touch-ui #hudXpText { color: inherit; font: inherit; }
