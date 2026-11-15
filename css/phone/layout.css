@@ -103,6 +103,8 @@ body.touch-ui .ctx-menu button { padding: 11px 16px; font-size: 16px; }
 /* phones: round, lit buttons */
 /* Modal maps must cover the entire touch HUD, including the action button. */
 body.touch-ui .worldmap:not([hidden]) { z-index: 80; }
+/* (under the status bar, so your health and mana stay in sight while you pick where to go) */
+body.touch-ui .worldmap:not([hidden]) { top: calc(var(--hud-h) + 6px) !important; }
 body.touch-ui .radial-controls { position: absolute; right: max(7px,env(safe-area-inset-right)); pointer-events: none; }
 body.touch-ui .radial-controls .favs { position: absolute; inset: 0; display: block; pointer-events: none; }
 body.touch-ui .radial-controls .fav:active,body.touch-ui .radial-controls .fav.holding { opacity: 1; }
@@ -385,7 +387,7 @@ body.touch-ui #view { border: 0; }
 /* the map may be a little wider than its space (whole tiles at the screen's own pixels): its edges are cut */
 body.touch-ui .viewport { overflow: hidden; }
 /* ---- messages low on the map, the loot window under the status bar, labels in the quick buttons ------------------ */
-body.touch-ui .toasts { bottom: auto; width: min(92%, 420px); gap: 4px; }
+body.touch-ui .toasts { bottom: auto; width: min(calc(100% - 104px), 420px); gap: 4px; } /* (clear of the map button in the top left corner) */
 body.touch-ui .toast { padding: 4px 10px; font: 500 12.5px/1.35 var(--ui); border-radius: 8px; }
 @media (orientation: landscape) {
   body.touch-ui .toasts { width: min(46%, 380px); }
@@ -545,3 +547,6 @@ body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); 
   html body.touch-ui .slot-set-hint { top: 67px; left: calc(50% - 216px); width: 172px; }
   html body.touch-ui .slot-set-hint.right { left: auto; right: calc(50% - 216px); }
 }
+/* the world map's Ride: a pill like its other buttons, the horse and the word on one line */
+body.touch-ui #worldRide { display: inline-flex; align-items: center; gap: 4px; width: auto !important; min-height: 40px; padding: 0 14px !important; white-space: nowrap;
+  border: 1px solid var(--line-2) !important; border-radius: 20px !important; background: var(--bg-3) !important; color: var(--text) !important; font: 600 14px/1 var(--ui); }

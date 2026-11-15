@@ -1236,7 +1236,7 @@ function gainXp(amount, shared) {
     spellsFor(player.vocation).forEach((id, i) => {
       const s = SPELLS[id];
       if (s.level === player.level && (!s.promoted || player.promoted)) {
-        log(`You learned the spell ${s.name} ("${s.words}")${i < 9 ? `. Press ${i + 1} to cast it` : ''}.`, 'level');
+        log(`You learned the spell ${s.name} ("${s.words}"): cast it from your action bar${i < 9 ? ` or with key ${i + 1}` : ''}.`, 'level'); // (a phone has no keys)
       }
     });
     if (player.level === 10 && player.vocation === 'none') {

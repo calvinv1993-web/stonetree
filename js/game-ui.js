@@ -924,7 +924,7 @@ function renderQuests() {
     root.appendChild(box);
   }
   const ids = Object.keys(player.quests).filter(id => QUESTS[id] && !QUESTS[id].story);
-  if (!ids.length) root.append('No other quests yet. Talk to people (click them, or type "hi") to find some.');
+  if (!ids.length) root.append(`No other quests yet. Talk to people (${touchScreen ? 'tap' : 'click'} them, or type "hi") to find some.`);
   for (const id of ids.sort((a, b) => (questState(a) === 'done') - (questState(b) === 'done'))) {
     const q = QUESTS[id], done = questState(id) === 'done';
     const el = document.createElement('div');
