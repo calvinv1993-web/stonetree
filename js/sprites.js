@@ -1367,7 +1367,7 @@ const Sprites = (() => {
       g.transform(0, 1, 1, 1, 128, 32); st.east(g, rnd); g.restore(); // its east end
       g.save(); g.transform(1, 0, 1, 1, ...P(0, v1, 0)); // (x along the wall, y up from its foot: negative)
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-      const h = 25; g.drawImage(own, 0, -h, 96, h); // (squeezed a little: under the roof's eaves the wall shows about this high)
+      const h = 26; g.drawImage(own, 0, -h, 96, h); // (a little lower than drawn: under the roof's eaves the wall shows about this high)
       g.restore(); g.setTransform(m);
       return;
     }
