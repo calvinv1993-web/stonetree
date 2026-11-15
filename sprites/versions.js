@@ -167,6 +167,7 @@ const SPRITE_HASHES = {
   "sarcophagus@4x.png":"9e14cf4403",
   "sewer-face.png":"b8f8026e3f",
   "sewer-own.png":"52f8db4e57",
+  "sewer-water-own.png":"58fc2cde5e",
   "shaft-hatch.png":"7b53a06385",
   "shelf-s.png":"fe9020f3f1",
   "shells@4x.png":"c03f93f27c",
