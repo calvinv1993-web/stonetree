@@ -68,6 +68,12 @@ if __name__ == '__main__':
     rects, sizes = frames(img), SIZES[kind]
     for k, ((x0, y0, x1, y1), (w, h)) in enumerate(zip(rects, sizes)):
         box = (round(x0), round(y0), round(x1), round(y1))           # (the cut line: the picture runs on past it into the bleed)
+        # Was the bleed painted as part of the picture (drawn right up to the corner marks, the whole marked area taken as
+        # the frame)? Then the picture is the whole area inside the marks: cut there, so none of it is lost.
+        b = round((x1 - x0) / w * 16)
+        band = np.array(img.convert('RGB').crop((box[0] - b + 2, box[1] - b + 2, box[2] + b - 2, box[1] - 2))).astype(int)
+        pale = ((band.min(2) > 225) & (band.max(2) - band.min(2) < 30)).mean() if band.size else 1
+        if pale < 0.5: box = (box[0] - b + 3, box[1] - b + 3, box[2] + b - 3, box[3] + b - 3)
         piece = img.crop(box).resize((w, h), Image.LANCZOS)
         if kind not in ('wall', 'ground'): piece = clean(piece)
         if kind == 'wall': piece = seamless(piece, both=False)
