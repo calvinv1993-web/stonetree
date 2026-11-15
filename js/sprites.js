@@ -143,7 +143,16 @@ const Sprites = (() => {
   // (0, 24), (48, 6), (96, 24) in face coordinates, v down from the top), a ring of wedge-shaped stones along it, a
   // gilded keystone, and the shadow of the vault under it.
   const ARCH = { cy: 79, r: 73 }, archV = u => ARCH.cy - Math.sqrt(ARCH.r * ARCH.r - (u - 48) * (u - 48));
+  // A picture painted straight on (the owner's, sprites/custom.js), drawn at (x, y, w, h) in face coordinates, smoothly.
+  const paintFront = (g, img, x, y, w, h, dim) => {
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    if (dim) g.filter = `brightness(${dim})`;
+    g.drawImage(img, x, y, w, h);
+    g.filter = 'none';
+  };
   function gateArch(g, r, which, i) {
+    const own = customImage('gate_arch_front'); // the owner's arch, straight on, three tiles wide
+    if (own) { face(g, which, 0, () => paintFront(g, own, -i * TILE, 0, 3 * TILE, 34, which === 'east' ? 0.8 : 0)); return; }
     face(g, which, 0, () => {
       const u0 = i * TILE, curve = (lift, back) => { const pts = []; for (let u = 0; u <= TILE; u += 2) pts.push([u, archV(u0 + u) - lift]); return back ? pts.reverse() : pts; };
       const fill = (lift, color) => { g.fillStyle = color; g.beginPath(); g.moveTo(0, 0); g.lineTo(TILE, 0); for (const [u, v] of curve(lift, true)) g.lineTo(u, v); g.closePath(); g.fill(); };
@@ -165,6 +174,16 @@ const Sprites = (() => {
   // A portcullis drawn up into a gate's arch (part i of three): a grid of iron bars a little way below the arch's curve,
   // just behind its face, ending in spikes.
   function portcullis(g, which, i) {
+    const own = customImage('portcullis_front'); // the owner's portcullis, straight on: hung up into the arch, under its curve
+    if (own) {
+      face(g, which, 0, () => {
+        const u0 = i * TILE;
+        g.beginPath(); for (let u = 0; u <= TILE; u += 2) g.lineTo(u, archV(u0 + u)); g.lineTo(TILE, TILE); g.lineTo(0, TILE); g.closePath(); g.clip();
+        const h = 3 * TILE * own.naturalHeight / own.naturalWidth;
+        paintFront(g, own, -u0, 23 - h, 3 * TILE, h, which === 'east' ? 0.8 : 0);
+      });
+      return;
+    }
     face(g, which, 0, () => {
       const u0 = i * TILE, hang = 9;                            // how far below the arch it hangs
       for (let u = 2; u < TILE; u += 5) {                       // the upright bars, each down to a spike
@@ -615,6 +634,12 @@ const Sprites = (() => {
       rect(g, frameColor, x, y, w, h); rect(g, shade(frameColor, 1.35), x, y, w, 1); rect(g, shade(frameColor, 1.15), x, y, 1, h);
       picture();
     });
+  }
+  // The owner's shop sign, painted straight on (its iron arm and the board on its chains), a little out from the wall.
+  function ownShopSign(g, shape, img) {
+    const w = 26, h = w * img.naturalHeight / img.naturalWidth;
+    wallPoly(g, shape, 0, 'rgba(15,10,5,0.22)', [8, 22, 27, 22, 27, 7, 8, 7]); // its shadow on the wall
+    onWallPlane(g, shape, 3, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(img, 3, 3, w, h); });
   }
   function shopSign(g, shape, board, picture) {
     const at = wallSpot(shape), out = 6;
@@ -1101,6 +1126,15 @@ const Sprites = (() => {
     for (const s0 of [0.5, 8.5, 16.5, 24.5]) box(s0, s0 + 6, H0, H1);
   }
   function wallBanner(g, which) {
+    const own = customImage('wall_banner_front'); // the owner's banner, straight on
+    if (own) {
+      face(g, which, 0, () => {
+        const h = 28, w = h * own.naturalWidth / own.naturalHeight, x = 16 - w / 2;
+        g.globalAlpha = 0.3; paintFront(g, own, x + 1.4, 2, w, h, 0.0001); g.globalAlpha = 1; // its shadow on the wall
+        paintFront(g, own, x, 1, w, h, which === 'east' ? 0.8 : 0);
+      });
+      return;
+    }
     face(g, which, 0, () => {
       const cloth = [9, 2, 23, 2, 23, 27, 16, 23, 9, 27];
       poly(g, 'rgba(20,14,8,0.32)', cloth.map((v, k) => v + (k % 2 ? 1 : 1.4)));            // its shadow on the wall
@@ -3033,7 +3067,7 @@ const Sprites = (() => {
       ellipse(g, 'rgba(190,225,245,0.95)', 21, 26, 1.3, 1.8); // a drop
     }),
     // Shop signs: a board hanging from an iron arm, with a picture of the trade.
-    sign_weapons: (g, r, frame, shape) => shopSign(g, shape, '#7a4a22', () => {
+    sign_weapons: (g, r, frame, shape) => customImage('sign_weapons_front') ? ownShopSign(g, shape, customImage('sign_weapons_front')) : shopSign(g, shape, '#7a4a22', () => {
       line(g, '#c8ccd4', 2, 11, 21, 21, 9); line(g, '#c8ccd4', 2, 21, 21, 11, 9);
       rect(g, '#6a4220', 10, 19, 3, 3); rect(g, '#6a4220', 19, 19, 3, 3);
     }),
@@ -3081,7 +3115,14 @@ const Sprites = (() => {
     },
     // A lantern hanging from an iron arm: a little iron house with glass sides, glowing.
     lantern: (g, r, frame, shape) => {
-      const at = wallSpot(shape);
+      const at = wallSpot(shape), own = customImage('lantern_side');
+      if (own) { // the owner's lantern, painted straight on (its arm comes out of the wall on its left): a little out from the wall
+        const [gx, gy] = at(16, 4, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8); // its glow
+        const w = 14, h = w * own.naturalHeight / own.naturalWidth;
+        wallPoly(g, shape, 0, 'rgba(15,10,5,0.2)', [11, 29 - h, 25, 29 - h, 25, 29, 11, 29].map((v, k) => (k % 2 ? 32 - v + 32 - 2 * (29 - h / 2) + 0 : v))); // its shadow
+        onWallPlane(g, shape, 3, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(own, 9, 3, w, h); });
+        return;
+      }
       bracket(g, shape, 16, 27, 5.5);
       line(g, IRON.south, 1, ...at(16, 5, 27), ...at(16, 5, 23));                               // its hook
       const [gx, gy] = at(16, 5, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8);      // its glow
@@ -3296,6 +3337,8 @@ const Sprites = (() => {
   for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) if (!DRAW[id]) DRAW[id] = DRAW.pillar;
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
+  // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
+  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', lantern: 'lantern_side' };
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
@@ -6414,7 +6457,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'lantern_side'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
@@ -6604,6 +6647,17 @@ const Sprites = (() => {
       const form = shaped ? `${shape}:${sprite.startsWith('door') ? material : ''}` : '';
       const raised = RAISED.has(sprite), size = def.wall || def.tall || def.onWall || raised ? 2 * TILE : TILE;
       const paint = g => DRAW[sprite](g, makeRng(hashStr(sprite) + variant * 7919), frame, shape, material);
+      const front = OWN_FRONTS[sprite.replace(/_[se]\d?$|_[se]$/, '')] || OWN_FRONTS[sprite];
+      if (front && customImage(front)) { // drawn from the owner's straight-on picture: finer than a pixel a world pixel
+        const res = Sprites.CREATURE_RES;
+        return cached(`${sprite}:${form}:${variant}:${frame}:fine${res}`, g => {
+          g.canvas.res = res;
+          const set = g.setTransform.bind(g); // (faces and wall planes set their own transform: at this finer scale)
+          g.setTransform = (a, b, c, d, e, f) => set(a * res, b * res, c * res, d * res, e * res, f * res);
+          g.setTransform(1, 0, 0, 1, 0, 0);
+          paint(g);
+        }, (raised ? 3 * TILE : size) * res);
+      }
       return cached(`${sprite}:${form}:${variant}:${frame}`, inkable(sprite, def) ? g => inked(g, paint) : paint, raised ? 3 * TILE : size);
     },
     item(id) {

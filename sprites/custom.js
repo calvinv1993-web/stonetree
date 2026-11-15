@@ -128,6 +128,9 @@ const CUSTOM_SPRITES = {
   campfire_out: 'campfire-out@4x.png', // the owner's campfire burnt out
   founder_tomb: 'founder-tomb@4x.png', // the owner's tomb of Oakvale's founder in the crypt
   torn_note: 'torn-note@4x.png', // the owner's torn note on the floor
+  gate_arch_front: 'gate-arch-front.png', portcullis_front: 'portcullis-front.png', // the owner's town gate arch and portcullis, straight on
+  wall_banner_front: 'wall-banner-front.png', sign_weapons_front: 'sign-weapons-front.png', // the owner's banner and weapon shop sign, straight on
+  lantern_side: 'lantern-side.png', // the owner's wall lantern, seen from the side (the wall on its left)
   crypt_gate: 'crypt-gate@4x.png', // the owner's locked iron gate in the crypt
   bell_rope: 'bell-rope@4x.png', // the owner's coil of rope, picked up to ring the bell
   shaft_hatch: 'shaft-hatch.png', // the owner's hatch over the bell shaft (with the rope through it, or the dark shaft below)
