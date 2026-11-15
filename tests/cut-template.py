@@ -73,7 +73,8 @@ if __name__ == '__main__':
         b = round((x1 - x0) / w * 16)
         band = np.array(img.convert('RGB').crop((box[0] - b + 2, box[1] - b + 2, box[2] + b - 2, box[1] - 2))).astype(int)
         pale = ((band.min(2) > 225) & (band.max(2) - band.min(2) < 30)).mean() if band.size else 1
-        if pale < 0.5: box = (box[0] - b + 3, box[1] - b + 3, box[2] + b - 3, box[3] + b - 3)
+        # (a wall's top is only 32 px: a painted bleed there is the next rows of stones, not more of the top - keep to the cut)
+        if pale < 0.5 and not (kind == 'wall' and h <= 32): box = (box[0] - b + 3, box[1] - b + 3, box[2] + b - 3, box[3] + b - 3)
         piece = img.crop(box).resize((w, h), Image.LANCZOS)
         if kind not in ('wall', 'ground'): piece = clean(piece)
         if kind == 'wall': piece = seamless(piece, both=False)
