@@ -522,8 +522,18 @@ const Sprites = (() => {
   function doorInWall(g, r, shape, material, open, sealed) {
     const st = WALL_STYLES[material] || WALL_STYLES.wall_stone;
     const alongEast = runsNorthSouth(wallSides(shape));
+    const own = customImage(open ? 'door_open_front' : 'door_closed_front'); // the owner's door in its frame, straight on
     const doorway = (paintWall, dark) => () => {
       paintWall();
+      if (own) {
+        if (open) { g.save(); g.globalCompositeOperation = 'destination-out'; rect(g, '#000', 8, 6, 16, 26); g.restore(); } // you see through it
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        if (dark) g.filter = 'brightness(0.78)';
+        g.drawImage(own, 6, 3, 20, 29.5);
+        g.filter = 'none';
+        if (sealed) { rect(g, '#3a3a40', 8, 15, 16, 2); rect(g, '#c8a030', 14.5, 13.5, 3, 4); rect(g, '#2a1a08', 15.5, 15, 1, 1.5); } // a band and its lock
+        return;
+      }
       const wood = dark ? '#3a2410' : '#5a3818', leaf = dark ? '#5a3414' : '#7a4a1e';
       if (open) {
         g.save();
@@ -3406,7 +3416,7 @@ const Sprites = (() => {
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
-  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_blank_front', sign_magic: 'sign_magic_front', sign_food: 'sign_blank_front', sign_tools: 'sign_tools_front', sign_inn: 'sign_inn_front', sign_depot: 'sign_depot_front', sign_temple: 'sign_temple_front', sign_school: 'sign_blank_front', ladder: 'ladder_front', cave_ladder: 'ladder_front', sewer_ladder: 'ladder_front', lantern: 'lantern_side', window: 'window_front' };
+  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_blank_front', sign_magic: 'sign_magic_front', sign_food: 'sign_blank_front', sign_tools: 'sign_tools_front', sign_inn: 'sign_inn_front', sign_depot: 'sign_depot_front', sign_temple: 'sign_temple_front', sign_school: 'sign_blank_front', ladder: 'ladder_front', door: 'door_open_front', door_closed: 'door_closed_front', door_sealed: 'door_closed_front', cave_ladder: 'ladder_front', sewer_ladder: 'ladder_front', lantern: 'lantern_side', window: 'window_front' };
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
@@ -6525,7 +6535,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
