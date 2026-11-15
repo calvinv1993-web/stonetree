@@ -1,6 +1,30 @@
 'use strict';
 // Procedurally drawn 32x32 sprites, rendered once into cached canvases.
 
+// Safari on iPhone ignores a canvas's filter (ctx.filter): the shaded east faces of walls, the darker layers that give
+// things their depth and the gold of the shop signs' emblems would all come out flat. Where it's missing, a filter's
+// brightness is laid on after each drawImage instead: the pixels just drawn are darkened (or lightened) in place.
+(() => {
+  if (typeof document === 'undefined' || typeof CanvasRenderingContext2D === 'undefined') return;
+  const test = document.createElement('canvas'); test.width = test.height = 1;
+  const t = test.getContext('2d'); t.fillStyle = '#fff'; t.fillRect(0, 0, 1, 1);
+  t.filter = 'brightness(0)'; t.drawImage(test, 0, 0);
+  if (t.getImageData(0, 0, 1, 1).data[0] < 128 && !window.FORCE_FILTER_SHIM) return; // (filters work here)
+  const P = CanvasRenderingContext2D.prototype, draw = P.drawImage;
+  P.drawImage = function (img, ...a) {
+    draw.call(this, img, ...a);
+    const f = this.filter, m = typeof f === 'string' && /brightness\(([\d.]+)\)/.exec(f);
+    if (!m || +m[1] === 1) return;
+    const b = +m[1], [dx, dy, dw, dh] = a.length >= 8 ? a.slice(4, 8) : a.length >= 4 ? a.slice(0, 4) : [a[0], a[1], img.width, img.height];
+    this.save();
+    this.globalCompositeOperation = 'source-atop';
+    this.globalAlpha = Math.min(1, Math.abs(1 - b));
+    this.fillStyle = b < 1 ? '#000' : '#fff';
+    this.fillRect(dx, dy, dw, dh);
+    this.restore();
+  };
+})();
+
 const Sprites = (() => {
   const cache = new Map();
   const urls = new Map();
