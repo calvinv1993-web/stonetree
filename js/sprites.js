@@ -7202,31 +7202,30 @@ const Sprites = (() => {
     castsShadow: id => { const d = THINGS[id]; return d.wall === 'block' && !d.roof && !d.change; }, // (only what fills its tile to the edge, a block: the rest has a shadow of its own shape, see dropsShadow)
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     // A ground's border run straight across a tile on its diagonal (see the ground borders in render.js): the corner
-    // towards `corner` (nw, ne, se, sw) filled with the ground, its own border picture laid along the diagonal.
+    // towards `corner` (nw, ne, se, sw) filled with the ground, its own border picture laid along the diagonal pixel by
+    // pixel, as deep at each point as the distance past the line. At the tile's sides that is just how deep the straight
+    // borders beside it are, so the two run on into each other without a seam.
     diagonalEdge(ground, corner, x, y) {
-      const strip = customImage(`edge_${ground}_n`);
-      if (!strip) return null;
-      const res = strip.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(strip.naturalWidth / T));
-      const cell = (((x + y) % cells) + cells) % cells;
-      return cached(`diagedge:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}`, g => {
+      const pic = customImage(`edge_${ground}_n`);
+      if (!pic) return null;
+      const res = pic.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pic.naturalWidth / T));
+      const cell = ((x % cells) + cells) % cells;
+      return cached(`diagedge2:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}`, g => {
         g.canvas.res = res;
-        const k = Math.SQRT1_2, L = Math.SQRT2 * T;
-        const geo = { // the corner's triangle, and the diagonal: its start, its direction, and its normal (towards the lower ground)
-          nw: { tri: [[0, 0], [T, 0], [0, T]], at: [0, T], dir: [k, -k], nrm: [k, k] },
-          ne: { tri: [[0, 0], [T, 0], [T, T]], at: [0, 0], dir: [k, k], nrm: [-k, k] },
-          se: { tri: [[T, 0], [T, T], [0, T]], at: [T, 0], dir: [-k, k], nrm: [-k, -k] },
-          sw: { tri: [[0, 0], [T, T], [0, T]], at: [T, T], dir: [-k, -k], nrm: [k, -k] },
-        }[corner];
-        // the ground itself in the corner's triangle
-        const tile = Sprites.thing(ground, x, y, 0);
-        g.save(); g.beginPath(); for (const [px, py] of geo.tri) g.lineTo(px, py); g.closePath(); g.clip();
-        g.imageSmoothingEnabled = true; g.drawImage(tile, 0, 0, T, T); g.restore();
-        // its border along the diagonal: the strip's opaque top a little on the ground's side, its ragged edge beyond
-        g.save(); g.setTransform(geo.dir[0], geo.dir[1], geo.nrm[0], geo.nrm[1], geo.at[0], geo.at[1]);
-        g.imageSmoothingEnabled = true;
-        const band = T / 2, lead = band * 0.35;
-        g.drawImage(strip, cell * T, 0, T, band, -2, -lead, L + 4, band);
-        g.restore();
+        g.drawImage(Sprites.thing(ground, x, y, 0), 0, 0, T, T);
+        const strip = edgePixels(pic), img = g.getImageData(0, 0, T, T), d = img.data;
+        const flipX = corner === 'ne' || corner === 'se', flipY = corner === 'sw' || corner === 'se';
+        for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+          const u = (flipX ? T - px - 1 : px) + 0.5, v = (flipY ? T - py - 1 : py) + 0.5, depth = u + v - T, i = (py * T + px) * 4;
+          if (depth < 0) continue; // the ground itself, in the corner
+          const row = Math.floor(depth);
+          // along the line: from its far end (the corner below-left of a nw one) to where the north border beside it begins
+          const col = cell * T + Math.min(T - 1, Math.max(0, Math.floor((u + T - v) / 2)));
+          const si = (row * strip.width + col) * 4;
+          if (row >= strip.height) { d[i + 3] = 0; continue; }
+          for (let k = 0; k < 4; k++) d[i + k] = strip.data[si + k];
+        }
+        g.putImageData(img, 0, 0);
       }, T);
     },
     ownEdge(ground, mask, x, y) {
