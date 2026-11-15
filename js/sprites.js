@@ -3010,7 +3010,12 @@ const Sprites = (() => {
         const at = wallSpot(shape), [u0, y0, u1, y1] = [9, 7.75, 23, 22], D = 2.5;
         g.save();
         g.beginPath(); for (const [u, y] of [[u0, y0], [u1, y0], [u1, y1], [u0, y1]]) g.lineTo(...at(u, 0, 32 - y)); g.closePath(); g.clip();
-        g.fillStyle = '#4a4440'; g.fillRect(-64, -64, 256, 256);            // the opening's sides, in the wall's stone
+        g.fillStyle = '#4a4440'; g.fillRect(-64, -64, 256, 256);            // the opening's sides: the wall's stone, small blocks
+        onWallPlane(g, shape, 0, () => {
+          g.filter = 'brightness(0.72)';
+          for (let ty = 0; ty < 32; ty += 12.8) for (let tx = 0; tx < 32; tx += 12.8) { g.save(); g.translate(tx, ty); g.scale(0.4, 0.4); stoneBlocks(g, makeRng(hashStr('reveal') + tx * 7 + ty), 120, '#3a3430'); g.restore(); }
+          g.filter = 'none';
+        });
         wallPoly(g, shape, -D, 'rgba(10,8,6,0.45)', [u0, 32 - y0, u1, 32 - y0, u1, 32 - y1, u0, 32 - y1]);
         onWallPlane(g, shape, -D, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(front, 0, 0, 32, 32); });
         g.restore();
