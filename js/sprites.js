@@ -3702,6 +3702,18 @@ const Sprites = (() => {
         DRAW.cave(g, makeRng(hashStr('cave') + y * 4 + x)); g.restore();
       }
     } },
+    // the owner's crypt flagstones: one painting over 4 x 4 tiles, a slab a tile; drawn tile by tile till it's in
+    crypt: { tiles: 4, res: () => ownRes('crypt', 4), draw: g => {
+      const image = customImage('crypt');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.crypt(g, makeRng(hashStr('crypt') + y * 4 + x)); g.restore();
+      }
+    } },
     // the owner's beach sand (ground + border template): one painting over 4 x 4 tiles; drawn tile by tile till it's in
     sand: { tiles: 4, res: () => ownRes('sand', 4), draw: g => {
       const image = customImage('sand');

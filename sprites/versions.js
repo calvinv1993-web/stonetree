@@ -42,6 +42,7 @@ const SPRITE_HASHES = {
   "crops@4x.png":"920ba8d46d",
   "crypt-face.png":"ff6cddf26b",
   "crypt-gate@4x.png":"ff1a3978f9",
+  "crypt-own.png":"43ea53caad",
   "dead_tree@4x.png":"bbe6cea615",
   "depot@4x.png":"f03b1230f5",
   "dirt-own.png":"e9991558b0",
