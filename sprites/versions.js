@@ -27,6 +27,7 @@ const SPRITE_HASHES = {
   "cannonballs@4x.png":"c1ba7c8fee",
   "carpet-atlas.png":"15de2f9f0f",
   "cave-face.png":"53ef7559a7",
+  "cave-own.png":"83059bc9d3",
   "chair-east@4x.png":"99dadd6dac",
   "chair-west@4x.png":"c7f97b2233",
   "chair@4x.png":"e301fe3bbb",
