@@ -12,6 +12,8 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  wall_wood_top: 'wall-wood-top.png', // the owner's wall_wood strip, straight on (see wallFromStrip)
+  wall_wood_face: 'wall-wood-face.png', // the owner's wall_wood strip, straight on (see wallFromStrip)
   wall_stone_top: 'wall-stone-top.png', // the owner's wall_stone strip, straight on (see wallFromStrip)
   wall_stone_face: 'wall-stone-face.png', // the owner's wall_stone strip, straight on (see wallFromStrip)
   window_front: 'window-front.png', // the owner's window, painted straight on: laid onto the wall in its slant (both directions)
