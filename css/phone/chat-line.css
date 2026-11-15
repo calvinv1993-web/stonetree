@@ -20,6 +20,10 @@ body.touch-ui .chat-line { display: none; }
 }
 /* The open chat: above the action bar (its smart button closes it), a tab on its top edge, a send button by the line */
 body.touch-ui.chat-open .console { bottom: var(--tabbar) !important; overflow: visible !important; }
+/* as tall as its messages need, up to 40% of the screen (a short chat leaves the map in sight), the newest at the bottom */
+body.touch-ui.chat-open .console { height: auto !important; max-height: 40vh; }
+@media (orientation: landscape) { body.touch-ui.chat-open .console { max-height: 55vh; } }
+body.touch-ui.chat-open .console #log { flex: 0 1 auto; min-height: 96px; }
 body.touch-ui.chat-open .chat-line { visibility: hidden; }
 body.touch-ui .console .chat-close { display: none !important; }
 /* the same tab as the drawer's (inventory-drawer.css), over the console's own button look */

@@ -535,3 +535,13 @@ body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); 
     min-width: 0; padding: 0; margin: 0; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--hud-text); }
   body.touch-ui .hud-bag-button .icon { width: 20px; height: 20px; }
 }
+/* Held sideways: the action buttons square (not stretched across the width), together in the middle around the smart
+   button, as big as the bar's height allows */
+@media (orientation: landscape) {
+  body.touch-ui #favs { grid-template-columns: repeat(3, 52px) 72px repeat(3, 52px); justify-content: center; align-items: center; gap: 8px; }
+  body.touch-ui #favs .fav { width: 52px !important; height: 52px !important; }
+  body.touch-ui #favs .fav .slot-art { width: 44px; height: 44px; }
+  /* (each group's set dots under its own three: 172 px wide, beside the 72 px middle) */
+  html body.touch-ui .slot-set-hint { top: 67px; left: calc(50% - 216px); width: 172px; }
+  html body.touch-ui .slot-set-hint.right { left: auto; right: calc(50% - 216px); }
+}

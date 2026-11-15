@@ -16,6 +16,9 @@ body.touch-ui #favs .fav .slot-badge {
   color: var(--hud-text) !important; font: 600 12px/1 var(--hud-font) !important; font-variant-numeric: tabular-nums; text-shadow: 0 1px 1px #000; pointer-events: none;
 }
 body.touch-ui #favs .fav .slot-badge:empty { display: none !important; }
+/* an empty button: a + with "add" under it (a tap chooses what goes there) */
+body.touch-ui #favs .fav .slot-badge.add { left: 0 !important; right: 0 !important; text-align: center; color: var(--hud-text-2) !important; font-size: 9.5px !important; font-weight: 500 !important; letter-spacing: 0.5px; }
+body.touch-ui #favs .fav:not([data-action]) .slot-face, body.touch-ui #favs .fav[data-action=""] .slot-face { padding-bottom: 8px; }
 /* A spell's mana: a small blue drop and the number, at its foot (still readable with too little mana) */
 body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 2px; color: var(--hud-text) !important; font-size: 12px !important; }
 body.touch-ui #favs .fav .slot-badge.mana .icon { width: 10px; height: 10px; }

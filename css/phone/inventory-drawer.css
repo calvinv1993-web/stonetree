@@ -98,3 +98,9 @@ body.touch-ui .inventory-drawer #tab-help { margin-top: 12px; padding-top: 10px;
 body.touch-ui .inventory-drawer #menuSec > .menu-head:first-child { margin-top: 4px; }
 body.touch-ui .inventory-drawer #tab-quests button { min-height: 38px; margin-top: 8px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, 0.16) !important; border-radius: 10px; background: #302a23 !important; color: #d5aa60 !important; font: 600 13px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer #mmWorld.active { border-color: #d5aa60 !important; background: linear-gradient(#594735, #302a23) !important; color: #f2ebdd !important; }
+/* gear with a grade (fine, rare, epic, legendary) and graded ore: its colour on the place's edge and a soft glow inside,
+   so a good find stands out among the rest */
+body.touch-ui .inventory-drawer .slot[data-rarity="uncommon"] { border-color: #4fb865 !important; box-shadow: inset 0 0 8px rgba(90, 210, 100, 0.35) !important; }
+body.touch-ui .inventory-drawer .slot[data-rarity="rare"] { border-color: #4a92f5 !important; box-shadow: inset 0 0 8px rgba(90, 150, 255, 0.4) !important; }
+body.touch-ui .inventory-drawer .slot[data-rarity="epic"] { border-color: #a978f0 !important; box-shadow: inset 0 0 9px rgba(190, 110, 255, 0.42) !important; }
+body.touch-ui .inventory-drawer .slot[data-rarity="legendary"] { border-color: #e39a3a !important; box-shadow: inset 0 0 10px rgba(255, 160, 60, 0.45) !important; }
