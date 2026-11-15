@@ -269,6 +269,7 @@ const SPRITE_HASHES = {
   "wall-wood-top.png":"c807d92371",
   "wall-wood-w.png":"ab64d9207b",
   "water-atlas.png":"0b2d79d38e",
+  "water-own.png":"cbb162cc65",
   "weapon-rack-s.png":"2b7a9fa5e4",
   "web@4x.png":"98f9e88fe6",
   "well@4x.png":"9ea33e73e7",
