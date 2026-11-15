@@ -4,6 +4,19 @@ The rules every sprite follows, so the world looks like one piece. They borrow t
 for everything, one light, one kind of outline, one shading level, terrain transitions with a layer and a height of
 their own), applied to our own camera. Everything is still drawn in code (`js/sprites.js`) or a PNG in `sprites/`.
 
+## The reference: the founder's statue
+
+The owner chose the founder's statue (`sprites/founder-statue.png`, west of the temple) as the style everything follows.
+Every new or redone sprite is held up against it:
+
+- **Built of solid blocks**, chunky, with clear flat faces and crisp bevelled edges; even the figure is blocks.
+- **The whole thing leans** up-left in the world's camera (as below), the figure too.
+- **Each face painted** with its material: marble with fine cracks and veins, weathered stone, moss and ivy creeping
+  into corners and joints; detail lives in the texture, not in the outline.
+- **Light from the north-west**: tops lightest, south faces mid, east faces darkest; a soft dark edge where faces meet.
+- **Muted, natural colours**: pale weathered stone, verdigris green, moss green; no glow, no gloss.
+- A template for a new sprite always shows the statue beside it (`docs/style-reference.png`).
+
 ## Camera
 
 - **One camera for everything**: the ground is seen from straight above; height goes **up and to the left**, 0.6 pixel
