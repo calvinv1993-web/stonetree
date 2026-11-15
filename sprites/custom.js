@@ -12,6 +12,7 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  cliff_face: 'cliff-face.png', // the owner's cliff strip, straight on (see wallFromStrip)
   wall_rampart_top: 'wall-rampart-top.png', // the owner's wall_rampart strip, straight on (see wallFromStrip)
   wall_rampart_face: 'wall-rampart-face.png', // the owner's wall_rampart strip, straight on (see wallFromStrip)
   wall_temple_top: 'wall-temple-top.png', // the owner's wall_temple strip, straight on (see wallFromStrip)
@@ -195,7 +196,6 @@ const CUSTOM_SPRITES = {
   wall_sewer_face: 'sewer-face.png', // the owner's sewer brickwork and crypt stone, straight on (see blockFromPicture)
   wall_crypt_face: 'crypt-face.png',
   wall_cave_face: 'cave-face.png', // the owner's cave rock
-  cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
   altar: 'altar@2x.png', // the temple's altar, from the owner's picture
   torch: 'torch@2x.png', // the standing torches and the torches on walls running north-south, from the owner's picture
   wall_torch_e: 'wall-torch-e.png',
