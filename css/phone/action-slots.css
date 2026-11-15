@@ -6,8 +6,8 @@ body.touch-ui #favs .fav { position: relative !important; inset: auto !important
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 1px rgba(0, 0, 0, 0.35) !important; color: var(--hud-text); }
 /* (the picture in the middle of the button, as in the backpack: the numbers lie over its foot) */
 body.touch-ui #favs .fav .slot-face { position: absolute; inset: 0; max-width: none; max-height: none; padding: 0; overflow: visible; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-body.touch-ui { --icon: 38px; } /* (an item's picture, in the bag, the gear and here alike) */
-body.touch-ui #favs .fav .slot-art { width: var(--icon); height: var(--icon); max-width: none; margin: 0; image-rendering: auto; object-fit: contain; aspect-ratio: 1; -webkit-user-drag: none; }
+body.touch-ui { --icon: 38px; } /* (an item's picture in the bag and the gear; on an action button as much of it) */
+body.touch-ui #favs .fav .slot-art { width: calc(var(--act-slot, 44px) * 38 / 44); height: calc(var(--act-slot, 44px) * 38 / 44); max-width: none; margin: 0; image-rendering: auto; object-fit: contain; aspect-ratio: 1; -webkit-user-drag: none; }
 body.touch-ui #favs .fav .slot-face > .icon { width: 20px; height: 20px; color: var(--hud-text-2); }
 body.touch-ui #favs .fav .slot-initials { color: var(--hud-text); font: 600 14px/1 var(--hud-font); letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
 body.touch-ui #favs .fav .slot-badge {
@@ -42,7 +42,7 @@ body.touch-ui #favs .fav.snap-left { animation: slot-snap-left 160ms ease-out; }
 body.touch-ui #favs .fav.snap-right { animation: slot-snap-right 160ms ease-out; }
 /* Which set each group shows, under it: short bars, the one shown in muted gold (none under the smart button) */
 body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + 6px + var(--slot-row, 46px) + 7px); left: var(--slot-pad, 10px);
-  width: calc(3 * var(--slot, 40px) + 2 * var(--slot-gap, 6px));
+  width: calc(3 * var(--act-slot, 44px) + 2 * var(--slot-gap, 6px));
   display: flex; justify-content: center; align-items: center; gap: 5px; pointer-events: none; }
 body.touch-ui .slot-set-hint.right { left: auto; right: var(--slot-pad, 10px); }
 body.touch-ui .slot-set-hint i { width: 11px; height: 3px; border-radius: 2px; background: #3e3d42; }

@@ -14,7 +14,7 @@ From top to bottom:
 - **The map**, as big as the space between the bars allows, with a map button in its top left corner (the drawer's
   Map page) and, while you have a target, a pill at its top with the target's name, health bar and percent.
 - **The bottom bar** (`js/mobile-hud.js` puts it together), top to bottom: the chat line with a backpack button at its
-  end (the drawer's Gear page), six action buttons as big as the backpack's places (44 px, pictures 38 px) and the smart button between them bigger (56 px), and under each group of three a row of short bars
+  end (the drawer's Gear page), backpack places 44 px (pictures 38 px), action buttons 48 px where the phone is wide enough (pictures as much of them) and the smart button between them 60 px, and under each group of three a row of short bars
   saying which of its sets shows (gold):
   - three spells on the left, three spells, potions or food on the right (`js/action-slots.js`,
     `css/phone/action-slots.css`): each its picture, a spell's mana with a drop, a potion's count; a gold edge when it can be
