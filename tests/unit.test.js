@@ -801,6 +801,22 @@ test('a newcomer who doesn\'t know the words is understood: "what do I do", "tha
   assert(/long winter|ship/i.test(said('founders')), 'and she tells of the founders');
 });
 
+test('the Gravewaker was Sir Galen: he speaks, and what people say changes once the bell rings', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const g = ctx.spawnMonster({ type: 'gravewaker', x: 69, y: 180, z: 6 });
+  state.monsters.push(g); ctx.teleport({ ...ctx.findFreeTile(g.x + 2, g.y, 6, 3), z: 6 });
+  p.level = 20; tick(game, 600);
+  assert(state.effects.some(fx => fx.kind === 'speech' && /Galen of Oakvale/.test(fx.text)), 'he names himself');
+  const corwin = state.npcs.find(n => n.npcId === 'corwin');
+  const talk = w => { ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); A.say('hi'); tick(game, 100); const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  assert(/rats got him/.test(talk('galen')), 'before: a knight the rats killed');
+  p.quests.bell_4 = { status: 'done', step: 0, kills: {} };
+  assert(/closed coffin/.test(talk('galen')), 'after: the coffin was light');
+  assert(/burning mountain/.test(talk('choir')), 'and Corwin knows of the Ashen Choir');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

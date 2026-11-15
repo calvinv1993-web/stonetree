@@ -11,6 +11,7 @@
 // summon: { type, max, chance }; flee: run away below this share of health;
 // invisible: hard to see and can't be targeted from afar; plural: the name for more than one, if not name + 's';
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
+// voices: { aggro, low, death }: what it says, once, when it first goes for you, when it's nearly beaten, and as it falls
 const MONSTERS = {
   rat: {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',
@@ -20,13 +21,20 @@ const MONSTERS = {
     name: 'giant rat', hp: 50, xp: 15, dmg: [0, 16], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
-  gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks
+  gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks:
+    // Sir Galen, buried in the graveyard (killed by "only rats"), who never died at all and joined the Ashen Choir
     name: 'Gravewaker', proper: true, hp: 380, xp: 250, dmg: [6, 16], defense: 4, armor: 4, speed: 220, attackSpeed: 1800, aggro: 7, corpse: 'blood',
     respawn: 300000, weak: { holy: 1.3 },
     ranged: { range: 4, dmg: [8, 18], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
     summon: { type: 'skeleton', max: 2, chance: 0.12 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
+    // (Sir Galen of Oakvale, under the Ashen Choir's hood: The Silent Bell IV)
+    voices: {
+      aggro: 'So the bell sends its little ringer. I was Galen of Oakvale once. Now I sing for the Ashen Choir.',
+      low: 'The founders\' spark... was never theirs to keep!',
+      death: 'The Choir... will send the ship... for the spark...',
+    },
   },
   spider: {
     name: 'spider', hp: 22, xp: 12, dmg: [0, 14], defense: 2, armor: 2, speed: 200, attackSpeed: 1400, aggro: 5, corpse: 'slime',

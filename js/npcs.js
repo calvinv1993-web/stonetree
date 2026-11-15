@@ -15,6 +15,8 @@
 //   { houses: true }         rent a house (say its name), "leave" gives it back
 //   { forge: true }          open the forge (the NPC needs forge: true as well; see game-forge.js)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
+// Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
+// keyword that matches): what people say changes as the story goes on.
 
 // What kind of items a trader buys (at the item's value).
 const BUYS = {
@@ -1661,10 +1663,10 @@ Object.assign(QUESTS, {
     steps: [
       { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
         progress: 'The tomb lies below the hall of coffins, past the iron gate. The Gravewaker waits there with the dead he woke.',
-        done: 'The Gravewaker falls, and the tomb grows still. In the open coffin of the founder, something of bronze glints.' },
+        done: 'The Gravewaker falls, and his grey hood slips back: an old knight\'s face, weathered and burnt. Sir Galen, whose gravestone says the rats killed him. In his fist, a letter written in ash: "The isle\'s spark is ready. Send the ship. - G." In the open coffin of the founder, something of bronze glints.' },
       { npc: 'ama', fetch: 'bell_clapper', word: 'clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
         progress: 'The clapper lies in the founder\'s open tomb.',
-        done: 'The clapper of our bell! Cold as the grave... The founders cast this bell to keep their dead asleep, and while it was silent, they woke. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour, $name: you have earned it. Once you are level 10, the {oracle} upstairs in the academy will send you on to what lies beyond this isle.' },
+        done: 'The clapper of our bell... it is warm, $name. Bronze from a tomb, and warm as a hearthstone. And this grey dust in its seams is not grave dust: it is ash. Sir Galen? We buried him twenty years ago... we buried a coffin. So the Ashen Choir has found us, and what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will send you on.' },
     ],
     text: {
       offer: 'The rope is home, $name, but the bell is dumb without its clapper - and the one who took it waits in the founder\'s tomb. The Gravewaker, the old stories call such a one. Will you face him? ({yes}/{no})',
@@ -1687,7 +1689,7 @@ Object.assign(QUESTS, {
       offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold - they come right up to the west road at night. Thin them out for me - eight of them, and the big grey one who leads them, Greyfang. ({yes}/{no})',
       accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it, and carry a health potion or two from Pip. Greyfang calls the pack to him: get him alone. Come back and tell me about the {wolves}.',
       progress: 'So far: $progress. Wolf Woods lies north-west of the west gate.',
-      reward: 'Eight wolves, and Greyfang too! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      reward: 'Eight wolves, and Greyfang too! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: in Greyfang\'s den we found a grey hood, singed, that stank of smoke. Not a hunter\'s. Someone has been walking the woods at night. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
       tooWeak: 'Wolves would tear you apart, friend. Come back at level 2.',
       done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
     },
@@ -1700,7 +1702,7 @@ Object.assign(QUESTS, {
       offer: 'Crabs, $name. Big ones, snapping at the fishermen\'s nets on the beaches. I can\'t leave my gate. Would you kill six of them for me - and Old Snapper, the one with a shell like a cart wheel? ({yes}/{no})',
       accept: 'Down the south road, all the way to Lighthouse Point: the beaches there are crawling with them. Their shells are hard - hit them, and keep hitting. Old Snapper\'s is harder still: bring your best weapon. Then come back and tell me about the {crabs}.',
       progress: 'So far: $progress. The beaches are at the end of the south road.',
-      reward: 'Six crabs and Old Snapper, and you still have all your fingers! These leggings will keep the pincers off. Guard Hilde at the east gate keeps talking about {spiders} - see her next.',
+      reward: 'Six crabs and Old Snapper, and you still have all your fingers! These leggings will keep the pincers off. And look what Old Snapper sat on: a page, soaked through. "...the year of the long winter we came ashore, the spark wrapped in sailcloth, and the sea froze behind us..." The rest has washed away. Sister Ama would want to see the words, if not the page. Guard Hilde at the east gate keeps talking about {spiders} - see her next.',
       tooWeak: 'Those pincers would snap you in two. Come back at level 3.',
       notYet: 'One thing at a time, friend. Sergeant Bram at the west gate has work for you first.',
       done: 'The nets are safe again. Guard Hilde at the east gate has trouble with {spiders}.',
@@ -1714,7 +1716,7 @@ Object.assign(QUESTS, {
       offer: 'Spiders, $name. They spin their webs over the trails in the south-east, and their bite burns. Kill eight for me, and the Thornmother who spins for them all, and you shall have a proper helmet. ({yes}/{no})',
       accept: 'Take the spider trail south from the east road, or go through Thorn Thicket south of Sunny Fields. Their poison burns: carry potions. The Thornmother lurks at the foot of the Spider Hills, and her young come to her. Then come back and tell me about the {spiders}.',
       progress: 'So far: $progress. Thorn Thicket and the Spider Hills are south-east of town.',
-      reward: 'Eight, and the Thornmother! You fight like a guard already. Take this helmet - it was mine, when I was younger. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.',
+      reward: 'Eight, and the Thornmother! You fight like a guard already. Take this helmet - it was mine, when I was younger. And burnt into the Thornmother\'s web there was a sign: a flame inside a ring. Spiders do not burn signs. I do not like it. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.',
       tooWeak: 'Their poison would finish you. Come back at level 4.',
       notYet: 'One thing at a time, friend. Guard Tilda at the south gate has work for you first.',
       done: 'The trails are clearer now. Captain Osric at the north gate wants to talk to you about {goblins}.',
@@ -1728,7 +1730,7 @@ Object.assign(QUESTS, {
       offer: 'So you are the one the gate watch keeps talking about. Goblins, $name: scouts on Stony Field, and a whole camp on Goblin Hill. They grow bolder. Kill eight of them, and their chief, Gnash. ({yes}/{no})',
       accept: 'Stony Field is up the north road, below the North Peaks. Goblin Hill lies north-east, past Mirror Lake. They hit hard and they fight together, and Gnash calls them to him. Take potions. Then come back and tell me about the {goblins}.',
       progress: 'So far: $progress. Stony Field is up the north road; Goblin Hill is north-east.',
-      reward: 'Eight goblins, and Gnash! You have earned this shield, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.',
+      reward: 'Eight goblins, and Gnash! You have earned this shield, and my respect. Gnash\'s goblins talked, before the end: they traded with a hooded man who smelled of smoke. Paid them in old bones from the crypt, they said. Whoever he is, he has been under Bone Rocks. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.',
       tooWeak: 'Goblins are no rats, friend. Come back at level 5.',
       notYet: 'One thing at a time, friend. Guard Hilde at the east gate has work for you first.',
       done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
@@ -1742,6 +1744,7 @@ Object.assign(NPCS, {
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
     greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
     keywords: {
+      'galen|knight|ash|spark': { after: 'bell_4', text: 'Galen... I lit candles for him for twenty years. And all that time he was waiting for the bell to fall silent. Whatever the founders hid in that bronze, $name, the Choir wants it. As long as the bell rings, the spark is ours.' },
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
       'winter|long': 'The long winter, the year the founders came. The sea froze at the shore, and they lived in the hull of their ship until spring. Many are buried under Bone Rocks from that winter.',
@@ -1760,6 +1763,8 @@ Object.assign(NPCS, {
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
+      choir: { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
+      'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
       job: 'I teach newcomers how to stay alive on this isle.',
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
       'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came. The dead walk its top now. I would not go there before level 6.',
@@ -1875,6 +1880,7 @@ Object.assign(NPCS, {
     look: { skin: '#e0a878', hair: '#6a4a2a', beard: '#6a4a2a', body: '#8a5a2a', arms: '#e0a878', legs: '#4a3a2a', belt: '#2a1a0a' },
     greet: 'Welcome to the Sleepy Boar, $name! A meal, a drink, and the best {rumours} on the isle. Want to {trade}?',
     keywords: {
+      'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
       'rumours|rumors|news|bell': 'They say the temple bell went quiet the night the rats came up through the grates. And old Wim\'s gravestone says he went down the well for a bet... nobody knows what he found.',

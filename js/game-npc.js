@@ -185,7 +185,14 @@ function answer(text) {
     return reply('Have a look at my wares.');
   }
   for (const [keys, response] of Object.entries(def.keywords || {})) {
-    if (mentions(text, keys.toLowerCase())) return reply(typeof response === 'string' ? response : service(response, npc, text));
+    if (!mentions(text, keys.toLowerCase())) continue;
+    // { after: 'quest', text, before }: what they say once that quest is done (and before it, if anything)
+    if (response && response.after !== undefined) {
+      const said = questState(response.after) === 'done' ? response.text : response.before;
+      if (said) return reply(said);
+      continue;
+    }
+    return reply(typeof response === 'string' ? response : service(response, npc, text));
   }
   const landlord = Object.values(def.keywords || {}).some(r => r && r.houses);
   if (landlord && map.houses.some(h => text.includes(h.name.toLowerCase()))) return reply(houseTalk(text));

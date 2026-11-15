@@ -320,6 +320,7 @@ function respawnDelay(m) {
 
 function killMonster(m) {
   Object.assign(m, { dead: true, respawnAt: now + respawnDelay(m), due: 0, walk: null, conditions: {} });
+  if (m.def.voices && m.def.voices.death) addSpeech(m, m.def.voices.death, true); // (its last words)
   if (m.def.comesBack) {
     effects.push({ kind: 'speech', x: m.x, y: m.y, z: m.z, name: 'Someone', text: 'Not Lucky Tobb again! Somebody fetch the priest... no, wait, he always gets up.', start: now, dur: 3500 });
     m.diedAt = { x: m.x, y: m.y, z: m.z, by: player.id };
@@ -754,6 +755,11 @@ function updateMonster(m, i) {
   if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Lucky Tobb minds nobody on the way
   m.goal = null;
   if (!target) return wander(m);
+  // a monster with a voice (voices in creatures.js): a word when it first sees you, and when it's nearly beaten
+  if (m.def.voices) {
+    if (!m.spoke && m.def.voices.aggro) { m.spoke = true; addSpeech(m, m.def.voices.aggro, true); }
+    else if (!m.spokeLow && m.def.voices.low && m.hp < m.maxHp * 0.4) { m.spokeLow = true; addSpeech(m, m.def.voices.low, true); }
+  }
   if (leftTerritory(m, target)) return; // led too far from home: it gives up and walks back
   asPlayer(target, () => monsterAct(m));
 }
