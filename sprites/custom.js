@@ -190,6 +190,7 @@ const CUSTOM_SPRITES = {
   rampart_face: 'rampart-face.png', // the town wall's sides: dressed sandstone with moss and ivy, a seamless strip (see blockFromPicture)
   wall_sewer_face: 'sewer-face.png', // the owner's sewer brickwork and crypt stone, straight on (see blockFromPicture)
   wall_crypt_face: 'crypt-face.png',
+  wall_cave_face: 'cave-face.png', // the owner's cave rock
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
   window_stained_s: 'banner-temple-s.png', // the temple's blue banners with a golden star, from the owner's picture: on a wall
   window_stained_e: 'banner-temple-e.png', // running east-west (its south face) and north-south (its east face)
