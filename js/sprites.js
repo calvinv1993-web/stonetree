@@ -3621,7 +3621,11 @@ const Sprites = (() => {
         DRAW.marble(g, makeRng(hashStr('marble') + y * 4 + x)); g.restore();
       }
     } },
-    rock_top: { tiles: 3, draw: g => rockSurface(g, makeRng(hashStr('rock_top')), 3 * TILE, 132) },
+    rock_top: { tiles: 4, res: () => ownRes('rock_top', 4), draw: g => { // its own picture (sprites/custom.js), or drawn
+      const image = customImage('rock_top');
+      if (image) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE); }
+      else rockSurface(g, makeRng(hashStr('rock_top')), 4 * TILE, 132);
+    } },
     cobble: { tiles: 4, res: () => ownRes('cobble', 4), draw: g => { // its own PNG (sprites/custom.js), or drawn stone by stone
       const image = customImage('cobble');
       if (image) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE); }
@@ -3638,7 +3642,8 @@ const Sprites = (() => {
         g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
       } else grassField(g, makeRng(hashStr('grass')), 4 * TILE);
     } },
-    mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it
+    mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it (or its own picture)
+      const own = customImage('mountain'); if (own) { g.imageSmoothingEnabled = true; g.drawImage(own, 0, 0, 3 * TILE, 3 * TILE); return; }
       const r = makeRng(hashStr('mountain')), size = 3 * TILE;
       rockSurface(g, r, size, 134);
       for (let i = 0; i < 40; i++) {
