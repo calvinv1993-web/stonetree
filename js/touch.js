@@ -248,11 +248,12 @@ function initTouch() {
   // Help for a phone, not for a keyboard
   $('tab-help').innerHTML = `<ul class="help">
     <li><b>Walk</b>: tap where to go, or drag over the map.</li>
-    <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, or opens a corpse.</li>
+    <li><b>The big button</b>: attacks the nearest monster, talks to someone next to you, opens a corpse or uses a door; its colour says which. It keeps working while your backpack or the chat is open.</li>
     <li><b>Tap</b> a monster to attack it, someone to talk to them. <b>Hold</b> them for more (follow, look, open a corpse under them).</li>
     <li><b>Action buttons</b> either side of the big one: spells on the left, potions and food on the right. Tap to use, hold to choose what goes there, swipe sideways for the next set.</li>
-    <li><b>Talking</b>: tap the gold words, or tap the chat line under the buttons to type. Say "hi" to someone to start.</li>
-    <li><b>The tab</b> above the big button (swipe it up): your gear and backpack, and along its bottom the tabs <b>Map</b> (tap a spot to walk there), <b>Quests</b> and <b>Settings</b> (sound, quality, outfit and more).</li>
+    <li><b>Talking</b>: tap the gold words, or tap the chat line above the buttons to type. Say "hi" to someone to start.</li>
+    <li><b>The backpack</b> at the end of the chat line: your gear, its attack, defense and armor, and your bag (<b>Skills ›</b> for your skills; swipe its tab up for more, down to close, or touch the map). Along its bottom the tabs <b>Map</b> (tap a spot to walk there), <b>Quests</b> and <b>Settings</b> (sound, quality, outfit and more).</li>
+    <li><b>The map button</b> in the top left corner: the map round you; Full map for the whole world.</li>
     <li>While fighting, buttons by the map set how you fight and whether you chase.</li>
   </ul>`;
 
