@@ -624,6 +624,7 @@ function updateWorld() {
   updateFields();
   updateReverts();
   updateRaids();
+  updateTownBell();
   updateFlyby();
   for (let i = piles.length - 1; i >= 0; i--) if (!piles[i].house && now >= piles[i].until) removePile(piles[i]);
   for (let i = effects.length - 1; i >= 0; i--) if (now > effects[i].start + effects[i].dur) effects.splice(i, 1);

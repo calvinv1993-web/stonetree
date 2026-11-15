@@ -83,7 +83,7 @@ function loadGame({ seed = 1 } = {}) {
     get map() { return map; },
     get monsters() { return monsters; }, set monsters(v) { monsters = v; },
     get npcs() { return npcs; }, set npcs(v) { npcs = v; },
-    get parties() { return parties; }, get guilds() { return guilds; },
+    get parties() { return parties; }, get guilds() { return guilds; }, get townBell() { return townBell; }, set townBell(v) { townBell = v; },
     players, piles, fields, effects,
     get now() { return now; }, set now(v) { now = v; },
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS,

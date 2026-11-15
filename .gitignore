@@ -53,5 +53,6 @@ Thumbs.db
 server/players.json
 server/world.json
 server/guilds.json
+server/town.json
 server/map.json
 server/*.bak

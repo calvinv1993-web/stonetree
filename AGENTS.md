@@ -114,6 +114,7 @@ Some details of the online client:
   - `players.json`: accounts and characters
   - `world.json`: monsters, corpses and dropped things, kept over a restart of under 10 minutes
   - `guilds.json`
+  - `town.json`: the shared bell of Oakvale (who rang it home, the Bellringer)
   - `map.json`: a map published from the editor, played instead of the built-in world
 
 ### The world

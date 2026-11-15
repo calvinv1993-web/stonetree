@@ -862,6 +862,24 @@ test('the Oakvale Chronicle: pages in the world, one from the hermit at night, a
   assert(/Edda Marrowind/.test(said('chronicle')) && p.xp > xp, 'all six: the founder has a name, and a reward');
 });
 
+test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bellringer, the plaque names them, it rings every dawn', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  ctx.ringBell(); assert(/hangs silent/.test(messages.at(-1)), 'silent before anyone brings the clapper home');
+  p.quests.bell_4 = { status: 'active', step: 1, kills: {} }; p.equipment.backpack.contents.push({ id: 'bell_clapper', count: 1 });
+  ctx.advanceQuest('bell_4');
+  assert.strictEqual(state.townBell.first, p.name, 'the first: the Bellringer');
+  assert(p.chests.bellringer && messages.some(m => /first Bellringer/.test(m)), 'told to everyone');
+  // someone who never did the quest may ring it now
+  delete p.quests.bell_4; state.now += 60000; ctx.ringBell();
+  assert(/rings the bell of Oakvale/.test(messages.at(-1)), 'it rings for everyone');
+  assert(new RegExp(p.name).test(ctx.bellPlaque('THE BELL')), 'the plaque names who rang it home');
+  const n = messages.filter(m => /rings in the dawn/.test(m)).length;
+  for (let i = 0; i < 30; i++) tick(game, 60000);
+  assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

@@ -26,6 +26,7 @@ const TEST = process.argv.includes('--test');
 const SAVE_FILE = path.join(__dirname, 'players.json');
 const WORLD_FILE = path.join(__dirname, 'world.json'); // monsters and things on the ground, kept over a restart
 const GUILD_FILE = path.join(__dirname, 'guilds.json');
+const TOWN_FILE = path.join(__dirname, 'town.json'); // the shared bell of Oakvale: who rang it home
 const MAP_FILE = path.join(__dirname, 'map.json');
 const TICK_MS = 50;
 const VIEW = { x: 12, y: 10 }; // how far around a player the server sends things
@@ -106,6 +107,7 @@ const G = vm.runInContext(`({
   get monsters() { return monsters; }, set monsters(v) { monsters = v; },
   get npcs() { return npcs; }, set npcs(v) { npcs = v; },
   get guilds() { return guilds; }, set guilds(v) { guilds = v; },
+  get townBell() { return townBell; }, set townBell(v) { townBell = v; },
   players, piles, fields, effects, mapChanges, map, Actions, newId,
 })`, sandbox);
 const W = sandbox; // the game's functions
@@ -183,6 +185,7 @@ function readSave(file) {
   }
 }
 G.guilds = readSave(GUILD_FILE) || G.guilds;
+{ const t = readSave(TOWN_FILE); if (t && Array.isArray(t.ringers)) G.townBell = t; }
 
 // ---- accounts -----------------------------------------------------------------------------
 const accounts = readSave(SAVE_FILE) || {};
@@ -250,6 +253,7 @@ function persist() {
     saveWorld();
     writeSave(SAVE_FILE, JSON.stringify(accounts));
     writeSave(GUILD_FILE, JSON.stringify(G.guilds));
+    writeSave(TOWN_FILE, JSON.stringify(G.townBell));
   } catch (e) {
     console.error('Saving failed (trying again in 10 seconds):', e.message);
   }

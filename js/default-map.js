@@ -1277,7 +1277,7 @@ function buildTown(m, S, runs, river) {
     const [bx, by] = BT.bell;
     for (const [id, ox, oy] of [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]]) { put(bx + ox, by + oy, top, id); m.setMeta(bx + ox, by + oy, top, { look: BT.look }); }
     const [rx, ry, rules] = BT.rules;
-    m.get(rx, ry, base).items.push('sign_wall'); m.setMeta(rx, ry, base, { text: rules });
+    m.get(rx, ry, base).items.push('sign_wall'); m.setMeta(rx, ry, base, { text: rules, plaque: true }); // (and the plaque of who rang it home)
   }
   // Shelves or racks along the inside of the north wall; flower boxes under the windows of homes and the inn.
   for (const b of T.buildings) {

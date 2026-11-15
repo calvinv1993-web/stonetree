@@ -12,6 +12,7 @@ const PORT = 18000 + Math.floor(Math.random() * 1000);
 const SAVES = path.join(__dirname, '..', 'server', 'players.json');
 const WORLD = path.join(__dirname, '..', 'server', 'world.json');
 const GUILDS = path.join(__dirname, '..', 'server', 'guilds.json');
+const TOWN = path.join(__dirname, '..', 'server', 'town.json');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const waitFor = async (ready, ms = 5000) => {
   for (let t = 0; t < ms && !ready(); t += 100) await sleep(100);
@@ -47,8 +48,8 @@ function startServer() {
 
 (async () => {
   const backup = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8');
-  const hadSaves = backup(SAVES), hadWorld = backup(WORLD), hadGuilds = backup(GUILDS);
-  const SAVE_FILES = [SAVES, WORLD, GUILDS], BAKS = SAVE_FILES.map(f => `${f}.bak`), hadBaks = BAKS.map(backup);
+  const hadSaves = backup(SAVES), hadWorld = backup(WORLD), hadGuilds = backup(GUILDS), hadTown = backup(TOWN);
+  const SAVE_FILES = [SAVES, WORLD, GUILDS, TOWN], BAKS = SAVE_FILES.map(f => `${f}.bak`), hadBaks = BAKS.map(backup);
   let server = startServer();
   let failed = false;
   try {
@@ -142,7 +143,7 @@ function startServer() {
     if (server.connected) server.send('stop');
     await new Promise(r => (server.exitCode !== null ? r() : server.on('exit', r)));
     // Don't leave the test characters behind in the real save file.
-    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld], [GUILDS, hadGuilds], ...BAKS.map((f, i) => [f, hadBaks[i]])]) {
+    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld], [GUILDS, hadGuilds], [TOWN, hadTown], ...BAKS.map((f, i) => [f, hadBaks[i]])]) {
       if (had) fs.writeFileSync(file, had);
       else if (fs.existsSync(file)) fs.unlinkSync(file);
     }

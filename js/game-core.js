@@ -481,6 +481,7 @@ function useThing(x, y, z) {
   for (let i = t.items.length - 1; i >= 0; i--) {
     const id = t.items[i], def = THINGS[id];
     if (def.chronicle) return chronicleRead(+meta.page || 1), true;
+    if (def.readable && meta.plaque) return showText(capitalize(def.name), bellPlaque(meta.text || '')), true;
     if (def.readable) return showText(capitalize(def.name), meta.text || 'It is blank.'), true;
     if (def.lever) return pullLever(x, y, z, i, meta), true;
     if (def.depot) {
@@ -524,6 +525,43 @@ function useThing(x, y, z) {
 
 // The bell of Oakvale rings out: everyone in the world hears it, wherever they are. It hums for a while after.
 let bellRungAt = -Infinity;
+// The bell of Oakvale is the whole world's, not each player's: once anyone brings its clapper home it rings for all.
+// ringers: who brought it home (newest last); first: the first of all, the Bellringer; dawn: the last day it rang in
+// the dawn by itself. Online it's kept in server/town.json; playing alone, in your save.
+let townBell = { ringers: [], first: null, dawn: -1 };
+const bellHung = () => townBell.ringers.length > 0 || questState('bell_4') === 'done';
+
+// The clapper is home (The Silent Bell IV): your name on the plaque, and the first of all is the Bellringer
+function bellRestored() {
+  const first = !townBell.first;
+  if (first) townBell.first = player.name;
+  townBell.ringers = [...townBell.ringers.filter(n => n !== player.name), player.name].slice(-40);
+  player.chests.bell_ringer = true;
+  if (first) {
+    player.chests.bellringer = true; // (the title: the first to ring it)
+    for (const p of players) asPlayer(p, () => {
+      log(`${townBell.first} has brought the bell of Oakvale back to life: the first Bellringer of the isle!`, 'level');
+      playerEvent('banner', { message: `${townBell.first} is the first Bellringer of Oakvale!` });
+    });
+  }
+}
+
+// The plaque in the bell tower: who rang the bell home
+function bellPlaque(text) {
+  if (!townBell.ringers.length) return `${text}\n\n(Below it, a bronze plaque, still blank.)`;
+  const names = townBell.ringers.filter(n => n !== townBell.first);
+  return `${text}\n\nThe bell was rung home by ${townBell.first}, the first Bellringer${names.length ? `, and after: ${names.slice(-12).reverse().join(', ')}` : ''}.`;
+}
+
+// Every dawn (six in the morning, the world's clock) the bell rings by itself, once it hangs again
+function updateTownBell() {
+  if (!townBell.ringers.length) return;
+  const day = Math.floor(((now / 1000) + 9 * 60) / 1440), hour = worldMinutes() / 60;
+  if (hour >= 6 && hour < 7 && townBell.dawn !== day) {
+    townBell.dawn = day;
+    ringTownBell('Dong... dong... dong... The bell of Oakvale rings in the dawn, as it did in the founders\' day.');
+  }
+}
 function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings out over the isle.') {
   bellRungAt = now;
   for (const p of players) asPlayer(p, () => { addSound('bell', p.x, p.y, p.z); log(text, 'quest'); });
@@ -534,7 +572,7 @@ const vocationLevel = () => 10;
 
 // Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
 function ringBell(x, y, z) {
-  if (questState('bell_4') !== 'done') return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
+  if (!bellHung()) return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
   if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
   ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
 }
@@ -1304,7 +1342,7 @@ function advanceQuest(id) {
   if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
-  if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
+  if (r.bell) { const first = !townBell.first; bellRestored(); ringTownBell(first ? 'Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!' : `Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`); }
   if (r.pet && !player.pet) { // a companion: it follows you from now on (game-update.js updatePet)
     player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0, hp: PETS[r.pet.kind].hp(1), home: false, downUntil: 0 };
     playerEvent('petName', { name: r.pet.name }); // (the browser asks what to call it)
@@ -1438,6 +1476,7 @@ function saveGame() {
     data.worldId = 'rookgaard-74-v1';
     data.explored = typeof exportExplored === 'function' ? exportExplored() : null;
     data.guilds = guilds; // playing alone, your guild lives in your save
+    data.townBell = townBell; // (and the bell's plaque)
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch (e) {
     console.warn('Could not save the game:', e);
@@ -1460,6 +1499,7 @@ function loadGame() {
     data.explored = null;
   }
   if (data.guilds) guilds = data.guilds;
+  if (data.townBell && Array.isArray(data.townBell.ringers)) townBell = data.townBell;
   if (typeof importExplored === 'function') importExplored(data.explored);
   return true;
 }
