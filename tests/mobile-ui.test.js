@@ -47,6 +47,19 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     check('the map shows only between the status bar and the action bar', fit.top >= fit.hud - 0.5 && fit.bottom <= fit.dock + 0.5, JSON.stringify(fit));
     // one hand: nothing to tap up in the status bar; the drawer's tabs (map, quests, settings) sit low, in reach of the thumb
     check('nothing to tap in the status bar (the map is a button under it, the menu a drawer tab)', await page.evaluate(() => !document.querySelector('.hud button')));
+    // every point of the status bar, the map button and the bottom bar is the HUD itself: a tap there never walks
+    const leaks = await page.evaluate(() => {
+      const bad = [];
+      for (const el of ['.hud', '#hudMap', '#actionDock'].map(q => document.querySelector(q))) {
+        const r = el.getBoundingClientRect();
+        for (let y = r.top + 2; y < r.bottom - 1; y += 5) for (let x = r.left + 2; x < r.right - 1; x += 7) {
+          const hit = document.elementFromPoint(x, y);
+          if (!hit || hit === $('view') || hit.id === 'viewport') bad.push(`${el.id || el.className} ${Math.round(x)},${Math.round(y)}`);
+        }
+      }
+      return bad;
+    });
+    check('no tap on the HUD falls through to the map', !leaks.length, leaks.slice(0, 4).join(' | '));
     const tabs = await page.evaluate(() => { InventoryDrawer.show('map'); return new Promise(res => setTimeout(() => res([...document.querySelectorAll('.drawer-tabs button')].map(el => {
       const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return { n: el.dataset.page, h: Math.round(r.height), w: Math.round(r.width), hit: !!hit && (hit === el || el.contains(hit)), top: Math.round(r.top / innerHeight * 100) }; })), 400)); });

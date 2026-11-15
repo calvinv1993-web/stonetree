@@ -59,7 +59,9 @@ const SmartButton = (() => {
     button.classList.toggle('engaged', engaged);
     button.replaceChildren(Icons.img(a.kind, 34));
     button.title = a.label;
-    button.setAttribute('aria-label', a.label);
+    // (no words on it: its name and state are for screen readers)
+    button.setAttribute('aria-label', engaged ? 'Attacking (press for the next target)' : a.label);
+    button.setAttribute('aria-pressed', String(engaged));
   }
 
   return { context, press, refresh };

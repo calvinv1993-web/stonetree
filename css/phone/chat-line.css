@@ -4,19 +4,19 @@
 body.touch-ui .chat-line { display: none; }
 @media (orientation: portrait) {
   body.touch-ui .chat-line {
-    display: flex; align-items: center; gap: 10px; position: absolute; left: 8px; right: 52px;
-    top: 2px; height: calc(var(--chat-line) - 2px); padding: 0 8px; margin: 0;
-    border: 0 !important; border-radius: 8px; background: none !important; box-shadow: none !important; color: #e8e0cc; text-align: left;
-    font: 500 12px/1 Inter, sans-serif; opacity: 0.7; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
+    display: flex; align-items: center; gap: 8px; position: absolute; left: 4px; right: 48px;
+    top: 0; height: var(--chat-line); padding: 0 6px; margin: 0;
+    border: 0 !important; border-radius: 0; background: none !important; box-shadow: none !important; color: var(--hud-text); text-align: left;
+    font: 400 13px/1 var(--hud-font); opacity: 0.75; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
   }
   body.touch-ui .chat-line-time { display: none; }
   body.touch-ui .chat-line.fresh { opacity: 1; }
-  body.touch-ui .chat-line .icon { flex: none; width: 16px; height: 16px; color: #d8cfb8; }
+  body.touch-ui .chat-line .icon { flex: none; width: 18px; height: 18px; color: var(--hud-text-2); }
   body.touch-ui .chat-line-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   body.touch-ui .chat-line-time { color: #8a7f68; }
   body.touch-ui .chat-line b { color: #f0c36a; }
   body.touch-ui .chat-line.damage .chat-line-text { color: #ff9a86; }
-  body.touch-ui .chat-line[data-icon="drop"] .icon { color: #3d8ef0; }
+  body.touch-ui .chat-line[data-icon="drop"] .icon path { fill: var(--hud-mp); }
 }
 /* The open chat: above the action bar (its smart button closes it), a tab on its top edge, a send button by the line */
 body.touch-ui.chat-open .console { bottom: var(--tabbar) !important; overflow: visible !important; }

@@ -25,3 +25,13 @@ body.touch-ui #fightModes { background: linear-gradient(#1c1913, #0d0c09) !impor
 body.touch-ui .fight-bar .follow { background: linear-gradient(#1c1913, #0d0c09) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; }
 /* the pop-ups over the map (a level, a quest, a raid) */
 body.touch-ui .toast { background: #12100ce8 !important; border: 1px solid var(--line-2) !important; color: var(--text) !important; }
+/* The HUD's tokens (status bar, map button, target, chat line, action bar: layout.css and the modules' stylesheets) */
+body.touch-ui {
+  --hud-bg: #191a1b; --hud-bg-low: #151617;
+  --hud-slot-top: #303133; --hud-slot-bottom: #202123; --hud-edge: rgba(255, 255, 255, 0.16);
+  --hud-text: #f2ebdd; --hud-text-2: #b8b5ad; --hud-gold: #d5aa60;
+  --hud-active-top: #594735; --hud-active-bottom: #302a23;
+  --hud-hp: #d93440; --hud-mp: #2584e8; --hud-exp: #aa83bf; --hud-empty: #37363b; --hud-target: #e64a4a;
+  --hud-bronze: rgba(168, 130, 63, 0.35);
+  --hud-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

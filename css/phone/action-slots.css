@@ -1,39 +1,47 @@
-/* The phone's action buttons' faces (js/action-slots.js): the action's picture filling the button, its cost or count
-   in the corner, dimmed when out of reach, and a shade sweeping off it while it cools down. */
-body.touch-ui #favs .fav { position: relative !important; inset: auto !important; overflow: hidden; padding: 2px !important; display: block; }
-body.touch-ui #favs .fav .slot-face { position: absolute; inset: 3px; max-width: none; max-height: none; padding: 0; overflow: visible; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-body.touch-ui #favs .fav .slot-art { width: 100%; height: 100%; max-width: none; margin: 0; image-rendering: auto; object-fit: contain; -webkit-user-drag: none; }
-body.touch-ui #favs .fav .slot-initials { color: #f3d79a; font: 700 15px/1 Georgia, serif; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
+/* The phone's action buttons' faces (js/action-slots.js), with the HUD tokens (theme.css): the action's picture in the
+   middle, its cost or count in the room kept for it at the foot, dimmed (not blacked out) when out of reach, and a
+   dark shade sweeping off it while it cools down, its seconds in the middle. */
+body.touch-ui #favs .fav { position: relative !important; inset: auto !important; overflow: hidden; padding: 0 !important; display: block;
+  border: 1px solid var(--hud-edge) !important; border-radius: 5px !important; background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 1px rgba(0, 0, 0, 0.35) !important; color: var(--hud-text); }
+/* (the picture keeps its shape and leaves the foot free for the numbers) */
+body.touch-ui #favs .fav .slot-face { position: absolute; inset: 3px 4px 12px; max-width: none; max-height: none; padding: 0; overflow: visible; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+body.touch-ui #favs .fav .slot-art { width: 100%; height: 100%; max-width: none; margin: 0; image-rendering: auto; object-fit: contain; aspect-ratio: 1; -webkit-user-drag: none; }
+body.touch-ui #favs .fav .slot-face > .icon { width: 20px; height: 20px; color: var(--hud-text-2); }
+body.touch-ui #favs .fav .slot-initials { color: var(--hud-text); font: 600 14px/1 var(--hud-font); letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
 body.touch-ui #favs .fav .slot-badge {
-  position: absolute !important; right: 4px !important; bottom: 3px !important; left: auto; min-width: 0; box-shadow: none !important; display: block !important; max-width: none !important;
+  position: absolute !important; right: 4px !important; bottom: 2px !important; left: auto; min-width: 0; box-shadow: none !important; display: block !important; max-width: none !important;
   padding: 0 !important; border: 0 !important; background: none !important;
-  color: #fff !important; font: 600 12px/1 Inter, sans-serif !important; text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none;
+  color: var(--hud-text) !important; font: 600 12px/1 var(--hud-font) !important; font-variant-numeric: tabular-nums; text-shadow: 0 1px 1px #000; pointer-events: none;
 }
-body.touch-ui #favs .fav .slot-badge.mana { color: #9fd6ff !important; }
 body.touch-ui #favs .fav .slot-badge:empty { display: none !important; }
-body.touch-ui #favs .fav.short .slot-face, body.touch-ui #favs .fav.locked .slot-face { filter: grayscale(0.75) brightness(0.55); }
-body.touch-ui #favs .fav.locked { opacity: 1 !important; }
-body.touch-ui #favs .fav .slot-cool {
-  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: conic-gradient(rgba(5, 4, 2, 0.68) calc(var(--p, 0) * 1turn), transparent 0);
-}
-body.touch-ui #favs .fav.holding { outline: 2px solid #f4d68e; outline-offset: -2px; }
-/* The edge: the same quiet grey on every action button (only the smart button has gold) */
-body.touch-ui #favs .fav { border-color: #3b3a36 !important; border-radius: 9px !important; background: linear-gradient(#2a2925, #121110) !important; box-shadow: none !important; }
-
-/* A spell's mana: a small drop and the number, under its picture */
-body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 1px; font-size: 10px !important; }
+/* A spell's mana: a small blue drop and the number, at its foot (still readable with too little mana) */
+body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 2px; color: var(--hud-text) !important; font-size: 12px !important; }
 body.touch-ui #favs .fav .slot-badge.mana .icon { width: 10px; height: 10px; }
-/* The seconds of cooldown left, over the shade */
-body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 14px; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 13px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
-/* Pressed: a thin light edge (no animation that gets in the way) */
-body.touch-ui #favs .fav.holding { border-color: #f4d68e !important; }
-/* Which set each group shows, under it: three short bars, the one shown gold */
-body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + var(--slot-row, 46px) + 10px); left: 10px; width: calc((100% - 20px) * 3 / 7);
-  display: flex; justify-content: center; gap: 6px; pointer-events: none; }
-body.touch-ui .slot-set-hint.right { left: auto; right: 10px; }
-body.touch-ui .slot-set-hint i { width: 16px; height: 4px; border-radius: 2px; background: #4a4438; }
-body.touch-ui .slot-set-hint i.on { background: #e0b55e; }
+body.touch-ui #favs .fav .slot-badge.mana .icon path { fill: var(--hud-mp); stroke: none; }
+/* Too little mana, or a level still to reach: the picture a little darker, nothing more */
+body.touch-ui #favs .fav.short .slot-face, body.touch-ui #favs .fav.locked .slot-face { filter: grayscale(0.35) brightness(0.62); }
+body.touch-ui #favs .fav.locked { opacity: 1 !important; }
+/* Cooling down: a dark, half see-through shade going round, the seconds left in the middle, clear of the cost */
+body.touch-ui #favs .fav .slot-cool { position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: conic-gradient(rgba(8, 8, 9, 0.62) calc(var(--p, 0) * 1turn), transparent 0); }
+body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 12px; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  color: #fff; font: 600 13px/1 var(--hud-font); font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px #000; }
+/* Pressed: a thin light edge */
+body.touch-ui #favs .fav.holding { outline: 0; border-color: rgba(255, 255, 255, 0.45) !important; }
+/* After a swipe the group's new set comes in a little from the side and settles */
+@keyframes slot-snap-left { from { transform: translateX(12px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes slot-snap-right { from { transform: translateX(-12px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+body.touch-ui #favs .fav.snap-left { animation: slot-snap-left 160ms ease-out; }
+body.touch-ui #favs .fav.snap-right { animation: slot-snap-right 160ms ease-out; }
+/* Which set each group shows, under it: short bars, the one shown in muted gold (none under the smart button) */
+body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + 6px + var(--slot-row, 46px) + 7px); left: var(--slot-pad, 10px);
+  width: calc((100% - 2 * var(--slot-pad, 10px) - 6 * var(--slot-gap, 6px)) * 3 / 7 + 2 * var(--slot-gap, 6px));
+  display: flex; justify-content: center; align-items: center; gap: 5px; pointer-events: none; }
+body.touch-ui .slot-set-hint.right { left: auto; right: var(--slot-pad, 10px); }
+body.touch-ui .slot-set-hint i { width: 11px; height: 3px; border-radius: 2px; background: #3e3d42; }
+body.touch-ui .slot-set-hint i.on { width: 13px; background: var(--hud-gold); }
+body.touch-ui .slot-set-hint:has(i:only-child) { display: none; }
 /* The chooser: each action's picture before its whole name, its mana with a drop */
 .fav-list .pick-art { width: 26px; height: 26px; vertical-align: middle; margin-right: 8px; }
 .fav-list small { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }

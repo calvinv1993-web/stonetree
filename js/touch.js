@@ -150,6 +150,10 @@ function endFavPress(use) {
     touchStorage.set(favKey() + '.pages', [favPageIndex, favItemPage]);
     favShown = ''; renderFavs();
     ActionSlots.showSet(press.slot >= 3, press.slot < 3 ? favPageIndex : favItemPage, 3);
+    // the group's new set slides in a little from the side it was swiped from, and settles (the other group stays)
+    const root = typeof document !== 'undefined' && document.getElementById ? document.getElementById('favs') : null;
+    const group = root && root.children ? Array.from(root.children).slice(press.slot < 3 ? 0 : 3, press.slot < 3 ? 3 : 6) : [];
+    for (const el of group) { el.classList.remove('snap-left', 'snap-right'); void el.offsetWidth; el.classList.add(delta > 0 ? 'snap-left' : 'snap-right'); }
   } else if (use && !press.held && !press.moved) useFav(press.slot);
 }
 

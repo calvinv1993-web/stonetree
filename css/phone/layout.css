@@ -451,66 +451,78 @@ body.touch-ui .layout { height: 100%; min-height: 0; box-sizing: border-box; pad
   body.touch-ui { --tabbar: calc(64px + env(safe-area-inset-bottom, 0px)); }
   body.touch-ui.panel-open .panel { bottom: 0 !important; height: calc(100% - var(--hud-h)) !important; padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
 }
-/* The phone's status bar (js/mobile-hud.js builds what the old HUD lacks; touch.js keeps the values up to date):
-   the round map left, the round menu right, between them the level, health and mana (a heart and a drop before them)
-   and under them the experience to the next level, thin, its label left and its percent right. */
-body.touch-ui .hud { grid-template-columns: auto minmax(0,1fr) minmax(0,1fr) auto; grid-template-rows: 18px 12px; gap: 6px 8px; padding: 6px 12px 7px; align-items: center; background: linear-gradient(#1e1c16, #0e0d0a) !important; border-bottom: 1px solid #a8823f; box-shadow: 0 1px 0 #2d220f, 0 2px 6px #0008; }
+/* ==== The phone's HUD (js/mobile-hud.js), upright and on its side alike where it applies ===========================
+   One component, two states (body[data-hud]: normal, combat), drawn with the HUD tokens in theme.css. A clean, nearly
+   black look: soft grey slot edges, little gold, no glow, no blur, no heavy shadows. */
+body.touch-ui .hud, body.touch-ui .hud-map-button, body.touch-ui .hud-target, body.touch-ui #actionDock { font-family: var(--hud-font); font-variant-numeric: tabular-nums; }
+/* -- The status bar: health left, mana right, each its icon before its bar; under them EXP and its percent, one thin
+      bar, the level; one faint bronze line at its foot -- */
+body.touch-ui .hud { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: 16px 13px; gap: 7px 0;
+  padding: 7px 11px 7px; align-items: center; background: var(--hud-bg) !important; border-bottom: 1px solid var(--hud-bronze);
+  box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: auto; } /* (it takes taps: none walk you to the map behind it) */
 body.touch-ui .hud-name, body.touch-ui .hud-gold, body.touch-ui .hud-lvl { display: none; }
-/* the status bar: health and mana the whole width, each its icon on its start; under them experience, the level and the percent */
-body.touch-ui .hud-level { grid-column: 4; grid-row: 2; color: #e8bd62; font: 500 12px/1 Inter, sans-serif; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 2px #000; }
-body.touch-ui .hud-level #hudLvl { position: static; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
-body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; justify-self: start; position: relative; z-index: 2; width: 24px; height: 24px; margin: -3px 0 -3px -7px; filter: drop-shadow(0 1px 1px #000) drop-shadow(0 0 2px #000a); }
-body.touch-ui .hud .hud-icon-hp { grid-column: 1 / 3; }
-body.touch-ui .hud .hud-icon-mana { grid-column: 3 / 5; }
-body.touch-ui .hud .tbar { width: 100%; min-width: 0; height: 15px; grid-row: 1; border: 1px solid #4a3a24; border-radius: 9px; box-shadow: inset 0 1px 3px #000; }
-body.touch-ui .hud .tbar.hp { grid-column: 1 / 3; grid-row: 1; }
-body.touch-ui .hud .tbar.mana { grid-column: 3 / 5; grid-row: 1; } /* (as long as the health bar) */
-body.touch-ui .hud .tbar span { line-height: 14px; font: 500 11px/13px Inter, sans-serif; text-shadow: 0 1px 2px #000; }
-body.touch-ui .hud-exp-label { grid-column: 1; grid-row: 2; color: #e8e0cc; font: 500 11px/1 Inter, sans-serif; white-space: nowrap; }
-body.touch-ui .hud .hud-xp { display: block; position: relative; grid-column: 2 / 4; grid-row: 2; width: 100%; height: 5px; border-radius: 3px; overflow: hidden; background: #24212c; box-shadow: inset 0 1px 1px #000; }
-body.touch-ui #hudXp { height: 100%; background: linear-gradient(#b58ae6, #8a5cc4); }
-/* the percent after the label ("EXP 12%") */
+body.touch-ui .hud .icon[class*="hud-icon-"] { grid-row: 1; position: static; width: 20px; height: 20px; margin: 0 5px 0 0; filter: none; }
+body.touch-ui .hud .hud-icon-hp { grid-column: 1; }
+body.touch-ui .hud .hud-icon-mana { grid-column: 3; margin-left: 11px; }
+body.touch-ui .hud .tbar { width: 100%; min-width: 0; height: 16px; grid-row: 1; border: 1px solid var(--hud-edge); border-radius: 8px;
+  background: var(--hud-empty); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); overflow: hidden; }
+body.touch-ui .hud .tbar.hp { grid-column: 2; }
+body.touch-ui .hud .tbar.mana { grid-column: 4; }
+body.touch-ui .hud .tbar div { border-radius: 0; }
+body.touch-ui .hud .tbar.hp div { background: var(--hud-hp); }
+body.touch-ui .hud .tbar.mana div { background: var(--hud-mp); }
+/* (the value over the whole bar, not only its filled part) */
+body.touch-ui .hud .tbar span { inset: 0; color: var(--hud-text); font: 500 14px/14px var(--hud-font); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8); letter-spacing: 0; }
+body.touch-ui .hud-exp-row { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 10px; min-width: 0; }
+body.touch-ui .hud-exp-label { flex: none; color: var(--hud-text); font: 500 13px/1 var(--hud-font); white-space: nowrap; }
 body.touch-ui #hudXpText { color: inherit; font: inherit; }
-/* The map: a dark square button in the view's top left corner, under the status bar */
+body.touch-ui .hud .hud-xp { display: block; position: relative; flex: 1; min-width: 0; height: 3px; border-radius: 2px; overflow: hidden; background: var(--hud-empty); box-shadow: none; }
+body.touch-ui #hudXp { height: 100%; background: var(--hud-exp); border-radius: 0; }
+body.touch-ui .hud-level { flex: none; color: var(--hud-gold); font: 500 13px/1 var(--hud-font); white-space: nowrap; text-shadow: none; }
+body.touch-ui .hud-level #hudLvl { position: static; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
+/* -- The map: a dark rounded button in the view's top left corner (32 px to see, 44 px to tap), an ivory map -- */
 .hud-map-button { display: none; }
 body.touch-ui .hud-map-button { display: flex; align-items: center; justify-content: center; position: absolute; z-index: 13; pointer-events: auto;
-  top: calc(var(--hud-h) + 1px); left: calc(env(safe-area-inset-left, 0px) + 1px); width: 44px; height: 44px; min-width: 0; padding: 0;
-  border: 0 !important; background: none !important; box-shadow: none !important; color: #e8e0cc; }
-/* (what shows is a 34 px square in its middle: the button itself is the 44 px a finger needs) */
-body.touch-ui .hud-map-button::before { content: ''; position: absolute; inset: 5px; border: 1px solid #4a3c26; border-radius: 8px;
-  background: linear-gradient(#24211b, #12110d); box-shadow: 0 2px 6px #000a; }
-body.touch-ui .hud-map-button .icon { position: relative; }
-body.touch-ui .hud-map-button .icon { width: 22px; height: 22px; }
+  top: calc(var(--hud-h) + 6px - 6px); left: calc(env(safe-area-inset-left, 0px) + 7px - 6px); width: 44px; height: 44px; min-width: 0; padding: 0;
+  border: 0 !important; background: none !important; box-shadow: none !important; color: var(--hud-text); }
+body.touch-ui .hud-map-button::before { content: ''; position: absolute; inset: 6px; border: 1px solid var(--hud-edge); border-radius: 6px;
+  background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+body.touch-ui .hud-map-button .icon { position: relative; width: 20px; height: 20px; }
 body.touch-ui.panel-open .hud-map-button { visibility: hidden; }
-/* What you're fighting: a dark pill at the top of the view, its name, its health in red and the percent */
+/* -- What you're fighting (only with a target): name, a thin red bar, the percent; it takes taps, so none fall
+      through it onto the map -- */
 .hud-target { display: none; }
-body.touch-ui .hud-target:not([hidden]) { display: flex; align-items: center; gap: 10px; position: absolute; z-index: 13; pointer-events: none;
-  top: calc(var(--hud-h) + 8px); left: 50%; transform: translateX(-50%); max-width: calc(100% - 120px); padding: 5px 10px;
-  border: 1px solid #3a3428; border-radius: 7px; background: #12110ee6; box-shadow: 0 2px 6px #0009; color: #f3ecda;
-  font: 500 11px/1 Inter, sans-serif; white-space: nowrap; }
-body.touch-ui .hud-target b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
-body.touch-ui .hud-target-bar { flex: none; width: 76px; height: 5px; border-radius: 3px; background: #3a3631; overflow: hidden; }
-body.touch-ui .hud-target-bar i { display: block; height: 100%; background: linear-gradient(#ff5a50, #c81e1e); border-radius: 3px; }
-body.touch-ui .hud-target small { font: 500 10px/1 Inter, sans-serif; color: #e8e0cc; font-variant-numeric: tabular-nums; }
+body.touch-ui .hud-target:not([hidden]) { display: flex; align-items: center; gap: 9px; position: absolute; z-index: 13; pointer-events: auto;
+  top: calc(var(--hud-h) + 6px); left: 50%; transform: translateX(-50%); width: 176px; height: 24px; box-sizing: border-box; padding: 0 9px;
+  border: 1px solid var(--hud-edge); border-radius: 6px; background: rgba(21, 22, 23, 0.92); color: var(--hud-text);
+  font: 500 12px/1 var(--hud-font); white-space: nowrap; }
+body.touch-ui .hud-target b { flex: 1 1 auto; min-width: 0; max-width: 64px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+body.touch-ui .hud-target-bar { flex: 1 0 52px; height: 4px; border-radius: 2px; background: var(--hud-empty); overflow: hidden; }
+body.touch-ui .hud-target-bar i { display: block; height: 100%; background: var(--hud-hp); }
+body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); color: var(--hud-text-2); }
 /* Upright the view shows nothing of the fight mode: it is set at the top of the drawer's Settings */
 @media (orientation: portrait) {
   body.touch-ui.fighting .fight-bar { display: none; }
   body.touch-ui .drawer-settings .fight-bar { display: flex !important; position: static !important; flex-direction: row; align-items: center; gap: 10px; padding: 10px 12px; }
-  body.touch-ui .drawer-settings .fight-bar::before { content: 'Fighting'; flex: 1; color: #e8e0cc; font: 600 13px/1 Inter, sans-serif; }
+  body.touch-ui .drawer-settings .fight-bar::before { content: 'Fighting'; flex: 1; color: var(--hud-text); font: 600 13px/1 var(--hud-font); }
   body.touch-ui .drawer-settings #fightModes { flex-direction: row; }
 }
-/* The bottom bar, upright: the chat line (the backpack at its end) on top, then seven square buttons the same size
-   (three, the smart button, three), then under each group of three which of its sets shows */
+/* -- The bottom bar, upright: one dark panel; the chat line with the backpack at its end, a faint line, the seven
+      buttons (three, the smart button, three) in one grid, under each group of three its sets, the home indicator's
+      safe area -- */
+.hud-bag-button { display: none; }
 @media (orientation: portrait) {
-  body.touch-ui { --chat-line: 26px; --slot-row: 46px; --tabbar: calc(var(--chat-line) + var(--slot-row) + 22px + env(safe-area-inset-bottom, 0px)); }
-  body.touch-ui #actionDock { background: linear-gradient(#16140f, #080706); }
-  body.touch-ui #radialControls { top: calc(var(--chat-line) + 4px) !important; bottom: auto !important; left: 10px !important; right: 10px !important; height: var(--slot-row) !important; }
-  body.touch-ui #favs { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  body.touch-ui { --chat-line: 30px; --slot-gap: 6px; --slot-pad: 10px; --slot-row: clamp(44px, calc((100vw - 2 * var(--slot-pad) - 6 * var(--slot-gap)) / 7), 56px);
+    --tabbar: calc(var(--chat-line) + 6px + var(--slot-row) + 17px + env(safe-area-inset-bottom, 0px)); }
+  body.touch-ui #actionDock { background: var(--hud-bg-low); border-top: 1px solid var(--hud-bronze); }
+  body.touch-ui #actionDock::before { content: ''; position: absolute; left: 0; right: 0; top: var(--chat-line); height: 1px; background: rgba(255, 255, 255, 0.06); pointer-events: none; }
+  body.touch-ui #radialControls { top: calc(var(--chat-line) + 6px) !important; bottom: auto !important; left: var(--slot-pad) !important; right: var(--slot-pad) !important; height: var(--slot-row) !important; }
+  body.touch-ui #favs { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--slot-gap); }
   body.touch-ui #favs .fav:nth-child(4) { grid-column: 5; }
-  body.touch-ui #tAttack { top: calc(var(--chat-line) + 4px) !important; bottom: auto !important; height: var(--slot-row) !important; width: calc((100% - 20px - 48px) / 7) !important; }
-  body.touch-ui #actionDock > .drawer-tab { display: none; } /* (the backpack button opens the drawer; on the open drawer its tab still shows) */
-  body.touch-ui .hud-bag-button { display: flex; align-items: center; justify-content: center; position: absolute; top: 2px; right: 8px; width: 40px; height: calc(var(--chat-line) - 2px);
-    min-width: 0; padding: 0; margin: 0; border: 0 !important; background: none !important; box-shadow: none !important; color: #d8cfb8; }
+  body.touch-ui #tAttack { top: calc(var(--chat-line) + 6px) !important; bottom: auto !important; height: var(--slot-row) !important;
+    width: calc((100% - 2 * var(--slot-pad) - 6 * var(--slot-gap)) / 7) !important; }
+  body.touch-ui #actionDock > .drawer-tab { display: none; } /* (no tab on the bar: the backpack opens the drawer) */
+  body.touch-ui .hud-bag-button { display: flex; align-items: center; justify-content: center; position: absolute; z-index: 1; top: -7px; right: 4px; width: 44px; height: 44px;
+    min-width: 0; padding: 0; margin: 0; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--hud-text); }
   body.touch-ui .hud-bag-button .icon { width: 20px; height: 20px; }
 }
-.hud-bag-button { display: none; }

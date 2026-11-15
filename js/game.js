@@ -696,7 +696,7 @@ function drawCreatureInfo(c, screen, struck) {
     }
     return;
   }
-  if (c === player.target) frame('#ff3030', 1);
+  if (c === player.target) frame('#e64a4a', 1); // (the phone's HUD shows the same target: its --hud-target)
   if (c.id === battleHover) frame('#ffffff', c === player.target ? 5 : 1);
   if (struck) frame('#ffa030', -2 - (1 - struck) * 8, struck);
   const frac = Math.max(0, Math.min(1, c.hp / c.maxHp));

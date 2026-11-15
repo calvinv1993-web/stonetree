@@ -32,6 +32,13 @@ From top to bottom:
   which opens at the newest line above the action bar, with a send button; the smart button or the tab on its edge
   closes it.
 
+**One HUD, two states.** `MobileHud` in `js/mobile-hud.js` puts `body[data-hud]` on `normal` (no target) or `combat`
+(a living target: the target pill shows, the smart button is lit). Everything is drawn with the HUD tokens at the end
+of `css/phone/theme.css` (`--hud-bg`, `--hud-slot-top`, `--hud-edge`, `--hud-gold`, `--hud-hp`, `--hud-mp`,
+`--hud-exp`, `--hud-target`, `--hud-font` and so on): a clean, nearly black look, grey slot edges, little gold, no glow,
+no blur. The status bar, the map button and the bottom bar take every tap themselves, so none walks you to the map
+behind them (`tests/mobile-ui.test.js` checks it).
+
 Windows (menu, character, chooser, talk, chat, shop) share one dark and gold look: `css/phone/theme.css`.
 The page fits the phone's screen and its safe areas (status bar, home indicator): `css/phone/layout.css`,
 `js/mobile-viewport.js`, `manifest.json`.
