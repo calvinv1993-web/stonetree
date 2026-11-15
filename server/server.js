@@ -166,11 +166,18 @@ if (savedWorld) {
 // ---- guilds -------------------------------------------------------------------------------
 // A save file that is there but can't be read (a typo in a hand edit) stops the server:
 // otherwise the next save would overwrite it with nothing.
+// A save that can't be read falls back to the one before it (<file>.bak, kept at every save): a power cut halfway
+// through a write loses ten seconds, not everything.
 function readSave(file) {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (e) {
-    if (e.code === 'ENOENT') return null; // not made yet
+    if (e.code === 'ENOENT') return null; // not made yet (a .bak beside it is from before it was removed: not used)
+    try {
+      const old = JSON.parse(fs.readFileSync(`${file}.bak`, 'utf8'));
+      console.error(`Could not read ${file} (${e.message}): using the save before it, ${file}.bak.`);
+      return old;
+    } catch (e2) { /* no backup either */ }
     console.error(`Could not read ${file}: ${e.message}\nFix or remove it, then start the server again.`);
     process.exit(1);
   }
@@ -184,7 +191,33 @@ for (const { save } of Object.values(accounts)) {
   const house = save && save.house && G.map.houses.find(h => h.id === save.house);
   if (house && !house.owner) house.owner = save.name;
 }
-const hash = (key, password) => crypto.createHash('sha256').update(`${key}:${password}`).digest('hex');
+// Passwords are kept as scrypt with a salt of their own ("scrypt$salt$hash"). Older saves have an unsalted SHA-256:
+// those still log in, and are turned into scrypt at that login.
+const legacyHash = (key, password) => crypto.createHash('sha256').update(`${key}:${password}`).digest('hex');
+const hashPassword = password => {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return `scrypt$${salt}$${crypto.scryptSync(password, salt, 32).toString('hex')}`;
+};
+const sameText = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+function passwordMatches(account, key, password) {
+  const stored = account.password || '';
+  if (stored.startsWith('scrypt$')) {
+    const [, salt, want] = stored.split('$');
+    return sameText(crypto.scryptSync(password, salt, 32).toString('hex'), want);
+  }
+  if (!sameText(stored, legacyHash(key, password))) return false;
+  account.password = hashPassword(password); // (the old kind: made safe now)
+  return true;
+}
+// Wrong passwords: after 8 in 10 minutes from one address, it waits a minute before it may try again.
+const failures = new Map();
+const tooManyTries = ip => { const f = failures.get(ip); return !!f && f.count >= 8 && Date.now() - f.last < 60000; };
+function failedLogin(ip) {
+  const f = failures.get(ip) || { count: 0, last: 0 };
+  if (Date.now() - f.last > 600000) f.count = 0;
+  f.count++; f.last = Date.now();
+  failures.set(ip, f);
+}
 
 // A character's save, plus what only matters while the server runs: a skull, a ride.
 function saveAccount(p) {
@@ -192,13 +225,34 @@ function saveAccount(p) {
   const save = W.asPlayer(p, () => W.serializePlayer(p));
   accounts[key] = { ...accounts[key], save: { ...save, skullUntil: p.skullUntil, redSkullUntil: p.redSkullUntil, pzLockUntil: p.pzLockUntil, frags: p.frags, ride: p.ride || null } };
 }
+// Write a save safely: to a temp file, flushed to disk, the old one kept as <file>.bak, then swapped in. On Windows a
+// virus scanner or OneDrive can hold the file for a moment (EPERM, EBUSY): it tries again a few times.
+function writeSave(file, data) {
+  const tmp = `${file}.tmp`, fd = fs.openSync(tmp, 'w');
+  try { fs.writeSync(fd, data); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  for (let tries = 0; ; tries++) {
+    try {
+      if (fs.existsSync(file)) fs.copyFileSync(file, `${file}.bak`);
+      fs.renameSync(tmp, file);
+      return;
+    } catch (e) {
+      if (tries >= 4 || !['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
+      const until = Date.now() + 50 * (tries + 1);
+      while (Date.now() < until) { /* a short wait, then again */ }
+    }
+  }
+}
+// Save everyone. A save that fails (a full disk, a locked file) is logged and tried again at the next one: it never
+// takes the server down.
 function persist() {
-  for (const p of G.players) saveAccount(p);
-  saveWorld();
-  fs.writeFileSync(`${SAVE_FILE}.tmp`, JSON.stringify(accounts));
-  fs.renameSync(`${SAVE_FILE}.tmp`, SAVE_FILE);
-  fs.writeFileSync(`${GUILD_FILE}.tmp`, JSON.stringify(G.guilds));
-  fs.renameSync(`${GUILD_FILE}.tmp`, GUILD_FILE);
+  try {
+    for (const p of G.players) saveAccount(p);
+    saveWorld();
+    writeSave(SAVE_FILE, JSON.stringify(accounts));
+    writeSave(GUILD_FILE, JSON.stringify(G.guilds));
+  } catch (e) {
+    console.error('Saving failed (trying again in 10 seconds):', e.message);
+  }
 }
 setInterval(persist, 10000);
 
@@ -220,8 +274,10 @@ function login(conn, msg) {
   if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.' });
   const key = name.toLowerCase();
   const account = accounts[key];
-  const byToken = account && msg.token && account.token === msg.token;
-  if (account && !byToken && account.password !== hash(key, msg.password || '')) {
+  if (tooManyTries(conn.ip)) return conn.reply({ t: 'error', message: 'Too many wrong passwords: wait a minute, then try again.' });
+  const byToken = !!(account && msg.token && account.token && sameText(account.token, msg.token));
+  if (account && !byToken && !passwordMatches(account, key, msg.password || '')) {
+    failedLogin(conn.ip);
     return conn.reply({ t: 'error', message: msg.token ? 'Please log in again.' : 'Wrong password for this character.', relogin: !!msg.token });
   }
   if (!account && msg.token) return conn.reply({ t: 'error', message: 'Please log in again.', relogin: true });
@@ -258,7 +314,7 @@ function login(conn, msg) {
     }
     W.log(`Welcome${account ? ' back' : ''}, ${p.name}! ${G.players.length - 1} other player${G.players.length === 2 ? ' is' : 's are'} online.`, 'quest');
   });
-  if (!account) accounts[key] = { password: hash(key, msg.password || ''), save: null };
+  if (!account) accounts[key] = { password: hashPassword(msg.password || ''), save: null };
   if (TEST) accounts[key].boosted = true;
   enter(conn, p, !account);
   for (const other of G.players) if (other !== p) W.asPlayer(other, () => W.log(`${p.name} has logged in.`));
@@ -266,10 +322,7 @@ function login(conn, msg) {
 
 function enter(conn, p, isNew) {
   const account = accounts[p.name.toLowerCase()];
-  if (!account.token) {
-    account.token = crypto.randomBytes(16).toString('hex');
-    persist();
-  }
+  if (!account.token) account.token = crypto.randomBytes(16).toString('hex'); // (saved with the next save, within 10 s)
   conn.player = p;
   conn.full = 0;
   p.dirty = true;
@@ -302,9 +355,21 @@ function logout(p) {
   persist();
 }
 
+// How fast a page may act: 30 actions a second with bursts of 60, and 3 lines of chat a second with bursts of 6.
+// More is dropped (a stuck key or a script can't flood the server or the chat).
+const RATES = { act: [30, 60], chat: [3, 6] }, CHAT = new Set(['say', 'partySay', 'guildSay']);
+function allowed(conn, kind) {
+  const [rate, burst] = RATES[kind], b = conn.buckets[kind], t = Date.now();
+  b.tokens = Math.min(burst, b.tokens + ((t - b.at) / 1000) * rate);
+  b.at = t;
+  if (b.tokens < 1) return false;
+  b.tokens -= 1;
+  return true;
+}
 function act(conn, msg) {
   const p = conn.player;
   if (!p || !ACTIONS.has(msg.a) || !Array.isArray(msg.args)) return;
+  if (!allowed(conn, 'act') || (CHAT.has(msg.a) && !allowed(conn, 'chat'))) return;
   try {
     W.asPlayer(p, () => G.Actions[msg.a](...msg.args));
   } catch (e) {
@@ -368,7 +433,19 @@ setInterval(() => {
   const keys = [...new Set(G.mapChanges.splice(0).map(([x, y, z]) => `${x},${y},${z}`))];
   for (const key of keys) changedTiles.add(key);
   const tiles = keys.map(tileState);
-  for (const conn of conns) if (conn.player) conn.reply(snapshot(conn, tiles));
+  for (const conn of conns) {
+    if (!conn.player) continue;
+    // a page that can't keep up (asleep, bad Wi-Fi) gets no new picture until it has taken the last ones: every
+    // snapshot carries the whole state, so skipping some loses nothing; one that stops taking anything is let go
+    const behind = conn.ws.buffered();
+    if (behind > 4 * 1024 * 1024) { conn.ws.destroy(); continue; }
+    if (behind > 256 * 1024) continue;
+    try {
+      conn.reply(snapshot(conn, tiles));
+    } catch (e) {
+      console.error(`The snapshot for ${conn.player.name} failed:`, e);
+    }
+  }
 }, TICK_MS);
 
 // ---- updates: when the game files change, pages are told they can reload -------------------
@@ -504,7 +581,8 @@ server.on('upgrade', (req, socket) => {
   if (req.url !== '/ws') return socket.destroy();
   const ws = acceptWebSocket(req, socket);
   if (!ws) return;
-  const conn = { ws, player: null, seq: effectSeq, full: 0, reply: msg => ws.send(JSON.stringify(msg)) };
+  const conn = { ws, ip: req.socket.remoteAddress || '', player: null, seq: effectSeq, full: 0, reply: msg => ws.send(JSON.stringify(msg)),
+    buckets: { act: { tokens: RATES.act[1], at: Date.now() }, chat: { tokens: RATES.chat[1], at: Date.now() } } };
   conns.add(conn);
   ws.onmessage = data => {
     try { // nothing a page sends may take the server down
@@ -521,6 +599,15 @@ server.on('upgrade', (req, socket) => {
     disconnect(conn);
   };
 });
+
+// A page that went away without closing (a phone that lost its network) is noticed: every 10 seconds each page is
+// pinged (browsers answer by themselves); one that sent nothing for 30 seconds is let go, so its character can log out.
+setInterval(() => {
+  for (const conn of conns) {
+    if (Date.now() - conn.ws.lastSeen > 30000) conn.ws.destroy();
+    else conn.ws.ping();
+  }
+}, 10000);
 
 server.listen(PORT, () => {
   if (TEST) console.log('Test mode: new characters start at level 20 in Valoria, with good gear (or fresh on Brightwater Isle, if they choose).');

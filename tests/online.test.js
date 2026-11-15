@@ -11,6 +11,7 @@ const path = require('path');
 const PORT = 18000 + Math.floor(Math.random() * 1000);
 const SAVES = path.join(__dirname, '..', 'server', 'players.json');
 const WORLD = path.join(__dirname, '..', 'server', 'world.json');
+const GUILDS = path.join(__dirname, '..', 'server', 'guilds.json');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const waitFor = async (ready, ms = 5000) => {
   for (let t = 0; t < ms && !ready(); t += 100) await sleep(100);
@@ -18,7 +19,7 @@ const waitFor = async (ready, ms = 5000) => {
 
 function client(name, login = { password: 'secret' }) {
   const ws = new WebSocket(`ws://localhost:${PORT}/ws`);
-  const c = { state: null, welcome: null, error: null, kicked: false, log: [], act: (a, ...args) => ws.send(JSON.stringify({ t: 'act', a, args })) };
+  const c = { state: null, you: {}, welcome: null, error: null, kicked: false, log: [], act: (a, ...args) => ws.send(JSON.stringify({ t: 'act', a, args })) };
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.t === 'welcome') c.welcome = msg;
@@ -26,6 +27,7 @@ function client(name, login = { password: 'secret' }) {
     if (msg.t === 'kicked') c.kicked = true;
     if (msg.t === 'state') {
       c.state = msg;
+      Object.assign(c.you, msg.you); // (what's sent only now and then stays, as in a browser)
       for (const line of msg.out) c.log.push(line.slice(1).join(' '));
     }
   };
@@ -45,7 +47,8 @@ function startServer() {
 
 (async () => {
   const backup = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8');
-  const hadSaves = backup(SAVES), hadWorld = backup(WORLD);
+  const hadSaves = backup(SAVES), hadWorld = backup(WORLD), hadGuilds = backup(GUILDS);
+  const SAVE_FILES = [SAVES, WORLD, GUILDS], BAKS = SAVE_FILES.map(f => `${f}.bak`), hadBaks = BAKS.map(backup);
   let server = startServer();
   let failed = false;
   try {
@@ -97,6 +100,10 @@ function startServer() {
     const before = bobBack.state.you;
     server.send('stop'); // as server/dev.js does (on Windows a kill can't be caught)
     await new Promise(r => server.on('exit', r));
+    // (a character saved by an older server, its password still an unsalted SHA-256)
+    const saved = JSON.parse(fs.readFileSync(SAVES, 'utf8')), old = `old${tag}`;
+    saved[old] = { password: require('crypto').createHash('sha256').update(`${old}:pw`).digest('hex'), save: null };
+    fs.writeFileSync(SAVES, JSON.stringify(saved));
     server = startServer();
     await server.ready;
     const afterRestart = client(`Bob${tag}`, { token: bob.welcome.token });
@@ -105,6 +112,29 @@ function startServer() {
     assert(afterRestart.state.you.x === before.x && afterRestart.state.you.y === before.y, 'and Bob is where he was');
     assert(fs.existsSync(WORLD), 'the world was saved');
     console.log('  ok   a restarted server (an update) keeps characters, logins and the world');
+
+    // Passwords are kept salted (scrypt); an old one still logs in, and is made safe then.
+    const oldOne = client(`Old${tag}`, { password: 'pw' });
+    await waitFor(() => oldOne.welcome || oldOne.error);
+    assert(oldOne.welcome, `an old password still logs in (${oldOne.error || 'no answer'})`);
+    // A page sends junk: hotkeys keep only what's real; a flood of chat is cut down; the server carries on.
+    afterRestart.act('setHotkeys', { F1: { type: 'spell', id: 'light' }, F2: { type: 'spell', id: 'constructor' }, F13: { type: 'say', text: 'x' }, F3: 'gold' });
+    for (let i = 0; i < 300; i++) afterRestart.act('say', `spam ${i}`);
+    await sleep(1600);
+    const heard = oldOne.log.filter(l => l.includes('spam')).length;
+    assert(heard > 0 && heard <= 12, `a flood of chat is cut down (${heard} of 300 lines got through)`);
+    assert(JSON.stringify(afterRestart.you.hotkeys) === JSON.stringify({ F1: { type: 'spell', id: 'light' } }), `hotkeys keep only what's real (${JSON.stringify(afterRestart.you.hotkeys)})`);
+    // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
+    for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
+    const right = client(`Old${tag}`, { password: 'pw' });
+    await waitFor(() => right.welcome || right.error);
+    assert(right.error && /too many/i.test(right.error), `too many wrong passwords make it wait (${right.error || 'it let it in'})`);
+    server.send('stop');
+    await new Promise(r => server.on('exit', r));
+    const accounts = JSON.parse(fs.readFileSync(SAVES, 'utf8'));
+    assert(accounts[`alice${tag}`].password.startsWith('scrypt$') && accounts[old].password.startsWith('scrypt$'), 'passwords are saved salted, the old one turned');
+    assert(fs.existsSync(`${SAVES}.bak`), 'the save before it is kept as players.json.bak');
+    console.log('  ok   salted passwords, old ones turned; junk, floods and password guessing held off');
   } catch (err) {
     failed = true;
     console.log(`  FAIL ${err.stack}`);
@@ -112,7 +142,7 @@ function startServer() {
     if (server.connected) server.send('stop');
     await new Promise(r => (server.exitCode !== null ? r() : server.on('exit', r)));
     // Don't leave the test characters behind in the real save file.
-    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld]]) {
+    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld], [GUILDS, hadGuilds], ...BAKS.map((f, i) => [f, hadBaks[i]])]) {
       if (had) fs.writeFileSync(file, had);
       else if (fs.existsSync(file)) fs.unlinkSync(file);
     }

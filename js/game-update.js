@@ -179,8 +179,18 @@ const Actions = {
   guildPassLeader, guildNick, guildRankTitles, guildMotd, guildDisband, guildSay,
   // the blacksmith's forge: see game-forge.js
   forgeItem, fuseOre,
+  // F1-F12 only, each a spell, an item or a rune that exists, or a line to say (what a page sends may be anything)
   setHotkeys(hotkeys) {
-    player.hotkeys = hotkeys || {};
+    const clean = {};
+    for (let i = 1; i <= 12; i++) {
+      const h = hotkeys && typeof hotkeys === 'object' ? hotkeys[`F${i}`] : null;
+      if (!h || typeof h !== 'object') continue;
+      if (h.type === 'say' && typeof h.text === 'string') clean[`F${i}`] = { type: 'say', text: h.text.slice(0, 200) };
+      else if (h.type === 'spell' && typeof h.id === 'string' && Object.hasOwn(SPELLS, h.id)) clean[`F${i}`] = { type: 'spell', id: h.id };
+      else if ((h.type === 'item' || h.type === 'rune') && typeof h.id === 'string' && Object.hasOwn(ITEMS, h.id)) clean[`F${i}`] = { type: h.type, id: h.id };
+    }
+    player.hotkeys = clean;
+    uiDirty();
   },
   setMarkers(markers) {
     player.markers = (Array.isArray(markers) ? markers : []).slice(0, MAX_MARKS)

@@ -16,8 +16,10 @@ function acceptWebSocket(req, socket) {
   const accept = crypto.createHash('sha1').update(key + GUID).digest('base64');
   socket.write(['HTTP/1.1 101 Switching Protocols', 'Upgrade: websocket', 'Connection: Upgrade', `Sec-WebSocket-Accept: ${accept}`, '', ''].join('\r\n'));
   socket.setNoDelay(true);
+  socket.setKeepAlive(true, 10000);
 
-  const ws = { open: true, onmessage: null, onclose: null, send, close };
+  // buffered(): bytes written but not yet taken by the page; lastSeen: when it last sent anything (a pong counts)
+  const ws = { open: true, onmessage: null, onclose: null, send, close, ping, destroy, buffered: () => socket.writableLength, lastSeen: Date.now() };
   let buffer = Buffer.alloc(0), fragments = [], fragmentBytes = 0;
 
   function frame(opcode, payload) {
@@ -38,6 +40,13 @@ function acceptWebSocket(req, socket) {
   function send(text) {
     if (ws.open) socket.write(frame(1, Buffer.from(text)));
   }
+  function ping() {
+    if (ws.open) socket.write(frame(9, Buffer.alloc(0)));
+  }
+  function destroy() {
+    ws.open = false;
+    socket.destroy();
+  }
   function close() {
     if (!ws.open) return;
     ws.open = false;
@@ -47,7 +56,8 @@ function acceptWebSocket(req, socket) {
   }
 
   socket.on('data', chunk => {
-    buffer = Buffer.concat([buffer, chunk]);
+    ws.lastSeen = Date.now();
+    buffer = buffer.length ? Buffer.concat([buffer, chunk]) : chunk;
     while (buffer.length >= 2) {
       const fin = buffer[0] & 0x80, opcode = buffer[0] & 0x0f, masked = buffer[1] & 0x80;
       let len = buffer[1] & 0x7f, offset = 2;
