@@ -12,6 +12,8 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  wall_stone_top: 'wall-stone-top.png', // the owner's wall_stone strip, straight on (see wallFromStrip)
+  wall_stone_face: 'wall-stone-face.png', // the owner's wall_stone strip, straight on (see wallFromStrip)
   window_front: 'window-front.png', // the owner's window, painted straight on: laid onto the wall in its slant (both directions)
   stairs_up_stone: 'stairs-stone@4x.png', // the owner's stairs up, by the floor they stand on: stone (the wall's towers, the
   stairs_up_wood: 'stairs-wood@4x.png',   // crypt) and wood (houses, the bell tower); render.js picks by the tile's ground. The stone one also makes the temple
