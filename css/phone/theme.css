@@ -61,7 +61,19 @@ body.touch-ui .ctx-menu { background: rgba(25, 26, 27, 0.97) !important; border:
 body.touch-ui .ctx-menu button:active { background: var(--hud-active-top) !important; }
 body.touch-ui #fightModes button.active, body.touch-ui .fight-bar .follow.active { background: linear-gradient(var(--hud-active-top), var(--hud-active-bottom)) !important;
   color: var(--hud-text) !important; box-shadow: inset 0 0 0 1px rgba(213, 170, 96, 0.45) !important; }
-/* the talk card's words to say: slots with the word in the dialogue's gold (Good bye grey) */
-body.touch-ui .talk-words button { border: 1px solid var(--hud-edge) !important; border-radius: 6px !important;
-  background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important; color: #e8c886 !important; }
-body.touch-ui .talk-words button.bye { color: var(--hud-text-2) !important; }
+/* the talk card's words to say: even tiles in rows of three, the word in the dialogue's gold; a quest's word first,
+   edged in gold with a round ! (a task for you) or ? (news to tell), never a block of solid colour; Good bye last,
+   across the row, quiet */
+body.touch-ui .talk-words { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+body.touch-ui .talk-words button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; height: 42px; min-height: 0; padding: 0 8px !important;
+  border: 1px solid var(--hud-edge) !important; border-radius: 8px !important; background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important; color: #e8c886 !important; font: 600 14px/1 var(--ui) !important;
+  text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1 !important; }
+body.touch-ui .talk-words button:active { transform: scale(0.97); background: var(--hud-active-top) !important; }
+body.touch-ui .talk-words button.quest { border-color: rgba(242, 201, 76, 0.85) !important; background: linear-gradient(#3a2c16, #231a0c) !important; color: #ffd76a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(242, 201, 76, 0.18), 0 0 10px rgba(242, 201, 76, 0.18) !important; }
+body.touch-ui .talk-words button.quest::before { content: '!'; flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: #f2c94c; color: #1c1408; font: 800 12px/1 var(--ui); }
+body.touch-ui .talk-words button.quest.report::before { content: '?'; }
+body.touch-ui .talk-words button.bye { grid-column: 1 / -1; height: 36px; border-style: solid !important; background: transparent !important; box-shadow: none !important;
+  color: var(--hud-text-2) !important; font-weight: 500 !important; text-transform: none; }

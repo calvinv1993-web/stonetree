@@ -437,19 +437,23 @@ function showTalk(speaker, text) {
     if (!seen.includes(m[1].toLowerCase())) seen.push(m[1].toLowerCase());
   }
   // the word for a quest (what this NPC has for you, or what you're to tell them) stands out
-  const questWords = new Set();
+  const questWords = new Set(), reportWords = new Set();
   if (npc) {
     const news = questNews(npc.npcId);
-    if (news && news.word) questWords.add(news.word.toLowerCase());
+    if (news && news.word) (news.mark === 'report' ? reportWords : questWords).add(news.word.toLowerCase());
     for (const id of Object.keys(player.quests || {})) {
       if (!QUESTS[id] || player.quests[id].status !== 'active' || (questStep(id).npc || QUESTS[id].giver) !== npc.npcId) continue;
       const w = questWord(npc.npcId, id);
       if (w) questWords.add(w.toLowerCase());
     }
   }
+  // (a quest's word first: what they have for you, or what you've come to tell them)
+  const first = w => (reportWords.has(w) ? 0 : questWords.has(w) ? 1 : 2);
+  seen.sort((a, b) => first(a) - first(b));
   words.replaceChildren(...seen.map(w => {
     const b = document.createElement('button');
-    if (questWords.has(w)) b.className = 'quest';
+    if (reportWords.has(w)) b.className = 'quest report';
+    else if (questWords.has(w)) b.className = 'quest';
     b.textContent = w;
     b.addEventListener('click', () => Actions.say(w));
     return b;

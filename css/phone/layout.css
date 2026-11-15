@@ -426,9 +426,6 @@ body.touch-ui .guide.folded #guideNow { display: none !important; }
 .item-menu small { display: block; color: #b8a888; margin: 3px 0 8px; line-height: 1.35; }
 .item-menu-buttons { display: flex; gap: 6px; }
 .item-menu-buttons button { flex: 1; min-height: 38px; }
-/* a quest's word among an NPC's words: gold, with a mark */
-body.touch-ui #talkWords button.quest { background: #c8901c !important; color: #1c1408 !important; border-color: #f2c94c !important; font-weight: 700; }
-body.touch-ui #talkWords button.quest::before { content: '! '; }
 body.touch-ui { --tabbar: 82px; --rail: 0px; }
 body.touch-ui .hud { display: grid; }
 body.touch-ui .hud-lvl,body.touch-ui .hud-gold,body.touch-ui .hud-xp { display: none; }
