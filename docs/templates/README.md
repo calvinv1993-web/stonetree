@@ -1,6 +1,7 @@
 # Fill-in templates
 
-Five sheets, one per kind of picture. Fill in only the white frames, keep the pink corner marks, and send the sheet
+Sheets, one per kind of picture. Fill in the white frames and run on into the pale blue bleed round them (as print
+does: the cut is on the red dashed line, so the picture always goes on past it), keep the pink corner marks, and send the sheet
 back; `python3 tests/cut-template.py <filled.png> <kind> <folder>` cuts each frame out at its exact size, even when the
 sheet came back scaled. Every sheet carries the style card (the founder's statue: `docs/style-reference.png`).
 

@@ -35,7 +35,7 @@ def frames(img):
         bl = [c for c in corners['bl'] if abs(c[0] - x0) < 6 * s and c[1] > y0]
         if not tr or not bl: continue
         x1 = min(tr)[0]; y1 = min(bl, key=lambda c: c[1])[1]
-        m = 8 * s                                                   # (the marks sit 8 px outside the frame)
+        m = (8 + 16) * s                                            # (the marks sit 8 px outside the bleed, 16 px round the frame)
         rects.append((x0 + m, y0 + m, x1 - m + 1, y1 - m + 1))
     return sorted(rects, key=lambda r: (round(r[1] / 60), r[0]))
 
@@ -67,9 +67,7 @@ if __name__ == '__main__':
     img = Image.open(src)
     rects, sizes = frames(img), SIZES[kind]
     for k, ((x0, y0, x1, y1), (w, h)) in enumerate(zip(rects, sizes)):
-        # (inside the frame's own outline: a couple of the sheet's pixels in from its edge, so no frame line comes along)
-        t = max(2, round((x1 - x0) / w * 2))
-        box = (round(x0) + t, round(y0) + t, round(x1) - t, round(y1) - t)
+        box = (round(x0), round(y0), round(x1), round(y1))           # (the cut line: the picture runs on past it into the bleed)
         piece = img.crop(box).resize((w, h), Image.LANCZOS)
         if kind not in ('wall', 'ground'): piece = clean(piece)
         if kind == 'wall': piece = seamless(piece, both=False)

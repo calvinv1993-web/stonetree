@@ -21,22 +21,29 @@ def text(d,x,y,w,t,font=Fs,fill='#3a3020'):
         if d.textlength(line+wd,font=font)>w: d.text((x,y),line,fill=fill,font=font); line=''; y+=20
         line+=wd+' '
     d.text((x,y),line,fill=fill,font=font); return y+26
+BLEED=16
 def page(name,title,frames,rules,W=None):
     """frames: list of (label, w, h, guide fn) laid out left to right; rules: text"""
-    pad=40; gap=50
+    pad=60; gap=80
     W=W or max(900,pad*2+sum(f[1] for f in frames)+gap*(len(frames)-1)); H=1000
     c=Image.new('RGB',(W,2200),BG); d=ImageDraw.Draw(c)
     d.text((pad,20),title,fill='#5a3010',font=F)
-    x=pad; y=90; rowh=0
+    x=pad; y=120; rowh=0
     for lab,w,h,guide in frames:
-        if x+w>W-pad: x=pad; y+=rowh+70; rowh=0
-        d.text((x,y-26),lab,fill='#2a6a2a',font=Fm)
-        d.rectangle([x,y,x+w-1,y+h-1],fill='#ffffff',outline='#9a9080')
+        if x+w>W-pad: x=pad; y+=rowh+100; rowh=0
+        d.text((x-BLEED,y-34-BLEED),lab,fill='#2a6a2a',font=Fm)
+        B=BLEED  # the bleed: draw on past the cut line into this band, as print does, so a cut never shows the sheet
+        d.rectangle([x-B,y-B,x+w-1+B,y+h-1+B],fill='#f3f7ff')
+        for k in range(x-B,x+w+B,6): d.point((k,y-B),fill='#9ab0d0'); d.point((k,y+h-1+B),fill='#9ab0d0')
+        for k in range(y-B,y+h+B,6): d.point((x-B,k),fill='#9ab0d0'); d.point((x+w-1+B,k),fill='#9ab0d0')
+        d.rectangle([x,y,x+w-1,y+h-1],fill='#ffffff')
         if guide: guide(d,x,y,w,h)
-        marks(d,x-8,y-8,x+w+7,y+h+7)
+        dash(d,(x,y),(x+w,y),(220,60,60),1); dash(d,(x,y+h),(x+w,y+h),(220,60,60),1)   # the cut line
+        dash(d,(x,y),(x,y+h),(220,60,60),1); dash(d,(x+w,y),(x+w,y+h),(220,60,60),1)
+        marks(d,x-8-B,y-8-B,x+w+7+B,y+h+7+B)
         x+=w+gap; rowh=max(rowh,h)
     y+=rowh+40
-    y=text(d,pad,y,W-2*pad,'FILL IN ONLY THE WHITE FRAMES. Keep the sheet and the pink corner marks as they are. '+rules,font=Fm)
+    y=text(d,pad,y,W-2*pad,'FILL IN THE WHITE FRAMES AND RUN ON INTO THE PALE BLUE BLEED round them (as print does: I cut on the red dashed line, so the picture must go on past it). Keep the sheet and the pink corner marks as they are. '+rules,font=Fm)
     c.paste(card,(pad,y+10)); c=c.crop((0,0,W,y+card.height+30)); c.save(OUT+name+'.png'); print(name, c.size)
 
 # 1. a wall: its face (4 tiles, straight on) and its top (seen from above)
