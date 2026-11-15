@@ -12,14 +12,14 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  edge_sand_w: 'edge-sand-w.png', // the owner's sand border (a loose PNG: install-edge-png.py)
+  edge_sand_s: 'edge-sand-s.png', // the owner's sand border (a loose PNG: install-edge-png.py)
+  edge_sand_e: 'edge-sand-e.png', // the owner's sand border (a loose PNG: install-edge-png.py)
+  edge_sand_n: 'edge-sand-n.png', // the owner's sand border (a loose PNG: install-edge-png.py)
   tiles: 'tiles-own.png', // the owner's terracotta shop floor, from above (cut from grout to grout: 6 x 6 tiles over 4 x 4)
   wood: 'wood-own.png', // the owner's plank floor, from above (ground template: cut from joint to joint, see tests/install-ground-border.py)
   paving: 'paving-own.png', // the owner's paving, from above (ground + border template)
   cobble: 'cobble-own.png', // the owner's cobble, from above (ground + border template)
-  edge_sand_w: 'edge-sand-w.png', // the owner's sand border (ground + border template)
-  edge_sand_s: 'edge-sand-s.png', // the owner's sand border (ground + border template)
-  edge_sand_e: 'edge-sand-e.png', // the owner's sand border (ground + border template)
-  edge_sand_n: 'edge-sand-n.png', // the owner's sand border (ground + border template)
   sand: 'sand-own.png', // the owner's sand, from above (ground + border template)
   edge_dirt_w: 'edge-dirt-w.png', // the owner's dirt border (ground + border template)
   edge_dirt_s: 'edge-dirt-s.png', // the owner's dirt border (ground + border template)
