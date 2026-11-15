@@ -40,7 +40,9 @@ of `css/phone/theme.css` (`--hud-bg`, `--hud-slot-top`, `--hud-edge`, `--hud-gol
 no blur. The status bar, the map button and the bottom bar take every tap themselves, so none walks you to the map
 behind them (`tests/mobile-ui.test.js` checks it).
 
-Windows (menu, character, chooser, talk, chat, shop) share one dark and gold look: `css/phone/theme.css`.
+Windows (the drawer, menu, character, chooser, talk, chat, shop, loot) share the HUD's look: charcoal panels, grey
+edges, every place for a thing a slot, main buttons warm and dark with a thin gold edge, the chosen tab with a gold line
+at its foot (`css/phone/theme.css`, its colours at the top, the windows' parts at the end).
 The page fits the phone's screen and its safe areas (status bar, home indicator): `css/phone/layout.css`,
 `js/mobile-viewport.js`, `manifest.json`.
 

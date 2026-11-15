@@ -1,30 +1,31 @@
 /* The phone's look in one place: the colours every window, card, button and chip uses (the variables the touch
-   layer (layout.css) draws with), turned from neutral grey to the bars' dark wood and thin gold. Then the windows
-   themselves get the same gold edge as the status bar, the action bar and the drawer. Nothing moves; only colours. */
+   layer (layout.css) draws with), the same clean, nearly black look as the HUD: charcoal panels, soft grey edges,
+   ivory text and a little muted gold for what's chosen. Nothing moves; only colours. */
 body.touch-ui {
-  --bg: #12100c; --bg-2: #1a1712; --bg-3: #241f17; --bg-4: #31291c;
-  --glass: rgba(18, 16, 12, 0.93);
-  --line: rgba(200, 160, 90, 0.16); --line-2: rgba(200, 160, 90, 0.3);
-  --text: #eee6d4; --muted: #a89c80; --faint: #6e6450;
-  --accent: #e6b85f; --accent-soft: rgba(230, 184, 95, 0.15); --accent-line: rgba(230, 184, 95, 0.5);
-  --gold-edge: #a8823f;
+  --bg: #151617; --bg-2: #191a1b; --bg-3: #202123; --bg-4: #303133;
+  --glass: rgba(21, 22, 23, 0.95);
+  --line: rgba(255, 255, 255, 0.08); --line-2: rgba(255, 255, 255, 0.16);
+  --text: #f2ebdd; --muted: #b8b5ad; --faint: #7d7a73;
+  --accent: #d5aa60; --accent-soft: rgba(213, 170, 96, 0.12); --accent-line: rgba(213, 170, 96, 0.45);
+  --gold-edge: rgba(255, 255, 255, 0.16);
+  --ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* (the phone's own letters, as the HUD's) */
 }
-/* the windows: dark, a thin gold edge (and no blur of the map behind them: nothing on the phone blurs, it costs too much) */
+/* the windows: charcoal, a thin grey edge (and no blur of the map behind them: nothing on the phone blurs, it costs too much) */
 body.touch-ui .panel, body.touch-ui .fav-picker, body.touch-ui .talk-card:not([hidden]), body.touch-ui.chat-open .console,
 body.touch-ui .guide, body.touch-ui .window, body.touch-ui .dialog, body.touch-ui .shop {
-  background: linear-gradient(#1c1913, #0d0c09) !important; border-color: var(--gold-edge) !important;
+  background: linear-gradient(#191a1b, #151617) !important; border-color: var(--gold-edge) !important;
 }
 body.touch-ui .panel, body.touch-ui.chat-open .console { border-width: 1px 0 0 !important; border-style: solid !important; }
 body.touch-ui .fav-picker, body.touch-ui .talk-card:not([hidden]), body.touch-ui .window, body.touch-ui .dialog, body.touch-ui .shop { border: 1px solid var(--gold-edge) !important; }
 body.touch-ui .guide { border: 1px solid var(--line-2) !important; border-left: 3px solid var(--accent) !important; }
-/* the choices in them: the active one gold, rows parted by a faint gold line */
+/* the choices in them: the active one in muted gold, rows parted by a faint line */
 body.touch-ui .seg button.active { background: var(--accent-soft) !important; color: var(--accent) !important; box-shadow: inset 0 0 0 1px var(--accent-line) !important; }
 body.touch-ui .menu-head, body.touch-ui .panel h2 { color: var(--accent) !important; }
-/* the fight bar's round buttons, like the action bar's */
-body.touch-ui #fightModes { background: linear-gradient(#1c1913, #0d0c09) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; }
-body.touch-ui .fight-bar .follow { background: linear-gradient(#1c1913, #0d0c09) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; }
+/* the fight bar's round buttons, like the action bar's slots */
+body.touch-ui #fightModes { background: linear-gradient(#303133, #202123) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; }
+body.touch-ui .fight-bar .follow { background: linear-gradient(#303133, #202123) !important; box-shadow: inset 0 0 0 1px var(--gold-edge) !important; }
 /* the pop-ups over the map (a level, a quest, a raid) */
-body.touch-ui .toast { background: #12100ce8 !important; border: 1px solid var(--line-2) !important; color: var(--text) !important; }
+body.touch-ui .toast { background: rgba(21, 22, 23, 0.94) !important; border: 1px solid var(--line-2) !important; color: var(--text) !important; }
 /* The HUD's tokens (status bar, map button, target, chat line, action bar: layout.css and the modules' stylesheets) */
 body.touch-ui {
   --hud-bg: #191a1b; --hud-bg-low: #151617;
@@ -35,3 +36,32 @@ body.touch-ui {
   --hud-bronze: rgba(168, 130, 63, 0.35);
   --hud-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+/* The windows' parts in the HUD's look (the action bar's slots): every place for a thing a slot, a pressed or main
+   button warm and dark with a thin gold edge (no bright gold or green blocks), the chosen tab lit with a gold line at
+   its foot, cards edged in grey with gold only for a word that matters */
+body.touch-ui .slot { border: 1px solid var(--hud-edge) !important; border-radius: 5px !important;
+  background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important; }
+body.touch-ui .window button.primary, body.touch-ui .dialog button.primary, body.touch-ui .item-menu button.primary, body.touch-ui button.primary,
+body.touch-ui #lootAll {
+  border: 1px solid rgba(213, 170, 96, 0.45) !important; background: linear-gradient(var(--hud-active-top), var(--hud-active-bottom)) !important;
+  color: var(--hud-text) !important; text-shadow: none; box-shadow: none !important;
+}
+body.touch-ui .item-menu button:not(.primary) { border: 1px solid var(--hud-edge) !important; background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important; color: var(--hud-text) !important; }
+body.touch-ui .item-menu.item-card, body.touch-ui .item-menu { background: linear-gradient(#191a1b, #151617) !important; border: 1px solid var(--hud-edge) !important; }
+body.touch-ui .item-menu .item-stats { background: #1c1d1f !important; border-radius: 5px; }
+body.touch-ui .drawer-tabs button.active { border-color: var(--hud-edge) !important; background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important;
+  color: var(--hud-text) !important; box-shadow: inset 0 -2px 0 var(--hud-gold) !important; }
+body.touch-ui .window button.active, body.touch-ui .dialog button.active, body.touch-ui .panel button.active:not(.seg button), body.touch-ui .seg button.active {
+  border-color: var(--hud-edge) !important; background: linear-gradient(var(--hud-active-top), var(--hud-active-bottom)) !important; color: var(--hud-text) !important;
+  box-shadow: inset 0 -2px 0 var(--hud-gold) !important;
+}
+body.touch-ui .guide { border: 1px solid var(--hud-edge) !important; border-left: 2px solid var(--hud-gold) !important; }
+body.touch-ui .story { border: 1px solid var(--hud-edge) !important; background: #1c1d1f !important; }
+body.touch-ui .ctx-menu { background: rgba(25, 26, 27, 0.97) !important; border: 1px solid var(--hud-edge) !important; border-radius: 8px !important; }
+body.touch-ui .ctx-menu button:active { background: var(--hud-active-top) !important; }
+body.touch-ui #fightModes button.active, body.touch-ui .fight-bar .follow.active { background: linear-gradient(var(--hud-active-top), var(--hud-active-bottom)) !important;
+  color: var(--hud-text) !important; box-shadow: inset 0 0 0 1px rgba(213, 170, 96, 0.45) !important; }
+/* the talk card's words to say: slots with the word in the dialogue's gold (Good bye grey) */
+body.touch-ui .talk-words button { border: 1px solid var(--hud-edge) !important; border-radius: 6px !important;
+  background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important; color: #e8c886 !important; }
+body.touch-ui .talk-words button.bye { color: var(--hud-text-2) !important; }

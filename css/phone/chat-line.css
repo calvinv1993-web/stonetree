@@ -24,14 +24,14 @@ body.touch-ui.chat-open .chat-line { visibility: hidden; }
 body.touch-ui .console .chat-close { display: none !important; }
 /* the same tab as the drawer's (inventory-drawer.css), over the console's own button look */
 body.touch-ui .console > .chat-tab { top: -16px; z-index: 2; width: 46px; height: 16px; min-width: 0; min-height: 0; padding: 0; margin: 0;
-  border: 1px solid #8a6a32 !important; border-bottom: 0 !important; border-radius: 10px 10px 0 0 !important;
-  background: linear-gradient(#262117, #12100b) !important; color: #e6b85f; box-shadow: none; }
+  border: 1px solid rgba(255, 255, 255, 0.16) !important; border-bottom: 0 !important; border-radius: 10px 10px 0 0 !important;
+  background: linear-gradient(#303133, #202123) !important; color: #d5aa60; box-shadow: none; }
 body.touch-ui .chat-tab .drawer-chevrons { transform: none !important; }
 body.touch-ui .chat-input-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-top: 1px solid var(--line, #3a2e1c); }
 body.touch-ui .chat-input-row #chat { flex: 1; min-width: 0; border: 1px solid var(--line-2) !important; border-radius: 18px !important; padding: 8px 14px; }
-body.touch-ui .chat-send { flex: none; width: 40px; height: 40px; min-width: 0; padding: 0; border-radius: 50% !important; border: 1px solid #e6b85f !important;
-  background: radial-gradient(circle at 50% 30%, #d8a648, #7a5418) !important; display: flex; align-items: center; justify-content: center; }
-body.touch-ui .chat-send svg { display: block; width: 20px; height: 20px; margin: 0; fill: none; stroke: #1d1404; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+body.touch-ui .chat-send { flex: none; width: 40px; height: 40px; min-width: 0; padding: 0; border-radius: 50% !important; border: 1px solid #d5aa60 !important;
+  background: linear-gradient(#594735, #302a23) !important; display: flex; align-items: center; justify-content: center; }
+body.touch-ui .chat-send svg { display: block; width: 20px; height: 20px; margin: 0; fill: none; stroke: #f2ebdd; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .chat-input-row { display: contents; }
 .chat-send { display: none; }
 body.touch-ui .chat-send { display: flex; }
