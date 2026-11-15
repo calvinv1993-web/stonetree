@@ -3005,7 +3005,15 @@ const Sprites = (() => {
       // face, transparent round the window): laid onto the wall's face in the world's slant, the same picture for both
       const front = customImage('window_front');
       if (front) {
-        extruded(g, shape, front, 0, 0, 32, 32, 0, 1.6, 0.6);
+        // set into the wall: seen through its opening in the face, the window sits back in the wall's thickness, the
+        // opening's sides (the sill most, seen from above) showing in front of it
+        const at = wallSpot(shape), [u0, y0, u1, y1] = [9, 7.75, 23, 22], D = 2.5;
+        g.save();
+        g.beginPath(); for (const [u, y] of [[u0, y0], [u1, y0], [u1, y1], [u0, y1]]) g.lineTo(...at(u, 0, 32 - y)); g.closePath(); g.clip();
+        g.fillStyle = '#4a4440'; g.fillRect(-64, -64, 256, 256);            // the opening's sides, in the wall's stone
+        wallPoly(g, shape, -D, 'rgba(10,8,6,0.45)', [u0, 32 - y0, u1, 32 - y0, u1, 32 - y1, u0, 32 - y1]);
+        onWallPlane(g, shape, -D, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(front, 0, 0, 32, 32); });
+        g.restore();
         return;
       }
       const at = wallSpot(shape), east = runsNorthSouth(wallSides(shape)), D = 4, u0 = 10, u1 = 22, h0 = 12, h1 = 26;
