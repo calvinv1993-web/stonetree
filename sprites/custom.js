@@ -197,10 +197,6 @@ const CUSTOM_SPRITES = {
   wall_crypt_face: 'crypt-face.png',
   wall_cave_face: 'cave-face.png', // the owner's cave rock
   cliff_face: 'cliff-face.png', // the mountains' rock sides: a strip of faces, from the owner's picture (see blockFromPicture)
-  window_stained_s: 'banner-temple-s.png', // the temple's blue banners with a golden star, from the owner's picture: on a wall
-  window_stained_e: 'banner-temple-e.png', // running east-west (its south face) and north-south (its east face)
-  banner_s: 'banner-temple-s.png',
-  banner_e: 'banner-temple-e.png',
   altar: 'altar@2x.png', // the temple's altar, from the owner's picture
   torch: 'torch@2x.png', // the standing torches and the torches on walls running north-south, from the owner's picture
   wall_torch_e: 'wall-torch-e.png',

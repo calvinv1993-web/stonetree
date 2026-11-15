@@ -1204,7 +1204,7 @@ function buildTown(m, S, runs, river) {
         // windows on straight stretches of wall, every third tile, not next to the door
         const straight = (isWall(b, x - 1, y) && isWall(b, x + 1, y)) || (isWall(b, x, y - 1) && isWall(b, x, y + 1));
         const along = isWall(b, x - 1, y) && isWall(b, x + 1, y) ? x : y;
-        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) put(x, y, z, b.wall === 'wall_temple' ? 'window_stained' : 'window'); // stained glass in the temple's stone
+        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) { if (b.wall !== 'wall_temple') put(x, y, z, 'window'); } // (the temple's walls stay bare)
       });
     }
     const [dx, dy] = b.door;
@@ -1276,7 +1276,6 @@ function buildTown(m, S, runs, river) {
     for (let y = t.y0 + 1; y <= t.y0 + 3; y++) for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug'); // a rug under the altar
     put(cx, t.y0 + 1, Z, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, Z, 'torch');
-    for (const x of [cx - 3, cx + 3]) put(x, t.y0, Z, 'banner');
     for (const x of [t.x0 + 1, t.x1 - 1]) { put(x, t.y0 + 1, Z, 'saint'); put(x, t.y1 - 1, Z, 'plant'); }
     for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, t.y0 + 3, Z, 'pew');
     for (const y of [t.y0 + 2]) { put(t.x0, y, Z, 'wall_torch'); put(t.x1, y, Z, 'wall_torch'); }
