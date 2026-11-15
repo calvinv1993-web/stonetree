@@ -193,6 +193,8 @@ const THINGS = {
   chest:       { name: 'chest', cat: 'Furniture', block: true, low: true, movable: true },
   barrel:      { name: 'barrel', cat: 'Furniture', block: true, low: true, movable: true },
   crate:       { name: 'crate', cat: 'Furniture', block: true, low: true, movable: true },
+  // a crate fallen over in the bell cellar, with the temple's cat stuck behind it (Clang: a quest of Sister Ama's)
+  clang_crate: { name: 'fallen crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate', rescue: 'clang_rescue' },
   bookshelf:   { name: 'bookshelf', cat: 'Furniture', block: true, bookshelf: true },
   altar:       { name: 'altar', cat: 'Furniture', block: true, low: true },
   gravestone:  { name: 'gravestone', cat: 'Furniture', block: true, low: true },

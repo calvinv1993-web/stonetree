@@ -60,6 +60,7 @@ function newPlayer(name) {
     chests: {},     // flags of quest chests already opened
     blessed: false, house: null, furniture: [], hotkeys: {}, markers: [],
     tutorial: 1, tale: 0, // the guide's step (0: done), and how far into the island's tale
+    pet: null, // a companion that follows you and fights with you: { name, kind, level, xp } (Clang, the temple's cat)
     born: Math.floor(Math.random() * 36 ** 6).toString(36), // this character's own mark: what a browser keeps for it (its action buttons) starts fresh with a new one of the same name
     fightMode: 'balanced', chase: true, secure: true, conditions: {},
     path: [], pathGoal: null, action: null, target: null, openPile: null,
@@ -497,6 +498,7 @@ function useThing(x, y, z) {
     }
     if (def.fireSwap) return swapFire(x, y, z, i), true;
     if (def.chest) return openChest(def.chest), true;
+    if (def.rescue) return rescueAt(def.rescue, id), true;
     if (def.bell) return ringBell(x, y, z), true;
     if (def.trainer) return startTraining(x, y, z), true;
     if (def.cache) return openChest({ flag: `cache:${x},${y},${z}`, ...(map.getMeta(x, y, z) || {}) }), true;
@@ -1257,6 +1259,7 @@ const questStep = id => questSteps(QUESTS[id])[player.quests[id].step || 0];
 
 function stepReady(id) {
   const s = questStep(id), kills = player.quests[id].kills;
+  if (s.thing) return false; // (done at a thing in the world: rescueAt)
   if (s.kill) return Object.entries(s.kill).every(([type, n]) => (kills[type] || 0) >= n);
   if (s.fetch) return countItem(s.fetch) > 0;
   return true;
@@ -1300,6 +1303,10 @@ function advanceQuest(id) {
   if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
   if (r.xp) gainXp(r.xp);
   if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
+  if (r.pet && !player.pet) { // a companion: it follows you from now on (game-update.js updatePet)
+    player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0 };
+    log(`${r.pet.name} is your companion now: it follows you, fights at your side, and grows stronger as it fights and trains with you.`, 'level');
+  }
   uiDirty();
 }
 
@@ -1317,6 +1324,18 @@ function onMonsterKilled(type) {
     } else log(`${QUESTS[id].name}: done! Report to ${NPCS[st.npc || QUESTS[id].giver].name}.`, 'quest');
   }
   uiDirty();
+}
+
+// A thing a quest step waits at (step.thing): the crate in the bell cellar, with Clang behind it
+function rescueAt(questId, thingId) {
+  const st = questState(questId) === 'active' && questStep(questId);
+  if (st && st.thing === thingId) {
+    if (st.done) log(st.done, 'quest');
+    addSparkle(player, '#ffe080');
+    return advanceQuest(questId);
+  }
+  if (questState(questId) === 'done' || player.pet) return log('Nothing behind it now but dust and a few cat hairs.');
+  log(questState(questId) === 'active' ? 'Something behind the crate hisses at the rats. Deal with them first.' : 'Something moves behind the crate, and mews.');
 }
 
 function openChest(chest) {
@@ -1364,7 +1383,7 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };

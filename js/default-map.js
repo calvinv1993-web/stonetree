@@ -291,7 +291,7 @@ const SEWERS = {
   torches: [[108, 127], [116, 127], [125, 127], [137, 127], [143, 127], [131, 107]],
   props: [
     [103, 121, 'barrel'], [104, 121, 'barrel'], [105, 121, 'qchest_oak_cap'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
-    [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
+    [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [148, 105, 'clang_crate'], // (Clang, the temple's cat, stuck behind it) [133, 105, 'rubble'], [138, 105, 'bones'],
     [140, 104, 'rubble'], [134, 105, 'rubble'],
     [142, 137, 'bones'], [149, 138, 'bones'], [144, 140, 'qchest_oak_shield'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'], // a shield the rats dragged into their nest
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],

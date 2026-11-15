@@ -454,7 +454,9 @@ function draw() {
   }
   for (const f of fields) view.objects.push({ x: f.x, y: f.y, z: f.z, img: Sprites.field(f.kind, now) });
   const riding = p => p.ride && p.ride.boarded; // in a cab, out of sight
-  const creatures = [...npcs, ...monsters.filter(m => !m.dead), ...players.filter(p => !p.dead && !riding(p))];
+  // (companions too: yours, and those of the players round you)
+  const pets = [...new Set([player, ...players])].filter(p => p.petBody && !p.dead && !riding(p)).map(p => p.petBody);
+  const creatures = [...npcs, ...monsters.filter(m => !m.dead), ...players.filter(p => !p.dead && !riding(p)), ...pets];
   // Only those on screen (or just off it) are drawn: the other thousand can wait.
   const shown = creatures.filter(c => Math.abs(c.x - player.x) <= VIEW_W / 2 + 3 && Math.abs(c.y - player.y) <= VIEW_H / 2 + 3);
   for (const c of shown) {
@@ -693,6 +695,10 @@ function drawCreatureInfo(c, screen, struck) {
     ctx.globalAlpha = 1;
   };
   if (player.follow === c.id && c !== player.target) frame('#30e040', 1);
+  if (c.pet) { // a companion: its name and level, warm, no health bar (nothing hurts it)
+    outlinedText(`${c.name} (${c.level})`, sx + size / 2, ty + 2, '#ffd98a', 'bold 11px sans-serif');
+    return;
+  }
   if (c.type === 'npc') {
     outlinedText(c.name, sx + size / 2, ty - 4, '#8fd0ff', 'bold 12px sans-serif');
     // Above anyone who has something for you: ! a new quest (grey until you're strong enough), ? news to hand in.

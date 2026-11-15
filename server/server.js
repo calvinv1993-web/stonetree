@@ -381,7 +381,7 @@ function act(conn, msg) {
 // ---- what each player gets 20 times a second -----------------------------------------------
 const near = (p, o) => o.z !== undefined && Math.abs(o.x - p.x) <= VIEW.x && Math.abs(o.y - p.y) <= VIEW.y;
 const ALWAYS = ['id', 'name', 'trainHits', 'x', 'y', 'z', 'dir', 'walk', 'hp', 'maxHp', 'mana', 'maxMana', 'level', 'xp', 'gold', 'bank', 'dead',
-  'respawnAt', 'conditions', 'spellReady', 'potionReady', 'fedUntil', 'lightUntil', 'skullUntil', 'redSkullUntil', 'pzLockUntil', 'frags', 'vocation', 'promoted', 'outfit', 'fightMode', 'chase', 'secure', 'blessed', 'house', 'home', 'follow', 'tutorial', 'born'];
+  'respawnAt', 'conditions', 'spellReady', 'potionReady', 'fedUntil', 'lightUntil', 'skullUntil', 'redSkullUntil', 'pzLockUntil', 'frags', 'vocation', 'promoted', 'outfit', 'fightMode', 'chase', 'secure', 'blessed', 'house', 'home', 'follow', 'tutorial', 'born', 'pet', 'petBody'];
 const SOMETIMES = ['equipment', 'depot', 'skills', 'quests', 'chests', 'hotkeys', 'markers', 'furniture'];
 
 function youState(conn) {
@@ -414,7 +414,7 @@ function snapshot(conn, tiles) {
     players: G.players.filter(o => o !== p && near(p, o)).map(o => ({
       id: o.id, name: o.name, vocation: o.vocation, promoted: o.promoted, outfit: o.outfit, level: o.level,
       x: o.x, y: o.y, z: o.z, dir: o.dir, walk: o.walk, hp: o.hp, maxHp: o.maxHp, dead: o.dead, skullUntil: o.skullUntil, redSkullUntil: o.redSkullUntil, yellow: (o.yellowTo || {})[p.id] > G.now, ride: W.rideView(o.ride),
-      partyMark: W.partyMark(o, p), guildInfo: W.guildInfo(o), lightUntil: o.lightUntil,
+      partyMark: W.partyMark(o, p), guildInfo: W.guildInfo(o), lightUntil: o.lightUntil, petBody: o.petBody || null,
     })),
     monsters: G.monsters.filter(m => !m.dead && near(p, m)).map(m => ({
       id: m.id, type: m.type, name: m.name, x: m.x, y: m.y, z: m.z, dir: m.dir, walk: m.walk, hp: m.hp, maxHp: m.maxHp,

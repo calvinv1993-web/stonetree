@@ -1591,6 +1591,31 @@ Object.assign(QUESTS, {
       done: 'The bell is still silent, $name. Grow stronger at the town gates; Master Corwin will send for you when you are ready.',
     },
   },
+  // Clang, the temple's cat, chased the rats down into the bell cellar and got stuck: get him back, and he's yours
+  // (a companion that fights at your side and grows: PETS in creatures.js, updatePet in game-update.js)
+  clang_rescue: {
+    name: 'Clang', story: 'The Silent Bell', giver: 'ama', level: 2, word: 'clang', after: 'bell_1',
+    reward: { xp: 60, pet: { name: 'Clang', kind: 'cat' } },
+    summary: 'Find Clang, the temple cat, in the bell cellar under the temple, and bring him home.',
+    steps: [
+      { auto: true, kill: { rat: 3 }, summary: 'Down the grate on the square and north under it to the bell cellar, below the temple: kill 3 rats there.',
+        progress: 'The bell cellar lies at the north end of the sewers, under the temple. Rats killed: $progress.',
+        done: 'The rats scatter. From behind a fallen crate at the far end of the cellar comes a small, offended mew.' },
+      { thing: 'clang_crate', summary: 'Move the fallen crate at the east end of the bell cellar and free Clang.',
+        progress: 'Clang is behind the fallen crate at the east end of the bell cellar.',
+        done: 'You heave the crate aside. A grey cat with a bell on his collar shoots out, looks at you, and decides you will do. Clang!' },
+      { npc: 'ama', word: 'clang', summary: 'Bring Clang back to Sister Ama in the temple.',
+        progress: 'Sister Ama waits in the temple.',
+        done: 'Clang! You silly thing. He has not left your side, has he, $name? Then he has chosen. Keep him: he is braver than he looks, and he will grow braver still at your side.' },
+    ],
+    text: {
+      offer: 'Our cat, Clang, has not come home since the bell went quiet. I hear him at night, under the floor: he must have chased the rats down into the bell cellar. Would you bring him back? ({yes}/{no})',
+      accept: 'Bless you. Go down the grate on the square, and north under it: the bell cellar is right below us. Take a light.',
+      tooWeak: 'The cellar is dark and full of rats, $name. Come back at level 2, with a light.',
+      elsewhere: 'Sister Ama in the temple is waiting for her cat.',
+      done: 'Clang looks well. You are good for each other.',
+    },
+  },
   // Under the town, at level 2, with a light: the first way down, a few rats, and a shield to wear (the guide sends
   // you here before the gate watch; the chest opens once the rats are dead)
   cellar_shield: {
@@ -1744,6 +1769,7 @@ Object.assign(NPCS, {
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
     greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
     keywords: {
+      'clang|cat|kitten': { quest: ['clang_rescue'] },
       'galen|knight|ash|spark': { after: 'bell_4', text: 'Galen... I lit candles for him for twenty years. And all that time he was waiting for the bell to fall silent. Whatever the founders hid in that bronze, $name, the Choir wants it. As long as the bell rings, the spark is ours.' },
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',

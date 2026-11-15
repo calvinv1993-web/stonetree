@@ -159,6 +159,27 @@ const GUIDE = [
     target: [{ at: [131, 111, 7] }, { quest: 'cellar_shield' }, { npc: 'corwin' }],
     done: () => questState('cellar_shield') === 'done',
   },
+  // ---- Clang: the temple's cat, a companion for the road ----
+  {
+    text: 'Sister Ama has lost her cat, Clang: he chased the rats down into the bell cellar under the temple. Ask her about Clang.',
+    touch: 'Sister Ama has lost her cat, Clang: he chased the rats down into the bell cellar under the temple. Ask her about Clang.',
+    target: [{ news: ['ama'] }, { npc: 'ama' }],
+    done: () => questState('clang_rescue') !== 'none',
+  },
+  {
+    text: 'Down the grate on the square, then north under it to the bell cellar. Kill the rats there ($progress), then move the fallen crate at its east end.',
+    touch: 'Down the grate on the square, then north under it to the bell cellar. Kill the rats there ($progress), then tap the fallen crate at its east end.',
+    art: 'clang',
+    target: [{ at: [131, 111, 8] }, { hunt: ['clang_rescue'] }, { at: [148, 105, 7] }],
+    done: () => questState('clang_rescue') === 'done' || (!!player.quests.clang_rescue && player.quests.clang_rescue.step >= 2),
+  },
+  {
+    text: 'Clang is free! Bring him home to Sister Ama: he will follow you. From then on he fights at your side, and grows stronger as he fights and trains with you.',
+    touch: 'Clang is free! Bring him home to Sister Ama: he will follow you. From then on he fights at your side, and grows stronger as he fights and trains with you.',
+    art: 'clang',
+    target: [{ at: [131, 111, 7] }, { quest: 'clang_rescue' }, { npc: 'ama' }],
+    done: () => questState('clang_rescue') === 'done',
+  },
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
     touch: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',

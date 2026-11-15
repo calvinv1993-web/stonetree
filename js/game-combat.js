@@ -207,6 +207,8 @@ function trainTick() {
   if (w.kind === 'distance') { addMissile(player, t, w.missile || 'arrow'); addSkillTries('distance'); }
   else addSkillTries(w.skill);
   player.trainHits++;
+  // your companion, beside you, trains too (a blow of its own at the dummy, now and then)
+  if (player.petBody && dist(player.petBody, t) <= 2 && player.trainHits % 2 === 0) petLearn(1);
   addSound('hit', t.x, t.y, t.z);
   addBurst(t.x, t.y, t.z, '#e8d48a'); // (straw flies)
 }

@@ -817,6 +817,23 @@ test('the Gravewaker was Sir Galen: he speaks, and what people say changes once 
   assert(/burning mountain/.test(talk('choir')), 'and Corwin knows of the Ashen Choir');
 });
 
+test('Clang, a companion: follows you, fights what you fight, and grows as he fights and trains', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  p.pet = { name: 'Clang', kind: 'cat', level: 1, xp: 0 };
+  ctx.teleport({ x: 120, y: 160, z: 8 }); tick(game, 200);
+  assert(p.petBody && p.petBody.z === 8 && state.dist(p.petBody, p) <= 2, 'he appears beside you');
+  ctx.teleport({ x: 128, y: 170, z: 8 }); tick(game, 3000);
+  assert(state.dist(p.petBody, p) <= 2, 'and keeps up when you go');
+  const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 3, y: p.y, z: 8 }); rat.def = { ...rat.def, aggro: 0 }; rat.hp = rat.maxHp = 999;
+  state.monsters.push(rat); p.target = rat; tick(game, 6000);
+  assert(rat.hp < 999, 'he scratches your target');
+  for (let i = 0; i < 40; i++) ctx.petLearn(1);
+  assert(p.pet.level >= 2 && messages.some(m => /Clang grows stronger/.test(m)), 'and grows');
+  p.dead = true; ctx.updatePet(); assert.strictEqual(p.petBody, null, 'gone while you are dead');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -900,6 +917,14 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.equipment.shield, 'the shield worn');
   assert.strictEqual(arrow(), '131,111,7', 'back up the ladder');
   talk('corwin', 'shield'); assert.strictEqual(state.questState('cellar_shield'), 'done');
+  // Clang, the temple's cat: down in the bell cellar, then a companion
+  assert.strictEqual(arrow(), 'ama', 'to Sister Ama, about her cat'); talk('ama', 'clang', 'yes'); on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), '131,111,8', 'down the grate');
+  on(null, { x: 140, y: 104, z: 7 }); kill('rat', 3);
+  assert.strictEqual(arrow(), '148,105,7', 'to the fallen crate');
+  ctx.useThing(148, 105, 7); tick(game, 200);
+  talk('ama', 'clang'); assert.strictEqual(state.questState('clang_rescue'), 'done');
+  assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
   assert.strictEqual(arrow(), 'gate_west', 'on to the gate watch');
   for (const [id, word, type, n, level, next] of [['gate_west', 'wolves', 'wolf', 8, 2, 'gate_south'], ['gate_south', 'crabs', 'crab', 6, 3, 'gate_east'],
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {

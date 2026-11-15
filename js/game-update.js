@@ -375,13 +375,72 @@ function targetNext() {
   player.target = near.length ? near[(near.indexOf(player.target) + 1) % near.length] : null;
 }
 
+// ---- a companion (Clang, the temple's cat): it follows you, fights what you fight, and grows ------------------------
+// Its body (player.petBody) isn't saved: it's made again beside you, and comes back to you when you go too far,
+// change floors or ride. It never blocks anyone, monsters don't go after it, and nothing hurts it.
+function updatePet() {
+  const pet = player.pet, kind = pet && PETS[pet.kind];
+  if (!kind || player.dead || player.ride) { player.petBody = null; return; }
+  let b = player.petBody;
+  if (!b || b.z !== player.z || dist(b, player) > 8) {
+    const at = findFreeTile(player.x, player.y + 1, player.z, 2) || player;
+    b = player.petBody = { id: (b && b.id) || newId(), type: kind.look, pet: true, name: pet.name, level: pet.level, x: at.x, y: at.y, z: player.z, dir: 2, walk: null, nextMove: 0, nextHit: 0 };
+  }
+  b.level = pet.level;
+  if (b.walk && now - b.walk.start >= b.walk.dur) b.walk = null;
+  if (b.walk || now < b.nextMove) return;
+  const t = player.target && !player.target.dead && player.target.z === b.z && dist(player.target, player) <= 7 ? player.target : null;
+  if (t && dist(b, t) <= 1) { // at its target: a scratch every so often
+    b.dir = dirTo(t.x - b.x, t.y - b.y);
+    if (now >= b.nextHit) { b.nextHit = now + kind.hitEvery; petHit(t, kind); }
+    return;
+  }
+  const goal = t || player, near = t ? 1 : 1.5;
+  if (dist(b, goal) <= near) return;
+  // one step towards it (diagonals too), round what's in the way
+  let best = null, bestD = dist(b, goal);
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    if (!dx && !dy) continue;
+    const n = { x: b.x + dx, y: b.y + dy, z: b.z };
+    if (!isFree(n.x, n.y, n.z) || map.floorChange(n.x, n.y, n.z)) continue;
+    const d = dist(n, goal) + (dx && dy ? 0.1 : 0);
+    if (d < bestD) { best = [dx, dy]; bestD = d; }
+  }
+  if (!best) return void (b.nextMove = now + 300);
+  const [dx, dy] = best, dur = (dx && dy ? 2 : 1) * 260; // (a little quicker than you: it keeps up)
+  b.walk = { fromX: b.x, fromY: b.y, start: now, dur };
+  b.dir = dirTo(dx, dy); b.x += dx; b.y += dy; b.nextMove = now + dur;
+}
+
+// A pet's blow: a little damage (yours, for the kill and its loot), and it learns from it
+function petHit(m, kind) {
+  const pet = player.pet, [lo, hi] = kind.dmg(pet.level);
+  addSound('hit', m.x, m.y, m.z);
+  damageMonster(m, randInt(lo, hi), 'physical');
+  petLearn(1);
+}
+
+// A pet grows: a point for each blow (on a monster or, training beside you, on a dummy)
+function petLearn(n) {
+  const pet = player.pet, kind = pet && PETS[pet.kind];
+  if (!kind || pet.level >= kind.maxLevel) return;
+  pet.xp += n;
+  if (pet.xp < kind.xpFor(pet.level)) return;
+  pet.xp = 0; pet.level++;
+  log(`${pet.name} grows stronger! (level ${pet.level})`, 'level');
+  if (player.petBody) addSparkle(player.petBody, '#ffe080');
+  uiDirty();
+}
+
 function updatePlayer() {
   if (player.dead) {
+    player.petBody = null; // (your companion waits for you at the temple)
     if (now >= player.respawnAt) respawnPlayer();
     return;
   }
   if (player.teleportAt && now >= player.teleportAt) arriveOnMainland();
   updateGuide();
+  updatePet();
   tickConditions(player);
   if (player.dead) return;
   if (player.skullUntil && now >= player.skullUntil) {

@@ -216,6 +216,8 @@ const GUIDE_ART = (() => {
     torch: () => [row(cap(h('span', { className: 'ga-step do' }, 'Lv 2'), 'a new spell'), h('span', { className: 'ga-arrow' }, '→'),
       cap(Object.assign(new Image(34, 34), { src: ActionSlots.art('light') || '', className: 'ga-pic', alt: '' }), touchScreen ? 'put it on a +' : '1 or "lumen"'),
       h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '✺'), 'light in the dark'))],
+    clang: () => [row(cap(h('span', { className: 'ga-yellow' }, '🐈'), 'Clang'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(h('span', { className: 'ga-step do' }, 'fights'), 'at your side'), cap(h('span', { className: 'ga-step' }, 'grows'), 'as you hunt and train'))],
     sewer: () => [row(cap(h('span', { className: 'ga-yellow' }, '▦'), 'the grate'), h('span', { className: 'ga-arrow' }, '→'),
       cap(h('b', { className: 'ga-big' }, '5×'), 'rats'), h('span', { className: 'ga-arrow' }, '→'), cap(pic('wooden_shield'), 'your shield'))],
     death: () => [row(cap(h('span', { className: 'ga-good' }, '✓'), 'you keep your things'), cap(h('span', { className: 'ga-bad' }, '−'), 'a little experience'),
