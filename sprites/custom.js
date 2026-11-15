@@ -12,6 +12,7 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  wood: 'wood-own.png', // the owner's plank floor, from above (ground template: cut from joint to joint, see tests/install-ground-border.py)
   paving: 'paving-own.png', // the owner's paving, from above (ground + border template)
   cobble: 'cobble-own.png', // the owner's cobble, from above (ground + border template)
   edge_sand_w: 'edge-sand-w.png', // the owner's sand border (ground + border template)

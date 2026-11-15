@@ -3666,6 +3666,18 @@ const Sprites = (() => {
         DRAW.paving(g, makeRng(hashStr('paving') + y * 4 + x)); g.restore();
       }
     } },
+    // the owner's plank floor: one painting over 4 x 4 tiles, two planks a tile; drawn tile by tile till it's in
+    wood: { tiles: 4, res: () => ownRes('wood', 4), draw: g => {
+      const image = customImage('wood');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.wood(g, makeRng(hashStr('wood') + y * 4 + x)); g.restore();
+      }
+    } },
     // the owner's beach sand (ground + border template): one painting over 4 x 4 tiles; drawn tile by tile till it's in
     sand: { tiles: 4, res: () => ownRes('sand', 4), draw: g => {
       const image = customImage('sand');

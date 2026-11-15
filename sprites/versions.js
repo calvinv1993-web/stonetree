@@ -273,5 +273,6 @@ const SPRITE_HASHES = {
   "well@4x.png":"9ea33e73e7",
   "window-box-s.png":"455ad4b256",
   "window-front.png":"80c94e2a49",
+  "wood-own.png":"6036542af7",
   "woodpile@4x.png":"56bf5eeab3",
 };
