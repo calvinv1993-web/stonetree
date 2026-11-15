@@ -1074,9 +1074,9 @@ function buildTown(m, S, runs, river) {
     // banners down the faces of the wall you see from outside (south and east), between the cannons
     for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }
     for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }
-    for (const [x, y] of R.stairs) { // stone stairs in the inner face, up through the walkway
-      m.set(x, y, S, { ground: 'paving', items: ['stairs_up'] });
-      m.setGround(x, y, S + 1, 'steps_top'); // (an open stairwell in the walkway: from above you see the stairs going down)
+    for (const [x, y] of R.stairs) for (let dx = -1; dx <= 1; dx++) { // a flight of stone steps up the inner face, three wide,
+      m.set(x + dx, y, S, { ground: 'paving', items: ['steps'] });   // as the temple mount's: their top is the walkway
+      m.setGround(x + dx, y, S + 1, 'steps_top');
     }
     // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, under a slate roof, so
     // you see from anywhere in town where the gate is; the walkway goes through it, a banner hangs on its town side
