@@ -461,6 +461,24 @@ const Render = {
             g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
           }
           if (!higher) continue;
+          // A diagonal: where a higher ground with border pictures of its own lies on two sides of this tile and across the
+          // corner between them (a staircase of tiles), its edge runs straight across this tile on the diagonal instead of
+          // round two sides, the corner beyond it filled with that ground: a run of such steps reads as one sloping edge.
+          for (const [n, mask] of [...higher]) {
+            if (!Sprites.hasOwnEdge(n)) continue;
+            const has = b => (mask & b) === b, sides = [1, 2, 4, 8].filter(has).length;
+            if (sides !== 2) continue;
+            const corner = has(1 | 8 | 128) ? 'nw' : has(1 | 2 | 16) ? 'ne' : has(4 | 2 | 32) ? 'se' : has(4 | 8 | 64) ? 'sw' : null;
+            if (!corner || walled(x, y)) continue;
+            // only on open ground, with this ground on the far sides too: beside a third (rock, a paving, a shore) the
+            // edge keeps to the tiles
+            const [, cx, cy] = BORDER_DIRS.find(d => d[0] === corner);
+            if (Sprites.paved(here) || here === 'mountain' || [[-cx, 0], [0, -cy], [-cx, -cy]].some(([dx, dy]) => groundAt(x + dx, y + dy) !== here)) continue;
+            const pic = Sprites.diagonalEdge(n, corner, x, y);
+            if (!pic) continue;
+            g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE);
+            higher.delete(n);
+          }
           const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
           for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
             const own = Sprites.ownEdge(n, mask, x, y); // (a ground's own border pictures, if it has any)

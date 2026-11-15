@@ -7201,6 +7201,34 @@ const Sprites = (() => {
     dropsShadow: id => { const d = THINGS[id]; return DROPS_SHADOW.has(id) || (d.wall === 'thin' && !d.roof) || FILLS_TILE.has(id) || !!PARTS[spriteOf(id)]; },
     castsShadow: id => { const d = THINGS[id]; return d.wall === 'block' && !d.roof && !d.change; }, // (only what fills its tile to the edge, a block: the rest has a shadow of its own shape, see dropsShadow)
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
+    // A ground's border run straight across a tile on its diagonal (see the ground borders in render.js): the corner
+    // towards `corner` (nw, ne, se, sw) filled with the ground, its own border picture laid along the diagonal.
+    diagonalEdge(ground, corner, x, y) {
+      const strip = customImage(`edge_${ground}_n`);
+      if (!strip) return null;
+      const res = strip.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(strip.naturalWidth / T));
+      const cell = (((x + y) % cells) + cells) % cells;
+      return cached(`diagedge:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}`, g => {
+        g.canvas.res = res;
+        const k = Math.SQRT1_2, L = Math.SQRT2 * T;
+        const geo = { // the corner's triangle, and the diagonal: its start, its direction, and its normal (towards the lower ground)
+          nw: { tri: [[0, 0], [T, 0], [0, T]], at: [0, T], dir: [k, -k], nrm: [k, k] },
+          ne: { tri: [[0, 0], [T, 0], [T, T]], at: [0, 0], dir: [k, k], nrm: [-k, k] },
+          se: { tri: [[T, 0], [T, T], [0, T]], at: [T, 0], dir: [-k, k], nrm: [-k, -k] },
+          sw: { tri: [[0, 0], [T, T], [0, T]], at: [T, T], dir: [-k, -k], nrm: [k, -k] },
+        }[corner];
+        // the ground itself in the corner's triangle
+        const tile = Sprites.thing(ground, x, y, 0);
+        g.save(); g.beginPath(); for (const [px, py] of geo.tri) g.lineTo(px, py); g.closePath(); g.clip();
+        g.imageSmoothingEnabled = true; g.drawImage(tile, 0, 0, T, T); g.restore();
+        // its border along the diagonal: the strip's opaque top a little on the ground's side, its ragged edge beyond
+        g.save(); g.setTransform(geo.dir[0], geo.dir[1], geo.nrm[0], geo.nrm[1], geo.at[0], geo.at[1]);
+        g.imageSmoothingEnabled = true;
+        const band = T / 2, lead = band * 0.35;
+        g.drawImage(strip, cell * T, 0, T, band, -2, -lead, L + 4, band);
+        g.restore();
+      }, T);
+    },
     ownEdge(ground, mask, x, y) {
       const pics = {};
       for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_${ground}_${d}`))) return null;
