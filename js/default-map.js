@@ -132,7 +132,7 @@ const ISLE_DESIGN = {
 //   moat:      water [x0, y0, x1, y1] (the river's bed through the bounds is kept as well)
 //   ramparts:  the town wall, a ring x0..x1, y0..y1, `thick` tiles deep: solid masonry with a walkway on top (the floor
 //              above) all the way round, battlements on its outer edge; gates: where streets go through it (the walkway
-//              goes on over them, as it does over water); stairs: arched doorways in its inner face with steps up
+//              goes on over them, as it does over water); stairs: stone stairs in its inner face, up
 //              inside [[x, y], ...]; a tower stands on each corner, with a door into town, stairs up to the walkway
 //              and the lookout on top, and a door out over a footbridge (exits: its side, NW NE SW SE)
 //   hills:     rocky hills { outline, tiers }: rock walls with a rugged top
@@ -1074,8 +1074,8 @@ function buildTown(m, S, runs, river) {
     // banners down the faces of the wall you see from outside (south and east), between the cannons
     for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }
     for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }
-    for (const [x, y] of R.stairs) { // a doorway in the inner face, the steps inside it come up through the walkway
-      m.set(x, y, S, { ground: 'paving', items: ['wall_stairs'] });
+    for (const [x, y] of R.stairs) { // stone stairs in the inner face, up through the walkway
+      m.set(x, y, S, { ground: 'paving', items: ['stairs_up'] });
       put(x, y, S + 1, 'stairs_down');
     }
     // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, under a slate roof, so
