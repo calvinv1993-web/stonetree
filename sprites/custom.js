@@ -59,7 +59,7 @@ const CUSTOM_SPRITES = {
   health_potion: 'items/health-potion@4x.png', // the owner's painted potions, lying on the ground (the bag and the action
   mana_potion: 'items/mana-potion@4x.png',     // buttons show the same: sprites/ui/actions/h.png and m.png)
   water_texture: 'water-own.png', // the owner's water, from above (ground template; water-atlas.png: the one before)
-  temple_paving: 'temple-paving-mock.png', // 4 x 4 tiles at two pixels a world pixel, from the owner's picture (temple-paving-atlas.png: the one before)
+  temple_paving: 'temple-paving-own.png', // the owner's temple paving, 4 x 4 slabs over 4 x 4 tiles (cut from joint to joint; temple-paving-mock.png: the one before)
   rim_kit_n: 'rim-kit-n.png', // the owner's border kit of stones: beside an edge by where the inside lies (n e s w), and
   rim_kit_e: 'rim-kit-e.png', // round an outside corner by which diagonal is the inside (ne se sw nw); a mountain top's rim
   rim_kit_s: 'rim-kit-s.png', // and the bank along water in town are laid from them (see kitTile)

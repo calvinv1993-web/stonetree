@@ -187,6 +187,7 @@ const SPRITE_HASHES = {
   "temple-marble-mock.png":"4c9b0d932a",
   "temple-paving-atlas.png":"e439d2db29",
   "temple-paving-mock.png":"029df9cc5c",
+  "temple-paving-own.png":"a16cae6b32",
   "temple-wall-atlas.png":"91738c3639",
   "temple-wall-in.png":"0f5412858e",
   "temple-wall-out.png":"d9dfb3ad22",
