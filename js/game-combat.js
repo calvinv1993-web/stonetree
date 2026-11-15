@@ -321,7 +321,7 @@ function respawnDelay(m) {
 function killMonster(m) {
   Object.assign(m, { dead: true, respawnAt: now + respawnDelay(m), due: 0, walk: null, conditions: {} });
   if (m.def.comesBack) {
-    effects.push({ kind: 'speech', x: m.x, y: m.y, z: m.z, name: 'Someone', text: 'Oh my god, they killed Kenny!', start: now, dur: 3500 });
+    effects.push({ kind: 'speech', x: m.x, y: m.y, z: m.z, name: 'Someone', text: 'Not Lucky Tobb again! Somebody fetch the priest... no, wait, he always gets up.', start: now, dur: 3500 });
     m.diedAt = { x: m.x, y: m.y, z: m.z, by: player.id };
   }
   const items = rollLoot(m.def.loot || {});
@@ -377,11 +377,13 @@ function playerDies(killer) {
   const protection = red ? null : player.vocation === 'none' ? 'starter' : player.blessed ? 'blessing'
     : eq.neck && ITEMS[eq.neck.id].keeping ? 'amulet' : null;
   // As in Tibia, death costs a tenth of all your experience (a blessing spares 30% of that, and before a vocation
-  // you lose only half), so it can cost levels too - and the health and mana they gave you.
+  // you lose only half), so it can cost levels too - and the health and mana they gave you. Not before a vocation:
+  // the starter island is for learning, and losing a level there is when newcomers give up.
   player.xp = Math.max(player.xp, xpForLevel(player.level));
   const lost = Math.floor(player.xp * DEATH_XP_LOSS * (protection === 'blessing' ? 0.7 : protection === 'starter' ? 0.5 : 1));
   const xpBefore = player.xp, levelBefore = player.level;
-  player.xp = Math.max(0, player.xp - lost);
+  // (and before a vocation, never below the level you've reached: a newcomer may lose a little, never a level)
+  player.xp = Math.max(protection === 'starter' ? xpForLevel(player.level) : 0, player.xp - lost);
   while (player.level > 1 && player.xp < xpForLevel(player.level)) {
     const v = VOCATIONS[player.level <= 10 ? 'none' : player.vocation] || VOCATIONS.none; // levels up to 10 come before a vocation
     player.maxHp = Math.max(1, player.maxHp - v.hp);
@@ -409,7 +411,31 @@ function playerDies(killer) {
   else if (red) log('With your red skull, everything you carried is lying in your corpse.', 'damage');
   else if (dropped.length) log('Your things are lying in your corpse. Hurry back to get them!', 'damage');
   addSound('death', player.x, player.y, player.z);
+  if (protection === 'starter') { const tip = deathTip(killer); if (tip) logDialog('Sister Ama', tip); } // (a word of advice, on the island)
   uiDirty();
+}
+
+// What Sister Ama tells a newcomer who has just died, by what killed them: one thing to do differently.
+const DEATH_TIPS = {
+  rat: 'Even rats bite, $name. Eat before you go out, and when your health is low, drink a potion or step back to heal.',
+  wolf: 'Wolves hunt in threes. Take them one at a time: back off until only one follows you, then fight it.',
+  greyfang: 'Greyfang calls his pack. Clear the wolves around him first, then face him with full health and a potion ready.',
+  crab: 'Crabs have hard shells: they take long to kill. Fight them one at a time, and wear the armour the gate guards give you.',
+  old_snapper: 'Old Snapper is a tough old shell. Bring potions, and kill the crabs around him first.',
+  spider: 'Spiders poison you: the green numbers. Leave when you are poisoned and low, and bring potions.',
+  thornmother: 'The Thornmother brings her brood. Clear the spiders first, then fight her with full health.',
+  goblin: 'Goblins come in gangs. Pull one or two away from their camp, and fight them where the others cannot see.',
+  gnash: 'Chief Gnash has his whole gang. Clear the camp first, then him: and come back with more potions.',
+  skeleton: 'The dead hit hard, $name. Grow a level or two at the gates first, and buy armour from Brenna.',
+  slime: 'Slimes split and poison. Fight them at the edge of the marsh, never in the middle.',
+  bear: 'Bears hit harder than anything you have met. Level 8 at least, and your best armour.',
+  giant_rat: 'Giant rats nest together. Fight them in the tunnels, a few at a time, with a light.',
+  gravewaker: 'The Gravewaker wakes the dead around him. Clear his skeletons, then him, and bring ten potions.',
+};
+function deathTip(killer) {
+  if (!killer || killer.type === 'player') return null;
+  const tip = DEATH_TIPS[killer.type] || 'Rest here until your health is full, $name, and when you go out again, take a potion along.';
+  return `The dawn brought you back. ${tip.replace(/\$name/g, player.name)}`;
 }
 
 function respawnPlayer() {
@@ -725,14 +751,14 @@ function updateMonster(m, i) {
   if (m.returning) reengage(m);
   if (strayHome(m)) return;
   const target = m.returning ? null : monsterTarget(m);
-  if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Kenny minds nobody on the way
+  if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Lucky Tobb minds nobody on the way
   m.goal = null;
   if (!target) return wander(m);
   if (leftTerritory(m, target)) return; // led too far from home: it gives up and walks back
   asPlayer(target, () => monsterAct(m));
 }
 
-// Kenny comes back: in from the side of the screen of whoever killed him, walking
+// Lucky Tobb comes back: in from the side of the screen of whoever killed him, walking
 // back to where he fell, as if nothing happened.
 function comeBack(m, i) {
   const at = m.diedAt, killer = players.find(p => p.id === at.by) || at, side = Math.random() < 0.5 ? -1 : 1;

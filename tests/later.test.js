@@ -384,7 +384,7 @@ test('skulls as in Tibia: white for attacking innocents, yellow for those who fi
   assert(a.dead && ['body', 'legs', 'weapon', 'shield', 'head', 'feet'].every(slot => !a.equipment[slot]), 'and dying with it costs everything, blessing or not');
 });
 
-test('they killed Kenny! He comes back anyway', () => {
+test('Lucky Tobb falls! He comes back anyway', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player;
@@ -393,7 +393,7 @@ test('they killed Kenny! He comes back anyway', () => {
   const kenny = ctx.spawnMonster(state.map.spawns.find(s => s.type === 'kenny'));
   state.monsters = [kenny];
   ctx.damageMonster(kenny, 999, 'physical');
-  assert(kenny.dead && state.effects.some(fx => /they killed Kenny/.test(fx.text || '')), 'someone notices');
+  assert(kenny.dead && state.effects.some(fx => /Lucky Tobb again/.test(fx.text || '')), 'someone notices');
   tick(game, 4500);
   const back = state.monsters[0];
   assert(back !== kenny && !back.dead && state.dist(back, p) <= 11, 'he comes back right away, from the side of your screen');

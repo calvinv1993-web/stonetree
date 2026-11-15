@@ -761,6 +761,32 @@ test('under the town: The Rats\' Hoard opens the storeroom chest (a shield) once
   assert.strictEqual(state.countItem('health_potion') - pots0, 3, 'and 3 health potions, once');
 });
 
+const vmLevelXp = (ctx, l) => require('vm').runInContext(`xpForLevel(${l})`, ctx);
+
+test('before a vocation dying never costs a level, and Sister Ama says what to do differently', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  ctx.gainXp(vmLevelXp(ctx, 3) - p.xp + 5); // (just into level 3)
+  assert.strictEqual(p.level, 3);
+  const wolf = { type: 'wolf', name: 'wolf', def: state.MONSTERS.wolf };
+  ctx.playerDies(wolf);
+  assert.strictEqual(p.level, 3, 'still level 3');
+  assert(messages.some(m => /Sister Ama: .*Wolves hunt in threes/.test(m)), 'a tip about wolves');
+});
+
+test('raids come to Oakvale\'s gates and Bone Rocks, on ground monsters can stand on', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  for (const raid of state.RAIDS) {
+    const before = state.monsters.length;
+    ctx.startRaid(raid);
+    const came = state.monsters.length - before;
+    assert(came >= Math.ceil(raid.spawns.reduce((n, [, k]) => n + k, 0) / 2), `${raid.name}: ${came} came`);
+    assert(state.map.isle && raid.at.x >= state.map.isle.x0 && raid.at.x <= state.map.isle.x1, `${raid.name} is on the island`);
+  }
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

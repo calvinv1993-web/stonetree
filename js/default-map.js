@@ -249,7 +249,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 110, 8], ['pip', 119, 136, 8],
-    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8], ['oak_landlady', 138, 137, 8],
     ['gate_north', 126, 100, 8], ['gate_east', 149, 116, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 130, 8],
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
@@ -767,8 +767,10 @@ function createDefaultMap() {
   // spawns were, each on the nearest free tile (outside town, off roads and bridges, on `ground` if given), at
   // fixed places worked out from the coordinates.
   const huntingGrounds = [
-    ['rat', 24, [108, 148, 136, 186]],                       // Sunny Fields: the first fights
-    ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 102, 162]], // Owl Grove, Fox Copse
+    ['rat', 24, [112, 148, 136, 186]],                       // Sunny Fields: the first fights
+    // (Fox Copse's pack keeps to the copse's far west side: well out of sight of the first rats, so a newcomer's first
+    // task isn't a fight with three wolves)
+    ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 91, 162]], // Owl Grove, Fox Copse
     ['crab', 6, [148, 56, 178, 86], S, 'sand'],              // the shore of Mirror Lake
     ['crab', 8, [110, 200, 148, 226], S, 'sand'],            // the beaches of Lighthouse Point (away from the spiders)
     ['crab', 5, [30, 160, 60, 190], S, 'sand'],              // the beach by Fisher's Rest
@@ -842,8 +844,8 @@ function createDefaultMap() {
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount
   m.mainStart = { ...m.start };
-  const xs = d.coast.map(p => p[0]), ys = d.coast.map(p => p[1]);
-  m.isle = { x0: Math.min(...xs) - 4, y0: Math.min(...ys) - 4, x1: Math.max(...xs) + 4, y1: Math.max(...ys) + 4 };
+  // (the whole world is the starter island for now: every bit of land, its strands and islets too, is on it)
+  m.isle = { x0: 0, y0: 0, x1: WORLD_SIZE.width - 1, y1: WORLD_SIZE.height - 1 };
   return m;
 }
 

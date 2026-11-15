@@ -151,9 +151,10 @@ const MONSTERS = {
     ],
     loot: { gold: [80, 220], items: [['dragon_scale', 0.3], ['dragon_ham', 0.5, 1, 3], ['health_potion', 0.2], ['dragon_shield', 0.03], ['plate_legs', 0.05], ['wand_flames', 0.02]] },
   },
-  // Kenny: harmless, runs away, and can't stay dead - he walks back in a few seconds later.
+  // Lucky Tobb, the lad in the orange hood (id kenny, as saved): harmless, runs away, and can't stay dead - he walks
+  // back in a few seconds later. (Once a quote from a TV show; now a joke of the game's own.)
   kenny: {
-    name: 'Kenny', proper: true, hp: 25, xp: 1, dmg: [0, 1], speed: 149, attackSpeed: 4000, aggro: 0, corpse: 'blood', flee: 1.01,
+    name: 'Lucky Tobb', proper: true, hp: 25, xp: 1, dmg: [0, 1], speed: 149, attackSpeed: 4000, aggro: 0, corpse: 'blood', flee: 1.01,
     respawn: 4000, comesBack: true, loot: { gold: [0, 3] },
   },
   // ---- chiefs of the camps in the wilds: tougher, with better loot ----

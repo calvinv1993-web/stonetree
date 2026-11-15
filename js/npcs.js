@@ -604,10 +604,12 @@ const QUESTS = {
 };
 
 // Timed invasions, announced to everyone. Raid monsters don't respawn.
+// Raids on Oakvale Isle: now and then something comes for the town, and everyone online hears of it. They come to
+// the gates, never in (monsters keep out of town), and leave after a while.
 const RAIDS = [
-  { name: 'orc warband', message: 'An orc warband is marching on Valoria from the north-east!', at: { x: 121, y: 37, z: 4 }, spawns: [['orc', 6], ['orc_archer', 3], ['orc_shaman', 2]] },
-  { name: 'pirate landing', message: 'Pirates are landing on the beaches of Ashport!', at: { x: 42, y: 101, z: 4 }, spawns: [['pirate', 5], ['crab', 4]] },
-  { name: 'restless dead', message: 'The dead are stirring in the graveyard of Brightwater!', at: { x: 20, y: 50, z: 4 }, spawns: [['skeleton', 5]] },
+  { name: 'goblin warband', message: 'A goblin warband from Goblin Hill is marching on the north gate!', at: { x: 127, y: 86, z: 8 }, spawns: [['goblin', 6]] },
+  { name: 'wolf pack', message: 'A pack of wolves has come out of Wolf Woods, howling at the west gate!', at: { x: 90, y: 121, z: 8 }, spawns: [['wolf', 5]] },
+  { name: 'restless dead', message: 'The dead are stirring at Bone Rocks: skeletons walk the bone trail!', at: { x: 82, y: 201, z: 8 }, spawns: [['skeleton', 4]] },
 ];
 const RAID_INTERVAL = [15 * 60000, 25 * 60000];
 
@@ -617,7 +619,7 @@ const LORE = [
   'A hymnal, its pages grey with ash: "Five embers shall gutter, and He shall wake." Someone has scratched out the last page.',
   'A sailor\'s log: "Saw a light under the waves off Ashport, burning. The crew says it is the drowned king\'s crown."',
   'A dwarven ledger: "Vault of the Stone Ember: inspected. Golems at their posts. All is well." The pages after it are torn out.',
-  'A dusty book: "The four paths - steel, arrow, flame and leaf - all begin on Brightwater Isle."',
+  'A dusty book: "The four paths - steel, arrow, flame and leaf - all begin on the starter isle, at the oracle\'s word."',
   'A ledger: "Paid the pirates 300 gold for safe passage. Again."',
   'A book of maps. Someone has drawn a skull on the sea west of Ashport.',
   'A treatise on runes: "A blank rune holds nothing until a mage speaks its form into it."',
@@ -1347,7 +1349,7 @@ const NPCS = {
     greet: 'Good day, $name! Lovely weather for {adventure}, is it not?',
     keywords: {
       job: 'Oh, a bit of this, a bit of that. Mostly that.',
-      'adventure|news|rumours|rumors': 'My cousin swears he saw a flying carriage over the Webwood, with two boys in it screaming. Spiders everywhere. He has stopped drinking since.',
+      'adventure|news|rumours|rumors': 'My cousin swears the hermit out on Hermit Rock talks to the bears. And that the bears talk back. He has stopped drinking since.',
     },
     chatter: ['Morning!', 'Have you seen the prices at the market?', 'My back is killing me.', 'Fine day, fine day.', 'I could have been an adventurer, you know.', 'Where did I leave my keys?'],
   },
@@ -1357,7 +1359,7 @@ const NPCS = {
     greet: 'Oh, hello there, $name. Are you new in {town}?',
     keywords: {
       job: 'I keep house, and an eye on the neighbours. Somebody has to.',
-      'town|news|rumours|rumors': 'They say the goblins at the Glintvault Bank count every coin twice, and the dragon in the vault counts the goblins.',
+      'town|news|rumours|rumors': 'They say old Wim went down the town well for a bet, years and years ago, and never came up. On still nights my mother says you can hear him whistling down there.',
     },
     chatter: ['Such a nice day for washing.', 'Have you heard the latest?', 'Children! Supper!', 'The baker burnt the bread again.', 'Those adventurers track mud everywhere.'],
   },
@@ -1383,8 +1385,8 @@ const NPCS = {
     look: { skin: '#e8c0a0', hair: '#e8e8e8', beard: '#e8e8e8', hairStyle: 'bald', body: '#5a5a6a', arms: '#5a5a6a', legs: '#4a4a52', feet: '#2a2a2a', belt: '#3a2a1a', coat: true },
     greet: 'Eh? Speak up, youngster! Do you want to hear a {story}?',
     keywords: {
-      story: 'In my day we had no cabs or balloons. We walked! Uphill! Both ways! And the rats were the size of ogres.',
-      'kenny|orange': 'The lad in the orange hood? Do not bother. I have seen him killed nine times this week. He always comes back.',
+      story: 'In my day there was no bridge to the academy. We waded the Willow! Both ways! And the rats in the sewers were the size of sheep.',
+      'tobb|lucky|orange': 'Lucky Tobb, the lad in the orange hood? Do not bother. I have seen him killed nine times this week. He always comes back.',
       job: 'I sit. I have earned it.',
     },
     chatter: ['In my day...', 'Kids these days.', 'My knee says rain is coming.', 'Zzz... eh? I was not sleeping!', 'I once punched a troll. Well, near a troll.'],
@@ -1839,6 +1841,18 @@ Object.assign(NPCS, {
     greet: 'Fresh bread, $name! Eat well, heal fast. Want to {trade}?',
     keywords: { job: 'I bake for the whole town. Eating makes you heal much faster, you know.' },
     trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
+  },
+  // Oakvale's landlady, at a table in the Sleepy Boar: the town's four houses are hers to let
+  oak_landlady: {
+    name: 'Landlady Hettie',
+    look: { skin: '#f0c8a0', hair: '#b8b0a8', hairStyle: 'long', female: true, body: '#4a6a5a', arms: '#4a6a5a', legs: '#3a3a4a', feet: '#2a2a2a', belt: '#c8a060', robe: true, trim: '#c8a060' },
+    greet: 'A roof of your own, $name? I let the four cottages of Oakvale. Ask me about the {houses}.',
+    keywords: {
+      'houses|house|rent|leave|home': { houses: true },
+      job: 'I let houses, and I collect the rent, and I remember who paid it late.',
+      'friends|share': 'Rent a house, and your friends may visit you there. A home is a fine place to keep what you find.',
+    },
+    chatter: ['Rent is due at the end of the week!', 'Bell Cottage has the best view of the tower.', 'Ivy Cottage? Lovely in spring.'],
   },
   oak_innkeeper: {
     name: 'Innkeeper Rolf',
