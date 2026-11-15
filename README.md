@@ -245,6 +245,8 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 - Mobile HUD preview: swipe either group of three action slots to switch its page; hold a slot to edit or clear it. Tap the map to walk, or drag to show a temporary joystick. The map and menu are in the top bar.
 
+Phone: up top, over the map, only what happens to you shows with its time (poisoned, burning, electrified, paralyzed, a skull, a fight with a player). What you gave yourself shows on its own action button instead: Haste, Magic Shield and Torchlight show their time left at the top of their button (with a thin gold line), food how long you stay fed.
+
 Phone: nothing to tap up top. The status bar shows your health and mana, and under them EXP with its percent, a thin experience bar and your level. A map button sits in the top left corner of the view; while you fight, what you're fighting shows at the top with its health; the middle button lights up warm, a spell cooling down shows its seconds and tenths (2.4s), and a message about mana shows a drop; quests and settings are tabs of the drawer, along its bottom.
 
 Mobile viewport: as an app on the home screen the phone's status bar (the clock and battery) stays opaque: a see-through one let iOS soften what lies under it, the health and mana bars among it. The layout reserves the top and side safe areas once; the action dock includes the home-indicator inset. Rotation resizes the canvas through its existing sizing function. Actual iPhone standalone appearance still needs device verification.

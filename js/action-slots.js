@@ -26,6 +26,15 @@ const ActionSlots = (() => {
     return {};
   }
 
+  // What an action still gives you, cast or eaten earlier: ms left (haste, magic shield, torchlight, being fed)
+  function lasting(id) {
+    if (!player) return 0;
+    const kind = SPELLS[id] && SPELLS[id].kind, c = player.conditions || {};
+    const until = kind === 'haste' ? c.haste && c.haste.until : kind === 'shield' ? c.shield && c.shield.until
+      : kind === 'light' ? player.lightUntil : id === 'f' ? player.fedUntil : 0;
+    return Math.max(0, (until || 0) - now);
+  }
+
   // A button's face for a hotbar entry (or an empty slot: a +, hold it to choose)
   function paint(button, entry) {
     const face = document.createElement('span'), badge = document.createElement('small');
@@ -44,10 +53,11 @@ const ActionSlots = (() => {
     if (entry && entry.locked) badge.textContent = spell && spell.promoted && !player.promoted ? 'promo' : `lv ${spell ? spell.level : ''}`;
     else if (spell) { badge.replaceChildren(Icons.img('drop', 11), String(spell.mana)); badge.classList.add('mana'); } // (a drop and its mana, under it)
     else if (entry && entry.id !== 'f') { badge.textContent = entry.sub.replace('×', ''); badge.classList.add('count'); } // (how many are left)
-    const cool = document.createElement('i'), left = document.createElement('b');
+    const cool = document.createElement('i'), left = document.createElement('b'), lasts = document.createElement('em');
     cool.className = 'slot-cool';
     left.className = 'slot-left'; // (the seconds of cooldown left)
-    button.replaceChildren(face, badge, cool, left);
+    lasts.className = 'slot-lasts'; // (how long what it gave you still lasts)
+    button.replaceChildren(face, badge, cool, left, lasts);
     button.dataset.action = entry ? entry.id : '';
     button.setAttribute('aria-label', entry ? `${entry.name}${spell ? `, ${spell.mana} mana` : entry.sub ? `, ${entry.sub}` : ''}` : 'Empty: hold to choose');
     refresh(button);
@@ -66,6 +76,10 @@ const ActionSlots = (() => {
     // its countdown, in seconds and tenths ("2.4s")
     const text = !p ? '' : `${(s.wait / 1000).toFixed(1)}s`;
     if (left && left.textContent !== text) left.textContent = text;
+    // still working (hasted, shielded, lit, fed): its time left at the top of the button
+    const ms = lasting(id), lasts = button.querySelector('.slot-lasts'), until = ms > 0 && typeof timeLeft === 'function' ? timeLeft(ms) : '';
+    button.classList.toggle('lasting', !!until);
+    if (lasts && lasts.textContent !== until) lasts.textContent = until;
   }
 
   // Every frame while the buttons are on screen: their cooldowns sweep and their mana follows the player's
@@ -89,5 +103,5 @@ const ActionSlots = (() => {
     el.replaceChildren(...Array.from({ length: count }, (_, i) => Object.assign(document.createElement('i'), { className: i === index ? 'on' : '' })));
   }
 
-  return { art, state, paint, refresh, showSet };
+  return { art, state, lasting, paint, refresh, showSet };
 })();

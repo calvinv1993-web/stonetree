@@ -97,13 +97,18 @@ const SKULL_COLORS = { white: '#f4f4f4', yellow: '#f0d020', red: '#e02020' };
 const skullIcon = color => `<svg class="skull-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="${SKULL_COLORS[color]}" stroke="#000"/>`
   + '<circle cx="5.5" cy="7.5" r="1.7"/><circle cx="10.5" cy="7.5" r="1.7"/><rect x="6.5" y="11" width="3" height="1.6"/></svg>';
 
-// Icons for your conditions, with how long the timed ones last (haste, magic shield, skull...).
-function statusIcons() {
+// What you cast or ate on yourself (haste, magic shield, torchlight, fed): on a phone their time shows on the action
+// button that gave it (action-slots.js), not up top
+const OWN_CONDITIONS = new Set(['haste', 'shield']);
+// Icons for your conditions, with how long the timed ones last (haste, magic shield, skull...). harmOnly: only what
+// happens to you (poison, fire, energy, paralysis) and skulls and fights, for the phone's top of the view
+function statusIcons(harmOnly = false) {
   const icon = (sign, title, until) => `<span class="status" title="${title}">${sign}${until ? `<small>${timeLeft(until - now)}</small>` : ''}</span>`;
-  const icons = Object.entries(player.conditions).map(([k, c]) => icon(CONDITIONS[k].icon, CONDITIONS[k].name, c.until));
-  if (now < player.fedUntil) icons.push(icon('🍖', 'fed', 0));
-  if (now < player.lightUntil) icons.push(icon('💡', 'torchlight', player.lightUntil));
-  if (player.blessed) icons.push(icon('✝', 'blessed', 0));
+  const icons = Object.entries(player.conditions).filter(([k]) => !(harmOnly && OWN_CONDITIONS.has(k)))
+    .map(([k, c]) => icon(CONDITIONS[k].icon, CONDITIONS[k].name, c.until));
+  if (!harmOnly && now < player.fedUntil) icons.push(icon('🍖', 'fed', 0));
+  if (!harmOnly && now < player.lightUntil) icons.push(icon('💡', 'torchlight', player.lightUntil));
+  if (!harmOnly && player.blessed) icons.push(icon('✝', 'blessed', 0));
   if (player.redSkullUntil > now) icons.push(icon(skullIcon('red'), 'red skull: you lose everything you carry when you die', player.redSkullUntil));
   else if (player.skullUntil > now) icons.push(icon(skullIcon('white'), 'white skull: no temples until it fades', player.skullUntil));
   if (player.pzLockUntil > now && !(player.skullUntil > now)) icons.push(icon('⚔', 'in a fight with a player: no temples', player.pzLockUntil));
@@ -118,7 +123,7 @@ function updateBars() {
   setText($('charLine'), `${player.name} · level ${player.level} ${title(player)}`);
   const status = statusIcons();
   setHTML($('conditions'), status);
-  setHTML($('tbStatus'), status);
+  setHTML($('tbStatus'), touchScreen ? statusIcons(true) : status);
   const m = Math.floor(worldMinutes()), clock = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   setText($('pos'), `${player.x}, ${player.y} · floor ${map.floorLabel(player.z)} · ${clock} · cap ${freeCapacity()} oz`);
   renderBattle();

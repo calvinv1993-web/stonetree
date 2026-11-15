@@ -19,7 +19,9 @@ From top to bottom:
   - three spells on the left, three spells, potions or food on the right (`js/action-slots.js`,
     `css/phone/action-slots.css`): each its picture, a spell's mana with a drop, a potion's count; a gold edge when it can be
     used, dimmed without the mana or with none left; a shade and the seconds while it cools down. Tap to use, hold to
-    choose what goes there, swipe sideways for the next set of three (both groups apart, kept per player).
+    choose what goes there, swipe sideways for the next set of three (both groups apart, kept per player). A spell or food
+    still working (haste, magic shield, torchlight, fed) shows its time left at the top of its button; the top of the
+    view shows only what happens to you (poison, fire, energy, paralysis, skulls).
   - the smart button in the middle (`js/smart-button.js`, `css/phone/smart-button.css`): attack, loot, talk, use, or
     nothing, by what is about; its icon says which (no words), lit warm while you attack.
   - the drawer (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`), opened by the backpack or the map

@@ -27,6 +27,11 @@ body.touch-ui #favs .fav .slot-cool { position: absolute; inset: 0; pointer-even
   background: conic-gradient(rgba(8, 8, 9, 0.62) calc(var(--p, 0) * 1turn), transparent 0); }
 body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 12px; display: flex; align-items: center; justify-content: center; pointer-events: none;
   color: #fff; font: 600 13px/1 var(--hud-font); font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px #000; }
+/* Still working (haste, magic shield, torchlight, fed): its time left at the top, a thin gold line along the top */
+body.touch-ui #favs .fav .slot-lasts { display: none; }
+body.touch-ui #favs .fav.lasting .slot-lasts { display: block; position: absolute; top: 2px; left: 50%; transform: translateX(-50%); padding: 1px 4px; border-radius: 3px;
+  background: rgba(10, 10, 11, 0.72); color: var(--hud-text); font: 600 10px/1.2 var(--hud-font); font-style: normal; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
+body.touch-ui #favs .fav.lasting { box-shadow: inset 0 2px 0 rgba(213, 170, 96, 0.75), 0 1px 1px rgba(0, 0, 0, 0.35) !important; }
 /* Pressed: a thin light edge */
 body.touch-ui #favs .fav.holding { outline: 0; border-color: rgba(255, 255, 255, 0.45) !important; }
 /* After a swipe the group's new set comes in a little from the side and settles */
