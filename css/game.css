@@ -320,3 +320,5 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 /* the painted pictures (potions: Sprites.itemURL) are smoothed, not blown up in blocks as the pixel art is, and fill
    the slot a little more, as on the action buttons */
 .slot img[src*="ui/actions/"], .shop-row img[src*="ui/actions/"] { image-rendering: auto; transform: scale(1.15); }
+/* the owner's painted item pictures (sprites/items/): smooth, filling their slot as the potions do */
+.slot img[src*="sprites/items/"], .shop-row img[src*="sprites/items/"] { image-rendering: auto; transform: scale(1.15); }
