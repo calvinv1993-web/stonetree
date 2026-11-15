@@ -33,7 +33,10 @@ body.touch-ui .drawer-gear { padding-right: 10px; border-right: 1px solid rgba(2
 /* the equipment and the bags as they are drawn for the side panel, made compact here */
 body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, var(--slot, 44px)); gap: 4px; margin: 0; transform: none; }
 /* what you wear adds up to: one line across the top, half open and all the way */
-body.touch-ui .drawer-stats { grid-column: 1 / -1; min-height: 20px; }
+body.touch-ui .drawer-stats { grid-column: 1 / -1; min-height: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* to your skills (the gear all the way open, scrolled to them): a small gold link at the line's end */
+body.touch-ui .drawer-skills-link { flex: none; min-height: 28px; margin: -4px -4px -4px 0; padding: 0 8px; border: 0 !important; background: none !important; box-shadow: none !important;
+  color: #d5aa60 !important; font: 600 12px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer #gearStats { margin: 0; color: #b8b5ad; font: 500 11.5px/20px system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer .gear-stats { display: flex; gap: 14px; padding: 0; border: 0; background: none; }
 body.touch-ui .inventory-drawer .gear-stat { display: flex; gap: 5px; padding: 0; border: 0; white-space: nowrap; }

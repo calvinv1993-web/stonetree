@@ -226,8 +226,9 @@ body.touch-ui.bag-open #containers { bottom: calc(var(--tabbar) + 10px) !importa
 }
 body.touch-ui .panel .bag-close { display: none; }
 /* (in the Character sheet the sheet has its own) */
-/* a shop: above the tab bar, and the whole height beside it on a phone held sideways */
-body.touch-ui .shop { bottom: calc(var(--tabbar) + 6px); max-height: calc(100% - var(--tabbar) - 12px) !important; }
+/* a shop: between the status bar and the tab bar, and beside the action rail on a phone held sideways */
+/* (under the status bar, never over it: your health and mana stay in sight while you trade) */
+body.touch-ui .shop { top: calc(var(--hud-h) + 6px) !important; bottom: calc(var(--tabbar) + 6px); max-height: calc(100% - var(--hud-h) - var(--tabbar) - 12px) !important; }
 @media (orientation: landscape) {
   body.touch-ui .shop { right: calc(var(--rail) + 4px) !important; }
 }
@@ -305,7 +306,7 @@ body.touch-ui .panel h2 { font: 600 11px var(--ui); color: var(--muted); text-tr
 body.touch-ui .panel #gearStats { margin-top: 6px; border-radius: 10px; background: var(--bg-3); color: var(--muted); font: 500 12.5px var(--ui); }
 /* item slots: inset wells; an empty one shows a faint drawing of what goes there */
 body.touch-ui .slot { border: 1px solid var(--line) !important; border-radius: 8px; background: #0e0d0c !important; box-shadow: none !important; }
-body.touch-ui .slot.empty svg { position: absolute; inset: 0; margin: auto; color: rgba(255, 255, 255, 0.16); }
+body.touch-ui .slot.empty svg { position: absolute; inset: 0; margin: auto; color: rgba(255, 255, 255, 0.3); } /* (what goes there, faint but easy to make out) */
 body.touch-ui .slot .count { font: 600 10px var(--ui); }
 body.touch-ui .slot[data-rarity="uncommon"] { border-color: #3f9a55 !important; }
 body.touch-ui .slot[data-rarity="rare"] { border-color: #3e8ef7 !important; }

@@ -41,7 +41,7 @@ const InventoryDrawer = (() => {
     const put = (where, ...els) => { for (const el of els) if (el) { borrow(el); drawer.querySelector(where).append(el); } };
     if (page === 'gear') {
       put('.drawer-gear', byId('equipment'));
-      put('.drawer-stats', byId('gearStats')); // (attack, defense and armor: one line across the top)
+      const stats = byId('gearStats'); if (stats) { borrow(stats); drawer.querySelector('.drawer-stats').prepend(stats); } // (attack, defense and armor: one line across the top)
       put('.drawer-bags', byId('containers'));
       put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
     } else if (page === 'map') {
@@ -143,10 +143,11 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-stats"></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
+      + '<div class="drawer-body"><div class="drawer-stats"><button class="drawer-skills-link" type="button">Skills ›</button></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
       + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>'
       + '<div class="drawer-page drawer-map"></div><div class="drawer-page drawer-quests"></div><div class="drawer-page drawer-settings"></div>';
     drawer.dataset.page = page;
+    drawer.querySelector('.drawer-skills-link').addEventListener('click', skills);
     const tabs = document.createElement('nav');
     tabs.className = 'drawer-tabs';
     for (const [id, label, icon] of PAGES) {
@@ -174,13 +175,21 @@ const InventoryDrawer = (() => {
     if (!inside(drawer) && !inside(document.getElementById('actionDock'))) set(0);
   });
 
-  // Show a page of the drawer, opening it if it was shut: gear, map, quests or settings
-  function show(id, s) {
+  // Show a page of the drawer, opening it if it was shut: gear, map, quests or settings; with to, a part of it (an
+  // element's id, e.g. tab-skills or tab-help) scrolled to the top
+  function show(id, s, to) {
     if (!PAGES.some(([p]) => p === id)) return;
     page = id;
     set(s || (id === 'gear' || id === 'map' ? stage || 1 : 2)); // (quests and settings need the room: the whole drawer; the map
     // opens half way, and its Full map button opens it all the way: game-ui.js)
+    const el = to && document.getElementById(to);
+    if (el && drawer.contains(el)) {
+      const box = el.closest('.drawer-body, .drawer-page');
+      box.scrollTop = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 8;
+    }
   }
+  // your skills: the gear page all the way open, scrolled down to them
+  const skills = () => show('gear', 2, 'tab-skills');
 
-  return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage, show, page: () => page };
+  return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage, show, skills, page: () => page };
 })();

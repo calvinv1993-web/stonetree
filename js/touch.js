@@ -332,7 +332,11 @@ const SHEETS = {
 };
 function openSheet(kind, seg) {
   // on a phone the drawer has them all now, as tabs in reach of the thumb (inventory-drawer.js)
-  if (typeof InventoryDrawer !== 'undefined' && $('inventoryDrawer')) return InventoryDrawer.show(kind === 'quests' ? 'quests' : kind === 'menu' ? 'settings' : 'gear');
+  if (typeof InventoryDrawer !== 'undefined' && $('inventoryDrawer')) {
+    if (kind === 'character' && seg === 'skills') return InventoryDrawer.skills();
+    if (kind === 'menu' && seg === 'help') return InventoryDrawer.show('settings', 2, 'tab-help');
+    return InventoryDrawer.show(kind === 'quests' ? 'quests' : kind === 'menu' ? 'settings' : 'gear');
+  }
   const sheet = SHEETS[kind];
   if (typeof InventoryDrawer !== 'undefined') InventoryDrawer.close(); // (it holds the equipment and bags: they go home first)
   setChat(false);

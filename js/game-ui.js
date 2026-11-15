@@ -1026,7 +1026,7 @@ function showWindow(heading, body) {
 
 // ---- hotkeys (F1-F12) ------------------------------------------------------------------
 function openHotkeys() {
-  document.body.classList.remove('panel-open'); // on a phone: the drawer makes way
+  if (document.body.classList.contains('touch-ui')) return; // (F1-F12 are a keyboard's: a phone has its action bar)
   const root = $('hotkeyList');
   root.replaceChildren();
   const options = [['', '(nothing)']];

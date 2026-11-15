@@ -71,6 +71,8 @@ const ActionSlots = (() => {
     button.classList.toggle('short', !!s.short);
     button.classList.toggle('cooling', p > 0);
     button.classList.toggle('ready', !s.short && !p && !button.classList.contains('locked'));
+    // low on health with a health potion at hand: it glows, so a thumb finds it (under a third of your health)
+    button.classList.toggle('urgent', id === 'h' && !s.short && player.hp > 0 && player.hp < player.maxHp / 3);
     const cool = button.querySelector('.slot-cool'), left = button.querySelector('.slot-left'), shown = p ? p.toFixed(2) : '';
     if (cool && cool.dataset.p !== shown) { cool.dataset.p = shown; cool.style.setProperty('--p', shown || '0'); }
     // its countdown, in seconds and tenths ("2.4s")
