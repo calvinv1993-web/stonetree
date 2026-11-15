@@ -178,7 +178,7 @@ function renderGuide() {
   $('guideText').textContent = text;
   $('guideNow').textContent = now;
   $('guideNow').hidden = !now;
-  $('guideDone').hidden = !!(step.done || step.on);
+  $('guideDone').hidden = !!(step.done || step.on || step.client);
   $('guideDone').textContent = player.tutorial === GUIDE.length ? 'Got it' : 'Next'; // (a step that only explains: on to the next)
   // a thin bar: how far through the guide you are
   $('guideBar').style.setProperty('--done', `${((player.tutorial - 1) / GUIDE.length) * 100}%`);
@@ -221,6 +221,8 @@ const GUIDE_ART = (() => {
     eat: () => [row(cap(pic('apple'), touchScreen ? 'tap it, then Use' : 'right-click it'), h('span', { className: 'ga-arrow' }, '→'), cap(icon('food', 20), 'fed: you heal faster'))],
     actions: () => [row(cap(pic('health_potion'), touchScreen ? 'tap: use' : 'H: health'), cap(pic('mana_potion'), touchScreen ? 'hold: choose' : 'M: mana'),
       cap(h('span', { className: 'ga-step' }, touchScreen ? '⇆' : '1-9'), touchScreen ? 'swipe: more' : 'spells'))],
+    eatslot: () => [row(cap(h('span', { className: 'ga-slot-empty' }, icon('plus', 18)), 'tap the empty +'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(pic('meat'), 'choose Eat'), h('span', { className: 'ga-arrow' }, '→'), cap(icon('food', 20), 'one tap: eat'))],
     map: () => [row(cap(icon('map', 22), touchScreen ? 'the map button' : 'the minimap'), h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '◎'), 'tap a spot: walk there'))],
   };
 })();
@@ -243,28 +245,38 @@ const GuideSpot = (() => {
     return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };
   const hole = (r, pad, rad) => { const x = r.left - pad, y = r.top - pad, w = r.width + 2 * pad, hh = r.height + 2 * pad, k = Math.min(rad, w / 2, hh / 2);
     return `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + hh - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + hh}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + hh - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`; };
+  let passed = 0; // (the step this browser last moved the guide on from: once, not every frame while the server answers)
   function frame() {
     requestAnimationFrame(frame);
+    // steps only the browser can see done: on a computer a phone's step passes at once; Eat put on an action button
+    const cur = player && player.tutorial ? GUIDE[player.tutorial - 1] : null;
+    if (cur && passed !== player.tutorial && ((cur.touchOnly && !touchScreen) || (cur.client === 'eatSlot' && typeof favourites === 'function' && favourites().includes('f')))) {
+      passed = player.tutorial;
+      Actions.guideNext();
+    }
     const step = player && player.tutorial && !guideFolded ? GUIDE[player.tutorial - 1] : null;
     const list = step ? (touchScreen ? step.ui : step.uiDesk) || [] : [];
     let target = null;
     for (const sel of list) { target = [...document.querySelectorAll(sel)].find(visible); if (target) break; }
-    const box = $('guide');
-    const on = !!target && visible(box) && !document.body.classList.contains('panel-open');
+    // (the guide's box steps aside while a window is open, e.g. the chooser of an action button: then the light
+    // follows into that window on its own)
+    const box = $('guide'), boxShown = visible(box);
+    const on = !!target && (boxShown || !!target.closest('#favPicker')) && !document.body.classList.contains('panel-open');
     if (!layer) { if (!on) return; make(); }
     layer.classList.toggle('on', on);
+    if (!on) { hand.classList.remove('on'); return; }
     // (a step that only explains dims more: there's nothing else to do; one with a task dims a little)
     layer.classList.toggle('soft', !!(step && (step.done || step.on)));
-    if (!on) return;
     const r = target.getBoundingClientRect();
     layer.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
-    path.setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0Z${hole(r, 6, 12)}${hole(box.getBoundingClientRect(), 0, 12)}`);
+    path.setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0Z${hole(r, 6, 12)}${boxShown ? hole(box.getBoundingClientRect(), 0, 12) : ''}`);
     // the hand: pointing up at it from below, or down at it from above when it's low on the screen (not for something
     // as wide as the screen, like the status bar: the light round it says enough)
-    hand.classList.toggle('on', r.width < innerWidth * 0.6);
+    const wide = r.width > innerWidth * 0.6;
+    hand.classList.toggle('on', !wide || !!target.closest('#favPicker')); // (a wide choice in a list: pointed at near its end)
     const below = r.bottom + 64 < innerHeight;
     hand.classList.toggle('down', !below);
-    hand.style.left = `${Math.round(r.left + r.width / 2 - 20)}px`;
+    hand.style.left = `${Math.round(wide ? r.right - 64 : r.left + r.width / 2 - 20)}px`;
     hand.style.top = `${Math.round(below ? r.bottom + 6 : r.top - 52)}px`;
   }
   requestAnimationFrame(frame);

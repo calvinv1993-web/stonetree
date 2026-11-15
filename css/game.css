@@ -391,3 +391,5 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 #guideHand.on { display: block; }
 #guideHand.down { animation-name: guide-tap-down; }
 #guideHand svg { width: 100%; height: 100%; fill: #fff7e0; stroke: #3a2c18; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }
+.ga-slot-empty { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.25); background: #232426; }
+.ga-slot-empty .icon { width: 18px !important; height: 18px !important; color: #c9c0ae; }

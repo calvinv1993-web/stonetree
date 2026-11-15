@@ -165,6 +165,7 @@ function openFavPicker(slot) {
   for (const e of hotbarEntries()) {
     const b = document.createElement('button');
     b.className = 'hot';
+    b.dataset.action = e.id; // (the guide points at Eat here)
     b.disabled = !!e.locked;
     // its picture, its whole name with what it does under it, and what it costs (or the level it needs)
     b.innerHTML = '<span class="pick-main"><span class="pick-text"><b></b><em></em></span></span><small></small>';

@@ -11,7 +11,9 @@
 // (Actions.guideNext), and the last step for "Got it". ui / uiDesk: the parts of the screen it's about on a phone / a
 // computer (CSS selectors): the first one in sight is lit while the rest of the screen dims, with a hand pointing
 // at it (game-ui.js GuideSpot). art: a little picture in the guide's box (GUIDE_ART in game-ui.js). gift: things
-// handed to you when the step comes up (once: its flag), with who gives them and what they say.
+// handed to you when the step comes up (once: its flag), with who gives them and what they say. client: a step the
+// browser sees done (it calls Actions.guideNext; it has no Next button); touchOnly: only for a phone (passed at once
+// on a computer).
 const GUIDE = [
   // ---- the basics, one thing at a time (a step without done or on is read and passed with "Next") ----
   {
@@ -103,6 +105,14 @@ const GUIDE = [
     touch: 'The buttons beside the big one: spells on the left, potions and food on the right. Low on health? Tap the red potion. Hold a button to choose what goes there; swipe sideways for more.',
     ui: ['#favs'], uiDesk: ['#hotbar'],
     art: 'actions',
+  },
+  {
+    // (a phone's action buttons live in the browser, not in the game: touch.js sees Eat put on one and moves the guide on;
+    // a computer has F for eating and passes this step at once)
+    text: 'Press F to eat whenever you like.',
+    touch: 'Now try it: put Eat on your last action button. Tap the empty + on the far right, then choose Eat. From then on one tap eats, wherever you are.',
+    client: 'eatSlot', touchOnly: true, art: 'eatslot',
+    ui: ['#favPicker:not([hidden]) [data-action="f"]', '#favs .fav:nth-child(6)'],
   },
   {
     text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The Quests tab says where; the arrow points the way.',

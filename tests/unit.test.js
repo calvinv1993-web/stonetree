@@ -819,7 +819,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   kill('rat', 5);
   next('what dying costs'); tick(game, 100);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
-  p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons');
+  p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons'); next('putting Eat on an action button (the browser sees it)');
   assert.strictEqual(arrow(), 'corwin');
   talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
   talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');
