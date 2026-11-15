@@ -374,6 +374,30 @@ const Sprites = (() => {
   // with its arm running north) and <id>_w (with its arm running west), each 64 x 64 world pixels with the wall's tile
   // in the bottom-right corner, at any number of pixels a world pixel. A wall that goes on south or east is just the
   // post: the wall there brings its own arm. Kept exactly as fine as the screen shows it, so it's never scaled per frame.
+  // The temple's walls from the owner's straight-on strips (sprites/custom.js temple_wall_out, _in, _top): each four tiles
+  // long, a tile's piece by its place along the wall, the inside strip where the face looks into the temple (a roof in
+  // front of it, the renderer's ':io'), laid onto the faces and the top as any thin wall is built; kept fine.
+  function templeFromStrips(x, y, shape = '1001:oo') {
+    const [sides, io = 'oo'] = shape.split(':'), res = Sprites.CREATURE_RES, at = v => ((v % 4) + 4) % 4;
+    return cached(`templestrip:${sides}:${io}:${at(x)}:${at(y)}:${res}`, g => {
+      g.canvas.res = res;
+      const set = g.setTransform.bind(g);
+      g.setTransform = (a, b, c, d, e, f) => set(a * res, b * res, c * res, d * res, e * res, f * res);
+      g.setTransform(1, 0, 1 * 0 + 0, 1, 0, 0);
+      const strip = (name, col, dim) => () => {
+        const img = customImage(name), w = img.naturalWidth / 4;
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        if (dim) g.filter = `brightness(${dim})`;
+        g.drawImage(img, col * w, 0, w, img.naturalHeight, 0, 0, TILE, TILE);
+        g.filter = 'none';
+      };
+      wallBlock(g, sides, {
+        south: strip(io[1] === 'i' ? 'temple_wall_in' : 'temple_wall_out', at(x)),
+        east: strip(io[0] === 'i' ? 'temple_wall_in' : 'temple_wall_out', at(y), 0.78),
+        top: strip('temple_wall_top', at(x)),
+      });
+    }, 2 * TILE * res);
+  }
   function wallFromPictures(id, shape) {
     const def = THINGS[id];
     if (!def || def.wall !== 'thin') return null;
@@ -6551,7 +6575,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
@@ -6723,6 +6747,7 @@ const Sprites = (() => {
         }, 2 * TILE * res);
       }
       if (id === 'fence') { const ownFence = fenceFromPictures(shape); if (ownFence) return ownFence; }
+      if (id === 'wall_temple' && customImage('temple_wall_out')) return templeFromStrips(x, y, shape);
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y, shape);
