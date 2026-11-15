@@ -131,7 +131,7 @@ const Sprites = (() => {
   function spanLintel(g, r, which) {
     face(g, which, 0, () => {
       g.save(); g.beginPath(); g.rect(0, 0, TILE, 11); g.clip();
-      ashlar(g, r, which === 'east');
+      if (customImage('rampart_face')) rampartFace(which === 'east')(g, r); else ashlar(g, r, which === 'east'); // (the wall's own sandstone)
       g.restore();
       for (let u = 3; u < TILE; u += 5) line(g, 'rgba(30,26,22,0.55)', 0.8, u, 3, u + (u - 16) * 0.12, 11); // the wedge joints
       rect(g, '#24201c', 0, 11, TILE, 1.5);                 // its edge
@@ -356,6 +356,15 @@ const Sprites = (() => {
     wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
+  // The town wall's towers: the wall's sandstone strip (sprites/custom.js rampart_face) where it has loaded, round doors too
+  const rampartFace = dim => (g, r) => {
+    const face = customImage('rampart_face');
+    if (!face) return sandBricks(g, r, dim ? 40 : 0);
+    const n = Math.max(1, Math.round(face.naturalWidth / face.naturalHeight)), i = (r() * n) | 0, w = face.naturalWidth / n;
+    g.save(); g.imageSmoothingEnabled = true; if (dim) g.filter = 'brightness(0.72)';
+    g.drawImage(face, i * w, 0, w, face.naturalHeight, 0, 0, TILE, TILE); g.restore();
+  };
+  WALL_STYLES.wall_rampart = { south: rampartFace(false), east: rampartFace(true), top: '#d8c8b0' };
   // The tops of walls: dressed stone with a bevel, or a wooden beam.
   function capStone(g, r, v) {
     rect(g, gray(v, 4), 0, 0, TILE, TILE);
@@ -399,6 +408,35 @@ const Sprites = (() => {
           g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
           g.save(); g.translate(TILE, 0); g.rotate(Math.PI / 2); g.drawImage(img, at(y) * w, 0, w, h, 0, 0, TILE, WALL_THICKNESS); g.restore();
           g.drawImage(img, at(x) * w, 0, w, h, 0, W0, TILE, WALL_THICKNESS);
+        },
+      });
+    }, 2 * TILE * res);
+  }
+  // The town wall's towers and gatehouses (wall_rampart) from the same sandstone strip as the wall's faces (rampart_face,
+  // n tiles long), their top the walkway's paving (temple_paving): so the whole town wall is one stone. Kept fine.
+  function rampartFromStrip(x, y, shape = '1001:oo') {
+    const [sides] = shape.split(':'), res = Sprites.CREATURE_RES, face = customImage('rampart_face');
+    const n = Math.max(1, Math.round(face.naturalWidth / face.naturalHeight)), at = v => ((v % n) + n) % n;
+    return cached(`rampartstrip:${sides}:${at(x)}:${at(y)}:${res}`, g => {
+      g.canvas.res = res;
+      const set = g.setTransform.bind(g);
+      g.setTransform = (a, b, c, d, e, f) => set(a * res, b * res, c * res, d * res, e * res, f * res);
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      const side = (col, dim) => () => {
+        const w = face.naturalWidth / n;
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        if (dim) g.filter = `brightness(${dim})`;
+        g.drawImage(face, col * w, 0, w, face.naturalHeight, 0, 0, TILE, TILE);
+        g.filter = 'none';
+      };
+      wallBlock(g, sides, {
+        south: side(at(x)), east: side(at(y), 0.72),
+        top: () => {
+          const pave = customImage('temple_paving');
+          if (!pave) { rect(g, '#d8c8b0', 0, 0, TILE, TILE); return; }
+          const k = pave.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
+          g.imageSmoothingEnabled = true; g.drawImage(pave, c * k, r * k, k, k, 0, 0, TILE, TILE);
+          rect(g, 'rgba(0,0,0,0.12)', 0, 0, TILE, TILE);
         },
       });
     }, 2 * TILE * res);
@@ -1907,6 +1945,7 @@ const Sprites = (() => {
     wall_stone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_stone'),
     wall_wood: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_wood'),
     wall_temple: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_temple'),
+    wall_rampart: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_rampart'),
     wall_sandstone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_sandstone'),
     wall_block(g, r) {
       wallBlock(g, 'block', { south: () => bricks(g, r, 104, '#4f4f55'), east: () => bricks(g, r, 72, '#36363c'), top: '#8a8a92' });
@@ -6759,6 +6798,7 @@ const Sprites = (() => {
       }
       if (id === 'fence') { const ownFence = fenceFromPictures(shape); if (ownFence) return ownFence; }
       if (id === 'wall_temple' && customImage('temple_wall_out')) return templeFromStrips(x, y, shape);
+      if (id === 'wall_rampart' && customImage('rampart_face')) return rampartFromStrip(x, y, shape);
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
       const ownBlock = blockFromPicture(id, x, y, shape);

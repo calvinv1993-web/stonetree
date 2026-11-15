@@ -1085,7 +1085,7 @@ function buildTown(m, S, runs, river) {
       const [x0, y0, x1, y1] = box, mx = (x0 + x1) >> 1, my = (y0 + y1) >> 1;
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const edge = x === x0 || x === x1 || y === y0 || y === y1, through = across ? y === my : x === mx; // (where the walkway comes in)
-        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_temple'] : [] });
+        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_rampart'] : [] });
         if (x > x0 && y > y0) m.set(x, y, S + 2, { ground: 'roof_slate', items: [] }); // (its north and west rows left out, as a building's)
       }
       const [bx, by] = across ? [mx, gy0 === R.y0 ? y1 : y0] : [gx0 === R.x0 ? x1 : x0, my]; // the side towards town
@@ -1110,8 +1110,8 @@ function buildTown(m, S, runs, river) {
           const nx = x + dx, ny = y + dy;
           return !inTower(nx, ny) && inRing(nx, ny) && (dx ? inRing(nx, ny - 1) && inRing(nx, ny + 1) : inRing(nx - 1, ny) && inRing(nx + 1, ny));
         });
-        m.set(x, y, S, { ground: 'paving', items: edge ? [door ? 'door' : 'wall_temple'] : [] });
-        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !gap ? ['wall_temple'] : [] });
+        m.set(x, y, S, { ground: 'paving', items: edge ? [door ? 'door' : 'wall_rampart'] : [] });
+        m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !gap ? ['wall_rampart'] : [] });
         m.set(x, y, S + 2, { ground: 'temple_paving', items: [] });
         parapet(x, y, S + 2, box);
       }
