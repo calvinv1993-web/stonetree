@@ -80,6 +80,6 @@ if __name__ == '__main__':
         if kind == 'wall': piece = seamless(piece, both=False)
         if kind == 'border': piece = seamless(clean(piece), both=False)
         if kind == 'ground' or (kind == 'ground-border' and k == 0): piece = seamless(piece, both=True)
-        if kind == 'ground-border' and k == 1: piece = seamless(clean(piece), both=False)
+        # (the border strip is left as cut: install-ground-border.py frees it from the sheet itself)
         piece.save(os.path.join(out, f'{kind}-{k + 1}.png'))
         print(f'{kind}-{k + 1}.png', box, (w, h))
