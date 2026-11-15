@@ -66,6 +66,7 @@ const SPRITE_HASHES = {
   "edge-sand-n.png":"06a600c826",
   "edge-sand-s.png":"76692abf95",
   "edge-sand-w.png":"b2a4157edf",
+  "farmland-own.png":"8aeec8528a",
   "fence-north.png":"0237eb406d",
   "fence-post.png":"6e8cf1f3db",
   "fence-west.png":"58d3a771ef",
