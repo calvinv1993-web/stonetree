@@ -12,6 +12,7 @@ sheet came back scaled. Every sheet carries the style card (the founder's statue
 | `on-wall.png` | doors, windows, signs, lanterns, banners | straight on; the game lays it into the wall and gives it depth |
 | `thing.png` | anything standing: statues, trees, furniture, stalls | in the world's camera, on its tiles (1, 2 x 2 or 3 x 3), height up-left |
 | `front.png` | anything standing, from its front only | straight on; `tests/front-to-thing.py` stands it up and builds its top and east side from it, as a block |
+| `ground-border.png` | a ground and its ragged edge, painted as one | the square from above and its edge strip; `tests/install-ground-border.py <filled> <id>` puts in both |
 | `item.png` | items | the item alone |
 
 `tests/make-templates.py` draws the sheets again (after the style card changes).

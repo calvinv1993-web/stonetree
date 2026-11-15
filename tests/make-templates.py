@@ -99,3 +99,9 @@ def g_border(d,x,y,w,h):
 page('border','BORDER - fill in: the edge of a ground where it ends over a lower ground, seen from above',
      [('the edge, running left to right (512 x 64 = 4 tiles long, half a tile deep)',512,64,g_border)],
      'Seen from straight above, flat. The top third is the ground itself (it carries on from above the frame); below it the ground ends in a soft, ragged, natural edge (tufts, small stones, a little soil showing), not a straight line, fading out into TRANSPARENT before the bottom. The edge must join seamlessly left to right. Same ground and colours as its ground picture. Light from the top left.')
+
+# 8. a ground and its border on one sheet, so they are painted as one: the square, and its edge strip right below it
+page('ground-border','GROUND + BORDER - paint both as ONE piece',
+     [('1. GROUND from above (4 x 4 tiles)',512,512,lambda d,x,y,w,h:[dash(d,(x+k*128,y),(x+k*128,y+h),(220,220,220),1) or dash(d,(x,y+k*128),(x+w,y+k*128),(220,220,220),1) for k in range(1,4)]),
+      ('2. BORDER: where that ground ends (4 tiles)',512,64,g_border)],
+     'Paint both frames as one piece of the same ground: same texture, colours and light. Frame 1 is the ground from straight above, seamless in both directions. Frame 2 is that same ground (its top third) ending below in a soft, ragged, natural edge (tufts, small stones), never a straight line, fading out to TRANSPARENT before the bottom; seamless left to right. Flat, from above, no perspective. Light from the top left.',W=700)
