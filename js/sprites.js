@@ -604,6 +604,13 @@ const Sprites = (() => {
     paint();
     g.restore();
   }
+  // A picture painted straight on, given depth: laid onto the wall's face at out0, then again and again a little further
+  // out up to out1, darker (its sides), and last in full at out1 - so it stands out from the wall as a solid thing.
+  function extruded(g, shape, img, x, y, w, h, out0, out1, side = 0.6) {
+    const paint = dim => () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; if (dim) g.filter = `brightness(${dim})`; g.drawImage(img, x, y, w, h); g.filter = 'none'; };
+    for (let o = out0; o < out1; o += 0.35) onWallPlane(g, shape, o, paint(side));
+    onWallPlane(g, shape, out1, paint(0));
+  }
   // An iron bracket at (u, h): a plate on the wall and an arm reaching `reach` out (and a little up).
   function bracket(g, shape, u, h, reach) {
     const at = wallSpot(shape);
@@ -2994,7 +3001,7 @@ const Sprites = (() => {
       // face, transparent round the window): laid onto the wall's face in the world's slant, the same picture for both
       const front = customImage('window_front');
       if (front) {
-        onWallPlane(g, shape, 0.4, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(front, 0, 0, 32, 32); });
+        extruded(g, shape, front, 0, 0, 32, 32, 0, 1.6, 0.6);
         return;
       }
       const at = wallSpot(shape), east = runsNorthSouth(wallSides(shape)), D = 4, u0 = 10, u1 = 22, h0 = 12, h1 = 26;
@@ -3120,7 +3127,7 @@ const Sprites = (() => {
         const [gx, gy] = at(16, 4, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8); // its glow
         const w = 14, h = w * own.naturalHeight / own.naturalWidth;
         wallPoly(g, shape, 0, 'rgba(15,10,5,0.2)', [11, 29 - h, 25, 29 - h, 25, 29, 11, 29].map((v, k) => (k % 2 ? 32 - v + 32 - 2 * (29 - h / 2) + 0 : v))); // its shadow
-        onWallPlane(g, shape, 3, () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(own, 9, 3, w, h); });
+        extruded(g, shape, own, 9, 3, w, h, 1, 5, 0.7);
         return;
       }
       bracket(g, shape, 16, 27, 5.5);
@@ -3338,7 +3345,7 @@ const Sprites = (() => {
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
-  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', lantern: 'lantern_side' };
+  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', lantern: 'lantern_side', window: 'window_front' };
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
