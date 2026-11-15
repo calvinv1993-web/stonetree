@@ -3751,6 +3751,18 @@ const Sprites = (() => {
       }
     } },
     // the owner's tilled field: one painting over 4 x 4 tiles; drawn tile by tile till it's in
+    // the owner's swamp (ground + border template): one painting over 4 x 4 tiles; drawn tile by tile till it's in
+    swamp: { tiles: 4, res: () => ownRes('swamp', 4), draw: g => {
+      const image = customImage('swamp');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.swamp(g, makeRng(hashStr('swamp') + y * 4 + x)); g.restore();
+      }
+    } },
     farmland: { tiles: 4, res: () => ownRes('farmland', 4), draw: g => {
       const image = customImage('farmland');
       if (image) {

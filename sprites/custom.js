@@ -12,6 +12,11 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  edge_swamp_w: 'edge-swamp-w.png', // the owner's swamp border (a loose PNG: install-edge-png.py)
+  edge_swamp_s: 'edge-swamp-s.png', // the owner's swamp border (a loose PNG: install-edge-png.py)
+  edge_swamp_e: 'edge-swamp-e.png', // the owner's swamp border (a loose PNG: install-edge-png.py)
+  edge_swamp_n: 'edge-swamp-n.png', // the owner's swamp border (a loose PNG: install-edge-png.py)
+  swamp: 'swamp-own.png', // the owner's swamp, from above (ground + border template)
   ore_iron: 'items/ore_iron@3x.png', // the owner's item picture (from the owner's sheet of items)
   cheese: 'items/cheese@3x.png', // the owner's item picture (from the owner's sheet of items)
   chain_armor: 'items/chain_armor@3x.png', // the owner's item picture (from the owner's sheet of items)
