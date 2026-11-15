@@ -610,7 +610,7 @@ const Sprites = (() => {
     if (!edgePixelCache.has(img)) {
       const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
       const g = c.getContext('2d'); g.drawImage(img, 0, 0);
-      edgePixelCache.set(img, { width: c.width, data: g.getImageData(0, 0, c.width, c.height).data });
+      edgePixelCache.set(img, { width: c.width, height: c.height, data: g.getImageData(0, 0, c.width, c.height).data });
     }
     return edgePixelCache.get(img);
   }
@@ -6647,6 +6647,8 @@ const Sprites = (() => {
     return texturePixels.cache.get(key);
   };
   texturePixels.cache = new Map();
+  const shoreFieldCache = new Map();
+  const roundRippleCache = new WeakMap(); // (Sprites.roundRipples: a water frame cut to a rounded corner) // (Sprites.shoreField: the shape of a rounded shore, per 3 x 3 of land and water)
   // fine: as finely as the texture is drawn (k.res: its own PNG may have more pixels than a world pixel each), for
   // the ground itself; otherwise a pixel a world pixel, as the edges and borders read it (texturePixels)
   function seamlessPart(id, x, y, fine = false) {
@@ -7101,6 +7103,121 @@ const Sprites = (() => {
     // with foam lapping in and out (frame 0-3).
     // The beach on a tile's diagonal (a step of a staircase of land: see render.js): the side's shallows and foam laid
     // along the line from one corner to the other, the land lying beyond it (corner: where the land is)
+    // A rounded shore (see the shore in render.js): land and water as one smooth shape across the tiles, worked out
+    // from which of the 3 x 3 tiles round this one are land (bits: 9 of them, row by row from the north-west, 1 = land).
+    // The land's share of each point is the land of the four tile middles round it, blended by how near each is
+    // (bilinear); land where that's at least a half. So a straight shore stays on the tiles' edge, a corner of land
+    // sticking out is rounded off, one reaching in is filled round, and a staircase becomes a sloping line. Each pixel:
+    // f (the land's share) and dist (how far, in world pixels, it lies from the shore: + on the land, - in the water).
+    shoreField(bits) {
+      if (shoreFieldCache.has(bits)) return shoreFieldCache.get(bits);
+      return shoreFieldCache.set(bits, (() => {
+        const N = TILE * 2, L = (i, j) => (bits >> ((j + 1) * 3 + (i + 1))) & 1, f = new Float32Array(N * N), dist = new Float32Array(N * N);
+        const along = new Uint8Array(N * N); // which way the shore runs here: 0 across (east-west), 1 down (north-south)
+        for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+          const u = (px + 0.5) / N - 0.5, v = (py + 0.5) / N - 0.5, sx = u < 0 ? -1 : 1, sy = v < 0 ? -1 : 1, a = Math.abs(u), b = Math.abs(v);
+          const l00 = L(0, 0), lx = L(sx, 0), ly = L(0, sy), lxy = L(sx, sy);
+          const val = l00 * (1 - a) * (1 - b) + lx * a * (1 - b) + ly * (1 - a) * b + lxy * a * b;
+          const ga = ((lx - l00) * (1 - b) + (lxy - ly) * b) * sx, gb = ((ly - l00) * (1 - a) + (lxy - lx) * a) * sy;
+          const grad = Math.hypot(ga, gb), i = py * N + px;
+          f[i] = val;
+          dist[i] = grad > 1e-4 ? ((val - 0.5) / grad) * TILE : (val >= 0.5 ? 99 : -99);
+          along[i] = Math.abs(gb) >= Math.abs(ga) ? 0 : 1;
+        }
+        return { N, f, dist, along };
+      })()).get(bits);
+    },
+    // A land tile's corner rounded off into the water: the still water there (the rest see-through), or null if none
+    roundWater(bits, x, y) {
+      const { N, f } = Sprites.shoreField(bits);
+      if (!f.some(v => v < 0.5)) return null;
+      return cached(`roundwater:${bits}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}`, g => {
+        g.imageSmoothingEnabled = true;
+        g.drawImage(Sprites.water(x, y, 0) || Sprites.thing('water', x, y, 0), 0, 0, N, N);
+        const img = g.getImageData(0, 0, N, N), d = img.data;
+        for (let i = 0; i < N * N; i++) if (f[i] >= 0.5) d[i * 4 + 3] = 0;
+        g.putImageData(img, 0, 0);
+      }, TILE * 2);
+    },
+    // A water frame (its ripples, Sprites.waterFrame) cut to a land tile's rounded-off corner; null if it has none.
+    // Kept per frame picture and shape (a WeakMap on the frame, so it goes when the frame does).
+    roundRipples(bits, frame) {
+      const { N, f } = Sprites.shoreField(bits);
+      if (!f.some(v => v < 0.5)) return null;
+      let byBits = roundRippleCache.get(frame);
+      if (!byBits) roundRippleCache.set(frame, (byBits = new Map()));
+      if (byBits.has(bits)) return byBits.get(bits);
+      const c = document.createElement('canvas'); c.width = c.height = N;
+      const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.drawImage(frame, 0, 0, N, N);
+      const img = g.getImageData(0, 0, N, N), d = img.data;
+      for (let i = 0; i < N * N; i++) if (f[i] >= 0.5) d[i * 4 + 3] = 0;
+      g.putImageData(img, 0, 0);
+      byBits.set(bits, c);
+      return c;
+    },
+    // The water's side of a rounded shore: the shallows and a line of foam following it (as Sprites.shore along a
+    // straight side), see-through elsewhere. frame: the foam's lap, as shore's.
+    roundShore(bits, frame) {
+      return cached(`roundshore:${bits}:${frame}`, g => {
+        const { N, dist, along } = Sprites.shoreField(bits), img = g.createImageData(N, N), d = img.data;
+        const angle = frame * Math.PI / 16, lap = 1.8 * Math.sin(angle);
+        const STOPS = [[0, 16, 48, 49, 0.75], [0.32, 75, 162, 163, 0.65], [1, 80, 175, 192, 0]];
+        for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+          const i = py * N + px, w = -dist[i]; // (how far out in the water)
+          if (w < 0 || w > 18) continue;
+          const t = w / 18, k = t < 0.32 ? 0 : 1, s0 = STOPS[k], s1 = STOPS[k + 1], q = (t - s0[0]) / (s1[0] - s0[0]);
+          let r = s0[1] + (s1[1] - s0[1]) * q, gg = s0[2] + (s1[2] - s0[2]) * q, bb = s0[3] + (s1[3] - s0[3]) * q, al = s0[4] + (s1[4] - s0[4]) * q;
+          // the foam: a thin bright line at its own distance out, wavering along the shore
+          const pos = (along[i] ? py : px) / 2, foamAt = 10 + lap + Math.sin(pos * Math.PI / 16 + angle) * 0.8;
+          const foam = Math.max(0, 1 - Math.abs(w - foamAt) / 0.9) * 0.5;
+          if (foam > 0) { r = r * (1 - foam) + 213 * foam; gg = gg * (1 - foam) + 239 * foam; bb = bb * (1 - foam) + 224 * foam; al = al + foam * (1 - al); }
+          const o = i * 4; d[o] = r; d[o + 1] = gg; d[o + 2] = bb; d[o + 3] = al * 255;
+        }
+        g.putImageData(img, 0, 0);
+      }, TILE * 2);
+    },
+    // The land's side of a rounded shore: the land itself where the shape says land (its own texture, as at this
+    // tile, so it runs on seamlessly; over a filled corner, the nearest land's), and its ragged border just past the
+    // shore (its own border pictures, if it has them, pressed to `squash` of their depth). grounds: the 9 tiles'
+    // grounds, as bits.
+    // (fill: whether to paint the land itself too: on a water tile, its filled corner; a land tile has its own already)
+    roundLand(bits, grounds, x, y, fill = true, squash = 0.45) {
+      const T4 = n => ((n % 4) + 4) % 4;
+      return cached(`roundland:${bits}:${grounds.join(',')}:${T4(x)}${T4(y)}:${fill ? 1 : 0}:${squash}`, g => {
+        const { N, f, dist, along } = Sprites.shoreField(bits), img = g.createImageData(N, N), d = img.data;
+        const L = (i, j) => (bits >> ((j + 1) * 3 + (i + 1))) & 1, G = (i, j) => grounds[(j + 1) * 3 + (i + 1)];
+        const pixels = {}, strips = {};
+        const tex = id => pixels[id] || (pixels[id] = (() => { // (the ground as it lies on this tile, a pixel a half world pixel)
+          const c = document.createElement('canvas'); c.width = c.height = N;
+          const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(id, x, y, 0), 0, 0, N, N);
+          return cg.getImageData(0, 0, N, N).data;
+        })());
+        const strip = id => (id in strips ? strips[id] : (strips[id] = customImage(`edge_${id}_n`) ? edgePixels(customImage(`edge_${id}_n`)) : null));
+        for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+          const i = py * N + px, o = i * 4, u = (px + 0.5) / N - 0.5, v = (py + 0.5) / N - 0.5;
+          // the land nearest this point: this tile's own, or of the tile middles round it the nearest that's land
+          let id = L(0, 0) ? G(0, 0) : null;
+          if (!id) {
+            let best = 9;
+            for (const [ii, jj] of [[u < 0 ? -1 : 1, 0], [0, v < 0 ? -1 : 1], [u < 0 ? -1 : 1, v < 0 ? -1 : 1]]) {
+              const dd = Math.hypot(u - ii, v - jj);
+              if (L(ii, jj) && dd < best) { best = dd; id = G(ii, jj); }
+            }
+          }
+          if (!id) continue;
+          if (f[i] >= 0.5) { if (fill) { const t = tex(id); d[o] = t[o]; d[o + 1] = t[o + 1]; d[o + 2] = t[o + 2]; d[o + 3] = 255; } continue; }
+          // just past the shore: the land's own ragged border, row by row of its border picture by the distance out
+          const sp = strip(id);
+          if (!sp) continue;
+          const res = sp.height / TILE, row = Math.floor((-dist[i] / squash) * res);
+          if (row < 0 || row >= sp.height) continue;
+          const col = Math.floor((((along[i] ? py : px) / 2) * res)) % sp.width, si = (row * sp.width + col) * 4;
+          if (!sp.data[si + 3]) continue;
+          d[o] = sp.data[si]; d[o + 1] = sp.data[si + 1]; d[o + 2] = sp.data[si + 2]; d[o + 3] = sp.data[si + 3];
+        }
+        g.putImageData(img, 0, 0);
+      }, TILE * 2);
+    },
     // tip: the tile beyond a step's tip, which the line only touches at its corner: the same beach, one tile further out
     diagonalShore(corner, frame, tip = false) {
       return cached(`diagshore:${corner}:${frame}:${tip ? 1 : 0}`, g => {

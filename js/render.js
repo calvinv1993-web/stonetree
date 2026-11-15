@@ -373,6 +373,28 @@ const Render = {
       };
       // The ground of tiles gx0..gx1, gy0..gy1 (the scree and lips of x0..x1, y0..y1), at (ox, oy): what lies flat,
       // under everything on the floor. Drawn live, or once into a chunk kept for later (see groundChunk).
+      // A rounded shore (Sprites.shoreField): out in the wilds, where open land meets open water, the two are one smooth
+      // shape across the tiles, corners rounded and staircases sloping. A tile has one when it or a tile round it is
+      // water and another land, and all nine are plain water or open land: no paving, bridge, wall, rock or roof among
+      // them, and not in town (a town's banks are its quays). Its bits: the 9 tiles, row by row, 1 for land.
+      const SHORE_LAND = id => !!id && id !== 'water' && !LIQUID.has(id) && !BRIDGE_GROUNDS.has(id) && !Sprites.paved(id) && !THINGS[id].block && !THINGS[id].roof;
+      const townList = (map.zones || []).filter(r => r.town && r.z === z);
+      const roundCache = new Map();
+      const roundShoreAt = (x, y) => {
+        const key = y * 4096 + x;
+        if (roundCache.has(key)) return roundCache.get(key);
+        let bits = 0, land = 0, water = 0, ok = !townList.some(r => x >= r.x0 - 1 && x <= r.x1 + 1 && y >= r.y0 - 1 && y <= r.y1 + 1);
+        const grounds = [];
+        for (let j = -1; j <= 1 && ok; j++) for (let i = -1; i <= 1; i++) {
+          const id = groundAt(x + i, y + j);
+          if (wallAt(x + i, y + j) || !(id === 'water' || SHORE_LAND(id))) { ok = false; break; }
+          grounds.push(id);
+          if (id === 'water') water++; else { land++; bits |= 1 << ((j + 1) * 3 + (i + 1)); }
+        }
+        const r = ok && land && water ? { bits, grounds, wet: grounds[4] === 'water' } : null;
+        roundCache.set(key, r);
+        return r;
+      };
       const groundPass = (g, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, noBase) => {
         if (!noBase) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) { // (noBase: all but the grounds themselves)
           const t = tileAt(x, y);
@@ -433,7 +455,7 @@ const Render = {
           return null;
         };
         for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
-          if (!wet(groundAt(x, y))) continue;
+          if (!wet(groundAt(x, y)) || roundShoreAt(x, y)) continue; // (a rounded shore: drawn below)
           // (a wall rises straight out of the water: no beach along it)
           const bank = (bx, by) => (wallAt(bx, by) ? 'water' : groundAt(bx, by));
           const sides = { n: bank(x, y - 1), e: bank(x + 1, y), s: bank(x, y + 1), w: bank(x - 1, y) };
@@ -465,6 +487,8 @@ const Render = {
           if (onWall && !(shown && Sprites.paved(shown))) continue;
           const here = onWall ? shown : groundAt(x, y), p = Sprites.borderPriority(here);
           if (p === undefined) continue;
+          const round = roundShoreAt(x, y);
+          if (round && round.wet) continue; // (a rounded shore's water: its beach and the land's edge are drawn below)
           if (Sprites.paved(here)) {
             const n = groundAt(x, y - 1), w = groundAt(x - 1, y);
             // (not along a wall: the two pavings don't meet there, the wall stands between them)
@@ -528,6 +552,22 @@ const Render = {
             if (own) g.drawImage(own, ox + x * TILE, oy + y * TILE, TILE, TILE);
             else g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
           }
+        }
+
+        // The rounded shores: on a land tile the water where its corner is rounded off (still: the ripples move on the
+        // water tiles), then on every one the shallows and foam, and the land (on water, a corner filled round) with its
+        // ragged edge
+        for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          const round = roundShoreAt(x, y);
+          if (!round) continue;
+          const X = ox + x * TILE, Y = oy + y * TILE;
+          if (!round.wet) {
+            if (noBase) continue; // (the ripples' redraw is for water tiles only)
+            const patch = Sprites.roundWater(round.bits, x, y);
+            if (patch) g.drawImage(patch, X, Y, TILE, TILE);
+          }
+          g.drawImage(Sprites.roundShore(round.bits, shoreFrame || 0), X, Y, TILE, TILE);
+          g.drawImage(Sprites.roundLand(round.bits, round.grounds, x, y, round.wet), X, Y, TILE, TILE);
         }
 
         // A bank of round stones where water meets the land (Sprites.quayStones: a strip of them, the water on its left,
@@ -826,6 +866,16 @@ const Render = {
         }
         g.drawImage(f, ox + x * TILE, oy + y * TILE);
         g.drawImage(over, ox + x * TILE, oy + y * TILE, TILE, TILE);
+      }
+      // a land tile with a corner rounded off into the water: the ripples move there too (only on the water's part)
+      if (Sprites.WATER_MOVES && !Render.skip('water')) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+        const round = groundAt(x, y) !== 'water' && roundShoreAt(x, y);
+        if (!round) continue;
+        const f = Sprites.waterFrame(x, y, v.time), clip = f && Sprites.roundRipples(round.bits, f);
+        if (!clip) continue;
+        g.drawImage(clip, ox + x * TILE, oy + y * TILE, TILE, TILE);
+        g.drawImage(Sprites.roundShore(round.bits, 0), ox + x * TILE, oy + y * TILE, TILE, TILE);
+        g.drawImage(Sprites.roundLand(round.bits, round.grounds, x, y, false), ox + x * TILE, oy + y * TILE, TILE, TILE);
       }
       if (v.afterGround && !Render.skip('fx')) v.afterGround(g, ox, oy, z, gx0, gx1, gy0, gy1, groundAt);
       if (v.onFloor) v.onFloor(g, ox, oy, z); // marks on the floor itself (where you're walking): under everything on it
