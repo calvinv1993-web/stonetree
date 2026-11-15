@@ -49,12 +49,12 @@ const MobileHud = (() => {
   if (!touchScreen) return;
   const hud = document.querySelector('.hud');
   // a heart before the health bar and a drop before the mana
-  // (flat, no outline, laid half over the start of their bar)
+  // (flat, laid half over the start of their bar, edged in the status bar's own colour: cut out of the bar)
   const SHAPES = {
-    hp: '<path fill="#c9373d" d="M12 21.2 3.6 13.1A5.3 5.3 0 0 1 12 6.3a5.3 5.3 0 0 1 8.4 6.8z"/>',
-    mana: '<path fill="#2f7fdc" d="M12 2.6c-3.4 4.7-6.3 8.3-6.3 12a6.3 6.3 0 0 0 12.6 0c0-3.7-2.9-7.3-6.3-12z"/>',
+    hp: '<path fill="#c9373d" stroke="#191a1b" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke" d="M12 21.2 3.6 13.1A5.3 5.3 0 0 1 12 6.3a5.3 5.3 0 0 1 8.4 6.8z"/>',
+    mana: '<path fill="#2f7fdc" stroke="#191a1b" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke" d="M12 2.6c-3.4 4.7-6.3 8.3-6.3 12a6.3 6.3 0 0 0 12.6 0c0-3.7-2.9-7.3-6.3-12z"/>',
   };
-  for (const bar of ['hp', 'mana']) hud.insertAdjacentHTML('beforeend', `<svg class="icon hud-icon-${bar}" viewBox="0 0 24 24" aria-hidden="true">${SHAPES[bar]}</svg>`);
+  for (const bar of ['hp', 'mana']) hud.insertAdjacentHTML('beforeend', `<svg class="icon hud-icon-${bar}" viewBox="-1 -1 26 26" aria-hidden="true">${SHAPES[bar]}</svg>`);
   // under them one row: "EXP 12%", one thin experience bar, the level
   const row = document.createElement('div'); row.className = 'hud-exp-row';
   const expLabel = document.createElement('span'); expLabel.className = 'hud-exp-label'; expLabel.textContent = 'EXP ';
