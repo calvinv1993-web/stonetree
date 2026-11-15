@@ -1091,6 +1091,23 @@ const Sprites = (() => {
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  // The owner's ladder (sprites/custom.js ladder_front, painted straight on), stood upright against the tile's north side
+  // from the floor to the floor above, in the world's slant: laid into the upright plane a little out from the wall, again
+  // and again a little further out, darker, for the wood's thickness. False when there's no picture.
+  function ownLadder(g) {
+    const img = customImage('ladder_front');
+    if (!img) return false;
+    const u0 = 8, w = 16, top = 54, W = img.naturalWidth, H = img.naturalHeight;
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    for (const [v, dim] of [[3, 0.5], [3.8, 0.55], [4.6, 0.6], [5.4, 0]]) {
+      const [ox, oy] = P(u0, v, top);
+      g.save(); g.transform(w / W, 0, (top * HEIGHT * LEAN) / H, (top * HEIGHT) / H, ox, oy);
+      if (dim) g.filter = `brightness(${dim})`;
+      g.drawImage(img, 0, 0);
+      g.restore();
+    }
+    return true;
+  }
 
   const FLOOR_Z = 32 / HEIGHT; // one floor's height in P()'s heights: what reaches it meets the floor above
   // An open hatch: the tile has no floor, only a frame of boards round a square opening in the middle, with its lid
@@ -3312,6 +3329,7 @@ const Sprites = (() => {
     },
     // A ladder up through a dark hole in the ceiling, to the trapdoor on the floor above.
     cave_ladder(g) {
+      if (ownLadder(g)) return;
       poly(g, '#0a0806', [...P(5, 5, 54), ...P(27, 5, 54), ...P(27, 27, 54), ...P(5, 27, 54)]);
       const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
       prism(g, 8, 3, 11, 6, 0, 54, wood);
@@ -3321,6 +3339,7 @@ const Sprites = (() => {
     // A ladder up to a sewer grate: it stands against the tile's north edge and reaches the ceiling,
     // in the daylight that falls through the grate, striped by its bars.
     sewer_ladder(g) {
+      const own = customImage('ladder_front');
       g.save();
       g.beginPath();
       g.rect(64 + 5, 64 + 6, 22, 22);
@@ -3333,6 +3352,7 @@ const Sprites = (() => {
       poly(g, 'rgba(255,244,205,0.55)', sky);
       for (let u = 9; u < 27; u += 4) line(g, '#3a3a40', 2, ...P(u, 5, 54), ...P(u, 27, 54));
       line(g, '#4a4a50', 2, ...P(5, 5, 54), ...P(27, 5, 54)); line(g, '#4a4a50', 2, ...P(5, 27, 54), ...P(27, 27, 54));
+      if (own && ownLadder(g)) return;
       const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
       prism(g, 8, 3, 11, 6, 0, 54, wood);
       for (let z = 7; z < 54; z += 8) prism(g, 11, 4, 21, 5, z, z + 2, wood);
@@ -3340,6 +3360,7 @@ const Sprites = (() => {
     },
     // A ladder standing against the tile's north side, up to the floor above.
     ladder(g) {
+      if (ownLadder(g)) return;
       const wood = { top: '#a6743e', south: '#7a4f26', east: '#5a3818', edge: '#c08a4e' };
       floorShadow(g, 9, 2);
       prism(g, 8, 4, 11, 7, 0, 54, wood);
@@ -3383,7 +3404,7 @@ const Sprites = (() => {
   const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
-  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_blank_front', sign_magic: 'sign_blank_front', sign_food: 'sign_blank_front', sign_tools: 'sign_blank_front', sign_inn: 'sign_blank_front', sign_depot: 'sign_blank_front', sign_temple: 'sign_blank_front', sign_school: 'sign_blank_front', lantern: 'lantern_side', window: 'window_front' };
+  const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_blank_front', sign_magic: 'sign_blank_front', sign_food: 'sign_blank_front', sign_tools: 'sign_blank_front', sign_inn: 'sign_blank_front', sign_depot: 'sign_blank_front', sign_temple: 'sign_blank_front', sign_school: 'sign_blank_front', ladder: 'ladder_front', cave_ladder: 'ladder_front', sewer_ladder: 'ladder_front', lantern: 'lantern_side', window: 'window_front' };
   // Grounds drawn as one 96x96 texture spread over 3x3 tiles, for rock that has no seams.
   // Grounds drawn as one big texture (tiles x tiles), each tile showing its own part of it by position, so
   // no tile shows as a square. The big texture wraps round at its edges, so it tiles without a seam too.
@@ -6502,7 +6523,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };

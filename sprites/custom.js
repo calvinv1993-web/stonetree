@@ -135,7 +135,8 @@ const CUSTOM_SPRITES = {
   crypt_gate: 'crypt-gate@4x.png', // the owner's locked iron gate in the crypt
   bell_rope: 'bell-rope@4x.png', // the owner's coil of rope, picked up to ring the bell
   shaft_hatch: 'shaft-hatch.png', // the owner's hatch over the bell shaft (with the rope through it, or the dark shaft below)
-  trapdoor: 'trapdoor@4x.png', cave_ladder: 'cave-ladder@4x.png', // the owner's open trapdoor and the ladder under it
+  trapdoor: 'trapdoor@4x.png', // the owner's open trapdoor
+  ladder_front: 'ladder-front.png', // the owner's ladder, painted straight on: every ladder (stood up in the world's slant, see ownLadder)
   campfire: 'campfire@4x.png', wagon: 'wagon@4x.png', obelisk: 'obelisk@4x.png', // the owner's campfire (lit), farm wagon and rune stone
   weapon_rack_s: 'weapon-rack-s.png', // the owner's weapon rack on a wall running east-west (one running north-south keeps the drawn one)
   sarcophagus: 'sarcophagus@4x.png',
