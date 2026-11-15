@@ -1076,7 +1076,7 @@ function buildTown(m, S, runs, river) {
     for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }
     for (const [x, y] of R.stairs) { // stone stairs in the inner face, up through the walkway
       m.set(x, y, S, { ground: 'paving', items: ['stairs_up'] });
-      put(x, y, S + 1, 'stairs_down');
+      m.setGround(x, y, S + 1, 'steps_top'); // (an open stairwell in the walkway: from above you see the stairs going down)
     }
     // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, under a slate roof, so
     // you see from anywhere in town where the gate is; the walkway goes through it, a banner hangs on its town side
