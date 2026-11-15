@@ -397,7 +397,7 @@ const Sprites = (() => {
         const img = customImage(name), w = img.naturalWidth / 4;
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
         if (dim) g.filter = `brightness(${dim})`;
-        g.drawImage(img, col * w, 0, w, img.naturalHeight, 0, 0, TILE, TILE);
+        g.drawImage(img, col * w, 0, w, img.naturalHeight, -0.5, 0, TILE + 1, TILE); // (a hair over its ends: no seam between tiles)
         g.filter = 'none';
       };
       wallBlock(g, sides, {
@@ -426,7 +426,7 @@ const Sprites = (() => {
         const w = face.naturalWidth / n;
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
         if (dim) g.filter = `brightness(${dim})`;
-        g.drawImage(face, col * w, 0, w, face.naturalHeight, 0, 0, TILE, TILE);
+        g.drawImage(face, col * w, 0, w, face.naturalHeight, -0.5, 0, TILE + 1, TILE);
         g.filter = 'none';
       };
       wallBlock(g, sides, {
@@ -435,7 +435,7 @@ const Sprites = (() => {
           const pave = customImage('temple_paving');
           if (!pave) { rect(g, '#d8c8b0', 0, 0, TILE, TILE); return; }
           const k = pave.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
-          g.imageSmoothingEnabled = true; g.drawImage(pave, c * k, r * k, k, k, 0, 0, TILE, TILE);
+          g.imageSmoothingEnabled = true; g.drawImage(pave, c * k, r * k, k, k, -0.5, -0.5, TILE + 1, TILE + 1);
           rect(g, 'rgba(0,0,0,0.12)', 0, 0, TILE, TILE);
         },
       });
@@ -460,7 +460,7 @@ const Sprites = (() => {
         const img = (inside && customImage(`${id}_face_in`)) || face, w = img.naturalWidth / n;
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
         if (dim) g.filter = `brightness(${dim})`;
-        g.drawImage(img, col * w, 0, w, img.naturalHeight, 0, 0, TILE, TILE);
+        g.drawImage(img, col * w, 0, w, img.naturalHeight, -0.5, 0, TILE + 1, TILE); // (a hair over its ends: no seam between tiles)
         g.filter = 'none';
       };
       const top = customImage(`${id}_top`);
@@ -470,8 +470,8 @@ const Sprites = (() => {
           g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
           if (top) { // the top strip along both directions (turned for a wall running north-south)
             const w = top.naturalWidth / n, h = top.naturalHeight;
-            g.save(); g.translate(TILE, 0); g.rotate(Math.PI / 2); g.drawImage(top, at(y) * w, 0, w, h, 0, 0, TILE, WALL_THICKNESS); g.restore();
-            g.drawImage(top, at(x) * w, 0, w, h, 0, W0, TILE, WALL_THICKNESS);
+            g.save(); g.translate(TILE, 0); g.rotate(Math.PI / 2); g.drawImage(top, at(y) * w, 0, w, h, -0.5, 0, TILE + 1, WALL_THICKNESS); g.restore();
+            g.drawImage(top, at(x) * w, 0, w, h, -0.5, W0, TILE + 1, WALL_THICKNESS);
           } else { // no top of its own: the face's top edge, lighter
             g.filter = 'brightness(1.25)';
             g.drawImage(face, at(x) * face.naturalWidth / n, 0, face.naturalWidth / n, face.naturalHeight / 8, 0, 0, TILE, TILE);
@@ -534,7 +534,7 @@ const Sprites = (() => {
         g.save();
         g.setTransform(...FACES[which].map((v, k) => v * res));
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-        g.drawImage(pic, i * src, 0, src, src, 0, 0, TILE, TILE);
+        g.drawImage(pic, i * src, 0, src, src, -0.5, 0, TILE + 1, TILE); // (a hair over its ends: no seam between tiles)
         // (at an open corner the light turns softly round it: the south face darkens towards the corner, and the east
         // face, in shade, is lighter next to it)
         if (corner) {
