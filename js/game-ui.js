@@ -1612,8 +1612,9 @@ function initMaps() {
     if ((minimap.viewZ ?? player.z) !== player.z || player.dead) return;
     const t = minimapTile(e);
     Actions.walkTo(t.x, t.y, 30000);
-    // on a phone the map is in the drawer: off you go, and the drawer folds away so you see where you walk
-    if (c.closest('.inventory-drawer') && typeof InventoryDrawer !== 'undefined') InventoryDrawer.close();
+    // on a phone the map is in the drawer: half open it stays (the world shows above it, you walk on in sight); all
+    // the way open (Full map, no world left to see) it folds away so you see where you walk
+    if (c.closest('.inventory-drawer') && typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage() === 2) InventoryDrawer.close();
   });
   markable(c, minimapTile, () => (minimap.view ? minimap.view.scale : minimap.zoom));
   // two fingers on the minimap zoom it in and out
