@@ -22,7 +22,9 @@ size = 256
 out = gid.replace('_', '-') + '-own.png'
 g = np.array(Image.open(os.path.join(tmp, 'ground-border-1.png')).convert('RGB')).astype(int)
 # (its edges: drop any rows and columns of the sheet's pale paper or frame line, then make it seamless again)
-pale = lambda v: ((v.min(-1) > 190) & (v.max(-1) - v.min(-1) < 50)).mean() > 0.05
+# (a line of the sheet's pale paper, or of its red dashed cut line, which a painted bleed can leave inside the picture)
+red = lambda v: (v[..., 0] > 140) & (v[..., 0] - np.maximum(v[..., 1], v[..., 2]) > 60)
+pale = lambda v: ((v.min(-1) > 190) & (v.max(-1) - v.min(-1) < 50)).mean() > 0.05 or red(v).mean() > 0.12
 H, W = g.shape[:2]; E = 48  # (within this of each edge: the last pale line there and all outside it go)
 t = max([y + 1 for y in range(E) if pale(g[y])], default=0)
 b_ = min([y for y in range(H - E, H) if pale(g[y])], default=H)
@@ -43,6 +45,13 @@ rows = np.nonzero((a[:, :, 3] > 0).mean(1) > 0.9)[0]
 top = rows[0] if len(rows) else 0
 a = a[top:]
 cut = max(4, a.shape[1] // 40); a = a[:, cut:-cut]   # (its ends: the sheet's bleed and frame lines)
+# (a red dashed cut line still in it: the columns near its ends that hold one go, and any red left is made see-through)
+cols = [x for x in range(a.shape[1]) if red(a[:, x, :3]).mean() > 0.12]
+lo = max([x + 1 for x in cols if x < 48], default=0); hi = min([x for x in cols if x > a.shape[1] - 48], default=a.shape[1])
+a = a[:, lo:hi]
+rws = [y for y in range(min(48, a.shape[0])) if red(a[y, :, :3]).mean() > 0.12]   # (and the one along its top)
+if rws: a = a[rws[-1] + 2:]
+a[red(a[:, :, :3]), 3] = 0
 filled = np.nonzero((a[:, :, 3] > 0).mean(1) > 0.02)[0]; a = a[:filled[-1] + 2]
 # every white or near-white pixel left anywhere in the border (paper caught between tufts, a pale fringe) goes too,
 # and what borders it is faded, so no light halo stays round the tufts
