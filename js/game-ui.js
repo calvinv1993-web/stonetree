@@ -995,6 +995,18 @@ function renderQuests() {
     box.append(show);
     root.append(box);
   }
+  // The Oakvale Chronicle: the founder's pages you've found, and a line for each (a collection, no arrow)
+  if (typeof CHRONICLE !== 'undefined' && CHRONICLE.some((_, i) => player.chests[`chronicle_${i + 1}`])) {
+    const box = h('div', { className: 'story' }, h('b', {}, `The Oakvale Chronicle: ${CHRONICLE.filter((_, i) => player.chests[`chronicle_${i + 1}`]).length} of ${CHRONICLE.length} pages`));
+    CHRONICLE.forEach((text, i) => {
+      const has = player.chests[`chronicle_${i + 1}`];
+      const line = h('div', { className: 'small' + (has ? '' : ' muted') }, has ? `${i + 1}. ${text}` : `${i + 1}. (a page still missing)`);
+      if (has) line.addEventListener('click', () => showWindow(`The founder's diary, page ${i + 1}`, text));
+      box.append(line);
+    });
+    if (player.chests.chronicle_done) box.append(h('div', { className: 'small' }, 'Pieced together by Master Corwin: the diary of Edda Marrowind, first of Oakvale.'));
+    root.append(box);
+  }
   // Where to go now in an active quest, and what to say there.
   const goTo = id => {
     const s = questStep(id), who = s.npc || QUESTS[id].giver, word = questWord(who, id);

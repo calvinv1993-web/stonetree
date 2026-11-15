@@ -480,6 +480,7 @@ function useThing(x, y, z) {
   const meta = map.getMeta(x, y, z) || {};
   for (let i = t.items.length - 1; i >= 0; i--) {
     const id = t.items[i], def = THINGS[id];
+    if (def.chronicle) return chronicleRead(+meta.page || 1), true;
     if (def.readable) return showText(capitalize(def.name), meta.text || 'It is blank.'), true;
     if (def.lever) return pullLever(x, y, z, i, meta), true;
     if (def.depot) {
@@ -1302,6 +1303,7 @@ function advanceQuest(id) {
   if ((r.items || []).length) log(`You received ${r.items.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest');
   if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
   if (r.xp) gainXp(r.xp);
+  if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
   if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
   if (r.pet && !player.pet) { // a companion: it follows you from now on (game-update.js updatePet)
     player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0, hp: PETS[r.pet.kind].hp(1), home: false, downUntil: 0 };

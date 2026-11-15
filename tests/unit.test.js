@@ -841,6 +841,27 @@ test('Clang, a companion: follows you, fights what you fight, and grows as he fi
   p.dead = true; ctx.updatePet(); assert.strictEqual(p.petBody, null, 'gone while you are dead');
 });
 
+test('the Oakvale Chronicle: pages in the world, one from the hermit at night, and Corwin pieces them together', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  for (const [x, y, z] of [[48, 175, 8], [194, 117, 9], [82, 181, 7], [197, 71, 8]]) ctx.useThing(x, y, z);
+  assert.strictEqual(ctx.chronicleCount(), 4, 'four pages read where they lie');
+  const hermit = state.npcs.find(n => n.npcId === 'oak_hermit');
+  ctx.teleport({ ...ctx.findFreeTile(hermit.x, hermit.y, hermit.z, 2), z: hermit.z });
+  const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  const night = () => { while (ctx.daylight() >= 1) tick(game, 60000); };
+  while (ctx.daylight() < 1) tick(game, 60000);
+  assert(/asleep/.test(said('hi')), 'the hermit sleeps by day');
+  night(); said('hi'); said('page');
+  assert.strictEqual(ctx.chronicleCount(), 5, 'and gives his page at night');
+  p.chests.chronicle_6 = true;
+  const corwin = state.npcs.find(n => n.npcId === 'corwin');
+  said('bye'); ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); tick(game, 200);
+  const xp = p.xp; said('hi');
+  assert(/Edda Marrowind/.test(said('chronicle')) && p.xp > xp, 'all six: the founder has a name, and a reward');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

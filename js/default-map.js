@@ -250,7 +250,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 110, 8], ['pip', 119, 136, 8],
-    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8], ['oak_landlady', 138, 137, 8], ['oak_keeper', 134, 210, 8],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8], ['oak_landlady', 138, 137, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 126, 100, 8], ['gate_east', 149, 116, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 130, 8],
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
@@ -790,6 +790,12 @@ function createDefaultMap() {
   for (const [x, y] of [[126, 214], [127, 213], [129, 213], [130, 214], [130, 216], [129, 217], [127, 217], [126, 216]]) if (m.isWalkable(x, y, S)) put(x, y, S, 'rubble');
   for (const [x, y] of [[127, 215], [129, 215]]) if (m.isWalkable(x, y, S)) put(x, y, S, 'pillar');
   if (m.isWalkable(133, 211, S)) put(133, 211, S, 'campfire');
+  if (m.isWalkable(195, 47, S + 1)) put(195, 47, S + 1, 'campfire_out'); // the hermit's fire on Hermit Rock (lit at night: a story)
+  // the founder's diary, page by page (The Oakvale Chronicle): out in the world, where she wrote them
+  for (const [page, x, y, z] of [[1, 48, 175, S], [2, 194, 117, S + 1], [3, 82, 181, S - 1], [4, 197, 71, S]]) {
+    const p = (m.isWalkable(x, y, z) ? { x, y } : null) || [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => m.isWalkable(q.x, q.y, z));
+    if (p) { put(p.x, p.y, z, 'chronicle_page'); m.setMeta(p.x, p.y, z, { page }); }
+  }
   const taken = new Set();
   // Open ground: not a little pocket shut in between trees or rocks (at least 40 tiles to walk about in).
   const open = (x, y, z) => {

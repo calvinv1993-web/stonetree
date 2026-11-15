@@ -14,6 +14,7 @@
 //   { bless: { cost, perLevel } }   protects your things the next time you die
 //   { houses: true }         rent a house (say its name), "leave" gives it back
 //   { forge: true }          open the forge (the NPC needs forge: true as well; see game-forge.js)
+//   { chronicle: true }      Corwin pieces the founder's diary together (CHRONICLE)
 //   { pet: true }            look after the player's companion (fetch it back, heal it)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
@@ -615,6 +616,18 @@ const RAIDS = [
   { name: 'restless dead', message: 'The dead are stirring at Bone Rocks: skeletons walk the bone trail!', at: { x: 82, y: 201, z: 8 }, spawns: [['skeleton', 4]] },
 ];
 const RAID_INTERVAL = [15 * 60000, 25 * 60000];
+
+// The Oakvale Chronicle: six pages of the founder's diary, scattered over the island (chronicle_page things in
+// default-map.js, meta page: n; page 5 from the hermit, page 6 from the Choir Cantor). Each one read is kept
+// (player.chests chronicle_n); Master Corwin pieces them together.
+const CHRONICLE = [
+  'Day one ashore. The sea froze behind the Dawn, as if to tell us: stay. We carried the spark up the beach wrapped in sailcloth. It is warm still. - E.M.',
+  'On the hill east of our camp stands a tower, older than any of us, roofless, empty. Someone kept watch here before we came. Watch for what, I wonder. - E.M.',
+  'The long winter takes the old and the small. We bury them under the crag and pray they sleep. The spark keeps the hold warm. Perhaps it can keep them asleep as well. - E.M.',
+  'The green folk of the hill came at night for our grain. We left them sacks by the river, and they left us in peace. Better a fed neighbour than a hungry foe. - E.M.',
+  'At night I hear it: the spark sings, low, the way the mountain did. It wants to go home, and something there wants it back. We will cast it into bronze, and ring it every dawn, so that it never sleeps and never calls. - E.M.',
+  'The bell is cast, and its bronze holds the spark. Let no one ever silence it. If the singers of ash come, they will come for the bell. - Edda Marrowind, first of Oakvale',
+];
 
 // What you read on the bookshelves of the world.
 const LORE = [
@@ -1705,7 +1718,7 @@ Object.assign(QUESTS, {
   // V: after the bell, the Choir comes for the spark: their landing at Lighthouse Point, and the founder's own words
   bell_5: {
     name: 'The Silent Bell V: The Choir\'s Shadow', story: 'The Silent Bell', giver: 'corwin', level: 8, word: 'choir', after: 'bell_4',
-    reward: { xp: 600, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]] },
+    reward: { xp: 600, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]], chronicle: 6 },
     summary: 'Find out who comes ashore at Lighthouse Point at night, and what the Ashen Choir wants with Oakvale.',
     steps: [
       { npc: 'oak_keeper', word: 'lights', summary: 'Go to Lighthouse Point, south of Sunny Fields, and ask Keeper Tamsin about the lights.',
@@ -1815,6 +1828,7 @@ Object.assign(NPCS, {
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
+      'chronicle|diary|pages|page|founder': { chronicle: true },
       'choir|ashen|lights|shadow': { quest: ['bell_5'] },
       'books|lore': { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
       'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
@@ -1915,6 +1929,22 @@ Object.assign(NPCS, {
       'hermit|rock': 'The hermit on Hermit Rock buys a sack of flour from me every spring, and pays in honey. He only comes at night. Strange man. Kind, though.',
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
+  },
+  // The hermit of Hermit Rock: he sleeps by day and talks only at night (nightOnly), and keeps a page of the founder's
+  // diary he found in a gull's nest
+  oak_hermit: {
+    name: 'Hermit Brannoc', nightOnly: true,
+    look: { skin: '#c89a70', hair: '#d8d4cc', beard: '#d8d4cc', hairStyle: 'long', body: '#5a4a32', arms: '#5a4a32', legs: '#4a3a28', feet: '#2a1a0a', belt: '#3a2a1a', robe: true },
+    asleep: 'Zzz... (The hermit is fast asleep by his cold fire. He wakes when the stars come out.)',
+    greet: 'Shh. Listen... the bears are snoring. Sit, $name, if you came up all this way. You want the {page}, I suppose. Or {honey}.',
+    keywords: {
+      job: 'I watch the sea and the stars, and the bears watch me. We get on.',
+      honey: 'Willa\'s flour for my honey, every spring. The bees up here feed on the heather. Best honey on the isle. The bears agree.',
+      'page|diary|chronicle': { chroniclePage: 5, text: 'A gull brought this up to its nest, years ago. Old writing: the founder\'s, I think. I have read it a hundred times. Take it to someone who can make sense of it. Corwin, maybe.' },
+      'stars|night|sea': 'At night you can see the boats without lamps, far out. Singing. I do not go down when they sing.',
+      'bears|bear': 'They let me be. Do not try their patience, $name: they hit like falling trees.',
+    },
+    chatter: ['The stars are clear tonight.', 'Shh. Bears sleeping.', 'Another boat with no lamp...'],
   },
   // Keeper Tamsin, by her fire at Lighthouse Point, where the lighthouse stood: she sees the Choir's boats at night
   oak_keeper: {

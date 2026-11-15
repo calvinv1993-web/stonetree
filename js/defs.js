@@ -351,6 +351,8 @@ const THINGS = {
   },
   // The crypt under Bone Rocks: the gate to the founder's tomb opens on The Silent Bell IV (meta quest: 'bell_4'),
   // and the torn note by it can be picked up once the hall of coffins is cleared (The Silent Bell II).
+  // a page of the founder's diary, lying out in the world (meta page: n; The Oakvale Chronicle, CHRONICLE in npcs.js)
+  chronicle_page: { name: 'weathered page', cat: 'Quest chests', sprite: 'torn_note', chronicle: true, meta: 'page' },
   crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, questDoor: true, meta: 'quest' },
   torn_note:   { name: 'torn note', cat: 'Quest chests',
     chest: { flag: 'crypt_note', requires: 'bell_2@1', items: [['torn_note', 1]],

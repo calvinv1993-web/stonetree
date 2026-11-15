@@ -100,6 +100,11 @@ function startConversation(npc) {
   if (player.conversation && player.conversation.npc !== npc) endConversation();
   player.conversation = { npc, pending: null };
   npc.dir = dirTo(player.x - npc.x, player.y - npc.y);
+  if (npc.def.nightOnly && daylight() >= 1) { // (asleep by day: no talk)
+    npcSay(npc, npc.def.asleep || 'Zzz...');
+    player.conversation = null;
+    return;
+  }
   npcSay(npc, npc.def.greet);
   const hint = questHint(npc.npcId);
   if (hint) npcSay(npc, hint);
@@ -208,6 +213,35 @@ function answer(text) {
   reply("I'm not sure what you mean. Try one of the highlighted words.");
 }
 
+// ---- the Oakvale Chronicle: the founder's diary, page by page ----------------------------------------------------------
+const chronicleHas = n => !!player.chests[`chronicle_${n}`];
+function chronicleCount() { return CHRONICLE.filter((_, i) => chronicleHas(i + 1)).length; }
+// Reading a page (found in the world, or given): kept, shown, and counted
+function chronicleRead(n) {
+  const had = chronicleHas(n);
+  player.chests[`chronicle_${n}`] = true;
+  showText(`The founder's diary, page ${n} of ${CHRONICLE.length}`, CHRONICLE[n - 1]);
+  if (!had) log(`The Oakvale Chronicle: ${chronicleCount()} of ${CHRONICLE.length} pages. Master Corwin would like to see them.`, 'quest');
+  uiDirty();
+}
+function chronicleGive(n, text) {
+  if (chronicleHas(n)) return 'You have the page already. Keep it safe.';
+  chronicleRead(n);
+  return text;
+}
+// Master Corwin pieces the pages together; all six: the founder's name, and a reward
+function chronicleTalk() {
+  const have = chronicleCount(), all = CHRONICLE.length;
+  if (player.chests.chronicle_done) return 'The founder\'s diary, whole again: Edda Marrowind, first of Oakvale. I read it every night, $name. Thank you.';
+  if (!have) return 'The founders left no chronicle, they say. But I have heard of loose pages: in the wilds, in the crypt, even in a gull\'s nest. Bring me any you find.';
+  if (have < all) return `${have} of ${all} pages of the founder's own diary! The others must be out there still: by the sea, on the hills, under the crag. Keep looking.`;
+  player.chests.chronicle_done = true;
+  gainXp(500); addItem('gold', 120);
+  log('You received 500 experience and 120 gold for the Oakvale Chronicle.', 'quest');
+  addSparkle(player, '#ffe080');
+  return 'All six pages... Edda Marrowind. The founder had a name, and now we know it. She carried the spark across the sea and sealed it in our bell. I will copy this for the academy, $name, and your name goes beside hers on the first page. Take this, with my thanks.';
+}
+
 // "What do I do now?": this NPC's own news if it has any, else the next step of a quest you're on, else the arrow
 function whatNext(npcId) {
   const own = questHint(npcId);
@@ -230,6 +264,8 @@ function ask(text, yes, no) {
 function service(s, npc, text) {
   if (s.quest) return questTalk(s.quest, npc, s.otherwise);
   if (s.pet) return petCare();
+  if (s.chronicle) return chronicleTalk();
+  if (s.chroniclePage) return chronicleGive(s.chroniclePage, s.text);
   if (s.heal) {
     if (player.hp >= player.maxHp && !Object.keys(player.conditions).some(k => CONDITIONS[k].interval)) return 'You are not hurt.';
     player.hp = player.maxHp;
