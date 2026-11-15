@@ -39,6 +39,19 @@ def frames(img):
         rects.append((x0 + m, y0 + m, x1 - m + 1, y1 - m + 1))
     return sorted(rects, key=lambda r: (round(r[1] / 60), r[0]))
 
+def seamless(piece, both=False):
+    """Make a strip (or, both: a square) repeat without a seam: its two ends blended into each other over a short
+    stretch, so the last column runs straight on into the first. The middle stays as drawn."""
+    a = np.array(piece.convert('RGBA')).astype(float)
+    def wrap(a):
+        w = a.shape[1]; n = max(8, w // 24)
+        t = np.linspace(0, 1, n)[None, :, None]
+        a = a.copy(); a[:, w - n:] = a[:, w - n:] * (1 - t) + a[:, :n] * t      # its end fades into its own start
+        return np.roll(a, n // 2, axis=1)                                      # (the blend sits across the join)
+    a = wrap(a)
+    if both: a = wrap(a.transpose(1, 0, 2)).transpose(1, 0, 2)
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8), 'RGBA')
+
 def clean(piece):
     a = np.array(piece.convert('RGBA')).astype(int)
     mx, mn = a[:, :, :3].max(2), a[:, :, :3].min(2)
@@ -54,8 +67,12 @@ if __name__ == '__main__':
     img = Image.open(src)
     rects, sizes = frames(img), SIZES[kind]
     for k, ((x0, y0, x1, y1), (w, h)) in enumerate(zip(rects, sizes)):
-        box = (round(x0), round(y0), round(x1), round(y1))
+        # (inside the frame's own outline: a couple of the sheet's pixels in from its edge, so no frame line comes along)
+        t = max(2, round((x1 - x0) / w * 2))
+        box = (round(x0) + t, round(y0) + t, round(x1) - t, round(y1) - t)
         piece = img.crop(box).resize((w, h), Image.LANCZOS)
         if kind not in ('wall', 'ground'): piece = clean(piece)
+        if kind == 'wall': piece = seamless(piece, both=False)
+        if kind == 'ground': piece = seamless(piece, both=True)
         piece.save(os.path.join(out, f'{kind}-{k + 1}.png'))
         print(f'{kind}-{k + 1}.png', box, (w, h))
