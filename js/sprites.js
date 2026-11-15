@@ -3702,9 +3702,9 @@ const Sprites = (() => {
         DRAW.sand(g, makeRng(hashStr('sand') + y * 4 + x)); g.restore();
       }
     } },
-    mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it (or its own picture)
-      const own = customImage('mountain'); if (own) { g.imageSmoothingEnabled = true; g.drawImage(own, 0, 0, 3 * TILE, 3 * TILE); return; }
-      const r = makeRng(hashStr('mountain')), size = 3 * TILE;
+    mountain: { tiles: 4, res: () => ownRes('mountain', 4), draw: g => { // rocky ground: grey stone with loose stones (or its own picture)
+      const own = customImage('mountain'); if (own) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(own, 0, 0, 4 * TILE, 4 * TILE); return; }
+      const r = makeRng(hashStr('mountain')), size = 4 * TILE;
       rockSurface(g, r, size, 134);
       for (let i = 0; i < 40; i++) {
         const x = 3 + r() * (size - 6), y = 3 + r() * (size - 6), rx = 1.5 + r() * 2;
