@@ -447,14 +447,28 @@ const Fx = (() => {
       depths.set(k, SHADE[depth]);
       return SHADE[depth];
     };
+    // a step of a staircase of land with its own border pictures: the land runs across this water tile on the diagonal
+    // (render.js), so only the water's half is shaded and glints. Its corner, as [dx, dy] towards the land, or null.
+    const landCorner = (x, y) => {
+      for (const [dx, dy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+        const n = groundOf(x + dx, y + dy);
+        if (!n || n === 'water' || !Sprites.hasOwnEdge(n) || groundOf(x + dx, y) !== n || groundOf(x, y + dy) !== n) continue;
+        if (wet(x - dx, y) && wet(x, y - dy) && wet(x - dx, y - dy)) return [dx, dy];
+      }
+      return null;
+    };
+    // whether a point (u, v: 0..1 across the tile) lies on the land's side of that diagonal
+    const onLand = (c, u, v) => c && (c[0] < 0 ? 1 - u : u) + (c[1] < 0 ? 1 - v : v) > 1;
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       if (!wet(x, y)) continue;
+      const land = landCorner(x, y);
       const a = depthAt(x, y), aw = depthAt(x - 1, y), ae = depthAt(x + 1, y), an = depthAt(x, y - 1), as = depthAt(x, y + 1);
       if (a + aw + ae + an + as > 0) {
         const corner = (dx, dy) => (a + depthAt(x + dx, y) + depthAt(x, y + dy) + depthAt(x + dx, y + dy)) / 4;
         const c = [[corner(-1, -1), corner(1, -1)], [corner(-1, 1), corner(1, 1)]]; // the shade at the tile's corners
         for (let by = 0; by < 4; by++) for (let bx = 0; bx < 4; bx++) {
           const u = (bx + 0.5) / 4, v = (by + 0.5) / 4;
+          if (onLand(land, u, v)) continue;
           // from the corners to the middle (where it is exactly this tile's shade)
           const edge = (c[0][0] * (1 - u) + c[0][1] * u) * (1 - v) + (c[1][0] * (1 - u) + c[1][1] * u) * v;
           const mid = 1 - Math.max(Math.abs(u - 0.5), Math.abs(v - 0.5)) * 2;
@@ -464,7 +478,7 @@ const Fx = (() => {
       }
       if (day > 0.6) { // the sun glinting on the water
         const h = ((x * 73856093) ^ (y * 19349663)) >>> 0, phase = ((now / 900 + (h % 1000) / 100) % 6);
-        if (phase < 0.6) {
+        if (phase < 0.6 && !onLand(land, ((h % 26) + 3) / TILE, (((h >> 8) % 26) + 3) / TILE)) {
           const a = Math.sin((phase / 0.6) * Math.PI) * 0.85, gx = ox + x * TILE + (h % 26) + 3, gy = oy + y * TILE + ((h >> 8) % 26) + 3;
           g.fillStyle = `rgba(255,255,255,${a})`;
           g.fillRect(gx - 2, gy, 5, 1);

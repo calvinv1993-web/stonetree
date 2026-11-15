@@ -7063,6 +7063,27 @@ const Sprites = (() => {
     },
     // Shallow water along a shore on side d (n, e, s, w; or ne, se, sw, nw for a corner),
     // with foam lapping in and out (frame 0-3).
+    // The beach on a tile's diagonal (a step of a staircase of land: see render.js): the side's shallows and foam laid
+    // along the line from one corner to the other, the land lying beyond it (corner: where the land is)
+    // tip: the tile beyond a step's tip, which the line only touches at its corner: the same beach, one tile further out
+    diagonalShore(corner, frame, tip = false) {
+      return cached(`diagshore:${corner}:${frame}:${tip ? 1 : 0}`, g => {
+        const T = TILE * 2, k = Math.SQRT1_2, L = Math.SQRT2 * T;
+        const geo = {
+          nw: { tri: [[T, 0], [T, T], [0, T]], at: [0, T], dir: [k, -k], nrm: [k, k] },
+          ne: { tri: [[0, 0], [T, T], [0, T]], at: [0, 0], dir: [k, k], nrm: [-k, k] },
+          se: { tri: [[0, 0], [T, 0], [0, T]], at: [T, 0], dir: [-k, k], nrm: [-k, -k] },
+          sw: { tri: [[0, 0], [T, 0], [T, T]], at: [T, T], dir: [-k, -k], nrm: [k, -k] },
+        }[corner];
+        const side = Sprites.shore('n', frame); // (the north side's beach: its land along its top)
+        g.save();
+        if (!tip) { g.beginPath(); for (const [px, py] of geo.tri) g.lineTo(px, py); g.closePath(); g.clip(); }
+        const at = tip ? [geo.at[0] - geo.nrm[0] * T * k, geo.at[1] - geo.nrm[1] * T * k] : geo.at; // (the line through the corner)
+        g.setTransform(geo.dir[0], geo.dir[1], geo.nrm[0], geo.nrm[1], at[0], at[1]);
+        g.drawImage(side, -T, 0, L + 2 * T, T); // (longer than the line, so its ends lie outside the tile)
+        g.restore();
+      }, TILE * 2);
+    },
     shore(d, frame) {
       return cached(`shore:${d}:${frame}`, g => {
         g.scale(2, 2);
@@ -7240,18 +7261,19 @@ const Sprites = (() => {
     // towards `corner` (nw, ne, se, sw) filled with the ground, its own border picture laid along the diagonal pixel by
     // pixel, as deep at each point as the distance past the line. At the tile's sides that is just how deep the straight
     // borders beside it are, so the two run on into each other without a seam.
-    diagonalEdge(ground, corner, x, y) {
+    // tip: the tile beyond a step's tip, which the line only touches at its corner: only the edge's ragged fringe there
+    diagonalEdge(ground, corner, x, y, tip = false) {
       const pic = customImage(`edge_${ground}_n`);
       if (!pic) return null;
       const res = pic.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pic.naturalWidth / T));
       const cell = ((x % cells) + cells) % cells;
-      return cached(`diagedge2:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}`, g => {
+      return cached(`diagedge2:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${tip ? 1 : 0}`, g => {
         g.canvas.res = res;
-        g.drawImage(Sprites.thing(ground, x, y, 0), 0, 0, T, T);
+        if (!tip) g.drawImage(Sprites.thing(ground, x, y, 0), 0, 0, T, T);
         const strip = edgePixels(pic), img = g.getImageData(0, 0, T, T), d = img.data;
         const flipX = corner === 'ne' || corner === 'se', flipY = corner === 'sw' || corner === 'se';
         for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
-          const u = (flipX ? T - px - 1 : px) + 0.5, v = (flipY ? T - py - 1 : py) + 0.5, depth = u + v - T, i = (py * T + px) * 4;
+          const u = (flipX ? T - px - 1 : px) + 0.5, v = (flipY ? T - py - 1 : py) + 0.5, depth = u + v - (tip ? 0 : T), i = (py * T + px) * 4;
           if (depth < 0) continue; // the ground itself, in the corner
           const row = Math.floor(depth);
           // along the line: from its far end (the corner below-left of a nw one) to where the north border beside it begins

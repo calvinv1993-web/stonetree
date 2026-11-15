@@ -421,14 +421,36 @@ const Render = {
         // instead: wet sand, a line of foam, rounded corners
         const WET = new Set(['water', 'sewer_water', 'lava']);
         const ownOver = (ground, lower) => Sprites.hasOwnEdge(ground) && !WET.has(lower);
+        // water at a staircase's inner corner: [corner, land] when one land with border pictures of its own lies on two
+        // sides and across the corner between them, and water on the other two sides and their corner
+        const shoreDiagonal = (x, y, bank) => {
+          for (const [d, dx, dy] of BORDER_DIRS) {
+            const n = bank(x + dx, y + dy);
+            if (!n || WET.has(n) || BRIDGE_GROUNDS.has(n) || !Sprites.hasOwnEdge(n) || bank(x + dx, y) !== n || bank(x, y + dy) !== n) continue;
+            if (wet(bank(x - dx, y)) && wet(bank(x, y - dy)) && wet(bank(x - dx, y - dy))) return [d, n];
+          }
+          return null;
+        };
         for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
           if (!wet(groundAt(x, y))) continue;
           // (a wall rises straight out of the water: no beach along it)
           const bank = (bx, by) => (wallAt(bx, by) ? 'water' : groundAt(bx, by));
           const sides = { n: bank(x, y - 1), e: bank(x + 1, y), s: bank(x, y + 1), w: bank(x - 1, y) };
+          // a step of a staircase of land (land on two sides and across the corner between them, water on the other
+          // two): the beach runs straight across this tile on the diagonal, as the land's edge does (see below)
+          const diag = shoreDiagonal(x, y, bank);
+          if (diag) {
+            const pic = Sprites.diagonalShore(diag[0], shoreFrame);
+            g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE);
+            continue;
+          }
           for (const [d, n] of Object.entries(sides)) if (dry(n)) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
           for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-            if (dry(bank(x + dx, y + dy)) && !dry(sides[a]) && !dry(sides[b])) g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
+            if (!dry(bank(x + dx, y + dy)) || dry(sides[a]) || dry(sides[b])) continue;
+            // (the land's corner is the tip of a step whose beach runs on the diagonal beside it: that beach runs on here)
+            const step = shoreDiagonal(x + dx, y, bank) || shoreDiagonal(x, y + dy, bank);
+            if (step) { if (step[0] === d) g.drawImage(Sprites.diagonalShore(d, shoreFrame, true), ox + x * TILE, oy + y * TILE, TILE, TILE); continue; }
+            g.drawImage(Sprites.shore(d, shoreFrame), ox + x * TILE, oy + y * TILE, TILE, TILE);
           }
         }
 
@@ -461,6 +483,7 @@ const Render = {
             const n = groundAt(x + dx, y + dy), q = n && n !== here ? Sprites.borderPriority(n) : undefined;
             if (q === undefined || !(q < p) || Sprites.paved(n) || groundAt(x + dx, y) !== n || groundAt(x, y + dy) !== n) continue; // (built ground keeps its square corners)
             if (ownOver(here, n)) continue; // (a ground with its own border pictures bends its border round the corner instead)
+            if (WET.has(n)) continue; // (over water the shore rounds the corner: a cut here would show still, flat water)
             if (walled(x + dx, y) || walled(x, y + dy) || walled(x + dx, y + dy)) continue;
             g.drawImage(Sprites.cornerCut(here, n, d, x, y), ox + x * TILE, oy + y * TILE);
           }
@@ -468,6 +491,21 @@ const Render = {
           // A diagonal: where a higher ground with border pictures of its own lies on two sides of this tile and across the
           // corner between them (a staircase of tiles), its edge runs straight across this tile on the diagonal instead of
           // round two sides, the corner beyond it filled with that ground: a run of such steps reads as one sloping edge.
+          if (WET.has(here)) { // (a step of a staircase of land by the water: its edge on the diagonal, the beach under it)
+            const diag = here === 'water' && shoreDiagonal(x, y, (bx, by) => (walled(bx, by) ? 'water' : groundAt(bx, by)));
+            const pic = diag && higher.has(diag[1]) && Sprites.diagonalEdge(diag[1], diag[0], x, y);
+            if (pic) { g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE); higher.delete(diag[1]); }
+            // beyond a step's tip (the land only across a corner, a step beside it): the edge's fringe runs on here
+            else if (here === 'water') for (const [d, dx, dy] of BORDER_DIRS) {
+              const n = groundAt(x + dx, y + dy);
+              if (!n || !higher.has(n) || groundAt(x + dx, y) === n || groundAt(x, y + dy) === n) continue;
+              const bank = (bx, by) => (walled(bx, by) ? 'water' : groundAt(bx, by));
+              const step = shoreDiagonal(x + dx, y, bank) || shoreDiagonal(x, y + dy, bank);
+              if (!step || step[0] !== d || step[1] !== n) continue;
+              const fringe = Sprites.diagonalEdge(n, d, x, y, true);
+              if (fringe) { g.drawImage(fringe, ox + x * TILE, oy + y * TILE, TILE, TILE); higher.delete(n); }
+            }
+          }
           for (const [n, mask] of [...higher]) {
             if (!ownOver(n, here)) continue;
             const has = b => (mask & b) === b, sides = [1, 2, 4, 8].filter(has).length;
