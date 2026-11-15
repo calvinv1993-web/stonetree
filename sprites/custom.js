@@ -12,6 +12,7 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  rock_top: 'rock-top-own.png', // the owner's mountain top, from above (ground template, made seamless)
   edge_mountain_w: 'edge-mountain-w.png', // the owner's mountain border (a loose PNG: install-edge-png.py)
   edge_mountain_s: 'edge-mountain-s.png', // the owner's mountain border (a loose PNG: install-edge-png.py)
   edge_mountain_e: 'edge-mountain-e.png', // the owner's mountain border (a loose PNG: install-edge-png.py)

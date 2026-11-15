@@ -151,6 +151,7 @@ const SPRITE_HASHES = {
   "rim-kit-se.png":"daab9ef248",
   "rim-kit-sw.png":"4678c994eb",
   "rim-kit-w.png":"1247f0539c",
+  "rock-top-own.png":"20764962dc",
   "rock@4x.png":"efcc42af24",
   "roof-copper.png":"c6ee4ba309",
   "roof-shingle.png":"f7c2f3ee09",
