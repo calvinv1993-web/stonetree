@@ -512,7 +512,7 @@ body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); 
 @media (orientation: portrait) {
   /* the six action buttons as big as the backpack's places (--slot); the smart button in the middle bigger (--smart),
      the room they leave between the two groups its own */
-  body.touch-ui { --chat-line: 30px; --slot-gap: 6px; --slot-pad: 10px; --slot: 42px; --smart: 56px; --slot-row: var(--smart);
+  body.touch-ui { --chat-line: 30px; --slot-gap: 6px; --slot-pad: 10px; --slot: 44px; --smart: 56px; --slot-row: var(--smart);
     --tabbar: calc(var(--chat-line) + 6px + var(--slot-row) + 17px + env(safe-area-inset-bottom, 0px)); }
   body.touch-ui #actionDock { background: var(--hud-bg-low); border-top: 1px solid var(--hud-bronze); }
   body.touch-ui #actionDock::before { content: ''; position: absolute; left: 0; right: 0; top: var(--chat-line); height: 1px; background: rgba(255, 255, 255, 0.06); pointer-events: none; }

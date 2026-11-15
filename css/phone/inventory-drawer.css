@@ -41,7 +41,7 @@ body.touch-ui:not(.drawer-full) .inventory-drawer #containers > .container ~ .co
 body.touch-ui .inventory-drawer #containers > .container:first-child > h2 { display: none; }
 body.touch-ui .inventory-drawer #containers > .container > h2 { margin: 2px 0 5px; color: #b8b5ad; font: 700 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer .grid { grid-template-columns: repeat(auto-fill, 40px); gap: 4px; }
-body.touch-ui .inventory-drawer .slot { width: var(--slot, 42px); height: var(--slot, 42px); border-color: rgba(255, 255, 255, 0.14) !important; background: #1c1d1f !important; }
+body.touch-ui .inventory-drawer .slot { width: var(--slot, 44px); height: var(--slot, 44px); border-color: rgba(255, 255, 255, 0.14) !important; background: #1c1d1f !important; }
 body.touch-ui .inventory-drawer .bag-close { display: none; }
 /* while it's open the chat line steps aside; the action bar stays */
 body.touch-ui.drawer-open .chat-line { visibility: hidden; }
