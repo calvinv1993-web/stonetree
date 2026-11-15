@@ -192,6 +192,7 @@ const SPRITE_HASHES = {
   "temple-wall-out.png":"d9dfb3ad22",
   "temple-wall-top.png":"95d2fc445a",
   "temple_marble_64.png":"1e3dd14178",
+  "tiles-own.png":"1250f6376e",
   "torch@2x.png":"6bd94f7dc0",
   "torn-note@4x.png":"d5974e3533",
   "tower-flag@4x.png":"16d1fff753",
