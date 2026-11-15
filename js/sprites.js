@@ -1049,6 +1049,8 @@ const Sprites = (() => {
   // thrown open, flat on the boards to the east. middle() draws what stands in the opening (the rope): after the back
   // of the frame and before its front, so it rises up in front of what is behind it.
   function hatch(g, middle) {
+    const own = customImage('shaft_hatch'); // the owner's hatch (sprites/custom.js), seen from above: the shaft shows through its middle
+    if (own) { g.save(); g.imageSmoothingEnabled = true; g.drawImage(own, ...P(0, 0, 0), TILE, TILE); g.restore(); middle(); return; }
     const wood = { top: '#8a5a2c', south: '#6a4220', east: '#4e2e14', edge: '#a8743e' };
     const lid = { top: '#9a6a38', south: '#7a4e26', east: '#5e3a1a', edge: '#c08a4e' };
     prism(g, 0, 0, 32, 9, 0, 3, wood);   // the back of the frame
@@ -6412,7 +6414,7 @@ const Sprites = (() => {
       const img = new Image();
       // Replace cached fallback ground and its edge pixels when the atlas arrives.
       // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch'].includes(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
         cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
         if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
       };
