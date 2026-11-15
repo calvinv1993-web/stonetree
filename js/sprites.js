@@ -606,8 +606,12 @@ const Sprites = (() => {
   }
   // A picture painted straight on, given depth: laid onto the wall's face at out0, then again and again a little further
   // out up to out1, darker (its sides), and last in full at out1 - so it stands out from the wall as a solid thing.
-  function extruded(g, shape, img, x, y, w, h, out0, out1, side = 0.6) {
-    const paint = dim => () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; if (dim) g.filter = `brightness(${dim})`; g.drawImage(img, x, y, w, h); g.filter = 'none'; };
+  function extruded(g, shape, img, x, y, w, h, out0, out1, side = 0.6, from = null) {
+    const paint = dim => () => {
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; if (dim) g.filter = `brightness(${dim})`;
+      if (from) g.drawImage(img, ...from, x, y, w, h); else g.drawImage(img, x, y, w, h); // (from: a part of the picture)
+      g.filter = 'none';
+    };
     for (let o = out0; o < out1; o += 0.35) onWallPlane(g, shape, o, paint(side));
     onWallPlane(g, shape, out1, paint(0));
   }
@@ -3123,11 +3127,20 @@ const Sprites = (() => {
     // A lantern hanging from an iron arm: a little iron house with glass sides, glowing.
     lantern: (g, r, frame, shape) => {
       const at = wallSpot(shape), own = customImage('lantern_side');
-      if (own) { // the owner's lantern, painted straight on (its arm comes out of the wall on its left): a little out from the wall
-        const [gx, gy] = at(16, 4, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8); // its glow
-        const w = 14, h = w * own.naturalHeight / own.naturalWidth;
-        wallPoly(g, shape, 0, 'rgba(15,10,5,0.2)', [11, 29 - h, 25, 29 - h, 25, 29, 11, 29].map((v, k) => (k % 2 ? 32 - v + 32 - 2 * (29 - h / 2) + 0 : v))); // its shadow
-        extruded(g, shape, own, 9, 3, w, h, 1, 5, 0.7);
+      if (own) { // the owner's lantern (painted straight on, its arm coming out of a plate on its left), taken apart: the plate
+        // flat on the wall, the arm turned to stick straight out of the wall, the lantern hanging from its end
+        const k = 0.055, top = 29, hz = y => top - y * k, smooth = () => { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; };
+        const [gx, gy] = at(16, 6, 17); ellipse(g, 'rgba(255,210,120,0.25)', gx, gy, 8, 8); // its glow
+        wallPoly(g, shape, 0, 'rgba(15,10,5,0.2)', [12, 9, 22, 9, 22, 26, 12, 26]); // its shadow on the wall
+        onWallPlane(g, shape, 0.6, () => { smooth(); g.drawImage(own, 0, 0, 42, 165, 16 - 1.15, 32 - top, 42 * k, 165 * k); }); // the plate
+        for (const du of [0.9, 0, -0.9]) { // the arm: in the upright plane straight out from the wall, a little thick
+          const [ox, oy] = at(16 + du, 0, top), [ax, ay] = at(16 + du, 1, top), [bx, by] = at(16 + du, 0, top - 1);
+          g.save(); g.setTransform(ax - ox, ay - oy, bx - ox, by - oy, ox, oy); smooth();
+          if (du) g.filter = 'brightness(0.65)';
+          g.drawImage(own, 40, 40, 145, 35, 0.5, 40 * k, 6, 35 * k);
+          g.restore();
+        }
+        extruded(g, shape, own, 16 - 4.8, 32 - hz(60), 9.6, (379 - 60) * k, 3.5, 8, 0.7, [80, 60, 176, 319]); // the lantern
         return;
       }
       bracket(g, shape, 16, 27, 5.5);
