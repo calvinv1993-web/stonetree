@@ -421,6 +421,7 @@ const Render = {
         // instead: wet sand, a line of foam, rounded corners
         const WET = new Set(['water', 'sewer_water', 'lava']);
         const ownOver = (ground, lower) => Sprites.hasOwnEdge(ground) && !WET.has(lower);
+        const SQUASH_WET = 0.45; // (over water a ground's own border reaches less far: the beach's foam shows past it)
         // water at a staircase's inner corner: [corner, land] when one land with border pictures of its own lies on two
         // sides and across the corner between them, and water on the other two sides and their corner
         const shoreDiagonal = (x, y, bank) => {
@@ -493,7 +494,7 @@ const Render = {
           // round two sides, the corner beyond it filled with that ground: a run of such steps reads as one sloping edge.
           if (WET.has(here)) { // (a step of a staircase of land by the water: its edge on the diagonal, the beach under it)
             const diag = here === 'water' && shoreDiagonal(x, y, (bx, by) => (walled(bx, by) ? 'water' : groundAt(bx, by)));
-            const pic = diag && higher.has(diag[1]) && Sprites.diagonalEdge(diag[1], diag[0], x, y);
+            const pic = diag && higher.has(diag[1]) && Sprites.diagonalEdge(diag[1], diag[0], x, y, false, SQUASH_WET);
             if (pic) { g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE); higher.delete(diag[1]); }
             // beyond a step's tip (the land only across a corner, a step beside it): the edge's fringe runs on here
             else if (here === 'water') for (const [d, dx, dy] of BORDER_DIRS) {
@@ -502,7 +503,7 @@ const Render = {
               const bank = (bx, by) => (walled(bx, by) ? 'water' : groundAt(bx, by));
               const step = shoreDiagonal(x + dx, y, bank) || shoreDiagonal(x, y + dy, bank);
               if (!step || step[0] !== d || step[1] !== n) continue;
-              const fringe = Sprites.diagonalEdge(n, d, x, y, true);
+              const fringe = Sprites.diagonalEdge(n, d, x, y, true, SQUASH_WET);
               if (fringe) { g.drawImage(fringe, ox + x * TILE, oy + y * TILE, TILE, TILE); higher.delete(n); }
             }
           }
@@ -523,7 +524,7 @@ const Render = {
           }
           const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
           for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
-            const own = ownOver(n, here) && Sprites.ownEdge(n, mask, x, y); // (a ground's own border pictures, if it has any)
+            const own = Sprites.hasOwnEdge(n) && Sprites.ownEdge(n, mask, x, y, WET.has(here) ? SQUASH_WET : 1); // (a ground's own border pictures, if it has any)
             if (own) g.drawImage(own, ox + x * TILE, oy + y * TILE, TILE, TILE);
             else g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
           }

@@ -7298,12 +7298,12 @@ const Sprites = (() => {
     // pixel, as deep at each point as the distance past the line. At the tile's sides that is just how deep the straight
     // borders beside it are, so the two run on into each other without a seam.
     // tip: the tile beyond a step's tip, which the line only touches at its corner: only the edge's ragged fringe there
-    diagonalEdge(ground, corner, x, y, tip = false) {
+    diagonalEdge(ground, corner, x, y, tip = false, squash = 1) {
       const pic = customImage(`edge_${ground}_n`);
       if (!pic) return null;
       const res = pic.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pic.naturalWidth / T));
       const cell = ((x % cells) + cells) % cells;
-      return cached(`diagedge2:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${tip ? 1 : 0}`, g => {
+      return cached(`diagedge2:${ground}:${corner}:${cell}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${tip ? 1 : 0}:${squash}`, g => {
         g.canvas.res = res;
         if (!tip) g.drawImage(Sprites.thing(ground, x, y, 0), 0, 0, T, T);
         const strip = edgePixels(pic), img = g.getImageData(0, 0, T, T), d = img.data;
@@ -7311,7 +7311,7 @@ const Sprites = (() => {
         for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
           const u = (flipX ? T - px - 1 : px) + 0.5, v = (flipY ? T - py - 1 : py) + 0.5, depth = u + v - (tip ? 0 : T), i = (py * T + px) * 4;
           if (depth < 0) continue; // the ground itself, in the corner
-          const row = Math.floor(depth);
+          const row = Math.floor(depth / squash);
           // along the line: from its far end (the corner below-left of a nw one) to where the north border beside it begins
           const col = cell * T + Math.min(T - 1, Math.max(0, Math.floor((u + T - v) / 2)));
           const si = (row * strip.width + col) * 4;
@@ -7321,7 +7321,8 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       }, T);
     },
-    ownEdge(ground, mask, x, y) {
+    // squash: how deep the border reaches, 1 as painted; less over water, so the beach's foam still shows past it
+    ownEdge(ground, mask, x, y, squash = 1) {
       const pics = {};
       for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_${ground}_${d}`))) return null;
       const corners = [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]];
@@ -7330,17 +7331,19 @@ const Sprites = (() => {
       const at = (d, along) => ((along % count(d)) + count(d)) % count(d);
       const parts = [[1, 'n', at('n', x)], [2, 'e', at('e', y)], [4, 's', at('s', x)], [8, 'w', at('w', y)]].filter(([bit]) => mask & bit);
       const corners2 = [[16, T, 0], [32, T, T], [64, 0, T], [128, 0, 0]].filter(([bit]) => mask & bit);
-      return cached(`ownedge:${ground}:${mask}:${parts.map(p => p[2]).join(',')}:${at('n', x)}`, g => {
+      return cached(`ownedge:${ground}:${mask}:${parts.map(p => p[2]).join(',')}:${at('n', x)}:${squash}`, g => {
         g.canvas.res = res;
-        for (const [, d, i] of parts) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
+        const S = squash, rest = T * (1 - S); // (a side's cell pressed toward its own side)
+        const place = { n: [0, 0, T, T * S], s: [0, rest, T, T * S], w: [0, 0, T * S, T], e: [rest, 0, T * S, T] };
+        for (const [, d, i] of parts) g.drawImage(pics[d], i * T, 0, T, T, ...place[d]);
         if (!corners2.length) return;
         // an outer corner: the north side's border bent round the corner point, a ring of it at each distance from there
         const strip = edgePixels(pics.n), img = g.getImageData(0, 0, T, T), d = img.data, col0 = at('n', x) * T;
         for (const [, cx, cy] of corners2) for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
           const dx = px + 0.5 - cx, dy = py + 0.5 - cy, r = Math.hypot(dx, dy);
-          if (r >= T / 2) continue;
+          if (r >= (T / 2) * squash) continue;
           const turn = Math.atan2(Math.abs(dy), Math.abs(dx)), col = col0 + Math.min(T - 1, Math.floor(turn * r * 1.2 + 6));
-          const si = (Math.floor(r) * strip.width + col) * 4, a = strip.data[si + 3] / 255;
+          const si = (Math.min(strip.height - 1, Math.floor(r / squash)) * strip.width + col) * 4, a = strip.data[si + 3] / 255;
           if (!a) continue;
           const i = (py * T + px) * 4, o = d[i + 3] / 255, na = a + o * (1 - a);
           for (let k = 0; k < 3; k++) d[i + k] = (strip.data[si + k] * a + d[i + k] * o * (1 - a)) / na;
