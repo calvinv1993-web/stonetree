@@ -139,6 +139,7 @@ const CUSTOM_SPRITES = {
   shaft_hatch: 'shaft-hatch.png', // the owner's hatch over the bell shaft (with the rope through it, or the dark shaft below)
   trapdoor: 'trapdoor@4x.png', // the owner's open trapdoor
   door_closed_front: 'door-closed-front.png', door_open_front: 'door-open-front.png', // the owner's door in its frame, straight on, shut and open
+  ramp_front: 'ramp-front.png', // the owner's mountain path up a cliff, the slope seen straight on
   ladder_front: 'ladder-front.png', // the owner's ladder, painted straight on: every ladder (stood up in the world's slant, see ownLadder)
   campfire: 'campfire@4x.png', wagon: 'wagon@4x.png', obelisk: 'obelisk@4x.png', // the owner's campfire (lit), farm wagon and rune stone
   weapon_rack_s: 'weapon-rack-s.png', // the owner's weapon rack on a wall running east-west (one running north-south keeps the drawn one)
