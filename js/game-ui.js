@@ -79,7 +79,8 @@ function logDialog(speaker, text, isPlayer) {
 // when the value is new (the bars and texts are kept up to date several times a second)
 function setText(el, text) { if (el && el.textContent !== String(text)) el.textContent = text; }
 function setHTML(el, html) { if (el && el.__html !== html) { el.__html = html; el.innerHTML = html; } }
-function setWidth(el, width) { if (el && el.style.width !== width) el.style.width = width; }
+function setWidth(el, width) { if (el && el.__width !== width) { el.__width = width; el.style.width = width; } } // (not style.width: the browser
+// reads a width back in its own words, 33.3333% for 33.333333333333336%, so it would never match and be written each time)
 
 function setBar(id, value, max, text) {
   setWidth($(`${id}Fill`), `${Math.max(0, Math.min(100, (100 * value) / max))}%`);
@@ -787,6 +788,16 @@ let battleKey = '';
 // The creature whose battle list row the pointer is on; the game view frames it.
 let battleHover = null;
 
+// A creature's picture for the list, made into an image once per kind (turning a canvas into a PNG costs: done
+// for every row whenever a health bar moved, it stalled fights)
+const battleFaces = new Map();
+const battleFace = key => {
+  if (battleFaces.has(key)) return battleFaces.get(key);
+  const url = Sprites.creature(key, 2, 0).toDataURL();
+  if (typeof Preload === 'undefined' || Preload.ready) battleFaces.set(key, url); // (kept once the pictures are all in)
+  return url;
+};
+
 function renderBattle() {
   const list = [...monsters, ...players].filter(c => c !== player && !c.dead && c.z === player.z
     && Math.abs(c.x - player.x) <= 7 && Math.abs(c.y - player.y) <= 5 && (c.type === 'player' || canSee(c)))
@@ -806,7 +817,7 @@ function renderBattle() {
     const row = document.createElement('div');
     row.className = `battle-row${player.target === c ? ' target' : player.follow === c.id ? ' followed' : ''}${struck.has(c.id) ? ' struck' : ''}`;
     const img = new Image();
-    img.src = Sprites.creature(c.type === 'player' ? Sprites.playerKey(c.vocation, c.outfit) : c.type, 2, 0).toDataURL();
+    img.src = battleFace(c.type === 'player' ? Sprites.playerKey(c.vocation, c.outfit) : c.type);
     const name = document.createElement('span');
     name.textContent = c.type === 'player' ? c.name : capitalize(c.name);
     const bar = document.createElement('div');

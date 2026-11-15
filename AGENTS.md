@@ -20,7 +20,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Play alone | open `index.html` |
 | Server | `node server/server.js [port=8080] [--test]` |
 | Dev server: restarts on changes, pages reload themselves | `node server/dev.js 8090 --test` |
-| Unit tests (about a minute) | `node tests/unit.test.js` |
+| Unit tests (about 10 seconds: the world is built once and copied for each test) | `node tests/unit.test.js` |
 | Tests kept for later (the old world's rules and content, which wait for the mainland or a test area; they fail for now) | `node tests/later.test.js` |
 | Playthrough: a bot plays Oakvale from level 1 to 10 on the real world, careful or lazy | `node tests/playthrough.js [seed] [hours] [lazy]` |
 | Soak test: random play on the real logic | `node tests/sim.test.js [minutes=30] [runs=4] [seed=1]`; `npm test` runs unit + sim |
@@ -32,6 +32,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | World validator: size, coast, floor changes, reachability | `node tests/world.test.js [--verbose]` |
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
+| Each picture's own version, after adding or changing pictures in `sprites/` (the unit tests fail until it's run) | `node tests/sprite-versions.js` |
 | Bake the ground's borders ahead of time (after changing how they're drawn, the ground textures, or the world's grounds) | `node tests/bake-ground.js` |
 | Phone action buttons: their gestures, and their mana, cooldowns and pictures | `node tests/mobile-slots.test.cjs`, `node tests/action-slots.test.cjs` |
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
@@ -101,6 +102,7 @@ The client copies every key of `you` onto its local `player` (`net.js` `apply`).
 Some details of the online client:
 - **The map**: the browser builds its own copy of the world from `default-map.js`. `mapSignature()` must match the server's, or the page reloads to get the same version. Runtime tile changes come in the snapshots.
 - **Updates**: when files in `js/`, `css/` or `sprites/` change, the server tells pages to reload, and they log straight back in with a token.
+- **Pictures are fetched by their own version** (`sprites/versions.js`, made by `tests/sprite-versions.js`: `x.png?h=<fingerprint>`), not the page's, so an update fetches only the pictures that changed. The server sends every file with an ETag, so a phone asks "still this one?" instead of fetching it again.
 
 ### Saving
 
@@ -193,7 +195,10 @@ Some details of the online client:
 - **The online test** backs up and restores `server/players.json` and `world.json`. Don't run it while a dev server in the same folder is running: both write those files.
 - **Localhost-only endpoints**: publishing a map (`POST`/`DELETE /map`) and `POST /admin/gold?atLeast=N` work only from localhost, with the header `X-Tilequest: editor`.
 - **What the HTTP server serves**: top-level `*.html`, `manifest.json`, and `js/`, `css/` and `sprites/`. Nothing else, so the `server/` folder and anything else in the project folder stay private. A malformed address gets a 400 and doesn't crash the server.
-- **The server must survive anything a page sends.** Every message handler is wrapped. Login fields are coerced to strings. Actions validate their arguments: ids, integer coordinates, whole counts, and things within reach (`rootContainer` only resolves piles next to you and the depot at a locker).
+- **The server must survive anything a page sends.** Every message handler is wrapped, and so is each player's snapshot. Login fields are coerced to strings. Actions validate their arguments: ids, integer coordinates, whole counts, and things within reach (`rootContainer` only resolves piles next to you and the depot at a locker); look ids up with `Object.hasOwn` (`SPELLS['constructor']` is truthy). A page may send 30 actions a second (bursts of 60) and 3 lines of chat a second.
+- **Saves never take the server down**: written to a temp file, flushed, the one before kept as `<file>.bak` (read when a save can't be), retried on Windows file locks; a failed save is logged and tried again 10 s later.
+- **Passwords** are scrypt with a salt each (`scrypt$salt$hash`); old SHA-256 ones still log in and are turned then. 8 wrong passwords in 10 minutes make that address wait a minute.
+- **Pages that go quiet**: the server pings every 10 s and lets go of a page silent for 30 s; a page that can't keep up gets no new snapshot until it has taken the last ones.
 - **Stopping a server you started**: Ctrl+C in its terminal. From a script, find its PID by port and kill that PID: `ss -ltnp | grep :8090` on Linux, `netstat -ano | findstr :8090` then `taskkill /PID <pid>` on Windows. `pkill -f <pattern>` can match your own shell.
 
 ## The sealed tale (`js/game-tales.js`): leave it be
@@ -248,7 +253,7 @@ What to keep as it is:
 The game is full-featured and stable. All unit tests pass. The old world's tests (33 of them: combat, PvP, doors, houses, the forge, rides, the mainland's story and more) wait in `tests/later.test.js`: they need places and NPCs the rebuilt world doesn't have yet. Bring them back into `unit.test.js` with a small test area of their own, or once the mainland is back.
 
 **Asked for but not done yet**: Tibia-like levelling to 100 and a review of the equipment.
-- The XP curve is quadratic now (`xpForLevel` in `creatures.js`). Tibia's is cubic.
+- The XP curve is cubic (`xpForLevel` in `creatures.js`), like Tibia's; the levels above 20 still need tuning.
 - Monsters need a difficulty spread from level 1 to 100+, including new high-level monsters, with demons staying hard.
 - Gear needs tiers up to level 100.
 - Afterwards, retune `monsterTier` in `game-forge.js` and the story chapters' levels (`seal_1` to `seal_9` in `npcs.js`).

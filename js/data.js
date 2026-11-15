@@ -20,8 +20,11 @@ function applyDataOverrides(overrides) {
   }
 }
 
+// (not when playing online: the server plays the real files, and a page with its own items or monsters would show
+// what isn't so)
+const DATA_ONLINE = typeof location !== 'undefined' && /[?&]online\b/.test(location.search || '');
 try {
-  const saved = typeof localStorage !== 'undefined' && localStorage.getItem(DATA_STORAGE_KEY);
+  const saved = !DATA_ONLINE && typeof localStorage !== 'undefined' && localStorage.getItem(DATA_STORAGE_KEY);
   if (saved) applyDataOverrides(JSON.parse(saved));
 } catch (e) {
   console.warn('Could not load the edited game data:', e);

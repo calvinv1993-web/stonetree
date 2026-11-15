@@ -489,6 +489,7 @@ function createField(kind, x, y, z, owner) {
 
 // Whoever stands in a field gets its condition, at most once a second.
 function updateFields() {
+  if (!fields.length) return; // (most of the time there are none: nothing to look for)
   for (let i = fields.length - 1; i >= 0; i--) if (now >= fields[i].until) fields.splice(i, 1);
   const creatures = [...players.filter(p => !p.dead), ...monsters.filter(m => !m.dead)];
   for (const c of creatures) {

@@ -7,6 +7,9 @@ class GameMap {
   constructor(width, height, depth = 8, surfaceZ = 4) {
     Object.assign(this, { width, height, depth, surfaceZ });
     this.floors = Array.from({ length: depth }, () => new Array(width * height).fill(null));
+    // each floor's reach: [x0, y0, x1, y1] round every tile ever put on it, or null for a floor with nothing on it
+    // (it only grows: so the renderer can skip a floor with nothing near the view, as most floors above the ground are)
+    this.boxes = new Array(depth).fill(null);
     this.start = { x: width >> 1, y: height >> 1, z: surfaceZ };     // new characters start here
     this.mainStart = { ...this.start };                                // ...and arrive here after choosing a vocation
     this.spawns = []; // monsters: { x, y, z, type }
@@ -76,6 +79,12 @@ class GameMap {
   set(x, y, z, tile) {
     if (!this.inBounds(x, y, z)) return;
     this.floors[z][y * this.width + x] = tile;
+    if (tile) {
+      if (!this.boxes) this.boxes = new Array(this.depth).fill(null); // (a map copied from an older one)
+      const b = this.boxes[z];
+      if (!b) this.boxes[z] = [x, y, x, y];
+      else { if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (x > b[2]) b[2] = x; if (y > b[3]) b[3] = y; }
+    }
     this.version = GameMap.edits = GameMap.edits + 1;
     if (this.dirty) this.dirty.push([x, y, z]); // (for the renderer's kept chunks of ground: see Render.ground)
   }
@@ -117,6 +126,12 @@ class GameMap {
       if (this.get(x, y, up) || this.get(x + d, y + d, up)) return up - 1;
     }
     return this.depth - 1;
+  }
+  // Whether floor z holds anything within the area x0..x1, y0..y1 (as far as its reach says; true when unknown)
+  floorNear(z, x0, y0, x1, y1) {
+    const b = this.boxes && this.boxes[z];
+    if (!this.boxes) return true;
+    return !!b && b[0] <= x1 && b[2] >= x0 && b[1] <= y1 && b[3] >= y0;
   }
   floorLabel(z) {
     const d = z - this.surfaceZ;

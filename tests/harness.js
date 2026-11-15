@@ -24,6 +24,32 @@ function seededRandom(seed) {
   };
 }
 
+// Building the world takes over a second, and every test loads a game: the world is built once per run and each game
+// gets its own deep copy of it (made inside its own sandbox, so its arrays and maps are that sandbox's own).
+let builtWorld = null;
+function builtWorldOnce(ctx) {
+  const build = ctx.createDefaultMap;
+  const copyInto = vm.runInContext(`(function copyMap(src) {
+    const copy = v => {
+      if (!v || typeof v !== 'object') return v;
+      const kind = Object.prototype.toString.call(v);
+      if (kind === '[object Array]') return v.map(copy);
+      if (kind === '[object Map]') return new Map([...v].map(([k, x]) => [copy(k), copy(x)]));
+      if (kind === '[object Set]') return new Set([...v].map(copy));
+      const o = {};
+      for (const k of Object.keys(v)) o[k] = copy(v[k]);
+      return o;
+    };
+    const m = Object.create(GameMap.prototype);
+    for (const k of Object.keys(src)) m[k] = copy(src[k]);
+    return m;
+  })`, ctx);
+  ctx.createDefaultMap = () => {
+    if (!builtWorld) builtWorld = build();
+    return copyInto(builtWorld);
+  };
+}
+
 function loadGame({ seed = 1 } = {}) {
   const messages = [];
   const storage = new Map();
@@ -47,6 +73,7 @@ function loadGame({ seed = 1 } = {}) {
   for (const f of LOGIC_FILES) {
     const file = path.join(ROOT, 'js', `${f}.js`);
     vm.runInContext(fs.readFileSync(file, 'utf8'), ctx, { filename: file });
+    if (f === 'default-map') builtWorldOnce(ctx);
   }
 
   // Top-level let/const live in the script scope, not on the global object;
@@ -75,4 +102,4 @@ function loadGame({ seed = 1 } = {}) {
   return { ctx, state, messages, storage };
 }
 
-module.exports = { loadGame, seededRandom, ROOT };
+module.exports = { loadGame, seededRandom, ROOT, LOGIC_FILES };

@@ -325,6 +325,7 @@ function enter(conn, p, isNew) {
   if (!account.token) account.token = crypto.randomBytes(16).toString('hex'); // (saved with the next save, within 10 s)
   conn.player = p;
   conn.full = 0;
+  conn.sent = {}; // (what this page has of the big fields: nothing yet)
   p.dirty = true;
   conn.reply({
     t: 'welcome', id: p.id, name: p.name, now: G.now, isNew, token: account.token, version,
@@ -391,8 +392,16 @@ function youState(conn) {
   you.openPile = p.openPile ? p.openPile.id : null;
   you.shopNpc = p.shopNpc ? p.shopNpc.id : null;
   W.asPlayer(p, () => Object.assign(you, { partyView: W.partyView(p), partyMark: W.partyMark(p, p), guildView: W.guildView(p), guildInfo: W.guildInfo(p) }));
-  if (p.dirty || conn.full++ % 20 === 0) {
-    for (const k of SOMETIMES) you[k] = p[k];
+  // the big ones (equipment, depot, quests...): when something changed, or once a second, and then only those that
+  // differ from what this page last got (all of them every 5 seconds, to be sure): a full depot isn't sent each second
+  const n = conn.full++;
+  if (p.dirty || n % 20 === 0) {
+    const all = n % 100 === 0;
+    conn.sent = conn.sent || {};
+    for (const k of SOMETIMES) {
+      const json = JSON.stringify(p[k]);
+      if (all || conn.sent[k] !== json) { you[k] = p[k]; conn.sent[k] = json; }
+    }
     p.dirty = false;
   }
   return you;
@@ -503,13 +512,26 @@ const server = http.createServer((req, res) => {
     res.writeHead(404);
     return res.end('Not found');
   }
-  fs.readFile(file, (err, data) => {
-    if (err) {
+  // Every file with an ETag (its size and time): a page that has it already asks "still this one?" and gets a short
+  // 304 instead of the whole file again, so a phone doesn't fetch all the pictures at every start.
+  fs.stat(file, (err, st) => {
+    if (err || !st.isFile()) {
       res.writeHead(404);
       return res.end('Not found');
     }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-    res.end(data);
+    const etag = `"${st.size.toString(36)}-${Math.floor(st.mtimeMs).toString(36)}"`;
+    if (req.headers['if-none-match'] === etag) {
+      res.writeHead(304, { ETag: etag, 'Cache-Control': 'no-cache' });
+      return res.end();
+    }
+    fs.readFile(file, (err2, data) => {
+      if (err2) {
+        res.writeHead(404);
+        return res.end('Not found');
+      }
+      res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', ETag: etag });
+      res.end(data);
+    });
   });
 });
 

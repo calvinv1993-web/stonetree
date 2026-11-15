@@ -6692,21 +6692,31 @@ const Sprites = (() => {
   const SPRITE_VERSION = (() => {
     try { const m = /[?&]v=([\w.-]+)/.exec(document.currentScript.src); return m ? `?v=${m[1]}` : ''; } catch (e) { return ''; }
   })();
+  // a picture's own version (sprites/versions.js, a fingerprint of its contents), or the page's for one not listed yet:
+  // an update fetches only the pictures that changed
+  const versionOf = file => (typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[file] ? `?h=${SPRITE_HASHES[file]}` : SPRITE_VERSION);
   const custom = new Map();
+  // A ground's texture or border, or a wall's picture, arriving: what was drawn with what stood in for it is drawn again.
+  // Pictures arrive one by one (some 200 at the start): once for all those that came in the same moment, not each time.
+  let redrawPending = false;
+  const redrawSoon = () => {
+    if (redrawPending) return;
+    redrawPending = true;
+    setTimeout(() => {
+      redrawPending = false;
+      cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
+      if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
+    }, 30);
+  };
   // the things with a picture of their own for each variant (<id>_0, <id>_1...), so the others needn't be looked up every frame
   const OWN_VARIANTS = new Set(typeof CUSTOM_SPRITES === 'undefined' ? [] : Object.keys(CUSTOM_SPRITES).filter(k => /_\d$/.test(k)).map(k => k.replace(/_\d$/, '')));
   if (typeof CUSTOM_SPRITES !== 'undefined') {
     for (const [id, file] of Object.entries(CUSTOM_SPRITES)) {
       const img = new Image();
-      // Replace cached fallback ground and its edge pixels when the atlas arrives.
-      // a ground's texture or border arriving: the ground already drawn with what stood in for it is drawn again
-      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || /^wall_[a-z]+_(face|face_in|top)$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = () => {
-        cache.clear(); texturePixels.cache.clear(); baked.ok = undefined;
-        if (typeof Render !== 'undefined') for (const key of [...Render.chunks.keys()]) Render.forget(key);
-      };
+      if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || /^wall_[a-z]+_(face|face_in|top)$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = redrawSoon;
       const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
       if (res) img.res = +res[1];
-      img.src = `sprites/${file}${SPRITE_VERSION}`;
+      img.src = `sprites/${file}${versionOf(file)}`;
       custom.set(id, img);
     }
   }
@@ -6911,12 +6921,13 @@ const Sprites = (() => {
     },
     // URL of an item icon, for <img> tags in the UI.
     DOLLS: DOLLS_ON,
-    VERSION: SPRITE_VERSION, // ('?v=uiNNN': the version of the page, for pictures loaded by others too: action-slots.js)
+    VERSION: SPRITE_VERSION, // ('?v=uiNNN': the version of the page)
+    versionOf, // (a picture's own version, for pictures loaded by others too: action-slots.js)
     // An item's picture for the page (bag slots, shops, corpses, dragging; never the map): the painted action
     // pictures where there's one, so a potion looks the same in the backpack as on its action button
     itemURL(id) {
-      if (UI_ART[id]) return `sprites/ui/actions/${UI_ART[id]}${SPRITE_VERSION}`;
-      if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}${SPRITE_VERSION}`;
+      if (UI_ART[id]) return `sprites/ui/actions/${UI_ART[id]}${versionOf(`ui/actions/${UI_ART[id]}`)}`;
+      if (custom.has(id)) return `sprites/${CUSTOM_SPRITES[id]}${versionOf(CUSTOM_SPRITES[id])}`;
       if (!urls.has(id)) urls.set(id, this.item(id).toDataURL());
       return urls.get(id);
     },

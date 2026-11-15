@@ -700,7 +700,8 @@ const Fx = (() => {
           a = na;
         }
         const tint = a > 0.001 ? `rgba(${rgb.map(Math.round).join(',')},${a.toFixed(3)})` : 'transparent';
-        if (sky.tint.style.backgroundColor !== tint) sky.tint.style.backgroundColor = tint;
+        if (sky.tintKey !== tint) { sky.tintKey = tint; sky.tint.style.backgroundColor = tint; } // (not read back: the browser writes it
+        // its own way, rgba(255, 160, 70, 0.05), so it never matched and the page's look was worked out again every frame)
         // a soft dark edge round the view, deeper at night and below ground
         const edge = (climate.underground ? 0.5 : 0.18 + (1 - daylight()) * 0.3).toFixed(2);
         const key = `${edge}:${Math.round(W * k)}x${Math.round(H * k)}`;

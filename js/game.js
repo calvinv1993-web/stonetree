@@ -4,7 +4,7 @@
 const canvas = $('view');
 canvas.width = VIEW_W * TILE * SCALE;
 canvas.height = VIEW_H * TILE * SCALE;
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false }); // (painted opaque every frame: cheaper to put on the screen)
 // The night is soft, so it's drawn at a quarter of the overlay's pixels each way (LIGHT_RES) and spread out.
 const LIGHT_RES = 0.25;
 const dark = document.createElement('canvas');
@@ -436,6 +436,13 @@ function draw() {
     w: VIEW_W * TILE, h: VIEW_H * TILE, time: now, objects: [],
     depth: 0.15, // what lies below you is darker
   };
+  // the floors above with nothing anywhere near the view (most of them above open ground) aren't walked through at all
+  // (a floor d up is drawn d tiles up-left of where it lies, so it's looked for that much further down-right too)
+  // (only under the open sky: under a roof the floor above it is kept ready for when you step out: see Render.world)
+  const hx = (VIEW_W >> 1) + 2, hy = (VIEW_H >> 1) + 2;
+  if (view.maxZ === map.depth - 1) {
+    while (view.maxZ > z && !map.floorNear(view.maxZ, player.x - hx, player.y - hy, player.x + hx + view.maxZ - z, player.y + hy + view.maxZ - z)) view.maxZ--;
+  }
   Fx.frame(view);
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;

@@ -3,6 +3,9 @@
 //   node tests/unit.test.js
 
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
 const { loadGame } = require('./harness');
 
 const tests = [];
@@ -877,6 +880,25 @@ test('the equipment\'s defense: the shield\'s, or without one the weapon\'s, a b
   assert(run('totalDefense()') > 12, 'a better shield defends more');
   run(`player.equipment.shield = null; player.equipment.weapon = null;`);
   assert.strictEqual(run('totalDefense()'), 0, 'nothing worn: nothing blocks');
+});
+
+test('every picture is listed with its own version (else run: node tests/sprite-versions.js)', () => {
+  const { versions, OUT } = require('./sprite-versions');
+  const listed = vm.runInNewContext(`${fs.readFileSync(OUT, 'utf8')}; SPRITE_HASHES`);
+  const want = versions(), stale = Object.keys(want).filter(f => listed[f] !== want[f]);
+  assert.strictEqual(stale.length, 0, `out of date for: ${stale.slice(0, 5).join(', ')}`);
+});
+
+test('the four lists of logic files agree (index.html, server.js, dev.js, the harness)', () => {
+  const read = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  const { LOGIC_FILES } = require('./harness');
+  const page = [...read('index.html').matchAll(/<script src="js\/([\w-]+)\.js/g)].map(m => m[1]).filter(f => LOGIC_FILES.includes(f));
+  const server = (/for \(const f of \[([^\]]+)\]/.exec(read('server/server.js')) || [])[1];
+  const dev = (/LOGIC\s*=\s*\/([^/]+)\//.exec(read('server/dev.js')) || [])[1];
+  assert.strictEqual(page.join(), LOGIC_FILES.join(), 'index.html loads them in the harness\'s order');
+  assert.ok(server, 'found the server\'s list');
+  assert.strictEqual(server.match(/[\w-]+/g).join(), LOGIC_FILES.join(), 'server.js loads them in the same order');
+  for (const f of LOGIC_FILES) assert.ok(dev && new RegExp(dev).test(`${f}.js`), `dev.js reloads on a change to ${f}.js`);
 });
 
 let failed = 0;

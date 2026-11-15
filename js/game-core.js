@@ -262,6 +262,8 @@ function step(c, dx, dy) {
   c.dir = dirTo(dx, dy);
   const nx = c.x + dx, ny = c.y + dy;
   const isPlayer = c.type === 'player';
+  // (doors, keys and houses are checked for the acting player: another player's step is taken as them)
+  if (isPlayer && c !== player) return asPlayer(c, () => step(c, dx, dy));
   if (isPlayer && skullBlocks(c, nx, ny)) return false;
   if (isPlayer && !creatureAt(nx, ny, c.z) && bumpDoor(nx, ny, c.z)) return false;
   const free = isFree(nx, ny, c.z) || (isPlayer && passThroughDoor(nx, ny, c.z) && !creatureAt(nx, ny, c.z));
