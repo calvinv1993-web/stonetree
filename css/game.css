@@ -325,4 +325,4 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 /* every item picture in the middle of its slot (the slot can be bigger than the picture, as on a phone; a picture
    scaled up grows from its middle, not its corner) */
 .slot > img { position: absolute; left: 50%; top: 50%; margin: 0; transform: translate(-50%, -50%); }
-.slot > img[src*="ui/actions/"], .slot > img[src*="sprites/items/"] { transform: translate(-50%, -50%) scale(1.15); }
+.slot > img[src*="ui/actions/"], .slot > img[src*="sprites/items/"] { transform: translate(-50%, -50%) scale(1.08); } /* (as big as on the action buttons: about 35 px on a phone) */
