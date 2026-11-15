@@ -51,7 +51,7 @@ const InventoryDrawer = (() => {
       // (the Menu's settings draw only while its "settings" part is chosen: touch.js renderMenu)
       seg = document.body.dataset.seg || '';
       document.body.dataset.seg = 'settings';
-      put('.drawer-settings', byId('fightBar'), byId('menuSec'), byId('tab-help')); // (the fight mode and following first)
+      put('.drawer-settings', byId('menuSec'), byId('tab-help'));
       if (typeof renderMenu === 'function') { menuShown = ''; renderMenu(); }
     }
   }

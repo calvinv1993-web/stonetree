@@ -500,13 +500,6 @@ body.touch-ui .hud-target b { flex: 1 1 auto; min-width: 0; max-width: 64px; fon
 body.touch-ui .hud-target-bar { flex: 1 0 52px; height: 4px; border-radius: 2px; background: var(--hud-empty); overflow: hidden; }
 body.touch-ui .hud-target-bar i { display: block; height: 100%; background: var(--hud-hp); }
 body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); color: var(--hud-text-2); }
-/* Upright the view shows nothing of the fight mode: it is set at the top of the drawer's Settings */
-@media (orientation: portrait) {
-  body.touch-ui.fighting .fight-bar { display: none; }
-  body.touch-ui .drawer-settings .fight-bar { display: flex !important; position: static !important; flex-direction: row; align-items: center; gap: 10px; padding: 10px 12px; }
-  body.touch-ui .drawer-settings .fight-bar::before { content: 'Fighting'; flex: 1; color: var(--hud-text); font: 600 13px/1 var(--hud-font); }
-  body.touch-ui .drawer-settings #fightModes { flex-direction: row; }
-}
 /* -- The bottom bar, upright: one dark panel; the chat line with the backpack at its end, a faint line, the seven
       buttons (three, the smart button, three) in one grid, under each group of three its sets, the home indicator's
       safe area -- */
