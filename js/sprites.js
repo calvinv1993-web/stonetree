@@ -3263,13 +3263,26 @@ const Sprites = (() => {
       ellipse(g, '#0b0806', 16, 18, 11, 8);
     },
     // An open wooden hatch in the floor with the top of a ladder showing.
+    // An open trapdoor: a hole in the floor seen from above, in the world's slant - down goes down and to the right, so
+    // you look onto the hole's north and west sides inside it, and the ladder of the floor below (cave_ladder, standing
+    // against the north side) runs down-right from the hole's north edge into the dark. Its lid lies open on the floor.
     trapdoor(g) {
-      rect(g, '#2a1c10', 6, 8, 20, 18);
-      rect(g, '#0b0806', 8, 10, 16, 14);
-      rect(g, '#7a4f26', 10, 10, 2, 14); rect(g, '#7a4f26', 20, 10, 2, 14);
-      for (let y = 12; y < 24; y += 5) rect(g, '#9a6a38', 12, y, 8, 2);
-      rect(g, '#6a4422', 6, 2, 20, 7); // the lid, open against the floor
-      for (let x = 8; x < 26; x += 5) rect(g, '#4f3218', x, 2, 1, 7);
+      const x0 = 5, y0 = 9, x1 = 27, y1 = 28, d = 19; // the hole, and how far down a floor goes in the slant
+      rect(g, '#2a1c10', x0 - 1, y0 - 1, x1 - x0 + 2, y1 - y0 + 2); // its wooden frame
+      g.save();
+      g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
+      rect(g, '#0b0806', x0, y0, x1 - x0, y1 - y0);
+      poly(g, '#4a3826', [x0, y0, x1, y0, x1 + d, y0 + d, x0 + d, y0 + d]); // the north side, facing you
+      poly(g, '#211810', [x0, y0, x0 + d, y0 + d, x0 + d, y1 + d, x0, y1]); // the west side, in shade
+      for (const [a, b] of [[8, 11], [20, 23]]) poly(g, '#9a6632', [a, y0, b, y0, b + d, y0 + d, a + d, y0 + d]); // the rails
+      for (let k = 2; k < d; k += 5) { rect(g, '#a6743e', 11 + k, y0 + k, 9, 2); rect(g, '#5a3818', 11 + k, y0 + k + 2, 9, 1); } // the rungs
+      const dark = g.createLinearGradient(x0, y0, x1, y1);
+      dark.addColorStop(0, 'rgba(8,6,4,0)'); dark.addColorStop(1, 'rgba(8,6,4,0.7)');
+      g.fillStyle = dark; g.fillRect(x0, y0, x1 - x0, y1 - y0);
+      g.restore();
+      rect(g, '#6a4422', x0 - 1, 2, x1 - x0 + 2, 6); // the lid, open against the floor
+      for (let x = x0 + 2; x < x1; x += 5) rect(g, '#4f3218', x, 2, 1, 6);
+      rect(g, '#8a5a30', x0 - 1, 2, x1 - x0 + 2, 1);
       rect(g, '#3a3a40', 14, 4, 4, 2);
     },
   };
