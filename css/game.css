@@ -339,3 +339,55 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 /* (round the status bar, which reaches the screen's edges: the ring inside it) */
 @keyframes guide-spot-in { from { outline-color: rgba(255, 215, 106, 1); } to { outline-color: rgba(255, 215, 106, 0.35); } }
 .hud.guide-spot { outline-offset: -4px; animation-name: guide-spot-in; }
+
+/* ---- the guide, made plain to see (game-ui.js renderGuide, GUIDE_ART, GuideSpot) ---- */
+/* how far through it you are: a thin gold line under its header */
+.guide-bar { height: 3px; margin: 4px 0 6px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.guide-bar i { display: block; height: 100%; width: var(--done, 0%); background: linear-gradient(90deg, #b8893e, #ffd76a); transition: width 0.4s ease-out; }
+.guide.folded .guide-bar, .guide.folded .guide-art { display: none; }
+/* its picture: little chips, bars and pictures of what the words are about */
+.guide-art { display: flex; flex-direction: column; gap: 5px; margin: 8px 0 2px; padding: 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.07); }
+.guide-art[hidden] { display: none; }
+.ga-row { display: flex; align-items: center; justify-content: space-around; gap: 8px; flex-wrap: wrap; }
+.ga-cap { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 52px; text-align: center; }
+.ga-cap small, .ga-bar small, .ga-note { color: #c9c0ae; font-size: 10.5px; line-height: 1.2; }
+.ga-pic { width: 34px; height: 34px; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 1px 1px #000); }
+.ga-cap .icon { width: 22px; height: 22px; color: #f2ebdd; }
+.ga-arrow { color: #ffd76a; font-weight: 700; font-size: 16px; }
+.ga-yellow { color: #ffd84a; font-size: 22px; line-height: 1; text-shadow: 0 0 2px #000; }
+.ga-good { color: #6fd36b; font-size: 20px; font-weight: 800; line-height: 1; }
+.ga-bad { color: #ff7a6a; font-size: 20px; font-weight: 800; line-height: 1; }
+.ga-big { color: #ffd76a; font-size: 15px; }
+.ga-word { padding: 3px 10px; border-radius: 6px; border: 1px solid #d5aa60; background: #3a2c18; color: #ffd76a; font-weight: 700; font-size: 12px; }
+.ga-step { padding: 3px 9px; border-radius: 6px; border: 1px solid #d5aa60; background: linear-gradient(#5a4628, #3a2c18); color: #ffe3a8; font-weight: 700; font-size: 11px; }
+.ga-step.do { border-color: #4f9b55; background: #1f3a22; color: #9be09a; }
+.ga-slots { display: flex; gap: 3px; }
+.ga-slots .icon { width: 26px !important; height: 26px !important; padding: 3px; border: 1px dashed rgba(255, 255, 255, 0.35); border-radius: 5px; color: rgba(255, 255, 255, 0.5) !important; }
+.ga-cap kbd { padding: 2px 6px; border-radius: 4px; border: 1px solid #6a6252; background: #2a2620; color: #f2ebdd; font: 600 11px/1.3 system-ui, sans-serif; }
+.ga-smart { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.2); color: #f2ebdd; }
+.ga-smart .icon { width: 20px !important; height: 20px !important; }
+.ga-smart.attack { background: linear-gradient(#7a2a26, #431614); }
+.ga-smart.talk { background: linear-gradient(#2a4a72, #16294a); }
+.ga-smart.loot { background: linear-gradient(#7a5a24, #45300e); }
+.ga-smart.use { background: linear-gradient(#2e5a34, #16321b); }
+.ga-bar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.ga-bar i { display: block; height: 8px; border-radius: 4px; }
+.ga-bar.hp i { background: linear-gradient(#e0534f, #a92a2a); }
+.ga-bar.mp i { background: linear-gradient(#4b9bf0, #1f62c0); }
+.ga-bar.xp i { height: 4px; background: linear-gradient(90deg, #9b7be0 60%, rgba(255, 255, 255, 0.12) 60%); }
+/* a step done: the box glows green a moment, with a tick */
+@keyframes guide-cheer { 0% { box-shadow: 0 0 0 0 rgba(111, 211, 107, 0.9); } 100% { box-shadow: 0 0 0 14px rgba(111, 211, 107, 0); } }
+.guide.cheer { animation: guide-cheer 0.9s ease-out; }
+.guide.cheer #guideStep::after { content: '  ✓ well done!'; color: #8be08a; font-weight: 700; }
+/* the spotlight: everything dims but the lit part and the guide's box; it takes no taps */
+#guideSpot { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9000; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
+#guideSpot.on { opacity: 1; }
+#guideSpot path { fill: rgba(0, 0, 0, 0.58); }
+#guideSpot.soft path { fill: rgba(0, 0, 0, 0.32); }
+/* the hand pointing at it, tapping */
+@keyframes guide-tap { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-9px) scale(0.92); } }
+@keyframes guide-tap-down { 0%, 100% { transform: rotate(180deg) translateY(0) scale(1); } 50% { transform: rotate(180deg) translateY(-9px) scale(0.92); } }
+#guideHand { position: fixed; z-index: 9001; width: 40px; height: 40px; pointer-events: none; display: none; animation: guide-tap 0.9s ease-in-out infinite; }
+#guideHand.on { display: block; }
+#guideHand.down { animation-name: guide-tap-down; }
+#guideHand svg { width: 100%; height: 100%; fill: #fff7e0; stroke: #3a2c18; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }

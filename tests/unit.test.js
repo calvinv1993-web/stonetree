@@ -742,14 +742,17 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   assert.strictEqual(p.vocation, 'none', 'the oracle wants level 10, bell or no bell');
 });
 
-test('free gear in the sewers: a cap in the old storeroom and a shield in the rats\' nest, once each', () => {
+test('finds in the sewers: gold and potions in the old storeroom and in the rats\' nest, once each', () => {
   const game = quietGame();
   const { ctx, state } = game;
-  for (const [x, y, z, item] of [[105, 121, 7, 'leather_cap'], [144, 140, 7, 'wooden_shield']]) {
+  const p = state.player;
+  for (const [x, y, z, gold, potions] of [[105, 121, 7, 30, 2], [144, 140, 7, 20, 3]]) {
+    const gold0 = p.gold, pots0 = state.countItem('health_potion');
     ctx.useThing(x, y, z);
-    assert.strictEqual(state.countItem(item), 1, `the chest at ${x},${y},${z} gives ${item}`);
+    assert.strictEqual(p.gold - gold0, gold, `the chest at ${x},${y},${z} gives ${gold} gold`);
+    assert.strictEqual(state.countItem('health_potion') - pots0, potions, `and ${potions} health potions`);
     ctx.useThing(x, y, z);
-    assert.strictEqual(state.countItem(item), 1, 'but only once');
+    assert.strictEqual(p.gold - gold0, gold, 'but only once');
   }
 });
 
@@ -801,10 +804,22 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.trainHits >= 5, 'hitting the dummy');
   next('the big button');
   assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
-  talk('corwin', 'bell'); kill('rat', 5);
+  talk('corwin', 'bell'); tick(game, 100);
+  // Corwin's present: a shield and a cap, and the guide waits until both are worn
+  const worn = () => ['wooden_shield', 'leather_cap'].map(id => p.equipment.backpack.contents.findIndex(i => i.id === id));
+  assert(worn().every(i => i >= 0), 'Master Corwin gives a wooden shield and a leather cap');
+  const step = p.tutorial;
+  A.useItem({ root: 'bag', path: [worn()[0]] }); tick(game, 100); assert.strictEqual(p.tutorial, step, 'one piece on is not yet both');
+  A.useItem({ root: 'bag', path: [worn()[1]] }); tick(game, 100);
+  assert(p.equipment.shield && p.equipment.head && p.tutorial === step + 1, 'both worn: on to the next step');
+  A.restartGuide(); A.restartGuide(); assert.strictEqual(p.tutorial, 1); // (the present comes once)
+  while (p.tutorial < step) { A.guideNext(); tick(game, 100); }
+  assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'wooden_shield').length, 0, 'no second present when the guide starts again');
+  p.tutorial = step + 1;
+  kill('rat', 5);
   next('what dying costs'); tick(game, 100);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
-  next('the backpack'); p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons');
+  p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons');
   assert.strictEqual(arrow(), 'corwin');
   talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
   talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');

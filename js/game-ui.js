@@ -180,7 +180,96 @@ function renderGuide() {
   $('guideNow').hidden = !now;
   $('guideDone').hidden = !!(step.done || step.on);
   $('guideDone').textContent = player.tutorial === GUIDE.length ? 'Got it' : 'Next'; // (a step that only explains: on to the next)
+  // a thin bar: how far through the guide you are
+  $('guideBar').style.setProperty('--done', `${((player.tutorial - 1) / GUIDE.length) * 100}%`);
+  // its little picture
+  const art = $('guideArt');
+  art.replaceChildren(...(step.art && GUIDE_ART[step.art] ? GUIDE_ART[step.art]() : []));
+  art.hidden = !art.childNodes.length;
+  // a step done: a moment of praise on the box
+  if (before && before < player.tutorial) {
+    box.classList.remove('cheer'); void box.offsetWidth; box.classList.add('cheer');
+    clearTimeout(renderGuide.cheer); renderGuide.cheer = setTimeout(() => box.classList.remove('cheer'), 1800);
+  }
 }
+
+// ---- the guide's pictures: what its words are about, drawn small in its box ---------------------------------------
+const GUIDE_ART = (() => {
+  const chip = (cls, ...kids) => h('span', { className: `ga-chip ${cls || ''}` }, ...kids);
+  const pic = (id, size = 34) => Object.assign(new Image(size, size), { src: Sprites.itemURL(id), className: 'ga-pic', alt: '' });
+  const icon = (name, size = 18) => (typeof Icons !== 'undefined' ? Icons.img(name, size) : h('span', {}, ''));
+  const row = (...kids) => h('div', { className: 'ga-row' }, ...kids);
+  const cap = (pictureEl, text) => h('div', { className: 'ga-cap' }, pictureEl, h('small', {}, text));
+  const bar = (cls, label) => h('div', { className: `ga-bar ${cls}` }, h('i'), h('small', {}, label));
+  return {
+    welcome: () => [row(cap(h('span', { className: 'ga-step do' }, '✓'), 'do it: on by itself'), cap(h('span', { className: 'ga-step' }, 'Next'), 'read it: tap Next'))],
+    bars: () => [bar('hp', 'health: 0 = you die'), bar('mp', 'mana: for spells'), bar('xp', 'experience: full = level up')],
+    words: () => [row(h('span', { className: 'ga-word' }, 'bell'), h('span', { className: 'ga-arrow' }, '→'), h('span', { className: 'ga-word' }, 'yes'),
+      h('small', { className: 'ga-note' }, touchScreen ? 'tap the gold words' : 'click or type the gold words'))],
+    lost: () => [row(cap(h('span', { className: 'ga-yellow' }, '➤'), 'the arrow: where to go'), cap(icon('quests', 22), 'Quests: what to do'))],
+    train: () => [row(cap(pic('wooden_club'), 'hit the dummy'), h('span', { className: 'ga-arrow' }, '→'), cap(h('b', { className: 'ga-big' }, '+skill'), 'harder hits'))],
+    smart: () => [row(...(touchScreen
+      ? [['attack', 'attack'], ['talk', 'talk'], ['loot', 'loot'], ['use', 'use']].map(([kind, label]) => cap(h('span', { className: `ga-smart ${kind}` }, icon(kind, 20)), label))
+      : [cap(h('kbd', {}, 'Space'), 'attack the nearest'), cap(h('kbd', {}, 'click'), 'a monster: attack'), cap(h('kbd', {}, 'click'), 'a person: talk')]))],
+    gear: () => [row(cap(pic('wooden_shield'), 'shield'), cap(pic('leather_cap'), 'cap'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(h('span', { className: 'ga-slots' }, icon('slot-shield', 18), icon('slot-head', 18)), touchScreen ? 'tap, then Wear' : 'drag on'))],
+    death: () => [row(cap(h('span', { className: 'ga-good' }, '✓'), 'you keep your things'), cap(h('span', { className: 'ga-bad' }, '−'), 'a little experience'),
+      cap(icon('heart', 20), 'temple, depot, shops: safe'))],
+    rats: () => [row(cap(h('span', { className: 'ga-good' }, '✓'), 'rats: easy'), cap(h('span', { className: 'ga-bad' }, '!'), 'wolf packs: not yet'))],
+    loot: () => [row(cap(touchScreen ? h('span', { className: 'ga-smart loot' }, icon('loot', 20)) : h('kbd', {}, 'right-click'), 'open the corpse'),
+      h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-step' }, 'Take all'), 'everything in it'))],
+    eat: () => [row(cap(pic('apple'), touchScreen ? 'tap it, then Use' : 'right-click it'), h('span', { className: 'ga-arrow' }, '→'), cap(icon('food', 20), 'fed: you heal faster'))],
+    actions: () => [row(cap(pic('health_potion'), touchScreen ? 'tap: use' : 'H: health'), cap(pic('mana_potion'), touchScreen ? 'hold: choose' : 'M: mana'),
+      cap(h('span', { className: 'ga-step' }, touchScreen ? '⇆' : '1-9'), touchScreen ? 'swipe: more' : 'spells'))],
+    map: () => [row(cap(icon('map', 22), touchScreen ? 'the map button' : 'the minimap'), h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '◎'), 'tap a spot: walk there'))],
+  };
+})();
+
+// ---- the guide's spotlight: the rest of the screen dims, the part a step is about stays lit, a hand points at it ----
+// (a see-through layer over everything that takes no taps: the lit part and the guide's own box are holes in it)
+const GuideSpot = (() => {
+  let layer = null, hand = null, path = null;
+  const make = () => {
+    layer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    layer.id = 'guideSpot'; layer.setAttribute('aria-hidden', 'true');
+    path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill-rule', 'evenodd');
+    layer.appendChild(path);
+    hand = document.createElement('div'); hand.id = 'guideHand'; hand.setAttribute('aria-hidden', 'true');
+    hand.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10m0-.5V3a1.5 1.5 0 0 1 3 0v7m0-1a1.5 1.5 0 0 1 3 0v4.5c0 4-2.5 7.5-6.5 7.5-2.4 0-4-1-5.3-2.8L3.5 15a1.6 1.6 0 0 1 2.5-2L9 15.5V11"/></svg>';
+    document.body.append(layer, hand);
+  };
+  const visible = el => { if (!el || el.hidden) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };
+  const hole = (r, pad, rad) => { const x = r.left - pad, y = r.top - pad, w = r.width + 2 * pad, hh = r.height + 2 * pad, k = Math.min(rad, w / 2, hh / 2);
+    return `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + hh - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + hh}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + hh - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`; };
+  function frame() {
+    requestAnimationFrame(frame);
+    const step = player && player.tutorial && !guideFolded ? GUIDE[player.tutorial - 1] : null;
+    const list = step ? (touchScreen ? step.ui : step.uiDesk) || [] : [];
+    let target = null;
+    for (const sel of list) { target = [...document.querySelectorAll(sel)].find(visible); if (target) break; }
+    const box = $('guide');
+    const on = !!target && visible(box) && !document.body.classList.contains('panel-open');
+    if (!layer) { if (!on) return; make(); }
+    layer.classList.toggle('on', on);
+    // (a step that only explains dims more: there's nothing else to do; one with a task dims a little)
+    layer.classList.toggle('soft', !!(step && (step.done || step.on)));
+    if (!on) return;
+    const r = target.getBoundingClientRect();
+    layer.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+    path.setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0Z${hole(r, 6, 12)}${hole(box.getBoundingClientRect(), 0, 12)}`);
+    // the hand: pointing up at it from below, or down at it from above when it's low on the screen (not for something
+    // as wide as the screen, like the status bar: the light round it says enough)
+    hand.classList.toggle('on', r.width < innerWidth * 0.6);
+    const below = r.bottom + 64 < innerHeight;
+    hand.classList.toggle('down', !below);
+    hand.style.left = `${Math.round(r.left + r.width / 2 - 20)}px`;
+    hand.style.top = `${Math.round(below ? r.bottom + 6 : r.top - 52)}px`;
+  }
+  requestAnimationFrame(frame);
+  return {};
+})();
 
 // ---- party and guild ----------------------------------------------------------------------
 // Online the server tells us how things stand; playing alone, we ask the game ourselves.

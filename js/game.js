@@ -789,6 +789,16 @@ function drawGuideArrow(screen) {
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();
   if (t.z === player.z && sx > m && sy > m + 30 && sx < viewPxW() - m && sy < viewPxH() - m) {
+    // a gold ring on the ground round it, growing and fading, so the eye finds it at once
+    const [gx, gy] = screen(v.x + 0.5, v.y + 0.5), k = (now % 1200) / 1200, rx = TILE * SCALE * (0.35 + 0.35 * k);
+    ctx.save();
+    ctx.globalAlpha = 1 - k;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ffd84a';
+    ctx.beginPath();
+    ctx.ellipse(gx - (t.type ? LIFT * SCALE : 0), gy + 2, rx, rx * 0.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
     ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 - (t.type ? Sprites.headroom(t) * SCALE : 0) + bob); // above the name (and a creature's head)
     ctx.rotate(Math.PI / 2);
   } else {

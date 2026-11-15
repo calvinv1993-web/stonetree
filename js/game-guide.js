@@ -9,17 +9,21 @@
 // corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget; done: when the step is done (as the
 // player), or on: the deed that does it (see guideDid). A step with neither just explains: it waits for "Next"
 // (Actions.guideNext), and the last step for "Got it". ui / uiDesk: the parts of the screen it's about on a phone / a
-// computer (CSS selectors): they glow while the step shows (game-ui.js renderGuide).
+// computer (CSS selectors): the first one in sight is lit while the rest of the screen dims, with a hand pointing
+// at it (game-ui.js GuideSpot). art: a little picture in the guide's box (GUIDE_ART in game-ui.js). gift: things
+// handed to you when the step comes up (once: its flag), with who gives them and what they say.
 const GUIDE = [
   // ---- the basics, one thing at a time (a step without done or on is read and passed with "Next") ----
   {
     text: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Press Next to begin.',
     touch: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Tap Next to begin.',
+    art: 'welcome',
   },
   {
     text: 'Your health and mana are in the panel on the right. Red is your health: when it runs out, you die. Blue is your mana, for spells. Under them, your experience: when it is full you reach the next level.',
     touch: 'At the top: red is your health (when it runs out, you die), blue is your mana (for spells). Under them, your experience: when the bar is full you reach the next level.',
     ui: ['#touch .hud'], uiDesk: ['.sec-status'],
+    art: 'bars',
   },
   {
     text: 'Sister Ama stands by the altar, just north of you: the yellow arrow points at her. Walk with W A S D or the arrow keys (or click where to go), then click her to talk.',
@@ -33,22 +37,26 @@ const GUIDE = [
     target: [{ npc: 'ama' }],
     ui: ['#talkWords'],
     done: () => questState('bell_1') !== 'none',
+    art: 'words',
   },
   {
     text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. Lost? Look there.',
     touch: 'You have a quest! Whenever you are lost: the yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next.',
     ui: ['#hudBag'], uiDesk: ['[data-tab="quests"]'],
+    art: 'lost',
   },
   {
     text: 'Before you fight: train! The training yard is in the south-west of town, off the main street. Click a dummy and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
     touch: 'Before you fight: train! Tap a dummy in the training yard (south-west of town) and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
     target: [{ at: [110, 141, 8] }, { at: [137, 109, 9] }], // (from the temple: to the steps down)
     done: () => player.trainHits >= 5,
+    art: 'train',
   },
   {
     text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
     touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. You will use it a lot.',
     ui: ['#tAttack'], uiDesk: ['#hotbar'],
+    art: 'smart',
   },
   {
     text: 'Now leave the temple yard, west over the bridge to the academy. Master Corwin teaches there: talk to him.',
@@ -57,36 +65,44 @@ const GUIDE = [
     done: () => talkingTo('corwin') || (!!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done')),
   },
   {
+    text: 'Master Corwin gave you a wooden shield and a leather cap! Put them on: drag each from your bag onto its place in the equipment (or right-click it). Your armour and defense go up.',
+    touch: 'Master Corwin gave you a wooden shield and a leather cap! Put them on: open the backpack, tap each one, then Wear. Your armour and defense go up.',
+    gift: { flag: 'guide_kit', items: [['wooden_shield', 1], ['leather_cap', 1]], from: 'Master Corwin',
+      say: 'Nobody leaves my academy bare-headed. Take this shield and this cap, and put them on before you go out.' },
+    art: 'gear', ui: ['#inventoryDrawer', '#hudBag'], uiDesk: ['#containers', '.sec-equip'],
+    done: () => !!(player.equipment.shield && player.equipment.head),
+  },
+  {
     text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
     touch: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
+    art: 'death',
   },
   {
     text: 'Rats run in Sunny Fields, out of the south gate. Click a rat, or press Space. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
     touch: 'Rats run in Sunny Fields, out of the south gate. Press the big red button near a rat, or tap the rat. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
     target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
     done: () => ratsDone(), // (the five for Corwin: also if they fell while an earlier step was still being read)
+    art: 'rats',
   },
   {
     text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
     touch: 'Monsters leave a corpse with loot. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything. Gold goes straight into your purse.',
     target: [{ corpse: true }],
     done: () => !!(player.openPile && player.openPile.corpse),
-  },
-  {
-    text: 'Your equipment and your bag are in the panels on the right. Right-click a thing to use it; drag it to wear it, move it or drop it on the map.',
-    touch: 'This backpack button opens your equipment and your bag. Tap a thing to see what it is and to use it, wear it or drop it; drag it to move it. Close the bag with this button again, or touch the map.',
-    ui: ['#hudBag'], uiDesk: ['.sec-equip', '#containers'],
+    art: 'loot',
   },
   {
     text: 'With a full stomach you heal much faster. Eat an apple: right-click it in your bag.',
     touch: 'With a full stomach you heal much faster. Open the backpack, tap an apple, then Use to eat it.',
     ui: ['#hudBag'], uiDesk: ['#containers'],
     done: () => player.fedUntil > now,
+    art: 'eat',
   },
   {
     text: 'The bar under the map: your spells on 1 to 9 (they come with levels), H for a health potion, M for mana, F to eat. Low on health? Press H.',
     touch: 'The buttons beside the big one: spells on the left, potions and food on the right. Low on health? Tap the red potion. Hold a button to choose what goes there; swipe sideways for more.',
     ui: ['#favs'], uiDesk: ['#hotbar'],
+    art: 'actions',
   },
   {
     text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The Quests tab says where; the arrow points the way.',
@@ -104,6 +120,7 @@ const GUIDE = [
     text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
     touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
     ui: ['#hudMap'], uiDesk: ['.minimap-box'],
+    art: 'map',
   },
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
@@ -151,7 +168,20 @@ function updateGuide() {
   if (!player.tutorial) return;
   const step = GUIDE[player.tutorial - 1];
   if (!step || player.vocation !== 'none') player.tutorial = 0;
-  else if (step.done && step.done()) player.tutorial++;
+  else {
+    if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
+    if (step.done && step.done()) player.tutorial++;
+  }
+}
+
+// The guide's present for a step (once): into the bag, with a word from whoever gives it
+function guideGift(gift) {
+  player.chests[gift.flag] = true;
+  for (const [id, n] of gift.items) giveItem(id, n);
+  logDialog(gift.from, gift.say);
+  log(`${gift.from} gives you ${gift.items.map(([id, n]) => itemName(id, n)).join(' and ')}.`, 'level');
+  addSparkle(player, '#ffe080');
+  uiDirty();
 }
 
 // A deed the guide may be waiting for ('kill').
