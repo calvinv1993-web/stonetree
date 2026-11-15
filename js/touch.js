@@ -98,6 +98,7 @@ function renderFavs() {
     favPageIndex = Math.max(0, Math.min(2, Number(saved[0]) || 0));
     favItemPage = Math.max(0, Math.min(2, Number(saved[1]) || 0));
     favShown = '';
+    if (typeof ActionSlots !== 'undefined') { ActionSlots.showSet(false, favPageIndex, 3); ActionSlots.showSet(true, favItemPage, 3); }
   }
   const entries = hotbarEntries();
   const favs = favourites();

@@ -31,12 +31,12 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     // every control: its size, and that a finger on its middle lands on it (nothing over it)
     const controls = await page.evaluate(() => {
       const list = [...document.querySelectorAll('#favs .fav')].map((el, i) => [`action button ${i + 1}`, el]);
-      list.push(['smart button', $('tAttack')], ['drawer tab', $('drawerTab')], ['chat line', $('chatLine')]);
+      list.push(['smart button', $('tAttack')], ['backpack', $('hudBag')], ['chat line', $('chatLine')], ['map button', $('hudMap')]);
       return list.map(([n, el]) => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         return { n, w: Math.round(r.width), h: Math.round(r.height), hit: !!hit && (hit === el || el.contains(hit)), bottom: Math.round(r.bottom) }; });
     });
     for (const c of controls) {
-      const small = c.n === 'drawer tab' || c.n === 'chat line' ? 16 : MIN_TARGET; // (the tab and the line are wide: their height may be less)
+      const small = c.n === 'backpack' || c.n === 'chat line' ? 16 : MIN_TARGET; // (the backpack and the line are wide: their height may be less)
       check(`${c.n}: ${c.w} x ${c.h}, under the finger`, c.hit && Math.min(c.w, c.h) >= small, JSON.stringify(c));
     }
     // the map lies between the status bar and the action bar, never under either (the tiles that don't fit are cut off)
@@ -46,7 +46,7 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     });
     check('the map shows only between the status bar and the action bar', fit.top >= fit.hud - 0.5 && fit.bottom <= fit.dock + 0.5, JSON.stringify(fit));
     // one hand: nothing to tap up in the status bar; the drawer's tabs (map, quests, settings) sit low, in reach of the thumb
-    check('nothing to tap in the status bar (map and menu are drawer tabs)', await page.evaluate(() => !document.querySelector('.hud button')));
+    check('nothing to tap in the status bar (the map is a button under it, the menu a drawer tab)', await page.evaluate(() => !document.querySelector('.hud button')));
     const tabs = await page.evaluate(() => { InventoryDrawer.show('map'); return new Promise(res => setTimeout(() => res([...document.querySelectorAll('.drawer-tabs button')].map(el => {
       const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return { n: el.dataset.page, h: Math.round(r.height), w: Math.round(r.width), hit: !!hit && (hit === el || el.contains(hit)), top: Math.round(r.top / innerHeight * 100) }; })), 400)); });
@@ -78,13 +78,17 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     const swiped = await page.evaluate(() => ({ page: favPageIndex, mana: player.mana, max: player.maxMana }));
     check('a sideways swipe over the spells shows the next set (no cast, no walk)', swiped.page === 1 && swiped.mana === swiped.max && (await at()) === start, JSON.stringify(swiped));
     await page.evaluate(() => { favPageIndex = 0; favShown = ''; renderFavs(); });
-    // the drawer tab
-    [x, y] = await centre('#drawerTab');
-    await page.mouse.move(x, y); await page.mouse.down();
-    for (let i = 1; i <= 6; i++) await page.mouse.move(x, y - i * 10);
-    await page.mouse.up(); await page.waitForTimeout(350);
-    check('a swipe up on the tab opens the drawer (no walk)', await page.evaluate(() => InventoryDrawer.stage() === 1) && (await at()) === start);
+    // the backpack at the chat line's end
+    [x, y] = await centre('#hudBag');
+    await page.mouse.click(x, y); await page.waitForTimeout(350);
+    const bagOpen = await page.evaluate(() => [InventoryDrawer.stage(), InventoryDrawer.page()]);
+    check('a tap on the backpack opens the drawer (no walk)', bagOpen[0] === 1 && bagOpen[1] === 'gear' && (await at()) === start, `${bagOpen} ${start} ${await at()}`);
     if (shots) await page.screenshot({ path: path.join(shots, `${name.replace(/ /g, '-')}-drawer.png`) });
+    await page.evaluate(() => InventoryDrawer.close()); await page.waitForTimeout(300);
+    // the map button in the view's corner
+    [x, y] = await centre('#hudMap');
+    await page.mouse.click(x, y); await page.waitForTimeout(350);
+    check('a tap on the map button shows the map (no walk)', await page.evaluate(() => InventoryDrawer.stage() === 1 && InventoryDrawer.page() === 'map') && (await at()) === start);
     await page.evaluate(() => InventoryDrawer.close()); await page.waitForTimeout(300);
     // the chat line
     await page.evaluate(() => log('A message to tap.'));

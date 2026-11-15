@@ -77,17 +77,16 @@ const ActionSlots = (() => {
   }
   requestAnimationFrame(tick);
 
-  // After a swipe to another set: which one shows, for a moment, over that group (no arrows or numbers stay on screen)
-  let setHint = null, setTimer = 0;
+  // Which set each group shows: a row of short bars under it, the one shown gold (always there, so a swipe has a
+  // reason you can see; touch.js calls this after a swipe, mobile-hud.js once at the start)
+  const hints = {};
   function showSet(right, index, count) {
     const dock = document.getElementById('actionDock');
     if (!dock) return;
-    if (!setHint) { setHint = document.createElement('div'); setHint.className = 'slot-set-hint'; dock.appendChild(setHint); }
-    setHint.replaceChildren(...Array.from({ length: count }, (_, i) => Object.assign(document.createElement('i'), { className: i === index ? 'on' : '' })));
-    setHint.classList.toggle('right', right);
-    setHint.classList.add('show');
-    clearTimeout(setTimer);
-    setTimer = setTimeout(() => setHint.classList.remove('show'), 900);
+    const side = right ? 'right' : 'left';
+    let el = hints[side];
+    if (!el) { el = hints[side] = document.createElement('div'); el.className = `slot-set-hint ${side}`; dock.appendChild(el); }
+    el.replaceChildren(...Array.from({ length: count }, (_, i) => Object.assign(document.createElement('i'), { className: i === index ? 'on' : '' })));
   }
 
   return { art, state, paint, refresh, showSet };

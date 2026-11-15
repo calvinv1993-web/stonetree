@@ -54,7 +54,9 @@ const SmartButton = (() => {
     if (!button) return;
     if (button.dataset.action === a.kind && button.title === a.label) return;
     button.dataset.action = a.kind;
-    button.replaceChildren(Icons.img(a.kind, 34));
+    // its icon, and under it a word for what a press does (none while there's nothing to do)
+    const word = { attack: 'Attack', loot: 'Loot', talk: 'Talk', use: a.label === 'Train' ? 'Train' : 'Use', close: 'Close' }[a.kind];
+    button.replaceChildren(Icons.img(a.kind, 34), ...(word ? [Object.assign(document.createElement('span'), { className: 'smart-word', textContent: word })] : []));
     button.title = a.label;
     button.setAttribute('aria-label', a.label);
   }

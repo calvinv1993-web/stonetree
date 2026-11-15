@@ -9,22 +9,25 @@ ever needed.
 From top to bottom:
 
 - **The status bar** (`css/phone/layout.css`, built in `js/mobile-hud.js`): health and mana (current / max) the
-  whole width, a heart and a drop on their start; under them the experience bar with its percent inside, and the level. Nothing to tap up here: one hand reaches
-  everything at the bottom.
-- **The map**, as big as the space between the bars allows.
-- **The action bar** (`js/mobile-hud.js` puts it together):
+  whole width, a heart and a drop on their start; under them "EXP" with the percent, a thin experience bar, and the
+  level. Nothing to tap up here.
+- **The map**, as big as the space between the bars allows, with a map button in its top left corner (the drawer's
+  Map page).
+- **The bottom bar** (`js/mobile-hud.js` puts it together), top to bottom: the chat line with a backpack button at its
+  end (the drawer's Gear page), seven square buttons the same size, and under each group of three a row of short bars
+  saying which of its sets shows (gold):
   - three spells on the left, three spells, potions or food on the right (`js/action-slots.js`,
     `css/phone/action-slots.css`): each its picture, a spell's mana with a drop, a potion's count; a gold edge when it can be
     used, dimmed without the mana or with none left; a shade and the seconds while it cools down. Tap to use, hold to
     choose what goes there, swipe sideways for the next set of three (both groups apart, kept per player).
   - the smart button in the middle (`js/smart-button.js`, `css/phone/smart-button.css`): attack, loot, talk, use, or
-    nothing, by what is about; its colour says which.
-  - the drawer tab above it (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`): swipe up for equipment and
-    backpack side by side, up again for everything, with other opened bags and the skills; down on its handle to go
-    back. Dragging a thing out over the map closes it.
+    nothing, by what is about; its icon and a word under it say which.
+  - the drawer (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`), opened by the backpack or the map
+    button: equipment and backpack side by side; swipe up on its tab for everything, with other opened bags and the
+    skills; down on its handle to go back. Dragging a thing out over the map closes it.
     Along its bottom, four tabs: Gear, Map (the minimap as big as the drawer), Quests and Settings (what the Menu
     held, and the help); they borrow those parts from the side panel while shown, as the gear does.
-- **The chat line** under the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
+- **The chat line** on top of the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
   which opens at the newest line above the action bar, with a send button; the smart button or the tab on its edge
   closes it.
 

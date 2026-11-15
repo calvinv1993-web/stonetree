@@ -3,17 +3,15 @@
    message comes; it stays clear of the home indicator. */
 body.touch-ui .chat-line { display: none; }
 @media (orientation: portrait) {
-  body.touch-ui { --chat-line: 24px; --tabbar: calc(64px + var(--chat-line) + env(safe-area-inset-bottom, 0px)); }
-  body.touch-ui #radialControls { bottom: calc(7px + var(--chat-line) + env(safe-area-inset-bottom, 0px)) !important; }
-  body.touch-ui #tAttack { bottom: calc(1px + var(--chat-line) + env(safe-area-inset-bottom, 0px)) !important; }
   body.touch-ui .chat-line {
-    display: flex; align-items: center; gap: 6px; position: absolute; left: 8px; right: 8px;
-    bottom: calc(2px + env(safe-area-inset-bottom, 0px)); height: calc(var(--chat-line) - 2px); padding: 0 8px; margin: 0;
-    border: 1px solid #3a2e1c; border-radius: 11px; background: #0b0a08e6; color: #d8cfb8; text-align: left;
-    font: 500 12px/1 Inter, sans-serif; opacity: 0.55; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
+    display: flex; align-items: center; gap: 10px; position: absolute; left: 8px; right: 52px;
+    top: 2px; height: calc(var(--chat-line) - 2px); padding: 0 8px; margin: 0;
+    border: 0 !important; border-radius: 8px; background: none !important; box-shadow: none !important; color: #e8e0cc; text-align: left;
+    font: 500 13px/1 Inter, sans-serif; opacity: 0.7; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
   }
-  body.touch-ui .chat-line.fresh { opacity: 1; border-color: #6a5430; }
-  body.touch-ui .chat-line .icon { flex: none; width: 15px; height: 15px; color: #c99a4c; }
+  body.touch-ui .chat-line-time { display: none; }
+  body.touch-ui .chat-line.fresh { opacity: 1; }
+  body.touch-ui .chat-line .icon { flex: none; width: 20px; height: 20px; color: #d8cfb8; }
   body.touch-ui .chat-line-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   body.touch-ui .chat-line-time { color: #8a7f68; }
   body.touch-ui .chat-line b { color: #f0c36a; }
