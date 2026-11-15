@@ -28,7 +28,7 @@ body.touch-ui .drawer-body { flex: 1; min-height: 0; display: grid; grid-templat
 body.touch-ui .drawer-col h3 { margin: 0 0 6px; color: #b8b5ad; font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 1px; text-transform: uppercase; }
 body.touch-ui .drawer-gear { padding-right: 10px; border-right: 1px solid rgba(255, 255, 255, 0.08); }
 /* the equipment and the bags as they are drawn for the side panel, made compact here */
-body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, 40px); gap: 4px; margin: 0; transform: none; }
+body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, var(--slot, 44px)); gap: 4px; margin: 0; transform: none; }
 body.touch-ui .inventory-drawer #gearStats { margin-top: 8px; max-width: 132px; color: #b8b5ad; font: 500 11px/1.35 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer .gear-stats { padding: 4px 8px; border-color: rgba(255, 255, 255, 0.08); border-radius: 8px; background: #1c1d1f; }
 body.touch-ui .inventory-drawer .gear-stat { padding: 2px 0; }
@@ -40,7 +40,7 @@ body.touch-ui .inventory-drawer #containers > .container { margin: 0 0 8px; padd
 body.touch-ui:not(.drawer-full) .inventory-drawer #containers > .container ~ .container { display: none; }
 body.touch-ui .inventory-drawer #containers > .container:first-child > h2 { display: none; }
 body.touch-ui .inventory-drawer #containers > .container > h2 { margin: 2px 0 5px; color: #b8b5ad; font: 700 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-body.touch-ui .inventory-drawer .grid { grid-template-columns: repeat(auto-fill, 40px); gap: 4px; }
+body.touch-ui .inventory-drawer .grid { grid-template-columns: repeat(auto-fill, var(--slot, 44px)); gap: 4px; } /* (the columns as wide as the places: 4 px between them) */
 body.touch-ui .inventory-drawer .slot { width: var(--slot, 44px); height: var(--slot, 44px); border-color: rgba(255, 255, 255, 0.14) !important; background: #1c1d1f !important; }
 body.touch-ui .inventory-drawer .bag-close { display: none; }
 /* while it's open the chat line steps aside; the action bar stays */
