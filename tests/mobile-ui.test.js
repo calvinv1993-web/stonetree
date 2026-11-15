@@ -74,7 +74,8 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     const start = await at();
 
     // a tap on an action button uses it, and doesn't walk
-    await page.evaluate(() => { player.hp = 1; messages = []; });
+    // (a new character's buttons are empty but the potions: put a healing spell on the first)
+    await page.evaluate(() => { const f = favourites(); f[0] = 'light_heal'; touchStorage.set(favKey(), f); favShown = ''; renderFavs(); player.hp = 1; messages = []; });
     let [x, y] = await centre('#favs .fav >> nth=0');
     await page.mouse.click(x, y); await page.waitForTimeout(150);
     check('a tap on a spell casts it (and nothing else)', await page.evaluate(() => player.hp > 1) && (await at()) === start);

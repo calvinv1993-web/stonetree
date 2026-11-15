@@ -2005,6 +2005,7 @@ function showCharacterCreation(onDone) {
   input.focus();
   const done = () => {
     player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20) || 'Adventurer');
+    guideFolded = false; try { localStorage.setItem('tilequest.guideFolded', '0'); } catch (e) { /* no storage */ } // (a new character: the guide open)
     dialog.hidden = true;
     if (start.value) makeTestHero(start.value);
     openOutfit(() => { welcome(false); if (onDone) onDone(); });

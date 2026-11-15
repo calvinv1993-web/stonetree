@@ -59,7 +59,9 @@ function setChat(open, focus) {
 // ---- favourites: round the action button, two pinned spells (or potions, or food) and the two potions ------------
 // Tap to use; hold for a moment (the button fills up) to choose what goes there.
 const FAV_HOLD = 650;
-const favKey = () => `tilequest.favs.${player.name.toLowerCase()}`;
+// (by name and the character's own mark: a new character of the same name starts with empty buttons; an old one,
+// from before the mark, keeps what it had under its name)
+const favKey = () => `tilequest.favs.${player.name.toLowerCase()}${player.born ? `.${player.born}` : ''}`;
 let favPickSlot = null, favHold = null, favShown = '', favPageIndex = 0;
 const FAV_SLOTS = 3, FAV_PAGES = 3, FAV_FIXED = 9; // two of your own (spells), and the two potions
 let favItemPage = 0;
@@ -72,11 +74,7 @@ function favourites() {
   if (Array.isArray(saved)) {
     // From an older layout (more pages, more slots): keep the first spells the player pinned.
     saved.filter(id => id && !['h', 'm'].includes(id)).slice(0, FAV_SLOTS).forEach((id, i) => { slots[i] = id; });
-  } else {
-    const known = hotbarEntries().filter(e => !e.locked).map(e => e.id);
-    known.filter(id => !['h', 'm', 'f'].includes(id)).slice(0, 3)
-      .forEach((id, i) => { slots[i] = id; });
-  }
+  } // (a new character: every button empty but the two potions; the guide shows how to fill them)
   slots[FAV_SLOTS * FAV_PAGES] = 'h';
   slots[FAV_SLOTS * FAV_PAGES + 1] = 'm';
   return slots;
@@ -91,8 +89,8 @@ function useFav(slot) {
 let favPageOwner = '';
 function renderFavs() {
   if (!touchScreen || !player) return;
-  if (favPageOwner !== player.name) {
-    favPageOwner = player.name;
+  if (favPageOwner !== favKey()) {
+    favPageOwner = favKey();
     const saved = touchStorage.get(favKey() + '.pages') || [0, 0];
     favPageIndex = Math.max(0, Math.min(2, Number(saved[0]) || 0));
     favItemPage = Math.max(0, Math.min(2, Number(saved[1]) || 0));
