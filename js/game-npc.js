@@ -189,11 +189,29 @@ function answer(text) {
   }
   const landlord = Object.values(def.keywords || {}).some(r => r && r.houses);
   if (landlord && map.houses.some(h => text.includes(h.name.toLowerCase()))) return reply(houseTalk(text));
-  if (mentions(text, 'name')) return reply(`I am ${npc.name}.`);
+  if (mentions(text, 'name|who')) return reply(`I am ${npc.name}.`);
+  // what a newcomer says when they don't know the words: a greeting again, thanks, or "what do I do?"
+  if (mentions(text, 'hi|hello|hey|greetings')) return reply(`Yes, $name? ${questHint(npc.npcId) || 'Ask me about one of the gold words.'}`);
+  if (mentions(text, 'thanks|thank|cheers|ty')) return reply('You are welcome, $name.');
+  if (mentions(text, 'what|where|lost|stuck|help|how|next|do')) return reply(whatNext(npc.npcId));
+  if (mentions(text, 'ok|okay|alright|sure|fine')) return reply(questHint(npc.npcId) || 'Good. Anything else? Ask me about one of the gold words.');
   // a word that's for someone else (one NPC sends you on to the next with it): say who to ask
   const other = otherToAsk(text, npc.npcId);
   if (other) return reply(`That's for ${other.name} to hear, $name, not me.${other.where ? ` ${other.where}` : ''} The Quests tab says where to go.`);
   reply("I'm not sure what you mean. Try one of the highlighted words.");
+}
+
+// "What do I do now?": this NPC's own news if it has any, else the next step of a quest you're on, else the arrow
+function whatNext(npcId) {
+  const own = questHint(npcId);
+  if (own) return own;
+  const id = Object.keys(player.quests).find(q => QUESTS[q] && player.quests[q].status === 'active');
+  if (id) {
+    const st = questStep(id), who = (st && st.npc) || QUESTS[id].giver;
+    const summary = (st && st.summary) || QUESTS[id].summary;
+    return `You are on ${QUESTS[id].name}: ${summary}${!st || st.auto || !stepReady(id) ? '' : ` Then go to ${NPCS[who].name}.`}`;
+  }
+  return 'Lost, $name? Follow the yellow arrow, and look in the Quests tab: it always says where to go next.';
 }
 
 function ask(text, yes, no) {

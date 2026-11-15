@@ -787,6 +787,20 @@ test('raids come to Oakvale\'s gates and Bone Rocks, on ground monsters can stan
   }
 });
 
+test('a newcomer who doesn\'t know the words is understood: "what do I do", "thanks", "hi" again', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const A = state.Actions, ama = state.npcs.find(n => n.npcId === 'ama');
+  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
+  const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  said('hi');
+  assert(/bell/.test(said('what do i do')), 'she says what she has for you (the bell)');
+  assert(/welcome/i.test(said('thanks')), 'thanks: you are welcome');
+  assert(/Yes, /.test(said('hello')), 'a greeting again is answered');
+  assert(!/not sure/.test(said('where am i')), 'where: no "not sure what you mean"');
+  assert(/long winter|ship/i.test(said('founders')), 'and she tells of the founders');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

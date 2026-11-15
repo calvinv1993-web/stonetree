@@ -1743,6 +1743,8 @@ Object.assign(NPCS, {
     greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
     keywords: {
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
+      'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
+      'winter|long': 'The long winter, the year the founders came. The sea froze at the shore, and they lived in the hull of their ship until spring. Many are buried under Bone Rocks from that winter.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
       'bell|quest|mission|task|help|rope|cellar|clapper|gravewaker': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
       'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
@@ -1759,6 +1761,8 @@ Object.assign(NPCS, {
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
+      'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
+      'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came. The dead walk its top now. I would not go there before level 6.',
       'bell|quest|mission|task|ama|crypt|note': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
       'shield|hoard|storeroom': { quest: ['cellar_shield'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
@@ -1790,6 +1794,7 @@ Object.assign(NPCS, {
     greet: 'Good day, $name! Letters, parcels, and your {locker}. What can I do for you?',
     keywords: {
       job: 'I run the depot and the post.',
+      'ship|dawn|sea': 'The founders\' ship, the Dawn? Her bronze fittings went into our bell, they say, and her timbers into the depot\'s roof. Look up when you are in here: those beams have crossed an ocean.',
       'locker|letter|quest|mission|task': { quest: ['bell_1'], otherwise: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.' },
       depot: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.',
     },
@@ -1800,6 +1805,8 @@ Object.assign(NPCS, {
     greet: 'Hello $name, welcome to Pip\'s Provisions! Food, potions, rope and shovels - just ask to {trade}. I buy what you find on monsters, too.',
     keywords: {
       job: 'I sell everything an adventurer needs, and buy what they bring back.',
+      'lighthouse|point': 'Lighthouse Point, south of the fields? There was a lighthouse once. A storm took it the year I was born. Only the crabs live there now.',
+      'fish|fisher|fishing': 'Fisher\'s Rest is on the west shore. Buy a fishing rod and use it on the water: fish heal you as well as bread does, and cost nothing but patience.',
       'letter|quest|mission|task': { quest: ['bell_1'] },
       'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
     },
@@ -1820,14 +1827,20 @@ Object.assign(NPCS, {
     name: 'Armourer Brenna',
     look: { skin: '#e8b890', hair: '#a83a1a', body: '#6a6a72', arms: '#e8b890', legs: '#4a4a52', belt: '#2a1a0a' },
     greet: 'Hide and Iron, at your service, $name. Helmets, armour and shields - shall we {trade}?',
-    keywords: { job: 'I make armour that keeps young adventurers in one piece.' },
+    keywords: {
+      job: 'I make armour that keeps young adventurers in one piece.',
+      'crypt|gate|family': 'My great-grandmother forged the iron gate in the founders\' crypt. She said it was the only gate she ever made to keep something IN.',
+    },
     trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15], ['chain_helmet', 180], ['chain_legs', 300], ['chain_armor', 500]], buys: ['gear'] },
   },
   oak_mage: {
     name: 'Moonpetal',
     look: { skin: '#f0d8c0', hair: '#d8d8f0', body: '#5a3a8a', arms: '#5a3a8a', legs: '#5a3a8a', belt: '#c0a0e0', robe: true, hat: { style: 'pointy', color: '#4a2a7a' } },
     greet: 'Welcome to my little shop, $name. Potions, runes and wands - would you like to {trade}?',
-    keywords: { job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.' },
+    keywords: {
+      job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.',
+      'bell|magic|bronze': 'The temple bell? There is more in that bronze than bronze, if you ask me. When it rang, my candles burned straighter. Since it stopped... they flicker.',
+    },
     trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
@@ -1839,7 +1852,10 @@ Object.assign(NPCS, {
     name: 'Baker Willa',
     look: { skin: '#f0c8a0', hair: '#e0c070', body: '#f0e8d8', arms: '#f0c8a0', legs: '#8a5a3a', belt: '#f0e8d8' },
     greet: 'Fresh bread, $name! Eat well, heal fast. Want to {trade}?',
-    keywords: { job: 'I bake for the whole town. Eating makes you heal much faster, you know.' },
+    keywords: {
+      job: 'I bake for the whole town. Eating makes you heal much faster, you know.',
+      'hermit|rock': 'The hermit on Hermit Rock buys a sack of flour from me every spring, and pays in honey. He only comes at night. Strange man. Kind, though.',
+    },
     trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
   },
   // Oakvale's landlady, at a table in the Sleepy Boar: the town's four houses are hers to let
@@ -1860,6 +1876,7 @@ Object.assign(NPCS, {
     greet: 'Welcome to the Sleepy Boar, $name! A meal, a drink, and the best {rumours} on the isle. Want to {trade}?',
     keywords: {
       job: 'I keep the Sleepy Boar.',
+      'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
       'rumours|rumors|news|bell': 'They say the temple bell went quiet the night the rats came up through the grates. And old Wim\'s gravestone says he went down the well for a bet... nobody knows what he found.',
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },
