@@ -393,3 +393,9 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 #guideHand svg { width: 100%; height: 100%; fill: #fff7e0; stroke: #3a2c18; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }
 .ga-slot-empty { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.25); background: #232426; }
 .ga-slot-empty .icon { width: 18px !important; height: 18px !important; color: #c9c0ae; }
+/* Skip, in the guide's header: small and quiet; asking "Skip it?" before it does, in red */
+/* (the header is a flex row already) */
+.guide #guideSkip { margin-left: auto; min-height: 0; height: 26px; padding: 0 10px; border: 1px solid rgba(255, 255, 255, 0.18) !important; border-radius: 13px;
+  background: rgba(255, 255, 255, 0.06) !important; color: #c9c0ae !important; font: 600 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; box-shadow: none !important; }
+.guide #guideSkip.sure { border-color: #e06a5a !important; background: #4a1c18 !important; color: #ffb3a8 !important; }
+.guide.folded #guideSkip { display: none; }

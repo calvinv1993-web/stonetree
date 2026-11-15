@@ -1896,6 +1896,19 @@ function initUI() {
     renderGuide();
   });
   $('guideDone').addEventListener('click', () => (player.tutorial === GUIDE.length ? Actions.endGuide() : Actions.guideNext()));
+  // Skip: a second tap within a few seconds to be sure (it says so in the meantime)
+  let skipAsk = 0;
+  $('guideSkip').addEventListener('click', e => {
+    e.stopPropagation(); // (not a fold)
+    const b = $('guideSkip');
+    if (!b.classList.contains('sure')) {
+      b.classList.add('sure'); b.textContent = 'Skip it? Tap again';
+      clearTimeout(skipAsk); skipAsk = setTimeout(() => { b.classList.remove('sure'); b.textContent = 'Skip'; }, 3500);
+      return;
+    }
+    clearTimeout(skipAsk); b.classList.remove('sure'); b.textContent = 'Skip';
+    Actions.skipGuide();
+  });
   $('battle').addEventListener('pointerleave', () => { battleHover = null; });
   document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('[data-tab]').forEach(o => o.classList.toggle('active', o === b));

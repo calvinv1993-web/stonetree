@@ -53,7 +53,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
   - talk to Sister Ama and take The Silent Bell; Master Corwin, five rats, a corpse to open, something to eat, the depot, Pip
   - the gate watch, one guard after the other; then the crypt, the rope under the town and the Gravewaker
   - the arrow points to whoever has a task or news for you, to the monsters a task still wants, or to the way down
-  - the box can be folded away (▾, or click its title) and out again, but not put away: it goes once you've followed it to the end ("Got it")
+  - the box can be folded away (▾, or click its title) and out again; it goes once you've followed it to the end ("Got it"), or when you **Skip** it (tap Skip, then again to be sure): Master Corwin's cap still comes to you
   - **Guide** in the menu (on a phone: Settings, The guide) starts it again from the first step, as long as you're on the starter island: what you've done already passes by itself
 - **There is no way back.** Once you choose a vocation, the oracle sends you to the mainland and you never return to Oakvale Isle: no balloon flies back. Without a vocation, nobody takes you off the island either.
 - **Legends**: the islanders tell of a captain whose sword was never found. Whether there is anything to it, nobody knows. Ask around, look closely at things, and remember that once you leave the island, you leave it for good.

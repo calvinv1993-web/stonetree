@@ -164,6 +164,15 @@ const Actions = {
     player.tutorial = 1;
     uiDirty();
   },
+  // Skip the guide (for those who know their way): it goes away, and its presents come along so nobody is worse off.
+  // It can be started again from the menu while on the starter island.
+  skipGuide() {
+    if (!player.tutorial) return;
+    for (const step of GUIDE) if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
+    player.tutorial = 0;
+    log('The guide is put away. You can start it again under Settings (The guide), as long as you are on the starter island.');
+    uiDirty();
+  },
   // Next: past a step of the guide that only explains something (one with nothing to do)
   guideNext() {
     const step = GUIDE[player.tutorial - 1];

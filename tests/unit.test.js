@@ -878,6 +878,13 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
   // started again from the menu: the explaining steps wait for Next, the ones already done pass by themselves
+  // skipped: it goes, and Corwin's cap still comes (once)
+  { const g2 = quietGame(); const p2 = g2.state.player; p2.tutorial = 1;
+    g2.state.Actions.skipGuide();
+    assert.strictEqual(p2.tutorial, 0, 'Skip puts the guide away');
+    assert.strictEqual(g2.state.countItem('leather_cap'), 1, 'and its presents come along');
+    g2.state.Actions.restartGuide(); g2.state.Actions.skipGuide();
+    assert.strictEqual(g2.state.countItem('leather_cap'), 1, 'only once'); }
   A.restartGuide(); assert.strictEqual(p.tutorial, 1, 'the guide from the start');
   A.guideNext(); A.guideNext(); tick(game, 300);
   assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
