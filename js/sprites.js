@@ -1367,8 +1367,14 @@ const Sprites = (() => {
       g.transform(0, 1, 1, 1, 128, 32); st.east(g, rnd); g.restore(); // its east end
       g.save(); g.transform(1, 0, 1, 1, ...P(0, v1, 0)); // (x along the wall, y up from its foot: negative)
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-      const h = 26; g.drawImage(own, 0, -h, 96, h); // (a little lower than drawn: under the roof's eaves the wall shows about this high)
+      const h = TILE; g.drawImage(own, 0, -h, 96, h); // (as high as the wall's face beside it, so its top meets theirs)
       g.restore(); g.setTransform(m);
+      // the wall's top over it, as the temple walls on either side have it
+      const top = customImage('temple_wall_top');
+      g.save(); g.beginPath(); for (const [u, v] of [[0, v0], [96, v0], [96, v1], [0, v1]]) g.lineTo(...P(u, v, FZ)); g.closePath(); g.clip();
+      if (top) { const [x0, y0] = P(0, 0, FZ); g.imageSmoothingEnabled = true; g.drawImage(top, 0, 0, top.naturalWidth * 0.75, top.naturalHeight, x0, y0, 96, TILE); }
+      else { g.translate(32, 32); for (let k = 0; k < 3; k++) { g.save(); g.translate(k * TILE, 0); st.top(g, rnd); g.restore(); } }
+      g.restore();
       return;
     }
     // the front (south) face, the wall's own carved stone, with the arch cut out of it
