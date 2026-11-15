@@ -6797,7 +6797,6 @@ const Sprites = (() => {
         }, 2 * TILE * res);
       }
       if (id === 'fence') { const ownFence = fenceFromPictures(shape); if (ownFence) return ownFence; }
-      if (id === 'wall_temple' && customImage('temple_wall_out')) return templeFromStrips(x, y, shape);
       if (id === 'wall_rampart' && customImage('rampart_face')) return rampartFromStrip(x, y, shape);
       const ownWall = wallFromPictures(id, shape);
       if (ownWall) return ownWall;
