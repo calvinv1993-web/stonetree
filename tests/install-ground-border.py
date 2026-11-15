@@ -50,6 +50,12 @@ light = (a[:, :, :3].min(2) > 150) & ((a[:, :, :3].max(2) - a[:, :, :3].min(2)) 
 a[light, 3] = 0
 near = ndimage.binary_dilation(light, iterations=1) & ~light
 a[near, 3] = a[near, 3] // 2
+# only what hangs together with the ground at the strip's top stays: a cut line, frame or speck left loose below the
+# ragged edge (the red dashes, a stray mark) goes
+lab2, _ = ndimage.label(a[:, :, 3] > 24)
+keep = set(np.unique(lab2[0])) - {0}
+a[~np.isin(lab2, list(keep)), 3] = 0
+filled = np.nonzero((a[:, :, 3] > 0).mean(1) > 0.02)[0]; a = a[:filled[-1] + 2]
 strip = Image.fromarray(a.astype(np.uint8), 'RGBA')
 strip = ct.seamless(strip.resize((512, max(16, round(strip.height * 512 / strip.width))), Image.LANCZOS), both=False)
 strip = strip.resize((256, 32), Image.LANCZOS)

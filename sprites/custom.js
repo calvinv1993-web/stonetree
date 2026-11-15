@@ -12,6 +12,11 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  edge_dirt_w: 'edge-dirt-w.png', // the owner's dirt border (ground + border template)
+  edge_dirt_s: 'edge-dirt-s.png', // the owner's dirt border (ground + border template)
+  edge_dirt_e: 'edge-dirt-e.png', // the owner's dirt border (ground + border template)
+  edge_dirt_n: 'edge-dirt-n.png', // the owner's dirt border (ground + border template)
+  dirt: 'dirt-own.png', // the owner's dirt, from above (ground + border template)
   edge_grass_w: 'edge-grass-w.png', // the owner's grass border (ground + border template)
   edge_grass_s: 'edge-grass-s.png', // the owner's grass border (ground + border template)
   edge_grass_e: 'edge-grass-e.png', // the owner's grass border (ground + border template)

@@ -3642,6 +3642,18 @@ const Sprites = (() => {
         g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
       } else grassField(g, makeRng(hashStr('grass')), 4 * TILE);
     } },
+    // the owner's dirt (ground + border template): one painting over 4 x 4 tiles, as grass; drawn tile by tile till it's in
+    dirt: { tiles: 4, res: () => ownRes('dirt', 4), draw: g => {
+      const image = customImage('dirt');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.dirt(g, makeRng(hashStr('dirt') + y * 4 + x)); g.restore();
+      }
+    } },
     mountain: { tiles: 3, draw: g => { // rocky ground: grey stone with loose stones on it (or its own picture)
       const own = customImage('mountain'); if (own) { g.imageSmoothingEnabled = true; g.drawImage(own, 0, 0, 3 * TILE, 3 * TILE); return; }
       const r = makeRng(hashStr('mountain')), size = 3 * TILE;
