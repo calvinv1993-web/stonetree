@@ -21,3 +21,9 @@ sheet came back scaled. Every sheet carries the style card (the founder's statue
 2. `python3 tests/install-wall.py <filled.png> wall_stone` (or `wall_wood`, `wall_rampart`, `wall_temple`; `--inside`
    with a second sheet for the face inside a building).
 3. Every wall of that kind is built from it (`wallFromStrip`): posts, corners and both directions all cut from the one strip.
+
+## Seams
+
+A strip ChatGPT draws is never quite seamless, and a cut taken right at the frame's edge brings the frame's outline
+along. So `tests/cut-template.py` cuts a couple of pixels inside each frame and blends every strip's ends into each other
+(a square's both ways). `python3 tests/check-seams.py` checks every wall strip and top in `sprites/` and fails on a seam.
