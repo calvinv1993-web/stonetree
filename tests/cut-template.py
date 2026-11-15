@@ -11,7 +11,7 @@ from PIL import Image
 from scipy import ndimage
 
 SIZES = {'wall': [(512, 128), (512, 32)], 'ground': [(512, 512)], 'on-wall': [(256, 256)],
-         'thing': [(256, 256), (384, 384), (512, 512)], 'item': [(256, 256)], 'front': [(512, 512)]}
+         'thing': [(256, 256), (384, 384), (512, 512)], 'item': [(256, 256)], 'front': [(512, 512)], 'border': [(512, 64)]}
 
 def frames(img):
     """The frames on the sheet, top-left first: [(x0, y0, x1, y1, scale)] in the sheet's pixels, the frame's own edges."""
@@ -78,6 +78,7 @@ if __name__ == '__main__':
         piece = img.crop(box).resize((w, h), Image.LANCZOS)
         if kind not in ('wall', 'ground'): piece = clean(piece)
         if kind == 'wall': piece = seamless(piece, both=False)
+        if kind == 'border': piece = seamless(clean(piece), both=False)
         if kind == 'ground': piece = seamless(piece, both=True)
         piece.save(os.path.join(out, f'{kind}-{k + 1}.png'))
         print(f'{kind}-{k + 1}.png', box, (w, h))

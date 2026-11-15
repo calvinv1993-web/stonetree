@@ -90,3 +90,12 @@ def g_front(d,x,y,w,h):
 page('front','STANDING THING, FRONT ONLY - fill in: the thing seen straight from the front',
      [('the front (512 x 512; a tile is a quarter of the width)',512,512,g_front)],
      'Straight on from the front, flat: no top, no sides, no perspective. Standing on the ground line, as big as it is (a tile is a quarter of the frame). Built of solid chunky blocks like the statue. Transparent background. Say how deep it is (in tiles); I build its top and sides from this.')
+
+# 7. a ground's border: where it ends over lower ground (a ragged edge, as the beaches have), seen from above
+def g_border(d,x,y,w,h):
+    d.rectangle([x,y,x+w,y+h//3],fill='#d6e8cf'); d.text((x+6,y+4),'the ground itself (it goes on above)',fill='#3a8a3a',font=Fs)
+    d.line([(x,y+h//3),(x+w,y+h//3)],fill=(60,150,60),width=2)
+    d.text((x+6,y+h-22),'transparent: the lower ground shows here',fill='#b0a890',font=Fs)
+page('border','BORDER - fill in: the edge of a ground where it ends over a lower ground, seen from above',
+     [('the edge, running left to right (512 x 64 = 4 tiles long, half a tile deep)',512,64,g_border)],
+     'Seen from straight above, flat. The top third is the ground itself (it carries on from above the frame); below it the ground ends in a soft, ragged, natural edge (tufts, small stones, a little soil showing), not a straight line, fading out into TRANSPARENT before the bottom. The edge must join seamlessly left to right. Same ground and colours as its ground picture. Light from the top left.')
