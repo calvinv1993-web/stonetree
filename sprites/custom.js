@@ -128,7 +128,7 @@ const CUSTOM_SPRITES = {
   campfire_out: 'campfire-out@4x.png', // the owner's campfire burnt out
   founder_tomb: 'founder-tomb@4x.png', // the owner's tomb of Oakvale's founder in the crypt
   torn_note: 'torn-note@4x.png', // the owner's torn note on the floor
-  trapdoor: 'trapdoor@4x.png', cave_ladder: 'cave-ladder@4x.png', // the owner's open trapdoor and the ladder under it, up into the hole
+  trapdoor: 'trapdoor@4x.png', cave_ladder: 'cave-ladder@4x.png', // the owner's open trapdoor and the ladder under it
   campfire: 'campfire@4x.png', wagon: 'wagon@4x.png', obelisk: 'obelisk@4x.png', // the owner's campfire (lit), farm wagon and rune stone
   weapon_rack_s: 'weapon-rack-s.png', // the owner's weapon rack on a wall running east-west (one running north-south keeps the drawn one)
   sarcophagus: 'sarcophagus@4x.png',
