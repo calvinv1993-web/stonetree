@@ -5,7 +5,8 @@
 //             the tab rides up on its top edge, pointing up: there's more
 //   expanded  swipe up again (or tap the tab): up to the status bar, with your other open containers, your gear's
 //             numbers, and your skills across the whole width under both; the tab points down
-// Swipe down on the tab or the top edge to go back a step; while it's open the smart button closes it (smart-button.js).
+// Swipe down on the tab or the top edge to go back a step; the backpack button or a touch on the map closes it. The smart
+// button goes on acting while it's open (smart-button.js), and the map slides up so you stay in sight above it.
 // The action bar stays where it is and works; the chat line steps aside.
 // Along its bottom, in reach of the thumb, four tabs say what it shows: Gear (the above), Map (the minimap, as big as
 // the drawer, with its floors and zoom; it opens half way, and Full map opens the drawer all the way on the whole world), Quests and Settings (what the Menu held, and the help). So the
@@ -39,7 +40,8 @@ const InventoryDrawer = (() => {
     const byId = id => document.getElementById(id);
     const put = (where, ...els) => { for (const el of els) if (el) { borrow(el); drawer.querySelector(where).append(el); } };
     if (page === 'gear') {
-      put('.drawer-gear', byId('equipment'), byId('gearStats'));
+      put('.drawer-gear', byId('equipment'));
+      put('.drawer-stats', byId('gearStats')); // (attack, defense and armor: one line across the top)
       put('.drawer-bags', byId('containers'));
       put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
     } else if (page === 'map') {
@@ -92,8 +94,21 @@ const InventoryDrawer = (() => {
     drawer.setAttribute('aria-hidden', String(!stage));
     tab.setAttribute('aria-expanded', String(stage > 0));
     tab.title = ['Your equipment and backpack (swipe up)', 'Swipe up for more, down to close', 'Swipe down for less'][stage];
-    // (the smart button turns into a close button and back at once, not at its next look round)
-    if (typeof SmartButton !== 'undefined') SmartButton.refresh(document.getElementById('tAttack'));
+    lift(); setTimeout(lift, 260); // (again once its height has slid to the new stage)
+  }
+
+  // Half open, the drawer covers the lower part of the map: the map slides up by half of that, so you stay in the middle
+  // of what still shows (in whole screen pixels, so it stays sharp). Shut, or open all the way (no map left), it's back.
+  function lift() {
+    let up = 0;
+    if (stage === 1) {
+      const vp = document.getElementById('viewport'), r = vp.getBoundingClientRect();
+      const bottom = r.bottom - (parseFloat(getComputedStyle(vp).paddingBottom) || 0);
+      const top = drawer.offsetParent ? drawer.offsetParent.getBoundingClientRect().top + drawer.offsetTop : bottom;
+      const dpr = window.devicePixelRatio || 1;
+      up = Math.max(0, Math.round(((bottom - top) / 2) * dpr) / dpr);
+    }
+    document.body.style.setProperty('--drawer-lift', `${up}px`);
   }
 
   // A vertical swipe on el: up a step, or down a step; a tap (no move) does tap()
@@ -128,7 +143,7 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
+      + '<div class="drawer-body"><div class="drawer-stats"></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
       + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>'
       + '<div class="drawer-page drawer-map"></div><div class="drawer-page drawer-quests"></div><div class="drawer-page drawer-settings"></div>';
     drawer.dataset.page = page;
@@ -146,6 +161,7 @@ const InventoryDrawer = (() => {
     dock.parentNode.insertBefore(drawer, dock);
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(refit).observe(drawer.querySelector('.drawer-map'));
     else window.addEventListener('resize', refit);
+    window.addEventListener('resize', () => stage && lift());
     swipeable(tab, () => set(stage === 1 ? 2 : stage === 2 ? 1 : 1)); // (a tap: open, or the other open stage)
     swipeable(drawer.querySelector('.drawer-handle'), () => set(stage === 2 ? 1 : 0));
   }

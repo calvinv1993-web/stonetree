@@ -8,8 +8,9 @@
 //   use     a door, chest, lever, depot, sign, bookshelf or training dummy next to you: use it (interact; "train" for a
 //           dummy)
 //   idle    nothing to do: the button rests, dark
-//   close   while the inventory drawer, the chat or an action button's chooser is open: closes it (inventory-drawer.js,
-//           chat-line.js, touch.js)
+//   close   while an action button's chooser is open (it lies over the action bar): closes it (touch.js). The drawer
+//           and the chat don't take the button: it goes on attacking, looting and talking while they're open (they close
+//           with their own buttons, the drawer also with a swipe down or a touch on the map)
 // It only chooses: the game's own rules (protection zones, targeting, reach, paths) decide what happens. context() is
 // plain game logic and needs no page (tests/smart-button.test.js); refresh and press are for the button.
 const SmartButton = (() => {
@@ -18,8 +19,6 @@ const SmartButton = (() => {
   function context() {
     const picker = document.getElementById && document.getElementById('favPicker');
     if (picker && !picker.hidden) return { kind: 'close', label: 'Close the choice' };
-    if (typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage()) return { kind: 'close', label: 'Close your backpack' };
-    if (document.body.classList.contains('chat-open')) return { kind: 'close', label: 'Close the chat' };
     if (!player || player.dead) return { kind: 'idle', label: 'Nothing to do' };
     const safe = inPZ();
     if (!safe && monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m))) return { kind: 'attack', label: 'Attack' };
@@ -39,9 +38,7 @@ const SmartButton = (() => {
   function press() {
     const a = context();
     if (a.kind === 'close') {
-      const picker = document.getElementById && document.getElementById('favPicker');
-      if (picker && !picker.hidden) return closeFavPicker();
-      return document.body.classList.contains('chat-open') ? setChat(false) : InventoryDrawer.close();
+      return closeFavPicker();
     }
     if (!player || paused) return;
     if (a.kind === 'attack') Actions.targetNext();

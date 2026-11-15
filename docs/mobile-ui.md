@@ -26,12 +26,13 @@ From top to bottom:
     nothing, by what is about; its icon says which (no words), lit warm while you attack.
   - the drawer (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`), opened by the backpack or the map
     button: equipment and backpack side by side; swipe up on its tab for everything, with other opened bags and the
-    skills; down on its handle to go back. Dragging a thing out over the map closes it.
+    skills; down on its handle to go back. The backpack button, a touch on the map or dragging a thing out over the map closes
+    it; the smart button goes on acting meanwhile, and the map slides up so you stay in sight above the half-open drawer.
     Along its bottom, four tabs: Gear, Map (the minimap as big as the drawer), Quests and Settings (what the Menu
     held, and the help); they borrow those parts from the side panel while shown, as the gear does.
 - **The chat line** on top of the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
-  which opens at the newest line above the action bar, with a send button; the smart button or the tab on its edge
-  closes it.
+  which opens at the newest line above the action bar, with a send button; the tab on its edge closes it (the smart
+  button goes on acting).
 
 **One HUD, two states.** `MobileHud` in `js/mobile-hud.js` puts `body[data-hud]` on `normal` (no target) or `combat`
 (a living target: the target pill shows, the smart button is lit). Everything is drawn with the HUD tokens at the end

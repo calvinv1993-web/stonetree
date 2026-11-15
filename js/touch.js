@@ -44,7 +44,6 @@ function toggleFullscreen() {
 function setChat(open, focus) {
   if (open && typeof InventoryDrawer !== 'undefined') InventoryDrawer.close();
   document.body.classList.toggle('chat-open', open);
-  if (typeof SmartButton !== 'undefined') SmartButton.refresh($('tAttack')); // (a close button while it's open)
   // opened, it shows the newest messages: scrolled to the bottom (while it was shut the log couldn't follow them)
   if (open) requestAnimationFrame(() => { const l = $('log'); l.scrollTop = l.scrollHeight; });
   if (open && typeof hideTalk === 'function') hideTalk(); // (the chat shows the talk too)
@@ -189,7 +188,6 @@ function openFavPicker(slot) {
   list.appendChild(clear); // (last: at the bottom, by the thumb)
   $('favPicker').hidden = false;
   list.scrollTop = list.scrollHeight; // (the list rises from the action bar: its end, by the thumb, in sight)
-  if (typeof SmartButton !== 'undefined') SmartButton.refresh($('tAttack')); // (a close button while it's open)
 }
 function closeFavPicker() {
   $('favPicker').hidden = true;
@@ -277,7 +275,7 @@ function initTouch() {
   document.addEventListener('pointerup', e => { if (favHold && favHold.id === e.pointerId) endFavPress(true); });
   document.addEventListener('pointercancel', () => endFavPress(false));
   // Touching the map puts the drawer away.
-  canvas.addEventListener('pointerdown', () => document.body.classList.remove('panel-open'));
+  canvas.addEventListener('pointerdown', () => { document.body.classList.remove('panel-open'); if (InventoryDrawer.stage()) InventoryDrawer.close(); });
   window.addEventListener('resize', fitView);
   fitView();
   // Health and mana stay in sight while the panel is put away, and so do the fight settings.

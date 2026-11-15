@@ -46,6 +46,9 @@ body.touch-ui { touch-action: manipulation; -webkit-user-select: none; user-sele
 html:has(body.touch-ui) { position: fixed; inset: 0; overflow: hidden; background: #050505; } /* (the colour under the action bar: an iPhone app's strip under the home bar, past the page, matches it) */
 body.touch-ui { position: fixed; inset: 0; width: 100%; overflow: hidden; }
 body.touch-ui #view { touch-action: none; border-width: 1px; }
+/* the drawer half open: the map slides up so you stay in sight above it (inventory-drawer.js sets how far) */
+body.touch-ui #view { transition: transform 0.22s ease-out; }
+body.touch-ui.drawer-open #view { transform: translateY(calc(-1 * var(--drawer-lift, 0px))); }
 body.touch-ui .layout { gap: 0; }
 body.touch-ui main { gap: 0; }
 /* the map gets the whole screen: no spell bar (favourites instead), and the chat behind its button */
@@ -157,8 +160,9 @@ body.touch-ui.low-hp .viewport::after { content: ''; position: absolute; inset: 
 /* what goes: the extra button row, the fight-mode buttons, the bag button, the favourite pages */
 body.touch-ui .tb-status { position: absolute; right: 8px; }
 /* the guide's task: a slim card under the status bar */
-body.touch-ui .guide { left: 8px !important; }
-body.touch-ui .guide:not(.folded) #guideText { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+/* (beside the map button in the view's top left corner, never over it) */
+body.touch-ui .guide { left: calc(env(safe-area-inset-left, 0px) + 46px) !important; }
+body.touch-ui .guide:not(.folded) #guideText { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 /* the five buttons along the bottom */
 body.touch-ui .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar) + env(safe-area-inset-bottom)); z-index: 55; display: grid; grid-template-columns: repeat(5, 1fr); padding: 5px 5px calc(5px + env(safe-area-inset-bottom)); }
 body.touch-ui .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; border: 0; box-shadow: none; }
@@ -204,8 +208,8 @@ body.touch-ui .talk-who small { display: block; font-size: 12px; }
 body.touch-ui .talk-card p { max-height: 30vh; overflow-y: auto; }
 body.touch-ui .talk-card p u { text-decoration: none; }
 body.touch-ui .talk-words { display: flex; flex-wrap: wrap; }
-/* while talking, the controls make room for the card */
-body.touch-ui:has(#talk:not([hidden])) .radial-controls, body.touch-ui:has(#talk:not([hidden])) .attack-btn, body.touch-ui:has(#talk:not([hidden])) .joystick { visibility: hidden; }
+/* while talking the card lies above the action bar, which stays in reach (a potion, a spell, the smart button) */
+body.touch-ui:has(#talk:not([hidden])) .joystick { visibility: hidden; }
 /* windows and the chat keep clear of the bottom buttons */
 body.touch-ui.chat-open .console { bottom: var(--tabbar) !important; }
 body.touch-ui.bag-open #containers { bottom: calc(var(--tabbar) + 10px) !important; }
@@ -239,7 +243,7 @@ body.touch-ui .radial-controls .fav small:empty { display: none; }
 body.touch-ui .radial-controls .fav small { font-size: 11px !important; }
 body.touch-ui .radial-controls .fav.empty span { font-size: 22px; color: #e8d8b0; }
 /* the guide: a slimmer card, its fold button big enough to hit */
-body.touch-ui .guide { font-size: 12px !important; width: min(250px, 66%) !important; }
+body.touch-ui .guide { font-size: 12px !important; width: min(300px, calc(100% - 54px)) !important; }
 body.touch-ui .guide header button { min-width: 38px !important; min-height: 32px !important; font-size: 14px; }
 body.touch-ui *:not(canvas) { font-family: var(--ui) !important; }
 body.touch-ui .icon { display: block; flex-shrink: 0; pointer-events: none; }
@@ -365,6 +369,7 @@ body.touch-ui .viewport { padding: var(--hud-h) 0 var(--tabbar); box-sizing: bor
 body.touch-ui .touch-top { top: 0; left: 0; right: 0; padding: 0; }
 body.touch-ui .hud { width: 100%; border: 0; border-radius: 0; }
 body.touch-ui .guide { top: calc(var(--hud-h) + 8px) !important; }
+body.touch-ui[data-hud="combat"] .guide { top: calc(var(--hud-h) + 36px) !important; } /* (under the target pill while you fight) */
 body.touch-ui .tb-status { top: calc(var(--hud-h) + 4px); }
 body.touch-ui .panel { height: calc(100% - var(--tabbar) - var(--hud-h)) !important; }
 body.touch-ui #view { border: 0; }

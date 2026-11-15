@@ -15,24 +15,29 @@ body.touch-ui .inventory-drawer .drawer-handle i { visibility: hidden; }
 
 body.touch-ui .inventory-drawer {
   display: flex; flex-direction: column; position: absolute; left: 0; right: 0; bottom: var(--tabbar); z-index: 11; pointer-events: auto; /* (under the action bar: the smart button and the tab show over its edge) */
-  height: calc((100% - var(--hud-h) - var(--tabbar)) * 0.42); min-height: 200px; max-height: calc(100% - var(--hud-h) - var(--tabbar));
+  /* half open: just tall enough for the whole equipment (four rows) with the stats line above it and the tabs below */
+  height: calc(4 * var(--slot, 44px) + 120px); max-height: calc(100% - var(--hud-h) - var(--tabbar));
   border-top: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px 14px 0 0; background: linear-gradient(#191a1b, #151617);
   box-shadow: 0 -4px 18px #000a; transform: translateY(calc(100% + var(--tabbar))); visibility: hidden;
   transition: transform 0.22s ease-out, height 0.22s ease-out, visibility 0s 0.22s;
 }
 body.touch-ui.drawer-open .inventory-drawer { transform: none; visibility: visible; transition: transform 0.22s ease-out, height 0.22s ease-out; }
 body.touch-ui.drawer-full .inventory-drawer { height: calc(100% - var(--hud-h) - var(--tabbar)); }
-body.touch-ui .drawer-handle { flex: none; height: 20px; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: grab; }
+body.touch-ui .drawer-handle { flex: none; height: 10px; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: grab; }
 body.touch-ui .drawer-handle i { width: 38px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.16); }
-body.touch-ui .drawer-body { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 0 10px 8px; overflow-y: auto; }
+body.touch-ui .drawer-body { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: start; gap: 6px 10px; padding: 0 10px 8px; overflow-y: auto; }
+/* the headings only with room for them (all the way open); half open the slots speak for themselves */
+body.touch-ui:not(.drawer-full) .inventory-drawer .drawer-col h3 { display: none; }
 body.touch-ui .drawer-col h3 { margin: 0 0 6px; color: #b8b5ad; font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 1px; text-transform: uppercase; }
 body.touch-ui .drawer-gear { padding-right: 10px; border-right: 1px solid rgba(255, 255, 255, 0.08); }
 /* the equipment and the bags as they are drawn for the side panel, made compact here */
 body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, var(--slot, 44px)); gap: 4px; margin: 0; transform: none; }
-body.touch-ui .inventory-drawer #gearStats { margin-top: 8px; max-width: 132px; color: #b8b5ad; font: 500 11px/1.35 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-body.touch-ui .inventory-drawer .gear-stats { padding: 4px 8px; border-color: rgba(255, 255, 255, 0.08); border-radius: 8px; background: #1c1d1f; }
-body.touch-ui .inventory-drawer .gear-stat { padding: 2px 0; }
-body.touch-ui:not(.drawer-full) .inventory-drawer #gearStats { display: none; }
+/* what you wear adds up to: one line across the top, half open and all the way */
+body.touch-ui .drawer-stats { grid-column: 1 / -1; min-height: 20px; }
+body.touch-ui .inventory-drawer #gearStats { margin: 0; color: #b8b5ad; font: 500 11.5px/20px system-ui, -apple-system, 'Segoe UI', sans-serif; }
+body.touch-ui .inventory-drawer .gear-stats { display: flex; gap: 14px; padding: 0; border: 0; background: none; }
+body.touch-ui .inventory-drawer .gear-stat { display: flex; gap: 5px; padding: 0; border: 0; white-space: nowrap; }
+body.touch-ui .inventory-drawer .gear-stat b { color: #f2ebdd; font-weight: 700; }
 body.touch-ui .inventory-drawer #containers { display: block !important; position: static !important; max-height: none !important; width: auto !important;
   transform: none !important; margin: 0; padding: 0; background: none !important; border: 0 !important; box-shadow: none !important; }
 body.touch-ui .inventory-drawer #containers > .container { margin: 0 0 8px; padding: 0; background: none !important; border: 0 !important; box-shadow: none !important; }
@@ -63,8 +68,8 @@ body.touch-ui .inventory-drawer:not([data-page="gear"]) .drawer-body { display: 
 body.touch-ui .inventory-drawer[data-page="map"] .drawer-map, body.touch-ui .inventory-drawer[data-page="quests"] .drawer-quests,
 body.touch-ui .inventory-drawer[data-page="settings"] .drawer-settings { display: block; }
 body.touch-ui .drawer-tabs { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px 8px 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #151617; }
-body.touch-ui .drawer-tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 46px; padding: 4px 0 3px; border: 1px solid transparent !important;
-  border-radius: 10px; background: none !important; color: #b8b5ad !important; font: 600 10.5px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 0.3px; }
+body.touch-ui .drawer-tabs button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0; border: 1px solid transparent !important;
+  border-radius: 10px; background: none !important; color: #b8b5ad !important; font: 600 12px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 0.3px; }
 body.touch-ui .drawer-tabs button.active { border-color: rgba(255, 255, 255, 0.16) !important; background: #302a23 !important; color: #d5aa60 !important; }
 /* the map: as wide and tall as the page; its buttons under it, big enough for a thumb */
 body.touch-ui .inventory-drawer .drawer-map { overflow: hidden; }

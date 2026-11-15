@@ -3,7 +3,7 @@
 // comes. After a few quiet seconds it fades back (it stays readable, only dimmer); tap it to open the whole chat with
 // its history. It only reads the log (#log, filled by game-ui.js), so the chat itself and what it keeps are unchanged.
 // mobile-hud.js puts it in the action bar; the bar is a line taller for it, so a message never pushes anything up.
-// The open chat lies above the action bar (which stays, its smart button closing the chat: smart-button.js), with a tab
+// The open chat lies above the action bar (which stays, its smart button acting as ever), with a tab
 // on its top edge (tap it or swipe it down to close) and a send button beside the line you type in.
 const ChatLine = (() => {
   const QUIET = 6000; // ms after the newest message before the line fades back

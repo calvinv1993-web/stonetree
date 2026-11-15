@@ -39,7 +39,7 @@ check('someone to talk to in reach: talk', () => {
   clear(); at(safe); const npc = { npcId: 'test', name: 'Tester NPC', x: safe.x + 1, y: safe.y, z: 8 }; state.npcs = [npc];
   const c = S.context(); assert.equal(c.kind, 'talk'); assert.equal(c.x, npc.x);
 });
-check('with the chat open it is a close button', () => { vm.runInContext('chatOpen = true', ctx); assert.equal(kind(), 'close'); vm.runInContext('chatOpen = false', ctx); });
+check('with the chat open it still acts (the chat has its own close)', () => { vm.runInContext('chatOpen = true', ctx); assert.notEqual(kind(), 'close'); vm.runInContext('chatOpen = false', ctx); });
 check('with an action button\'s chooser open it is a close button', () => { vm.runInContext('pickerOpen = true', ctx); assert.equal(kind(), 'close'); vm.runInContext('pickerOpen = false', ctx); });
 check('dead: nothing to do', () => { P.dead = true; assert.equal(kind(), 'idle'); P.dead = false; });
 console.log(`all ${pass} passed`);
