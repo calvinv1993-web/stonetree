@@ -12,6 +12,7 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  grass: 'grass-own.png', // the owner's grass, from above (the ground template)
   wall_temple_top: 'wall-temple-top.png', // the owner's wall_temple strip, straight on (see wallFromStrip)
   wall_temple_face: 'wall-temple-face.png', // the owner's wall_temple strip, straight on (see wallFromStrip)
   wall_stone_top: 'wall-stone-top.png', // the owner's wall_stone strip, straight on (see wallFromStrip)
@@ -62,7 +63,6 @@ const CUSTOM_SPRITES = {
   edge_grass_w: 'edge-grass-w.png', // the square's cobbles, the same way
   carpet_texture: 'carpet-atlas.png',
   temple_wall_texture: 'temple-wall-atlas.png',
-  grass: 'grass-atlas.png',
   marble: 'temple-marble-mock.png', // 4 x 4 slabs at two pixels a world pixel, from the owner's picture of the temple (temple_marble_64.png: the owner's own one tile)
   player_sheet: 'player-sheet.png', // the players: front, side (east) and back rows, standing and two steps, at 4 pixels a world pixel (see playerFromSheet)
   sheet_ama: 'npc-ama.png', // an NPC's own sheet: sheet_<npc id>, laid out as the player sheet (drawn as it is, no recolouring)
