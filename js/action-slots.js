@@ -63,8 +63,8 @@ const ActionSlots = (() => {
     button.classList.toggle('ready', !s.short && !p && !button.classList.contains('locked'));
     const cool = button.querySelector('.slot-cool'), left = button.querySelector('.slot-left'), shown = p ? p.toFixed(2) : '';
     if (cool && cool.dataset.p !== shown) { cool.dataset.p = shown; cool.style.setProperty('--p', shown || '0'); }
-    // its countdown: whole seconds, or tenths under two seconds (the spells' shared cooldown is one)
-    const text = !p ? '' : s.wait >= 2000 ? String(Math.ceil(s.wait / 1000)) : (s.wait / 1000).toFixed(1);
+    // its countdown, in seconds and tenths ("2.4s")
+    const text = !p ? '' : `${(s.wait / 1000).toFixed(1)}s`;
     if (left && left.textContent !== text) left.textContent = text;
   }
 

@@ -11,7 +11,6 @@ body.touch-ui #favs .fav .slot-badge {
 }
 body.touch-ui #favs .fav .slot-badge.mana { color: #9fd6ff !important; }
 body.touch-ui #favs .fav .slot-badge:empty { display: none !important; }
-body.touch-ui #favs .fav.short .slot-badge.mana { color: #ff7e70 !important; }
 body.touch-ui #favs .fav.short .slot-face, body.touch-ui #favs .fav.locked .slot-face { filter: grayscale(0.75) brightness(0.55); }
 body.touch-ui #favs .fav.locked { opacity: 1 !important; }
 body.touch-ui #favs .fav .slot-cool {
@@ -25,9 +24,8 @@ body.touch-ui #favs .fav.ready { border-color: #c99a4c !important; box-shadow: i
 /* A spell's mana: a small drop and the number, under its picture */
 body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 1px; font-size: 11px !important; }
 body.touch-ui #favs .fav .slot-badge.mana .icon { width: 10px; height: 10px; }
-body.touch-ui #favs .fav.short .slot-badge.mana .icon path { fill: #ff7e70; stroke: #6a1a14; }
 /* The seconds of cooldown left, over the shade */
-body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 14px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
+body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 14px; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 15px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
 /* Pressed: a thin light edge (no animation that gets in the way) */
 body.touch-ui #favs .fav.holding { border-color: #f4d68e !important; }
 /* Which set each group shows, under it: three short bars, the one shown gold */

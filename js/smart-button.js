@@ -52,10 +52,13 @@ const SmartButton = (() => {
   // The button's face: its icon and colour by what a press would do now, or by a (only redrawn when that changes)
   function refresh(button, a = context()) {
     if (!button) return;
-    if (button.dataset.action === a.kind && button.title === a.label) return;
+    const engaged = a.kind === 'attack' && !!(player && player.target && !player.target.dead);
+    if (button.dataset.action === a.kind && button.title === a.label && button.classList.contains('engaged') === engaged) return;
     button.dataset.action = a.kind;
     // its icon, and under it a word for what a press does (none while there's nothing to do)
-    const word = { attack: 'Attack', loot: 'Loot', talk: 'Talk', use: a.label === 'Train' ? 'Train' : 'Use', close: 'Close' }[a.kind];
+    const fighting = a.kind === 'attack' && player && player.target && !player.target.dead;
+    button.classList.toggle('engaged', !!fighting); // (attacking now: the button lit, its word Attacking)
+    const word = { attack: fighting ? 'Attacking' : 'Attack', loot: 'Loot', talk: 'Talk', use: a.label === 'Train' ? 'Train' : 'Use', close: 'Close' }[a.kind];
     button.replaceChildren(Icons.img(a.kind, 34), ...(word ? [Object.assign(document.createElement('span'), { className: 'smart-word', textContent: word })] : []));
     button.title = a.label;
     button.setAttribute('aria-label', a.label);

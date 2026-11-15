@@ -21,6 +21,24 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   mapButton.title = 'Map'; mapButton.setAttribute('aria-label', 'Map'); mapButton.appendChild(Icons.img('map', 26));
   mapButton.addEventListener('click', () => (InventoryDrawer.stage() && InventoryDrawer.page() === 'map' ? InventoryDrawer.close() : InventoryDrawer.show('map')));
   $('touch').appendChild(mapButton);
+  // what you're fighting, at the top of the view: its name, its health as a bar and a percent
+  const target = document.createElement('div'); target.id = 'hudTarget'; target.className = 'hud-target'; target.hidden = true;
+  target.innerHTML = '<b></b><span class="hud-target-bar"><i></i></span><small></small>';
+  $('touch').appendChild(target);
+  let shownTarget = '';
+  const followTarget = () => {
+    requestAnimationFrame(followTarget);
+    const t = player && player.target, alive = t && !t.dead && t.maxHp;
+    const pct = alive ? Math.max(0, Math.min(100, Math.round(100 * t.hp / t.maxHp))) : 0;
+    const raw = alive ? t.name || (MONSTERS[t.type] || {}).name || '' : '', name = raw.charAt(0).toUpperCase() + raw.slice(1), key = alive ? `${name}|${pct}` : '';
+    if (key === shownTarget) return;
+    shownTarget = key; target.hidden = !alive;
+    if (!alive) return;
+    target.querySelector('b').textContent = name;
+    target.querySelector('i').style.width = `${pct}%`;
+    target.querySelector('small').textContent = `${pct}%`;
+  };
+  requestAnimationFrame(followTarget);
   // the bottom bar, top to bottom: the chat line with the backpack at its end, the action buttons, which set they show
   const bar = document.createElement('div'); bar.id = 'actionDock'; $('touch').appendChild(bar);
   ChatLine.attach(bar); // (the newest message: chat-line.js)

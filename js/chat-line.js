@@ -17,6 +17,9 @@ const ChatLine = (() => {
     if (time) text.append(Object.assign(document.createElement('span'), { className: 'chat-line-time', textContent: time.textContent.trim() }), ' ');
     for (const node of line.childNodes) if (node !== time) text.append(node.cloneNode(true));
     el.className = `chat-line ${line.className || ''}`;
+    // its icon: a drop for a word about mana, else a speech bubble
+    const icon = /\bmana\b/i.test(line.textContent) ? 'drop' : 'chat';
+    if (el.dataset.icon !== icon) { el.dataset.icon = icon; el.firstChild.replaceWith(Icons.img(icon, 18)); }
     el.classList.add('fresh');
     clearTimeout(timer);
     timer = setTimeout(() => el.classList.remove('fresh'), QUIET);

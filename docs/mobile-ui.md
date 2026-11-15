@@ -12,7 +12,7 @@ From top to bottom:
   whole width, a heart and a drop on their start; under them "EXP" with the percent, a thin experience bar, and the
   level. Nothing to tap up here.
 - **The map**, as big as the space between the bars allows, with a map button in its top left corner (the drawer's
-  Map page).
+  Map page) and, while you have a target, a pill at its top with the target's name, health bar and percent.
 - **The bottom bar** (`js/mobile-hud.js` puts it together), top to bottom: the chat line with a backpack button at its
   end (the drawer's Gear page), seven square buttons the same size, and under each group of three a row of short bars
   saying which of its sets shows (gold):

@@ -479,6 +479,16 @@ body.touch-ui .hud-map-button { display: flex; align-items: center; justify-cont
   box-shadow: 0 2px 6px #000a !important; }
 body.touch-ui .hud-map-button .icon { width: 26px; height: 26px; }
 body.touch-ui.panel-open .hud-map-button { visibility: hidden; }
+/* What you're fighting: a dark pill at the top of the view, its name, its health in red and the percent */
+.hud-target { display: none; }
+body.touch-ui .hud-target:not([hidden]) { display: flex; align-items: center; gap: 10px; position: absolute; z-index: 13; pointer-events: none;
+  top: calc(var(--hud-h) + 10px); left: 50%; transform: translateX(-50%); max-width: calc(100% - 140px); padding: 7px 12px;
+  border: 1px solid #3a3428; border-radius: 9px; background: #12110ee6; box-shadow: 0 2px 6px #0009; color: #f3ecda;
+  font: 500 13px/1 Inter, sans-serif; white-space: nowrap; }
+body.touch-ui .hud-target b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+body.touch-ui .hud-target-bar { flex: none; width: 80px; height: 6px; border-radius: 3px; background: #3a3631; overflow: hidden; }
+body.touch-ui .hud-target-bar i { display: block; height: 100%; background: linear-gradient(#ff5a50, #c81e1e); border-radius: 3px; }
+body.touch-ui .hud-target small { font: 500 12px/1 Inter, sans-serif; color: #e8e0cc; font-variant-numeric: tabular-nums; }
 body.touch-ui.fighting .fight-bar { left: calc(env(safe-area-inset-left, 0px) + 60px); }
 /* The bottom bar, upright: the chat line (the backpack at its end) on top, then seven square buttons the same size
    (three, the smart button, three), then under each group of three which of its sets shows */
