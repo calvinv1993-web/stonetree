@@ -13,6 +13,7 @@
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
   crypt: 'crypt-own.png', // the owner's crypt, slabs in a grid (install-grid-floor.py)
+  sewer: 'sewer-own.png', // the owner's sewer, slabs in a grid (install-grid-floor.py)
   cave: 'cave-own.png', // the owner's cave floor, from above (ground template, made seamless)
   rock_top: 'rock-top-own.png', // the owner's mountain top, from above (ground template, made seamless)
   edge_mountain_w: 'edge-mountain-w.png', // the owner's mountain border (a loose PNG: install-edge-png.py)

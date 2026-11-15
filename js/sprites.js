@@ -3714,6 +3714,18 @@ const Sprites = (() => {
         DRAW.crypt(g, makeRng(hashStr('crypt') + y * 4 + x)); g.restore();
       }
     } },
+    // the owner's sewer walkway: one painting over 4 x 4 tiles, two stones a tile; drawn tile by tile till it's in
+    sewer: { tiles: 4, res: () => ownRes('sewer', 4), draw: g => {
+      const image = customImage('sewer');
+      if (image) {
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(image, 0, 0, 4 * TILE, 4 * TILE);
+      } else for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+        g.save(); g.translate(x * TILE, y * TILE);
+        DRAW.sewer(g, makeRng(hashStr('sewer') + y * 4 + x)); g.restore();
+      }
+    } },
     // the owner's beach sand (ground + border template): one painting over 4 x 4 tiles; drawn tile by tile till it's in
     sand: { tiles: 4, res: () => ownRes('sand', 4), draw: g => {
       const image = customImage('sand');

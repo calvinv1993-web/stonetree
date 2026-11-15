@@ -24,7 +24,7 @@ rows = [r + 40 for r in lines(d[40:-40].mean(1))]; cols = [c + 40 for c in lines
 assert len(rows) >= 2 and len(cols) >= 2, f'no grid of joints found: rows {rows}, cols {cols}'
 sy = (rows[-1] - rows[0]) / (len(rows) - 1); sx = (cols[-1] - cols[0]) / (len(cols) - 1)
 y0, y1, x0, x1 = round(rows[0] - sy), round(rows[-1] + sy), round(cols[0] - sx), round(cols[-1] + sx)
-a = g[y0:y1, x0:x1].copy(); h, w = a.shape[:2]; B = 4
+a = g[y0:y1, x0:x1].copy(); h, w = a.shape[:2]; B = 6  # (half a joint, and a little: the cut line beside it goes too)
 r1, c1 = rows[len(rows) // 2], cols[len(cols) // 2]
 band_r = g[r1 - B:r1 + B, x0:x1]; band_c = g[y0:y1, c1 - B:c1 + B]
 a[0:B] = band_r[B:]; a[h - B:h] = band_r[:B]; a[:, 0:B] = band_c[:, B:]; a[:, w - B:w] = band_c[:, :B]
