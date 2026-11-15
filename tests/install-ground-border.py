@@ -44,6 +44,12 @@ top = rows[0] if len(rows) else 0
 a = a[top:]
 cut = max(4, a.shape[1] // 40); a = a[:, cut:-cut]   # (its ends: the sheet's bleed and frame lines)
 filled = np.nonzero((a[:, :, 3] > 0).mean(1) > 0.02)[0]; a = a[:filled[-1] + 2]
+# every white or near-white pixel left anywhere in the border (paper caught between tufts, a pale fringe) goes too,
+# and what borders it is faded, so no light halo stays round the tufts
+light = (a[:, :, :3].min(2) > 150) & ((a[:, :, :3].max(2) - a[:, :, :3].min(2)) < 60)
+a[light, 3] = 0
+near = ndimage.binary_dilation(light, iterations=1) & ~light
+a[near, 3] = a[near, 3] // 2
 strip = Image.fromarray(a.astype(np.uint8), 'RGBA')
 strip = ct.seamless(strip.resize((512, max(16, round(strip.height * 512 / strip.width))), Image.LANCZOS), both=False)
 strip = strip.resize((256, 32), Image.LANCZOS)
