@@ -157,6 +157,20 @@ const Actions = {
     player.tutorial = 0;
     uiDirty();
   },
+  // The guide again from its first step (on the starter island: the steps already done pass by themselves, the ones
+  // that only explain wait for Next again)
+  restartGuide() {
+    if (player.vocation !== 'none') return log('The guide is for the starter island.');
+    player.tutorial = 1;
+    uiDirty();
+  },
+  // Next: past a step of the guide that only explains something (one with nothing to do)
+  guideNext() {
+    const step = GUIDE[player.tutorial - 1];
+    if (!step || step.done || step.on || player.tutorial === GUIDE.length) return;
+    player.tutorial++;
+    uiDirty();
+  },
   // Secure mode: on, you can't hurt players without a skull (nor your party); off, you can.
   setSecure(on) {
     player.secure = !!on;

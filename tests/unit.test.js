@@ -785,24 +785,33 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   const mark = id => (ctx.questNews(id) || {}).mark;
   const on = (id, where) => { ctx.teleport(where); tick(game, 100); };
   on(null, { x: 137, y: 103, z: 9 });
+  // a step that only explains waits for Next (and Next does nothing on a step with something to do)
+  const next = what => { const at = p.tutorial; A.guideNext(); assert.strictEqual(p.tutorial, at + 1, `Next past ${what}`); };
+  assert.strictEqual(arrow(), null, 'the welcome points at nothing'); next('the welcome'); next('the health and mana bars');
   assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
+  A.guideNext(); assert.strictEqual(p.tutorial, 3, 'Next doesn\'t skip a step with something to do');
   A.endGuide();
-  assert.strictEqual(p.tutorial, 1, 'the guide can\'t be put away before its end (only folded)');
+  assert.strictEqual(p.tutorial, 3, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
+  next('where to look when lost');
   assert.strictEqual(arrow(), '137,109,9', 'first out of the temple...'); on(null, { x: 128, y: 120, z: 8 });
   assert.strictEqual(arrow(), '110,141,8', '...to the training yard');
   on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
   assert(p.trainHits >= 5, 'hitting the dummy');
+  next('the big button');
   assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
   talk('corwin', 'bell'); kill('rat', 5);
-  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; p.fedUntil = state.now + 99999;
+  next('what dying costs'); tick(game, 100);
+  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
+  next('the backpack'); p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons');
   assert.strictEqual(arrow(), 'corwin');
   talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
   talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');
   talk('pip', 'letter'); assert.strictEqual(arrow(), 'ama');
   talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
   p.shopNpc = 'pip'; tick(game, 100); p.shopNpc = null;
+  next('the map');
   levelTo(2); assert.strictEqual(arrow(), 'gate_west', 'on to the gate watch');
   for (const [id, word, type, n, level, next] of [['gate_west', 'wolves', 'wolf', 8, 2, 'gate_south'], ['gate_south', 'crabs', 'crab', 6, 3, 'gate_east'],
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {
@@ -836,6 +845,10 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
+  // started again from the menu: the explaining steps wait for Next, the ones already done pass by themselves
+  A.restartGuide(); assert.strictEqual(p.tutorial, 1, 'the guide from the start');
+  A.guideNext(); A.guideNext(); tick(game, 300);
+  assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
 });
 
 test('walking: speed grows with your level, ground counts, a diagonal step takes twice as long', () => {

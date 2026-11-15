@@ -329,3 +329,13 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
    the painted ones smooth, the drawn ones crisp */
 .slot > img { width: var(--icon, 32px); height: var(--icon, 32px); }
 .slot > img[src*="ui/actions/"], .slot > img[src*="sprites/items/"] { image-rendering: auto; }
+/* The guide points at a part of the screen (a step's ui, game-ui.js renderGuide): a soft gold ring round it, breathing */
+@keyframes guide-spot { from { outline-color: rgba(255, 215, 106, 1); outline-offset: 2px; } to { outline-color: rgba(255, 215, 106, 0.35); outline-offset: 5px; } }
+.guide-spot { outline: 3px solid #ffd76a !important; outline-offset: 3px; animation: guide-spot 0.8s ease-in-out infinite alternate; }
+/* its Next (a step that only explains) and Got it: plain to see, big enough for a thumb */
+.guide #guideDone { display: block; width: 100%; min-height: 36px; margin-top: 8px; border: 1px solid #d5aa60 !important; border-radius: 8px;
+  background: linear-gradient(#5a4628, #3a2c18) !important; color: #ffe3a8 !important; font-weight: 700; letter-spacing: 0.3px; }
+.guide #guideDone[hidden] { display: none; }
+/* (round the status bar, which reaches the screen's edges: the ring inside it) */
+@keyframes guide-spot-in { from { outline-color: rgba(255, 215, 106, 1); } to { outline-color: rgba(255, 215, 106, 0.35); } }
+.hud.guide-spot { outline-offset: -4px; animation-name: guide-spot-in; }

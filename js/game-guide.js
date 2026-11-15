@@ -7,61 +7,103 @@
 // text: what to do (touch: the same for a phone); target: what the arrow points at, the
 // first of these that is there - an NPC, the nearest monster of a kind, the nearest
 // corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget; done: when the step is done (as the
-// player), or on: the deed that does it (see guideDid). The last step waits for "Got it".
+// player), or on: the deed that does it (see guideDid). A step with neither just explains: it waits for "Next"
+// (Actions.guideNext), and the last step for "Got it". ui / uiDesk: the parts of the screen it's about on a phone / a
+// computer (CSS selectors): they glow while the step shows (game-ui.js renderGuide).
 const GUIDE = [
+  // ---- the basics, one thing at a time (a step without done or on is read and passed with "Next") ----
   {
-    text: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Walk to her with W A S D or the arrow keys (or click where to go), then click her to talk.',
-    touch: 'Welcome to Oakvale Isle! Sister Ama stands by the altar of the temple, just north of you. Tap where to go (or drag over the map) to walk there, then tap her to talk.',
-    target: [{ npc: 'ama' }],
-    done: () => talkingTo('ama'),
+    text: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Press Next to begin.',
+    touch: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Tap Next to begin.',
   },
   {
-    text: 'Words in gold are things you can ask about: click them, or type them. Ask Sister Ama about the bell, and say yes.',
-    touch: 'Words in gold are things you can ask about: tap them. Ask Sister Ama about the bell, and say yes.',
+    text: 'Your health and mana are in the panel on the right. Red is your health: when it runs out, you die. Blue is your mana, for spells. Under them, your experience: when it is full you reach the next level.',
+    touch: 'At the top: red is your health (when it runs out, you die), blue is your mana (for spells). Under them, your experience: when the bar is full you reach the next level.',
+    ui: ['#touch .hud'], uiDesk: ['.sec-status'],
+  },
+  {
+    text: 'Sister Ama stands by the altar, just north of you: the yellow arrow points at her. Walk with W A S D or the arrow keys (or click where to go), then click her to talk.',
+    touch: 'Sister Ama stands by the altar, just north of you: the yellow arrow points at her. Tap where to go (or drag over the map), then tap her to talk.',
     target: [{ npc: 'ama' }],
+    done: () => talkingTo('ama') || questState('bell_1') !== 'none', // (or met her already: the guide started again)
+  },
+  {
+    text: 'The gold words are things you can ask about: click one, or type it. Ask Sister Ama about the bell, then say yes.',
+    touch: 'The gold words are things you can ask about: tap one. Ask Sister Ama about the bell, then tap yes.',
+    target: [{ npc: 'ama' }],
+    ui: ['#talkWords'],
     done: () => questState('bell_1') !== 'none',
   },
   {
-    text: 'Before you fight: train! Every hit with your weapon raises its skill (see Skills), and a higher skill hits harder. The training yard is in the south-west of town, off the main street. Click a dummy to hit it, as long as you like; walk away to stop. Hit it 5 times ($trained).',
-    touch: 'Train first: tap a dummy in the training yard (south-west of town) and you keep hitting it until you walk away. Every hit raises your weapon skill (Character, Skills), and a higher skill hits harder. Hit it 5 times ($trained).',
+    text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. Lost? Look there.',
+    touch: 'You have a quest! Whenever you are lost: the yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next.',
+    ui: ['#hudBag'], uiDesk: ['[data-tab="quests"]'],
+  },
+  {
+    text: 'Before you fight: train! The training yard is in the south-west of town, off the main street. Click a dummy and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
+    touch: 'Before you fight: train! Tap a dummy in the training yard (south-west of town) and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
     target: [{ at: [110, 141, 8] }, { at: [137, 109, 9] }], // (from the temple: to the steps down)
     done: () => player.trainHits >= 5,
   },
   {
-    text: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: talk to him.',
-    touch: 'Leave the temple, go down the steps to the square, and west over the bridge to the academy. Master Corwin teaches there: tap him to talk.',
+    text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
+    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. You will use it a lot.',
+    ui: ['#tAttack'], uiDesk: ['#hotbar'],
+  },
+  {
+    text: 'Now leave the temple yard, west over the bridge to the academy. Master Corwin teaches there: talk to him.',
+    touch: 'Now go west over the bridge to the academy (follow the arrow). Master Corwin teaches there: tap him to talk.',
     target: [{ npc: 'corwin' }],
-    done: () => talkingTo('corwin'),
+    done: () => talkingTo('corwin') || (!!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done')),
   },
   {
-    text: 'Rats run wild in Sunny Fields, out of the south gate. Click a rat to attack it, or press Space to attack the nearest monster. Kill 5 ($progress).',
-    touch: 'Rats run wild in Sunny Fields, out of the south gate. Tap a rat to attack it, or press the sword button for the nearest monster. Kill 5 ($progress).',
+    text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
+    touch: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
+  },
+  {
+    text: 'Rats run in Sunny Fields, out of the south gate. Click a rat, or press Space. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
+    touch: 'Rats run in Sunny Fields, out of the south gate. Press the big red button near a rat, or tap the rat. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
     target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
-    on: 'kill',
+    done: () => ratsDone(), // (the five for Corwin: also if they fell while an earlier step was still being read)
   },
   {
-    text: 'Monsters leave a corpse. Right-click it to open it, then click what you want to take: gold goes straight into your purse.',
-    touch: 'Monsters leave a corpse. Long-press it to open it, then tap what you want to take: gold goes straight into your purse.',
+    text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
+    touch: 'Monsters leave a corpse with loot. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything. Gold goes straight into your purse.',
     target: [{ corpse: true }],
     done: () => !!(player.openPile && player.openPile.corpse),
   },
   {
+    text: 'Your equipment and your bag are in the panels on the right. Right-click a thing to use it; drag it to wear it, move it or drop it on the map.',
+    touch: 'This backpack button opens your equipment and your bag. Tap a thing to see what it is and to use it, wear it or drop it; drag it to move it. Close the bag with this button again, or touch the map.',
+    ui: ['#hudBag'], uiDesk: ['.sec-equip', '#containers'],
+  },
+  {
     text: 'With a full stomach you heal much faster. Eat an apple: right-click it in your bag.',
-    touch: 'With a full stomach you heal much faster. Open your backpack (bottom right) and tap an apple to eat it.',
-    target: [],
+    touch: 'With a full stomach you heal much faster. Open the backpack, tap an apple, then Use to eat it.',
+    ui: ['#hudBag'], uiDesk: ['#containers'],
     done: () => player.fedUntil > now,
   },
   {
-    text: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Drink a health potion with H.',
-    touch: 'Follow the bell quest: see the Quests tab for where to go next. Getting hurt? Tap the red potion button, bottom right, for a health potion.',
+    text: 'The bar under the map: your spells on 1 to 9 (they come with levels), H for a health potion, M for mana, F to eat. Low on health? Press H.',
+    touch: 'The buttons beside the big one: spells on the left, potions and food on the right. Low on health? Tap the red potion. Hold a button to choose what goes there; swipe sideways for more.',
+    ui: ['#favs'], uiDesk: ['#hotbar'],
+  },
+  {
+    text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The Quests tab says where; the arrow points the way.',
+    touch: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The arrow points the way; the Quests tab (backpack button, Quests) says what to do.',
     target: [{ quest: 'bell_1' }, { monster: 'rat' }],
     done: () => questState('bell_1') === 'done',
   },
   {
-    text: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. The Dented Shield sells weapons, Hide and Iron armour. Talk to Pip and ask to trade.',
-    touch: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. The Dented Shield sells weapons, Hide and Iron armour. Talk to Pip and ask to trade.',
+    text: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
+    touch: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
     target: [{ npc: 'pip' }],
     done: () => !!player.shopNpc,
+  },
+  {
+    text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
+    touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
+    ui: ['#hudMap'], uiDesk: ['.minimap-box'],
   },
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
@@ -101,6 +143,8 @@ const GUIDE = [
 ];
 
 const talkingTo = id => !!(player.conversation && player.conversation.npc.npcId === id);
+// Corwin's five rats are dead (his kill step is ready, or the bell quest has gone past it)
+const ratsDone = () => { const q = player.quests.bell_1; return !!q && (q.status === 'done' || q.step > 1 || (q.step === 1 && stepReady('bell_1'))); };
 
 // Every tick: on to the next step when this one is done.
 function updateGuide() {

@@ -165,6 +165,9 @@ function renderGuide() {
   guideKey = key;
   const box = $('guide'), view = $('view');
   box.hidden = !step;
+  // the parts of the screen this step is about glow (a ring round them), until the step is passed
+  for (const el of document.querySelectorAll('.guide-spot')) el.classList.remove('guide-spot');
+  if (step && !guideFolded) for (const sel of (touchScreen ? step.ui : step.uiDesk) || []) for (const el of document.querySelectorAll(sel)) el.classList.add('guide-spot');
   if (!step) return;
   box.classList.toggle('folded', guideFolded);
   $('guideFold').textContent = guideFolded ? '▸' : '▾';
@@ -176,6 +179,7 @@ function renderGuide() {
   $('guideNow').textContent = now;
   $('guideNow').hidden = !now;
   $('guideDone').hidden = !!(step.done || step.on);
+  $('guideDone').textContent = player.tutorial === GUIDE.length ? 'Got it' : 'Next'; // (a step that only explains: on to the next)
 }
 
 // ---- party and guild ----------------------------------------------------------------------
@@ -1780,7 +1784,7 @@ function initUI() {
     try { localStorage.setItem('tilequest.guideFolded', guideFolded ? '1' : '0'); } catch (e) { /* no storage: only for now */ }
     renderGuide();
   });
-  $('guideDone').addEventListener('click', () => Actions.endGuide());
+  $('guideDone').addEventListener('click', () => (player.tutorial === GUIDE.length ? Actions.endGuide() : Actions.guideNext()));
   $('battle').addEventListener('pointerleave', () => { battleHover = null; });
   document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('[data-tab]').forEach(o => o.classList.toggle('active', o === b));
@@ -1812,6 +1816,7 @@ function initUI() {
   $('lootAll').addEventListener('click', () => player.openPile && Actions.takeAll(player.openPile.id));
   $('readClose').addEventListener('click', () => { $('read').hidden = true; });
   $('hotkeysBtn').addEventListener('click', openHotkeys);
+  $('guideBtn').addEventListener('click', () => Actions.restartGuide());
   $('hotkeysSave').addEventListener('click', saveHotkeys);
   $('hotkeysCancel').addEventListener('click', () => { $('hotkeys').hidden = true; });
   $('outfitBtn').addEventListener('click', () => { if (!paused && $('outfit').hidden) openOutfit(); }); // not while making a character

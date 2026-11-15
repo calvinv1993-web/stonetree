@@ -47,10 +47,12 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
   - a swamp boss
   - a crypt with a pick-one weapon armory
 - **The guide**: a new character gets one thing to do at a time, in a box at the top left, with a yellow arrow pointing the way, from the first word with Sister Ama to the oracle:
+  - first the basics, each in a few words, with a gold ring round the part of the screen it's about: your health, mana and experience; walking and talking (the gold words); where to look when you're lost (the arrow and the Quests tab); training; the big button and its colours; what dying costs; the first rats (and keeping away from wolves); opening a corpse; the backpack; eating; the action buttons and potions; the map. A step that only explains waits for **Next**; one that asks you to do something moves on by itself
   - talk to Sister Ama and take The Silent Bell; Master Corwin, five rats, a corpse to open, something to eat, the depot, Pip
   - the gate watch, one guard after the other; then the crypt, the rope under the town and the Gravewaker
   - the arrow points to whoever has a task or news for you, to the monsters a task still wants, or to the way down
   - the box can be folded away (▾, or click its title) and out again, but not put away: it goes once you've followed it to the end ("Got it")
+  - **Guide** in the menu (on a phone: Settings, The guide) starts it again from the first step, as long as you're on the starter island: what you've done already passes by itself
 - **There is no way back.** Once you choose a vocation, the oracle sends you to the mainland and you never return to Oakvale Isle: no balloon flies back. Without a vocation, nobody takes you off the island either.
 - **Legends**: the islanders tell of a captain whose sword was never found. Whether there is anything to it, nobody knows. Ask around, look closely at things, and remember that once you leave the island, you leave it for good.
 - **The world** is generated the same for everyone: lands with ragged coasts, bays and capes, joined by winding necks of land, wooden bridges over the straits, and old portals (obelisks in stone rings) between far-apart regions. Rivers with bridges, lakes (frozen in the north) and mountains with paths up fill the lands, and so do around 30 kinds of places: castles and forts, mines, windmill farms, orchards, lumber camps, quarries, dragon nests, witch huts, shrines, battlefields, craters, fairy rings, ancient groves, caravans, igloos, totem camps, tombs, ghost villages, arenas and more.
