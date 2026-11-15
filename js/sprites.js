@@ -574,7 +574,7 @@ const Sprites = (() => {
       const topPic = customImage(`${id}_top`); // its own top, seen from above (a strip of n tiles, as the face), where there is one
       if (topPic) { // (a square of 4 x 4 tiles from above, as a ground: the ground template)
         const k = topPic.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
-        g.imageSmoothingEnabled = true; g.drawImage(topPic, c * k, r * k, k, k, 0, 0, TILE, TILE);
+        g.imageSmoothingEnabled = true; g.drawImage(topPic, c * k, r * k, k, k, -0.5, -0.5, TILE + 1, TILE + 1); // (a hair over its edges: no seam between tiles)
       }
       else rockSurface(g, makeRng(hashStr(id) + at(x) * 7 + at(y)));
       g.restore();
