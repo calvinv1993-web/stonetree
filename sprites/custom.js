@@ -126,6 +126,7 @@ const CUSTOM_SPRITES = {
   crops: 'crops@4x.png', // the owner's wheat: one tile of a field
   firewood: 'firewood@4x.png', // the owner's chopping block, with its axe and split logs
   campfire_out: 'campfire-out@4x.png', // the owner's campfire burnt out
+  founder_tomb: 'founder-tomb@4x.png', // the owner's tomb of Oakvale's founder in the crypt
   campfire: 'campfire@4x.png', wagon: 'wagon@4x.png', obelisk: 'obelisk@4x.png', // the owner's campfire (lit), farm wagon and rune stone
   weapon_rack_s: 'weapon-rack-s.png', // the owner's weapon rack on a wall running east-west (one running north-south keeps the drawn one)
   sarcophagus: 'sarcophagus@4x.png',
