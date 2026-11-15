@@ -12,6 +12,7 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  gravel: 'gravel-own.png', // the owner's gravel path, from above (ground template, made seamless)
   sewer_water: 'sewer-water-own.png', // the owner's sewer water, from above (ground template, made seamless)
   crypt: 'crypt-own.png', // the owner's crypt, slabs in a grid (install-grid-floor.py)
   sewer: 'sewer-own.png', // the owner's sewer, slabs in a grid (install-grid-floor.py)

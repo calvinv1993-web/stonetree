@@ -86,6 +86,7 @@ const SPRITE_HASHES = {
   "grass-own.png":"ddeee78dfd",
   "grass-tuft@4x.png":"35ad504217",
   "grate@2x.png":"63c74f56c0",
+  "gravel-own.png":"cb87099798",
   "gravestone@4x.png":"15e7bff017",
   "haystack@4x.png":"20affd1cdd",
   "items/health-potion@4x.png":"ae12a3196e",
