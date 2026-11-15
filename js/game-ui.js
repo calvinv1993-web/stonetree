@@ -211,8 +211,13 @@ const GUIDE_ART = (() => {
     smart: () => [row(...(touchScreen
       ? [['attack', 'attack'], ['talk', 'talk'], ['loot', 'loot'], ['use', 'use']].map(([kind, label]) => cap(h('span', { className: `ga-smart ${kind}` }, icon(kind, 20)), label))
       : [cap(h('kbd', {}, 'Space'), 'attack the nearest'), cap(h('kbd', {}, 'click'), 'a monster: attack'), cap(h('kbd', {}, 'click'), 'a person: talk')]))],
-    gear: () => [row(cap(pic('wooden_shield'), 'shield'), cap(pic('leather_cap'), 'cap'), h('span', { className: 'ga-arrow' }, '→'),
-      cap(h('span', { className: 'ga-slots' }, icon('slot-shield', 18), icon('slot-head', 18)), touchScreen ? 'tap, then Wear' : 'drag on'))],
+    gear: () => [row(cap(pic('leather_cap'), 'a leather cap'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(h('span', { className: 'ga-slots' }, icon('slot-head', 18)), touchScreen ? 'tap, then Wear' : 'drag it on'))],
+    torch: () => [row(cap(h('span', { className: 'ga-step do' }, 'Lv 2'), 'a new spell'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(Object.assign(new Image(34, 34), { src: ActionSlots.art('light') || '', className: 'ga-pic', alt: '' }), touchScreen ? 'put it on a +' : '1 or "lumen"'),
+      h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '✺'), 'light in the dark'))],
+    sewer: () => [row(cap(h('span', { className: 'ga-yellow' }, '▦'), 'the grate'), h('span', { className: 'ga-arrow' }, '→'),
+      cap(h('b', { className: 'ga-big' }, '5×'), 'rats'), h('span', { className: 'ga-arrow' }, '→'), cap(pic('wooden_shield'), 'your shield'))],
     death: () => [row(cap(h('span', { className: 'ga-good' }, '✓'), 'you keep your things'), cap(h('span', { className: 'ga-bad' }, '−'), 'a little experience'),
       cap(icon('heart', 20), 'temple, depot, shops: safe'))],
     rats: () => [row(cap(h('span', { className: 'ga-good' }, '✓'), 'rats: easy'), cap(h('span', { className: 'ga-bad' }, '!'), 'wolf packs: not yet'))],
@@ -257,7 +262,12 @@ const GuideSpot = (() => {
     const step = player && player.tutorial && !guideFolded ? GUIDE[player.tutorial - 1] : null;
     const list = step ? (touchScreen ? step.ui : step.uiDesk) || [] : [];
     let target = null;
-    for (const sel of list) { target = [...document.querySelectorAll(sel)].find(visible); if (target) break; }
+    for (const sel of list) {
+      // (a choice in the action buttons' chooser may be scrolled out of its list: scroll it into sight, once)
+      const pick = sel.includes('#favPicker') && document.querySelector(sel);
+      if (pick && !pick.dataset.shown) { pick.dataset.shown = '1'; pick.scrollIntoView({ block: 'center' }); }
+      target = [...document.querySelectorAll(sel)].find(visible); if (target) break;
+    }
     // (the guide's box steps aside while a window is open, e.g. the chooser of an action button: then the light
     // follows into that window on its own)
     const box = $('guide'), boxShown = visible(box);

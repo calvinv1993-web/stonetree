@@ -67,12 +67,12 @@ const GUIDE = [
     done: () => talkingTo('corwin') || (!!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done')),
   },
   {
-    text: 'Master Corwin gave you a wooden shield and a leather cap! Put them on: drag each from your bag onto its place in the equipment (or right-click it). Your armour and defense go up.',
-    touch: 'Master Corwin gave you a wooden shield and a leather cap! Put them on: open the backpack, tap each one, then Wear. Your armour and defense go up.',
-    gift: { flag: 'guide_kit', items: [['wooden_shield', 1], ['leather_cap', 1]], from: 'Master Corwin',
-      say: 'Nobody leaves my academy bare-headed. Take this shield and this cap, and put them on before you go out.' },
+    text: 'Master Corwin gave you a leather cap! Put it on: drag it from your bag onto your head in the equipment (or right-click it). Your armour goes up.',
+    touch: 'Master Corwin gave you a leather cap! Put it on: open the backpack, tap the cap, then Wear. Your armour goes up.',
+    gift: { flag: 'guide_kit', items: [['leather_cap', 1]], from: 'Master Corwin',
+      say: 'Nobody leaves my academy bare-headed. Take this cap, and put it on before you go out. A shield you will have to earn.' },
     art: 'gear', ui: ['#inventoryDrawer', '#hudBag'], uiDesk: ['#containers', '.sec-equip'],
-    done: () => !!(player.equipment.shield && player.equipment.head),
+    done: () => !!player.equipment.head,
   },
   {
     text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
@@ -131,6 +131,33 @@ const GUIDE = [
     touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
     ui: ['#hudMap'], uiDesk: ['.minimap-box'],
     art: 'map',
+  },
+  // ---- level 2: a light, and the first way under the town ----
+  {
+    text: 'Level 2 brings your first spell: Torchlight. Press 1 (or say "lumen") to glow like a torch for three minutes. The sewers are dark: try it now.',
+    touch: 'Level 2 brings your first spell: Torchlight! Tap its button on the left (still an empty +? Tap it and choose Torchlight first): you glow like a torch for three minutes. The sewers are dark: try it now.',
+    art: 'torch', ui: ['#favPicker:not([hidden]) [data-action="light"]', '#favs .fav:nth-child(1)'], uiDesk: ['#hotbar'],
+    target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
+    done: () => player.level >= 2 && player.lightUntil > now,
+  },
+  {
+    text: 'Master Corwin has a task for you under the town: a shield the rats stole. Talk to him and ask about the shield.',
+    touch: 'Master Corwin has a task for you under the town: a shield the rats stole. Talk to him and ask about the shield.',
+    target: [{ news: ['corwin'] }, { npc: 'corwin' }],
+    done: () => questState('cellar_shield') !== 'none',
+  },
+  {
+    text: 'Down the grate on the square into the sewers (the arrow). Kill 5 rats ($progress), then open the old chest in the storeroom at the west end and put on the shield.',
+    touch: 'Down the grate on the square into the sewers (the arrow): tap the grate to climb down. Kill 5 rats ($progress), then open the old chest in the storeroom at the west end and put on the shield.',
+    art: 'sewer',
+    target: [{ at: [131, 111, 8] }, { hunt: ['cellar_shield'] }, { at: [105, 121, 7] }],
+    done: () => !!player.equipment.shield,
+  },
+  {
+    text: 'A shield! Blows glance off it now. Climb back up the ladder and tell Master Corwin.',
+    touch: 'A shield! Blows glance off it now. Climb back up the ladder and tell Master Corwin.',
+    target: [{ at: [131, 111, 7] }, { quest: 'cellar_shield' }, { npc: 'corwin' }],
+    done: () => questState('cellar_shield') === 'done',
   },
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',

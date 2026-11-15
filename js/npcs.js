@@ -1587,6 +1587,28 @@ Object.assign(QUESTS, {
       done: 'The bell is still silent, $name. Grow stronger at the town gates; Master Corwin will send for you when you are ready.',
     },
   },
+  // Under the town, at level 2, with a light: the first way down, a few rats, and a shield to wear (the guide sends
+  // you here before the gate watch; the chest opens once the rats are dead)
+  cellar_shield: {
+    name: 'The Rats\' Hoard', story: 'The Silent Bell', giver: 'corwin', level: 2, word: 'shield', after: 'bell_1',
+    reward: { xp: 60, gold: 20, items: [['health_potion', 2]] },
+    summary: 'Go down into the sewers under the town, clear out some rats, and take back the shield they dragged into the old storeroom.',
+    steps: [
+      { auto: true, kill: { rat: 5 }, summary: 'Climb down the grate on the square into the sewers, and kill 5 rats in the tunnels.',
+        progress: 'The grate is on the square, south of the temple steps. Light your way with Torchlight. Rats killed: $progress.',
+        done: 'The tunnels fall quiet. Somewhere to the west, in the old storeroom, the rats have been hoarding what they steal.' },
+      { npc: 'corwin', word: 'shield', summary: 'Open the old chest in the storeroom at the west end of the sewers, put on the wooden shield inside, and tell Master Corwin.',
+        progress: 'The old storeroom is at the west end of the sewers, past the barrels. Take the shield from the chest and put it on.',
+        done: 'A shield on your arm, and the rats know your name! Good. Keep it up: blows that would hurt you now glance off. The guards at the town gates have work for someone like you.' },
+    ],
+    text: {
+      offer: 'Level 2, and a light of your own! Then you are ready for the dark. The rats in the sewers under our streets dragged a good wooden shield into their storeroom - the watch lost it chasing them. Go down, thin them out, and take it back: it is yours if you do. ({yes}/{no})',
+      accept: 'Go down the grate on the square, south of the temple steps. Say "lumen" first, or use your Torchlight button: it is dark down there.',
+      tooWeak: 'The sewers are dark, $name. Reach level 2 and learn Torchlight first: the rats of Sunny Fields will get you there.',
+      elsewhere: 'Master Corwin at the academy wants to hear how you did under the town.',
+      done: 'That shield suits you. Now, the gate guards have work for you.',
+    },
+  },
   bell_2: {
     name: 'The Silent Bell II: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 5, word: 'crypt',
     reward: { xp: 300, gold: 60, items: [['health_potion', 3]] },
@@ -1736,6 +1758,7 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I teach newcomers how to stay alive on this isle.',
       'bell|quest|mission|task|ama|crypt|note': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
+      'shield|hoard|storeroom': { quest: ['cellar_shield'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
       'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',

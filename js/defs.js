@@ -335,7 +335,8 @@ const THINGS = {
   // Oakvale Isle: gear for those who dare go deep, once per character. Further down, better gear.
   qchest_oak_cap: {
     name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_cap', gold: 30, items: [['health_potion', 2]] }, // (the cap comes from Master Corwin now: the guide)
+    chest: { flag: 'oak_hoard', requires: 'cellar_shield@1', items: [['wooden_shield', 1]],
+      locked: 'Rats squeal all round you. Deal with them first.' }, // (The Rats' Hoard: the shield, once the rats are dead)
   },
   qchest_oak_shield: {
     name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
