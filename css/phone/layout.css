@@ -493,7 +493,7 @@ body.touch-ui .hud-map-button { display: flex; align-items: center; justify-cont
 body.touch-ui .hud-map-button::before { content: ''; position: absolute; inset: 6px; border: 1px solid var(--hud-edge); border-radius: 6px;
   background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
 body.touch-ui .hud-map-button .icon { position: relative; width: 20px; height: 20px; }
-body.touch-ui.panel-open .hud-map-button { visibility: hidden; }
+body.touch-ui.panel-open .hud-map-button, body.touch-ui.drawer-full .hud-map-button { visibility: hidden; } /* (the drawer all the way up covers the view: its own Map tab is there) */
 /* -- What you're fighting (only with a target): name, a thin red bar, the percent; it takes taps, so none fall
       through it onto the map -- */
 .hud-target { display: none; }
