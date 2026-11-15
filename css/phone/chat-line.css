@@ -7,11 +7,11 @@ body.touch-ui .chat-line { display: none; }
     display: flex; align-items: center; gap: 10px; position: absolute; left: 8px; right: 52px;
     top: 2px; height: calc(var(--chat-line) - 2px); padding: 0 8px; margin: 0;
     border: 0 !important; border-radius: 8px; background: none !important; box-shadow: none !important; color: #e8e0cc; text-align: left;
-    font: 500 13px/1 Inter, sans-serif; opacity: 0.7; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
+    font: 500 12px/1 Inter, sans-serif; opacity: 0.7; transition: opacity 0.6s; overflow: hidden; touch-action: manipulation;
   }
   body.touch-ui .chat-line-time { display: none; }
   body.touch-ui .chat-line.fresh { opacity: 1; }
-  body.touch-ui .chat-line .icon { flex: none; width: 20px; height: 20px; color: #d8cfb8; }
+  body.touch-ui .chat-line .icon { flex: none; width: 16px; height: 16px; color: #d8cfb8; }
   body.touch-ui .chat-line-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   body.touch-ui .chat-line-time { color: #8a7f68; }
   body.touch-ui .chat-line b { color: #f0c36a; }

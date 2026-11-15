@@ -18,7 +18,8 @@ function hideFloatingStick() { $('joystick').classList.remove('floating'); }
   const xp = document.createElement('span'); xp.id = 'hudXpText'; expLabel.appendChild(xp); hud.appendChild(expLabel);
   // the map, a button in the top left corner of the view: the drawer's map page (inventory-drawer.js)
   const mapButton = document.createElement('button'); mapButton.id = 'hudMap'; mapButton.className = 'hud-map-button';
-  mapButton.title = 'Map'; mapButton.setAttribute('aria-label', 'Map'); mapButton.appendChild(Icons.img('map', 26));
+  mapButton.title = 'Map'; mapButton.setAttribute('aria-label', 'Map'); mapButton.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path fill="#e8e0cc" d="M3 6.2 8.4 4v13.6L3 19.8z"/>'
+    + '<path fill="#bdb6a4" d="M9.4 4l5.2 2.2v13.6L9.4 17.6z"/><path fill="#e8e0cc" d="M15.6 6.2 21 4v13.6l-5.4 2.2z"/></svg>'; // (a folded map)
   mapButton.addEventListener('click', () => (InventoryDrawer.stage() && InventoryDrawer.page() === 'map' ? InventoryDrawer.close() : InventoryDrawer.show('map')));
   $('touch').appendChild(mapButton);
   // what you're fighting, at the top of the view: its name, its health as a bar and a percent

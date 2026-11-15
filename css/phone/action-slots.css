@@ -7,7 +7,7 @@ body.touch-ui #favs .fav .slot-initials { color: #f3d79a; font: 700 15px/1 Georg
 body.touch-ui #favs .fav .slot-badge {
   position: absolute !important; right: 4px !important; bottom: 3px !important; left: auto; min-width: 0; box-shadow: none !important; display: block !important; max-width: none !important;
   padding: 0 !important; border: 0 !important; background: none !important;
-  color: #fff !important; font: 700 13px/1 Inter, sans-serif !important; text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none;
+  color: #fff !important; font: 600 12px/1 Inter, sans-serif !important; text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none;
 }
 body.touch-ui #favs .fav .slot-badge.mana { color: #9fd6ff !important; }
 body.touch-ui #favs .fav .slot-badge:empty { display: none !important; }
@@ -18,18 +18,18 @@ body.touch-ui #favs .fav .slot-cool {
   background: conic-gradient(rgba(5, 4, 2, 0.68) calc(var(--p, 0) * 1turn), transparent 0);
 }
 body.touch-ui #favs .fav.holding { outline: 2px solid #f4d68e; outline-offset: -2px; }
-/* The edge: gold when it can be used now, dark when it can't (too little mana, cooling down, a level still to reach) */
-body.touch-ui #favs .fav { border-color: #4a4232 !important; border-radius: 10px !important; background: radial-gradient(ellipse at top, #2a2620, #0b0a08 80%) !important; box-shadow: inset 0 0 0 1px #15130f !important; }
-body.touch-ui #favs .fav.ready { border-color: #c99a4c !important; box-shadow: inset 0 0 0 1px #3a2a12, 0 0 4px #c99a4c44 !important; }
+/* The edge: the same quiet grey on every action button (only the smart button has gold) */
+body.touch-ui #favs .fav { border-color: #3b3a36 !important; border-radius: 9px !important; background: linear-gradient(#2a2925, #121110) !important; box-shadow: none !important; }
+
 /* A spell's mana: a small drop and the number, under its picture */
-body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 1px; font-size: 11px !important; }
+body.touch-ui #favs .fav .slot-badge.mana { left: 0 !important; right: 0 !important; bottom: 2px !important; display: flex !important; justify-content: center; align-items: center; gap: 1px; font-size: 10px !important; }
 body.touch-ui #favs .fav .slot-badge.mana .icon { width: 10px; height: 10px; }
 /* The seconds of cooldown left, over the shade */
-body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 14px; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 15px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
+body.touch-ui #favs .fav .slot-left { position: absolute; inset: 0 0 14px; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #fff; font: 700 13px/1 Inter, sans-serif; text-shadow: 0 1px 3px #000; }
 /* Pressed: a thin light edge (no animation that gets in the way) */
 body.touch-ui #favs .fav.holding { border-color: #f4d68e !important; }
 /* Which set each group shows, under it: three short bars, the one shown gold */
-body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + var(--slot-row, 48px) + 11px); left: 10px; width: calc((100% - 20px) * 3 / 7);
+body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + var(--slot-row, 46px) + 10px); left: 10px; width: calc((100% - 20px) * 3 / 7);
   display: flex; justify-content: center; gap: 6px; pointer-events: none; }
 body.touch-ui .slot-set-hint.right { left: auto; right: 10px; }
 body.touch-ui .slot-set-hint i { width: 16px; height: 4px; border-radius: 2px; background: #4a4438; }

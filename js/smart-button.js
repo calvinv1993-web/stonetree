@@ -55,11 +55,9 @@ const SmartButton = (() => {
     const engaged = a.kind === 'attack' && !!(player && player.target && !player.target.dead);
     if (button.dataset.action === a.kind && button.title === a.label && button.classList.contains('engaged') === engaged) return;
     button.dataset.action = a.kind;
-    // its icon, and under it a word for what a press does (none while there's nothing to do)
-    const fighting = a.kind === 'attack' && player && player.target && !player.target.dead;
-    button.classList.toggle('engaged', !!fighting); // (attacking now: the button lit, its word Attacking)
-    const word = { attack: fighting ? 'Attacking' : 'Attack', loot: 'Loot', talk: 'Talk', use: a.label === 'Train' ? 'Train' : 'Use', close: 'Close' }[a.kind];
-    button.replaceChildren(Icons.img(a.kind, 34), ...(word ? [Object.assign(document.createElement('span'), { className: 'smart-word', textContent: word })] : []));
+    // only its icon; attacking now, it is lit from within
+    button.classList.toggle('engaged', engaged);
+    button.replaceChildren(Icons.img(a.kind, 34));
     button.title = a.label;
     button.setAttribute('aria-label', a.label);
   }

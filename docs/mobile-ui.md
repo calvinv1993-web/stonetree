@@ -21,7 +21,8 @@ From top to bottom:
     used, dimmed without the mana or with none left; a shade and the seconds while it cools down. Tap to use, hold to
     choose what goes there, swipe sideways for the next set of three (both groups apart, kept per player).
   - the smart button in the middle (`js/smart-button.js`, `css/phone/smart-button.css`): attack, loot, talk, use, or
-    nothing, by what is about; its icon and a word under it say which.
+    nothing, by what is about; its icon says which (no words), lit warm while you attack. Upright the fight mode and
+    following are not on the view: they head the drawer's Settings page.
   - the drawer (`js/inventory-drawer.js`, `css/phone/inventory-drawer.css`), opened by the backpack or the map
     button: equipment and backpack side by side; swipe up on its tab for everything, with other opened bags and the
     skills; down on its handle to go back. Dragging a thing out over the map closes it.
