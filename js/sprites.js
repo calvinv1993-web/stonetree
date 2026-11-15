@@ -379,7 +379,7 @@ const Sprites = (() => {
   // front of it, the renderer's ':io'), laid onto the faces and the top as any thin wall is built; kept fine.
   function templeFromStrips(x, y, shape = '1001:oo') {
     const [sides, io = 'oo'] = shape.split(':'), res = Sprites.CREATURE_RES, at = v => ((v % 4) + 4) % 4;
-    return cached(`templestrip:${sides}:${io}:${at(x)}:${at(y)}:${res}`, g => {
+    return cached(`templestrip2:${sides}:${io}:${at(x)}:${at(y)}:${res}`, g => {
       g.canvas.res = res;
       const set = g.setTransform.bind(g);
       g.setTransform = (a, b, c, d, e, f) => set(a * res, b * res, c * res, d * res, e * res, f * res);
@@ -394,7 +394,12 @@ const Sprites = (() => {
       wallBlock(g, sides, {
         south: strip(io[1] === 'i' ? 'temple_wall_in' : 'temple_wall_out', at(x)),
         east: strip(io[0] === 'i' ? 'temple_wall_in' : 'temple_wall_out', at(y), 0.78),
-        top: strip('temple_wall_top', at(x)),
+        top: () => { // the coping seen from above, at its own proportions: along a wall running north-south (turned), then east-west
+          const img = customImage('temple_wall_top'), w = img.naturalWidth / 4, h = img.naturalHeight;
+          g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+          g.save(); g.translate(TILE, 0); g.rotate(Math.PI / 2); g.drawImage(img, at(y) * w, 0, w, h, 0, 0, TILE, WALL_THICKNESS); g.restore();
+          g.drawImage(img, at(x) * w, 0, w, h, 0, W0, TILE, WALL_THICKNESS);
+        },
       });
     }, 2 * TILE * res);
   }
