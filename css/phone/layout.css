@@ -510,15 +510,17 @@ body.touch-ui .hud-target small { flex: none; font: 500 11px/1 var(--hud-font); 
       safe area -- */
 .hud-bag-button { display: none; }
 @media (orientation: portrait) {
-  body.touch-ui { --chat-line: 30px; --slot-gap: 6px; --slot-pad: 10px; --slot-row: clamp(44px, calc((100vw - 2 * var(--slot-pad) - 6 * var(--slot-gap)) / 7), 56px);
+  /* the six action buttons as big as the backpack's places (--slot); the smart button in the middle bigger (--smart),
+     the room they leave between the two groups its own */
+  body.touch-ui { --chat-line: 30px; --slot-gap: 6px; --slot-pad: 10px; --slot: 40px; --smart: 56px; --slot-row: var(--smart);
     --tabbar: calc(var(--chat-line) + 6px + var(--slot-row) + 17px + env(safe-area-inset-bottom, 0px)); }
   body.touch-ui #actionDock { background: var(--hud-bg-low); border-top: 1px solid var(--hud-bronze); }
   body.touch-ui #actionDock::before { content: ''; position: absolute; left: 0; right: 0; top: var(--chat-line); height: 1px; background: rgba(255, 255, 255, 0.06); pointer-events: none; }
   body.touch-ui #radialControls { top: calc(var(--chat-line) + 6px) !important; bottom: auto !important; left: var(--slot-pad) !important; right: var(--slot-pad) !important; height: var(--slot-row) !important; }
-  body.touch-ui #favs { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--slot-gap); }
+  body.touch-ui #favs { grid-template-columns: repeat(3, var(--slot)) 1fr repeat(3, var(--slot)); gap: var(--slot-gap); align-items: center; }
+  body.touch-ui #favs .fav { width: var(--slot) !important; height: var(--slot) !important; }
   body.touch-ui #favs .fav:nth-child(4) { grid-column: 5; }
-  body.touch-ui #tAttack { top: calc(var(--chat-line) + 6px) !important; bottom: auto !important; height: var(--slot-row) !important;
-    width: calc((100% - 2 * var(--slot-pad) - 6 * var(--slot-gap)) / 7) !important; }
+  body.touch-ui #tAttack { top: calc(var(--chat-line) + 6px) !important; bottom: auto !important; height: var(--smart) !important; width: var(--smart) !important; }
   body.touch-ui #actionDock > .drawer-tab { display: none; } /* (no tab on the bar: the backpack opens the drawer) */
   body.touch-ui .hud-bag-button { display: flex; align-items: center; justify-content: center; position: absolute; z-index: 1; top: -7px; right: 4px; width: 44px; height: 44px;
     min-width: 0; padding: 0; margin: 0; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--hud-text); }

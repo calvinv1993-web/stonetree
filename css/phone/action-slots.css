@@ -42,7 +42,7 @@ body.touch-ui #favs .fav.snap-left { animation: slot-snap-left 160ms ease-out; }
 body.touch-ui #favs .fav.snap-right { animation: slot-snap-right 160ms ease-out; }
 /* Which set each group shows, under it: short bars, the one shown in muted gold (none under the smart button) */
 body.touch-ui .slot-set-hint { position: absolute; top: calc(var(--chat-line, 0px) + 6px + var(--slot-row, 46px) + 7px); left: var(--slot-pad, 10px);
-  width: calc((100% - 2 * var(--slot-pad, 10px) - 6 * var(--slot-gap, 6px)) * 3 / 7 + 2 * var(--slot-gap, 6px));
+  width: calc(3 * var(--slot, 40px) + 2 * var(--slot-gap, 6px));
   display: flex; justify-content: center; align-items: center; gap: 5px; pointer-events: none; }
 body.touch-ui .slot-set-hint.right { left: auto; right: var(--slot-pad, 10px); }
 body.touch-ui .slot-set-hint i { width: 11px; height: 3px; border-radius: 2px; background: #3e3d42; }
