@@ -131,7 +131,8 @@ const CUSTOM_SPRITES = {
   gate_arch_front: 'gate-arch-front.png', portcullis_front: 'portcullis-front.png', // the owner's town gate arch and portcullis, straight on
   wall_banner_front: 'wall-banner-front.png', sign_weapons_front: 'sign-weapons-front.png', // the owner's banner and weapon shop sign, straight on
   sign_depot_front: 'sign-depot-front.png', sign_inn_front: 'sign-inn-front.png', sign_tools_front: 'sign-tools-front.png', // the owner's boards with
-  sign_magic_front: 'sign-magic-front.png', sign_temple_front: 'sign-temple-front.png', // their own emblems (cut from the owner's sheet)
+  sign_magic_front: 'sign-magic-front.png', sign_temple_front: 'sign-temple-front.png', sign_armour_front: 'sign-armour-front.png',
+  sign_food_front: 'sign-food-front.png', sign_school_front: 'sign-school-front.png', // their own emblems (cut from the owner's sheet)
   sign_blank_front: 'sign-blank-front.png', // the same board without its emblem: the other shops' signs, their emblem carved in
   lantern_side: 'lantern-side.png', // the owner's wall lantern, seen from the side (the wall on its left)
   crypt_gate: 'crypt-gate@4x.png', // the owner's locked iron gate in the crypt
