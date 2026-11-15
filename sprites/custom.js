@@ -71,15 +71,12 @@ const CUSTOM_SPRITES = {
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
-  wall_stone_corner_1100: 'wall-stone-corner-1100.png',
   wall_wood_post: 'wall-wood-post.png', // the wooden houses' walls: the post alone, its arm north, its arm west, the corner of both (the owner's picture)
   wall_wood_n: 'wall-wood-n.png',
   wall_wood_w: 'wall-wood-w.png',
-  wall_wood_corner_1100: 'wall-wood-corner-1100.png',
   wall_temple_post: 'wall-temple-post.png', // the temple's walls: the post alone, with its arm north, with its arm west (see wallFromPictures)
   wall_temple_n: 'wall-temple-n.png',
   wall_temple_w: 'wall-temple-w.png',
-  wall_temple_corner_1100: 'wall-temple-corner-1100.png', // (the owner's pieces in the statue's style)
   saint: 'saint@2x.png', // a name ending in @2x: two pixels a world pixel (96 x 96 world pixels in 192 x 192)
   plant: 'plant@2x.png',
   pew: 'pew@2x.png',
