@@ -6855,6 +6855,7 @@ const Sprites = (() => {
       custom.set(id, img);
     }
   }
+  const GROUND_ITEM = 0.78; // (how big a painted item lies on the ground: about three quarters of a tile, as the drawn ones)
   const UI_ART = { health_potion: 'h.png', mana_potion: 'm.png' }; // (see itemURL)
   const customImage = id => {
     const img = custom.get(id);
@@ -7053,6 +7054,18 @@ const Sprites = (() => {
     },
     item(id) {
       return customImage(id) || cached(`item:${id}`, g => ITEM_DRAW[id](g));
+    },
+    // An item lying on the ground: a painted picture (its own PNG fills its whole square) at GROUND_ITEM of a tile,
+    // in the middle and a little low, so it lies on the tile as the drawn ones do; a drawn one as it is
+    groundItem(id) {
+      const own = customImage(id);
+      if (!own) return Sprites.item(id);
+      const res = own.res || Math.max(1, Math.round(own.naturalWidth / TILE)), T = TILE * res, s = Math.round(T * GROUND_ITEM);
+      return cached(`grounditem:${id}:${res}`, g => {
+        g.canvas.res = res;
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        g.drawImage(own, Math.round((T - s) / 2), Math.round(T - s - T * 0.08), s, s);
+      }, T);
     },
     // URL of an item icon, for <img> tags in the UI.
     DOLLS: DOLLS_ON,

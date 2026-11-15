@@ -449,7 +449,7 @@ function draw() {
   view.cy += shakeY;
   Object.assign(view, { onFloor: drawWalkMark, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
-    const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.item(p.items[p.items.length - 1].id) : null;
+    const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.groundItem(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
   }
   for (const f of fields) view.objects.push({ x: f.x, y: f.y, z: f.z, img: Sprites.field(f.kind, now) });
