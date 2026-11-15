@@ -211,6 +211,12 @@ const GUIDE = [
     done: () => questState('bell_4') === 'done',
   },
   {
+    text: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
+    touch: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
+    target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
+    done: () => questState('bell_5') === 'done',
+  },
+  {
     text: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
     touch: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
     target: [{ npc: 'oak_oracle', level: 10 }],

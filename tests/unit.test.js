@@ -814,7 +814,7 @@ test('the Gravewaker was Sir Galen: he speaks, and what people say changes once 
   assert(/rats got him/.test(talk('galen')), 'before: a knight the rats killed');
   p.quests.bell_4 = { status: 'done', step: 0, kills: {} };
   assert(/closed coffin/.test(talk('galen')), 'after: the coffin was light');
-  assert(/burning mountain/.test(talk('choir')), 'and Corwin knows of the Ashen Choir');
+  assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
 });
 
 test('Clang, a companion: follows you, fights what you fight, and grows as he fights and trains', () => {
@@ -955,6 +955,12 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   kill('gravewaker', 1); ctx.useThing(69, 176, 6);
   assert.strictEqual(arrow(), 'ama'); assert.strictEqual(ctx.questWord('ama', 'bell_4'), 'clapper');
   talk('ama', 'clapper'); assert.strictEqual(state.questState('bell_4'), 'done');
+  // V: the Choir's landing at Lighthouse Point
+  assert.strictEqual(arrow(), 'corwin', 'Corwin has news of the Choir'); assert.strictEqual(mark('corwin'), 'offer');
+  talk('corwin', 'choir', 'yes'); assert.strictEqual(arrow(), 'oak_keeper', 'to Keeper Tamsin');
+  talk('oak_keeper', 'lights'); kill('choir_cultist', 4); kill('choir_cantor', 1);
+  assert.strictEqual(arrow(), 'corwin', 'back to Corwin with the page'); talk('corwin', 'choir');
+  assert.strictEqual(state.questState('bell_5'), 'done');
   levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');

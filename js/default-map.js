@@ -245,11 +245,12 @@ const OAKVALE = {
     [95, 128, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
     [158, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
     [126, 152, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
+    [132, 210, 'Lighthouse Point. Here stood the light of Oakvale, until the great storm. Keeper Tamsin keeps the fire now.'],
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 112, 102, 8], ['oak_oracle', 110, 102, 9], ['postmaster', 147, 110, 8], ['pip', 119, 136, 8],
-    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8], ['oak_landlady', 138, 137, 8],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 106, 112, 8], ['oak_baker', 118, 141, 8], ['oak_innkeeper', 133, 136, 8], ['oak_landlady', 138, 137, 8], ['oak_keeper', 134, 210, 8],
     ['gate_north', 126, 100, 8], ['gate_east', 149, 116, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 130, 8],
     ['townsman', 130, 117, 8], ['townswoman', 138, 117, 8], ['child', 125, 119, 8], ['cat', 122, 115, 8], ['old_man', 140, 130, 8],
   ],
@@ -785,6 +786,10 @@ function createDefaultMap() {
     ['bear', 4, [184, 120, 212, 150]],                       // deep in Deer Woods
     ['bear', 3, [192, 40, 212, 56], S + 1],                  // the top of Hermit Rock
   ];
+  // Lighthouse Point: the stump of the fallen lighthouse (a ring of rubble round two broken pillars), and the keeper's fire
+  for (const [x, y] of [[126, 214], [127, 213], [129, 213], [130, 214], [130, 216], [129, 217], [127, 217], [126, 216]]) if (m.isWalkable(x, y, S)) put(x, y, S, 'rubble');
+  for (const [x, y] of [[127, 215], [129, 215]]) if (m.isWalkable(x, y, S)) put(x, y, S, 'pillar');
+  if (m.isWalkable(133, 211, S)) put(133, 211, S, 'campfire');
   const taken = new Set();
   // Open ground: not a little pocket shut in between trees or rocks (at least 40 tiles to walk about in).
   const open = (x, y, z) => {
@@ -836,6 +841,12 @@ function createDefaultMap() {
   // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
   for (const [type, x, y, ground] of [['greyfang', 62, 84], ['old_snapper', 157, 211, 'sand'], ['thornmother', 184, 190], ['gnash', 196, 70]]) {
     const p = spot(x, y, S, ground, 12);
+    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
+  }
+  // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): four singers round their cantor
+  // (placed by hand: the point is too small for the packs' spacing)
+  for (const [type, x, y] of [['choir_cantor', 128, 221], ['choir_cultist', 125, 220], ['choir_cultist', 131, 220], ['choir_cultist', 126, 223], ['choir_cultist', 130, 223]]) {
+    const p = spot(x, y, S, null, 3);
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
   }
 

@@ -4435,6 +4435,8 @@ const Sprites = (() => {
     orc_archer: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e04040', body: '#5a6a3a', belt: '#2a1a0a', legs: '#4a3a2a', arms: '#7a9a5a', hat: { style: 'hood', color: '#4a5a2a' }, held: 'bow' },
     bandit: { skin: '#e0b088', hair: '#2a1a0a', body: '#4a3a3a', belt: '#6a4a2a', legs: '#2a2a2a', arms: '#4a3a3a', hat: { style: 'hood', color: '#2a2a2a' }, held: 'sword' },
     ogre: { scale: 1.35, skin: '#c09a6a', hair: '#5a3a1a', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a3a', arms: '#c09a6a', held: 'club' },
+    choir_cultist: { skin: '#c8b8a8', eye: '#ff8030', body: '#5a5652', belt: '#c06020', legs: '#4a4642', arms: '#5a5652', robe: true, hat: { style: 'hood', color: '#3a3632' }, held: 'staff' }, // ash-grey singers of the Ashen Choir
+    choir_cantor: { scale: 1.15, skin: '#c0b0a0', eye: '#ffa040', body: '#2e2c2a', belt: '#e08030', legs: '#2a2826', arms: '#2e2c2a', robe: true, trim: '#e08030', hat: { style: 'hood', color: '#1e1c1a' }, held: 'staff' },
     dark_mage: { skin: '#c8b8a8', eye: '#e03030', body: '#2a1a3a', belt: '#8a2a2a', legs: '#2a1a3a', arms: '#2a1a3a', robe: true, hat: { style: 'hood', color: '#1a0f26' }, held: 'staff' },
     pirate: { skin: '#d8a070', hair: '#2a1a0a', beard: '#2a1a0a', body: '#e8e0d0', belt: '#8a2a2a', legs: '#2a2a3a', feet: '#1a1a1a', arms: '#d8a070', hat: { style: 'bandana', color: '#b02a2a' }, held: 'sword' },
     orc_shaman: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e0d020', body: '#5a3a5a', belt: '#c0a040', legs: '#5a3a5a', arms: '#7a9a5a', robe: true, hat: { style: 'hood', color: '#3a2a3a' }, held: 'staff' },

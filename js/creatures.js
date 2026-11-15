@@ -130,6 +130,26 @@ const MONSTERS = {
     spells: [{ kind: 'area', chance: 0.15, radius: 1, element: 'physical', dmg: [15, 40] }],
     loot: { gold: [20, 70], items: [['ogre_tusk', 0.3], ['meat', 0.5, 1, 3], ['war_hammer', 0.04], ['plate_legs', 0.02], ['steel_helmet', 0.03]] },
   },
+  // The Ashen Choir on Oakvale Isle (The Silent Bell V): grey-robed singers come ashore at night at Lighthouse Point,
+  // and their cantor with them. Level 8 to 10.
+  choir_cultist: {
+    name: 'Choir singer', hp: 110, xp: 70, dmg: [2, 12], armor: 2, speed: 120, attackSpeed: 2000, aggro: 6, corpse: 'blood',
+    ranged: { range: 4, dmg: [8, 22], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    loot: { gold: [5, 25], items: [['mana_potion', 0.2], ['health_potion', 0.15], ['blank_rune', 0.08]] },
+  },
+  choir_cantor: {
+    name: 'Choir Cantor', proper: true, hp: 420, xp: 320, dmg: [6, 16], defense: 4, armor: 4, speed: 130, attackSpeed: 1900, aggro: 7, corpse: 'blood',
+    respawn: 300000,
+    ranged: { range: 5, dmg: [12, 30], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    summon: { type: 'choir_cultist', max: 1, chance: 0.06 },
+    spells: [{ kind: 'heal', chance: 0.06, dmg: [30, 50] }],
+    loot: { gold: [40, 110], items: [['health_potion', 0.6], ['mana_potion', 0.4], ['ring_swift', 0.05]] },
+    voices: {
+      aggro: 'The bell rings, but the spark will be ours! Sing, brothers: the ship is coming!',
+      low: 'Galen was weak. We are many.',
+      death: 'Wait... for the ship...',
+    },
+  },
   dark_mage: {
     name: 'dark mage', hp: 160, xp: 100, dmg: [2, 10], armor: 2, speed: 105, attackSpeed: 2000, aggro: 7, corpse: 'blood',
     ranged: { range: 5, dmg: [12, 38], missile: 'fire', element: 'fire', chance: 0.8, keepDistance: true },

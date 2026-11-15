@@ -1701,6 +1701,30 @@ Object.assign(QUESTS, {
       done: 'The bell rings again, thanks to you. At level 10, go and see the oracle upstairs, $name.',
     },
   },
+  // V: after the bell, the Choir comes for the spark: their landing at Lighthouse Point, and the founder's own words
+  bell_5: {
+    name: 'The Silent Bell V: The Choir\'s Shadow', story: 'The Silent Bell', giver: 'corwin', level: 8, word: 'choir', after: 'bell_4',
+    reward: { xp: 600, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]] },
+    summary: 'Find out who comes ashore at Lighthouse Point at night, and what the Ashen Choir wants with Oakvale.',
+    steps: [
+      { npc: 'oak_keeper', word: 'lights', summary: 'Go to Lighthouse Point, south of Sunny Fields, and ask Keeper Tamsin about the lights.',
+        progress: 'Keeper Tamsin keeps her fire at Lighthouse Point, where the lighthouse stood, south of Sunny Fields.',
+        done: 'Lights? A boat without a lamp, every night since the bell rang again. They come ashore at the tip of the point, grey robes, and they sing. Not sea shanties. If you mean to chase them off, $name, mind the one who leads the singing.' },
+      { auto: true, kill: { choir_cultist: 4, choir_cantor: 1 }, summary: 'At the tip of Lighthouse Point, defeat 4 Choir singers and their cantor.',
+        progress: 'The Choir lands at the very tip of Lighthouse Point. So far: $progress.',
+        done: 'The cantor falls, and the singing stops. In his satchel: orders in ash ("Wait for the ship"), and a page torn from an old diary, in a careful, old-fashioned hand.' },
+      { npc: 'corwin', word: 'choir', summary: 'Bring the diary page and the cantor\'s orders to Master Corwin.',
+        progress: 'Master Corwin at the academy will want to read the diary page.',
+        done: 'The founder\'s own hand... "We fled the burning mountain with a splinter of the seal\'s fire, and sealed it in the bronze of our bell, that it might ring and keep the dead asleep, and keep Him from finding it." So that is what Galen wanted, and what the Choir waits for. They will send their ship, $name. Grow strong. When you are ready, the oracle upstairs will send you where they come from. Take this ring: it was Galen\'s, before. It should go to someone better.' },
+    ],
+    text: {
+      offer: 'Keeper Tamsin sends word from Lighthouse Point: lights on the water at night, and singing. The Choir did not give up with Galen, $name. Will you go and see who comes ashore? ({yes}/{no})',
+      accept: 'Lighthouse Point is south of Sunny Fields, past the beaches. Talk to Tamsin by her fire first. And go prepared: if they are the Choir, they throw fire.',
+      tooWeak: 'The Choir would burn you, $name. Come back at level 8, and after the bell rings again.',
+      elsewhere: 'Master Corwin wants to hear what you found at Lighthouse Point.',
+      done: 'The founder\'s page lies on my desk. I read it every night. Grow strong, $name.',
+    },
+  },
 });
 
 // The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
@@ -1789,7 +1813,8 @@ Object.assign(NPCS, {
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
-      choir: { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
+      'choir|ashen|lights|shadow': { quest: ['bell_5'] },
+      'books|lore': { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
       'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
       job: 'I teach newcomers how to stay alive on this isle.',
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
@@ -1888,6 +1913,18 @@ Object.assign(NPCS, {
       'hermit|rock': 'The hermit on Hermit Rock buys a sack of flour from me every spring, and pays in honey. He only comes at night. Strange man. Kind, though.',
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
+  },
+  // Keeper Tamsin, by her fire at Lighthouse Point, where the lighthouse stood: she sees the Choir's boats at night
+  oak_keeper: {
+    name: 'Keeper Tamsin',
+    look: { skin: '#d8a880', hair: '#c8c0b8', hairStyle: 'long', female: true, body: '#3a4a5a', arms: '#3a4a5a', legs: '#2a2a32', feet: '#2a1a0a', belt: '#8a6a3a', coat: true },
+    greet: 'A visitor, out here? Sit by the fire, $name. Mind the wind. Ask me about the {lighthouse}, if you like.',
+    keywords: {
+      job: 'I keep the light. There is no lighthouse any more, so I keep a fire, and that will have to do.',
+      'lighthouse|storm': 'The great storm took it, the year Pip was born. The sea threw the lamp right over the point. I keep a fire where it stood, so the fishing boats find their way home.',
+      'lights|choir|boat|boats|singing|grey': { quest: ['bell_5'] },
+    },
+    chatter: ['The wind is turning.', 'A boat out there, without a lamp. Again.', 'Who sings out at sea at night?'],
   },
   // Oakvale's landlady, at a table in the Sleepy Boar: the town's four houses are hers to let
   oak_landlady: {
