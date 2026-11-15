@@ -401,6 +401,7 @@ function renderMenu() {
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
     row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
+    ...(player.pet ? [row([player.pet.name, h('small', {}, player.pet.downUntil ? 'Resting at the temple' : player.pet.home ? 'Waiting at the temple: tap to call' : 'With you: tap to send home')], h('span', {}, '›'), () => { (player.pet.home ? Actions.petCall() : Actions.petHome()); renderMenu(); })] : []),
     row(['The guide', h('small', {}, player.vocation === 'none' ? 'From the start: how everything works' : 'For the starter island')], h('span', {}, '›'), () => { Actions.restartGuide(); InventoryDrawer.close(); }),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); $('guildBtn').click(); }),

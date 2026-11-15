@@ -14,6 +14,7 @@
 //   { bless: { cost, perLevel } }   protects your things the next time you die
 //   { houses: true }         rent a house (say its name), "leave" gives it back
 //   { forge: true }          open the forge (the NPC needs forge: true as well; see game-forge.js)
+//   { pet: true }            look after the player's companion (fetch it back, heal it)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
 // keyword that matches): what people say changes as the story goes on.
@@ -1794,6 +1795,7 @@ Object.assign(NPCS, {
     greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
     keywords: {
       'clang|cat|kitten': { quest: ['clang_rescue'] },
+      'pet|companion': { pet: true },
       'galen|knight|ash|spark': { after: 'bell_4', text: 'Galen... I lit candles for him for twenty years. And all that time he was waiting for the bell to fall silent. Whatever the founders hid in that bronze, $name, the Choir wants it. As long as the bell rings, the spark is ours.' },
       job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',

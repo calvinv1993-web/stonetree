@@ -164,6 +164,51 @@ const Actions = {
     player.tutorial = 1;
     uiDirty();
   },
+  // Your companion: feed it (a bit of food from your bag heals it), give it a health potion, send it home to wait,
+  // call it back, or give it a name
+  petFeed() {
+    const pet = player.pet;
+    if (!pet || pet.home || pet.downUntil) return;
+    const food = (bagItems().find(i => ITEMS[i.id].use && ITEMS[i.id].use.food) || {}).id;
+    if (!food) return log('You have nothing to feed it.');
+    removeItem(food, 1);
+    pet.hp = Math.min(petMaxHp(pet), pet.hp + Math.ceil(petMaxHp(pet) * 0.5));
+    log(`${pet.name} eats the ${itemName(food)} and purrs.`);
+    if (player.petBody) addSparkle(player.petBody, '#8fe08a');
+    uiDirty();
+  },
+  petPotion() {
+    const pet = player.pet;
+    if (!pet || pet.home || pet.downUntil) return;
+    if (!countItem('health_potion')) return log('You have no health potion.');
+    removeItem('health_potion', 1);
+    pet.hp = petMaxHp(pet);
+    log(`${pet.name} laps up the potion and looks much better.`);
+    if (player.petBody) addSparkle(player.petBody, '#ff8080');
+    uiDirty();
+  },
+  petHome() {
+    if (!player.pet || player.pet.home) return;
+    player.pet.home = true;
+    log(`${player.pet.name} trots off home to the temple. Call ${player.pet.name} back whenever you like (Settings, or ask Sister Ama).`);
+    uiDirty();
+  },
+  petCall() {
+    const pet = player.pet;
+    if (!pet || !pet.home) return;
+    if (pet.downUntil) return log(`${pet.name} is still licking its wounds.`);
+    pet.home = false;
+    log(`${pet.name} comes running.`);
+    uiDirty();
+  },
+  petName(name) {
+    const pet = player.pet;
+    const clean = String(name || '').trim().replace(/[^\p{L}\p{N} '-]/gu, '').slice(0, 14);
+    if (!pet || !clean) return;
+    pet.name = clean.charAt(0).toUpperCase() + clean.slice(1);
+    log(`Your companion is called ${pet.name} now.`);
+    uiDirty();
+  },
   // Skip the guide (for those who know their way): it goes away, and its presents come along so nobody is worse off.
   // It can be started again from the menu while on the starter island.
   skipGuide() {
@@ -376,20 +421,30 @@ function targetNext() {
 }
 
 // ---- a companion (Clang, the temple's cat): it follows you, fights what you fight, and grows ------------------------
-// Its body (player.petBody) isn't saved: it's made again beside you, and comes back to you when you go too far,
-// change floors or ride. It never blocks anyone, monsters don't go after it, and nothing hurts it.
+// player.pet = { name, kind, level, xp, hp, home, downUntil }: home, sent home to wait (Actions.petHome); downUntil,
+// knocked out and gone to the temple till then. Its body (player.petBody) isn't saved: it's made again beside you,
+// and comes back to you when you go too far, change floors or ride. It never blocks anyone. Monsters that fight it
+// hit it now and then instead of you (damagePlayer); hurt badly, it keeps behind you; out of a fight it heals.
+const petMaxHp = pet => PETS[pet.kind].hp(pet.level);
 function updatePet() {
   const pet = player.pet, kind = pet && PETS[pet.kind];
-  if (!kind || player.dead || player.ride) { player.petBody = null; return; }
+  if (!kind) { player.petBody = null; return; }
+  if (pet.hp === undefined) pet.hp = petMaxHp(pet);
+  if (pet.downUntil && now >= pet.downUntil) { pet.downUntil = 0; pet.hp = petMaxHp(pet); log(`${pet.name} is back, licking a paw as if nothing happened.`, 'quest'); }
+  if (pet.home || pet.downUntil || player.dead || player.ride) { player.petBody = null; return; }
   let b = player.petBody;
   if (!b || b.z !== player.z || dist(b, player) > 8) {
     const at = findFreeTile(player.x, player.y + 1, player.z, 2) || player;
     b = player.petBody = { id: (b && b.id) || newId(), type: kind.look, pet: true, name: pet.name, level: pet.level, x: at.x, y: at.y, z: player.z, dir: 2, walk: null, nextMove: 0, nextHit: 0 };
   }
-  b.level = pet.level;
+  Object.assign(b, { name: pet.name, level: pet.level, hp: pet.hp, maxHp: petMaxHp(pet) });
+  // out of a fight it heals: a little every two seconds
+  if (!player.target && pet.hp < b.maxHp && now >= (b.nextHeal || 0)) { b.nextHeal = now + 2000; pet.hp = Math.min(b.maxHp, pet.hp + Math.ceil(b.maxHp / 30)); }
   if (b.walk && now - b.walk.start >= b.walk.dur) b.walk = null;
   if (b.walk || now < b.nextMove) return;
-  const t = player.target && !player.target.dead && player.target.z === b.z && dist(player.target, player) <= 7 ? player.target : null;
+  const hurt = pet.hp < b.maxHp * 0.3; // badly hurt: it keeps behind you, out of the fight
+  const t = !hurt && player.target && !player.target.dead && player.target.z === b.z && dist(player.target, player) <= 7 ? player.target : null;
+  b.fighting = !!t;
   if (t && dist(b, t) <= 1) { // at its target: a scratch every so often
     b.dir = dirTo(t.x - b.x, t.y - b.y);
     if (now >= b.nextHit) { b.nextHit = now + kind.hitEvery; petHit(t, kind); }
@@ -420,6 +475,26 @@ function petHit(m, kind) {
   petLearn(1);
 }
 
+// Does this monster's blow land on your companion instead of you? Now and then, if it's right beside it: more often
+// while it's fighting.
+function petTakesHit(attacker) {
+  const b = player.petBody, pet = player.pet;
+  if (!b || !pet || pet.downUntil || pet.home || attacker.z !== b.z || dist(attacker, b) > 1) return false;
+  return Math.random() < (b.fighting ? 0.35 : 0.15);
+}
+function petHurt(dmg) {
+  const pet = player.pet, b = player.petBody;
+  dmg = Math.max(1, Math.round(dmg * 0.7));
+  pet.hp = Math.max(0, pet.hp - dmg);
+  if (b) { addText(b, String(dmg), '#ff9050'); addBurst(b.x, b.y, b.z, '#d83030'); b.hp = pet.hp; }
+  if (pet.hp > 0) return;
+  pet.downUntil = now + PET_AWAY;
+  if (b) addSparkle(b, '#ffffff');
+  player.petBody = null;
+  log(`${pet.name} is badly hurt and runs home to the temple. Ask Sister Ama about your pet, or wait: ${pet.name} comes back in a few minutes.`, 'damage');
+  uiDirty();
+}
+
 // A pet grows: a point for each blow (on a monster or, training beside you, on a dummy)
 function petLearn(n) {
   const pet = player.pet, kind = pet && PETS[pet.kind];
@@ -427,9 +502,20 @@ function petLearn(n) {
   pet.xp += n;
   if (pet.xp < kind.xpFor(pet.level)) return;
   pet.xp = 0; pet.level++;
+  pet.hp = petMaxHp(pet);
   log(`${pet.name} grows stronger! (level ${pet.level})`, 'level');
   if (player.petBody) addSparkle(player.petBody, '#ffe080');
   uiDirty();
+}
+
+// Sister Ama looks after your pet: one knocked out comes back at once, healed
+function petCare() {
+  const pet = player.pet;
+  if (!pet) return 'You have no companion, $name. Though Clang, our cat, is still missing...';
+  if (pet.downUntil) { pet.downUntil = 0; pet.hp = petMaxHp(pet); pet.home = false; return `Here is ${pet.name}, bandaged and fed. Off you go, both of you, and look after each other.`; }
+  if (pet.home) { pet.home = false; return `${pet.name} has been asleep on my altar cloth all day. Go on, then: off with you.`; }
+  pet.hp = petMaxHp(pet);
+  return `${pet.name} looks well, $name. There: a little blessing for the road.`;
 }
 
 function updatePlayer() {

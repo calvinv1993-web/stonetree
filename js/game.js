@@ -224,6 +224,48 @@ function tileUnderPointer(e) {
 }
 
 // The creature drawn under the pointer (they stand a little raised).
+// Your companion under the pointer (it isn't a creature anyone can target)
+function petUnder(wx, wy) {
+  const b = player.petBody;
+  if (!b || b.z !== player.z) return null;
+  const v = visual(b), x = v.x * TILE - LIFT, y = v.y * TILE - LIFT;
+  return wx >= x && wx < x + TILE && wy >= y && wy < y + TILE ? b : null;
+}
+
+// What you can do with your companion: feed it, give it a potion, name it, send it home
+function openPetMenu(e) {
+  const pet = player.pet, menu = $('ctxMenu');
+  if (!pet) return;
+  menu.replaceChildren();
+  const item = (label, fn) => { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', () => { closeCreatureMenu(); fn(); }); menu.appendChild(b); };
+  const head = document.createElement('div'); head.className = 'ctx-head';
+  head.textContent = `${pet.name} · level ${pet.level} · ${pet.hp}/${PETS[pet.kind].hp(pet.level)}`;
+  menu.appendChild(head);
+  item('Feed (from your bag)', () => Actions.petFeed());
+  item('Give a health potion', () => Actions.petPotion());
+  item('Rename', () => askPetName(pet.name));
+  item('Send home', () => Actions.petHome());
+  menu.hidden = false;
+  const r = menu.getBoundingClientRect();
+  menu.style.left = `${Math.min(e.clientX, innerWidth - r.width - 4)}px`;
+  menu.style.top = `${Math.min(e.clientY, innerHeight - r.height - 4)}px`;
+}
+
+// Name your companion: a small window with a box to type in
+function askPetName(current) {
+  const dlg = document.createElement('div');
+  dlg.className = 'window dialog pet-name';
+  dlg.innerHTML = '<header><b>Name your companion</b></header><p class="muted small">What will you call your cat?</p>';
+  const input = Object.assign(document.createElement('input'), { value: current || '', maxLength: 14, placeholder: 'Clang' });
+  const ok = Object.assign(document.createElement('button'), { textContent: 'Done' });
+  const done = () => { Actions.petName(input.value || current || 'Clang'); dlg.remove(); paused = false; };
+  ok.addEventListener('click', done);
+  input.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') done(); });
+  dlg.append(input, ok);
+  $('viewport').appendChild(dlg);
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+
 function creatureUnder(wx, wy) {
   return [...monsters, ...players].find(c => {
     if (c.dead || c === player || c.z !== player.z || (c.def && !canSee(c))) return false;
@@ -299,6 +341,7 @@ function socialItems(c, item) {
 document.addEventListener('pointerdown', e => { if (!$('ctxMenu').hidden && !$('ctxMenu').contains(e.target)) closeCreatureMenu(); }, true);
 
 function clickTile(e, t, wx, wy) {
+  if (petUnder(wx, wy)) return openPetMenu(e); // (your companion: what to do with it)
   const creature = creatureUnder(wx, wy);
   const npc = npcs.find(n => n.x === t.x && n.y === t.y && n.z === t.z);
   const someone = creature || npc;
@@ -358,7 +401,8 @@ function touchGesture(down, t, wx, wy) {
     pressed = true;
     if (navigator.vibrate) navigator.vibrate(15);
     const someone = creatureUnder(wx, wy) || npcs.find(n => n.x === t.x && n.y === t.y && n.z === t.z);
-    if (someone && someone !== player) openCreatureMenu(down, someone, t); // hold someone: what to do with them
+    if (petUnder(wx, wy)) openPetMenu(down);
+    else if (someone && someone !== player) openCreatureMenu(down, someone, t); // hold someone: what to do with them
     else Actions.interact('use', t.x, t.y, t.z);
   }, LONG_PRESS);
   const move = e => {
@@ -695,7 +739,10 @@ function drawCreatureInfo(c, screen, struck) {
     ctx.globalAlpha = 1;
   };
   if (player.follow === c.id && c !== player.target) frame('#30e040', 1);
-  if (c.pet) { // a companion: its name and level, warm, no health bar (nothing hurts it)
+  if (c.pet) { // a companion: its name and level, warm, and a thin health bar
+    const f = Math.max(0, Math.min(1, (c.hp || 0) / (c.maxHp || 1)));
+    ctx.fillStyle = '#000'; ctx.fillRect(sx + 9, ty + 6, size - 18, 5);
+    ctx.fillStyle = f > 0.6 ? '#30c030' : f > 0.3 ? '#e0c020' : '#e03030'; ctx.fillRect(sx + 10, ty + 7, Math.ceil((size - 20) * f), 3);
     outlinedText(`${c.name} (${c.level})`, sx + size / 2, ty + 2, '#ffd98a', 'bold 11px sans-serif');
     return;
   }

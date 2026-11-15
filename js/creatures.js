@@ -404,10 +404,11 @@ const FIELDS = {
 // regen: [hp, mana] per second while fed. promoted: title after promotion.
 // Companions (a player's pet: player.pet = { name, kind, level, xp }, game-update.js updatePet). Per kind:
 //   look: the creature it's drawn as; hitEvery: ms between its blows; dmg(level): [min, max] a blow;
-//   xpFor(level): what it needs to grow from that level to the next; maxLevel
+//   hp(level): its health; xpFor(level): what it needs to grow from that level to the next; maxLevel
 const PETS = {
-  cat: { look: 'cat', hitEvery: 1600, dmg: l => [1, 2 + l], xpFor: l => 12 * l * l, maxLevel: 10 },
+  cat: { look: 'cat', hitEvery: 1600, dmg: l => [1, 2 + l], hp: l => 30 + 12 * l, xpFor: l => 12 * l * l, maxLevel: 10 },
 };
+const PET_AWAY = 3 * 60000; // a companion knocked out runs home to the temple, and comes back after this (or Sister Ama fetches it)
 
 const VOCATIONS = {
   none: {

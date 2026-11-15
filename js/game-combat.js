@@ -258,6 +258,8 @@ function damageMonster(m, dmg, element) {
 function damagePlayer(attacker, dmg, element, cause, source = attacker) {
   if (player.dead) return;
   if (attacker && attacker.type !== 'player' && map.isShelter(player.x, player.y, player.z)) return; // monsters can't reach you in there
+  // a monster's blow beside your companion lands on it now and then (it guards you, and gets hurt for it)
+  if (attacker && attacker.type !== 'player' && attacker !== player && element === 'physical' && player.pet && petTakesHit(attacker)) return petHurt(dmg);
   if (attacker && attacker !== player) addAttacker(attacker);
   if (attacker && attacker.type !== 'player') player.foughtAt = now; // blocking counts as fighting
   const eq = player.equipment;

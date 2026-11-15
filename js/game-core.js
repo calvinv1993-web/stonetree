@@ -1304,7 +1304,8 @@ function advanceQuest(id) {
   if (r.xp) gainXp(r.xp);
   if (r.bell) ringTownBell('Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!');
   if (r.pet && !player.pet) { // a companion: it follows you from now on (game-update.js updatePet)
-    player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0 };
+    player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0, hp: PETS[r.pet.kind].hp(1), home: false, downUntil: 0 };
+    playerEvent('petName', { name: r.pet.name }); // (the browser asks what to call it)
     log(`${r.pet.name} is your companion now: it follows you, fights at your side, and grows stronger as it fights and trains with you.`, 'level');
   }
   uiDirty();
@@ -1396,7 +1397,8 @@ function serializePlayer(p) {
 function applySave(data) {
   for (const f of SAVED_FIELDS) if (data[f] !== undefined) player[f] = data[f];
   if (data.tutorial === undefined) player.tutorial = 0; // from before the guide: they know their way
-  if (data.born === undefined) player.born = ''; // (from before the mark: its action buttons stay under its name)
+  if (data.born === undefined) player.born = '';
+  if (player.pet && player.pet.downUntil) player.pet.downUntil = now + 30000; // (a clock that started again: back soon) // (from before the mark: its action buttons stay under its name)
   const valid = it => it && ITEMS[it.id] && (!it.contents || (it.contents = it.contents.filter(valid)));
   for (const slot of SLOTS) if (!valid(player.equipment[slot])) player.equipment[slot] = null;
   if (!player.equipment.backpack) player.equipment.backpack = makeItem('bag');

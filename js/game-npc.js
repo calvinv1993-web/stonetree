@@ -229,6 +229,7 @@ function ask(text, yes, no) {
 // The services from npcs.js. Returns what the NPC says.
 function service(s, npc, text) {
   if (s.quest) return questTalk(s.quest, npc, s.otherwise);
+  if (s.pet) return petCare();
   if (s.heal) {
     if (player.hp >= player.maxHp && !Object.keys(player.conditions).some(k => CONDITIONS[k].interval)) return 'You are not hurt.';
     player.hp = player.maxHp;

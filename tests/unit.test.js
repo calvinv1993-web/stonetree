@@ -831,6 +831,13 @@ test('Clang, a companion: follows you, fights what you fight, and grows as he fi
   assert(rat.hp < 999, 'he scratches your target');
   for (let i = 0; i < 40; i++) ctx.petLearn(1);
   assert(p.pet.level >= 2 && messages.some(m => /Clang grows stronger/.test(m)), 'and grows');
+  // hurt by monsters now and then; knocked out, it runs home; Ama fetches it
+  const before = p.pet.hp; ctx.petHurt(5); assert(p.pet.hp < before, 'a blow hurts it');
+  state.Actions.petPotion(); assert.strictEqual(p.pet.hp, state.PETS.cat.hp(p.pet.level), 'a potion heals it');
+  ctx.petHurt(9999); assert(p.pet.downUntil > 0 && !p.petBody, 'knocked out: it runs home');
+  assert(/bandaged/.test(ctx.petCare()) && !p.pet.downUntil, 'Sister Ama fetches it back');
+  state.Actions.petHome(); tick(game, 100); assert(!p.petBody, 'sent home'); state.Actions.petCall(); tick(game, 100); assert(p.petBody, 'and called back');
+  state.Actions.petName('  whiskers<> '); assert.strictEqual(p.pet.name, 'Whiskers', 'named');
   p.dead = true; ctx.updatePet(); assert.strictEqual(p.petBody, null, 'gone while you are dead');
 });
 

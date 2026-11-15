@@ -1127,6 +1127,7 @@ function handleEvents() {
     else if (kind === 'banner') raidBanner = { text: data.message, until: now + 9000, color: '#ffd84a' };
     else if (kind === 'forge') openForge(data.npc);
     else if (kind === 'forged') forgeResult(data);
+    else if (kind === 'petName') askPetName(data.name);
   }
 }
 
