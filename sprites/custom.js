@@ -257,6 +257,11 @@ const CUSTOM_SPRITES = {
   sheet_gravewaker: 'monster-gravewaker.png', // the Gravewaker
   sheet_gravewaker_echo: 'monster-gravewaker.png', // his echo: the same shape
   sheet_watchman_shade: 'monster-watchman_shade.png', // the watchman's shade
+  sheet_rat: 'monster-rat.png', // the beasts: laid out the same, front, side and back
+  sheet_giant_rat: 'monster-giant_rat.png',
+  sheet_spider: 'monster-spider.png',
+  sheet_slime: 'monster-slime.png',
+  sheet_cat: 'monster-cat.png', // the town's cats (Clang keeps his own, with his bell)
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',

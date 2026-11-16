@@ -57,7 +57,7 @@ def main_figure(cell):
         k[1:] |= keep[:-1]; k[:-1] |= keep[1:]; k[:, 1:] |= keep[:, :-1]; k[:, :-1] |= keep[:, 1:]
         keep = k
     # its soft shadow on the ground too: the faint pixels that touch it (a shadow painted under its feet)
-    faint = (alpha > 6) & ~fringe & ~((r > 120) & (r > g * 1.8) & (r > b * 1.8))  # (the shadow is dark, never red)
+    faint = (alpha > 6) & ~fringe & ~((r > 120) & (r > g * 1.8) & (r > b * 1.8)) & ((r + g + b) < 330)  # (the shadow is dark: never red, never a pale haze)
     q = deque(zip(*np.nonzero(keep)))
     while q:
         cy, cx = q.popleft()
