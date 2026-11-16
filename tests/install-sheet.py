@@ -143,8 +143,15 @@ def build(figs, scale):
 
 def install(src_path, out_path, size=1.0):
     src = Image.open(src_path).convert('RGBA')
-    cw, ch = src.width / 3, src.height / 3
-    figs = [[main_figure(src.crop((int(c * cw), int(r * ch), int((c + 1) * cw), int((r + 1) * ch)))) for c in range(3)] for r in range(3)]
+    cw = src.width / 3
+    # (the rows are cut where the picture is emptiest near each third, not at the thirds themselves: a tall bun or a hat
+    # can reach up past them into the row above)
+    solid_rows = (np.array(src)[:, :, 3] > 150).sum(axis=1)
+    def cut(at):
+        lo, hi = int(at - src.height * 0.12), int(at + src.height * 0.12)
+        return lo + int(np.argmin(solid_rows[lo:hi]))
+    ys = [0, cut(src.height / 3), cut(src.height * 2 / 3), src.height]
+    figs = [[main_figure(src.crop((int(c * cw), ys[r], int((c + 1) * cw), ys[r + 1]))) for c in range(3)] for r in range(3)]
     for r in (0, 2):  # (two steps the same, front or back: the second is the first, mirrored)
         if alike(figs[r][1], figs[r][2]) > 0.97:
             figs[r][2] = ImageOps.mirror(figs[r][1])
