@@ -2,10 +2,9 @@
 # Puts a character sheet made outside the game (ChatGPT) into sprites/, laid out like the player sheet: 3 x 3 cells of
 # 128 x 192 pixels (rows front, side facing east, back; columns standing and two steps), feet on the same line.
 #   python3 tests/install-sheet.py <picture.png> <out.png> [size]
-# size: 1 for a grown-up (the default), about 0.75 for a child or a goblin, a little more for someone tall.
-# It keeps each cell's biggest figure (stray specks and the red or yellow fringe ChatGPT leaves are dropped), and
-# scales every cell alike so that from the feet to the eyes the standing front figure measures EYE_TO_FEET times size
-# (Sister Ama's; hats and big hair don't count that way), with the feet at the same spot as hers.
+# size: 1 for a grown-up (the default), about 0.75 for a child or a goblin, more for a tall hat (Hobb's: 1.12).
+# It keeps each cell's biggest figure and its painted shadow (stray specks and the red fringe ChatGPT leaves are
+# dropped), and scales every cell alike so the standing front figure is HEIGHT times size tall, feet on Sister Ama's line.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
 # Nothing is painted over: no filter, no added edge (SHEET_VIVID and SHEET_EDGE=1 can still add them).
 import os
@@ -17,7 +16,7 @@ from PIL import Image, ImageOps, ImageEnhance
 CELL_W, CELL_H, FEET_Y, CENTRE_X = 128, 192, 184, 64
 EDGE, EDGE_MIX = (78, 58, 38), 0.8  # an added edge's colour, and how much of it
 EDGE_ON = os.environ.get('SHEET_EDGE') == '1'  # an extra dark edge round each figure: off (the owner's choice: as painted)
-EYE_TO_FEET = 98  # Sister Ama's eyes above her feet, in pixels of the sheet
+HEIGHT = 146  # a grown-up's standing height in pixels of the sheet, feet to the top of the head (Sister Ama's)
 VIVID = float(os.environ.get('SHEET_VIVID', '1.0'))  # colour strength: 1 as painted, more for fuller colours (and a touch more contrast)
 
 def main_figure(cell):
@@ -28,7 +27,8 @@ def main_figure(cell):
     near = clear.copy()
     for _ in range(3):
         n = near.copy(); n[1:] |= near[:-1]; n[:-1] |= near[1:]; n[:, 1:] |= near[:, :-1]; n[:, :-1] |= near[:, 1:]; near = n
-    fringe = (r > 150) & (g < 90) & (b < 90) & near
+    # (and pure, glaring red anywhere: no figure is painted in it, but ChatGPT sometimes floods the gaps with it)
+    fringe = ((r > 150) & (g < 90) & (b < 90) & near) | ((r > 200) & (g < 40) & (b < 40))
     mask = (alpha > 100) & ~fringe
     h, w = mask.shape
     seen = np.zeros_like(mask)
@@ -56,7 +56,7 @@ def main_figure(cell):
         k[1:] |= keep[:-1]; k[:-1] |= keep[1:]; k[:, 1:] |= keep[:, :-1]; k[:, :-1] |= keep[:, 1:]
         keep = k
     # its soft shadow on the ground too: the faint pixels that touch it (a shadow painted under its feet)
-    faint = (alpha > 6) & ~fringe
+    faint = (alpha > 6) & ~fringe & ~((r > 120) & (r > g * 1.8) & (r > b * 1.8))  # (the shadow is dark, never red)
     q = deque(zip(*np.nonzero(keep)))
     while q:
         cy, cx = q.popleft()
@@ -149,13 +149,9 @@ def install(src_path, out_path, size=1.0):
             figs[r][2] = ImageOps.mirror(figs[r][1])
             print(f'row {r + 1}: the second step repeated the first: mirrored')
     solid = figs[0][0].getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox()
-    scale = 146 / ((solid[3] - solid[1]) if solid else figs[0][0].height)  # (a first guess: Sister Ama's height)
-    eye = eye_y(build(figs, scale).crop((0, 0, CELL_W, CELL_H)))
-    if eye is None:
-        print('no eyes found: sized by height')
-        scale *= size
-    else:
-        scale *= EYE_TO_FEET * size / (FEET_Y - eye)
+    # (sized by the standing front figure's own height, its shadow left out: HEIGHT times size; finding the eyes
+    # proved unreliable across ChatGPT's sheets, so a tall hat is given its own size instead)
+    scale = HEIGHT * size / ((solid[3] - solid[1]) if solid else figs[0][0].height)
     build(figs, scale).save(out_path)
 
 if __name__ == '__main__':

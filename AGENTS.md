@@ -34,7 +34,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
 | Each picture's own version, after adding or changing pictures in `sprites/` (the unit tests fail until it's run) | `node tests/sprite-versions.js` |
-| Put a character sheet made outside the game (ChatGPT) in `sprites/`: cleaned of stray specks, its eyes and feet where Sister Ama has hers (size: 1 a grown-up, about 0.75 a child or a goblin), a repeated step mirrored; colours and edges as painted | `python3 tests/install-sheet.py <picture.png> sprites/npc-<id>.png [size]` |
+| Put a character sheet made outside the game (ChatGPT) in `sprites/`: cleaned of stray specks, Sister Ama's height and feet line (size: 1 a grown-up, about 0.75 a child or a goblin, more for a tall hat: Hobb 1.12), a repeated step mirrored; colours and edges as painted | `python3 tests/install-sheet.py <picture.png> sprites/npc-<id>.png [size]` |
 | Bake the ground's borders ahead of time (after changing how they're drawn, the ground textures, or the world's grounds) | `node tests/bake-ground.js` |
 | Phone action buttons: their gestures, and their mana, cooldowns and pictures | `node tests/mobile-slots.test.cjs`, `node tests/action-slots.test.cjs` |
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
