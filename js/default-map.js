@@ -204,13 +204,16 @@ const OAKVALE = {
     [144, 142, 'Sir Galen. He said the rats in the cellar were "only rats".'],
     [146, 142, 'Taken by the spiders of the hills. Go well armed, friend.'],
     [148, 142, 'No name. Only the words: "the hills remember".'],
+    // the three of the Old Tower's last watch, side by side: the order they came to the wall is the order of its levers
+    [143, 142, 'Watchman Oswin of the Old Tower. When the horn blew he was always FIRST up the stair, and he held the EAST wall.'],
+    [145, 142, 'Watchwoman Marrow of the Old Tower. SECOND to the wall, every time, and she kept the WEST side of it.'],
+    [147, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[131, 111], [140, 129], [110, 128], [127, 141]],
   grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Use it to climb down.',
   // Things with something to say when you look at them: [x, y, text]
-  looks: [
-    [124, 110, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
+  looks: [ // (the well's: see WELL_TUNNELS)
     [140, 119, 'Tobias Oakhart, who built the first house by the river, and the bridge after it.'],
   ],
   // A forgotten chest for whoever explores the strip behind the academy: [x, y, gold]
@@ -392,6 +395,77 @@ const CRYPT = {
       monsters: [['skeleton', 67, 184], ['skeleton', 72, 182], ['skeleton', 70, 186], ['gravewaker', 69, 180]],
     },
   ],
+};
+
+// ---- the hidden quests (phase 7 of docs/world-plan.md): places nobody sends you to ---------------------------------
+// The ruined watchtower on the Old Tower hill (The Watchman's Greaves). Its doorway fell in long ago: you climb to its
+// top with a rope (a rope spot in the fallen doorway, under a hole in the floor above), where skeletons keep the watch,
+// go down its stairs into the tower, pull its three levers in the order the watchmen's graves in Oakvale give, and the
+// grate over the trapdoor to the cellar lifts. In the cellar, cut into the hill, the last watchman's shade keeps his chest.
+//   x0..y1:  the tower's walls, on the hilltop (floor 9), and its broken top (floor 10)
+//   breach:  the fallen doorway (a rope spot; a hole above it); rubble: fallen stone inside, behind it
+//   stairs:  down from the top (stairs_down on 10, stairs_up on 9); gaps: the top's broken battlements;
+//   remnants: walls of the fallen storey above still standing (floor 11)
+//   levers:  [x, y, order, look] on floor 9; trapdoor: the way down, under a rusted grate
+//   cellar:  floor 8, cut into the hill: rooms [x0, y0, x1, y1], props [x, y, id], the shade and his chest
+//   skeletons: on the top
+const OLD_TOWER = {
+  x0: 190, y0: 114, x1: 196, y1: 120,
+  breach: [193, 120, 'The tower\'s doorway fell in long ago, and the floor above sagged into it. Above, an old iron hook still sticks out of the stones: with a rope you could climb up.'],
+  rubble: [[192, 119], [193, 119], [194, 119]],
+  stairs: [191, 115],
+  gaps: [[190, 117], [196, 116], [192, 114], [195, 114], [196, 119], [190, 119]],
+  remnants: [[190, 114], [191, 114], [190, 115], [190, 116], [196, 114], [196, 115]], // walls still standing a storey higher (floor 11)
+  levers: [
+    [192, 115, 2, 'An iron lever on the west side of the room. "WEST" is cut into its plate.'],
+    [193, 115, 3, 'An iron lever in the middle of the room. "MIDDLE" is cut into its plate.'],
+    [194, 115, 1, 'An iron lever on the east side of the room. "EAST" is cut into its plate.'],
+  ],
+  trapdoor: [193, 117],
+  cellar: {
+    rooms: [[191, 115, 195, 119]],
+    props: [[191, 115, 'sarcophagus'], [192, 115, 'qchest_watchman'], [195, 116, 'bones'],[191, 118, 'bones'], [194, 118, 'rubble']],
+    torches: [[193, 114]],
+    shade: [194, 116],
+  },
+  skeletons: [[193, 116], [191, 118], [195, 117]],
+  page: [198, 118], // (the founder's diary, page 2: on the hilltop, outside the tower)
+};
+
+// The goblins' tunnels under Goblin Hill (The Bronze Ward), floor 7: a burrow on the hill's east side leads down, and
+// boulders block the tunnels. Walk into one to push it: the first rolls north into a niche past the turn, the second
+// (from the archers' hall) a long way south to the end of its tunnel. Goblin archers shoot over them while you push.
+// At the far end, in Gnash's hoard, the hoardkeeper sits on Brenna's bronze shield.
+//   hole:     the burrow on the surface (a hole; a ladder below it), with what you read when you look at it
+//   caves:    [cx, cy, rx, ry]: the burrow, the archers' hall, the hoard; tunnels: [x0, y0, x1, y1], one tile wide
+//   boulders: [x, y]; props: [x, y, id]; monsters: [type, x, y] (they lurk: each notices you only up close)
+const GOBLIN_WARREN = {
+  z: 7,
+  hole: [202, 71, 'A burrow, dug by many small claws, going down into the hill. It smells of goblin.'],
+  caves: [[201, 72, 2.6, 2.2], [182, 68, 3.6, 3], [193, 81, 3.2, 2.6]],
+  tunnels: [[194, 72, 198, 72], [194, 65, 194, 71], [184, 66, 193, 66], [182, 70, 182, 81], [183, 80, 190, 80]],
+  boulders: [[194, 69], [182, 73]],
+  props: [[195, 80, 'qchest_bronze_ward'], [194, 79, 'treasure'], [191, 82, 'bones'], [196, 82, 'rubble'], [180, 66, 'bones'], [203, 73, 'bones'], [185, 70, 'rubble']],
+  monsters: [
+    ['goblin_archer', 188, 66], ['goblin_archer', 180, 67], ['goblin_archer', 184, 69], ['goblin', 181, 69], ['goblin', 183, 66],
+    ['goblin_hoardkeeper', 193, 81], ['goblin_archer', 192, 82], ['goblin', 194, 82],
+  ],
+};
+
+// Under the town well (Down the Well), floor 7: tie a rope to the well and climb down. A pool at the bottom, a rope spot
+// to climb back up, and a few dark tunnels where giant rats live. At the end a cracked rock: a pick breaks through to
+// where Old Wim lies, who went down the well for a bet, with his lucky ring.
+//   well: the well on the square (rope down); caves [cx, cy, rx, ry]; tunnels [x0, y0, x1, y1]; pool: water at the bottom
+//   crack: the cracked rock; props: [x, y, id]; monsters: [type, x, y] (they lurk)
+const WELL_TUNNELS = {
+  z: 7,
+  well: [124, 110, 'The old bucket rope is long gone. Far below, water glints, and the stones are worn where someone once climbed down. With a rope of your own, so could you. Someone has scratched a little rat on the stone.'],
+  caves: [[124, 110, 2.2, 1.9], [114, 111, 3, 2.5], [115, 100, 3.5, 2.2], [126, 100, 1.9, 1.6]],
+  tunnels: [[116, 110, 122, 110], [113, 102, 113, 108], [119, 100, 124, 100]],
+  pool: [[123, 111], [124, 111], [125, 111], [125, 109]],
+  crack: [122, 100],
+  props: [[126, 100, 'wim_bones'], [127, 101, 'bones'], [112, 112, 'bones'], [116, 98, 'puddle'], [118, 101, 'rubble'], [112, 110, 'puddle']],
+  monsters: [['giant_rat', 113, 110], ['giant_rat', 115, 112], ['giant_rat', 114, 99], ['giant_rat', 117, 100], ['slime', 112, 101]],
 };
 
 function createDefaultMap() {
@@ -775,6 +849,9 @@ function createDefaultMap() {
   buildCrypt(m, S);
   buildSpiderDen(m, S);
   buildDeepSewers(m, S);
+  buildOldTower(m, S);
+  buildGoblinWarren(m, S);
+  buildWellTunnels(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
   // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
@@ -808,7 +885,7 @@ function createDefaultMap() {
   if (m.isWalkable(133, 211, S)) put(133, 211, S, 'campfire');
   if (m.isWalkable(195, 47, S + 1)) put(195, 47, S + 1, 'campfire_out'); // the hermit's fire on Hermit Rock (lit at night: a story)
   // the founder's diary, page by page (The Oakvale Chronicle): out in the world, where she wrote them
-  for (const [page, x, y, z] of [[1, 48, 175, S], [2, 194, 117, S + 1], [3, 82, 181, S - 1], [4, 197, 71, S]]) {
+  for (const [page, x, y, z] of [[1, 48, 175, S], [2, ...OLD_TOWER.page, S + 1], [3, 82, 181, S - 1], [4, 197, 71, S]]) {
     const p = (m.isWalkable(x, y, z) ? { x, y } : null) || [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => m.isWalkable(q.x, q.y, z));
     if (p) { put(p.x, p.y, z, 'chronicle_page'); m.setMeta(p.x, p.y, z, { page }); }
   }
@@ -1051,6 +1128,105 @@ function buildCrypt(m, S) {
     for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { quest: 'bell_4', look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb.' });
     for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z });
   }
+}
+
+// Builds the ruined watchtower on the Old Tower hill (see OLD_TOWER): the tower on the hilltop (floor 9), its broken
+// top (floor 10), and the cellar cut into the hill under it (floor 8).
+function buildOldTower(m, S) {
+  const T = OLD_TOWER, top = S + 1, up = S + 2;
+  const ring = (x, y) => x === T.x0 || x === T.x1 || y === T.y0 || y === T.y1;
+  // the hilltop round it cleared to rocky ground, and the tower's floor
+  for (let y = T.y0 - 1; y <= T.y1 + 1; y++) for (let x = T.x0 - 1; x <= T.x1 + 1; x++) {
+    const t = m.get(x, y, top);
+    if (!t || !m.get(x, y, S) || !m.get(x, y, S).items.includes('cliff')) continue;
+    t.items = [];
+    t.ground = x < T.x0 || x > T.x1 || y < T.y0 || y > T.y1 ? 'mountain' : 'cobble';
+  }
+  for (let y = T.y0; y <= T.y1; y++) for (let x = T.x0; x <= T.x1; x++) {
+    if (ring(x, y)) m.addItem(x, y, top, 'wall_stone');
+    // the top: open to the sky, its battlements broken here and there
+    m.set(x, y, up, { ground: 'cobble', items: ring(x, y) && !T.gaps.some(([gx, gy]) => gx === x && gy === y) ? ['wall_stone'] : [] });
+  }
+  const [bx, by, look] = T.breach;
+  m.set(bx, by, top, { ground: 'cobble', items: ['rope_spot'] });
+  m.setMeta(bx, by, top, { look });
+  m.set(bx, by, up, { ground: 'cobble', items: ['hole'] });
+  for (const [x, y] of T.rubble) { m.addItem(x, y, top, 'rock'); m.setMeta(x, y, top, { look: 'Fallen stone from the floor above, piled high. There is no way through.' }); }
+  m.addItem(...T.stairs, up, 'stairs_down');
+  m.addItem(...T.stairs, top, 'stairs_up');
+  for (const [x, y] of [[T.x0 + 1, T.y1 - 1], [T.x1 - 1, T.y1 - 2]]) m.addItem(x, y, up, 'rubble');
+  for (const [x, y] of T.remnants) m.set(x, y, up + 1, { ground: 'cobble', items: ['wall_stone'] }); // what's left of the storey above
+  for (const [x, y, order, text] of T.levers) { m.addItem(x, y, top, 'lever'); m.setMeta(x, y, top, { puzzle: 'old_tower', order, target: { x: T.trapdoor[0], y: T.trapdoor[1], z: top }, look: text }); }
+  m.get(...T.trapdoor, top).items = ['trapdoor', 'cellar_bars'];
+  m.setMeta(...T.trapdoor, top, { look: 'A trapdoor down into the cellar, under a rusted iron grate. Chains run from the grate up to the levers.' });
+  // the cellar, cut into the hill's rock
+  const C = T.cellar, carved = [];
+  for (const [x0, y0, x1, y1] of C.rooms) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { m.set(x, y, S, { ground: 'crypt', items: [] }); carved.push([x, y]); }
+  for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+    const t = m.get(x + ox, y + oy, S);
+    if (!t || t.items.includes('cliff')) m.set(x + ox, y + oy, S, { ground: 'crypt', items: ['wall_crypt'] });
+  }
+  m.get(...T.trapdoor, S).items = ['cave_ladder'];
+  for (const [x, y] of C.torches) m.addItem(x, y, S, 'wall_torch');
+  for (const [x, y, id] of C.props) m.addItem(x, y, S, id);
+  m.spawns.push({ type: 'watchman_shade', x: C.shade[0], y: C.shade[1], z: S, lurk: true });
+  for (const [x, y] of T.skeletons) m.spawns.push({ type: 'skeleton', x, y, z: up });
+}
+
+// Builds the goblins' tunnels under Goblin Hill (see GOBLIN_WARREN): the burrow down from the hill, the caves and
+// tunnels with rock round them, the boulders, the hoard and the goblins.
+function buildGoblinWarren(m, S) {
+  const G = GOBLIN_WARREN, Z = G.z, hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  const carved = [];
+  const carve = (x, y) => { if (!m.get(x, y, Z) || m.get(x, y, Z).items.includes('wall_cave')) { m.set(x, y, Z, { ground: 'cave', items: [] }); carved.push([x, y]); } };
+  for (const [cx, cy, rx, ry] of G.caves) {
+    for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 0.75 + hash(x + 3, y + 7) * 0.4) carve(x, y);
+    }
+  }
+  for (const [x0, y0, x1, y1] of G.tunnels) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) carve(x, y);
+  for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+    if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'cave', items: ['wall_cave'] });
+  }
+  const [hx, hy, look] = G.hole;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { // a patch of dug-up earth round the burrow
+    const t = m.get(hx + dx, hy + dy, S);
+    if (!t || THINGS[t.ground].block) continue;
+    t.ground = 'dirt';
+    t.items = t.items.filter(id => !THINGS[id].block);
+  }
+  m.get(hx, hy, S).items = ['hole'];
+  m.setMeta(hx, hy, S, { look });
+  m.get(hx, hy, Z).items = ['cave_ladder'];
+  for (const [x, y] of G.boulders) m.addItem(x, y, Z, 'boulder');
+  for (const [x, y, id] of G.props) m.addItem(x, y, Z, id);
+  for (const [type, x, y] of G.monsters) m.spawns.push({ type, x, y, z: Z, lurk: true });
+}
+
+// Builds the tunnels under the town well (see WELL_TUNNELS): the well you can rope down, the pool at the bottom with
+// its rope spot back up, the caves and tunnels with rock round them, the cracked rock, Old Wim and the rats.
+function buildWellTunnels(m, S) {
+  const L = WELL_TUNNELS, Z = L.z, hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  const carved = [];
+  const carve = (x, y) => { if (!m.get(x, y, Z)) { m.set(x, y, Z, { ground: 'cave', items: [] }); carved.push([x, y]); } };
+  for (const [cx, cy, rx, ry] of L.caves) {
+    for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 0.75 + hash(x + 5, y + 2) * 0.4) carve(x, y);
+    }
+  }
+  for (const [x0, y0, x1, y1] of L.tunnels) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) carve(x, y);
+  for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+    if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'cave', items: ['wall_cave'] });
+  }
+  for (const [x, y] of L.pool) if (carved.some(([cx, cy]) => cx === x && cy === y)) m.setGround(x, y, Z, 'sewer_water');
+  const [wx, wy, look] = L.well;
+  m.setMeta(wx, wy, S, { look, ropeDown: true });
+  m.get(wx, wy, Z).items = ['rope_spot'];
+  m.setMeta(wx, wy, Z, { look: 'The bottom of the well. Daylight falls from far above. With a rope you can climb back up.' });
+  m.get(...L.crack, Z).items = ['cracked_rock'];
+  m.setMeta(...L.crack, Z, { look: 'Cracked rock, newer than the tunnel round it: a fall of stone. Cold air whistles through the cracks. A pick would break it.' });
+  for (const [x, y, id] of L.props) m.addItem(x, y, Z, id);
+  for (const [type, x, y] of L.monsters) if (m.isWalkable(x, y, Z)) m.spawns.push({ type, x, y, z: Z, lurk: true });
 }
 
 // Builds Oakvale (see OAKVALE): the river through it, walls and fences, streets, the square, buildings

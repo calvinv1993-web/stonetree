@@ -4088,6 +4088,12 @@ const Sprites = (() => {
     rod_thorns: g => rod(g, '#6fcf3f'),
     wooden_shield: g => roundShield(g, '#8a5a2a', '#5a3a1a', false, true),
     studded_shield: g => roundShield(g, '#8a5a2a', '#5a5a62', true, true),
+    bronze_ward: g => { // a round bronze shield, green with age at the rim, a sun boss in the middle
+      roundShield(g, '#b07a34', '#5e7a5a', true, false);
+      ellipse(g, 'rgba(255,230,160,0.35)', 12, 11, 4, 3);
+      for (let a = 0; a < 8; a++) rect(g, '#e0b050', 15.5 + Math.cos(a * 0.785) * 4.5, 15.5 + Math.sin(a * 0.785) * 4.5, 1, 1);
+      ellipse(g, '#e8c060', 16, 16, 2.5, 2.5);
+    },
     iron_shield: g => roundShield(g, '#9a9aa2', '#6a6a72', true, false),
     demon_shield: g => {
       kiteShield(g, '#5a1010', '#2a2a2a');
@@ -4145,6 +4151,11 @@ const Sprites = (() => {
     ranger_cloak: g => robe(g, '#3f6a32', '#8a6a3a'),
     leather_legs: g => legs(g, '#8a5a2a'),
     chain_legs: g => legs(g, '#9a9aa2', 'chain'),
+    watchman_greaves: g => { // leather legs with old iron plates over the shins, and the watch's blue at the belt
+      legs(g, '#6a4a2a');
+      for (const x of [9, 18]) { rect(g, '#8a8a92', x, 14, 5, 12); rect(g, 'rgba(255,255,255,0.3)', x, 14, 1, 12); rect(g, '#5a5a62', x, 25, 5, 1); }
+      rect(g, '#3a5a8a', 8, 4, 16, 2);
+    },
     plate_legs: g => legs(g, '#c0c0c8', 'plate'),
     leather_boots: g => boots(g, '#6a4a2a'),
     iron_boots: g => boots(g, '#9a9aa2'),
@@ -4301,6 +4312,7 @@ const Sprites = (() => {
     },
     ring_life: g => ring(g, '#d0a030', '#e04a5a'),
     ring_swift: g => ring(g, '#c0c0c8', '#6ad0ff'),
+    wim_ring: g => ring(g, '#a8783a', '#5ab070'),
     amulet_guard: g => amulet(g, '#3a6ad0'),
     amulet_keeping: g => amulet(g, '#e0c040'),
     blank_rune: g => rune(g, null),
@@ -4452,6 +4464,8 @@ const Sprites = (() => {
     skeleton: { skin: '#e6e2d3', hair: '#e6e2d3', eye: '#111', body: '#d6d1c0', belt: '#8a8574', legs: '#d0cbb9', arms: '#d0cbb9', ribs: '#8a8574' },
     gnash: { scale: 0.95, skin: '#5a8a34', hair: '#2a1a0a', eye: '#ff4020', body: '#6a2a1a', belt: '#d0a030', legs: '#3a2a1a', arms: '#5a8a34', hat: { style: 'helmet', color: '#8a8070' }, held: 'axe' }, // Chief Gnash
     goblin: { scale: 0.8, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a2a', arms: '#6aa040', held: 'axe' },
+    goblin_archer: { scale: 0.78, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#5a6a3a', belt: '#3a2a1a', legs: '#4a4a2a', arms: '#6aa040', hat: { style: 'hood', color: '#4a5a2a' }, held: 'bow' },
+    goblin_hoardkeeper: { scale: 1.0, skin: '#5a9038', hair: '#2a1a0a', eye: '#ff6020', body: '#8a6a2a', belt: '#e0b040', legs: '#4a3a1a', arms: '#5a9038', hat: { style: 'helmet', color: '#a07a3a' }, held: 'club' }, // (in a dented bronze pot for a helmet)
     gnarl: { scale: 1.3, skin: '#4a6a3a', hair: '#4a6a3a', eye: '#e04040', body: '#5a4a3a', belt: '#2a2a1a', legs: '#3a3a2a', arms: '#4a6a3a', held: 'club' },
     orc: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e04040', body: '#6a5a3a', belt: '#2a1a0a', legs: '#4a3a2a', arms: '#7a9a5a', held: 'axe' },
     orc_archer: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e04040', body: '#5a6a3a', belt: '#2a1a0a', legs: '#4a3a2a', arms: '#7a9a5a', hat: { style: 'hood', color: '#4a5a2a' }, held: 'bow' },
@@ -6614,6 +6628,14 @@ const Sprites = (() => {
         rat(g, d, f, GIANT_RAT);
       },
       ice_wolf: (g, d, f) => wolf(g, d, f, ICE_WOLF),
+      watchman_shade: (g, d, f) => { // the last watchman of the Old Tower: a ghost, a head taller, cold blue
+        g.translate(16, 27);
+        g.scale(1.2, 1.2);
+        g.translate(-16, -27);
+        g.filter = 'hue-rotate(170deg) saturate(1.3) brightness(0.95)';
+        ghost(g, d, f);
+        g.filter = 'none';
+      },
       // the gate watch's bosses: the beast they lead, bigger and darker
       greyfang: (g, d, f) => { // the alpha: grey and scarred, a head taller than the pack
         g.translate(16, 27);

@@ -78,7 +78,7 @@ const STEPS = [
   ['bell III: the rope', d => { d.levelTo(6); d.talk('ama', 'rope', 'yes'); d.kill('giant_rat', 8); d.kill('cistern_slime', 1); d.ctx.useThing(147, 102, 5); d.tick(150); d.talk('ama', 'rope'); }],
   ['bell IV: the Gravewaker', d => { d.levelTo(8); d.talk('ama', 'gravewaker', 'yes'); d.kill('gravewaker', 1); d.ctx.useThing(69, 176, 6); d.tick(150); d.talk('ama', 'clapper'); }],
   ['bell V: the Choir', d => { d.talk('corwin', 'choir', 'yes'); d.talk('oak_keeper', 'lights'); d.kill('choir_cultist', 4); d.kill('choir_cantor', 1); d.talk('corwin', 'choir'); }],
-  ['the chronicle', d => { for (const [x, y, z] of [[48, 175, 8], [194, 117, 9], [82, 181, 7], [197, 71, 8]]) { d.ctx.useThing(x, y, z); d.tick(100); } d.talk('oak_hermit', 'page'); d.talk('corwin', 'chronicle'); }],
+  ['the chronicle', d => { for (const [x, y, z] of [[48, 175, 8], [198, 118, 9], [82, 181, 7], [197, 71, 8]]) { d.ctx.useThing(x, y, z); d.tick(100); } d.talk('oak_hermit', 'page'); d.talk('corwin', 'chronicle'); }],
   ['bell VI: farewell', d => { d.levelTo(10); d.talk('ama', 'farewell', 'yes'); d.go({ x: 145, y: 103, z: 13 }); d.state.now += 60000; d.ctx.ringBell(); d.tick(100);
     for (const id of ['corwin', 'pip', 'gate_west']) d.talk(id, 'farewell'); d.talk('ama', 'farewell'); }],
   ['the oracle', d => {

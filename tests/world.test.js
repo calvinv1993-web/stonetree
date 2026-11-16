@@ -32,8 +32,10 @@ function test(name, fn) {
 const key = (x, y, z) => (z * H + y) * W + x;
 const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y, z: (r - y) / H }; };
 // Walkable for this check: free ground, or a door someone can open (closed doors, quest and level doors, house doors for
-// their owners). Roofs don't count: nobody walks on them.
-const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor; // (quest and level doors open for some)
+// their owners), a boulder (it can be pushed out of the way) or a cracked rock (a pick breaks it). Roofs don't count:
+// nobody walks on them.
+const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor // (quest and level doors open for some)
+  || THINGS[id].push || THINGS[id].breakable;
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;
@@ -70,6 +72,22 @@ for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; 
   for (const [dx, dy] of N8) if (walkable(x + dx, y + dy, z) && !change(x + dx, y + dy, z)) addEdge({ x, y, z }, { x: x + dx, y: y + dy, z });
 }
 for (const c of transitions) for (const { a, to } of c.from) if (to) addEdge(a, to);
+// A rope takes you up from a rope spot, or down a well (meta ropeDown), from next to it (or, for a rope spot, standing
+// on it), by the game's own code.
+const roped = []; // [where, dz, from, to]
+for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  const t = map.get(x, y, z), meta = map.getMeta(x, y, z) || {};
+  const dz = t && t.items.some(id => THINGS[id].ropeSpot) ? 1 : t && meta.ropeDown ? -1 : 0;
+  if (!dz) continue;
+  for (const [dx, dy] of [[0, 0], ...N8]) {
+    const a = { x: x + dx, y: y + dy, z };
+    if (!walkable(a.x, a.y, z) || change(a.x, a.y, z)) continue;
+    state.player = Object.assign(state.player, { x, y, z, walk: null });
+    const to = ctx.changeFloor(dz) ? { x: state.player.x, y: state.player.y, z: state.player.z } : null;
+    roped.push([{ x, y, z }, dz, a, to]);
+    if (to) addEdge(a, to);
+  }
+}
 const reverse = new Map();
 for (const [k, list] of edges) for (const j of list) { if (!reverse.has(j)) reverse.set(j, []); reverse.get(j).push(k); }
 const flood = (graph, start) => {
@@ -161,6 +179,18 @@ test('every floor change can be taken back: from wherever it lands, you can walk
   }
   assert.deepStrictEqual(stuck, []);
   for (const k of reached) if (!back.has(k)) { const p = unkey(k); assert.fail(`a one-way trap at ${p.x},${p.y},${p.z}`); }
+});
+
+test('every rope spot and every well you can rope down leads one floor up or down, onto free ground you can walk back from', () => {
+  const bad = [];
+  for (const [at, dz, a, to] of roped) {
+    const where = `rope ${dz > 0 ? 'up' : 'down'} at ${at.x},${at.y},${at.z} from ${a.x},${a.y}`;
+    if (!to) bad.push(`${where} goes nowhere`);
+    else if (to.z !== at.z + dz) bad.push(`${where} lands on floor ${to.z}`);
+    else if (reached.has(key(a.x, a.y, a.z)) && !back.has(key(to.x, to.y, to.z))) bad.push(`${where} is a one-way trap`);
+  }
+  assert.deepStrictEqual(bad, []);
+  assert.ok(roped.length > 0, 'there are no rope spots at all');
 });
 
 test('every named place, road and mountain top can be reached on foot from the start', () => {
