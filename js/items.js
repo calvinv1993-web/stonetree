@@ -46,6 +46,7 @@ const forgeable = id => !!(ITEMS[id] && ITEMS[id].slot && (ITEMS[id].weapon || I
 
 const ITEMS = {
   gold:          { name: 'gold coin', stack: true, weight: 0 },
+  watch_mark:    { name: 'watch mark', stack: true, value: 0, weight: 0.5 }, // (the gate watch's pay for its hunts: spent at Captain Osric's)
 
   apple:         { name: 'apple', stack: true, use: { food: 60 }, value: 1, weight: 1.5 },
   cheese:        { name: 'cheese', stack: true, use: { food: 90 }, value: 2, weight: 4 },

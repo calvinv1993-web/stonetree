@@ -278,7 +278,8 @@ function guideTarget(step) {
       if (n) return n;
     }
     if (t.news) { // the first of these NPCs who has a quest for you, or news to hear
-      const n = t.news.map(id => npcs.find(c => c.npcId === id)).find(c => c && ['offer', 'report'].includes((questNews(c.npcId) || {}).mark));
+      // (not for a hunt that comes again and again: the guide follows the story)
+      const n = t.news.map(id => npcs.find(c => c.npcId === id)).find(c => { const news = c && questNews(c.npcId); return news && ['offer', 'report'].includes(news.mark) && !(QUESTS[news.id] || {}).repeat; });
       if (n) return n;
     }
     const near = list => list.filter(c => c.z === player.z && dist(c, player) <= 12).sort((a, b) => dist(a, player) - dist(b, player))[0];

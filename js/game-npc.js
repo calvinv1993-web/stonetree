@@ -125,6 +125,7 @@ function questNews(npcId) {
   for (const [keys, s] of Object.entries((def && def.keywords) || {})) {
     if (!s || !s.quest) continue;
     for (const id of s.quest) {
+      questRenew(id);
       const q = QUESTS[id], state = q ? questState(id) : 'done';
       if (state === 'done') continue;
       const word = questWord(npcId, id);
@@ -242,6 +243,19 @@ function chronicleTalk() {
   return 'All six pages... Edda Marrowind. The founder had a name, and now we know it. She carried the spark across the sea and sealed it in our bell. I will copy this for the academy, $name, and your name goes beside hers on the first page. Take this, with my thanks.';
 }
 
+// The watch's stores (Captain Osric): say what you want, pay in watch marks
+function marksTalk(offers, text) {
+  const have = countItem('watch_mark');
+  const offer = offers.find(([word]) => mentions(text, word));
+  if (!offer) return `You have ${have} watch mark${have === 1 ? '' : 's'}. From the stores: ${offers.map(([word, cost, , label]) => `${label} for ${cost} ({${word}})`).join(', ')}. Hunt for the watch at any gate to earn more.`;
+  const [, cost, items, label] = offer;
+  if (have < cost) return `${label} costs ${cost} watch marks, $name, and you have ${have}. Hunt for the watch at the gates.`;
+  removeItem('watch_mark', cost);
+  for (const [id, n] of items) giveItem(id, n);
+  addSound('coin', player.x, player.y, player.z);
+  return `Here: ${label}, from the watch's stores. Well earned.`;
+}
+
 // "What do I do now?": this NPC's own news if it has any, else the next step of a quest you're on, else the arrow
 function whatNext(npcId) {
   const own = questHint(npcId);
@@ -264,6 +278,7 @@ function ask(text, yes, no) {
 function service(s, npc, text) {
   if (s.quest) return questTalk(s.quest, npc, s.otherwise);
   if (s.pet) return petCare();
+  if (s.marks) return marksTalk(s.marks, text);
   if (s.chronicle) return chronicleTalk();
   if (s.chroniclePage) return chronicleGive(s.chroniclePage, s.text);
   if (s.heal) {
@@ -304,11 +319,20 @@ function citizenTalk(npc) {
 
 // Offers the first unfinished quest of a chain, tracks its steps and hands out rewards.
 // otherwise: what the NPC says instead when the chain has nothing (more) for you here.
+// A quest that can be done again (repeat: ms): once that long has passed since it was done, it's new again
+function questRenew(id) {
+  const q = QUESTS[id], s = player.quests[id];
+  if (!q || !q.repeat || !s || s.status !== 'done') return;
+  if (!s.doneAt || now >= s.doneAt + q.repeat || now < s.doneAt) delete player.quests[id]; // (a clock that started again: new too)
+}
+
 function questTalk(ids, npc, otherwise) {
   for (const id of ids) {
     const q = QUESTS[id];
     if (!q) continue;
+    questRenew(id);
     const t = q.text || {}, state = questState(id);
+    if (state === 'done' && q.repeat && q.giver === npc.npcId) return t.later || 'Nothing for now. Come back later.';
     if (state === 'done') continue;
     if (state === 'none') {
       const own = q.giver === npc.npcId ? t : q.offers && q.offers[npc.npcId]; // the giver, or someone who may offer it too

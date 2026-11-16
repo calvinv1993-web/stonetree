@@ -892,6 +892,22 @@ test('the spiders\' den under the Spider Hills: reachable, spiders, and the Broo
   assert(messages.some(m => /first to slay the Brood Queen/.test(m)), 'the first to slay her is told to everyone');
 });
 
+test('the watch\'s hunts: again and again after a gate\'s own task, paid in watch marks, spent at Captain Osric\'s', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  p.level = 5; p.quests.gate_west = { status: 'done', step: 1, kills: {} };
+  const talk = (id, ...words) => { const n = state.npcs.find(c => c.npcId === id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100); A.say('hi'); tick(game, 100); const at = messages.length; for (const w of words) { A.say(w); tick(game, 100); } A.say('bye'); tick(game, 200); return messages.slice(at).join(' | '); };
+  talk('gate_west', 'hunt', 'yes'); assert.strictEqual(state.questState('task_west'), 'active', 'a hunt');
+  for (let i = 0; i < 10; i++) ctx.onMonsterKilled('wolf');
+  talk('gate_west', 'hunt'); assert.strictEqual(state.countItem('watch_mark'), 2, 'two watch marks');
+  assert(/come back in a while/i.test(talk('gate_west', 'hunt')), 'nothing more right away');
+  state.now += 21 * 60000; talk('gate_west', 'hunt', 'yes'); assert.strictEqual(state.questState('task_west'), 'active', 'later, a new hunt');
+  assert(/potions/.test(talk('gate_north', 'marks')), 'Osric lists the stores');
+  talk('gate_north', 'potions'); assert.strictEqual(state.countItem('watch_mark'), 0, 'two marks spent');
+  assert(state.countItem('health_potion') >= 5, 'for five potions');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

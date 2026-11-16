@@ -4011,6 +4011,13 @@ const Sprites = (() => {
     }
   }
   const ITEM_DRAW = {
+    watch_mark(g) { // a bronze token with Oakvale's sun stamped on it
+      ellipse(g, '#5a3a14', 16, 18, 9, 9);
+      ellipse(g, '#c08a3a', 16, 17, 9, 9);
+      ellipse(g, '#e0b060', 16, 17, 6.5, 6.5);
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; line(g, '#8a5a1a', 1.2, 16 + Math.cos(a) * 2.5, 17 + Math.sin(a) * 2.5, 16 + Math.cos(a) * 5, 17 + Math.sin(a) * 5); }
+      ellipse(g, '#8a5a1a', 16, 17, 2.2, 2.2);
+    },
     gold(g) {
       for (const [x, y] of [[10, 22], [20, 22], [15, 18], [12, 14], [19, 13]]) {
         ellipse(g, '#8a6a10', x, y + 1, 6, 4);

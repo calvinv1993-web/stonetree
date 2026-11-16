@@ -15,6 +15,7 @@
 //   { houses: true }         rent a house (say its name), "leave" gives it back
 //   { forge: true }          open the forge (the NPC needs forge: true as well; see game-forge.js)
 //   { chronicle: true }      Corwin pieces the founder's diary together (CHRONICLE)
+//   { marks: [[word, cost, [[itemId, n]], label]] }  trade watch marks (the gate watch's hunts) for things: say the word
 //   { pet: true }            look after the player's companion (fetch it back, heal it)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
@@ -1558,7 +1559,7 @@ function gateGuard(quest, name, hair, word, gate, captain) {
     look: { skin: '#e0b088', hair, body: '#8a2a2a', arms: '#a8aeb8', armor: '#a8aeb8', tabard: captain ? '#2a4a8a' : '#8a2a2a', legs: '#4a4a52', feet: '#2a2a2a', belt: '#3a2a1a', hat: { style: 'helmet', color: captain ? '#d0b040' : '#a8aeb8' }, held: 'sword' },
     greet: `Halt, $name. ${captain ? 'Captain' : 'Guard'} of this gate. Need {directions}, or are you here about the {dangers}?`,
     keywords: {
-      [`${word}|task|quest|mission|help`]: { quest: [quest] },
+      [`${word}|task|quest|mission|help|hunt|work`]: { quest: [quest, `task_${quest.slice(5)}`] }, // (the gate's task; done, a hunt again and again)
       job: 'I keep this gate, and what comes through it.',
       'directions|gate|road': gate,
       'dangers|monsters|news': 'The further from town, the worse it gets: rats in the fields, wolves and slimes beyond, then spiders and goblins. Bears in the deep woods. Know when to run.',
@@ -1829,6 +1830,56 @@ Object.assign(QUESTS, {
       done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
     },
   },
+  // ---- the gate watch's hunts: once a gate's own task is done, its guard has a hunt for you again and again (repeat:
+  // ms after one is done before the next), paid in watch marks, spent on the watch's stores at Captain Osric's ----
+  task_west: {
+    name: 'The Watch\'s Hunt: Wolves', giver: 'gate_west', level: 3, after: 'gate_west', repeat: 20 * 60000, kill: { wolf: 10 },
+    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]] },
+    summary: 'Hunt 10 wolves for Sergeant Bram, Wolf Woods or the copses near town.',
+    text: {
+      offer: 'The wolves are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
+      accept: 'Good hunting. Wolf woods or the copses near town.',
+      progress: 'So far: $progress.',
+      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
+    },
+  },
+  task_south: {
+    name: 'The Watch\'s Hunt: Crabs', giver: 'gate_south', level: 3, after: 'gate_south', repeat: 20 * 60000, kill: { crab: 8 },
+    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]] },
+    summary: 'Hunt 8 crabs for Guard Tilda, the beaches.',
+    text: {
+      offer: 'The crabs are back, $name. They always come back. Hunt 8 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
+      accept: 'Good hunting. The beaches.',
+      progress: 'So far: $progress.',
+      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
+    },
+  },
+  task_east: {
+    name: 'The Watch\'s Hunt: Spiders', giver: 'gate_east', level: 3, after: 'gate_east', repeat: 20 * 60000, kill: { spider: 10 },
+    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]] },
+    summary: 'Hunt 10 spiders for Guard Hilde, round the Spider Hills.',
+    text: {
+      offer: 'The spiders are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
+      accept: 'Good hunting. Round the spider hills.',
+      progress: 'So far: $progress.',
+      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
+    },
+  },
+  task_north: {
+    name: 'The Watch\'s Hunt: Goblins', giver: 'gate_north', level: 3, after: 'gate_north', repeat: 20 * 60000, kill: { goblin: 10 },
+    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]] },
+    summary: 'Hunt 10 goblins for Captain Osric, Stony Field or Goblin Hill.',
+    text: {
+      offer: 'The goblins are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
+      accept: 'Good hunting. Stony field or goblin hill.',
+      progress: 'So far: $progress.',
+      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
+    },
+  },
 });
 
 Object.assign(NPCS, {
@@ -1956,7 +2007,15 @@ Object.assign(NPCS, {
     g.greet = g.greet.replace('{dangers}?', '{dangers}? Or the spiders\' {den}?');
     return g;
   })(),
-  gate_north: gateGuard('gate_north', 'Captain Osric', '#3a3a3a', 'goblins', 'The north gate: Mirror Lake, Stony Field and the North Peaks. Goblin Hill is north-east, past the lake.', true),
+  gate_north: (() => { // (the captain keeps the watch's stores: watch marks buy from them)
+    const g = gateGuard('gate_north', 'Captain Osric', '#3a3a3a', 'goblins', 'The north gate: Mirror Lake, Stony Field and the North Peaks. Goblin Hill is north-east, past the lake.', true);
+    g.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping'] = { marks: [
+      ['potions', 2, [['health_potion', 5]], '5 health potions'], ['mana', 2, [['mana_potion', 5]], '5 mana potions'],
+      ['life', 5, [['ring_life', 1]], 'a ring of life'], ['keeping', 8, [['amulet_keeping', 1]], 'an amulet of keeping'],
+    ] };
+    g.greet = g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?');
+    return g;
+  })(),
   oak_baker: {
     name: 'Baker Willa',
     look: { skin: '#f0c8a0', hair: '#e0c070', body: '#f0e8d8', arms: '#f0c8a0', legs: '#8a5a3a', belt: '#f0e8d8' },

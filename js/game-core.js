@@ -1349,7 +1349,7 @@ function advanceQuest(id) {
     return;
   }
   const r = q.reward || {};
-  player.quests[id] = { status: 'done', step: state.step, kills: {} };
+  player.quests[id] = { status: 'done', step: state.step, kills: {}, doneAt: now }; // (doneAt: for a quest that can be done again)
   log(`Quest completed: ${q.name}!`, 'quest');
   addSound('level', player.x, player.y, player.z);
   if (r.gold) addItem('gold', r.gold);
