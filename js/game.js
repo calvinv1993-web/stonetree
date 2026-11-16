@@ -475,7 +475,7 @@ canvas.addEventListener('pointerdown', e => {
 function creatureKey(c) {
   if (c.type === 'player') return Sprites.playerKey(c.vocation, c.outfit);
   if (c.type === 'npc') return NPCS[c.npcId].creature || `npc:${c.npcId}`;
-  if (c.pet === true) return Sprites.petKey(c.type); // (a companion: Clang wears his bell)
+  if (c.pet === true) return Sprites.petKey(c.type, c.level); // (a companion: Clang wears his bell, and grows up)
   return c.rare ? `rare:${c.type}` : c.type; // (rare named kin: their own look)
 }
 

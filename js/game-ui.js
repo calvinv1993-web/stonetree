@@ -212,7 +212,7 @@ function renderGuide() {
 function petPicture(size = 34) {
   const c = document.createElement('canvas'); c.width = c.height = size; c.className = 'ga-pic';
   try {
-    const img = Sprites.creature(Sprites.petKey(PETS.cat.look), 2, 0), r = img.res || 1, w = Sprites.w(img);
+    const img = Sprites.creature(Sprites.petKey(PETS.cat.look, (player.pet && player.pet.level) || 1), 2, 0), r = img.res || 1, w = Sprites.w(img);
     const g = c.getContext('2d'); g.imageSmoothingEnabled = r > 1;
     g.drawImage(img, 0, 0, w * r, w * r, 0, 0, size, size);
   } catch (e) { /* no picture yet: an empty frame */ }

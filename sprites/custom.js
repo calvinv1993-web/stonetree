@@ -272,6 +272,9 @@ const CUSTOM_SPRITES = {
   sheet_brineshell: 'monster-brineshell.png', // Old Snapper's mate, in the sea cave
   sheet_cistern_slime: 'monster-cistern_slime.png', // the great slime under Oakvale
   sheet_shade: 'monster-shade.png', // the lost climbers of the North Peaks cave
+  sheet_clang_1: 'pet-clang-1.png', // Clang as a kitten (pet levels 1-3)
+  sheet_clang_2: 'pet-clang-2.png', // a young tomcat (4-7)
+  sheet_clang_3: 'pet-clang-3.png', // the temple's guardian (8-10)
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',

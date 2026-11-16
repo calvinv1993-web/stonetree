@@ -6543,7 +6543,7 @@ const Sprites = (() => {
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
     || (c.type !== 'player' && c.type !== 'npc' && !c.rare && !c.pet && !LOW_SHEETS.includes(c.type) && customImage(`sheet_${c.type}`))); // (a monster on two legs with its own sheet)
   // (beasts drawn from a sheet that stand low: their name stays at the monsters' height, not above a person's head)
-  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'cistern_slime'];
+  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'cistern_slime', 'clang_1', 'clang_2', 'clang_3'];
   function playerFromSheet(key, dir, frame) {
     const img = customImage('player_sheet'), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
     return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {
@@ -7626,7 +7626,13 @@ const Sprites = (() => {
       return def && !def.creature && able(def.look) ? rise : 0;
     },
     // the picture of a companion of this look: the temple's cat is Clang, with his bell (town cats have none)
-    petKey: look => (look === 'cat' ? 'clang' : look),
+    // the picture of a companion of this look and level: the temple's cat is Clang, with his bell (town cats have none),
+    // growing up as he levels: a kitten, a young tomcat, then the temple's guardian (when those sheets are there)
+    petKey: (look, level = 1) => {
+      if (look !== 'cat') return look;
+      const stage = level >= 8 ? 3 : level >= 4 ? 2 : 1;
+      return customImage(`sheet_clang_${stage}`) ? `clang_${stage}` : 'clang';
+    },
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
