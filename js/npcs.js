@@ -1740,7 +1740,7 @@ Object.assign(QUESTS, {
   // V: after the bell, the Choir comes for the spark: their landing at Lighthouse Point, and the founder's own words
   bell_5: {
     name: 'The Silent Bell V: The Choir\'s Shadow', story: 'The Silent Bell', giver: 'corwin', level: 8, word: 'choir', after: 'bell_4',
-    reward: { xp: 600, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]], chronicle: 6 },
+    reward: { xp: 900, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]], chronicle: 6 },
     summary: 'Find out who comes ashore at Lighthouse Point at night, and what the Ashen Choir wants with Oakvale.',
     steps: [
       { npc: 'oak_keeper', word: 'lights', summary: 'Go to Lighthouse Point, south of Sunny Fields, and ask Keeper Tamsin about the lights.',
@@ -1799,13 +1799,13 @@ Object.assign(QUESTS, {
 Object.assign(QUESTS, {
   gate_west: {
     name: 'The Gate Watch: Wolves at the West Gate', giver: 'gate_west', level: 2, kill: { wolf: 8, greyfang: 1 },
-    reward: { xp: 250, gold: 30, items: [['leather_armor', 1]] },
+    reward: { xp: 250, gold: 30, items: [['leather_armor', 1], ['health_potion', 3]] },
     summary: 'Kill 8 wolves and their alpha, Greyfang, in Wolf Woods (out of the west gate and north-west), and report to Sergeant Bram at the west gate.',
     text: {
       offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold - they come right up to the west road at night. Thin them out for me - eight of them, and the big grey one who leads them, Greyfang. ({yes}/{no})',
       accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it, and carry a health potion or two from Pip. Greyfang calls the pack to him: get him alone. Come back and tell me about the {wolves}.',
       progress: 'So far: $progress. Wolf Woods lies north-west of the west gate.',
-      reward: 'Eight wolves, and Greyfang too! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: in Greyfang\'s den we found a grey hood, singed, that stank of smoke. Not a hunter\'s. Someone has been walking the woods at night. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      reward: 'Eight wolves, and Greyfang too! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: in Greyfang\'s den we found a grey hood, singed, that stank of smoke. Not a hunter\'s. Someone has been walking the woods at night. And take three potions from the watch\'s stores. Once the woods are yours, I will have hunts for you again and again, paid in watch marks: two buy five more potions at Captain Osric\'s, at the north gate. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
       tooWeak: 'Wolves would tear you apart, friend. Come back at level 2.',
       done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
     },

@@ -578,7 +578,7 @@ test('monsters keep to their territory: they follow you a while, then amble home
   Object.assign(p, { hp: 999, maxHp: 999 });
   assert(ctx.leftTerritory(rat, p), 'too far from home with you beyond its territory: it gives up');
   assert(rat.returning && rat.goal.x === s.x, 'and walks back to its spawn');
-  tick(game, 30000);
+  for (let t = 0; t < 30000 && rat.returning; t += 500) tick(game, 500); // (once home it wanders again)
   assert(Math.max(Math.abs(rat.x - s.x), Math.abs(rat.y - s.y)) <= 3, 'it got home');
   assert(!rat.returning, 'and minds you again');
   const r3 = ctx.spawnMonster({ ...s });
@@ -965,6 +965,26 @@ test('the Oakvale Chronicle: pages in the world, one from the hermit at night, a
   said('bye'); ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); tick(game, 200);
   const xp = p.xp; said('hi');
   assert(/Edda Marrowind/.test(said('chronicle')) && p.xp > xp, 'all six: the founder has a name, and a reward');
+});
+
+test('the Ashen Choir is ashore at Lighthouse Point only at night once the bell rings again, or for whoever is on The Silent Bell V', () => {
+  const game = loadGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  const ashore = () => state.monsters.filter(m => /^choir_/.test(m.type) && !m.dead).length;
+  const at = hour => { state.now = Math.ceil(state.now / 1440000) * 1440000 + ((hour - 9 + 24) % 24) * 60000; tick(game, 2000); }; // (the next such hour)
+  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5').length, 5, 'four singers and their cantor');
+  at(12); assert.strictEqual(ashore(), 0, 'not by day');
+  at(23); assert.strictEqual(ashore(), 0, 'nor at night while the bell is silent');
+  state.townBell.ringers.push('Someone');
+  at(23); assert.strictEqual(ashore(), 5, 'at night once the bell rings again');
+  at(12); assert.strictEqual(ashore(), 0, 'and they row away by day');
+  p.quests.bell_5 = { status: 'active', step: 1, kills: {} };
+  ctx.teleport({ x: 134, y: 210, z: 8 }); tick(game, 2000);
+  assert.strictEqual(ashore(), 5, 'by day too, for whoever is sent to look');
+  assert(!p.dead && p.hp === p.maxHp, 'and they leave the keeper\'s fire alone');
+  ctx.teleport(state.map.start); tick(game, 2000);
+  assert.strictEqual(ashore(), 0, 'gone again once they have left');
 });
 
 test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bellringer, the plaque names them, it rings every dawn', () => {

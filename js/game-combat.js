@@ -734,10 +734,21 @@ function monsterTarget(m) {
 // Whether player p has position o on their screen (or close to its edge).
 const inView = (p, o) => o.z === p.z && Math.abs(o.x - p.x) <= 10 && Math.abs(o.y - p.y) <= 8;
 
+// A spawn that comes ashore (spawn.night: a quest id) is only about at night once the bell of Oakvale rings again, or
+// while a player near it is on that quest: the Ashen Choir lands at Lighthouse Point after dark, and for whoever
+// is sent to look (The Silent Bell V). In daylight, with nobody on the quest, they row away once nobody watches.
+const NIGHT_NEAR = 40;
+function ashore(s) {
+  if (daylight() < 0.5 && townBell.ringers.length > 0) return true;
+  return players.some(p => !p.dead && p.z === s.z && dist(p, s) <= NIGHT_NEAR && p.quests[s.night] && p.quests[s.night].status === 'active');
+}
+
 function updateMonster(m, i) {
   if (m.dead) {
     if (!m.spawn || m.raid) {
       m.remove = true; // summons and raiders don't come back
+    } else if (m.spawn.night && !ashore(m.spawn)) {
+      // (not ashore now: they come back when they land again)
     } else if (now >= m.respawnAt && m.def.comesBack && m.diedAt) {
       comeBack(m, i);
     } else if (now >= m.respawnAt) {
@@ -754,6 +765,9 @@ function updateMonster(m, i) {
   tickConditions(m);
   if (m.dead) return;
   const unseen = () => !players.some(p => inView(p, m));
+  if (m.spawn && m.spawn.night && m.angryUntil <= now && unseen() && !ashore(m.spawn)) {
+    return void Object.assign(m, { dead: true, respawnAt: now, due: 0, walk: null, goal: null, conditions: {} }); // (rowed away: no corpse)
+  }
   if ((m.until && now >= m.until && unseen()) || (m.summoner && !monsters.some(o => o.id === m.summoner && !o.dead))) {
     if (m.summoner) addSparkle(m, '#a060ff');
     m.remove = true; // a raider goes home once nobody is watching; a summon goes with its summoner
@@ -815,11 +829,12 @@ function walkIn(m, i) {
 // (reengage). One that is far from home with nobody to see it is simply back at its spawn (strayHome), as in Tibia:
 // never while someone watches. (Raiders and summons have no home to go back to.)
 const TERRITORY = 8, CHASE = 10;
+// A spawn with a leash (spawn.leash: tiles) keeps closer to home than that: both its territory and its chase.
 function leftTerritory(m, target) {
   const home = m.spawn;
   if (!home || m.raid || m.summoner || home.z !== m.z) return false;
-  const away = dist(m, home), targetAway = dist(target, home);
-  if (!(map.isTown(target.x, target.y, target.z) && away > 2) && !(away >= CHASE && targetAway > TERRITORY)) return false;
+  const away = dist(m, home), targetAway = dist(target, home), chase = home.leash || CHASE, territory = home.leash || TERRITORY;
+  if (!(map.isTown(target.x, target.y, target.z) && away > 2) && !(away >= chase && targetAway > territory)) return false;
   m.returning = now || 1; // (when it gave up: a time, never 0)
   m.goal = { x: home.x, y: home.y };
   m.angryUntil = 0;
@@ -828,7 +843,7 @@ function leftTerritory(m, target) {
 const NOTICE_ON_THE_WAY = 3;
 function reengage(m) {
   const home = m.spawn, hitBy = m.angryUntil > now && m.angryUntil - 15000 >= m.returning ? players.find(p => p.id === m.angryAt) : null;
-  const near = players.find(p => !p.dead && p.z === m.z && dist(p, m) <= NOTICE_ON_THE_WAY && dist(p, home) <= TERRITORY
+  const near = players.find(p => !p.dead && p.z === m.z && dist(p, m) <= NOTICE_ON_THE_WAY && dist(p, home) <= (home.leash || TERRITORY)
     && !map.isShelter(p.x, p.y, p.z) && !map.isTown(p.x, p.y, p.z) && m.def.aggro > 0);
   if (hitBy || near) { m.returning = 0; m.goal = null; }
 }
