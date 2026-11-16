@@ -772,7 +772,9 @@ test('before a vocation dying never costs a level, and Sister Ama says what to d
   const wolf = { type: 'wolf', name: 'wolf', def: state.MONSTERS.wolf };
   ctx.playerDies(wolf);
   assert.strictEqual(p.level, 3, 'still level 3');
-  assert(messages.some(m => /Sister Ama: .*Wolves hunt in threes/.test(m)), 'a tip about wolves');
+  assert(!messages.some(m => /Sister Ama: .*Wolves hunt in threes/.test(m)), 'not yet: you are still lying there');
+  ctx.respawnPlayer();
+  assert(messages.some(m => /Sister Ama: .*Wolves hunt in threes/.test(m)), 'a tip about wolves, once you wake');
 });
 
 test('raids come to Oakvale\'s gates and Bone Rocks, on ground monsters can stand on', () => {

@@ -6,7 +6,7 @@
 //
 //   x y z     go there first (default: the start, in the temple on Brightwater Isle)
 //   --hour    the in-game hour (0-23): night, dawn, dusk...
-//   --mobile  a phone held sideways, with the touch controls
+//   --mobile  a phone held upright (an iPhone 13), with the touch controls
 //   --view    just the game view, not the whole page
 //   --zoom    pixels per screen pixel, e.g. 2 for a sharp 2x picture (a phone is always 2)
 //   --eval    JavaScript run in the page before the shot, e.g. "player.tutorial = 0; monsters.length = 0"
@@ -36,7 +36,7 @@ const [out = 'screenshot.png', x, y, z] = args;
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage(mobile
-    ? { viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }
+    ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }
     : { viewport: { width: 1300, height: 950 }, deviceScaleFactor: zoom });
   const errors = [];
   page.on('pageerror', e => errors.push(e.stack || e.message));

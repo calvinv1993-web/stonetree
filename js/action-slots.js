@@ -52,12 +52,15 @@ const ActionSlots = (() => {
     const spell = entry && SPELLS[entry.id];
     if (entry && entry.locked) badge.textContent = spell && spell.promoted && !player.promoted ? 'promo' : `lv ${spell ? spell.level : ''}`;
     else if (spell) { badge.replaceChildren(Icons.img('drop', 11), String(spell.mana)); badge.classList.add('mana'); } // (a drop and its mana, under it)
+    // (no mana potions yet, and no spells that need them: no red 0 from the first minute, just the potion, quiet)
+    else if (entry && entry.id === 'm' && player.vocation === 'none' && entry.sub === '×0') button.classList.add('quiet');
     else if (entry && entry.id !== 'f') { badge.textContent = entry.sub.replace('×', ''); badge.classList.add('count'); } // (how many are left)
     else if (!entry) { badge.textContent = 'add'; badge.classList.add('add'); } // (empty: a tap chooses what goes there)
     const cool = document.createElement('i'), left = document.createElement('b'), lasts = document.createElement('em');
     cool.className = 'slot-cool';
     left.className = 'slot-left'; // (the seconds of cooldown left)
     lasts.className = 'slot-lasts'; // (how long what it gave you still lasts)
+    if (!(entry && entry.id === 'm' && player.vocation === 'none' && entry.sub === '×0')) button.classList.remove('quiet');
     button.replaceChildren(face, badge, cool, left, lasts);
     button.dataset.action = entry ? entry.id : '';
     button.setAttribute('aria-label', entry ? `${entry.name}${spell ? `, ${spell.mana} mana` : entry.sub ? `, ${entry.sub}` : ''}` : 'Empty: tap to choose what goes here');

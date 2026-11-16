@@ -80,6 +80,24 @@ function favourites() {
   return slots;
 }
 
+// A spell just learned goes on the first free spell button by itself, so it's there to tap (a phone has no keys).
+// Torchlight waits while the guide still has to show how to put it there.
+function pinNewSpells(entries) {
+  const known = touchStorage.get(favKey() + '.known'), now = entries.filter(e => SPELLS[e.id] && !e.locked).map(e => e.id);
+  if (!Array.isArray(known)) { touchStorage.set(favKey() + '.known', now); return; } // (first time: what's known already stays as it is)
+  const fresh = now.filter(id => !known.includes(id));
+  if (!fresh.length) return;
+  const torchStep = GUIDE.findIndex(st => st.art === 'torch'), favs = favourites();
+  for (const id of fresh) {
+    if (id === 'light' && player.tutorial && player.tutorial - 1 <= torchStep) continue;
+    known.push(id);
+    const free = favs.slice(0, FAV_SLOTS * FAV_PAGES).indexOf(null);
+    if (!favs.includes(id) && free >= 0) favs[free] = id;
+  }
+  touchStorage.set(favKey(), favs);
+  touchStorage.set(favKey() + '.known', known);
+}
+
 function useFav(slot) {
   const e = hotbarEntries().find(x => x.id === favourites()[favIndex(slot)]);
   if (!e) openFavPicker(slot);
@@ -98,6 +116,7 @@ function renderFavs() {
     if (typeof ActionSlots !== 'undefined') { ActionSlots.showSet(false, favPageIndex, 3); ActionSlots.showSet(true, favItemPage, 3); }
   }
   const entries = hotbarEntries();
+  pinNewSpells(entries);
   const favs = favourites();
   const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(9 + favItemPage * 3, 12 + favItemPage * 3)];
   const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
@@ -290,9 +309,11 @@ function initTouch() {
       $('fightFollow').classList.toggle('active', !!player.chase);
     }
     // the fight bar shows while you fight: with a target, or for a while after something hit you
-    if (player.target || player.hp < lastHp) fightingUntil = now + 6000;
+    // (not after a death, nor in the temple, a shop or the depot: nothing to fight there)
+    if (player.dead) fightingUntil = 0;
+    else if (player.target || player.hp < lastHp) fightingUntil = now + 6000;
     lastHp = player.hp;
-    document.body.classList.toggle('fighting', now < fightingUntil && !player.dead);
+    document.body.classList.toggle('fighting', now < fightingUntil && !player.dead && !inPZ(player));
     for (const [bar, v, max] of [['Hp', player.hp, player.maxHp], ['Mana', player.mana, player.maxMana]]) {
       setWidth($(`tb${bar}`), `${(100 * v) / max}%`);
       setText($(`tb${bar}Text`), `${v} / ${max}`);
@@ -446,6 +467,8 @@ function showTalk(speaker, text) {
       if (w) questWords.add(w.toLowerCase());
     }
   }
+  // (once they've asked you something about it, the answer they wait for is the one that shines: yes)
+  if (seen.includes('yes') && (questWords.size || reportWords.size)) { questWords.clear(); reportWords.clear(); questWords.add('yes'); }
   // (a quest's word first: what they have for you, or what you've come to tell them)
   const first = w => (reportWords.has(w) ? 0 : questWords.has(w) ? 1 : 2);
   seen.sort((a, b) => first(a) - first(b));

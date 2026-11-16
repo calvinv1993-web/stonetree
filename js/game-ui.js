@@ -178,12 +178,19 @@ function renderGuide() {
   if (step && !guideFolded) for (const sel of (touchScreen ? step.ui : step.uiDesk) || []) for (const el of document.querySelectorAll(sel)) el.classList.add('guide-spot');
   if (!step) return;
   box.classList.toggle('folded', guideFolded);
+  // a step with a task: short on a phone (its first lines and how far you are); one that only explains: in full
+  box.classList.toggle('task', !!(step.done || step.on));
+  if (before !== player.tutorial) box.classList.remove('open');
   $('guideFold').textContent = guideFolded ? '▸' : '▾';
   // top left over the game; on a phone just under the health bars, in the margin if there is one
   box.style.left = `${touchScreen ? 4 : view.offsetLeft + 8}px`;
   box.style.top = `${touchScreen ? 44 : Math.max(view.getBoundingClientRect().top, 0) + 8}px`; // (never above the window)
   $('guideStep').textContent = `${player.tutorial} / ${GUIDE.length}`;
-  $('guideText').textContent = text;
+  // (a short card on a phone: how far you are stays in sight on a line of its own, not cut off at the end of the text)
+  const prog = touchScreen && (step.done || step.on) ? /\s*\(([^()]*\d[^()]*)\)\.?\s*$/.exec(text) : null;
+  $('guideText').textContent = prog ? text.slice(0, prog.index) + '.' : text;
+  $('guideProg').textContent = prog ? prog[1] : '';
+  $('guideProg').hidden = !prog;
   $('guideNow').textContent = now;
   $('guideNow').hidden = !now;
   $('guideDone').hidden = !!(step.done || step.on || step.client);
@@ -192,13 +199,24 @@ function renderGuide() {
   $('guideBar').style.setProperty('--done', `${((player.tutorial - 1) / GUIDE.length) * 100}%`);
   // its little picture
   const art = $('guideArt');
-  art.replaceChildren(...(step.art && GUIDE_ART[step.art] ? GUIDE_ART[step.art]() : []));
+  art.replaceChildren(...(step.art && GUIDE_ART[step.art] && !(touchScreen && (step.done || step.on)) ? GUIDE_ART[step.art]() : []));
   art.hidden = !art.childNodes.length;
   // a step done: a moment of praise on the box
   if (before && before < player.tutorial) {
     box.classList.remove('cheer'); void box.offsetWidth; box.classList.add('cheer');
     clearTimeout(renderGuide.cheer); renderGuide.cheer = setTimeout(() => box.classList.remove('cheer'), 1800);
   }
+}
+
+// Clang as he walks the map, for the guide's picture (the cat's own sprite, not a symbol)
+function petPicture(size = 34) {
+  const c = document.createElement('canvas'); c.width = c.height = size; c.className = 'ga-pic';
+  try {
+    const img = Sprites.creature(PETS.cat.look, 2, 0), r = img.res || 1, w = Sprites.w(img);
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = r > 1;
+    g.drawImage(img, 0, 0, w * r, w * r, 0, 0, size, size);
+  } catch (e) { /* no picture yet: an empty frame */ }
+  return c;
 }
 
 // ---- the guide's pictures: what its words are about, drawn small in its box ---------------------------------------
@@ -224,7 +242,7 @@ const GUIDE_ART = (() => {
     torch: () => [row(cap(h('span', { className: 'ga-step do' }, 'Lv 2'), 'a new spell'), h('span', { className: 'ga-arrow' }, '→'),
       cap(Object.assign(new Image(34, 34), { src: ActionSlots.art('light') || '', className: 'ga-pic', alt: '' }), touchScreen ? 'put it on a +' : '1 or "lumen"'),
       h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '✺'), 'light in the dark'))],
-    clang: () => [row(cap(h('span', { className: 'ga-yellow' }, '🐈'), 'Clang'), h('span', { className: 'ga-arrow' }, '→'),
+    clang: () => [row(cap(petPicture(), 'Clang'), h('span', { className: 'ga-arrow' }, '→'),
       cap(h('span', { className: 'ga-step do' }, 'fights'), 'at your side'), cap(h('span', { className: 'ga-step' }, 'grows'), 'as you hunt and train'))],
     sewer: () => [row(cap(h('span', { className: 'ga-yellow' }, '▦'), 'the grate'), h('span', { className: 'ga-arrow' }, '→'),
       cap(h('b', { className: 'ga-big' }, '5×'), 'rats'), h('span', { className: 'ga-arrow' }, '→'), cap(pic('wooden_shield'), 'your shield'))],
@@ -275,7 +293,14 @@ const GuideSpot = (() => {
     for (const sel of list) {
       // (a choice in the action buttons' chooser may be scrolled out of its list: scroll it into sight, once)
       const pick = sel.includes('#favPicker') && document.querySelector(sel);
-      if (pick && !pick.dataset.shown) { pick.dataset.shown = '1'; pick.scrollIntoView({ block: 'center' }); }
+      // (only its own list scrolls: scrolling the page would push the whole game up)
+      if (pick && !pick.dataset.shown) {
+        pick.dataset.shown = '1';
+        let list = pick.parentElement;
+        while (list && list.id !== 'favPicker' && !(list.scrollHeight > list.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(list).overflowY))) list = list.parentElement;
+        if (list) { const lr = list.getBoundingClientRect(), pr = pick.getBoundingClientRect(); list.scrollTop += pr.top - lr.top - (lr.height - pr.height) / 2; }
+        for (const el of [$('viewport'), document.scrollingElement]) if (el) el.scrollTop = 0;
+      }
       target = [...document.querySelectorAll(sel)].find(visible); if (target) break;
     }
     // (the guide's box steps aside while a window is open, e.g. the chooser of an action button: then the light
@@ -597,6 +622,7 @@ function slotEl(item, { label, slot, dragRef, dropRef, onClick, onRight, hint } 
   const el = document.createElement('div');
   el.className = 'slot';
   if (item) {
+    el.dataset.item = item.id; // (the guide's light can find a thing in the bag by it)
     const img = new Image();
     img.src = Sprites.itemURL(item.id);
     img.draggable = false;
@@ -965,6 +991,8 @@ function skillRow(name, value, fraction) {
   row.innerHTML = '<span></span><b></b><div class="mini"><div></div></div>';
   row.children[0].textContent = name;
   row.children[1].textContent = value;
+  // (no fraction: a plain fact, like your home town, without a bar)
+  if (fraction === null) { row.querySelector('.mini').remove(); return row; }
   row.querySelector('.mini div').style.width = `${Math.floor(Math.min(1, fraction) * 100)}%`;
   row.title = `${Math.floor(fraction * 100)}% to the next level`;
   return row;
@@ -975,7 +1003,7 @@ function renderSkills() {
   root.replaceChildren();
   const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
   root.appendChild(skillRow('Level', player.level, (player.xp - lo) / (hi - lo)));
-  root.appendChild(skillRow('Home town', homeTown(), 1)); // where you wake up when you die: ask a priest about becoming a citizen
+  root.appendChild(skillRow('Home town', homeTown(), null)); // where you wake up when you die: ask a priest about becoming a citizen
   for (const id of Object.keys(SKILLS)) {
     const s = player.skills[id];
     root.appendChild(skillRow(capitalize(SKILLS[id].name), s.level, s.tries / skillTries(id, s.level, player.vocation)));
@@ -1918,6 +1946,8 @@ function initUI() {
     try { localStorage.setItem('tilequest.guideFolded', guideFolded ? '1' : '0'); } catch (e) { /* no storage: only for now */ }
     renderGuide();
   });
+  // (on a phone a step with a task shows its first lines: a tap on them shows all of it, and again folds it short)
+  $('guideText').addEventListener('click', () => $('guide').classList.toggle('open'));
   $('guideDone').addEventListener('click', () => (player.tutorial === GUIDE.length ? Actions.endGuide() : Actions.guideNext()));
   // Skip: a second tap within a few seconds to be sure (it says so in the meantime)
   let skipAsk = 0;
@@ -1925,11 +1955,11 @@ function initUI() {
     e.stopPropagation(); // (not a fold)
     const b = $('guideSkip');
     if (!b.classList.contains('sure')) {
-      b.classList.add('sure'); b.textContent = 'Skip it? Tap again';
-      clearTimeout(skipAsk); skipAsk = setTimeout(() => { b.classList.remove('sure'); b.textContent = 'Skip'; }, 3500);
+      b.classList.add('sure'); b.textContent = 'Turn it off? Tap again';
+      clearTimeout(skipAsk); skipAsk = setTimeout(() => { b.classList.remove('sure'); b.textContent = 'Close'; }, 3500);
       return;
     }
-    clearTimeout(skipAsk); b.classList.remove('sure'); b.textContent = 'Skip';
+    clearTimeout(skipAsk); b.classList.remove('sure'); b.textContent = 'Close';
     Actions.skipGuide();
   });
   $('battle').addEventListener('pointerleave', () => { battleHover = null; });

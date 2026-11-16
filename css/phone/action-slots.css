@@ -80,3 +80,4 @@ body.touch-ui .fav-list .hot { display: flex; align-items: center; gap: 8px; min
 .fav-list .hot:disabled .pick-text em { color: #6e6450; }
 .fav-list .pick-clear { min-height: 44px; }
 body.touch-ui #favPicker .fav-list > * { flex: none; } /* (a long list scrolls: its rows keep their height) */
+body.touch-ui #favs .fav.quiet .slot-art { opacity: 0.45; filter: grayscale(0.6); } /* (a mana potion before you have any use for one) */

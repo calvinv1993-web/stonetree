@@ -50,7 +50,7 @@
 .grid { display: grid; grid-template-columns: repeat(6, 38px); gap: 3px; }
 .skill { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; margin-bottom: 4px; }
 .skill b { text-align: right; }
-.skill .mini { grid-column: 1 / -1; height: 3px; background: #111; }
+.skill .mini { grid-column: 1 / -1; height: 5px; border-radius: 2px; background: #111; }
 .skill .mini div { height: 100%; background: #4a9a3c; }
 .quest { margin-bottom: 8px; }
 .quest b { color: #ffcf6a; }
@@ -358,9 +358,9 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 .ga-good { color: #6fd36b; font-size: 20px; font-weight: 800; line-height: 1; }
 .ga-bad { color: #ff7a6a; font-size: 20px; font-weight: 800; line-height: 1; }
 .ga-big { color: #ffd76a; font-size: 15px; }
-.ga-word { padding: 3px 10px; border-radius: 6px; border: 1px solid #d5aa60; background: #3a2c18; color: #ffd76a; font-weight: 700; font-size: 12px; }
-.ga-step { padding: 3px 9px; border-radius: 6px; border: 1px solid #d5aa60; background: linear-gradient(#5a4628, #3a2c18); color: #ffe3a8; font-weight: 700; font-size: 11px; }
-.ga-step.do { border-color: #4f9b55; background: #1f3a22; color: #9be09a; }
+.ga-word { padding: 0 2px; border-bottom: 2px solid #d5aa60; color: #ffd76a; font-weight: 700; font-size: 13px; } /* (pictures of things, not buttons: flat, no frame) */
+.ga-step { padding: 0 2px; color: #ffe3a8; font-weight: 700; font-size: 13px; letter-spacing: 0.02em; }
+.ga-step.do { color: #9be09a; }
 .ga-slots { display: flex; gap: 3px; }
 .ga-slots .icon { width: 26px !important; height: 26px !important; padding: 3px; border: 1px dashed rgba(255, 255, 255, 0.35); border-radius: 5px; color: rgba(255, 255, 255, 0.5) !important; }
 .ga-cap kbd { padding: 2px 6px; border-radius: 4px; border: 1px solid #6a6252; background: #2a2620; color: #f2ebdd; font: 600 11px/1.3 system-ui, sans-serif; }

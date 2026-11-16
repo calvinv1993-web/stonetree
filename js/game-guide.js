@@ -44,7 +44,7 @@ const GUIDE = [
   {
     text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. Lost? Look there.',
     touch: 'You have a quest! Whenever you are lost: the yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next.',
-    ui: ['#hudBag'], uiDesk: ['[data-tab="quests"]'],
+    ui: ['#inventoryDrawer .drawer-tabs [data-page="quests"]', '#hudBag'], uiDesk: ['[data-tab="quests"]'],
     art: 'lost',
   },
   {
@@ -65,7 +65,7 @@ const GUIDE = [
     touch: 'Master Corwin gave you a leather cap! Put it on: open the backpack, tap the cap, then Wear. Your armour goes up.',
     gift: { flag: 'guide_kit', items: [['leather_cap', 1]], from: 'Master Corwin',
       say: 'Nobody leaves my academy bare-headed. Take this cap, and put it on before you go out. A shield you will have to earn.' },
-    art: 'gear', ui: ['#inventoryDrawer', '#hudBag'], uiDesk: ['#containers', '.sec-equip'],
+    art: 'gear', ui: ['#inventoryDrawer .slot[data-item="leather_cap"]', '#hudBag'], uiDesk: ['#containers', '.sec-equip'],
     done: () => !!player.equipment.head,
   },
   {
@@ -97,7 +97,7 @@ const GUIDE = [
   {
     text: 'With a full stomach you heal much faster. Eat an apple: right-click it in your bag.',
     touch: 'With a full stomach you heal much faster. Open the backpack, tap an apple, then Use to eat it.',
-    ui: ['#hudBag'], uiDesk: ['#containers'],
+    ui: ['#inventoryDrawer .slot[data-item="apple"]', '#hudBag'], uiDesk: ['#containers'],
     done: () => player.fedUntil > now,
     art: 'eat',
   },

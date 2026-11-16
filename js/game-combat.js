@@ -411,17 +411,18 @@ function playerDies(killer) {
   if (protection === 'blessing') player.blessed = false;
   if (protection === 'amulet') eq.neck = null;
   piles.push({ id: newId(), x: player.x, y: player.y, z: player.z, items: dropped, corpse: 'blood', name: `dead ${player.name}`, until: now + 10 * 60000 });
-  Object.assign(player, { dead: true, respawnAt: now + 3000, walk: null, path: [], action: null, target: null, openPile: null, conditions: {}, ride: null });
+  Object.assign(player, { dead: true, hp: 0, respawnAt: now + 3000, walk: null, path: [], action: null, target: null, openPile: null, conditions: {}, ride: null });
   for (const p of players) if (p.target === player) p.target = null;
   endConversation(true);
-  log(`You are dead${killer ? `, killed by ${monsterRef(killer)}` : ''}. You lost ${xpBefore - player.xp} experience.`, 'damage');
+  log(`You are dead${killer ? `, killed by ${monsterRef(killer)}` : ''}. ${protection === 'starter' && xpBefore === player.xp
+    ? 'You lost nothing: before you choose a vocation, you keep your things and your level.' : `You lost ${xpBefore - player.xp} experience.`}`, 'damage');
   if (player.level < levelBefore) log(`You were downgraded from Level ${levelBefore} to Level ${player.level}.`, 'damage');
   if (protection === 'blessing') log('Your blessing protected your things.', 'quest');
   else if (protection === 'amulet') log('Your amulet of keeping crumbled, but saved your things.', 'quest');
   else if (red) log('With your red skull, everything you carried is lying in your corpse.', 'damage');
   else if (dropped.length) log('Your things are lying in your corpse. Hurry back to get them!', 'damage');
   addSound('death', player.x, player.y, player.z);
-  if (protection === 'starter') { const tip = deathTip(killer); if (tip) logDialog('Sister Ama', tip); } // (a word of advice, on the island)
+  player.deathTip = protection === 'starter' ? deathTip(killer) : null; // (a word of advice, on the island: once you wake)
   uiDirty();
 }
 
@@ -452,6 +453,7 @@ function respawnPlayer() {
   teleport(homePos());
   Object.assign(player, { dead: false, hp: player.maxHp, mana: player.maxMana });
   log(`You wake up in the temple of ${homeTown()}.`);
+  if (player.deathTip) { logDialog('Sister Ama', player.deathTip); player.deathTip = null; }
   uiDirty();
 }
 

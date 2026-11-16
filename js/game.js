@@ -857,7 +857,17 @@ function drawGuideArrow(screen) {
   } else {
     const cx = viewPxW() / 2, cy = viewPxH() / 2, a = Math.atan2(sy - cy, sx - cx);
     const reach = Math.min((cx - m) / Math.max(1e-6, Math.abs(Math.cos(a))), (cy - m) / Math.max(1e-6, Math.abs(Math.sin(a)))) + bob;
-    ctx.translate(cx + Math.cos(a) * reach, cy + Math.sin(a) * reach);
+    let ax = cx + Math.cos(a) * reach, ay = cy + Math.sin(a) * reach;
+    // (never under the guide's own box: slid down to just below it, still pointing the same way)
+    const box = document.getElementById('guide');
+    if (box && !box.hidden && box.offsetWidth) {
+      const cr = canvas.getBoundingClientRect(), br = box.getBoundingClientRect(), k = viewPxW() / (cr.width || 1);
+      const l = (br.left - cr.left) * k - 18, r = (br.right - cr.left) * k + 18, t = (br.top - cr.top) * k - 18, b = (br.bottom - cr.top) * k + 18;
+      if (ax > l && ax < r && ay > t && ay < b) {
+        if (b + 20 < viewPxH() - m) ay = b; else ax = ax < (l + r) / 2 ? Math.max(m, l) : Math.min(viewPxW() - m, r);
+      }
+    }
+    ctx.translate(ax, ay);
     ctx.rotate(a);
   }
   ctx.beginPath();
@@ -885,6 +895,9 @@ function wrapText(text, width) {
   return lines;
 }
 
+// (what the one you're talking to says is in the talk card on a phone: not over their head as well)
+const talkCardShows = fx => touchScreen && fx.name && typeof talkSpeaker !== 'undefined' && fx.name === talkSpeaker && !document.getElementById('talk').hidden;
+
 // Damage numbers rise and fade; speech stays above the speaker's head (their latest line only).
 function drawTexts(screen, z) {
   const latest = new Map();
@@ -904,7 +917,7 @@ function drawTexts(screen, z) {
       const [who, line] = FLYBY_LINES[Math.min(FLYBY_LINES.length - 1, Math.floor(age * FLYBY_LINES.length))];
       const [sx, sy] = screen(flybyX(fx, 0), fx.y);
       outlinedText(`${who}: ${line}`, Math.max(140, Math.min(viewPxW() - 140, sx + half)), sy - 40, '#ffd84a', 'bold 14px sans-serif');
-    } else if (fx.kind === 'speech' && latest.get(fx.cid) === fx && age < 1) {
+    } else if (fx.kind === 'speech' && latest.get(fx.cid) === fx && age < 1 && !talkCardShows(fx)) {
       const c = creatureById(fx.cid), v = c ? visual(c) : fx;
       const [sx, sy] = screen(v.x, v.y);
       const lines = wrapText(fx.text, 30);

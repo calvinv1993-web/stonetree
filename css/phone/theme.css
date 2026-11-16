@@ -77,3 +77,8 @@ body.touch-ui .talk-words button.quest::before { content: '!'; flex: none; displ
 body.touch-ui .talk-words button.quest.report::before { content: '?'; }
 body.touch-ui .talk-words button.bye { grid-column: 1 / -1; height: 36px; border-style: solid !important; background: transparent !important; box-shadow: none !important;
   color: var(--hud-text-2) !important; font-weight: 500 !important; text-transform: none; }
+/* A phone on its side: the game is made for holding it upright (a real landscape layout waits), so it asks for that */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch-ui::after { content: '⟲\A Turn your phone upright to play'; white-space: pre; position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center;
+    text-align: center; background: #0d0c0bf5; color: var(--hud-gold, #e8c46a); font: 600 18px/1.8 var(--ui, sans-serif); pointer-events: all; }
+}
