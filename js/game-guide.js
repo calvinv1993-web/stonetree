@@ -48,23 +48,17 @@ const GUIDE = [
     art: 'lost',
   },
   {
-    text: 'Before you fight: train! The training yard is in the south-west of town, off the main street. Click a dummy and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
-    touch: 'Before you fight: train! Tap a dummy in the training yard (south-west of town) and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
-    target: [{ at: [110, 141, 8] }, { at: [137, 109, 9] }], // (from the temple: to the steps down)
-    done: () => player.trainHits >= 5,
-    art: 'train',
-  },
-  {
     text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
-    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. You will use it a lot.',
+    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. Grey: nothing to do here. You will use it a lot.',
     ui: ['#tAttack'], uiDesk: ['#hotbar'],
     art: 'smart',
   },
   {
-    text: 'Now leave the temple yard, west over the bridge to the academy. Master Corwin teaches there: talk to him.',
-    touch: 'Now go west over the bridge to the academy (follow the arrow). Master Corwin teaches there: tap him to talk.',
+    text: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Talk to him, and ask him about the bell.',
+    touch: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Tap him, then tap Bell.',
     target: [{ npc: 'corwin' }],
-    done: () => talkingTo('corwin') || (!!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done')),
+    // (done once he has heard about the bell: then the rats he asks for count)
+    done: () => !!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done'),
   },
   {
     text: 'Master Corwin gave you a leather cap! Put it on: drag it from your bag onto your head in the equipment (or right-click it). Your armour goes up.',
@@ -75,9 +69,16 @@ const GUIDE = [
     done: () => !!player.equipment.head,
   },
   {
-    text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
-    touch: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, but you lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
+    text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, and your level: you only lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
+    touch: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, and your level: you only lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
     art: 'death',
+  },
+  {
+    text: 'On your way to the rats: train! The training yard is in the south-west of town, by the south gate. Click a dummy and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
+    touch: 'On your way to the rats, train: tap a dummy in the training yard (south-west of town, by the south gate) and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
+    target: [{ at: [110, 141, 8] }],
+    done: () => player.trainHits >= 5,
+    art: 'train',
   },
   {
     text: 'Rats run in Sunny Fields, out of the south gate. Click a rat, or press Space. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
@@ -197,24 +198,28 @@ const GUIDE = [
     touch: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
     target: [{ quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_2') === 'done',
+    minLevel: 5, // (till then: hunt at the gates)
   },
   {
     text: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
     touch: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
     target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [147, 102, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_3') === 'done',
+    minLevel: 6, // (till then: hunt at the gates)
   },
   {
     text: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
     touch: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
     target: [{ quest: 'bell_4' }, { news: ['ama'] }, { hunt: ['bell_4'] }, { at: [69, 176, 6] }, { at: [66, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_4') === 'done',
+    minLevel: 8, // (till then: hunt at the gates)
   },
   {
     text: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
     touch: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
     target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
     done: () => questState('bell_5') === 'done',
+    minLevel: 8, // (till then: hunt at the gates)
   },
   {
     text: 'Level 10! Before the oracle sends you on, Sister Ama wants to say goodbye: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
@@ -222,6 +227,7 @@ const GUIDE = [
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
     done: () => questState('bell_6') === 'done',
+    minLevel: 10, // (till then: hunt at the gates)
   },
   {
     text: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
@@ -269,6 +275,11 @@ function guideDid(deed) {
 
 // What the arrow points at now: { x, y, z }, or null.
 function guideTarget(step) {
+  // a step for a higher level than yours: the arrow to the nearest gate guard (a hunt there grows you)
+  if (step.minLevel && player.level < step.minLevel) {
+    return ['gate_west', 'gate_south', 'gate_east', 'gate_north'].map(id => npcs.find(c => c.npcId === id)).filter(Boolean)
+      .sort((a, b) => dist(a, player) - dist(b, player))[0] || null;
+  }
   for (const t of step.target || []) {
     if (t.level && player.level < t.level) continue;
     if (t.quest && (questState(t.quest) !== 'active' || !stepReady(t.quest))) continue; // only a step that's ready to hand in

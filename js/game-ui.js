@@ -152,9 +152,17 @@ function guideState() {
   const step = player.tutorial ? GUIDE[player.tutorial - 1] : null;
   // $progress: how far the task you're on has come (the first active quest still asking you to kill something)
   const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
-  const progress = hunting ? questProgress(hunting) : 'done';
-  const text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress).replace('$trained', `${Math.min(5, player.trainHits || 0)}/5`) : ''; // ($trained: hits on a dummy)
-  return { step, text, now: guideNow(step) };
+  // (no hunt on: none counted yet, or none asked for yet: never "done" before it is)
+  const progress = hunting ? questProgress(hunting) : (step && step.done && step.done()) ? 'done' : 'not started yet: talk to whoever asked first';
+  let text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress).replace('$trained', `${Math.min(5, player.trainHits || 0)}/5`) : ''; // ($trained: hits on a dummy)
+  // a step for a higher level: say so, and what to do till then
+  if (step && step.minLevel && player.level < step.minLevel) {
+    text = `Next in the story: level ${step.minLevel} (you are level ${player.level}). Until then, grow stronger: ask any gate guard for a hunt (they pay in watch marks), and come back. The arrow points to the nearest gate.`;
+    return { step, text, now: '' };
+  }
+  // (the "Now:" line only where it adds something: not on the basics, which say it all)
+  const now = GUIDE.indexOf(step) + 1 < GUIDE_BASICS ? '' : guideNow(step);
+  return { step, text, now };
 }
 function renderGuide() {
   const { step, text, now } = guideState();

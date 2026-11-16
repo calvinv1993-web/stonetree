@@ -52,6 +52,7 @@ function driver(game) {
 const STEPS = [
   ['the guide\'s first words', d => { for (let i = 0; i < 3; i++) d.next(); }],
   ['bell I: Ama, the bell', d => { d.talk('ama'); d.talk('ama', 'bell', 'yes'); d.next(); }],
+  ['bell I: Corwin', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
   ['bell I: the dummy', d => { // (a dummy with a free tile north of it: a friend may be training at the first)
     for (let x = 104; x <= 116; x++) {
       const t = d.state.map.get(x, 141, 8);
@@ -61,7 +62,6 @@ const STEPS = [
     }
     d.next();
   }],
-  ['bell I: Corwin', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
   ['bell I: five rats', d => { d.kill('rat', 5); for (let i = 0; i < 4; i++) d.next(); d.p().openPile = { corpse: 'blood' }; d.tick(100); d.p().openPile = null; d.p().fedUntil = d.state.now + 99999; for (let i = 0; i < 4; i++) d.next(); }],
   ['bell I: depot, Pip, Ama', d => { d.talk('corwin', 'bell'); d.talk('postmaster', 'locker'); d.talk('pip', 'letter'); d.talk('ama', 'bell'); d.p().shopNpc = 'pip'; d.tick(100); d.p().shopNpc = null; d.next(); }],
   ['level 2, Torchlight', d => { d.levelTo(2); d.A.say('lumen'); d.tick(300); }],
@@ -112,6 +112,16 @@ function finished(d, name) {
 }
 
 const SCENARIOS = {
+  // greeting Corwin without asking about the bell: the rats don't count yet, and the guide waits for him (never "done")
+  'corwin-greet-only': () => {
+    const d = driver(newGame(8));
+    for (const [n, f] of STEPS.slice(0, 2)) { f(d); check(d, n); }
+    d.talk('corwin'); d.settle();
+    const at = d.p().tutorial;
+    d.kill('rat', 5); d.settle();
+    assert.strictEqual(d.p().tutorial, at, 'the guide waits at Corwin');
+    assert(!/Kill 5 rats/.test(d.run('(GUIDE[player.tutorial - 1].touch || "")')), 'still on the step to talk to him');
+  },
   // as the guide leads
   straight: () => { const d = driver(newGame()); for (const [n, f] of STEPS) { f(d); check(d, n); } finished(d, 'straight'); },
   // the guide skipped at once: the story is the same

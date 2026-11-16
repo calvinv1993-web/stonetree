@@ -949,26 +949,26 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(p.tutorial, 3, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
-  next('where to look when lost');
-  assert.strictEqual(arrow(), '137,109,9', 'first out of the temple...'); on(null, { x: 128, y: 120, z: 8 });
-  assert.strictEqual(arrow(), '110,141,8', '...to the training yard');
-  on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
-  assert(p.trainHits >= 5, 'hitting the dummy');
-  next('the big button');
-  assert.strictEqual(arrow(), 'corwin'); assert.strictEqual(mark('corwin'), 'report');
+  next('where to look when lost'); next('the big button');
+  assert.strictEqual(arrow(), 'corwin', 'first to Corwin at the academy'); assert.strictEqual(mark('corwin'), 'report');
+  talk('corwin'); tick(game, 100);
+  assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rats only count once he has heard about the bell');
   talk('corwin', 'bell'); tick(game, 100);
-  // Corwin's present: a shield and a cap, and the guide waits until both are worn
+  // Corwin's present: a cap (the shield is to be earned), and the guide waits until it's worn
   const worn = () => ['wooden_shield', 'leather_cap'].map(id => p.equipment.backpack.contents.findIndex(i => i.id === id));
   assert(worn()[1] >= 0 && worn()[0] < 0, 'Master Corwin gives a leather cap (the shield is to be earned)');
   const step = p.tutorial;
   A.useItem({ root: 'bag', path: [worn()[1]] }); tick(game, 100);
   assert(p.equipment.head && p.tutorial === step + 1, 'worn: on to the next step');
   A.restartGuide(); A.restartGuide(); assert.strictEqual(p.tutorial, 1); // (the present comes once)
-  while (p.tutorial < step) { A.guideNext(); tick(game, 100); }
+  while (p.tutorial <= step) { A.guideNext(); tick(game, 100); }
   assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'leather_cap').length, 0, 'no second present when the guide starts again');
   p.tutorial = step + 1;
+  next('what dying costs');
+  assert.strictEqual(arrow(), '110,141,8', 'then the training yard, on the way to the rats');
+  on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
+  assert(p.trainHits >= 5, 'hitting the dummy');
   kill('rat', 5);
-  next('what dying costs'); tick(game, 100);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
   p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons'); next('putting Eat on an action button (the browser sees it)');
   assert.strictEqual(arrow(), 'corwin');
