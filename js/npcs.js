@@ -16,6 +16,8 @@
 //   { forge: true }          open the forge (the NPC needs forge: true as well; see game-forge.js)
 //   { chronicle: true }      Corwin pieces the founder's diary together (CHRONICLE)
 //   { marks: [[word, cost, [[itemId, n]], label]] }  trade watch marks (the gate watch's hunts) for things: say the word
+//                            (instead of items, { cosmetic: id }: something to wear over your outfit, COSMETICS in defs.js)
+//   { trophy: true }         a smith turns a rare named beast's trophy into gear (trophy in items.js)
 //   { pet: true }            look after the player's companion (fetch it back, heal it)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
@@ -2009,7 +2011,7 @@ Object.assign(NPCS, {
     name: 'Smith Dunstan',
     look: { skin: '#d89868', hair: '#2a1a0a', beard: '#2a1a0a', body: '#5a3a1a', arms: '#d89868', legs: '#3a3a40', belt: '#2a1a0a' },
     greet: 'Welcome to the Dented Shield, $name. Weapons, bought and sold - want to {trade}?',
-    keywords: { job: 'I make weapons, and I buy the ones you find.', 'spiked|club|best': 'A spiked club is the best I can make, and it is not cheap. They say the founders were buried with better arms - a longsword, a war axe and a mace - down in the crypt under Bone Rocks. Nobody who went to look came back with one.' },
+    keywords: { job: 'I make weapons, and I buy the ones you find.', 'trophy|trophies|whetstone|core': { trophy: true }, 'spiked|club|best': 'A spiked club is the best I can make, and it is not cheap. They say the founders were buried with better arms - a longsword, a war axe and a mace - down in the crypt under Bone Rocks. Nobody who went to look came back with one.' },
     trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8], ['spiked_club', 120]], buys: ['gear', 'distance'] },
   },
   oak_armourer: {
@@ -2018,6 +2020,7 @@ Object.assign(NPCS, {
     greet: 'Hide and Iron, at your service, $name. Helmets, armour and shields - shall we {trade}?',
     keywords: {
       job: 'I make armour that keeps young adventurers in one piece.',
+      'trophy|trophies|tail|hide|plate|spinneret|helm|claw': { trophy: true },
       'crypt|gate|family': 'My great-grandmother forged the iron gate in the founders\' crypt. She said it was the only gate she ever made to keep something IN.',
     },
     trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15], ['chain_helmet', 180], ['chain_legs', 300], ['chain_armor', 500]], buys: ['gear'] },
@@ -2043,9 +2046,13 @@ Object.assign(NPCS, {
   })(),
   gate_north: (() => { // (the captain keeps the watch's stores: watch marks buy from them)
     const g = gateGuard('gate_north', 'Captain Osric', '#3a3a3a', 'goblins', 'The north gate: Mirror Lake, Stony Field and the North Peaks. Goblin Hill is north-east, past the lake.', true);
-    g.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping'] = { marks: [
+    g.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping|feather|gull|jay|cloak|ember|moss'] = { marks: [
       ['potions', 2, [['health_potion', 5]], '5 health potions'], ['mana', 2, [['mana_potion', 5]], '5 mana potions'],
       ['life', 5, [['ring_life', 1]], 'a ring of life'], ['keeping', 8, [['amulet_keeping', 1]], 'an amulet of keeping'],
+      // (to wear: seen by everyone, worn over any outfit)
+      ['gull', 5, { cosmetic: 'gull_feather' }, 'a gull feather for your hair'], ['jay', 5, { cosmetic: 'jay_feather' }, 'a blue jay feather'],
+      ['ember', 5, { cosmetic: 'ember_cloak' }, 'an ember-red cloak'], ['moss', 5, { cosmetic: 'moss_cloak' }, 'a moss-green cloak'],
+      ['cloak', 5, { cosmetic: 'watch_cloak' }, 'a watch-blue cloak'],
     ] };
     g.greet = g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?');
     return g;

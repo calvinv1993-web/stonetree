@@ -387,7 +387,7 @@ function act(conn, msg) {
 const near = (p, o) => o.z !== undefined && Math.abs(o.x - p.x) <= VIEW.x && Math.abs(o.y - p.y) <= VIEW.y;
 const ALWAYS = ['id', 'name', 'trainHits', 'x', 'y', 'z', 'dir', 'walk', 'hp', 'maxHp', 'mana', 'maxMana', 'level', 'xp', 'gold', 'bank', 'dead',
   'respawnAt', 'conditions', 'spellReady', 'potionReady', 'fedUntil', 'lightUntil', 'skullUntil', 'redSkullUntil', 'pzLockUntil', 'frags', 'vocation', 'promoted', 'outfit', 'fightMode', 'chase', 'secure', 'blessed', 'house', 'home', 'follow', 'tutorial', 'born', 'pet', 'petBody'];
-const SOMETIMES = ['equipment', 'depot', 'skills', 'quests', 'chests', 'hotkeys', 'markers', 'furniture'];
+const SOMETIMES = ['equipment', 'depot', 'skills', 'quests', 'chests', 'hotkeys', 'markers', 'furniture', 'bestiary', 'cosmetics'];
 
 function youState(conn) {
   const p = conn.player, you = {};
@@ -422,7 +422,7 @@ function snapshot(conn, tiles) {
       partyMark: W.partyMark(o, p), guildInfo: W.guildInfo(o), lightUntil: o.lightUntil, petBody: o.petBody || null,
     })),
     monsters: G.monsters.filter(m => !m.dead && near(p, m)).map(m => ({
-      id: m.id, type: m.type, name: m.name, x: m.x, y: m.y, z: m.z, dir: m.dir, walk: m.walk, hp: m.hp, maxHp: m.maxHp,
+      id: m.id, type: m.type, name: m.name, rare: m.rare || undefined, x: m.x, y: m.y, z: m.z, dir: m.dir, walk: m.walk, hp: m.hp, maxHp: m.maxHp,
     })),
     npcs: G.npcs.filter(n => n.def.wander && near(p, n)).map(n => ({ id: n.id, x: n.x, y: n.y, z: n.z, dir: n.dir, walk: n.walk })),
     piles: G.piles.filter(pl => near(p, pl)).map(pl => ({ id: pl.id, x: pl.x, y: pl.y, z: pl.z, corpse: pl.corpse, name: pl.name, items: pl.items })),

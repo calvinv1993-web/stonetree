@@ -173,7 +173,7 @@ const Net = (() => {
     const you = s.you;
     for (const [k, v] of Object.entries(you)) if (!['target', 'openPile', 'shopNpc'].includes(k)) player[k] = v;
 
-    monsters = s.monsters.map(m => ({ ...m, def: MONSTERS[m.type], conditions: {}, dead: false }));
+    monsters = s.monsters.map(m => ({ ...m, def: (m.rare && rareDef(m.type)) || MONSTERS[m.type], conditions: {}, dead: false })); // (rare kin: RARE_KIN)
     for (const o of s.npcs || []) { // townsfolk walking about
       const n = npcs.find(x => x.id === o.id);
       if (n) Object.assign(n, o);

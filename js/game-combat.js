@@ -236,6 +236,7 @@ function damageMonster(m, dmg, element) {
   const before = dmg; // what got past its defense (see blocked)
   if (element === 'physical' && m.def.armor) dmg -= randInt(Math.floor(m.def.armor * 0.475), Math.floor(m.def.armor * 0.95)); // armor, as in Tibia
   dmg = Math.round(dmg * ((m.def.weak && m.def.weak[element]) || 1));
+  dmg = withBestiary(dmg, m.type); // (you know the kind well: you hit it a little harder)
   m.angryAt = player.id;
   m.angryUntil = now + 15000; // whatever hits a monster gets hunted, even from afar
   player.foughtAt = now; // for the party's shared experience
@@ -372,6 +373,7 @@ function killMonster(m) {
     asPlayer(p, () => {
       if (Math.round(xp) > 0) gainXp(Math.round(xp), shared.has(p));
       onMonsterKilled(m.type);
+      bestiaryKill(m.type);
       petLearnFromKill(m); // (your companion, if it helped)
       guideDid('kill');
       taleDeed('kill', m.type);
@@ -704,6 +706,46 @@ function spawnMonster(spawn, extra = {}) {
   };
 }
 
+// Rare named kin (RARE_KIN in creatures.js): now and then a common beast of the isle comes back as its named kin, a bit
+// tougher, with its trophy; whoever is near is told. (Only when one comes back: never a world full of them at the start.)
+function maybeRare(m, force = false) {
+  const def = rareDef(m.type);
+  if (!def || !m.spawn || m.raid || m.summoner || !onIsle(m.spawn) || !(force || Math.random() < RARE_CHANCE)) return m;
+  Object.assign(m, { rare: true, def, name: def.name, hp: def.hp, maxHp: def.hp });
+  for (const p of players) {
+    if (!p.dead && p.z === m.z && dist(p, m) <= 24) asPlayer(p, () => log(RARE_KIN[m.type].say, 'level'));
+  }
+  return m;
+}
+
+// ---- the bestiary: kills of each kind, and what knowing a kind well is worth -------------------------------------
+// Every kill counts for its kind (rare kin as their kind). At each of BESTIARY_TIERS kills of a kind you know it better
+// for good: that much more damage against it (in damageMonster, spells and runes too).
+const BESTIARY_TIERS = [[25, 0.03], [100, 0.06], [250, 0.1]];
+const bestiaryTier = (type, p = player) => BESTIARY_TIERS.filter(([n]) => ((p.bestiary || {})[type] || 0) >= n).length;
+const bestiaryBonus = (type, p = player) => { const t = bestiaryTier(type, p); return t ? BESTIARY_TIERS[t - 1][1] : 0; };
+// A hit with the bonus: rounded up or down by chance, so even a small hit gets its share on average.
+function withBestiary(dmg, type) {
+  const bonus = dmg > 0 ? bestiaryBonus(type) : 0;
+  if (!bonus) return dmg;
+  const more = dmg * (1 + bonus);
+  return Math.floor(more) + (Math.random() < more - Math.floor(more) ? 1 : 0);
+}
+const kindName = (type, n = 2) => (n === 1 || MONSTERS[type].proper ? MONSTERS[type].name : MONSTERS[type].plural || `${MONSTERS[type].name}s`);
+function bestiaryKill(type) {
+  if (!MONSTERS[type]) return;
+  if (!player.bestiary) player.bestiary = {};
+  const n = (player.bestiary[type] = (player.bestiary[type] || 0) + 1);
+  const tier = BESTIARY_TIERS.findIndex(([at]) => at === n);
+  if (tier >= 0) {
+    const pct = Math.round(BESTIARY_TIERS[tier][1] * 100), next = BESTIARY_TIERS[tier + 1];
+    log(`Bestiary: ${n} ${kindName(type)} slain. You know their ways now: +${pct}% damage against them, for good.${next ? ` (${next[0]} for more.)` : ' You have mastered them.'}`, 'level');
+    playerEvent('banner', { message: `Bestiary: ${capitalize(kindName(type))} ${'★'.repeat(tier + 1)}` });
+    addSparkle(player, '#ffe080');
+  }
+  uiDirty();
+}
+
 // A monster for every spawn, each on a tile of its own: placed one at a time, so a
 // monster looking for a free tile near its spawn sees the ones placed before it.
 // each(monster, spawn index) may adjust a monster before the next is placed.
@@ -761,7 +803,7 @@ function updateMonster(m, i) {
       // of their screen. So a hunting ground never runs dry, however long you stay.
       const fresh = spawnMonster(m.spawn);
       m.due = m.due || now;
-      if (fresh && !players.some(p => inView(p, fresh) || inView(p, m.spawn))) monsters[i] = fresh;
+      if (fresh && !players.some(p => inView(p, fresh) || inView(p, m.spawn))) monsters[i] = maybeRare(fresh);
       else if (!(now - m.due > 15000 && walkIn(m, i))) m.respawnAt = now + 4000;
     }
     return;
@@ -821,7 +863,7 @@ function walkIn(m, i) {
     const fresh = spawnMonster({ ...s, x: edge.x, y: edge.y });
     if (!fresh) continue;
     Object.assign(fresh, { spawn: s, goal: { x: s.x, y: s.y } });
-    monsters[i] = fresh;
+    monsters[i] = maybeRare(fresh);
     return true;
   }
   return false;

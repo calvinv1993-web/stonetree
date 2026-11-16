@@ -62,6 +62,8 @@ function newPlayer(name) {
     tutorial: 1, tale: 0, // the guide's step (0: done), and how far into the island's tale
     huntDay: '', // the real day of your last first-of-the-day watch hunt (its bonus marks: reward.daily, dailyDue)
     guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
+    bestiary: {}, // kills of each kind of monster: type -> n (BESTIARY_TIERS in game-combat.js)
+    cosmetics: [], // what you've bought from the watch's stores to wear (COSMETICS in defs.js), worn through your outfit
     pet: null, // a companion that follows you and fights with you: { name, kind, level, xp, hp, mode, ... } (Clang, the temple's cat; game-update.js updatePet)
     born: Math.floor(Math.random() * 36 ** 6).toString(36), // this character's own mark: what a browser keeps for it (its action buttons) starts fresh with a new one of the same name
     fightMode: 'balanced', chase: true, secure: true, conditions: {},
@@ -1492,7 +1494,7 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };
@@ -1517,6 +1519,12 @@ function applySave(data) {
   for (const id in SKILLS) if (!player.skills[id]) player.skills[id] = { level: SKILLS[id].start, tries: 0 };
   for (const id in player.quests) if (!QUESTS[id]) delete player.quests[id];
   if (!VOCATIONS[player.vocation]) player.vocation = 'none';
+  // (the bestiary and cosmetics: none in a save from before them; anything unknown is dropped)
+  const kills = player.bestiary && typeof player.bestiary === 'object' && !Array.isArray(player.bestiary) ? player.bestiary : {};
+  player.bestiary = {};
+  for (const type of Object.keys(kills)) if (Object.hasOwn(MONSTERS, type) && kills[type] > 0) player.bestiary[type] = Math.floor(kills[type]);
+  player.cosmetics = Array.isArray(player.cosmetics) ? player.cosmetics.filter(id => Object.hasOwn(COSMETICS, id)) : [];
+  if (player.outfit) for (const k of ['feather', 'cloak']) if (player.outfit[k] && !player.cosmetics.includes(player.outfit[k])) delete player.outfit[k];
   player.fedUntil = now + (data.fed || 0);
   const house = map.houses.find(h => h.id === player.house);
   if (house && (!house.owner || house.owner === player.name)) {

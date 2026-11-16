@@ -21,6 +21,8 @@
 //   value:      what traders pay for it
 //   quest:      quest item, can't be dropped or sold
 //   ore:        forging ore of this grade (see QUALITIES and game-forge.js)
+//   trophy:     { smith: npc id, makes: item id, q: grade }: a rare named beast's trophy (RARE_KIN in creatures.js),
+//               which that smith turns into a piece of gear of that grade (ask them about a trophy)
 //
 // A piece of gear can have a grade, item.q (0 common .. 4 legendary): better attack,
 // armor and defense. Smiths forge it up a grade with ore; monsters drop some.
@@ -175,6 +177,15 @@ const ITEMS = {
   pearl:         { name: 'pearl', stack: true, value: 60, weight: 0.5 },
   old_boot:      { name: 'old boot', value: 1, weight: 9 },
   bone_whistle:  { name: 'bone whistle', whistle: true, value: 5, weight: 1 },
+  // the trophies of the isle's rare named beasts (RARE_KIN in creatures.js)
+  whiskerjack_tail:    { name: 'tail of Whiskerjack', trophy: { smith: 'oak_armourer', makes: 'leather_boots', q: 2 }, value: 20, weight: 1 },
+  scarjaw_hide:        { name: 'hide of Old Scarjaw', trophy: { smith: 'oak_armourer', makes: 'leather_armor', q: 2 }, value: 30, weight: 8 },
+  ironclaw_plate:      { name: 'shell plate of Ironclaw', trophy: { smith: 'oak_armourer', makes: 'wooden_shield', q: 2 }, value: 30, weight: 6 },
+  silkwidow_spinneret: { name: 'spinneret of Silkwidow', trophy: { smith: 'oak_armourer', makes: 'leather_legs', q: 2 }, value: 30, weight: 1 },
+  grubnose_whetstone:  { name: 'whetstone of Grubnose', trophy: { smith: 'oak_smith', makes: 'short_sword', q: 2 }, value: 30, weight: 4 },
+  clatter_helm:        { name: 'dented helm of Sir Clatterbones', trophy: { smith: 'oak_armourer', makes: 'chain_helmet', q: 1 }, value: 35, weight: 12 },
+  glimmer_core:        { name: 'glimmering core', trophy: { smith: 'oak_smith', makes: 'spiked_club', q: 2 }, value: 35, weight: 2 },
+  mossback_claw:       { name: 'claw of Mossback', trophy: { smith: 'oak_armourer', makes: 'chain_legs', q: 1 }, value: 40, weight: 3 },
 
   parcel:        { name: "Hilda's parcel", quest: true, weight: 20 },
   old_sock:      { name: 'old sock', quest: true, weight: 1 },
@@ -209,6 +220,7 @@ function itemInfo(id, q = 0) {
   const w = d.weapon, dmg = w && w.dmg && wandDamage(w, q);
   if (q) parts.push(QUALITIES[q].name);
   if (d.ore !== undefined) parts.push(`${QUALITIES[d.ore].name} ore: a smith forges gear with it`);
+  if (d.trophy) parts.push(`a trophy: ${typeof NPCS !== 'undefined' && NPCS[d.trophy.smith] ? NPCS[d.trophy.smith].name : 'a smith'} makes ${itemName(d.trophy.makes, 1, d.trophy.q)} of it`);
   if (w && w.type === 'wand') parts.push(`${w.element} ${dmg[0]}-${dmg[1]}, ${w.mana} mana per shot, range ${w.range}`);
   else if (w) parts.push(`${w.type === 'distance' ? 'distance' : w.type} attack ${qualityStat(w.attack, q)}`);
   if (w && w.ammo) parts.push(`shoots ${w.ammo}s, range ${w.range}`);
