@@ -6543,7 +6543,7 @@ const Sprites = (() => {
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
     || (c.type !== 'player' && c.type !== 'npc' && !c.rare && !c.pet && !LOW_SHEETS.includes(c.type) && customImage(`sheet_${c.type}`))); // (a monster on two legs with its own sheet)
   // (beasts drawn from a sheet that stand low: their name stays at the monsters' height, not above a person's head)
-  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear'];
+  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang'];
   function playerFromSheet(key, dir, frame) {
     const img = customImage('player_sheet'), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
     return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {

@@ -263,6 +263,8 @@ const CUSTOM_SPRITES = {
   sheet_slime: 'monster-slime.png',
   sheet_cat: 'monster-cat.png', // the town's cats (Clang keeps his own, with his bell)
   sheet_bear: 'monster-bear.png',
+  sheet_wolf: 'monster-wolf.png',
+  sheet_greyfang: 'monster-greyfang.png', // the wolves' alpha
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
