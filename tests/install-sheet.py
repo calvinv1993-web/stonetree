@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # Puts a character sheet made outside the game (ChatGPT) into sprites/, laid out like the player sheet: 3 x 3 cells of
 # 128 x 192 pixels (rows front, side facing east, back; columns standing and two steps), feet on the same line.
-#   python3 tests/install-sheet.py <picture.png> <out.png> [size]
+#   python3 tests/install-sheet.py <picture.png> <out.png> [size] [--mask <mask.png> <mask-out.png>]
 # size: 1 for a grown-up (the default), about 0.75 for a child or a goblin, more for a tall hat (Hobb's: 1.12).
 # It keeps each cell's biggest figure and its painted shadow (stray specks and the red fringe ChatGPT leaves are
 # dropped), and scales every cell alike so the standing front figure is HEIGHT times size tall, feet on Sister Ama's line.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
 # Nothing is painted over: no filter, no added edge (SHEET_VIVID and SHEET_EDGE=1 can still add them).
+# --mask: a map of the picture's parts painted over it, the same size (the player's: red hair, blue shirt, green trousers,
+# yellow boots), cut, scaled and placed exactly as the picture, its colours kept flat (sprites/player-mask.png).
 import os
 import sys
 from collections import deque
@@ -68,7 +70,8 @@ def main_figure(cell):
     a[~keep] = 0
     a[fringe & keep, 3] = 0
     out = Image.fromarray(a)
-    return out.crop(out.getbbox())  # (with its shadow: the feet are found from the solid part, see install)
+    box = out.getbbox()
+    return out.crop(box), box  # (with its shadow: the feet are found from the solid part, see install)
 
 def edge(fig):
     a = np.array(fig.convert('RGBA')).astype(float)
@@ -117,12 +120,14 @@ def alike(p, q):
     y = np.array(q.resize(size)).astype(float)
     return 1 - np.abs(x - y).mean() / 255
 
-def build(figs, scale):
+def build(figs, scale, masks=None):
     sheet = Image.new('RGBA', (CELL_W * 3, CELL_H * 3), (0, 0, 0, 0))
+    mask_sheet = Image.new('RGBA', sheet.size, (0, 0, 0, 0))
     for r in range(3):
         for c in range(3):
             f = figs[r][c]
             f = f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS)
+            m = masks and masks[r][c].resize(f.size, Image.NEAREST)
             if VIVID != 1:  # (fuller colours; whites, greys and silver stay as they are: only what has colour gets more)
                 alpha = f.getchannel('A')
                 rich = ImageEnhance.Contrast(ImageEnhance.Color(f.convert('RGB')).enhance(VIVID)).enhance(1 + (VIVID - 1) * 0.25)
@@ -138,11 +143,15 @@ def build(figs, scale):
                 f = edge(f)
             # (placed by the figure itself, not its shadow: its feet on the line, its middle in the middle)
             sx0, sy0, sx1, sy1 = f.getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox() or (0, 0, f.width, f.height)
-            sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - (sx0 + sx1) // 2, r * CELL_H + FEET_Y - sy1))
-    return sheet
+            at = (c * CELL_W + CENTRE_X - (sx0 + sx1) // 2, r * CELL_H + FEET_Y - sy1)
+            sheet.alpha_composite(f, at)
+            if m:
+                mask_sheet.alpha_composite(m, at)
+    return sheet, mask_sheet
 
-def install(src_path, out_path, size=1.0):
+def install(src_path, out_path, size=1.0, mask_path=None, mask_out=None):
     src = Image.open(src_path).convert('RGBA')
+    msrc = mask_path and Image.open(mask_path).convert('RGBA')
     cw = src.width / 3
     # (the rows are cut where the picture is emptiest near each third, not at the thirds themselves: a tall bun or a hat
     # can reach up past them into the row above)
@@ -151,16 +160,41 @@ def install(src_path, out_path, size=1.0):
         lo, hi = int(at - src.height * 0.12), int(at + src.height * 0.12)
         return lo + int(np.argmin(solid_rows[lo:hi]))
     ys = [0, cut(src.height / 3), cut(src.height * 2 / 3), src.height]
-    figs = [[main_figure(src.crop((int(c * cw), ys[r], int((c + 1) * cw), ys[r + 1]))) for c in range(3)] for r in range(3)]
+    cells = [[(int(c * cw), ys[r], int((c + 1) * cw), ys[r + 1]) for c in range(3)] for r in range(3)]
+    found = [[main_figure(src.crop(cells[r][c])) for c in range(3)] for r in range(3)]
+    figs = [[f for f, _ in row] for row in found]
+    masks = None
+    if msrc:  # (the map: the same crop, only where the figure is, in flat colours)
+        masks = []
+        for r in range(3):
+            row = []
+            for c in range(3):
+                m = msrc.crop(cells[r][c]).crop(found[r][c][1])
+                a = np.array(m)
+                a[np.array(figs[r][c])[:, :, 3] == 0] = 0
+                a[(a[:, :, 0] > 230) & (a[:, :, 1] > 230) & (a[:, :, 2] > 230)] = 0  # (white: no part)
+                row.append(Image.fromarray(a))
+            masks.append(row)
     for r in (0, 2):  # (two steps the same, front or back: the second is the first, mirrored)
         if alike(figs[r][1], figs[r][2]) > 0.97:
             figs[r][2] = ImageOps.mirror(figs[r][1])
+            if masks:
+                masks[r][2] = ImageOps.mirror(masks[r][1])
             print(f'row {r + 1}: the second step repeated the first: mirrored')
     solid = figs[0][0].getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox()
     # (sized by the standing front figure's own height, its shadow left out: HEIGHT times size; finding the eyes
     # proved unreliable across ChatGPT's sheets, so a tall hat is given its own size instead)
     scale = HEIGHT * size / ((solid[3] - solid[1]) if solid else figs[0][0].height)
-    build(figs, scale).save(out_path)
+    sheet, mask_sheet = build(figs, scale, masks)
+    sheet.save(out_path)
+    if masks:
+        a = np.array(mask_sheet)
+        a[:, :, 3] = np.where(a[:, :, 3] > 127, 255, 0)  # (flat: a pixel is one part or none)
+        Image.fromarray(a).save(mask_out, optimize=True)
 
 if __name__ == '__main__':
-    install(sys.argv[1], sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 1.0)
+    argv = sys.argv[1:]
+    mask = None
+    if '--mask' in argv:
+        i = argv.index('--mask'); mask = argv[i + 1:i + 3]; del argv[i:i + 3]
+    install(argv[0], argv[1], float(argv[2]) if len(argv) > 2 else 1.0, *(mask or [None, None]))
