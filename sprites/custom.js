@@ -12,15 +12,6 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
-  obelisk: 'obelisk@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  cannon_e: 'cannon-e@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  cannon_w: 'cannon-w@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  wagon: 'wagon@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  pebbles: 'pebbles@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  leaves: 'leaves@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  reeds: 'reeds@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  tallgrass: 'tallgrass@4x.png', // the owner's picture, in the world's camera (install-world.py)
-  flowers: 'flowers@4x.png', // the owner's picture, in the world's camera (install-world.py)
   old_sock: 'items/old_sock@3x.png', // the owner's item picture (install-items.py)
   old_boot: 'items/old_boot@3x.png', // the owner's item picture (install-items.py)
   parcel: 'items/parcel@3x.png', // the owner's item picture (install-items.py)

@@ -27,6 +27,6 @@ Order, left to right, top to bottom:
 
 Send the sheet back as it comes out: it is cut up and put in the world.
 
-## Done
+## Not used
 
-In the game (tests/install-world.py): flowers, tall grass, reeds, fallen leaves, pebbles, the hand cart (wagon), the cannon both ways, the obelisk. The rug was left out: rugs join up into one carpet across tiles, so they keep the carpet texture.
+All ten already had the owner's own paintings in the game (flowers, tall grass, reeds and pebbles with three variants each, the leaves' drifts, the cart, the cannons in four directions, the rune stone), made to fit the world: those stay. The sheet's versions were tried and taken out again.
