@@ -12,6 +12,15 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  old_sock: 'items/old_sock@3x.png', // the owner's item picture (install-items.py)
+  old_boot: 'items/old_boot@3x.png', // the owner's item picture (install-items.py)
+  parcel: 'items/parcel@3x.png', // the owner's item picture (install-items.py)
+  sea_chart: 'items/sea_chart@3x.png', // the owner's item picture (install-items.py)
+  carved_stone: 'items/carved_stone@3x.png', // the owner's item picture (install-items.py)
+  bone_whistle: 'items/bone_whistle@3x.png', // the owner's item picture (install-items.py)
+  chronicle_page: 'items/chronicle_page@3x.png', // the owner's diary page, lying on the ground (a map thing: drawn smaller in its tile)
+  chewed_rope: 'items/chewed_rope@3x.png', // the owner's item picture (install-items.py)
+  bell_clapper: 'items/bell_clapper@3x.png', // the owner's item picture (install-items.py)
   pearl: 'items/pearl@3x.png', // the owner's item picture (install-items.py)
   crab_claw: 'items/crab_claw@3x.png', // the owner's item picture (install-items.py)
   dragon_scale: 'items/dragon_scale@3x.png', // the owner's item picture (install-items.py)

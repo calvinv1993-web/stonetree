@@ -2572,6 +2572,8 @@ const Sprites = (() => {
       for (const z of [6, 24, 40]) prism(g, 15, 0, 17, 32, z, z + 3, iron);         // crossbars
       prism(g, 13, 14, 19, 19, 20, 27, { top: '#8a6a2a', south: '#6a4e1a', east: '#4a3410', edge: '#b08a3e' }); // the lock
     },
+    // A page of the founder's diary on the ground (the owner's painting, sprites/custom.js; till it's in, a torn note)
+    chronicle_page(g) { DRAW.torn_note(g); },
     // A torn scrap of paper on the floor.
     torn_note(g) {
       shadow(g, 16, 22, 8, 2);

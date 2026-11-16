@@ -38,11 +38,8 @@ Painted and in the game: shovel, rope, bronze key, silver key, adventurer's hand
 
 Painted and in the game: wolf pelt, spider silk, bone, goblin charm, orc tooth, ogre tusk, cyclops toe, thick fur, bear paw, scorpion tail, mummy wrapping, swamp moss, crocodile hide, minotaur horn, lizard scale, frost dragon scale, demon horn, dragon scale, crab claw, pearl.
 
-## Sheet 7: the story's things (8)
+## Sheet 7: the story's things: done
 
-```
-1 bronze bell clapper (a heavy bronze bell clapper, warm, grey ash in its seams), 2 chewed bell rope (a thick rope, cut clean and gnawed), 3 torn note (a scrap of paper), 4 a weathered torn page of an old diary with faded handwriting, 5 bone whistle,
-6 strange carved stone (a small stone with spiral carvings), 7 sea chart (a rolled map), 8 Hilda's parcel (a small package tied with string)
-```
+Painted and in the game: bronze bell clapper, chewed bell rope, the founder's diary page (lying on the ground, The Oakvale Chronicle), bone whistle, strange carved stone, sea chart, Hilda's parcel, old boot, old sock. (The torn note kept the owner's own.)
 
-Sheet 7 also has room for these, as 9 and 10: old boot, old sock.
+All seven sheets are done: every item in the game is painted.
