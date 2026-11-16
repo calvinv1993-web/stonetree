@@ -3,7 +3,7 @@
     python3 tests/install-items.py <sheet.png> <columns> <id> <id> ...
 
 The sheet: a transparent PNG with the items in a grid (columns across, as many rows as needed), in the order of the
-ids given (use - to skip a cell). Each cell is cut to what's painted in it (faint specks and the reddish fringe a
+ids given (use - to skip a cell). Each cell is cut to what's painted in it (faint specks and the red or yellow fringe a
 painting tool leaves round its edges dropped), centred on a 96 x 96 picture with a little margin, saved as
 sprites/items/<id>@3x.png and listed in sprites/custom.js (replacing what was there for that id). Then run
 node tests/sprite-versions.js.
@@ -50,7 +50,7 @@ for i, gid in enumerate(ids):
     al = cell[..., 3]
     # the reddish fringe round the edges: half see-through and red
     R, G, B = cell[..., 0], cell[..., 1], cell[..., 2]
-    fringe = (al < 235) & (R > G + 50) & (R > B + 50)
+    fringe = (al < 235) & (((R > G + 50) & (R > B + 50)) | ((R > 150) & (G > 150) & (B < 90)))  # (red, or yellow)
     cell[fringe, 3] = 0
     solid = cell[..., 3] > 110
     lab, n = ndimage.label(solid)
@@ -63,7 +63,9 @@ for i, gid in enumerate(ids):
     ys, xs = np.nonzero(cell[..., 3] > 20)
     crop = cell[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
     img = Image.fromarray(crop.clip(0, 255).astype(np.uint8), 'RGBA')
-    s = (SIZE - 2 * MARGIN) / max(img.width, img.height)
+    # filling the picture, but a small thing (a pearl, a scale) stays small: nothing grows more than an item that
+    # fills 60% of its cell would
+    s = min((SIZE - 2 * MARGIN) / max(img.width, img.height), (SIZE - 2 * MARGIN) / (0.6 * min(cw, ch)))
     img = img.resize((max(1, round(img.width * s)), max(1, round(img.height * s))), Image.LANCZOS)
     out = Image.new('RGBA', (SIZE, SIZE)); out.alpha_composite(img, ((SIZE - img.width) // 2, (SIZE - img.height) // 2))
     name = f'items/{gid}@3x.png'; out.save(os.path.join(root, 'sprites', name))

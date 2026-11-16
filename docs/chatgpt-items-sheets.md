@@ -34,14 +34,9 @@ Painted and in the game: rod of the glacier, blank rune and the eight runes, rin
 
 Painted and in the game: shovel, rope, bronze key, silver key, adventurer's handbook, old book, table kit, chair kit, bed kit, potted plant, rough, iron, mithril, starsteel and sunsteel ore, golem core, living ember. (The pickaxe and fishing rod kept sheet 1's.)
 
-## Sheet 6: what monsters leave behind (20)
+## Sheet 6: what monsters leave behind: done
 
-```
-1 wolf pelt, 2 spider silk (a white skein), 3 bone, 4 goblin charm (a crude bone and feather charm), 5 orc tooth,
-6 ogre tusk, 7 cyclops toe, 8 thick fur, 9 bear paw, 10 scorpion tail,
-11 mummy wrapping (a roll of old linen), 12 swamp moss, 13 crocodile hide, 14 minotaur horn, 15 lizard scale,
-16 frost dragon scale (icy blue), 17 demon horn (black, curved), 18 dragon scale (red), 19 crab claw, 20 pearl
-```
+Painted and in the game: wolf pelt, spider silk, bone, goblin charm, orc tooth, ogre tusk, cyclops toe, thick fur, bear paw, scorpion tail, mummy wrapping, swamp moss, crocodile hide, minotaur horn, lizard scale, frost dragon scale, demon horn, dragon scale, crab claw, pearl.
 
 ## Sheet 7: the story's things (8)
 
