@@ -31,7 +31,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 **On a phone:** open the same address. Touch screens get on-screen controls automatically.
 - Upright, the map fills the screen and the controls sit over its bottom corners. Sideways, the controls are on both sides of the map.
 - ⛶ goes fullscreen on Android.
-- On an iPhone, use Share › Add to Home Screen and open the game from there; that is the only way iPhones run it fullscreen.
+- On a phone or tablet the game is played as an app from your home screen; opened in a browser, it shows how to add it (iPhone: Share › Add to Home Screen; Android: the menu › Install app). Computers play in the browser.
 - Add `?mobile` to the address to try the touch controls on a PC.
 
 **Gold for everyone online** (from the computer the server runs on): `curl -X POST -H "X-Tilequest: editor" "http://localhost:8080/admin/gold?atLeast=10000"` tops up every online player's gold to at least that much (handy for travelling), and tells them. On Windows, type `curl.exe` instead of `curl`.
