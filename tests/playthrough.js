@@ -216,16 +216,20 @@ function levelUp(level, type, where) { while (p.level < level && state.now < END
 // a level past their gate's task (a careful player), the best paid first. Paid in watch marks, spent at Osric's.
 const WATCH = [['task_north', 'gate_north', 'goblin', () => GOBLINS], ['task_east', 'gate_east', 'spider', () => SPIDERS],
   ['task_west', 'gate_west', 'wolf', () => WOLVES], ['task_south', 'gate_south', 'crab', () => CRABS]];
+const huntSkip = {}; // (a hunt the bot couldn't take: left alone a while, so it doesn't ask again and again)
 function watchHunt() {
   const free = WATCH.find(([id, gate]) => {
     const s = p.quests[id], q = state.QUESTS[id];
+    if (huntSkip[id] > state.now) return false;
     return p.level >= Math.max(q.level, state.QUESTS[gate].level + (lazy ? 0 : 1)) && state.questState(gate) === 'done' && (!s || s.status === 'active' || state.now >= s.doneAt + q.repeat);
   });
   if (!free) return false;
   const [id, gate, type, where] = free;
   note(`== the watch's hunt: ${type}s (${id})`);
   const marks = state.countItem('watch_mark');
-  talkFor(id, 'active', gate, 'hunt', 'yes'); huntFor(id, type, where()); talkFor(id, 'done', gate, 'hunt');
+  talkFor(id, 'active', gate, 'hunt', 'yes');
+  if (state.questState(id) !== 'active') { huntSkip[id] = state.now + 10 * 60000; wait(1000); return false; }
+  huntFor(id, type, where()); talkFor(id, 'done', gate, 'hunt');
   note(`   ${state.countItem('watch_mark') - marks} watch marks`);
   return true;
 }
@@ -344,7 +348,7 @@ function equipBest() { // put on whatever good gear is in the bag
 }
 
 // ---- the road: the guide's order (game-guide.js), the quests as they are now (npcs.js) ------------------------------
-const SUNNY = [128, 165, 8], WOLVES = [62, 88, 8], CRABS = [132, 210, 8], SPIDERS = [178, 192, 8], GOBLINS = [190, 72, 8];
+const SUNNY = [128, 165, 8], WOLVES = [62, 88, 8], CRABS = [132, 210, 8], SPIDERS = [178, 192, 8], GOBLINS = [182, 80, 8]; // (Goblin Hill's south slope, below Gnash's camp)
 const CRYPT = [80, 181, 7], DRAINS = [126, 125, 6], CISTERN = [125, 110, 5], TOMB = [69, 181, 6], SEWERS = [126, 130, 7];
 const CELLAR = [140, 104, 7], POINT = [128, 219, 8];
 try {

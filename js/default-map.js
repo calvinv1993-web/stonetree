@@ -999,8 +999,8 @@ function createDefaultMap() {
     // task isn't a fight with three wolves)
     ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 91, 162]], // Owl Grove, Fox Copse
     ['crab', 6, [148, 56, 178, 86], S, 'sand'],              // the shore of Mirror Lake
-    ['crab', 2, [94, 210, 97, 215], S, 'sand'],              // the west beach of Lighthouse Point (Old Snapper's, further east)
-    ['crab', 6, [150, 204, 186, 212], S, 'sand'],            // the long south beach, east of the point (away from the spiders)
+    ['crab', 2, [94, 210, 97, 215], S, 'sand'],              // the west beach of Lighthouse Point
+    ['crab', 6, [150, 204, 180, 212], S, 'sand'],            // the long south beach, east of the point (away from the spiders; Old Snapper alone at its east end)
     ['crab', 5, [30, 160, 60, 190], S, 'sand'],              // the beach by Fisher's Rest
     ['slime', 12, [44, 123, 64, 144]],                       // Frog Marsh (its south: off the west road)
     ['wolf', 21, [42, 60, 84, 110]],                         // Wolf Woods
@@ -1076,9 +1076,10 @@ function createDefaultMap() {
 
   // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
   // (Greyfang in his den in Wolf Woods, Gnash in his camp: GATE_SITES)
-  for (const [type, x, y, ground] of [['greyfang', 67, 71], ['old_snapper', 104, 213, 'sand'], ['thornmother', 184, 190], ['gnash', 197, 68]]) {
+  for (const [type, x, y, ground] of [['greyfang', 67, 71], ['old_snapper', 191, 206, 'sand'], ['thornmother', 184, 190], ['gnash', 197, 68]]) {
     const p = spot(x, y, S, ground, 12);
-    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
+    // (Gnash keeps to his camp: he doesn't join every fight on Goblin Hill, only the ones in it)
+    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, ...(type === 'gnash' ? { leash: 5 } : {}) }); }
   }
   // Greyfang's den is his own: the packs of Wolf Woods keep out of it (he calls his own wolves when he fights)
   for (let i = m.spawns.length - 1; i >= 0; i--) { const s = m.spawns[i]; if (s.type === 'wolf' && s.z === S && Math.max(Math.abs(s.x - 67), Math.abs(s.y - 72)) <= 6) m.spawns.splice(i, 1); }
