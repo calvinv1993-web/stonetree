@@ -12,11 +12,13 @@
 import sys
 from collections import deque
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance
 
 CELL_W, CELL_H, FEET_Y, CENTRE_X = 128, 192, 184, 64
 EDGE, EDGE_MIX = (78, 58, 38), 0.8  # Sister Ama's edge colour, and how much of it
 EYE_TO_FEET = 98  # Sister Ama's eyes above her feet, in pixels of the sheet
+import os
+VIVID = float(os.environ.get('SHEET_VIVID', '1.0'))  # colour strength: 1 as painted, more for fuller colours (and a touch more contrast)
 
 def main_figure(cell):
     a = np.array(cell.convert('RGBA'))
@@ -108,7 +110,12 @@ def build(figs, scale):
     for r in range(3):
         for c in range(3):
             f = figs[r][c]
-            f = edge(f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS))
+            f = f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS)
+            if VIVID != 1:
+                alpha = f.getchannel('A')
+                f = ImageEnhance.Contrast(ImageEnhance.Color(f.convert('RGB')).enhance(VIVID)).enhance(1 + (VIVID - 1) * 0.25).convert('RGBA')
+                f.putalpha(alpha)
+            f = edge(f)
             sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - f.width // 2, r * CELL_H + FEET_Y - f.height))
     return sheet
 
