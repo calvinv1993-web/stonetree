@@ -38,6 +38,10 @@ const DY = [-1, 0, 1, 0];
 //             and look: what you read when you look at it (a gravestone's inscription)
 //   ...and flags for things you can use: lever, teleport, ropeSpot, digSpot,
 //   breakable, depot, readable, houseDoor, questDoor, levelDoor, lockDoor, bookshelf, oreVein (mine it with a pick)
+//   opensTo:  a locked gate: its key turns it into this thing for a minute, then it shuts and locks again
+//   pickFind: a pick breaks a piece off it: a chest's settings (see chest), once per character
+//   deed:     a quest's step is done here (step.thing: this thing's id): use it, with what the step needs; idle: what it
+//             says otherwise
 const THINGS = {
   grass:       { name: 'grass', cat: 'Ground', ground: true },
   dirt:        { name: 'dirt', cat: 'Ground', ground: true },
@@ -459,6 +463,45 @@ const THINGS = {
   qchest_tide: {
     name: 'treasure chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'tide_hoard', quest: 'tide_hoard', gold: 1000, items: [['amulet_keeping', 1], ['ring_life', 1]] },
+  },
+
+  // ---- Oakvale Isle's hidden quests (Phase 7 in docs/world-plan.md) ----
+  // Loose sand on a beach: dig it with a shovel for whatever the sea buried (digUp in game-core.js); dug, it fills up again.
+  buried:      { name: 'loose sand', cat: 'Mechanisms', digSpot: true, sprite: 'loose_sand' },
+  dug_sand:    { name: 'dug-up sand', cat: 'Mechanisms' },
+  // Tidecutter: Old Maddock's sea chest (his chart), the gate of the sea cave (the barnacled key opens it for a minute),
+  // and the chest in the wreck of the Gull, where the blade lies.
+  qchest_tide_chart: {
+    name: 'sea chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'tide_chart', requires: 'tidecutter', items: [['tide_chart', 1]],
+      locked: 'Old Maddock\'s sea chest. It is not yours to open.', empty: 'Nets, hooks and a smell of tar. Nothing more for you.' },
+  },
+  sea_gate:    { name: 'rusted iron gate', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', lockDoor: true, opensTo: 'sea_gate_open', meta: 'lock' },
+  sea_gate_open: { name: 'open iron gate', cat: 'Mechanisms' },
+  qchest_tidecutter: {
+    name: 'sea-chest of the Gull', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'tidecutter', requires: 'tidecutter@1', items: [['tidecutter', 1]],
+      locked: 'A chest lashed to the wreck, crusted with barnacles. Its lock will not move.', empty: 'Only seawater and weed in the old chest now.' },
+  },
+  // The Keeper's Coat: the farmer's lamp oil (in his cellar), a seam of flint in the North Peaks cave (a pick breaks a
+  // piece off), and the great lamp at the top of the lighthouse (deed: done there, see questDeed in game-core.js).
+  oil_jars: {
+    name: 'jars of lamp oil', cat: 'Quest chests', block: true, low: true, sprite: 'barrel',
+    chest: { flag: 'keeper_oil', requires: 'keeper_coat', items: [['lamp_oil', 1]],
+      locked: 'Farmer Odo\'s jars of lamp oil. Best not to help yourself.', empty: 'You have had your jar of oil. Odo needs the rest for winter.' },
+  },
+  flint_seam:  { name: 'seam of flint', cat: 'Mechanisms', block: true, low: true, sprite: 'cracked_rock',
+    pickFind: { flag: 'keeper_flint', requires: 'keeper_coat', items: [['flint', 1]],
+      locked: 'A seam of dark flint runs through the rock. You have no use for it now.', empty: 'You have your flint. The rest of the seam is too hard to chip.' } },
+  lighthouse_lamp: { name: 'great lamp', cat: 'Town', block: true, low: true, deed: 'keeper_coat',
+    idle: 'The great lamp of the lighthouse: a brass cage round a dry, cold wick-holder. It has never been lit.' },
+  lighthouse_lamp_lit: { name: 'great lamp', cat: 'Town', block: true, low: true, light: 8, deed: 'keeper_coat', deedAs: 'lighthouse_lamp',
+    idle: 'The great lamp of the lighthouse burns, and its light sweeps out over the sea.' },
+  // The Eagle's Eyrie: the old nest on the peak, where a feather of the great eagles still lies.
+  eagle_nest: {
+    name: 'eagle\'s nest', cat: 'Quest chests', block: true, low: true,
+    chest: { flag: 'eagle_feather', requires: 'eagle_eyrie', items: [['eagle_feather', 1]],
+      locked: 'A great nest of sticks and bones, long empty. Long grey feathers are caught in it.', empty: 'The eagles have not come back. Only bones and old sticks.' },
   },
 };
 

@@ -1296,6 +1296,145 @@ test('the equipment\'s defense: the shield\'s, or without one the weapon\'s, a b
   assert.strictEqual(run('totalDefense()'), 0, 'nothing worn: nothing blocks');
 });
 
+// ---- Oakvale Isle's hidden quests (docs/world-plan.md, Phase 7) ----
+// Stand next to x, y, z (or on it), talk, and say words.
+function discoveryKit() {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const at = (x, y, z) => { const f = ctx.findFreeTile(x, y, z, 2); ctx.teleport({ x: f.x, y: f.y, z }); tick(game, 50); };
+  const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  const meet = id => { const n = state.npcs.find(c => c.npcId === id); if (p.conversation) said('bye'); at(n.x, n.y, n.z); return said('hi'); };
+  const give = (id, n = 1) => p.equipment.backpack.contents.push(state.ITEMS[id].stack ? { id, count: n } : { id, count: 1 });
+  const has = id => state.countItem(id) > 0;
+  const night = () => { while (ctx.daylight() >= 1) tick(game, 60000); };
+  p.equipment.backpack = { id: 'backpack', count: 1, contents: [] };
+  return { game, ctx, state, messages, p, A, at, said, meet, give, has, night };
+}
+
+test('beaches: loose sand to dig with a shovel (a find, then it fills in again); fishing now and then brings up a pearl or a bottle', () => {
+  const { game, ctx, state, p, at, give, has } = discoveryKit();
+  const { map } = state;
+  const spots = [];
+  for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) if ((map.get(x, y, 8) || { items: [] }).items.includes('buried')) spots.push([x, y]);
+  assert(spots.length >= 15, `loose sand on the beaches (${spots.length})`);
+  const [x, y] = spots[0];
+  give('shovel'); at(x, y, 8);
+  ctx.Math.random = () => 0.3; // (a few old coins)
+  const gold = p.gold;
+  ctx.useItemOn(bagRef(state, 'shovel'), x, y, 8);
+  assert(p.gold > gold, 'coins in the sand');
+  assert(map.get(x, y, 8).items.includes('dug_sand') && !map.get(x, y, 8).items.includes('buried'), 'dug up');
+  const after = p.gold;
+  ctx.useItemOn(bagRef(state, 'shovel'), x, y, 8);
+  assert.strictEqual(p.gold, after, 'nothing more there now');
+  ctx.teleport(map.start); tick(game, 21 * 60000);
+  assert(map.get(x, y, 8).items.includes('buried'), 'the tides fill it in again');
+  // fishing off Old Maddock's jetty
+  give('fishing_rod'); ctx.teleport({ x: 34, y: 175, z: 8 });
+  ctx.Math.random = () => 0.285; state.now += 2000; ctx.useItemOn(bagRef(state, 'fishing_rod'), 34, 177, 8);
+  assert(has('pearl'), 'a pearl, now and then');
+  ctx.Math.random = () => 0.295; state.now += 2000; ctx.useItemOn(bagRef(state, 'fishing_rod'), 34, 177, 8);
+  assert(has('bottle_message') && /Tidecutter/.test(state.ITEMS.bottle_message.text), 'a bottle with a letter: a clue');
+});
+
+test('Tidecutter: Old Maddock\'s tale, the chart in his chest, the key dug up where its rhyme says, the sea cave\'s gate, the blade from the wreck', () => {
+  const { game, ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.some(s => s.type === 'brineshell' && s.z === 7), 'Old Snapper\'s mate keeps the sea cave');
+  assert(map.spawns.filter(s => s.type === 'crab' && s.z === 7).length >= 3, 'and crabs');
+  meet('rest_fisher'); assert(/not for you yet/.test(said('tale')), 'level 7 first');
+  p.level = 7; meet('rest_fisher');
+  assert(/sea cave/.test(said('tale')) && /chart/.test(said('yes')), 'the tale, and where the chart is');
+  give('shovel');
+  ctx.useTool('shovel', 50, 188, 8); assert(!has('sea_key'), 'from afar: nothing');
+  at(52, 177, 8); ctx.useThing(52, 177, 8);
+  assert(has('tide_chart') && /three grey stones/i.test(state.ITEMS.tide_chart.text), 'the chart, with its rhyme');
+  at(50, 188, 8); ctx.useItemOn(bagRef(state, 'shovel'), 50, 188, 8);
+  assert(has('sea_key') && p.quests.tidecutter.step === 1, 'the key, where the three stones stand');
+  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i.id !== 'sea_key');
+  ctx.useItemOn(bagRef(state, 'shovel'), 50, 188, 8);
+  assert(has('sea_key'), 'lost it? it is there again while the quest needs it');
+  // the gate of the sea cave
+  ctx.teleport({ x: 49, y: 196, z: 7 }); tick(game, 50);
+  const key = p.equipment.backpack.contents.find(i => i.id === 'sea_key');
+  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i !== key);
+  ctx.bumpDoor(48, 196, 7); assert(map.get(48, 196, 7).items.includes('sea_gate'), 'locked without the key');
+  p.equipment.backpack.contents.push(key);
+  ctx.bumpDoor(48, 196, 7); assert(map.get(48, 196, 7).items.includes('sea_gate_open'), 'the key opens it');
+  tick(game, 61000); assert(map.get(48, 196, 7).items.includes('sea_gate'), 'and it shuts again a minute later');
+  at(43, 202, 7); ctx.useThing(43, 202, 7);
+  assert(has('tidecutter'), 'Tidecutter, from the wreck of the Gull');
+  p.equipment.weapon = p.equipment.backpack.contents.find(i => i.id === 'tidecutter'); // (worn, it counts too)
+  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i.id !== 'tidecutter');
+  const xp = p.xp; meet('rest_fisher');
+  assert(/lighthouse/.test(said('tale')) && p.quests.tidecutter.status === 'done' && p.xp > xp + 500, 'shown to Maddock: the reward, and the next clue');
+  assert.strictEqual(p.equipment.weapon.id, 'tidecutter', 'and you keep the blade');
+  const it = state.ITEMS.tidecutter;
+  assert(it.weapon.attack > state.ITEMS.longsword.weapon.attack && it.weapon.attack < state.ITEMS.broadsword.weapon.attack, 'the best blade on the isle, below the mainland\'s');
+});
+
+test('The Keeper\'s Coat: oil from the farm\'s cellar, spider silk, flint from the North Peaks cave with a pick, the lamp lit at the top of the lighthouse', () => {
+  const { ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.filter(s => s.type === 'giant_rat' && s.x >= 115 && s.x <= 124 && s.y >= 151 && s.y <= 158 && s.z === 7).length === 4, 'giant rats in Odo\'s cellar');
+  p.level = 8; meet('oak_keeper');
+  assert(/never burned/.test(said('lighthouse')) && /Odo/.test(said('yes')), 'Tamsin asks, and says where to look');
+  meet('fields_farmer'); assert(/cellar/.test(said('oil')), 'Odo keeps the oil in his cellar');
+  at(117, 153, 7); ctx.useThing(117, 153, 7); assert(has('lamp_oil'), 'a jar of lamp oil');
+  give('pick'); at(78, 54, 7);
+  ctx.useThing(78, 54, 7); assert(!has('flint'), 'by hand: no');
+  ctx.useItemOn(bagRef(state, 'pick'), 78, 54, 7); assert(has('flint'), 'a pick breaks a piece of flint off');
+  at(124, 203, 10);
+  ctx.useThing(124, 203, 10); assert(p.quests.keeper_coat.step === 0, 'no silk for a wick yet');
+  give('spider_silk', 3);
+  ctx.useThing(124, 203, 10);
+  assert(p.quests.keeper_coat.step === 1 && !has('lamp_oil') && !has('flint') && !has('spider_silk'), 'lit, with all three');
+  assert(map.get(124, 203, 10).items.includes('lighthouse_lamp_lit'), 'and it burns for all to see');
+  const xp = p.xp; meet('oak_keeper');
+  assert(/eagles/.test(said('lighthouse')) && has('keeper_coat') && p.xp > xp + 600, 'the keeper\'s coat, and the next clue');
+  const coat = state.ITEMS.keeper_coat;
+  assert(coat.armor > state.ITEMS.chain_armor.armor && coat.armor <= state.ITEMS.ranger_cloak.armor, 'better than chain armor, not the mainland\'s');
+});
+
+test('The Eagle\'s Eyrie: through the North Peaks cave (a pick for the fallen rock), up the chimney to the nest; boots from the hermit at night', () => {
+  const { game, ctx, state, p, at, said, meet, give, has, night } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.filter(s => s.type === 'shade').length >= 5, 'shades in the cave and on the peak');
+  assert(map.get(91, 54, 7).items.includes('cracked_rock') && !map.isWalkable(91, 54, 7), 'fallen rock across the way on');
+  give('pick'); at(91, 55, 7); ctx.useItemOn(bagRef(state, 'pick'), 91, 54, 7);
+  assert(map.isWalkable(91, 54, 7), 'a pick breaks through');
+  // up the chimney: the ladder in the cave, then two more inside the mountain
+  ctx.teleport({ x: 94, y: 51, z: 7 }); tick(game, 50);
+  for (const [x, y, z] of [[95, 51, 7], [95, 49, 8], [94, 49, 9]]) {
+    assert.strictEqual(p.z, z, `on floor ${z}`);
+    ctx.useThing(x, y, z); tick(game, 50);
+  }
+  assert.strictEqual(p.z, 10, 'out on the eyrie');
+  at(98, 50, 10); ctx.useThing(98, 50, 10);
+  assert(!has('eagle_feather'), 'not on the quest: only an old nest');
+  p.level = 9; night(); meet('oak_hermit');
+  assert(/eyrie/.test(said('eagle')) && /chimney/.test(said('yes')), 'the hermit tells the way');
+  at(98, 50, 10); ctx.useThing(98, 50, 10); assert(has('eagle_feather'), 'a feather of the great eagles');
+  night(); meet('oak_hermit');
+  const vm = require('vm'), before = vm.runInContext('speedOf(player)', ctx);
+  assert(/Featherstep/.test(said('eagle')) && has('featherstep_boots') && !has('eagle_feather'), 'boots for the feather');
+  p.equipment.feet = { id: 'featherstep_boots', count: 1 };
+  assert.strictEqual(vm.runInContext('speedOf(player)', ctx), before + state.ITEMS.featherstep_boots.speed, 'and you walk quicker in them');
+});
+
+test('hidden quests: no mark over the giver\'s head and no guide arrow, but the greeting hints, and the words are there', () => {
+  const { ctx, state, p, said, meet } = discoveryKit();
+  for (const id of ['tidecutter', 'keeper_coat', 'eagle_eyrie']) assert(state.QUESTS[id].hidden, `${id} is hidden`);
+  for (const step of state.GUIDE) for (const t of step.target || []) assert(!['tidecutter', 'keeper_coat', 'eagle_eyrie'].includes(t.quest), 'no guide step for them');
+  p.level = 10;
+  for (const [npc, word] of [['rest_fisher', 'tale'], ['oak_keeper', 'lighthouse']]) {
+    assert.strictEqual(ctx.questNews(npc, true), null, `${npc}: no mark over the head`);
+    assert(new RegExp(`\\{${word}\\}`).test(meet(npc)), `${npc}: but the greeting hints at the {${word}}`);
+  }
+  said('bye');
+});
+
 test('every picture is listed with its own version (else run: node tests/sprite-versions.js)', () => {
   const { versions, OUT } = require('./sprite-versions');
   const listed = vm.runInNewContext(`${fs.readFileSync(OUT, 'utf8')}; SPRITE_HASHES`);

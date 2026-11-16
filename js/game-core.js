@@ -222,6 +222,11 @@ function bumpDoor(x, y, z) {
       log('It is locked.');
       return true;
     }
+    if (def.opensTo) { // a gate: the key turns, it swings open, and a minute later it shuts and locks again
+      changeTileFor(x, y, z, id, def.opensTo, 60000);
+      addSound('door', x, y, z);
+      return log('The key turns in the rusted lock, and the gate swings open.'), true;
+    }
     t.items[i] = 'door';
     map.setMeta(x, y, z, { ...meta, lock: meta.lock || 'bronze', relock: true }); // it locks again when it's closed
     log('You unlock the door.');
@@ -248,6 +253,7 @@ function bumpDoor(x, y, z) {
 const PLAYER_SPEED = 278;
 function speedOf(c) {
   let speed = c.type === 'player' ? PLAYER_SPEED + 2 * (c.level - 1) : c.def.speed || 150; // NPCs stroll
+  if (c.type === 'player' && c.equipment.feet && ITEMS[c.equipment.feet.id]) speed += ITEMS[c.equipment.feet.id].speed || 0; // (featherstep boots)
   const cond = c.conditions || {};
   if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
   if (cond.haste) speed /= CONDITIONS.haste.speed;
@@ -506,6 +512,8 @@ function useThing(x, y, z) {
       return true;
     }
     if (def.fireSwap) return swapFire(x, y, z, i), true;
+    if (def.deed) return questDeed(def.deed, def.deedAs || id, x, y, z), true;
+    if (def.pickFind) return log(`${capitalize(def.name)}. A pick could break a piece off.`), true;
     if (def.chest) return openChest(def.chest), true;
     if (def.rescue) return rescueAt(def.rescue, id), true;
     if (def.bell) return ringBell(x, y, z), true;
@@ -678,6 +686,55 @@ function updateReverts() {
   }
 }
 
+// Digging with a shovel where the sand lies loose (buried): whatever the sea buried there, then the hole fills in again
+// with the tides. A spot a quest's riddle points to (meta dig: the quest, thing: its step) has nothing to show for it:
+// only whoever is on that step finds what lies there (a lost find is there again while the quest still needs it).
+const DIG_FINDS = [ // [chance, item, min, max, what it says]; else only sand
+  [0.25, 'seashell', 1, 2, 'a seashell'], [0.2, 'gold', 3, 12, 'a few old coins'], [0.08, 'health_potion', 1, 1, 'an old corked bottle: a health potion, still good'],
+  [0.04, 'bottle_message', 1, 1, 'a bottle with a letter in it'], [0.03, 'pearl', 1, 1, 'a pearl, the size of a pea'],
+];
+function digUp(x, y, z) {
+  const meta = map.getMeta(x, y, z) || {};
+  addBurst(x, y, z, '#d8c890');
+  if (meta.dig) {
+    const q = meta.dig, st = questState(q) === 'active' && questStep(q);
+    if (st && st.thing === meta.thing) return questDeed(q, meta.thing, x, y, z);
+    const lost = questState(q) === 'active' && (QUESTS[q].steps || []).find(s => s.thing === meta.thing && s.give);
+    if (lost && lost.give.some(([id]) => !countItem(id))) {
+      for (const [id, n] of lost.give) if (!countItem(id)) giveItem(id, n);
+      return log('You dig in the same place again. Deeper down, wrapped in oilcloth: what you lost, or one just like it.', 'quest');
+    }
+    if (!(map.get(x, y, z) || { items: [] }).items.includes('buried')) return log('You dig a little, but find only sand.');
+  }
+  changeTileFor(x, y, z, 'buried', 'dug_sand', 20 * 60000);
+  let roll = Math.random();
+  for (const [chance, id, lo, hi, said] of DIG_FINDS) {
+    if ((roll -= chance) >= 0) continue;
+    if (id === 'gold') addItem('gold', randInt(lo, hi)); else giveItem(id, randInt(lo, hi));
+    return log(`You dig in the loose sand and find ${said}.`);
+  }
+  log('You dig in the loose sand, but find only wet sand and a crab\'s old shell.');
+}
+
+// A thing in the world that a quest's step is done at (step.thing: its id): the lamp of the lighthouse, a spot to dig.
+// step.needs: what it takes there (used up); step.give: what you get there. Anyone else: what it says (idle).
+function questDeed(questId, thingId, x, y, z) {
+  const st = questState(questId) === 'active' && questStep(questId);
+  if (!st || st.thing !== thingId) {
+    const here = (map.get(x, y, z) || { items: [] }).items.find(id => THINGS[id].idle);
+    return log((here && THINGS[here].idle) || 'Nothing happens.');
+  }
+  const missing = (st.needs || []).filter(([id, n]) => countItem(id) < n);
+  if (missing.length) return log(`${st.missing ? `${st.missing} ` : ''}You still need ${missing.map(([id, n]) => itemName(id, n - countItem(id))).join(', ')}.`, 'quest');
+  for (const [id, n] of st.needs || []) removeItem(id, n);
+  if (st.done) log(storyText(st, 'done'), 'quest');
+  for (const [id, n] of st.give || []) giveItem(id, n);
+  // (a lamp: it burns for a while, for everyone to see; lit already, it burns on)
+  if (THINGS[`${thingId}_lit`] && (map.get(x, y, z) || { items: [] }).items.includes(thingId)) changeTileFor(x, y, z, thingId, `${thingId}_lit`, 15 * 60000);
+  addSparkle(player, '#ffe080');
+  advanceQuest(questId);
+}
+
 // "Use with": a rune, tool, key or furniture kit used on a tile or creature.
 function useItemOn(ref, x, y, z) {
   const found = resolve(ref);
@@ -703,6 +760,8 @@ function useTool(tool, x, y, z) {
     const roll = Math.random();
     if (roll < 0.25) { giveItem('fish', 1); log('You caught a fish!'); }
     else if (roll < 0.28) { giveItem('old_boot', 1); log('You fished up an old boot.'); }
+    else if (roll < 0.29) { giveItem('pearl', 1); log('You fished up a fat old oyster - and in it, a pearl!'); }
+    else if (roll < 0.297) { giveItem('bottle_message', 1); log('You fished up a corked bottle with a letter in it.'); }
     return;
   }
   if (!near) return log('You need to stand next to it.');
@@ -714,6 +773,7 @@ function useTool(tool, x, y, z) {
     return;
   }
   if (tool === 'shovel') {
+    if (t && (t.items.includes('buried') || (map.getMeta(x, y, z) || {}).dig)) return digUp(x, y, z);
     if (!t || !t.items.includes('loose_sand')) return taleDeed('dig', `${x},${y},${z}`) || log('There is nothing to dig here.');
     changeTileFor(x, y, z, 'loose_sand', 'hole', 60000);
     log('You dig a hole.');
@@ -721,6 +781,8 @@ function useTool(tool, x, y, z) {
   }
   if (tool === 'pick') {
     if (t && t.items.includes('ore_vein')) return mineVein(x, y, z);
+    const seam = t && t.items.find(id => THINGS[id].pickFind);
+    if (seam) { addBurst(x, y, z, '#9a9aa0'); addSound('hit', x, y, z); return openChest(THINGS[seam].pickFind); } // (a piece broken off: once each)
     if (!t || !t.items.includes('cracked_rock')) return taleDeed('pick', `${x},${y},${z}`) || log('There is nothing to break here.');
     changeTileFor(x, y, z, 'cracked_rock', null, 60000);
     addBurst(x, y, z, '#9a9aa0');
@@ -1341,9 +1403,10 @@ const questStep = id => questSteps(QUESTS[id])[player.quests[id].step || 0];
 
 function stepReady(id) {
   const s = questStep(id), kills = player.quests[id].kills;
-  if (s.thing) return false; // (done at a thing in the world: rescueAt)
+  if (s.thing) return false; // (done at a thing in the world: rescueAt, questDeed)
   if (s.kill) return Object.entries(s.kill).every(([type, n]) => (kills[type] || 0) >= n);
   if (s.fetch) return countItem(s.fetch) > 0;
+  if (s.has) return countItem(s.has) > 0 || SLOTS.some(slot => player.equipment[slot] && player.equipment[slot].id === s.has); // (shown, and kept)
   return true;
 }
 
@@ -1355,6 +1418,7 @@ function questProgress(id) {
       .join(', ');
   }
   if (s.fetch) return countItem(s.fetch) ? 'found' : 'not found yet';
+  if (s.has) return stepReady(id) ? 'found' : 'not found yet';
   return '';
 }
 

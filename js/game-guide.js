@@ -295,8 +295,8 @@ function guideTarget(step) {
       if (n) return n;
     }
     if (t.news) { // the first of these NPCs who has a quest for you, or news to hear
-      // (not for a hunt that comes again and again: the guide follows the story)
-      const n = t.news.map(id => npcs.find(c => c.npcId === id)).find(c => { const news = c && questNews(c.npcId); return news && ['offer', 'report'].includes(news.mark) && !(QUESTS[news.id] || {}).repeat; });
+      // (not for a hunt that comes again and again: the guide follows the story; nor a hidden quest: those are found)
+      const n = t.news.map(id => npcs.find(c => c.npcId === id)).find(c => { const news = c && questNews(c.npcId, true); return news && ['offer', 'report'].includes(news.mark) && !(QUESTS[news.id] || {}).repeat && !(QUESTS[news.id] || {}).hidden; });
       if (n) return n;
     }
     const near = list => list.filter(c => c.z === player.z && dist(c, player) <= 12).sort((a, b) => dist(a, player) - dist(b, player))[0];

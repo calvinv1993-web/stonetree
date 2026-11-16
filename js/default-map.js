@@ -245,7 +245,7 @@ const OAKVALE = {
     [95, 128, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
     [158, 114, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
     [126, 152, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
-    [132, 210, 'Lighthouse Point. Here stood the light of Oakvale, until the great storm. Keeper Tamsin keeps the fire now.'],
+    [132, 210, 'Lighthouse Point. The old light of Oakvale fell in the great storm; the new tower has never been lit. Keeper Tamsin keeps a fire.'],
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
@@ -392,6 +392,69 @@ const CRYPT = {
       monsters: [['skeleton', 67, 184], ['skeleton', 72, 182], ['skeleton', 70, 186], ['gravewaker', 69, 180]],
     },
   ],
+};
+
+// Oakvale Isle's hidden quests (Phase 7 in docs/world-plan.md): the places they use, and the landmarks there.
+//   buildings: { x0, y0, x1, y1, door, floors, floor, wall, roof, props: [[x, y, z, id]] } (z: floors up from the ground)
+//   fisher:    Fisher's Rest: the hut, the jetty out over the sea [x0, y0, x1, y1] (pier), the boat, the riddle's spot
+//              (three stones round where the key lies buried: Tidecutter) and the sign
+//   seaCave:   under the rocks south of Fisher's Rest (z 7): steps down, a narrow way to the gate (the barnacled key),
+//              two grottoes with pools, the wreck of the Gull, crabs and Brineshell
+//   farm:      the Sunny Fields farm: the farmhouse with the trapdoor down to its cellar (z 7), giant rats and the oil
+//   lighthouse: the new tower on Lighthouse Point, three floors, the great lamp on the top one
+//   peaks:     the cave under the North Peaks' south face (z 7): chambers (ellipses) joined by passages, cracked rock
+//              in some (a pick: one is a shortcut), the seam of flint, shades; at its end the climbers' chimney up through
+//              the mountain (z 8 and 9, ladders and trapdoors), out onto the eyrie (z 10) on the shoulder of the peak
+//   people:    [type, x, y, z]
+const DISCOVERY = {
+  fisher: {
+    hut: { x0: 49, y0: 176, x1: 53, y1: 179, door: [51, 179], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch',
+      props: [[52, 177, 0, 'qchest_tide_chart'], [50, 177, 0, 'barrel'], [52, 178, 0, 'bed']] },
+    jetty: [31, 174, 36, 175], boat: [32, 173], racks: [[38, 177], [39, 179]], barrels: [[37, 176]],
+    riddle: { at: [50, 188], stones: [[49, 187], [51, 188], [49, 189]] }, // (the key: Tidecutter)
+    sign: [55, 170, 'Fisher\'s Rest. Fish, nets, and Old Maddock\'s tales. East: the trail to the south road.'],
+  },
+  seaCave: {
+    z: 7, door: [51, 196], gate: [48, 196],
+    look: 'Dark water slaps in a cleft between the rocks, and steps cut long ago lead down into it.',
+    gateLook: 'A rusted iron gate across the passage, its lock crusted with salt. Beyond it, the sound of the sea in a cave.',
+    rooms: [[50, 195, 52, 197], [47, 196, 49, 196]],          // a landing under the steps, and the narrow way to the gate
+    grottoes: [[43.5, 196, 3.2, 2.6], [44, 203.5, 4.6, 2.8]], // ellipses: cx, cy, rx, ry
+    passages: [[43, 199, 44, 200]],
+    pools: [[42, 194.6, 1.6, 1], [40, 205, 1.2, 1], [48, 204, 1, 0.8]],
+    props: [[41, 202, 'wreck'], [43, 202, 'qchest_tidecutter'], [39, 203, 'driftwood'], [46, 196, 'shells'], [45, 201, 'bones'], [40, 197, 'driftwood']],
+    monsters: [['crab', 44, 197], ['crab', 41, 196], ['crab', 45, 205], ['crab', 41, 204], ['brineshell', 46, 203]],
+  },
+  farm: {
+    house: { x0: 117, y0: 153, x1: 122, y1: 157, door: [119, 157], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch',
+      props: [[118, 154, 0, 'table'], [117, 154, 0, 'chair_east'], [118, 156, 0, 'sack'], [121, 156, 0, 'sack'], [121, 154, 0, 'trapdoor']] },
+    windmill: [124, 153], scarecrow: [116, 160], haystacks: [[124, 158], [125, 159]],
+    crops: [113, 159, 121, 163], // farmland, a fence round it with a gate on the north side
+    cellar: { z: 7, room: [116, 152, 123, 157], ladder: [121, 154],
+      props: [[117, 153, 'oil_jars'], [118, 153, 'barrel'], [122, 153, 'barrel'], [116, 155, 'crate'], [120, 156, 'bones']],
+      rats: [[117, 156], [119, 153], [122, 156], [119, 155]] },
+  },
+  lighthouse: { x0: 122, y0: 201, x1: 126, y1: 205, door: [124, 205], floors: 3, floor: 'paving', wall: 'wall_stone', roof: 'roof_slate',
+    stairs: [[123, 202], [125, 202]], lamp: [124, 203], // (up from the ground at the first, from the first floor up at the second)
+    props: [[125, 204, 0, 'barrel'], [123, 204, 0, 'table'], [123, 204, 1, 'crate'], [125, 204, 1, 'barrel'], [123, 204, 2, 'sack']] },
+  peaks: {
+    z: 7, door: [83, 61],
+    look: 'A low cave mouth in the foot of the North Peaks. Cold air breathes out of it, and somewhere inside, something moans.',
+    chambers: [[83, 60, 1.6, 1.4], [79, 56, 2.8, 2], [87.5, 55, 3.2, 2.3], [94.5, 51.5, 2.2, 1.8]],
+    // passages, one tile wide: [[x, y], ...]; cracked rock where a pick must break through
+    passages: [[[82, 58], [81, 58], [81, 57]], [[82, 55], [83, 55], [84, 55], [82, 54], [83, 54], [84, 54]],
+      [[85, 59], [85, 58], [86, 58]], [[91, 55], [91, 54], [91, 53], [92, 53]]],
+    cracked: [[85, 58], [91, 54]], // the shortcut from the mouth to the moaning hall; the way on to the chimney
+    flint: [78, 54],
+    props: [[80, 55, 'bones'], [86, 53, 'bones'], [89, 56, 'rubble'], [84, 60, 'pebbles'], [93, 52, 'bones'], [77, 56, 'rubble']],
+    shades: [[80, 57, 7], [86, 54, 7], [89, 55, 7], [87, 56, 7], [93, 51, 7], [97, 51, 10], [96, 48, 10]],
+    // the chimney: [x, y, z, id] on each floor of it (a 3 x 3 room cut in the rock), and the eyrie on top
+    chimney: { x0: 94, y0: 49, x1: 96, y1: 51, from: 8, to: 9,
+      climb: [[95, 51, 7, 'cave_ladder'], [95, 51, 8, 'trapdoor'], [95, 49, 8, 'ladder'], [95, 49, 9, 'trapdoor'], [94, 49, 9, 'ladder'], [94, 49, 10, 'hole']] },
+    eyrie: { z: 10, x0: 91, y0: 47, x1: 101, y1: 53, nest: [98, 50],
+      look: 'The eyrie of the great eagles, on the shoulder of the North Peaks. The whole isle lies below you.' },
+  },
+  people: [['rest_fisher', 36, 175, 8], ['fields_farmer', 121, 158, 8]],
 };
 
 function createDefaultMap() {
@@ -775,6 +838,7 @@ function createDefaultMap() {
   buildCrypt(m, S);
   buildSpiderDen(m, S);
   buildDeepSewers(m, S);
+  buildDiscoveries(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
   // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
@@ -902,6 +966,165 @@ function tidyWorld(m, S) {
       if (around.every(g => g === 'dirt')) t.ground = 'dirt';
     }
   }
+}
+
+// Builds the places of Oakvale Isle's hidden quests (see DISCOVERY): Fisher's Rest with its hut and jetty, the sea cave,
+// the farm in Sunny Fields and its cellar, the lighthouse, the cave under the North Peaks with the climbers' chimney and
+// the eyrie, the people there, and loose sand to dig on the beaches. (Before the hunting grounds: their monsters keep
+// out of what stands here.)
+function buildDiscoveries(m, S) {
+  const D = DISCOVERY, put = (x, y, z, id) => m.addItem(x, y, z, id);
+  const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  const sign = (x, y, text) => { m.set(x, y, S, { ground: m.get(x, y, S).ground, items: ['signpost'] }); m.setMeta(x, y, S, { text }); };
+  // The nearest walkable tile (not a floor change) to a spot on floor z, within r.
+  const near = (x, y, z, r = 2) => {
+    for (let d = 0; d <= r; d++) for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) === d && m.isWalkable(x + dx, y + dy, z) && !m.floorChange(x + dx, y + dy, z)) return [x + dx, y + dy];
+    }
+    return null;
+  };
+  const spawn = (type, x, y, z, how) => { const p = near(x, y, z); if (p) m.spawns.push({ type, x: p[0], y: p[1], z, ...how }); };
+
+  // A small building out in the wilds, as the town's are built: floor, walls with windows and a door, a roof on top,
+  // stairs between its floors (stairs: from each floor up, at its own place), and a shelter: monsters keep out.
+  const house = b => {
+    const floors = b.floors || 1, inB = (x, y) => x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1;
+    const edge = (x, y) => inB(x, y) && (x === b.x0 || x === b.x1 || y === b.y0 || y === b.y1);
+    for (let k = 0; k < floors; k++) for (let y = b.y0; y <= b.y1; y++) for (let x = b.x0; x <= b.x1; x++) {
+      const z = S + k, items = edge(x, y) ? [b.wall] : [];
+      const straight = (edge(x - 1, y) && edge(x + 1, y)) || (edge(x, y - 1) && edge(x, y + 1)), along = edge(x - 1, y) && edge(x + 1, y) ? x : y;
+      if (edge(x, y) && straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) items.push('window');
+      m.set(x, y, z, { ground: k ? 'wood' : b.floor, items });
+    }
+    for (let k = S + floors; k < m.depth; k++) for (let y = b.y0; y <= b.y1; y++) for (let x = b.x0; x <= b.x1; x++) m.set(x, y, k, null);
+    for (let y = b.y0; y <= b.y1; y++) for (let x = b.x0; x <= b.x1; x++) if (inB(x, y - 1) && inB(x - 1, y)) m.set(x, y, S + floors, { ground: b.roof, items: [] });
+    const [dx, dy] = b.door;
+    m.get(dx, dy, S).items = ['door'];
+    const out = m.get(dx, dy + 1, S);
+    if (out && ['grass', 'sand'].includes(out.ground)) { out.ground = 'gravel'; out.items = []; }
+    (b.stairs || []).forEach(([x, y], k) => { put(x, y, S + k, 'stairs_up'); put(x, y, S + k + 1, 'stairs_down'); });
+    for (const [x, y, k, id] of b.props || []) put(x, y, S + k, id);
+    for (let k = 0; k < floors; k++) m.zones.push({ x0: b.x0, y0: b.y0, x1: b.x1, y1: b.y1, z: S + k, shelter: true });
+  };
+  // Carving rock underground (or inside a mountain): the tiles, and a wall of rock round them where there is nothing.
+  const carve = (z, tiles, ground = 'cave', wall = 'wall_cave') => {
+    for (const [x, y] of tiles) m.set(x, y, z, { ground, items: [] });
+    const cut = new Set(tiles.map(([x, y]) => `${x},${y}`));
+    for (const [x, y] of tiles) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const t = m.get(x + dx, y + dy, z);
+      if (cut.has(`${x + dx},${y + dy}`) || (t && (t.items.includes('cliff') || t.items.some(id => THINGS[id].wall)))) continue;
+      if (!t || !m.isWalkable(x + dx, y + dy, z)) m.set(x + dx, y + dy, z, { ground: 'cave', items: [wall] });
+    }
+  };
+  const ellipse = ([cx, cy, rx, ry], k = 0.85) => {
+    const out = [];
+    for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < k + hash(x + 5, y + 9) * 0.3) out.push([x, y]);
+    }
+    return out;
+  };
+  const rect = ([x0, y0, x1, y1]) => { const out = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) out.push([x, y]); return out; };
+
+  // ---- Fisher's Rest: Old Maddock's hut, his jetty and boat, nets drying, and where Wenna buried the key -------------
+  {
+    const F = D.fisher;
+    house(F.hut);
+    { const [x0, y0, x1, y1] = F.jetty; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, S, { ground: 'pier', items: [] }); }
+    put(...F.boat, S, 'boat');
+    for (const [x, y] of F.racks) { m.get(x, y, S).items = ['fish_rack']; }
+    for (const [x, y] of F.barrels) { m.get(x, y, S).items = ['barrel']; }
+    const { at: [rx, ry], stones } = F.riddle;
+    for (const [x, y] of [[rx, ry], ...stones]) m.set(x, y, S, { ground: 'sand', items: [] });
+    for (const [x, y] of stones) put(x, y, S, 'rock');
+    m.setMeta(rx, ry, S, { dig: 'tidecutter', thing: 'tide_dig' });
+    sign(...F.sign);
+  }
+
+  // ---- the sea cave south of Fisher's Rest: the gate, two grottoes, the wreck of the Gull ------------------------------
+  {
+    const C = D.seaCave, Z = C.z, [dx, dy] = C.door;
+    m.get(dx, dy, S).items = ['stairs_down'];
+    m.setMeta(dx, dy, S, { look: C.look });
+    const tiles = [...C.rooms.flatMap(rect), ...C.grottoes.flatMap(g => ellipse(g)), ...C.passages.flatMap(rect)];
+    carve(Z, tiles);
+    for (const [cx, cy, rx, ry] of C.pools) for (const [x, y] of ellipse([cx, cy, rx, ry], 0.9)) if (m.isWalkable(x, y, Z)) m.setGround(x, y, Z, 'water');
+    m.get(dx, dy, Z).items = ['stairs_up'];
+    const [gx, gy] = C.gate;
+    m.get(gx, gy, Z).items = ['sea_gate'];
+    m.setMeta(gx, gy, Z, { lock: 'sea_cave', look: C.gateLook });
+    for (const [x, y, id] of C.props) { const t = m.get(x, y, Z); if (t && m.isWalkable(x, y, Z)) put(x, y, Z, id); }
+    for (const [type, x, y] of C.monsters) spawn(type, x, y, Z);
+  }
+
+  // ---- the farm in Sunny Fields: the farmhouse, the mill, the crops; the cellar the rats took ---------------------------
+  {
+    const F = D.farm, C = F.cellar;
+    house(F.house);
+    m.get(...F.windmill, S).items = ['windmill'];
+    put(...F.scarecrow, S, 'scarecrow');
+    for (const [x, y] of F.haystacks) m.get(x, y, S).items = ['haystack'];
+    const [x0, y0, x1, y1] = F.crops, gate = [(x0 + x1) >> 1, y0];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const t = m.get(x, y, S), edge = x === x0 || x === x1 || y === y0 || y === y1;
+      if (!t || t.items.includes('scarecrow')) continue;
+      t.ground = edge ? 'grass' : 'farmland';
+      t.items = edge && !(x === gate[0] && y === gate[1]) ? ['fence'] : !edge && y % 2 ? ['crops'] : [];
+    }
+    carve(C.z, rect(C.room), 'paving', 'wall_sewer');
+    m.get(...C.ladder, C.z).items = ['cave_ladder'];
+    for (const [x, y, id] of C.props) put(x, y, C.z, id);
+    for (const [x, y] of C.rats) spawn('giant_rat', x, y, C.z);
+  }
+
+  // ---- the lighthouse on Lighthouse Point: three floors of stone, and the great lamp on top -----------------------------
+  {
+    const L = D.lighthouse;
+    house(L);
+    put(L.lamp[0], L.lamp[1], S + L.floors - 1, 'lighthouse_lamp');
+  }
+
+  // ---- the cave under the North Peaks, the climbers' chimney, and the eyrie ----------------------------------------------
+  {
+    const P = D.peaks, Z = P.z, [dx, dy] = P.door;
+    m.get(dx, dy, S).items = ['stairs_down']; // cut into the foot of the peaks
+    m.set(dx, dy, S + 1, null);              // (no rock over the steps)
+    m.setMeta(dx, dy, S, { look: P.look });
+    carve(Z, [...P.chambers.flatMap(c => ellipse(c)), ...P.passages.flat(), [dx, dy]]);
+    m.get(dx, dy, Z).items = ['stairs_up'];
+    for (const [x, y] of P.cracked) m.get(x, y, Z).items = ['cracked_rock'];
+    m.get(...P.flint, Z).items = ['flint_seam'];
+    for (const [x, y, id] of P.props) { const t = m.get(x, y, Z); if (t && m.isWalkable(x, y, Z) && !t.items.length) put(x, y, Z, id); }
+    // the eyrie: the top of the peak's second tier where it stands on rock, rugged no more (before the chimney is cut under it)
+    const E = P.eyrie, eyrie = [];
+    for (let y = E.y0; y <= E.y1; y++) for (let x = E.x0; x <= E.x1; x++) {
+      const t = m.get(x, y, E.z), below = m.get(x, y, E.z - 1);
+      if (t && t.ground === 'rock_top' && !t.items.includes('cliff') && below && below.items.includes('cliff')) { t.ground = 'mountain'; t.items = []; eyrie.push([x, y]); }
+    }
+    for (const [x, y] of eyrie) {
+      const rim = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ox, oy]) => !eyrie.some(([a, b]) => a === x + ox && b === y + oy));
+      if (rim && hash(x, y) < 0.25) m.get(x, y, E.z).items = ['crag'];
+      else if (hash(x + 3, y) < 0.12) put(x, y, E.z, 'pebbles');
+    }
+    for (const [x, y] of eyrie) m.setMeta(x, y, E.z, { look: E.look });
+    // the chimney: a room cut in the rock on each floor, ladders up, trapdoors down
+    const H = P.chimney;
+    for (let z = H.from; z <= H.to; z++) carve(z, rect([H.x0, H.y0, H.x1, H.y1]));
+    for (const [x, y, z, id] of H.climb) m.ensure(x, y, z).items = [id];
+    { const [x, y] = E.nest, t = m.get(x, y, E.z); if (t) t.items = ['eagle_nest']; }
+    for (const [x, y, z] of P.shades) spawn('shade', x, y, z);
+  }
+
+  // ---- loose sand on the beaches, here and there: dig it ------------------------------------------------------------------
+  for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
+    const t = m.get(x, y, S);
+    if (!t || t.ground !== 'sand' || t.items.length || hash(x * 31 + 7, y * 17 + 1) > 0.045 || m.getMeta(x, y, S)) continue;
+    if (x >= OAKVALE.bounds.x0 - 2 && x <= OAKVALE.bounds.x1 + 2 && y >= OAKVALE.bounds.y0 - 2 && y <= OAKVALE.bounds.y1 + 2) continue;
+    if (![[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([ox, oy]) => (m.get(x + ox, y + oy, S) || {}).ground === 'water')) continue;
+    put(x, y, S, 'buried');
+  }
+
+  // ---- the people out here ---------------------------------------------------------------------------------------------
+  for (const [type, x, y, z] of D.people) { const p = near(x, y, z); if (p) m.npcs.push({ type, x: p[0], y: p[1], z }); }
 }
 
 // Builds the sewers under Oakvale (see SEWERS): the walkways, rooms and fallen-in parts, the channels and

@@ -92,6 +92,17 @@ const MONSTERS = {
     respawn: 300000,
     loot: { gold: [15, 35], items: [['crab_claw', 1, 2, 3], ['pearl', 0.3], ['health_potion', 0.4]] },
   },
+  // Oakvale Isle's hidden places (docs/world-plan.md, Phase 7)
+  brineshell: { // Old Snapper's mate, who keeps the sea cave south of Fisher's Rest and the wreck of the Gull (Tidecutter)
+    name: 'Brineshell', proper: true, hp: 260, xp: 190, dmg: [3, 24], defense: 5, armor: 6, speed: 150, attackSpeed: 1600, aggro: 5, corpse: 'blood',
+    respawn: 300000, summon: { type: 'crab', max: 2, chance: 0.05 },
+    loot: { gold: [20, 50], items: [['crab_claw', 1, 2, 4], ['pearl', 0.5], ['health_potion', 0.5]] },
+  },
+  shade: { // the restless dead of the cave under the North Peaks: climbers who never came down (The Eagle's Eyrie)
+    name: 'shade', hp: 80, xp: 55, dmg: [2, 16], defense: 2, armor: 2, speed: 160, attackSpeed: 1600, aggro: 5, corpse: 'none',
+    weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
+    loot: { gold: [3, 15], items: [['health_potion', 0.1], ['bone', 0.3], ['ring_life', 0.01]] },
+  },
   thornmother: { // the spider queen of the Spider Hills, who lays the webs over the trails
     name: 'the Thornmother', proper: true, hp: 150, xp: 120, dmg: [2, 18], defense: 4, armor: 3, speed: 200, attackSpeed: 1400, aggro: 6, corpse: 'slime',
     respawn: 300000, hitCondition: { kind: 'poison', chance: 0.35, power: 4 }, summon: { type: 'spider', max: 2, chance: 0.08 },

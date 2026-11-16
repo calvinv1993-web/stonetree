@@ -760,7 +760,7 @@ function drawCreatureInfo(c, screen, struck) {
     if (underRoof(c) && !underRoof(player)) return;
     outlinedText(c.name, sx + size / 2, ty - 4, '#8fd0ff', 'bold 12px sans-serif');
     // Above anyone who has something for you: ! a new quest (grey until you're strong enough), ? news to hand in.
-    const news = questNews(c.npcId), mark = news && { offer: ['!', '#ffd84a'], report: ['?', '#ffd84a'], later: ['!', '#a0a0a0'] }[news.mark];
+    const news = questNews(c.npcId, true), mark = news && { offer: ['!', '#ffd84a'], report: ['?', '#ffd84a'], later: ['!', '#a0a0a0'] }[news.mark];
     if (mark) { // right of the name, clear of the guide's arrow above
       ctx.font = 'bold 12px sans-serif';
       outlinedText(mark[0], sx + size / 2 + ctx.measureText(c.name).width / 2 + 9, ty - 1 - Math.round(Math.sin(now / 300) * 2), mark[1], 'bold 20px Georgia, serif');

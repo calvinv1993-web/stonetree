@@ -5,6 +5,7 @@
 //                 breakChance, dmg: [min, max] and mana per shot for wands/rods, element }
 //   ammo:       { type: arrow|bolt, attack }
 //   armor:      damage absorbed while worn
+//   speed:      boots: walking speed added while worn (players walk at 278, and 2 more each level)
 //   defense:    shields (and melee weapons without a shield) block hits, scaled by shielding
 //   container:  number of slots (bags), can hold other bags
 //   stack:      stacks up to 100 per slot
@@ -186,6 +187,19 @@ const ITEMS = {
     text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },
   ember_seal:    { name: 'Ember Seal', slot: 'neck', armor: 4, quest: true, weight: 3 }, // reforged in the Ember Seal story
+  // Oakvale Isle's hidden quests (docs/world-plan.md, Phase 7): what you find on the way, and what you get for it
+  tide_chart:    { name: 'Maddock\'s sea chart', quest: true, weight: 1, // Tidecutter: the riddle of where the key lies
+    text: 'A sea chart of the west coast, in an old fisher\'s hand. The sea cave south of Fisher\'s Rest is marked with a cross. In the margin, a rhyme: "From the hut, go south along the strand to where the beach grows thin. Three grey stones stand in the sand: the key sleeps in between. Dig."' },
+  sea_key:       { name: 'barnacled key', key: 'sea_cave', quest: true, weight: 1 }, // Tidecutter: opens the gate of the sea cave
+  tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // the best blade on the isle
+  lamp_oil:      { name: 'jar of lamp oil', quest: true, weight: 12 }, // The Keeper's Coat, from Farmer Odo's cellar
+  flint:         { name: 'piece of flint', quest: true, weight: 3 },   // The Keeper's Coat, from the cave under the North Peaks
+  keeper_coat:   { name: 'keeper\'s coat', slot: 'body', armor: 7, level: 8, value: 150, weight: 70 }, // oiled wool and leather
+  eagle_feather: { name: 'eagle feather', quest: true, weight: 0.5 }, // The Eagle's Eyrie, from the old nest on the North Peaks
+  featherstep_boots: { name: 'featherstep boots', slot: 'feet', armor: 2, speed: 15, level: 9, value: 140, weight: 8 }, // the hermit's work
+  seashell:      { name: 'seashell', stack: true, value: 2, weight: 0.5 }, // dug up on the beaches
+  bottle_message:{ name: 'message in a bottle', value: 0, weight: 3, // fished up, now and then
+    text: 'The ink has run, but you can still read it: "Whoever finds this - tell old Maddock of Fisher\'s Rest I kept my word. Tidecutter sleeps in the sea cave, with the Gull, behind the gate. The key sleeps where the three stones watch the tide. - W."' },
   // forging ore, from common to legendary
   ore_rough:     { name: 'rough ore', stack: true, ore: 0, value: 4, weight: 6 },
   ore_iron:      { name: 'iron ore', stack: true, ore: 1, value: 20, weight: 6 },
@@ -217,6 +231,7 @@ function itemInfo(id, q = 0) {
   if (d.ammo) parts.push(`attack +${d.ammo.attack}`);
   if (d.defense) parts.push(`defense ${qualityStat(d.defense, q)}`);
   if (d.armor) parts.push(`armor ${qualityStat(d.armor, q)}`);
+  if (d.speed) parts.push(`speed +${d.speed}`);
   if (d.container) parts.push(`${d.container} slots`);
   if (d.use && d.use.food) parts.push('food');
   if (d.use && d.use.heal) parts.push(`heals ${d.use.heal[0]}-${d.use.heal[1]} HP`);
