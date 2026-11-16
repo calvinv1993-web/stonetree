@@ -102,9 +102,11 @@ def eye_y(cell):
     for i in range(len(cand)):
         for j in range(i+1,len(cand)):
             p,q=cand[i],cand[j]
-            if abs(p[3]-q[3])<h*0.03 and abs(p[0]-q[0])<max(p[0],q[0])*0.6 and w*0.08<abs(p[4]-q[4])<w*0.45:
-                score=p[0]+q[0]
-                if not best or score>best[0]: best=(score,(p[3]+q[3])/2)
+            # (a pair: the same height on the face, alike in size and shape, side by side; of several, the highest)
+            if (abs(p[3]-q[3])<h*0.03 and abs(p[0]-q[0])<max(p[0],q[0])*0.3 and abs(p[1]-q[1])<=max(p[1],q[1])*0.3
+                    and w*0.08<abs(p[4]-q[4])<w*0.45):
+                y=(p[3]+q[3])/2
+                if not best or y<best[1]: best=(0,y)
     return best[1] if best else None
 
 def alike(p, q):
