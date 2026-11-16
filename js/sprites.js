@@ -6493,69 +6493,45 @@ const Sprites = (() => {
     solidify(g0); // whole pixels
   }
 
-  // ---- players from a picture: sprites/player-sheet.png ---------------------------------------------------------------
-  // Drawn by hand (the owner's own), at 4 pixels a world pixel: rows front, side (facing east) and back, columns standing
-  // and two steps; cells of 32 x 48 world pixels with the feet at (16, 46). West is the side row mirrored. Its hair, shirt,
-  // trousers and boots take the colours of the player's outfit: each pixel is sorted into one of them by its colour (and,
-  // for the browns, by its height: hair above the neck, boots below the knee) and recoloured, keeping its light and
-  // shade; in the sheet's own colours (DEFAULT_OUTFIT) it's drawn exactly as it is.
+  // ---- players from a picture: sprites/player-sheet.png (a man) and player-sheet-female.png (a woman) -----------------
+  // Painted (the owner's), at 4 pixels a world pixel: rows front, side (facing east) and back, columns standing and two
+  // steps; cells of 32 x 48 world pixels with the feet at (16, 46). West is the side row mirrored. Its hair, shirt,
+  // trousers and boots take the colours of the player's outfit, by the sheet's map of its parts (below), keeping their
+  // light and shade; in the default colours (DEFAULT_OUTFIT) it's drawn exactly as painted.
   const SHEET = { res: 4, cell: [32, 48], feet: [16, 46], rows: { 2: 0, 1: 1, 3: 1, 0: 2 }, parts: ['hair', 'body', 'legs', 'feet'] };
-  let sheetPixels = null; // { data, width, part: Uint8Array (0 none, 1 hair, 2 body, 3 legs, 4 feet) }, or false if it can't be read
-  function sheetParts(img) {
-    if (sheetPixels !== null) return sheetPixels;
+  // Each body's sheet (player_sheet, a man; player_sheet_female, a woman) has its own map of its parts painted over it
+  // (player_mask, player_mask_female: red hair, blue shirt, green trousers, yellow boots, made with install-sheet.py --mask).
+  // Without a map a sheet is drawn as painted, in every outfit.
+  const sheetPixels = new Map(); // sheet id -> { data, width, part: Uint8Array (0 none, 1 hair, 2 body, 3 legs, 4 feet), base: [rgb] }, or false
+  const maskOf = id => id.replace('sheet', 'mask');
+  function sheetParts(id) {
+    if (sheetPixels.has(id)) return sheetPixels.get(id);
+    const img = customImage(id), mask = customImage(maskOf(id));
+    if (!mask) return custom.has(maskOf(id)) ? false : (sheetPixels.set(id, false), false); // (a map still on its way: not kept)
+    let result = false;
     try {
-      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
-      const data = g.getImageData(0, 0, c.width, c.height).data, part = new Uint8Array(c.width * c.height), CH = SHEET.cell[1] * SHEET.res;
-      // the sheet's own map of its parts (sprites/player-mask.png, painted over it), when there is one: exact
-      const mask = customImage('player_mask');
-      if (!mask && custom.has('player_mask')) return false; // (still on its way: in the sheet's own colours till then, not cached)
-      if (mask && mask.naturalWidth === c.width && mask.naturalHeight === c.height) {
-        const mg = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-        mg.canvas.width = c.width; mg.canvas.height = c.height; mg.drawImage(mask, 0, 0);
-        const md = mg.getImageData(0, 0, c.width, c.height).data;
+      const read = pic => {
+        const g = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        g.canvas.width = pic.naturalWidth; g.canvas.height = pic.naturalHeight; g.drawImage(pic, 0, 0);
+        return g.getImageData(0, 0, pic.naturalWidth, pic.naturalHeight).data;
+      };
+      if (mask.naturalWidth === img.naturalWidth && mask.naturalHeight === img.naturalHeight) {
+        const data = read(img), md = read(mask), part = new Uint8Array(img.naturalWidth * img.naturalHeight);
+        const sum = [0, 1, 2, 3, 4].map(() => [0, 0, 0, 0]);
         for (let i = 0; i < part.length; i++) {
           const r = md[i * 4], gg = md[i * 4 + 1], b = md[i * 4 + 2];
           if (md[i * 4 + 3] < 128 || data[i * 4 + 3] < 128) continue;
-          part[i] = r > 200 && gg < 60 && b < 60 ? 1 : r < 60 && b > 200 ? 2 : r < 60 && gg > 150 && b < 60 ? 3 : r > 200 && gg > 180 && b < 60 ? 4 : 0;
+          const k = r > 200 && gg < 60 && b < 60 ? 1 : r < 60 && b > 200 ? 2 : r < 60 && gg > 150 && b < 60 ? 3 : r > 200 && gg > 180 && b < 60 ? 4 : 0;
+          part[i] = k;
+          if (k) { const t = sum[k]; t[0] += data[i * 4]; t[1] += data[i * 4 + 1]; t[2] += data[i * 4 + 2]; t[3]++; }
         }
-        return (sheetPixels = { data, width: c.width, part });
+        // (each part's own colour, the average of its pixels: what a pixel's light and shade are measured against)
+        const base = sum.slice(1).map(t => (t[3] ? [t[0] / t[3], t[1] / t[3], t[2] / t[3]] : [128, 128, 128]));
+        result = { data, width: img.naturalWidth, part, base };
       }
-      // (otherwise worked out from the colours)
-      for (let i = 0; i < part.length; i++) {
-        const r = data[i * 4] / 255, gg = data[i * 4 + 1] / 255, b = data[i * 4 + 2] / 255, a = data[i * 4 + 3];
-        if (a < 128) continue;
-        const v = Math.max(r, gg, b), d = v - Math.min(r, gg, b), s = v ? d / v : 0;
-        let h = !d ? 0 : v === r ? ((gg - b) / d) % 6 : v === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
-        h = (h * 60 + 360) % 360;
-        const yy = (Math.floor(i / c.width) % CH) / SHEET.res;
-        // (hair, belt, trousers and boots are all browns: told apart by how grey they are and how high they sit)
-        const brown = h < 45 || h > 330;
-        if (v < 0.22) continue;                                                        // the outline
-        if (h > 185 && h < 265 && s > 0.3) part[i] = 2;                               // the shirt
-        else if (h > 12 && h < 45 && s < 0.62 && v > 0.66 && yy >= 17) continue;     // skin (the face, the hands)
-        else if (h > 30 && h < 60 && s > 0.5 && v > 0.6 && yy >= 28 && yy < 38) continue; // the buckle
-        else if (brown && s >= 0.2 && s < 0.47 && v < 0.66 && yy >= 30) part[i] = 3;  // the trousers, greyer
-        else if (brown && s >= 0.2 && yy < 27) part[i] = 1;                           // the hair
-        else if (brown && s >= 0.47 && yy >= 37) part[i] = 4;                         // the boots (the belt above them stays)
-      }
-      // (trousers and boots: each pixel goes with most of those round it, so a boot's light spot stays boot)
-      const W = c.width, H = c.height, was = part.slice();
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-        const k = was[y * W + x];
-        if (k !== 3 && k !== 4) continue;
-        let legs = 0, feet = 0;
-        for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
-          const yy2 = y + dy, xx = x + dx;
-          if (yy2 < 0 || yy2 >= H || xx < 0 || xx >= W) continue;
-          const o = was[yy2 * W + xx];
-          if (o === 3) legs++; else if (o === 4) feet++;
-        }
-        if (legs !== feet) part[y * W + x] = legs > feet ? 3 : 4;
-      }
-      sheetPixels = { data, width: c.width, part };
-    } catch (e) { sheetPixels = false; } // (over file:// it can't be read: drawn in its own colours)
-    return sheetPixels;
+    } catch (e) { /* over file:// it can't be read: drawn in its own colours */ }
+    sheetPixels.set(id, result);
+    return result;
   }
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
@@ -6581,17 +6557,21 @@ const Sprites = (() => {
     || (c.type !== 'player' && c.type !== 'npc' && !c.rare && !c.pet && !LOW_SHEETS.includes(c.type) && customImage(`sheet_${c.type}`))); // (a monster on two legs with its own sheet)
   // (beasts drawn from a sheet that stand low: their name stays at the monsters' height, not above a person's head)
   const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'cistern_slime', 'clang_1', 'clang_2', 'clang_3'];
+  // the sheet of a player's body: a woman's, when there is one
+  const playerSheetId = key => (lookFor(key) || {}).female && customImage('player_sheet_female') ? 'player_sheet_female' : 'player_sheet';
   function playerFromSheet(key, dir, frame) {
-    const img = customImage('player_sheet'), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
+    const id = playerSheetId(key), img = customImage(id), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
     return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
       const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * S, sy = row * CH * S;
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       const cg = cell.getContext('2d');
-      const px = sheetParts(img);
-      const targets = SHEET.parts.map(p => (look[p] && look[p] !== DEFAULT_OUTFIT[p] ? hexRgb(look[p]) : null));
+      const px = sheetParts(id);
+      // (the outfit's own colours, from the key: not the look's, which a vocation's clothes or a skirt change)
+      const own = key.split(':')[2].split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
+      const targets = SHEET.parts.map(p => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p]) : null));
       if (px && targets.some(Boolean)) { // recolour: each part's pixels, as light or dark against the part's own colour
-        const out = cg.createImageData(cell.width, cell.height), o = out.data, base = SHEET.parts.map(p => hexRgb(DEFAULT_OUTFIT[p]));
+        const out = cg.createImageData(cell.width, cell.height), o = out.data, base = px.base;
         const lum = (r, gg, b) => 0.3 * r + 0.59 * gg + 0.11 * b;
         for (let y = 0; y < cell.height; y++) for (let x = 0; x < cell.width; x++) {
           const i = (sy + y) * px.width + sx + x, j = (y * cell.width + x) * 4, p = px.part[i], t = p && targets[p - 1];
@@ -7318,7 +7298,7 @@ const Sprites = (() => {
       if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || /^wall_[a-z]+_(face|face_in|top)$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = redrawSoon;
       const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
       if (res) img.res = +res[1];
-      if (id === 'player_mask') img.onload = () => { sheetPixels = null; redrawSoon(); }; // (the players drawn again, in their colours)
+      if (/^player_(mask|sheet)/.test(id)) img.onload = () => { sheetPixels.clear(); redrawSoon(); }; // (the players drawn again, in their colours)
       img.src = `sprites/${file}${versionOf(file)}`;
       custom.set(id, img);
     }
