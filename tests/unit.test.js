@@ -930,6 +930,46 @@ test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood),
   assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
 });
 
+test('a tool used on a spot further off: you walk there and use it; walking away yourself calls it off', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 170, z: 8 }); ctx.addItem('shovel', 1);
+  let spot = null;
+  for (let dx = 4; dx <= 6 && !spot; dx++) for (const dy of [0, 1, -1]) if (state.isFree(128 + dx, 170 + dy, 8)) { spot = { x: 128 + dx, y: 170 + dy }; break; }
+  assert(spot, 'an open spot to dig');
+  A.useItemOn(bagRef(state, 'shovel'), spot.x, spot.y, 8); tick(game, 4000);
+  assert(state.dist(p, spot) <= 1, 'walked there');
+  assert(!messages.some(m => /stand next to it/.test(m)), 'no "stand next to it"');
+  ctx.teleport({ x: 128, y: 170, z: 8 }); tick(game, 200);
+  A.useItemOn(bagRef(state, 'shovel'), spot.x, spot.y, 8); tick(game, 300);
+  A.keyDown('arrowleft'); A.keyUp('arrowleft'); tick(game, 3000);
+  assert(state.dist(p, spot) > 1 && !p.action, 'walking away yourself calls it off');
+});
+
+test('chase: a new target ends a walk and is chased; walking away stops chasing that one, not Chase itself', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 170, z: 8 }); p.chase = true;
+  const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 4, y: p.y, z: 8 }); rat.def = { ...rat.def, aggro: 0, speed: 99999 }; rat.hp = rat.maxHp = 999;
+  state.monsters.push(rat);
+  A.walkTo(p.x - 6, p.y); tick(game, 100);
+  assert(p.path.length, 'walking somewhere');
+  A.targetNearest();
+  assert(p.target === rat && !p.path.length, 'attacking ends the walk');
+  tick(game, 2500);
+  assert(state.dist(p, rat) <= 1.5, 'and chases the monster');
+  const dir = rat.x > p.x ? 'arrowleft' : 'arrowright';
+  rat.nextMove = 1e15; // (it stays where it is)
+  A.keyDown(dir); tick(game, 1500); A.keyUp(dir); tick(game, 600);
+  assert(p.chase && p.chaseOff, 'walking away: Chase stays on, but this one is not chased');
+  const at = [p.x, p.y]; tick(game, 2500);
+  assert(p.x === at[0] && p.y === at[1] && state.dist(p, rat) > 1.5, 'and you are not pulled back to it');
+  A.targetNearest(); A.targetNearest(); // (again on the same: the next nearest, the same rat)
+  assert(!p.chaseOff, 'a new attack is chased again');
+});
+
 test('auto-heal drinks a potion by itself below the health or mana you chose, health first, and says when you run out', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

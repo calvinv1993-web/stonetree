@@ -827,11 +827,18 @@ function questDeed(questId, thingId, x, y, z) {
 }
 
 // "Use with": a rune, tool, key or furniture kit used on a tile or creature.
-function useItemOn(ref, x, y, z) {
+// (arrived: walked there for it already, see below)
+function useItemOn(ref, x, y, z, arrived) {
   const found = resolve(ref);
   if (!found || !found.item) return;
   const item = found.item, def = ITEMS[item.id];
   if (z !== player.z) return log('You cannot reach that.');
+  if (!Number.isInteger(x) || !Number.isInteger(y)) return;
+  // a tool, key or kit used on a spot further off: you walk there first, and use it when you arrive (walking away
+  // yourself calls it off); a fishing rod reaches 5 tiles, the rest the tile next to you
+  const fishing = def.tool === 'fishing', reach = fishing ? 5 : 1;
+  const far = (def.tool || def.key || def.kit) && (dist(player, { x, y }) > reach || (fishing && !sightClear(player, { x, y, z })));
+  if (far && !arrived && !player.ride) return interact({ kind: 'useWith', ref, item: item.id, x, y, z, range: reach });
   if (def.rune) return castRune(ref, x, y, z);
   if (def.use) return useItem(ref);
   if (def.key) return useKeyOn(x, y, z);

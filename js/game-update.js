@@ -24,7 +24,7 @@ const Actions = {
     const inp = player.input;
     if (!DIR_KEYS[key]) return;
     player.follow = null; // walking yourself stops following
-    if (player.target && !player.target.dead) player.chase = false; // manual movement stops automatic pursuit
+    if (player.target && !player.target.dead) player.chaseOff = true; // walking away stops chasing this target (Chase stays on for the next)
     if (!inp.held.includes(key)) inp.held.push(key);
     if (!repeat) inp.queued = DIR_KEYS[key];
     player.path = [];
@@ -49,7 +49,7 @@ const Actions = {
     if (maxNodes > 4000 && now < (player.longWalkAt || 0)) return;
     if (maxNodes > 4000) player.longWalkAt = now + 500;
     player.follow = null;
-    if (player.target && !player.target.dead) player.chase = false; // tap-to-walk stops automatic pursuit
+    if (player.target && !player.target.dead) player.chaseOff = true; // tap-to-walk stops chasing this target (Chase stays on for the next)
     walkTo(x, y, Math.min(maxNodes || 4000, 30000));
   },
   // kind: 'talk' (the NPC on that tile) or 'use' (whatever is there)
@@ -81,8 +81,7 @@ const Actions = {
     player.target = c && player.target !== c && !spared && (c.type !== 'player' || pvpAllowed(c)) ? c : null;
     if (spared) log(sameParty(player, c) ? 'They are in your party. Switch secure mode off to attack them anyway.' : 'Secure mode is on: switch it off to attack players without a skull.');
     else if (c && c.type === 'player' && !pvpAllowed(c)) log('You cannot attack this player here.');
-    // Picked a target while walking somewhere? With chase on, stop walking and go for it (the step under way ends first).
-    if (player.target && player.chase) Object.assign(player, { path: [], pathGoal: null, action: null, follow: null });
+    targetPicked();
   },
   targetNext,
   targetNearest,
@@ -401,6 +400,9 @@ function performAction() {
   } else if (a.kind === 'talk') {
     logDialog(player.name, 'hi', true);
     startConversation(a.npc);
+  } else if (a.kind === 'useWith') { // a tool, key or kit used on a spot further off: there now, use it (still in the bag?)
+    const at = resolve(a.ref), ref = at && at.item && at.item.id === a.item ? a.ref : findInBag(it => it.id === a.item);
+    if (ref) useItemOn(ref, a.x, a.y, a.z, true);
   } else if (!useThing(a.x, a.y, a.z)) {
     log('You cannot use this.');
   }
@@ -441,6 +443,13 @@ function followCreature() {
   else player.nextChase = now + 400;
 }
 
+// A new target: chased again (walking away stopped chasing the last one), and with Chase on, any walk somewhere ends and
+// you go for it (the step under way ends first)
+function targetPicked() {
+  player.chaseOff = false;
+  if (player.target && player.chase) Object.assign(player, { path: [], pathGoal: null, action: null, follow: null });
+}
+
 // Attack the closest monster (never a player); again: the next closest.
 function targetNearest() {
   if (inPZ()) return log(NOT_IN_PZ);
@@ -449,6 +458,7 @@ function targetNearest() {
     .sort((a, b) => dist(a, player) - dist(b, player));
   if (!near.length) return log('There is no monster nearby.');
   player.target = near[0] !== player.target ? near[0] : near[1] || near[0];
+  targetPicked();
 }
 
 function targetNext() {
@@ -457,6 +467,7 @@ function targetNext() {
     .filter(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m))
     .sort((a, b) => dist(a, player) - dist(b, player));
   player.target = near.length ? near[(near.indexOf(player.target) + 1) % near.length] : null;
+  targetPicked();
 }
 
 // ---- a companion (Clang, the temple's cat): it follows you, fights what you fight, and grows ------------------------
@@ -692,7 +703,7 @@ function updatePlayer() {
       followPath();
     } else if (a) {
       player.action = null; // couldn't get there
-    } else if (player.target && player.chase && !inAttackRange(playerWeapon(), player.target)) {
+    } else if (player.target && player.chase && !player.chaseOff && !inAttackRange(playerWeapon(), player.target)) {
       chase();
     } else if (player.follow) {
       followCreature();
