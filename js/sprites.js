@@ -4937,7 +4937,7 @@ const Sprites = (() => {
     }
   }
 
-  const SPIDER = { legs: '#1a1a1a', body: '#2a2a2a', mark: '#b02020', head: '#3a3030' };
+  const SPIDER = { legs: '#3c3430', body: '#4c4038', mark: '#d03028', head: '#5c4a40' }; // (dark, but not black on black: it reads on the dark ground of the hills)
   const GIANT_SPIDER = { legs: '#2a1a0e', body: '#4a3222', mark: '#e0b030', head: '#5a3c28', hairy: true };
   function spider(g, dir, frame, c = SPIDER) {
     if (Sprites.DOLLS) return spiderDoll(g, dir, frame, c);
