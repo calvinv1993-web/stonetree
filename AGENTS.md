@@ -34,6 +34,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Editor in a real browser, desktop and phone | `node tests/editor.test.js [screenshot-folder]` |
 | Top-down picture of one floor | `node tests/world-map.js out.png [z] [--grid]` |
 | Each picture's own version, after adding or changing pictures in `sprites/` (the unit tests fail until it's run) | `node tests/sprite-versions.js` |
+| Put a character sheet made outside the game (ChatGPT) in `sprites/`: cleaned, fitted to the player sheet's layout and Sister Ama's size, a repeated step mirrored (height: 146 a grown-up, about 110 a child or a goblin) | `python3 tests/install-sheet.py <picture.png> sprites/npc-<id>.png [height]` |
 | Bake the ground's borders ahead of time (after changing how they're drawn, the ground textures, or the world's grounds) | `node tests/bake-ground.js` |
 | Phone action buttons: their gestures, and their mana, cooldowns and pictures | `node tests/mobile-slots.test.cjs`, `node tests/action-slots.test.cjs` |
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
