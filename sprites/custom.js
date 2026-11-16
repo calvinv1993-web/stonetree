@@ -244,6 +244,7 @@ const CUSTOM_SPRITES = {
   sheet_oak_landlady: 'npc-oak_landlady.png', // Landlady Hettie
   sheet_oak_keeper: 'npc-oak_keeper.png', // Keeper Tamsin
   sheet_oak_hermit: 'npc-oak_hermit.png', // Hermit Brannoc
+  sheet_skeleton: 'monster-skeleton.png', // a monster on two legs: sheet_<monster type>, laid out the same
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
