@@ -19,7 +19,7 @@
   const steps = inApp
     ? ['Open this page in <b>Safari</b> (or Chrome) first: tap the menu of this app and choose <b>Open in browser</b>.', 'Then add it to your home screen from there.']
     : ios
-      ? [`Tap the button above, or <b>Share</b> ${share} in Safari's bar at the bottom (on newer iPhones: <b>⋯</b>, then <b>Share</b>).`,
+      ? [`In <b>Safari</b>, tap <b>Share</b> ${share} in the bar at the bottom (on newer iPhones: <b>⋯</b>, then <b>Share</b>). Opened from a link in another app? Choose <b>Open in Safari</b> first.`,
         `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list, or tap <b>More</b>, if you don't see it).`, 'Open <b>Lickii</b> from your home screen.']
       : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>Lickii</b> from your home screen.'];
   const gate = document.createElement('div');
@@ -49,17 +49,9 @@
     <h1>Play Lickii Adventures as an app</h1>
     <p>On a phone the game is played from your home screen: the whole screen for the game, and it stays upright.</p>
     <button id="installNow" hidden>Install Lickii</button>
-    <button id="shareNow" hidden>Add to Home Screen</button>
     <ol>${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol>
     ${ios && !inApp ? '<svg class="down" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v16m0 0-6-6m6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}`;
   document.body.prepend(gate);
-  // On an iPhone: a button that opens Apple's own share menu, where "Add to Home Screen" is chosen (no page can add
-  // itself; only that menu can), and an arrow down to Safari's bar for those who'd rather use its Share button
-  if (ios && !inApp && navigator.share) {
-    const b = document.getElementById('shareNow');
-    b.hidden = false;
-    b.onclick = () => navigator.share({ title: 'Lickii Adventures', url: location.href.split('#')[0] }).catch(() => { /* closed: the steps stay */ });
-  }
   // Android's own install button, where the browser offers one
   addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
