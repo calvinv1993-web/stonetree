@@ -235,6 +235,7 @@ const SPRITE_HASHES = {
   "lip-rock.png":"4de161b98c",
   "marble-atlas.png":"4c57a3880d",
   "marble-original-v2.png":"32fd8db57b",
+  "monster-bear.png":"6018d63ed3",
   "monster-cat.png":"1e3fe54b5d",
   "monster-choir_cantor.png":"ceea666583",
   "monster-choir_cultist.png":"a9f7db6d2f",
