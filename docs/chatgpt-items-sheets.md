@@ -16,7 +16,7 @@ Order, left to right, top to bottom:
 
 ## Sheet 1: the first hour: done
 
-Painted and in the game: wooden club, dagger, hatchet, short sword, spiked club, mace, wooden shield, studded shield, leather cap, leather armor, leather legs, iron boots, apple, bread, fish, gold coins, bag, pickaxe, fishing rod. (Leather boots, cheese, meat and the backpack, painted before, are again at the end of sheet 7.)
+Painted and in the game: wooden club, dagger, hatchet, short sword, spiked club, mace, wooden shield, studded shield, leather cap, leather armor, leather legs, iron boots, apple, bread, fish, gold coins, bag, pickaxe, fishing rod. Leather boots, cheese, meat and the backpack too.
 
 ## Sheet 2: weapons: done
 
@@ -60,4 +60,4 @@ Painted and in the game: chain helmet, steel helmet, crown helmet, witch hat, wi
 6 strange carved stone (a small stone with spiral carvings), 7 sea chart (a rolled map), 8 Hilda's parcel (a small package tied with string)
 ```
 
-Sheet 7 also has room for these, as 9 to 14: old boot, old sock, leather boots, wedge of cheese, raw meat (a ham on the bone), brown leather backpack.
+Sheet 7 also has room for these, as 9 and 10: old boot, old sock.

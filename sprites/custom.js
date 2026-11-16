@@ -12,6 +12,10 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  backpack: 'items/backpack@3x.png', // the owner's item picture (install-items.py)
+  meat: 'items/meat@3x.png', // the owner's item picture (install-items.py)
+  cheese: 'items/cheese@3x.png', // the owner's item picture (install-items.py)
+  leather_boots: 'items/leather_boots@3x.png', // the owner's item picture (install-items.py)
   rod_thorns: 'items/rod_thorns@3x.png', // the owner's item picture (install-items.py)
   spellbook: 'items/spellbook@3x.png', // the owner's item picture (install-items.py)
   demon_shield: 'items/demon_shield@3x.png', // the owner's item picture (install-items.py)
@@ -75,12 +79,8 @@ const CUSTOM_SPRITES = {
   edge_swamp_n: 'edge-swamp-n.png', // the owner's swamp border (a loose PNG: install-edge-png.py)
   swamp: 'swamp-own.png', // the owner's swamp, from above (ground + border template)
   ore_iron: 'items/ore_iron@3x.png', // the owner's item picture (from the owner's sheet of items)
-  cheese: 'items/cheese@3x.png', // the owner's item picture (from the owner's sheet of items)
-  meat: 'items/meat@3x.png', // the owner's item picture (from the owner's sheet of items)
   rope: 'items/rope@3x.png', // the owner's item picture (from the owner's sheet of items)
   shovel: 'items/shovel@3x.png', // the owner's item picture (from the owner's sheet of items)
-  leather_boots: 'items/leather_boots@3x.png', // the owner's item picture (from the owner's sheet of items)
-  backpack: 'items/backpack@3x.png', // the owner's item picture (from the owner's sheet of items)
   amulet_guard: 'items/amulet_guard@3x.png', // the owner's item picture (from the owner's sheet of items)
   edge_gravel_w: 'edge-gravel-w.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
   edge_gravel_s: 'edge-gravel-s.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
