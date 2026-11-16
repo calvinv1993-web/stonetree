@@ -1739,6 +1739,36 @@ Object.assign(QUESTS, {
       done: 'The founder\'s page lies on my desk. I read it every night. Grow strong, $name.',
     },
   },
+  // VI: level 10, the farewell: ring the bell yourself, and the town says goodbye before the oracle sends you on
+  bell_6: {
+    name: 'The Silent Bell VI: Farewell', story: 'The Silent Bell', giver: 'ama', level: 10, word: 'farewell', after: 'bell_5',
+    reward: { xp: 500, gold: 200, items: [['health_potion', 5], ['mana_potion', 5]] },
+    summary: 'Before the oracle sends you on, ring the bell of Oakvale yourself, and say goodbye to those who helped you.',
+    steps: [
+      { thing: 'bell', summary: 'Climb the bell tower, east of the temple, and ring the bell of Oakvale yourself.',
+        progress: 'The bell tower stands east of the temple. Climb to the top and ring the bell.',
+        done: 'You ring the bell, and Oakvale stops to listen. Down in the streets, people look up at the tower, and wave.' },
+      { npc: 'corwin', word: 'farewell', summary: 'Say farewell to Master Corwin at the academy.',
+        progress: 'Master Corwin is at the academy.',
+        done: 'So the rat-catcher is a hero now. I taught you to hold a weapon; you taught me that the founders\' bell is worth keeping. Go well, $name. When the Choir sends its ship, I hope it finds you waiting.' },
+      { npc: 'pip', word: 'farewell', summary: 'Say farewell to Pip at Pip\'s Provisions.',
+        progress: 'Pip\'s Provisions is on the main street.',
+        done: 'You are leaving? Then take a tip from your first shopkeeper: never leave town without a rope. Or a shovel. Or both! I will miss you, $name. Write!' },
+      { npc: 'gate_west', word: 'farewell', summary: 'Say farewell to Sergeant Bram at the west gate.',
+        progress: 'Sergeant Bram keeps the west gate.',
+        done: 'At ease, $name. You came to my gate a newcomer with a club and went out to fight Greyfang. The gate is quieter for you. Salute! Now go and see Sister Ama.' },
+      { npc: 'ama', word: 'farewell', summary: 'Go back to Sister Ama in the temple.',
+        progress: 'Sister Ama waits in the temple.' },
+    ],
+    text: {
+      offer: 'You have grown, $name. Level ten: the oracle upstairs in the academy will send you on, and you will not come back. Before you go, will you ring our bell one last time, and say goodbye to those who helped you? ({yes}/{no})',
+      accept: 'Climb the bell tower and ring it yourself. Then go round: Master Corwin, Pip, Sergeant Bram. And come back to me last.',
+      tooWeak: 'It is not time to say goodbye yet, $name. Come back at level 10.',
+      elsewhere: 'Sister Ama in the temple wants to say goodbye.',
+      reward: 'Then this is goodbye. You woke in this temple a stranger, and you leave it the one who rang our bell home. Take these for the road. Oakvale will ring for you, every dawn. Now go to the {oracle}, $name, and may the Dawn light your way.',
+      done: 'Go with the Dawn, $name. The oracle upstairs in the academy is waiting.',
+    },
+  },
 });
 
 // The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
@@ -1814,7 +1844,7 @@ Object.assign(NPCS, {
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
       'winter|long': 'The long winter, the year the founders came. The sea froze at the shore, and they lived in the hull of their ship until spring. Many are buried under Bone Rocks from that winter.',
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
-      'bell|quest|mission|task|help|rope|cellar|clapper|gravewaker': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
+      'bell|quest|mission|task|help|rope|cellar|clapper|gravewaker|farewell|goodbye': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4', 'bell_6'] },
       'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
       'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10.',
       sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
@@ -1828,6 +1858,7 @@ Object.assign(NPCS, {
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
     greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
+      'farewell|goodbye': { quest: ['bell_6'] },
       'chronicle|diary|pages|page|founder': { chronicle: true },
       'choir|ashen|lights|shadow': { quest: ['bell_5'] },
       'books|lore': { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
@@ -1876,6 +1907,7 @@ Object.assign(NPCS, {
     look: { skin: '#f0c090', hair: '#c87a2a', body: '#4a7a3a', arms: '#f0c090', legs: '#6a4a2a', belt: '#3a2a1a' },
     greet: 'Hello $name, welcome to Pip\'s Provisions! Food, potions, rope and shovels - just ask to {trade}. I buy what you find on monsters, too.',
     keywords: {
+      'farewell|goodbye': { quest: ['bell_6'] },
       job: 'I sell everything an adventurer needs, and buy what they bring back.',
       'lighthouse|point': 'Lighthouse Point, south of the fields? There was a lighthouse once. A storm took it the year I was born. Only the crabs live there now.',
       'fish|fisher|fishing': 'Fisher\'s Rest is on the west shore. Buy a fishing rod and use it on the water: fish heal you as well as bread does, and cost nothing but patience.',
@@ -1916,7 +1948,7 @@ Object.assign(NPCS, {
     trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
-  gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),
+  gate_west: (() => { const g = gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'); g.keywords['farewell|goodbye'] = { quest: ['bell_6'] }; return g; })(),
   gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
   gate_east: (() => { // (Hilde also knows of the spiders' den, and its queen)
     const g = gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.');

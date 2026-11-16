@@ -575,7 +575,23 @@ function ringBell(x, y, z) {
   if (!bellHung()) return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
   if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
   ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
+  // the farewell (The Silent Bell VI): ringing it yourself, the town looks up and waves
+  const st = questState('bell_6') === 'active' && questStep('bell_6');
+  if (st && st.thing === 'bell') {
+    for (const n of npcs) if (n.z === map.surfaceZ && map.isTown(n.x, n.y, n.z) && FAREWELLS[n.npcId]) addSpeech(n, FAREWELLS[n.npcId], true);
+    if (st.done) log(st.done, 'quest');
+    advanceQuest('bell_6');
+  }
 }
+
+// What the people of Oakvale call up to the tower when you ring the bell to say goodbye
+const FAREWELLS = {
+  pip: 'Don\'t forget your rope!', oak_baker: 'Take a loaf for the road!', oak_smith: 'Keep that blade sharp!',
+  oak_armourer: 'Mind the armour, it\'s mine!', oak_innkeeper: 'The Boar will miss you!', postmaster: 'Write to us!',
+  oak_landlady: 'Your cottage will wait!', townsman: 'There goes the hero!', townswoman: 'Goodbye, dear!',
+  child: 'I\'m going to be just like you!', old_man: 'In my day... oh, go on then!', cat: 'Mrrrow!',
+  gate_north: 'Salute!', gate_east: 'Good hunting!', gate_south: 'Fair winds!', gate_west: 'At ease, hero!',
+};
 
 function showText(title, text) {
   playerEvent('read', { title, text });

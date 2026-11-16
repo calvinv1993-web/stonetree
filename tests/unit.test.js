@@ -1019,7 +1019,13 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   talk('oak_keeper', 'lights'); kill('choir_cultist', 4); kill('choir_cantor', 1);
   assert.strictEqual(arrow(), 'corwin', 'back to Corwin with the page'); talk('corwin', 'choir');
   assert.strictEqual(state.questState('bell_5'), 'done');
-  levelTo(10); assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
+  // VI: the farewell
+  levelTo(10); assert.strictEqual(arrow(), 'ama', 'Sister Ama wants to say goodbye'); assert.strictEqual(mark('ama'), 'offer');
+  talk('ama', 'farewell', 'yes'); on(null, { x: 145, y: 103, z: 13 });
+  assert.strictEqual(arrow(), '145,102,13', 'to the bell'); state.now += 60000; ctx.ringBell();
+  for (const id of ['corwin', 'pip', 'gate_west']) { assert.strictEqual(arrow(), id, `farewell to ${id}`); talk(id, 'farewell'); }
+  assert.strictEqual(arrow(), 'ama'); talk('ama', 'farewell'); assert.strictEqual(state.questState('bell_6'), 'done');
+  assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
   // started again from the menu: the explaining steps wait for Next, the ones already done pass by themselves

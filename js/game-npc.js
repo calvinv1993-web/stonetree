@@ -178,7 +178,7 @@ const mentions = (text, keys) => keys.split('|').some(k => new RegExp(`\\b${k}\\
 function answer(text) {
   const conv = player.conversation, npc = conv.npc, def = npc.def;
   const reply = r => r && player.conversation && npcSay(npc, r);
-  if (mentions(text, 'bye|farewell')) return endConversation();
+  if (mentions(text, 'bye')) return endConversation(); // ("farewell" is a word of The Silent Bell VI)
   if (conv.pending) {
     const p = conv.pending;
     conv.pending = null;
@@ -345,6 +345,8 @@ function vocationTalk(v) {
   return ask(`${VOCATIONS[v].desc} Do you want to become a ${v}? This cannot be undone, and you will leave the starter island for good. ({yes}/{no})`, () => {
     if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()}.`;
     chooseVocation(v);
+    // the whole isle hears it: the bell rings for the one who leaves
+    ringTownBell(`Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${v}, who leaves the isle today.`);
     return `So be it, ${v}! I will now send you across the sea to the mainland. Farewell, $name - and if you have not heard my {dream} yet, Grandmaster Orin in Valoria will tell it to you.`;
   }, () => 'Take your time.');
 }

@@ -217,6 +217,13 @@ const GUIDE = [
     done: () => questState('bell_5') === 'done',
   },
   {
+    text: 'Level 10! Before the oracle sends you on, Sister Ama wants to say goodbye: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
+    touch: 'Level 10! Before the oracle sends you on, Sister Ama wants to say goodbye: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
+    // (the bell: the stairs up on each floor of the tower, then the bell at the top)
+    target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
+    done: () => questState('bell_6') === 'done',
+  },
+  {
     text: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
     touch: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
     target: [{ npc: 'oak_oracle', level: 10 }],
