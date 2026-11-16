@@ -381,7 +381,7 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 .guide.cheer { animation: guide-cheer 0.9s ease-out; }
 .guide.cheer #guideStep::after { content: '  ✓ well done!'; color: #8be08a; font-weight: 700; }
 /* the spotlight: everything dims but the lit part and the guide's box; it takes no taps */
-#guideSpot { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9000; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
+#guideSpot { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9000; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
 #guideSpot.on { opacity: 1; }
 #guideSpot path { fill: rgba(0, 0, 0, 0.58); }
 #guideSpot.soft path { fill: rgba(0, 0, 0, 0.32); }

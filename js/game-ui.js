@@ -326,7 +326,16 @@ const GuideSpot = (() => {
     // (a step that only explains dims more: there's nothing else to do; one with a task dims a little)
     layer.classList.toggle('soft', !!(step && (step.done || step.on)));
     const r = target.getBoundingClientRect();
-    layer.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+    // (sized in the very pixels its holes are measured in: an iPhone's home-screen app has a 100vh that isn't the
+    // window's height, and a layer of that height shifted every lit part down)
+    const W = innerWidth, H = innerHeight;
+    if (layer.dataset.size !== `${W}x${H}`) {
+      layer.dataset.size = `${W}x${H}`;
+      layer.style.width = `${W}px`; layer.style.height = `${H}px`;
+      layer.setAttribute('width', W); layer.setAttribute('height', H);
+      layer.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      layer.setAttribute('preserveAspectRatio', 'none');
+    }
     path.setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0Z${hole(r, 6, 12)}${boxShown ? hole(box.getBoundingClientRect(), 0, 12) : ''}`);
     ring.setAttribute('d', hole(r, 6, 12));
     // the hand: pointing up at it from below, or down at it from above when it's low on the screen (not for something
