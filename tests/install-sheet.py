@@ -123,8 +123,12 @@ def build(figs, scale):
             if VIVID != 1:  # (fuller colours; whites, greys and silver stay as they are: only what has colour gets more)
                 alpha = f.getchannel('A')
                 rich = ImageEnhance.Contrast(ImageEnhance.Color(f.convert('RGB')).enhance(VIVID)).enhance(1 + (VIVID - 1) * 0.25)
-                sat = np.array(f.convert('HSV'))[:, :, 1].astype(float) / 255
-                weight = Image.fromarray((np.clip((sat - 0.12) / 0.25, 0, 1) * 255).astype(np.uint8))
+                hsv = np.array(f.convert('HSV')).astype(float)
+                sat, hue = hsv[:, :, 1] / 255, hsv[:, :, 0] * 360 / 255
+                # (yellows, oranges and skin get only a little of it: fuller, not yellower)
+                warm = np.clip(1 - np.abs(hue - 35) / 30, 0, 1)
+                weight = np.clip((sat - 0.12) / 0.25, 0, 1) * (1 - 0.75 * warm)
+                weight = Image.fromarray((weight * 255).astype(np.uint8))
                 f = Image.composite(rich, f.convert('RGB'), weight).convert('RGBA')
                 f.putalpha(alpha)
             f = edge(f)
