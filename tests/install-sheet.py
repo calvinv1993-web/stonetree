@@ -55,14 +55,23 @@ def main_figure(cell):
         k = keep.copy()
         k[1:] |= keep[:-1]; k[:-1] |= keep[1:]; k[:, 1:] |= keep[:, :-1]; k[:, :-1] |= keep[:, 1:]
         keep = k
+    # its soft shadow on the ground too: the faint pixels that touch it (a shadow painted under its feet)
+    faint = (alpha > 6) & ~fringe
+    q = deque(zip(*np.nonzero(keep)))
+    while q:
+        cy, cx = q.popleft()
+        for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+            if 0 <= ny < h and 0 <= nx < w and faint[ny, nx] and not keep[ny, nx] and alpha[ny, nx] < 200:
+                keep[ny, nx] = True
+                q.append((ny, nx))
     a[~keep] = 0
     a[fringe & keep, 3] = 0
     out = Image.fromarray(a)
-    return out.crop(out.getbbox())
+    return out.crop(out.getbbox())  # (with its shadow: the feet are found from the solid part, see install)
 
 def edge(fig):
     a = np.array(fig.convert('RGBA')).astype(float)
-    solid = a[:, :, 3] > 128
+    solid = a[:, :, 3] > 200  # (the figure itself; its soft shadow gets no edge)
     pad = np.pad(solid, 1)
     inner = pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:]
     ring = solid & ~inner
@@ -119,7 +128,9 @@ def build(figs, scale):
                 f = Image.composite(rich, f.convert('RGB'), weight).convert('RGBA')
                 f.putalpha(alpha)
             f = edge(f)
-            sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - f.width // 2, r * CELL_H + FEET_Y - f.height))
+            # (placed by the figure itself, not its shadow: its feet on the line, its middle in the middle)
+            sx0, sy0, sx1, sy1 = f.getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox() or (0, 0, f.width, f.height)
+            sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - (sx0 + sx1) // 2, r * CELL_H + FEET_Y - sy1))
     return sheet
 
 def install(src_path, out_path, size=1.0):
@@ -130,7 +141,8 @@ def install(src_path, out_path, size=1.0):
         if alike(figs[r][1], figs[r][2]) > 0.97:
             figs[r][2] = ImageOps.mirror(figs[r][1])
             print(f'row {r + 1}: the second step repeated the first: mirrored')
-    scale = 146 / figs[0][0].height  # (a first guess: Sister Ama's height)
+    solid = figs[0][0].getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox()
+    scale = 146 / ((solid[3] - solid[1]) if solid else figs[0][0].height)  # (a first guess: Sister Ama's height)
     eye = eye_y(build(figs, scale).crop((0, 0, CELL_W, CELL_H)))
     if eye is None:
         print('no eyes found: sized by height')

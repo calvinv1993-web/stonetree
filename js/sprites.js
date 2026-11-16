@@ -6534,30 +6534,17 @@ const Sprites = (() => {
     const img = customImage(`sheet_${id}`), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), [CW, CH] = SHEET.cell;
     return cached(`npcsheet:${id}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
-      sheetShadow(g, R);
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * R, CH * R); }
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * R, CH * R);
     }, 2 * TILE * R);
   }
-  // A soft shadow on the ground under a figure drawn from a sheet, where its feet are, a little to the south-east (the
-  // light comes from the north-west), the same for everyone, so nobody seems to float.
-  function sheetShadow(g, R) {
-    const fx = (TILE + 16 + 2) * R, fy = (TILE + 29 + 0.5) * R, rx = 11 * R, ry = 3.6 * R;
-    g.save();
-    g.translate(fx, fy); g.scale(1, ry / rx);
-    const grad = g.createRadialGradient(0, 0, 0, 0, 0, rx);
-    grad.addColorStop(0, 'rgba(18, 12, 6, 0.6)'); grad.addColorStop(0.55, 'rgba(18, 12, 6, 0.4)'); grad.addColorStop(1, 'rgba(20, 14, 8, 0)');
-    g.fillStyle = grad; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill();
-    g.restore();
-  }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && customImage(`sheet_${c.npcId}`)));
   function playerFromSheet(key, dir, frame) {
     const img = customImage('player_sheet'), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
     return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
-      sheetShadow(g, R);
       const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * S, sy = row * CH * S;
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       const cg = cell.getContext('2d');
