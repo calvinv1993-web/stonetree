@@ -2,7 +2,8 @@
 # Puts a character sheet made outside the game (ChatGPT) into sprites/, laid out like the player sheet: 3 x 3 cells of
 # 128 x 192 pixels (rows front, side facing east, back; columns standing and two steps), feet on the same line.
 #   python3 tests/install-sheet.py <picture.png> <out.png> [height]
-# height: the standing figure's height in pixels (146: Sister Ama, every grown-up; a child or a goblin about 110).
+# height: the standing figure's height in pixels (146: Sister Ama, every grown-up; a child or a goblin about 110;
+#   more for a tall hat, so the body matches: Postmaster Hobb's wide hat 168).
 # It keeps each cell's biggest figure (stray specks and the red or yellow fringe ChatGPT leaves are dropped), scales
 # every cell alike so the standing front figure has that height, and puts the feet at the same spot as Sister Ama's.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
