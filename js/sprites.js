@@ -6537,9 +6537,17 @@ const Sprites = (() => {
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
   // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle,
-  // a row painted smaller than the others a little more ({ dir: how much }, or null), and a shadow under it, for a sheet
-  // painted without one (its half width in world pixels, before it's made bigger)]
-  const BIG_SHEETS = { clang_3: [1.5, 8, null, 11] };
+  // a row painted smaller than the others a little more ({ dir: how much }, or null), a shadow under it for a sheet
+  // painted without one (its half width in world pixels, before it's made bigger; 0: painted in), and how tall the
+  // figure is as painted (world pixels: its name and bar go up as much as it grows)]. Grown Clang, and the island's
+  // bosses: as big as fits the picture (half its width 23 world pixels at most, its height 59)
+  const BIG_SHEETS = {
+    clang_3: [1.5, 8, null, 11, 35],
+    greyfang: [1.5, 8, null, 0, 28], old_snapper: [1.5, 8, null, 0, 17], brineshell: [1.5, 8, null, 0, 17],
+    thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
+    gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
+    choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
+  };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {
     g.save(); g.translate(x, y); g.scale(1, 0.32);
@@ -7659,7 +7667,7 @@ const Sprites = (() => {
     // the picture of a companion of this look and level: the temple's cat is Clang, with his bell (town cats have none),
     // growing up as he levels: a kitten, a young tomcat, then the temple's guardian (when those sheets are there)
     // how much higher a big sheet's head reaches than a person's (world pixels): its name and bar go up with it
-    bigLift: key => (BIG_SHEETS[key] ? Math.round((BIG_SHEETS[key][0] - 1) * 35) : 0),
+    bigLift: key => (BIG_SHEETS[key] ? Math.round((BIG_SHEETS[key][0] - 1) * BIG_SHEETS[key][4]) : 0),
     petKey: (look, level = 1) => {
       if (look !== 'cat') return look;
       const stage = level >= 8 ? 3 : level >= 4 ? 2 : 1;
