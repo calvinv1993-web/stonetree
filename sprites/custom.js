@@ -268,6 +268,7 @@ const CUSTOM_SPRITES = {
   sheet_crab: 'monster-crab.png',
   sheet_old_snapper: 'monster-old_snapper.png', // the old crab of the south beach
   sheet_thornmother: 'monster-thornmother.png', // the spider queen of the Spider Hills
+  sheet_brood_queen: 'monster-brood_queen.png', // the spiders' den
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
