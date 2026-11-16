@@ -4,6 +4,8 @@
 // lost among the browser's tabs. Opened in a browser, this page shows how to add it instead of the game.
 // (Computers play in the browser as always. Browser tests are let through: navigator.webdriver.)
 (() => {
+  // the app's service worker (sw.js): with it a phone's browser offers to install the game (Android's Install button)
+  if ('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => { /* not this time */ });
   const touchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
   const app = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
   if (!touchOnly || app || navigator.webdriver) return;

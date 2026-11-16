@@ -511,7 +511,7 @@ const server = http.createServer((req, res) => {
   // Only the game's own files: the pages, and the folders they load from. Never the server
   // folder (it holds the accounts), nor anything else that happens to lie around.
   const rel = path.relative(ROOT, file), parts = rel.split(path.sep);
-  const allowed = parts.length === 1 ? /\.html$/.test(rel) || rel === 'manifest.json' : CLIENT_DIRS.includes(parts[0]);
+  const allowed = parts.length === 1 ? /\.html$/.test(rel) || rel === 'manifest.json' || rel === 'sw.js' : CLIENT_DIRS.includes(parts[0]);
   if (rel.startsWith('..') || !allowed || parts.some(part => part.startsWith('.'))) {
     res.writeHead(404);
     return res.end('Not found');
