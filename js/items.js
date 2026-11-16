@@ -89,6 +89,7 @@ const ITEMS = {
 
   wooden_shield: { name: 'wooden shield', slot: 'shield', defense: 12, value: 5, weight: 40 },
   studded_shield:{ name: 'studded shield', slot: 'shield', defense: 15, value: 15, weight: 59 },
+  bronze_ward:   { name: 'bronze ward', slot: 'shield', defense: 18, value: 60, weight: 62 }, // (The Bronze Ward: Brenna's grandmother's shield, from Gnash's hoard)
   iron_shield:   { name: 'iron shield', slot: 'shield', defense: 20, level: 12, value: 80, weight: 80 },
   dragon_shield: { name: 'dragon shield', slot: 'shield', defense: 30, level: 30, value: 900, weight: 60 },
   demon_shield:  { name: 'demon shield', slot: 'shield', defense: 36, level: 60, value: 3000, weight: 70 },
@@ -116,12 +117,14 @@ const ITEMS = {
   leather_legs:  { name: 'leather legs', slot: 'legs', armor: 1, value: 4, weight: 18 },
   chain_legs:    { name: 'chain legs', slot: 'legs', armor: 3, value: 30, weight: 70 },
   plate_legs:    { name: 'plate legs', slot: 'legs', armor: 6, level: 15, vocations: ['knight', 'paladin'], value: 200, weight: 70 },
+  watchman_greaves: { name: 'watchman\'s greaves', slot: 'legs', armor: 3, value: 40, weight: 38 }, // (The Watchman's Greaves: as good as chain legs, half the weight)
   leather_boots: { name: 'leather boots', slot: 'feet', armor: 1, value: 4, weight: 9 },
-  iron_boots:    { name: 'iron boots', slot: 'feet', armor: 2, level: 12, value: 60, weight: 30 },
+  iron_boots:   { name: 'iron boots', slot: 'feet', armor: 2, level: 12, value: 60, weight: 30 },
 
   ring_life:     { name: 'ring of life', slot: 'ring', ring: { regen: [3, 3], duration: 20 * MIN }, value: 50, weight: 1 },
   ring_swift:    { name: 'ring of swiftness', slot: 'ring', ring: { speed: 0.8, duration: 30 * MIN }, value: 60, weight: 1 },
-  amulet_guard:  { name: 'guardian amulet', slot: 'neck', armor: 2, value: 80, weight: 4 },
+  wim_ring:      { name: 'lucky ring', slot: 'ring', ring: { regen: [2, 1], duration: 120 * MIN }, value: 40, weight: 1 }, // (Old Wim's, from Down the Well: slow, but it lasts)
+  amulet_guard: { name: 'guardian amulet', slot: 'neck', armor: 2, value: 80, weight: 4 },
   amulet_keeping:{ name: 'amulet of keeping', slot: 'neck', keeping: true, value: 200, weight: 4 },
 
   blank_rune:    { name: 'blank rune', stack: true, value: 5, weight: 1.2 },

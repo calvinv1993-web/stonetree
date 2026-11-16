@@ -282,6 +282,12 @@ function trophyTalk(npcId) {
   return `The ${ITEMS[have].name}! I have not seen one of those in years. Give me a moment... There: ${what(have)}, better than anything on my shelves. Wear it well.`;
 }
 
+// Rumours: one at a time, the next one each time you ask again in the same talk (and round again)
+function rumourTalk(list) {
+  const conv = player.conversation, i = conv.rumour = ((conv.rumour === undefined ? -1 : conv.rumour) + 1) % list.length;
+  return list.length > 1 && i < list.length - 1 ? `${list[i]} ...Want more {rumours}?` : list[i];
+}
+
 // "What do I do now?": this NPC's own news if it has any, else the next step of a quest you're on, else the arrow
 function whatNext(npcId) {
   const own = questHint(npcId);
@@ -306,6 +312,7 @@ function service(s, npc, text) {
   if (s.pet) return petCare();
   if (s.marks) return marksTalk(s.marks, text);
   if (s.trophy) return trophyTalk(npc.npcId);
+  if (s.rumours) return rumourTalk(s.rumours);
   if (s.chronicle) return chronicleTalk();
   if (s.chroniclePage) return chronicleGive(s.chroniclePage, s.text);
   if (s.heal) {

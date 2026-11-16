@@ -15,7 +15,9 @@ const DY = [-1, 0, 1, 0];
 //   light:    light radius in tiles (in the dark: underground and at night)
 //   chest:    a quest chest that gives its reward once per character:
 //             { flag, quest?, requires? ('quest', or 'quest@step': only from that step on), gold?, items: [[itemId, count]],
-//               locked?, empty? (what it says once taken), choice? (one of several chests sharing a flag) }
+//               locked?, empty? (what it says once taken), choice? (one of several chests sharing a flag),
+//               xp? (experience for opening it), guard? (a monster type: it stays shut while one of those lives within 10
+//               tiles of it), guarded? (what it says then) }
 //   bell:     the temple bell: use it to ring it, once it has its clapper back (ringBell)
 //   trainer:  a training dummy: use it to hit it with your weapon, again and again, until you walk away (trainTick)
 //             Chests sharing a flag are a "pick one" choice.
@@ -32,10 +34,15 @@ const DY = [-1, 0, 1, 0];
 //   roof:     a roof (a ground on the floor above a building), shaped by the
 //             building under it: slopes, ridges, hips and eaves
 //   movable:  can be dragged to another tile
+//   push:     a boulder: walk into it (straight, not on a diagonal) and it rolls one tile on, if there's room; pushed
+//             boulders roll back home after a while (pushBoulder in game-core.js)
 //   meta:     per-tile setting the editor asks for, stored in map.meta:
 //             to (teleport destination), target (lever target tile), lock (key name),
 //             quest (quest id), level (minimum level), text (sign text);
-//             and look: what you read when you look at it (a gravestone's inscription)
+//             and look: what you read when you look at it (a gravestone's inscription);
+//             a lever of a puzzle: { puzzle: id, order: its place in the right order, target: the tile whose bars it
+//             lifts once all of the puzzle's levers are pulled in order } (puzzleLever in game-core.js);
+//             ropeDown: a tile you can climb down with a rope (a well)
 //   ...and flags for things you can use: lever, teleport, ropeSpot, digSpot,
 //   breakable, depot, readable, houseDoor, questDoor, levelDoor, lockDoor, bookshelf, oreVein (mine it with a pick)
 const THINGS = {
@@ -313,6 +320,8 @@ const THINGS = {
   teleport:    { name: 'magic forcefield', cat: 'Mechanisms', teleport: true, light: 2, meta: 'to' },
   loose_sand:  { name: 'loose sand', cat: 'Mechanisms', digSpot: true },
   cracked_rock:{ name: 'cracked rock', cat: 'Mechanisms', block: true, breakable: true },
+  boulder:     { name: 'boulder', cat: 'Mechanisms', block: true, low: true, push: true, sprite: 'rock' }, // walk into it to push it
+  cellar_bars: { name: 'rusted grate', cat: 'Mechanisms', block: true, low: true, sprite: 'bars' },   // over a trapdoor: a puzzle's levers lift it
 
   // The bell shaft: one column of holes through every floor under the bell, where its rope runs down.
   shaft_rope_top: { name: 'bell rope', cat: 'Town', block: true, low: true },   // beside the bell: the rope over its wheel, down a hole
@@ -369,6 +378,26 @@ const THINGS = {
   qchest_crypt_club: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@1', locked: 'The lid will not move while the dead still walk the hall.', items: [['mace', 1]] },
+  },
+  // Oakvale Isle's hidden quests (nobody sends you; rumours, gravestones and books tell of them): once per character, with
+  // experience for the finding. The Watchman's Greaves (the cellar of the Old Tower), The Bronze Ward (Gnash's hoard in the
+  // tunnels under Goblin Hill) and Old Wim's ring (under the town well).
+  qchest_watchman: {
+    name: 'watchman\'s chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'watchman_greaves', quest: 'watchman_greaves', xp: 600, gold: 40, items: [['watchman_greaves', 1], ['health_potion', 2]], guard: 'watchman_shade',
+      guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
+      empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
+  },
+  qchest_bronze_ward: {
+    name: 'Gnash\'s hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'bronze_ward', quest: 'bronze_ward', xp: 700, gold: 80, items: [['bronze_ward', 1], ['health_potion', 2]], guard: 'goblin_hoardkeeper',
+      guarded: 'The hoardkeeper snarls and stands over the chest. Not while he breathes.',
+      empty: 'Only stolen spoons and goblin junk are left in the hoard.' },
+  },
+  wim_bones: {
+    name: 'Old Wim\'s bones', cat: 'Quest chests', sprite: 'bones',
+    chest: { flag: 'wim_ring', quest: 'old_wim', xp: 450, gold: 25, items: [['wim_ring', 1]],
+      empty: 'Old Wim rests here. He won his bet, in the end: he found the bottom of the well.' },
   },
   qchest_parcel: {
     name: 'crate', cat: 'Quest chests', block: true, low: true, sprite: 'crate',

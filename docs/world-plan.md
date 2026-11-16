@@ -201,6 +201,62 @@ Things that bring a player back to the hunting grounds once the gate tasks are d
   marks each at Captain Osric's: gull feather, jay feather, watch, ember and moss cloaks. Drawn over the player sheet
   (`sheetCosmetics` in `sprites.js`); others see them through the outfit in their snapshot.
 
+### Phase 7: discovery quests
+
+Hidden quests, for the long stretch from level 5 to 10: nobody hands them out, there are no guide steps for them, and
+the guide's arrow never points at them. Clues come from rumours, gravestones and townsfolk. Each is a chest quest
+(`QUESTS` with `chest: true`, ended by a `qchest_*` thing in `defs.js`): once per character, with experience for the
+finding (`chest.xp`), and a chest stays shut while its guardian lives within 10 tiles (`chest.guard`).
+
+**Rumours.** `RUMOURS` in `js/npcs.js` has a hint at each of the six hidden quests (Tidecutter, the lighthouse and the
+eagle's feather are other helpers' quests; these are only their hints). Innkeeper Rolf tells all six, one each time you
+ask for {rumours} (the service `{ rumours: [...] }`, `rumourTalk` in `game-npc.js`); the townsman, the townswoman, the
+old man and the child know some of them. Armourer Brenna tells of her shield when asked about it ({bronze}).
+
+**New mechanics** (`js/game-core.js`):
+- *Lever puzzles* (`puzzleLever`): a lever with meta `{ puzzle, order, target }`. Pulled out of order, all of the
+  puzzle's levers spring back with a clank; all in order, the `cellar_bars` over the target lift for 3 minutes, then the
+  bars and the levers go back for the next one. The levers are the world's (shared online).
+- *Boulders* (`boulder`, flag `push`; `pushBoulder`): walk straight into one and it rolls a tile on, if the tile beyond
+  is empty, walkable and no floor change; your step is spent on it. Pushed boulders roll back home after 10 minutes,
+  when nobody stands there.
+- *Rope down* (meta `ropeDown`): use a rope on such a tile (the town well) to climb down; a rope spot at the bottom
+  takes you back up.
+- `tests/world.test.js` counts rope spots and ropes down as ways between floors, and boulders and cracked rocks as
+  passable (each has a unit test of its own).
+
+**1. The Watchman's Greaves** (level 5; `OLD_TOWER`, `buildOldTower`):
+- The ruined watchtower on the Old Tower hill: walls 190–196, 114–120 on the hilltop (floor 9), a broken top on
+  floor 10 (gaps in its battlements), and walls of the fallen storey above at its NW and NE corners (floor 11).
+- The doorway (193,120,9) fell in: a rope spot under a hole in the floor above, with fallen stone behind it inside.
+  Use a rope on it from outside: you come out on the top, where three skeletons keep the watch.
+- Stairs down at (191,115) into the tower. Three levers against its north wall, (192,115) west, (193,115) middle,
+  (194,115) east. The right order is on three new gravestones in the graveyard (143/145/147,142): Oswin, first, the
+  east; Marrow, second, the west; Tobin, third, the middle.
+- Then the rusted grate over the trapdoor (193,117,9) lifts: a ladder down into the cellar cut into the hill
+  (191–195, 115–119, floor 8), where the watchman's shade (260 hp, 180 xp, lurks) keeps his chest (192,115,8).
+- Reward: watchman's greaves (legs, armor 3 at 38 oz: chain legs' armor at half their weight), 40 gold,
+  2 health potions, 600 experience.
+- The founder's diary, page 2, moved out of the tower to the hilltop beside it (198,118,9).
+
+**2. The Bronze Ward** (level 6; `GOBLIN_WARREN`, `buildGoblinWarren`):
+- A burrow (a hole) on Goblin Hill's east side (202,71,8), well away from Gnash's camp on the surface, down to the
+  goblins' tunnels on floor 7: the burrow (around 201,72), a tunnel west and north (x 194, y 65–72), a tunnel west
+  to the archers' hall (around 182,68), a long tunnel south (x 182, y 70–81) and east to Gnash's hoard (around 193,81).
+- Two boulders: (194,69) is pushed north past the turn into a niche (194,65); (182,73) a long way south to the end
+  of its tunnel (182,81). Goblin archers (new: 40 hp, shoot arrows, keep their distance) shoot over them.
+- Four goblin archers, three goblins and the hoardkeeper (240 hp, 170 xp), all lurking.
+- Reward in Gnash's hoard (195,80,7): the bronze ward (shield, defense 18: between the studded shield's 15 and the
+  mainland's level-12 iron shield's 20), 80 gold, 2 health potions, 700 experience.
+
+**6. Down the Well** (level 6; `WELL_TUNNELS`, `buildWellTunnels`):
+- The town well (124,110,8): use a rope on it to climb down. Floor 7, kept clear of the sewers (x 111–128,
+  y 98–113): the pool at the bottom with a rope spot back up (124,110), a tunnel west to a cave (around 114,111),
+  north (x 113) to a cave (around 115,100), and east to a cracked rock (122,100): a pick breaks through to where Old
+  Wim lies (126,100).
+- Four giant rats and a slime, lurking in the dark (bring light).
+- Reward: Old Wim's lucky ring (regenerates 2 health and 1 mana, for 2 hours of wear), 25 gold, 450 experience.
+
 ## 5. Open questions
 
 1. **Leaving the island:** at level 10, after choosing a vocation, players go to the mainland and can never come back (the game already works this way). The old mainland (Valoria and the rest) is no longer in the built-in world: bringing it back from the backup branch, beside this island, is proposed.

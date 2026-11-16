@@ -19,6 +19,7 @@
 //                            (instead of items, { cosmetic: id }: something to wear over your outfit, COSMETICS in defs.js)
 //   { trophy: true }         a smith turns a rare named beast's trophy into gear (trophy in items.js)
 //   { pet: true }            look after the player's companion (fetch it back, heal it)
+//   { rumours: [texts] }     tell one rumour, and the next one each time you ask again (RUMOURS)
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
 // keyword that matches): what people say changes as the story goes on.
@@ -719,6 +720,17 @@ function trackTiles(track) {
 // The forest where giant spiders live, and where something odd flies by now and then.
 const WEBWOOD = { x0: 196, y0: 124, x1: 246, y1: 156, z: 4 };
 
+// What Oakvale talks about over its ale: a hint at each of the isle's hidden quests (see QUESTS: watchman_greaves...),
+// never the whole way. Townsfolk tell them when asked for {rumours} (the service { rumours: [texts] }, one at a time).
+const RUMOURS = {
+  well: 'Old Wim went down the town well for a bet, years ago, and never came back up. Did he win? Nobody has been down to ask. You would need a rope, and a strong stomach for rats.',
+  tower: 'The Old Tower out in Deer Woods was a watchtower once. Its last three watchmen lie in our graveyard, side by side. They say the tower\'s cellar opens only for those who know the order of the watch... and that the watch wrote it on their graves, the old show-offs. Mind, nobody gets in at the door: it fell in years ago.',
+  ward: 'Brenna the armourer has been sour ever since Gnash\'s goblins took her grandmother\'s bronze shield. Goblins dig like moles, and they keep what they steal down in their holes under Goblin Hill. Bring her news of it and she might cheer up.',
+  tidecutter: 'The fishers at Fisher\'s Rest talk of a drowned blade, the Tidecutter, lost with a boat off the west shore in the founders\' day. One old fisher swears he has its sea chart still, and cannot make head or tail of it.',
+  lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s coat. Oil, a wick and a spark, she says: as if that were easy, out there.',
+  eagle: 'The eagles of Eagle Peak nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
+};
+
 // look: palette for the humanoid sprite (see Sprites). trade: { sells: [[itemId, price]], buys: [BUYS keys] }
 const NPCS = {
   // ---- Brightwater Isle --------------------------------------------------------
@@ -1387,7 +1399,10 @@ const NPCS = {
     greet: 'Good day, $name! Lovely weather for {adventure}, is it not?',
     keywords: {
       job: 'Oh, a bit of this, a bit of that. Mostly that.',
-      'adventure|news|rumours|rumors': 'My cousin swears the hermit out on Hermit Rock talks to the bears. And that the bears talk back. He has stopped drinking since.',
+      'adventure|news|rumours|rumors': { rumours: [
+        'My cousin swears the hermit out on Hermit Rock talks to the bears. And that the bears talk back. He has stopped drinking since.',
+        RUMOURS.eagle, RUMOURS.tower,
+      ] },
     },
     chatter: ['Morning!', 'Have you seen the prices at the market?', 'My back is killing me.', 'Fine day, fine day.', 'I could have been an adventurer, you know.', 'Where did I leave my keys?'],
   },
@@ -1397,7 +1412,10 @@ const NPCS = {
     greet: 'Oh, hello there, $name. Are you new in {town}?',
     keywords: {
       job: 'I keep house, and an eye on the neighbours. Somebody has to.',
-      'town|news|rumours|rumors': 'They say old Wim went down the town well for a bet, years and years ago, and never came up. On still nights my mother says you can hear him whistling down there.',
+      'town|news|rumours|rumors': { rumours: [
+        'They say old Wim went down the town well for a bet, years and years ago, and never came up. On still nights my mother says you can hear him whistling down there. Nobody has been down with a rope to look.',
+        RUMOURS.lighthouse,
+      ] },
     },
     chatter: ['Such a nice day for washing.', 'Have you heard the latest?', 'Children! Supper!', 'The baker burnt the bread again.', 'Those adventurers track mud everywhere.'],
   },
@@ -1407,6 +1425,7 @@ const NPCS = {
     greet: 'Are you a real adventurer? Have you killed a {dragon}?',
     keywords: {
       dragon: 'Wooow. When I grow up I am going to fight a hundred dragons. Or maybe be a baker.',
+      'rumours|rumors|secret|goblins': 'I know a secret! The goblins on Goblin Hill dig holes like rabbits, and their holes go right under the hill. My friend saw one on the east side. He ran away. I would not have run away.',
       job: 'I am six! Six does not have a job.',
     },
     chatter: ['Tag! You are it!', 'Catch me if you can!', 'I am a fearsome knight! Rawr!', 'Mum says adventurers smell funny.', 'I found a shiny stone!', 'Can I hold your sword?'],
@@ -1424,6 +1443,7 @@ const NPCS = {
     greet: 'Eh? Speak up, youngster! Do you want to hear a {story}?',
     keywords: {
       story: 'In my day there was no bridge to the academy. We waded the Willow! Both ways! And the rats in the sewers were the size of sheep.',
+      'rumours|rumors|news|tower|watch|watchman': 'Rumours? I knew the last watch of the Old Tower, youngster! Oswin, Marrow and Tobin. Always in the same order up the stair, those three, like ducks. They lie in the graveyard now, side by side, and the tower lies in ruins. Tobin swore nobody would get into his cellar while he had a say in it.',
       job: 'I sit. I have earned it.',
     },
     chatter: ['In my day...', 'Kids these days.', 'My knee says rain is coming.', 'Zzz... eh? I was not sleeping!', 'I once punched a troll. Well, near a troll.'],
@@ -1798,6 +1818,15 @@ Object.assign(QUESTS, {
   },
 });
 
+// Oakvale Isle's hidden quests: nobody hands them out and the guide's arrow never points at them. Rumours at the Sleepy
+// Boar and in the streets ({rumours}), gravestones and old books tell of them; each ends at a chest (defs.js) that marks
+// it done. The plan, with every coordinate: docs/world-plan.md, phase 7.
+Object.assign(QUESTS, {
+  watchman_greaves: { name: 'The Watchman\'s Greaves', chest: true, summary: 'You climbed the Old Tower, pulled its levers in the order the watchmen\'s graves gave, and laid the last watchman\'s shade to rest in the cellar.' },
+  bronze_ward: { name: 'The Bronze Ward', chest: true, summary: 'You pushed your way through the goblin tunnels under Goblin Hill and took back Brenna\'s bronze shield from Gnash\'s hoard.' },
+  old_wim: { name: 'Down the Well', chest: true, summary: 'You climbed down the town well and found Old Wim, and his ring, at the bottom of it.' },
+});
+
 // The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
 // sends you on to the next gate. Together they lead a newcomer from level 2 to the crypt at level 5.
 Object.assign(QUESTS, {
@@ -1946,7 +1975,7 @@ Object.assign(NPCS, {
       'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
       job: 'I teach newcomers how to stay alive on this isle.',
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
-      'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came. The dead walk its top now. I would not go there before level 6.',
+      'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came, and Oakvale kept a watch in it until its floors fell in. The dead walk its top now. I would not go there before level 6.',
       'bell|quest|mission|task|ama|crypt|note': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4'] },
       'shield|hoard|storeroom': { quest: ['cellar_shield'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
@@ -2022,6 +2051,7 @@ Object.assign(NPCS, {
       job: 'I make armour that keeps young adventurers in one piece.',
       'trophy|trophies|tail|hide|plate|spinneret|helm|claw': { trophy: true },
       'crypt|gate|family': 'My great-grandmother forged the iron gate in the founders\' crypt. She said it was the only gate she ever made to keep something IN.',
+      'bronze|ward|grandmother': 'The Bronze Ward... my grandmother\'s shield, the best she ever made. It hung in my window till Gnash\'s goblins took it, two winters ago. They hoard what they steal down in holes under their hill, the hunters say. Whoever brings it out of there may keep it, and welcome: better a brave arm carries it than a goblin sits on it.',
     },
     trade: { sells: [['wooden_shield', 15], ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 25], ['leather_boots', 15], ['chain_helmet', 180], ['chain_legs', 300], ['chain_armor', 500]], buys: ['gear'] },
   },
@@ -2115,7 +2145,8 @@ Object.assign(NPCS, {
       'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
-      'rumours|rumors|news|bell': 'They say the temple bell went quiet the night the rats came up through the grates. And old Wim\'s gravestone says he went down the well for a bet... nobody knows what he found.',
+      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle] },
+      bell: 'They say the temple bell went quiet the night the rats came up through the grates.',
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['meat', 7], ['fish', 5], ['health_potion', 45]], buys: ['loot'] },

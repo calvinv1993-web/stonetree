@@ -272,6 +272,12 @@ function step(c, dx, dy) {
   if (isPlayer && c !== player) return asPlayer(c, () => step(c, dx, dy));
   if (isPlayer && skullBlocks(c, nx, ny)) return false;
   if (isPlayer && !creatureAt(nx, ny, c.z) && bumpDoor(nx, ny, c.z)) return false;
+  const push = isPlayer && !creatureAt(nx, ny, c.z) && pushBoulder(nx, ny, c.z, dx, dy);
+  if (push === 'stuck') return false;
+  if (push) { // you push it: your step is spent on it, where you stand
+    c.walk = { fromX: c.x, fromY: c.y, start: now, dur: stepTime(c, (map.get(c.x, c.y, c.z) || {}).ground, false) * 2 };
+    return true;
+  }
   const free = isFree(nx, ny, c.z) || (isPlayer && passThroughDoor(nx, ny, c.z) && !creatureAt(nx, ny, c.z));
   if (!free) return false;
   if (!isPlayer && c.type !== 'npc' && map.isShelter(nx, ny, c.z)) return false; // monsters keep out of temples, shops and inns
@@ -490,6 +496,7 @@ function useThing(x, y, z) {
     if (def.chronicle) return chronicleRead(+meta.page || 1), true;
     if (def.readable && meta.plaque) return showText(capitalize(def.name), bellPlaque(meta.text || '')), true;
     if (def.readable) return showText(capitalize(def.name), meta.text || 'It is blank.'), true;
+    if (def.lever && meta.puzzle) return puzzleLever(x, y, z, i, meta), true;
     if (def.lever) return pullLever(x, y, z, i, meta), true;
     if (def.depot) {
       playerEvent('openContainer', { root: 'depot', path: [], title: 'Depot' });
@@ -509,7 +516,7 @@ function useThing(x, y, z) {
       return true;
     }
     if (def.fireSwap) return swapFire(x, y, z, i), true;
-    if (def.chest) return openChest(def.chest), true;
+    if (def.chest) return openChest(def.chest, { x, y, z }), true;
     if (def.rescue) return rescueAt(def.rescue, id), true;
     if (def.bell) return ringBell(x, y, z), true;
     if (def.trainer) return startTraining(x, y, z), true;
@@ -522,6 +529,8 @@ function useThing(x, y, z) {
       return true;
     }
     if (def.ropeSpot) return log('You need a rope to climb up here.'), true;
+    if (def.push) return log('A heavy boulder. Walk into it to push it.'), true;
+    if (meta.ropeDown) return log('It is a long way down. With a rope you could climb down.'), true;
     if (def.digSpot) return log('You could dig here with a shovel.'), true;
     if (def.breakable) return log('A pick could break this rock.'), true;
     if (def.oreVein) return log('Ore glitters in the rock. Use a pick on it to mine it.'), true;
@@ -643,6 +652,81 @@ function pullLever(x, y, z, index, meta) {
   mapChanged(to.x, to.y, to.z);
 }
 
+// A lever of a puzzle (meta puzzle, order, target): the puzzle's levers must be pulled in their order. Pulled in the
+// wrong one, they all spring back with a clank; all of them in the right one, and the bars over the target lift for a
+// few minutes, then everything goes back as it was for the next one to try. The levers are the world's: online,
+// whoever pulls them, everyone sees it.
+const PUZZLE_OPEN_MS = 3 * 60000;
+function puzzleLevers(id) {
+  const list = [];
+  for (const [k, m] of Object.entries(map.meta)) if (m && m.puzzle === id) { const [x, y, z] = k.split(',').map(Number); list.push({ x, y, z, meta: m }); }
+  return list;
+}
+function puzzleLever(x, y, z, index, meta) {
+  const t = map.get(x, y, z);
+  if (t.items[index] === 'lever_on') return log('The lever is pulled already. It will not move back by hand.');
+  const levers = puzzleLevers(meta.puzzle);
+  const pulled = levers.filter(l => (map.get(l.x, l.y, l.z) || { items: [] }).items.includes('lever_on')).length;
+  t.items[index] = 'lever_on';
+  mapChanged(x, y, z);
+  addSound('door', x, y, z);
+  if (+meta.order !== pulled + 1) { // the wrong one: everything springs back
+    for (const l of levers) {
+      const lt = map.get(l.x, l.y, l.z), i = lt ? lt.items.indexOf('lever_on') : -1;
+      if (i >= 0) { lt.items[i] = 'lever'; mapChanged(l.x, l.y, l.z); }
+    }
+    addSound('hit', x, y, z);
+    return log('Clank! Somewhere below, chains rattle, and every lever springs back. That was not the right order.');
+  }
+  if (pulled + 1 < levers.length) return log('The lever locks in place with a heavy clunk. Something below shifts, and waits.');
+  const to = meta.target, target = to && map.get(to.x, to.y, to.z);
+  if (!target || !target.items.includes('cellar_bars')) return log('The lever locks in place. Nothing more happens: it is open already.');
+  changeTileFor(to.x, to.y, to.z, 'cellar_bars', null, PUZZLE_OPEN_MS);
+  for (const l of levers) reverts.push({ x: l.x, y: l.y, z: l.z, from: 'lever_on', to: 'lever', at: now + PUZZLE_OPEN_MS }); // (they spring back with it)
+  addSound('door', to.x, to.y, to.z);
+  log('The last lever locks in place. With a long groan of iron, the rusted grate over the trapdoor swings up.', 'quest');
+}
+
+// Boulders (things with push): walk into one, straight on, and it rolls a tile further if there's room there (no
+// creature, nothing else, not a floor change). Pushed ones roll back home after a while (when nobody is in the way),
+// so the next one through finds them as they were.
+const BOULDER_BACK_MS = 10 * 60000;
+let boulders = []; // { home: {x, y, z}, at: {x, y, z}, back: when }
+function pushBoulder(x, y, z, dx, dy) {
+  if (dx && dy) return false; // (only straight on)
+  const t = map.get(x, y, z), i = t ? t.items.findIndex(id => THINGS[id].push) : -1;
+  if (i < 0) return false;
+  const nx = x + dx, ny = y + dy, n = map.get(nx, ny, z);
+  if (!n || !map.isWalkable(nx, ny, z) || n.items.length || map.floorChange(nx, ny, z) || creatureAt(nx, ny, z) || pileAt(nx, ny, z)) {
+    if (now - (player.lastNotPossible || 0) > 1500) { player.lastNotPossible = now; log('The boulder will not budge that way.'); }
+    return 'stuck';
+  }
+  const id = t.items.splice(i, 1)[0];
+  n.items.push(id);
+  let b = boulders.find(o => o.at.x === x && o.at.y === y && o.at.z === z);
+  if (!b) boulders.push(b = { home: { x, y, z } });
+  Object.assign(b, { at: { x: nx, y: ny, z }, back: now + BOULDER_BACK_MS });
+  if (b.at.x === b.home.x && b.at.y === b.home.y) boulders = boulders.filter(o => o !== b);
+  addSound('hit', nx, ny, z);
+  mapChanged(x, y, z);
+  mapChanged(nx, ny, z);
+  return true;
+}
+function updateBoulders() {
+  for (const b of boulders) {
+    if (now < b.back) continue;
+    const { home, at } = b, h = map.get(home.x, home.y, home.z), a = map.get(at.x, at.y, at.z);
+    const i = a ? a.items.findIndex(id => THINGS[id].push) : -1;
+    if (i < 0) { b.done = true; continue; }
+    if (!h || h.items.some(id => THINGS[id].block) || creatureAt(home.x, home.y, home.z)) { b.back = now + 30000; continue; }
+    h.items.push(a.items.splice(i, 1)[0]);
+    b.done = true;
+    mapChanged(at.x, at.y, at.z);
+    mapChanged(home.x, home.y, home.z);
+  }
+  if (boulders.some(b => b.done)) boulders = boulders.filter(b => !b.done);
+}
+
 // Put a fire out, or light it again. One that was put out lights itself again after a
 // while (someone comes by with a light), so towns don't stay dark.
 function swapFire(x, y, z, i) {
@@ -669,6 +753,7 @@ function changeTileFor(x, y, z, remove, add, ms) {
 }
 
 function updateReverts() {
+  if (boulders.length) updateBoulders();
   for (let i = reverts.length - 1; i >= 0; i--) {
     const r = reverts[i];
     if (now < r.at || creatureAt(r.x, r.y, r.z)) continue;
@@ -710,6 +795,13 @@ function useTool(tool, x, y, z) {
   }
   if (!near) return log('You need to stand next to it.');
   if (tool === 'rope') {
+    if (t && (map.getMeta(x, y, z) || {}).ropeDown) { // (a well: tie the rope on and climb down)
+      const from = { x: player.x, y: player.y };
+      Object.assign(player, { x, y });
+      if (changeFloor(-1)) log('You tie your rope to the well and climb down into the dark.');
+      else Object.assign(player, from);
+      return;
+    }
     if (!t || !t.items.some(id => THINGS[id].ropeSpot)) return log('There is nothing to climb up to here.');
     const from = { x: player.x, y: player.y };
     Object.assign(player, { x, y });
@@ -1446,7 +1538,11 @@ function rescueAt(questId, thingId) {
   log(questState(questId) === 'active' ? 'Something behind the crate hisses at the rats. Deal with them first.' : 'Something moves behind the crate, and mews.');
 }
 
-function openChest(chest) {
+// at: where the chest stands (for a guarded one: it stays shut while its guard lives near it)
+function openChest(chest, at) {
+  if (!player.chests[chest.flag] && chest.guard && at && monsters.some(m => m.type === chest.guard && !m.dead && m.z === at.z && dist(m, at) <= 10)) {
+    return log(chest.guarded || 'Something guards it. Deal with it first.');
+  }
   if (player.chests[chest.flag]) {
     // Lost what a quest still needs (an unblessed death, long ago)? It's back in the chest.
     // (only what the quest still asks for: not what you have already handed in)
@@ -1467,6 +1563,11 @@ function openChest(chest) {
   if (chest.quest) {
     player.quests[chest.quest] = { status: 'done', step: 0, kills: {} };
     log(`Quest completed: ${QUESTS[chest.quest].name}!`, 'quest');
+  }
+  if (chest.xp) {
+    gainXp(chest.xp);
+    log(`You gained ${chest.xp} experience for the finding.`, 'quest');
+    addSparkle(player, '#ffe080');
   }
   addSound('coin', player.x, player.y, player.z);
   uiDirty();

@@ -950,7 +950,7 @@ test('the Oakvale Chronicle: pages in the world, one from the hermit at night, a
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
-  for (const [x, y, z] of [[48, 175, 8], [194, 117, 9], [82, 181, 7], [197, 71, 8]]) ctx.useThing(x, y, z);
+  for (const [x, y, z] of [[48, 175, 8], [198, 118, 9], [82, 181, 7], [197, 71, 8]]) ctx.useThing(x, y, z); // (page 2: on the Old Tower's hilltop)
   assert.strictEqual(ctx.chronicleCount(), 4, 'four pages read where they lie');
   const hermit = state.npcs.find(n => n.npcId === 'oak_hermit');
   ctx.teleport({ ...ctx.findFreeTile(hermit.x, hermit.y, hermit.z, 2), z: hermit.z });
@@ -1445,6 +1445,154 @@ test('the equipment\'s defense: the shield\'s, or without one the weapon\'s, a b
   assert(run('totalDefense()') > 12, 'a better shield defends more');
   run(`player.equipment.shield = null; player.equipment.weapon = null;`);
   assert.strictEqual(run('totalDefense()'), 0, 'nothing worn: nothing blocks');
+});
+
+// ---- the hidden quests (docs/world-plan.md, phase 7) ----
+const inCtx = (game, src) => vm.runInContext(src, game.ctx);
+
+test('The Watchman\'s Greaves: a rope up the Old Tower, its levers in the order on the watchmen\'s graves, the shade\'s chest in the cellar', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, T = inCtx(game, 'OLD_TOWER'), S = map.surfaceZ;
+  p.level = 6;
+  // the graves give the order: east first, then west, then the middle
+  const graves = inCtx(game, 'OAKVALE').graveyard.stones.map(s => s[2]).join(' ');
+  assert(/FIRST[^.]*EAST/.test(graves) && /SECOND[^.]*WEST/.test(graves) && /THIRD[^.]*MIDDLE/.test(graves), 'the watchmen\'s graves give the order');
+  assert(!map.isWalkable(193, 119, S + 1), 'nobody walks in at the fallen door');
+  // up with a rope, from in front of the fallen doorway
+  ctx.addItem('rope', 1);
+  Object.assign(p, { x: 193, y: 121, z: S + 1 });
+  ctx.useItemOn(bagRef(state, 'rope'), 193, 120, S + 1);
+  assert.strictEqual(p.z, S + 2, 'the rope takes you up to the top of the tower');
+  assert(state.map.spawns.some(s => s.type === 'skeleton' && s.z === S + 2), 'skeletons keep the watch on top');
+  // down the stairs into the tower: the levers, and the grate over the trapdoor
+  Object.assign(p, { x: 192, y: 116, z: S + 1 });
+  const lever = side => T.levers.find(l => l[3].includes(side));
+  const pull = side => { const [x, y] = lever(side); ctx.useThing(x, y, S + 1); };
+  const on = side => { const [x, y] = lever(side); return map.get(x, y, S + 1).items.includes('lever_on'); };
+  const barred = () => map.get(...T.trapdoor, S + 1).items.includes('cellar_bars');
+  pull('EAST'); pull('MIDDLE');
+  assert(!on('EAST') && !on('MIDDLE'), 'the wrong order: every lever springs back');
+  assert(messages.some(m => /not the right order/.test(m)), 'with a clank you hear');
+  assert(barred(), 'and the grate stays down');
+  pull('EAST'); pull('WEST');
+  assert(on('EAST') && on('WEST') && barred(), 'two right: they stay, the grate waits');
+  pull('MIDDLE');
+  assert(!barred(), 'all three in order: the grate lifts');
+  // down into the cellar: the shade keeps his chest
+  ctx.useThing(...T.trapdoor, S + 1);
+  assert.strictEqual(p.z, S, 'down the trapdoor into the cellar');
+  const shade = ctx.spawnMonster({ type: 'watchman_shade', x: T.cellar.shade[0], y: T.cellar.shade[1], z: S });
+  state.monsters.push(shade);
+  const chest = T.cellar.props.find(pr => pr[2] === 'qchest_watchman');
+  Object.assign(p, { x: chest[0], y: chest[1] + 1 });
+  ctx.useThing(chest[0], chest[1], S);
+  assert.strictEqual(state.countItem('watchman_greaves'), 0, 'not while the shade walks');
+  ctx.damageMonster(shade, 99999, 'physical');
+  const xp0 = p.xp;
+  ctx.useThing(chest[0], chest[1], S);
+  ctx.useThing(chest[0], chest[1], S);
+  assert.strictEqual(state.countItem('watchman_greaves'), 1, 'the greaves, once');
+  assert(p.xp - xp0 >= 600, 'and experience for the finding');
+  assert.strictEqual(state.questState('watchman_greaves'), 'done');
+  assert(state.ITEMS.watchman_greaves.armor > state.ITEMS.leather_legs.armor, 'better than leather legs');
+  // after a while the grate comes down again and the levers spring back, for the next one
+  state.now += 3 * 60000 + 1;
+  ctx.updateReverts();
+  assert(barred() && !on('EAST') && !on('WEST') && !on('MIDDLE'), 'all as it was');
+});
+
+test('boulders: walk into one and it rolls a tile on, if there\'s room; it rolls back home after a while', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, map = state.map, G = inCtx(game, 'GOBLIN_WARREN'), Z = G.z;
+  const [bx, by] = G.boulders[0]; // in the tunnel north: push it north, past the turn, into the niche
+  const boulderAt = (x, y) => map.get(x, y, Z).items.includes('boulder');
+  Object.assign(p, { x: bx, y: by + 1, z: Z, walk: null });
+  assert(ctx.step(p, 0, -1), 'a push spends your step');
+  assert(boulderAt(bx, by - 1) && !boulderAt(bx, by), 'the boulder rolls a tile on');
+  assert.strictEqual(p.y, by + 1, 'and you stay where you are');
+  assert(!ctx.step(p, 1, -1), 'not on a diagonal');
+  for (let i = 0; i < 7; i++) { p.walk = null; ctx.step(p, 0, -1); } // (step, push, step, push...)
+  assert(boulderAt(bx, by - 4) && p.y === by - 3, 'pushed on, past the turn, into the niche');
+  assert(!ctx.step(p, 0, -1) && p.y === by - 3, 'it won\'t go into the rock');
+  ctx.step(p, -1, 0);
+  assert.strictEqual(p.x, bx - 1, 'the way west is clear');
+  state.now += 10 * 60000 + 1;
+  ctx.updateReverts();
+  assert(boulderAt(bx, by) && !boulderAt(bx, by - 4), 'after a while it is back where it was');
+});
+
+test('The Bronze Ward: a burrow on Goblin Hill down to the goblins\' tunnels, and Brenna\'s shield in Gnash\'s hoard', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, G = inCtx(game, 'GOBLIN_WARREN'), Z = G.z, S = map.surfaceZ;
+  assert(map.get(G.hole[0], G.hole[1], S).items.includes('hole') && map.get(G.hole[0], G.hole[1], Z).items.includes('cave_ladder'), 'the burrow and its ladder');
+  const types = map.spawns.filter(s => s.z === Z && s.x >= 176 && s.x <= 206 && s.y >= 58 && s.y <= 86).map(s => s.type);
+  assert(types.includes('goblin_archer') && types.includes('goblin_hoardkeeper'), 'archers, and the hoardkeeper');
+  assert(state.MONSTERS.goblin_archer.ranged, 'archers shoot');
+  const [cx, cy] = G.props.find(pr => pr[2] === 'qchest_bronze_ward');
+  const keeper = ctx.spawnMonster({ type: 'goblin_hoardkeeper', x: cx - 2, y: cy + 1, z: Z });
+  state.monsters.push(keeper);
+  Object.assign(p, { x: cx - 1, y: cy, z: Z });
+  ctx.useThing(cx, cy, Z);
+  assert.strictEqual(state.countItem('bronze_ward'), 0, 'not while the hoardkeeper lives');
+  ctx.damageMonster(keeper, 99999, 'physical');
+  ctx.useThing(cx, cy, Z);
+  assert.strictEqual(state.countItem('bronze_ward'), 1, 'the bronze ward');
+  assert.strictEqual(state.questState('bronze_ward'), 'done');
+  assert(state.ITEMS.bronze_ward.defense > state.ITEMS.studded_shield.defense && state.ITEMS.bronze_ward.defense < state.ITEMS.iron_shield.defense, 'better than a studded shield, below the mainland\'s');
+  // Brenna tells of it, when asked
+  const brenna = state.npcs.find(n => n.npcId === 'oak_armourer');
+  Object.assign(p, { x: brenna.x, y: brenna.y + 1, z: brenna.z });
+  ctx.startConversation(brenna);
+  ctx.say('bronze');
+  assert(messages.some(m => /Bronze Ward/.test(m) && /under their hill/.test(m)), 'Brenna misses her grandmother\'s shield');
+});
+
+test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, map = state.map, L = inCtx(game, 'WELL_TUNNELS'), Z = L.z, S = map.surfaceZ, [wx, wy] = L.well;
+  ctx.addItem('rope', 1); ctx.addItem('pick', 1);
+  Object.assign(p, { x: wx + 1, y: wy, z: S });
+  ctx.useThing(wx, wy, S);
+  assert.strictEqual(p.z, S, 'using the well alone takes you nowhere');
+  ctx.useItemOn(bagRef(state, 'rope'), wx, wy, S);
+  assert.strictEqual(p.z, Z, 'down the well with a rope');
+  assert(map.spawns.some(s => s.z === Z && s.type === 'giant_rat' && Math.abs(s.x - wx) < 14 && Math.abs(s.y - wy) < 14), 'rats in the dark');
+  ctx.useItemOn(bagRef(state, 'rope'), wx, wy, Z);
+  assert.strictEqual(p.z, S, 'and up again');
+  const [kx, ky] = L.crack;
+  Object.assign(p, { x: kx - 1, y: ky, z: Z });
+  ctx.useItemOn(bagRef(state, 'pick'), kx, ky, Z);
+  assert(map.isWalkable(kx, ky, Z), 'the pick breaks through');
+  const [bx, by] = L.props.find(pr => pr[2] === 'wim_bones');
+  Object.assign(p, { x: bx - 1, y: by });
+  ctx.useThing(bx, by, Z); ctx.useThing(bx, by, Z);
+  assert.strictEqual(state.countItem('wim_ring'), 1, 'Old Wim\'s lucky ring, once');
+  assert.strictEqual(state.questState('old_wim'), 'done');
+});
+
+test('rumours: the innkeeper tells of all six hidden quests, one at a time, and townsfolk know some of them', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, R = inCtx(game, 'RUMOURS');
+  const talk = (id, word, times) => {
+    const n = state.npcs.find(np => np.npcId === id);
+    Object.assign(p, { x: n.x + 1, y: n.y, z: n.z });
+    ctx.startConversation(n);
+    for (let i = 0; i < times; i++) ctx.say(word);
+    ctx.endConversation(true);
+  };
+  talk('oak_innkeeper', 'rumours', 6);
+  for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
+  assert.strictEqual(Object.keys(R).length, 6);
+  messages.length = 0;
+  talk('old_man', 'rumours', 1);
+  assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');
+  // nobody's arrow points at them: they're no quests anyone gives
+  for (const id of ['watchman_greaves', 'bronze_ward', 'old_wim']) assert(state.QUESTS[id].chest && !state.QUESTS[id].giver, `${id} is found, not given`);
 });
 
 test('every picture is listed with its own version (else run: node tests/sprite-versions.js)', () => {

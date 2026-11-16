@@ -104,6 +104,24 @@ const MONSTERS = {
     respawn: 300000, summon: { type: 'goblin', max: 2, chance: 0.07 },
     loot: { gold: [25, 60], items: [['goblin_charm', 1, 1, 2], ['bread', 0.5], ['health_potion', 0.6]] },
   },
+  // Oakvale Isle's hidden quests: who guards their ends (see the chests' guard in defs.js)
+  watchman_shade: { // the last watchman of the Old Tower, who never left his post: he keeps the cellar and his chest
+    name: 'the watchman\'s shade', proper: true, hp: 260, xp: 180, dmg: [4, 22], defense: 4, armor: 3, speed: 160, attackSpeed: 1700, aggro: 5,
+    corpse: 'none', respawn: 300000, weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
+    hitCondition: { kind: 'paralyze', chance: 0.08, power: 1 },
+    loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
+    voices: { aggro: 'Halt! Who goes there? The watch has not been relieved!', low: 'The tower... must not fall...', death: 'Relieved... at last...' },
+  },
+  goblin_archer: { // the goblins' sharpshooters, in their tunnels under Goblin Hill: they keep their distance and shoot
+    name: 'goblin archer', hp: 40, xp: 34, dmg: [0, 8], defense: 2, armor: 1, speed: 210, attackSpeed: 1700, aggro: 7, corpse: 'blood', flee: 0.2,
+    ranged: { range: 5, dmg: [4, 16], missile: 'arrow', element: 'physical', chance: 0.7, keepDistance: true },
+    loot: { gold: [0, 12], items: [['arrow', 0.5, 3, 8], ['goblin_charm', 0.15], ['bread', 0.2]] },
+  },
+  goblin_hoardkeeper: { // the biggest of Gnash's goblins, who sits on the hoard under the hill
+    name: 'the hoardkeeper', proper: true, hp: 240, xp: 170, dmg: [2, 26], defense: 6, armor: 4, speed: 200, attackSpeed: 1500, aggro: 5, corpse: 'blood',
+    respawn: 300000, loot: { gold: [20, 50], items: [['goblin_charm', 1, 1, 2], ['health_potion', 0.5]] },
+    voices: { aggro: 'Mine! All mine! Gnash said so!', low: 'Not the shiny! Not the shiny!' },
+  },
   orc: {
     name: 'orc', hp: 90, xp: 40, dmg: [4, 18], armor: 4, speed: 120, attackSpeed: 1500, aggro: 7, corpse: 'blood',
     loot: { gold: [5, 25], items: [['orc_tooth', 0.3], ['meat', 0.3], ['hatchet', 0.08], ['chain_helmet', 0.04], ['studded_shield', 0.05]] },
