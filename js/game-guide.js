@@ -222,8 +222,8 @@ const GUIDE = [
     minLevel: 8, // (till then: hunt at the gates)
   },
   {
-    text: 'Level 10! Before the oracle sends you on, Sister Ama wants to say goodbye: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
-    touch: 'Level 10! Before the oracle sends you on, Sister Ama wants to say goodbye: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
+    text: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
+    touch: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
     done: () => questState('bell_6') === 'done',
