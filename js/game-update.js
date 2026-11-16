@@ -169,17 +169,19 @@ const Actions = {
   petFeed() {
     const pet = player.pet;
     if (!pet || pet.home || pet.downUntil) return;
-    const food = (bagItems().find(i => ITEMS[i.id].use && ITEMS[i.id].use.food) || {}).id;
+    if (pet.hp >= petMaxHp(pet)) return log(`${pet.name} isn't hungry.`); // (nothing used up)
+    const food = petFood();
     if (!food) return log('You have nothing to feed it.');
     removeItem(food, 1);
     pet.hp = Math.min(petMaxHp(pet), pet.hp + Math.ceil(petMaxHp(pet) * 0.5));
-    log(`${pet.name} eats the ${itemName(food)} and purrs.`);
+    log(`${pet.name} eats ${itemName(food)} and purrs.`);
     if (player.petBody) addSparkle(player.petBody, '#8fe08a');
     uiDirty();
   },
   petPotion() {
     const pet = player.pet;
     if (!pet || pet.home || pet.downUntil) return;
+    if (pet.hp >= petMaxHp(pet)) return log(`${pet.name} isn't hurt.`);
     if (!countItem('health_potion')) return log('You have no health potion.');
     removeItem('health_potion', 1);
     pet.hp = petMaxHp(pet);
@@ -188,9 +190,10 @@ const Actions = {
     uiDirty();
   },
   petHome() {
-    if (!player.pet || player.pet.home) return;
-    player.pet.home = true;
-    log(`${player.pet.name} trots off home to the temple. Call ${player.pet.name} back whenever you like (Settings, or ask Sister Ama).`);
+    const pet = player.pet;
+    if (!pet || pet.home || pet.downUntil) return; // (knocked out, it's at the temple already)
+    pet.home = true;
+    log(`${pet.name} trots off home to the temple. Call ${pet.name} back whenever you like (Settings, or ask Sister Ama).`);
     uiDirty();
   },
   petCall() {
@@ -201,12 +204,25 @@ const Actions = {
     log(`${pet.name} comes running.`);
     uiDirty();
   },
+  // A name: letters, digits, spaces, ' and -, with at least one letter; not an NPC's
   petName(name) {
     const pet = player.pet;
-    const clean = String(name || '').trim().replace(/[^\p{L}\p{N} '-]/gu, '').slice(0, 14);
-    if (!pet || !clean) return;
-    pet.name = clean.charAt(0).toUpperCase() + clean.slice(1);
+    const clean = String(name || '').normalize('NFC').replace(/[^\p{L}\p{N} '-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 14).trim();
+    if (!pet || !/\p{L}/u.test(clean)) return;
+    const named = clean.charAt(0).toUpperCase() + clean.slice(1), low = named.toLowerCase();
+    if (Object.values(NPCS).some(n => n.name && (n.name.toLowerCase() === low || n.name.toLowerCase().split(' ').pop() === low))) {
+      return log(`${named} is someone else's name round here. Choose another.`);
+    }
+    pet.name = named;
     log(`Your companion is called ${pet.name} now.`);
+    uiDirty();
+  },
+  // How it fights: follow (at your heel, never fights), assist (fights what you fight) or close (only what's beside you)
+  petMode(mode) {
+    const pet = player.pet;
+    if (!pet || typeof mode !== 'string' || !Object.hasOwn(PET_MODES, mode)) return;
+    pet.mode = mode;
+    log(`${pet.name}: ${PET_MODES[mode]}.`);
     uiDirty();
   },
   // Skip the guide (for those who know their way): it goes away, and its presents come along so nobody is worse off.
@@ -431,15 +447,28 @@ function targetNext() {
 }
 
 // ---- a companion (Clang, the temple's cat): it follows you, fights what you fight, and grows ------------------------
-// player.pet = { name, kind, level, xp, hp, home, downUntil }: home, sent home to wait (Actions.petHome); downUntil,
-// knocked out and gone to the temple till then. Its body (player.petBody) isn't saved: it's made again beside you,
-// and comes back to you when you go too far, change floors or ride. It never blocks anyone. Monsters that fight it
-// hit it now and then instead of you (damagePlayer); hurt badly, it keeps behind you; out of a fight it heals.
+// player.pet = { name, kind, level, xp, hp, home, downUntil, mode, dummyDone }: home, sent home to wait (Actions.petHome);
+// downUntil, knocked out and gone to the temple till then; mode, how it fights (PET_MODES: follow, assist, close).
+// Its body (player.petBody) isn't saved: it's made again beside you, and comes back to you when you go too far, change
+// floors or ride. It never blocks anyone, but never stays on anyone's tile either: it steps aside. Monsters that fight
+// it hit it now and then instead of you (damagePlayer); hurt badly, it keeps behind you; with nothing beside it, it heals.
+// It never fights players, nor from or into a protection zone.
 const petMaxHp = pet => PETS[pet.kind].hp(pet.level);
+// The bit of food from your bag it would eat (Actions.petFeed; the companion card shows it)
+const petFood = () => (bagItems().find(i => ITEMS[i.id].use && ITEMS[i.id].use.food) || {}).id || null;
+// What your companion would fight now, by its mode: your target, if it's a monster in reach and nobody's safe
+function petTarget(pet, b) {
+  const t = player.target, mode = pet.mode || 'assist';
+  if (mode === 'follow' || !t || t.dead || t.type === 'player' || t.type === 'npc' || !t.def || t.z !== b.z) return null;
+  if (dist(t, player) > (mode === 'close' ? 1.5 : 7)) return null;
+  if (inPZ() || inPZ(t)) return null; // (no fighting from a safe place, nor into one)
+  return t;
+}
 function updatePet() {
   const pet = player.pet, kind = pet && PETS[pet.kind];
   if (!kind) { player.petBody = null; return; }
   if (pet.hp === undefined) pet.hp = petMaxHp(pet);
+  if (!Object.hasOwn(PET_MODES, pet.mode || '')) pet.mode = 'assist';
   if (pet.downUntil && now >= pet.downUntil) { pet.downUntil = 0; pet.hp = petMaxHp(pet); log(`${pet.name} is back, licking a paw as if nothing happened.`, 'quest'); }
   if (pet.home || pet.downUntil || player.dead || player.ride) { player.petBody = null; return; }
   let b = player.petBody;
@@ -448,41 +477,61 @@ function updatePet() {
     b = player.petBody = { id: (b && b.id) || newId(), type: kind.look, pet: true, name: pet.name, level: pet.level, x: at.x, y: at.y, z: player.z, dir: 2, walk: null, nextMove: 0, nextHit: 0 };
   }
   Object.assign(b, { name: pet.name, level: pet.level, hp: pet.hp, maxHp: petMaxHp(pet) });
-  // out of a fight it heals: a little every two seconds
-  if (!player.target && pet.hp < b.maxHp && now >= (b.nextHeal || 0)) { b.nextHeal = now + 2000; pet.hp = Math.min(b.maxHp, pet.hp + Math.ceil(b.maxHp / 30)); }
+  const hurt = pet.hp < b.maxHp * 0.3; // badly hurt: it keeps behind you, out of the fight
+  if (hurt && !b.warned) { b.warned = true; log(`${pet.name} is badly hurt and keeps back. Feed ${pet.name} or give a health potion.`, 'damage'); }
+  else if (!hurt) b.warned = false;
+  // it heals a little every two seconds: out of a fight, kept back hurt, or with nothing beside it
+  if (pet.hp < b.maxHp && now >= (b.nextHeal || 0)) {
+    b.nextHeal = now + 2000;
+    if (!player.target || hurt || !monsters.some(m => !m.dead && m.z === b.z && dist(m, b) <= 1)) pet.hp = b.hp = Math.min(b.maxHp, pet.hp + Math.ceil(b.maxHp / 30));
+  }
   if (b.walk && now - b.walk.start >= b.walk.dur) b.walk = null;
   if (b.walk || now < b.nextMove) return;
-  const hurt = pet.hp < b.maxHp * 0.3; // badly hurt: it keeps behind you, out of the fight
-  const t = !hurt && player.target && !player.target.dead && player.target.z === b.z && dist(player.target, player) <= 7 ? player.target : null;
+  const t = hurt ? null : petTarget(pet, b);
   b.fighting = !!t;
+  const goal = t || player;
+  // on someone's tile (you walked onto it, or a monster did): a step aside first
+  if (creatureAt(b.x, b.y, b.z)) return petStep(b, goal, Infinity);
   if (t && dist(b, t) <= 1) { // at its target: a scratch every so often
     b.dir = dirTo(t.x - b.x, t.y - b.y);
     if (now >= b.nextHit) { b.nextHit = now + kind.hitEvery; petHit(t, kind); }
     return;
   }
-  const goal = t || player, near = t ? 1 : 1.5;
-  if (dist(b, goal) <= near) return;
-  // one step towards it (diagonals too), round what's in the way
-  let best = null, bestD = dist(b, goal);
+  if (dist(b, goal) <= (t ? 1 : 1.5)) return;
+  petStep(b, goal, dist(b, goal));
+}
+// One step towards goal (diagonals too), round what's in the way (a tile with anyone on it is in the way), if it gets
+// nearer than within. As quick as you walk there, a little quicker when it's fallen behind.
+function petStep(b, goal, within) {
+  let best = null;
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     if (!dx && !dy) continue;
     const n = { x: b.x + dx, y: b.y + dy, z: b.z };
     if (!isFree(n.x, n.y, n.z) || map.floorChange(n.x, n.y, n.z)) continue;
     const d = dist(n, goal) + (dx && dy ? 0.1 : 0);
-    if (d < bestD) { best = [dx, dy]; bestD = d; }
+    if (d < within) { best = [dx, dy]; within = d; }
   }
   if (!best) return void (b.nextMove = now + 300);
-  const [dx, dy] = best, dur = (dx && dy ? 2 : 1) * 260; // (a little quicker than you: it keeps up)
+  const [dx, dy] = best;
+  let dur = stepTime(player, (map.get(b.x + dx, b.y + dy, b.z) || {}).ground, dx && dy);
+  if (dist(b, player) > 2) dur = Math.round(dur * 0.7); // (fallen behind: it catches up)
   b.walk = { fromX: b.x, fromY: b.y, start: now, dur };
   b.dir = dirTo(dx, dy); b.x += dx; b.y += dy; b.nextMove = now + dur;
 }
 
-// A pet's blow: a little damage (yours, for the kill and its loot), and it learns from it
+// A pet's blow: a little damage (yours, for the kill and its loot); the monster remembers whose pet helped, so it
+// learns from the kill (killMonster: petLearnFromKill)
 function petHit(m, kind) {
-  const pet = player.pet, [lo, hi] = kind.dmg(pet.level);
+  const pet = player.pet, [lo, hi] = kind.dmg(pet.level), dmg = randInt(lo, hi);
+  (m.petHelp || (m.petHelp = {}))[player.id] = true;
+  if (dmg <= 0) return void addBurst(m.x, m.y, m.z, '#9cf'); // (a swipe that misses)
   addSound('hit', m.x, m.y, m.z);
-  damageMonster(m, randInt(lo, hi), 'physical');
-  petLearn(1);
+  damageMonster(m, dmg, 'physical');
+}
+// A monster your companion helped to kill: half its experience, for your companion
+function petLearnFromKill(m) {
+  if (!player.pet || !m.petHelp || !m.petHelp[player.id]) return;
+  petLearn(Math.floor(m.def.xp * 0.5));
 }
 
 // Does this monster's blow land on your companion instead of you? Now and then, if it's right beside it: more often
@@ -490,11 +539,13 @@ function petHit(m, kind) {
 function petTakesHit(attacker) {
   const b = player.petBody, pet = player.pet;
   if (!b || !pet || pet.downUntil || pet.home || attacker.z !== b.z || dist(attacker, b) > 1) return false;
-  return Math.random() < (b.fighting ? 0.35 : 0.15);
+  return Math.random() < (b.fighting ? 0.2 : 0.08);
 }
+// A blow on your companion (one that would hurt nothing does nothing)
 function petHurt(dmg) {
   const pet = player.pet, b = player.petBody;
-  dmg = Math.max(1, Math.round(dmg * 0.7));
+  dmg = Math.round(dmg * 0.7);
+  if (!(dmg > 0)) return;
   pet.hp = Math.max(0, pet.hp - dmg);
   if (b) { addText(b, String(dmg), '#ff9050'); addBurst(b.x, b.y, b.z, '#d83030'); b.hp = pet.hp; }
   if (pet.hp > 0) return;
@@ -505,17 +556,27 @@ function petHurt(dmg) {
   uiDirty();
 }
 
-// A pet grows: a point for each blow (on a monster or, training beside you, on a dummy)
+// A pet grows: from the monsters it helps to kill (and, up to a point, a dummy), never past your own level
 function petLearn(n) {
   const pet = player.pet, kind = pet && PETS[pet.kind];
-  if (!kind || pet.level >= kind.maxLevel) return;
-  pet.xp += n;
-  if (pet.xp < kind.xpFor(pet.level)) return;
+  if (!kind || pet.level >= kind.maxLevel || !(n > 0)) return;
+  const need = kind.xpFor(pet.level);
+  pet.xp = Math.min(pet.xp + n, need);
+  if (pet.xp < need || pet.level >= player.level) return; // (it waits, ready, for you to grow first)
   pet.xp = 0; pet.level++;
   pet.hp = petMaxHp(pet);
   log(`${pet.name} grows stronger! (level ${pet.level})`, 'level');
   if (player.petBody) addSparkle(player.petBody, '#ffe080');
   uiDirty();
+}
+// Your companion beside you at a training dummy: a point every fourth blow of yours, up to the dummy's limit
+function petTrain() {
+  const pet = player.pet, kind = pet && PETS[pet.kind];
+  if (!kind || player.trainHits % 4) return;
+  if (pet.level < kind.dummyLevel) return petLearn(1);
+  if (pet.dummyDone) return;
+  pet.dummyDone = true;
+  log(`${pet.name} has learned all a dummy can teach. From now on ${pet.name} grows by fighting at your side.`, 'level');
 }
 
 // Sister Ama looks after your pet: one knocked out comes back at once, healed

@@ -405,3 +405,29 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 .pet-name { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); z-index: 90; width: min(300px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 8px; padding: 14px; }
 .pet-name input { min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #6a6252; background: #1c1d1f; color: #f2ebdd; font: 500 16px system-ui, sans-serif; }
 .pet-name button { min-height: 40px; }
+/* ---- your companion's card (js/companion-card.js): in the side panel under the equipment; on a phone the drawer's
+   Gear page borrows it (css/phone/companion-card.css) ---- */
+.companion-card .pet-top { display: flex; gap: 8px; align-items: center; }
+.companion-card .pet-portrait { flex: none; width: 64px; height: 64px; image-rendering: pixelated; border: 1px solid #4a453e; border-radius: 4px;
+  background: radial-gradient(circle at 50% 60%, #3a352c, #1a1916 75%); }
+.companion-card .pet-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.companion-card .pet-title { display: flex; align-items: baseline; gap: 6px; }
+.companion-card .pet-title b { color: #ffd98a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.companion-card .pet-title small, .companion-card .pet-dmg { color: #a89c84; font-size: 11px; }
+.companion-card .pet-bar { position: relative; height: 14px; background: #111; border: 1px solid #000; }
+.companion-card .pet-bar i { display: block; height: 100%; background: #3a9a3a; }
+.companion-card .pet-bar.low i { background: #c03030; }
+.companion-card .pet-bar.xp i { background: #b08a30; }
+.companion-card .pet-bar span { position: absolute; inset: 0; text-align: center; font-size: 10.5px; line-height: 14px; color: #fff; text-shadow: 0 1px 1px #000; white-space: nowrap; }
+.companion-card .pet-hint { margin: 5px 0; color: #b8b0a0; font-size: 11.5px; font-style: italic; }
+.companion-card .pet-modes { display: flex; gap: 2px; margin-bottom: 4px; }
+.companion-card .pet-modes button { flex: 1; padding: 2px 0; font-size: 11px; }
+.companion-card .pet-modes button.active { border-color: #d5aa60; color: #ffd98a; }
+.companion-card .pet-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.companion-card .pet-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; padding: 2px 3px; line-height: 1.15; }
+.companion-card .pet-btn b { font-size: 12px; }
+.companion-card .pet-btn small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a89c84; font-size: 10px; }
+.companion-card .pet-btn:disabled { opacity: 0.45; }
+.companion-card.flash { animation: pet-flash 1.2s ease-out; }
+@keyframes pet-flash { from { box-shadow: 0 0 0 2px #ffd98a; } to { box-shadow: 0 0 0 2px transparent; } }
+.ctx-menu button.ctx-default { background: rgba(255, 255, 255, 0.06); }

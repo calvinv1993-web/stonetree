@@ -413,11 +413,19 @@ const FIELDS = {
 
 // Gains per level, how fast skills train (lower rate = faster), capacity per level.
 // regen: [hp, mana] per second while fed. promoted: title after promotion.
-// Companions (a player's pet: player.pet = { name, kind, level, xp }, game-update.js updatePet). Per kind:
+// Companions (a player's pet: player.pet = { name, kind, level, xp, mode }, game-update.js updatePet). Per kind:
 //   look: the creature it's drawn as; hitEvery: ms between its blows; dmg(level): [min, max] a blow;
-//   hp(level): its health; xpFor(level): what it needs to grow from that level to the next; maxLevel
+//   hp(level): its health; xpFor(level): what it needs to grow from that level to the next; maxLevel;
+//   dummyLevel: how far a training dummy can teach it (beyond that, only fights do)
+// It learns half the experience of each monster it helped to kill, and never grows past your own level.
 const PETS = {
-  cat: { look: 'cat', hitEvery: 1600, dmg: l => [1, 2 + l], hp: l => 30 + 12 * l, xpFor: l => 12 * l * l, maxLevel: 10 },
+  cat: { look: 'cat', hitEvery: 2000, dmg: l => [0, 1 + l], hp: l => 30 + 12 * l, xpFor: l => 18 * l * l, maxLevel: 10, dummyLevel: 4 },
+};
+// How a companion fights (player.pet.mode, Actions.petMode): what the game says when you choose it
+const PET_MODES = {
+  follow: 'follows at your heel and keeps out of fights',
+  assist: 'fights whatever you fight',
+  close: 'stays close and fights only what comes right up to you',
 };
 const PET_AWAY = 3 * 60000; // a companion knocked out runs home to the temple, and comes back after this (or Sister Ama fetches it)
 

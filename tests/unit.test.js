@@ -824,6 +824,7 @@ test('Clang, a companion: follows you, fights what you fight, and grows as he fi
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player;
+  p.level = 5; // (a companion never grows past you)
   p.pet = { name: 'Clang', kind: 'cat', level: 1, xp: 0 };
   ctx.teleport({ x: 120, y: 160, z: 8 }); tick(game, 200);
   assert(p.petBody && p.petBody.z === 8 && state.dist(p.petBody, p) <= 2, 'he appears beside you');
@@ -842,6 +843,107 @@ test('Clang, a companion: follows you, fights what you fight, and grows as he fi
   state.Actions.petHome(); tick(game, 100); assert(!p.petBody, 'sent home'); state.Actions.petCall(); tick(game, 100); assert(p.petBody, 'and called back');
   state.Actions.petName('  whiskers<> '); assert.strictEqual(p.pet.name, 'Whiskers', 'named');
   p.dead = true; ctx.updatePet(); assert.strictEqual(p.petBody, null, 'gone while you are dead');
+});
+
+// A companion's world: you with Clang at level 5, somewhere open on the island
+function petGame() {
+  const game = quietGame();
+  const p = game.state.player;
+  p.level = 5;
+  p.pet = { name: 'Clang', kind: 'cat', level: 1, xp: 0 };
+  game.ctx.teleport({ x: 128, y: 170, z: 8 }); tick(game, 300);
+  return game;
+}
+
+test('Clang never stands on your tile or a monster\'s: he steps aside', () => {
+  const game = petGame();
+  const { ctx, state } = game;
+  const p = state.player, b = p.petBody;
+  ctx.teleport({ x: b.x, y: b.y, z: b.z }); // (you walk onto him)
+  tick(game, 1500);
+  assert(!(b.x === p.x && b.y === p.y), 'off your tile');
+  const rat = ctx.spawnMonster({ type: 'rat', x: b.x, y: b.y, z: 8 }); rat.def = { ...rat.def, aggro: 0, speed: 0 }; state.monsters.push(rat);
+  tick(game, 1500);
+  assert(!(p.petBody.x === rat.x && p.petBody.y === rat.y), 'off a monster\'s tile');
+});
+
+test('Clang learns half of a kill he helped with, a dummy teaches him only to level 4, and he never outgrows you', () => {
+  const game = petGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 1, y: p.y, z: 8 }); rat.def = { ...rat.def, aggro: 0 }; rat.hp = rat.maxHp = 1;
+  rat.petHelp = { [p.id]: true }; state.monsters.push(rat);
+  ctx.killMonster(rat);
+  assert.strictEqual(p.pet.xp, Math.floor(rat.def.xp * 0.5), `half the rat's experience (${p.pet.xp})`);
+  // at the dummy: a point every fourth blow of yours, up to level 4
+  p.pet.xp = 0;
+  ctx.teleport({ x: 110, y: 140, z: 8 }); tick(game, 300);
+  ctx.useThing(110, 141, 8);
+  for (let i = 0; i < 40; i++) tick(game, 1000);
+  assert(p.pet.xp >= 8 && p.pet.xp <= 11 && p.pet.level === 1, `about one point every four blows (${p.pet.xp} after ${p.trainHits})`);
+  p.pet.level = 4; p.pet.xp = 0;
+  for (let i = 0; i < 40; i++) tick(game, 1000);
+  assert(p.pet.level === 4 && p.pet.xp === 0, 'nothing more from the dummy at level 4');
+  assert.strictEqual(messages.filter(m => /learned all a dummy can teach/.test(m)).length, 1, 'said once');
+  // never past your level
+  p.pet.level = 5; ctx.petLearn(9999);
+  assert.strictEqual(p.pet.level, 5, 'waits at your level');
+  p.level = 6; ctx.petLearn(1);
+  assert.strictEqual(p.pet.level, 6, 'and grows when you do');
+});
+
+test('Clang: food and potions are kept at full health, home does nothing while he is knocked out, names need a letter', () => {
+  const game = petGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  ctx.addItem('cheese', 2); ctx.addItem('health_potion', 2);
+  const food = state.countItem('cheese'), potions = state.countItem('health_potion');
+  state.Actions.petFeed(); state.Actions.petPotion();
+  assert.strictEqual(state.countItem('cheese'), food, 'no food used at full health');
+  assert.strictEqual(state.countItem('health_potion'), potions, 'no potion used');
+  assert(messages.some(m => /isn't hungry/.test(m)) && messages.some(m => /isn't hurt/.test(m)), 'he says so');
+  ctx.petHurt(20); state.Actions.petFeed();
+  assert(messages.some(m => /Clang eats an? \w/.test(m)) && !messages.some(m => /eats the a/.test(m)), 'hurt, he eats ("an apple", not "the an apple")');
+  ctx.petHurt(9999);
+  assert(p.pet.downUntil, 'knocked out');
+  state.Actions.petHome();
+  assert(!p.pet.home, 'sending him home does nothing while he is away');
+  ctx.petCare();
+  for (const bad of ['123', '  ', "'-'", 'Sister Ama', 'ama']) { state.Actions.petName(bad); assert.strictEqual(p.pet.name, 'Clang', `refused: "${bad}"`); }
+  state.Actions.petName('Zéphyr'); assert.strictEqual(p.pet.name, 'Zéphyr', 'normalized');
+});
+
+test('Clang never fights players, nor from or into a protection zone; Follow keeps him out of fights', () => {
+  const game = petGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  // a player as your target: nothing breaks, nobody gets hurt by him
+  const q = ctx.newPlayer('Other'); state.players.push(q);
+  ctx.asPlayer(q, () => ctx.teleport({ x: p.x + 2, y: p.y, z: p.z }));
+  const hp = q.hp; p.target = q;
+  tick(game, 4000);
+  assert.strictEqual(q.hp, hp, 'he leaves players alone');
+  p.target = null; state.players.splice(state.players.indexOf(q), 1);
+  // from a protection zone
+  const M = state.map;
+  let spot = null;
+  for (let y = 60; y < 220 && !spot; y++) for (let x = 60; x < 220 && !spot; x++) {
+    if (M.isProtected(x, y, 8) && state.isFree(x, y, 8) && state.isFree(x, y + 1, 8) && !M.isProtected(x, y + 2, 8) && state.isFree(x, y + 2, 8)) spot = { x, y, z: 8 };
+  }
+  assert(spot, 'a protection zone with open ground by it');
+  ctx.teleport(spot); tick(game, 1000);
+  const wolf = ctx.spawnMonster({ type: 'rat', x: spot.x, y: spot.y + 2, z: 8 }); wolf.def = { ...wolf.def, aggro: 0, speed: 0 }; wolf.hp = wolf.maxHp = 999;
+  state.monsters.push(wolf); p.chase = false; p.target = wolf;
+  tick(game, 8000);
+  assert.strictEqual(wolf.hp, 999, 'not from where you are safe');
+  // Follow: never fights; Assist: fights again
+  ctx.teleport({ x: 128, y: 170, z: 8 }); tick(game, 1000);
+  Object.assign(wolf, { x: p.x + 2, y: p.y }); p.target = wolf;
+  state.Actions.petMode('follow'); tick(game, 6000);
+  assert.strictEqual(wolf.hp, 999, 'Follow: he keeps out of it');
+  state.Actions.petMode('nonsense'); assert.strictEqual(p.pet.mode, 'follow', 'only real modes');
+  state.Actions.petMode('assist'); tick(game, 8000);
+  assert(wolf.hp < 999, 'Assist: he joins in');
 });
 
 test('the Oakvale Chronicle: pages in the world, one from the hermit at night, and Corwin pieces them together', () => {
