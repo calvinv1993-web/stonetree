@@ -304,6 +304,8 @@ const SPRITE_HASHES = {
   "pine@4x.png":"0b5a447124",
   "plant@2x.png":"5e9c581bf9",
   "planter@4x.png":"9ebc5a98ca",
+  "player-mask-female.png":"70cbcbe8a1",
+  "player-mask.png":"9233c5accc",
   "player-sheet-female.png":"5f9d2e704f",
   "player-sheet.png":"527afc527a",
   "portcullis-front.png":"ba7b1ef0aa",
