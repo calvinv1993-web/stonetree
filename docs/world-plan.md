@@ -257,6 +257,17 @@ old man and the child know some of them. Armourer Brenna tells of her shield whe
 - Four giant rats and a slime, lurking in the dark (bring light).
 - Reward: Old Wim's lucky ring (regenerates 2 health and 1 mana, for 2 hours of wear), 25 gold, 450 experience.
 
+### Phase 7: discovery quests
+
+**The gate watch's tasks** (level 2-5, the guide leads to them; the places are `GATE_SITES` in `js/default-map.js`, the mechanics `js/game-gates.js`). Rewards and order are as before; each guard gives two health potions as you take a task (or one of the hunts) on.
+
+| Gate | Task | Where | How |
+|---|---|---|---|
+| West, Sergeant Bram (2) | Greyfang's den: 4 wolves, and Greyfang's pelt | Paw prints from the lumber trail (69,98) north through the pines to (68,77); the den (65–70, 70–73) in a thicket of firs against the rocks, open only to the south; Greyfang at (67,71), a grey hood among the bones (66,71) | Look at the prints; the arrow leads only to the first one. His pelt is taken from him when he falls (quest `trophy`). |
+| South, Guard Tilda (3) | Stranded: get Wendel the fisher off his rock | A sand spit (100,216–218) off the west beach of Lighthouse Point to an islet (98–104, 219–222) with rocks, a fish rack and his wreck (105,221); 2 crabs on it (Old Snapper on the beach) | No crab within 3 of (101,220) (a step's `clear`), then talk to him: he goes home to Fisher's Rest (41,176) for 3 minutes (`goesHome`), then back out. |
+| East, Guard Hilde (4) | Nests in the Hills: burn four spider nests | (179,162), (195,163), (200,172: a flame in a ring burnt into it), (165,186), among the spider packs | A torch (Hilde gives one) used on a nest, or Torchlight cast next to it (`burnable` things); spun again after 10 minutes. Counted per character (step `burn`). |
+| North, Captain Osric (5) | Gnash's war plans | The goblin camp at the top of the goblin trail: tents (194,67), (200,67) and Gnash's (197,70), a totem (199,65), the fire (197,66), the war chest (198,70); Gnash (197,68) and 3 goblins round him | The goblins of Goblin Hill (174–208, 56–90) sleep at night (`sleeps`), unless someone steps right next to one or hits one: then those within 4 wake too. |
+
 ## 5. Open questions
 
 1. **Leaving the island:** at level 10, after choosing a vocation, players go to the mainland and can never come back (the game already works this way). The old mainland (Valoria and the rest) is no longer in the built-in world: bringing it back from the backup branch, beside this island, is proposed.

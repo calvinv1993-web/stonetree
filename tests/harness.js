@@ -9,7 +9,7 @@ const vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 const LOGIC_FILES = [
   'defs', 'items', 'creatures', 'npcs', 'data', 'map', 'default-map',
-  'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-tales', 'game-update',
+  'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-tales', 'game-gates', 'game-update',
 ];
 
 // Seeded replacement for Math.random so a failing run can be replayed.

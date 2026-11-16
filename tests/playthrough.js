@@ -365,13 +365,21 @@ try {
     useFor('clang_rescue', 148, 105, 7, 'the fallen crate'); talkFor('clang_rescue', 'done', 'ama', 'clang');
     note(p.pet ? `${p.pet.name} follows, and fights along` : 'no Clang!');
   });
-  step('Bram: wolves', () => { shop(3); talkFor('gate_west', 'active', 'gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES); talkFor('gate_west', 'done', 'gate_west', 'wolves'); equipBest(); });
-  step('Tilda: crabs', () => { levelUp(3, 'wolf', WOLVES); shop(3); talkFor('gate_south', 'active', 'gate_south', 'crabs', 'yes'); huntFor('gate_south', 'crab', CRABS); talkFor('gate_south', 'done', 'gate_south', 'crabs'); equipBest(); });
-  step('Hilde: spiders', () => { levelUp(4, 'wolf', WOLVES); shop(4); talkFor('gate_east', 'active', 'gate_east', 'spiders', 'yes'); huntFor('gate_east', 'spider', SPIDERS); talkFor('gate_east', 'done', 'gate_east', 'spiders'); equipBest(); });
-  step('Osric: goblins', () => {
-    levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes'); huntFor('gate_north', 'goblin', GOBLINS);
-    page(4, 197, 71, 8); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest();
-  });
+  step('Bram: Greyfang\'s den', () => { shop(3); talkFor('gate_west', 'active', 'gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES);
+    goTo(69, 98, 8, 1, 'to the paw prints'); hunt('greyfang', 1, [67, 71, 8], 'Greyfang, in his den'); talkFor('gate_west', 'done', 'gate_west', 'wolves'); equipBest(); });
+  step('the rats\' nest: a shield', () => { shop(3); use(144, 140, 7, 'the chest in the rats\' nest'); equipBest(); });
+  step('Tilda: crabs', () => { levelUp(3, 'wolf', WOLVES); shop(3); talkFor('gate_south', 'active', 'gate_south', 'crabs', 'yes');
+    for (let i = 0; i < 8 && !run('areaClear(questStep("gate_south").clear)'); i++) hunt('crab', 2, [101, 220, 8], 'the crabs round Wendel\'s rock');
+    talk('oak_stranded', 'help'); talkFor('gate_south', 'done', 'gate_south', 'crabs'); equipBest(); });
+  step('Hilde: spiders', () => { levelUp(4, 'wolf', WOLVES); shop(4); talkFor('gate_east', 'active', 'gate_east', 'spiders', 'yes');
+    for (const [x, y] of run('GATE_SITES.nests')) { // Hilde's torch on each nest (one burnt by someone else is spun again after a while)
+      goTo(x, y + 1, 8, 1, 'to a spider nest'); while (fightBack());
+      for (let i = 0; i < 20 && !run(`((player.quests.gate_east || {}).burnt || []).includes('${x},${y},8')`); i++) { A.useItemOn(state.findInBag(it => it.id === 'hand_torch'), x, y, 8); wait(3000); }
+    }
+    talkFor('gate_east', 'done', 'gate_east', 'spiders'); equipBest(); });
+  step('Osric: goblins', () => { levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes');
+    goTo(190, 80, 8, 2, 'to the foot of Goblin Hill'); while (run('daylight()') >= 0.5) wait(10000); // (in at night, while they sleep)
+    use(198, 70, 8, 'Gnash\'s war chest'); page(4, 197, 71, 8); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest(); });
   step('The Silent Bell II: the crypt', () => {
     shop(6); talkFor('bell_2', 'active', 'corwin', 'crypt', 'yes'); huntFor('bell_2', 'skeleton', CRYPT);
     use(81, 178, 7, 'a weapon chest'); page(3, 82, 181, 7); use(71, 181, 7, 'the torn note'); equipBest(); talkFor('bell_2', 'done', 'corwin', 'note');

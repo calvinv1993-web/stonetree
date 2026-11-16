@@ -1830,56 +1830,78 @@ Object.assign(QUESTS, {
 // The gate watch of Oakvale: each guard has a task out in the wilds beyond his gate, a piece of gear for it, and
 // sends you on to the next gate. Together they lead a newcomer from level 2 to the crypt at level 5.
 Object.assign(QUESTS, {
+  // west: Greyfang's paw prints by the lumber trail lead to his den in the pines (GATE_SITES in default-map.js); his pelt
+  // is taken from him there (trophy: game-gates.js), and a few of his wolves stand in the way
   gate_west: {
-    name: 'The Gate Watch: Wolves at the West Gate', giver: 'gate_west', level: 2, kill: { wolf: 8, greyfang: 1 },
+    name: 'The Gate Watch: Greyfang\'s Den', giver: 'gate_west', level: 2, kill: { wolf: 4 }, fetch: 'greyfang_pelt',
+    trophy: { type: 'greyfang', item: 'greyfang_pelt', text: 'Greyfang lies still at last. You cut his great grey pelt from him: Sergeant Bram will want to see it.' },
     reward: { xp: 250, gold: 30, items: [['leather_armor', 1], ['health_potion', 3]] },
-    summary: 'Kill 8 wolves and their alpha, Greyfang, in Wolf Woods (out of the west gate and north-west), and report to Sergeant Bram at the west gate.',
+    summary: 'Find Greyfang\'s paw prints by the lumber trail in Wolf Woods (out of the west gate and north-west), follow them to his den, and bring his pelt to Sergeant Bram at the west gate. His wolves will be in the way: 4 of them, at least.',
     text: {
-      offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold - they come right up to the west road at night. Thin them out for me - eight of them, and the big grey one who leads them, Greyfang. ({yes}/{no})',
-      accept: 'Good. Out of the west gate, over the bridge, then north-west into the pines. They hunt in packs: never fight three at once if you can help it, and carry a health potion or two from Pip. Greyfang calls the pack to him: get him alone. Come back and tell me about the {wolves}.',
-      progress: 'So far: $progress. Wolf Woods lies north-west of the west gate.',
-      reward: 'Eight wolves, and Greyfang too! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: in Greyfang\'s den we found a grey hood, singed, that stank of smoke. Not a hunter\'s. Someone has been walking the woods at night. And take three potions from the watch\'s stores. Once the woods are yours, I will have hunts for you again and again, paid in watch marks: two buy five more potions at Captain Osric\'s, at the north gate. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
-      tooWeak: 'Wolves would tear you apart, friend. Come back at level 2.',
+      offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold, and it is Greyfang who makes them so: a big grey brute who leads the pack right up to the west road at night. Nobody knows where he lairs. Will you track him down, and bring me his pelt? ({yes}/{no})',
+      accept: 'Good. Out of the west gate, over the bridge, and up the lumber trail into Wolf Woods. The woodcutters have seen his paw prints by the trail, where it bends west: twice the size of any other wolf\'s. Look at them closely, and follow where they lead. His pack runs round him: thin it out on the way, and never fight three at once if you can help it. Then come back and tell me about the {wolves}.',
+      progress: 'So far: $progress. Look for the big paw prints by the lumber trail, north-west of the west gate, and follow them.',
+      reward: 'Greyfang\'s pelt! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: you say there was a grey hood in his den, singed, that stank of smoke? Not a hunter\'s. Someone has been walking the woods at night. And take three potions from the watch\'s stores. Once the woods are yours, I will have hunts for you again and again, paid in watch marks: two buy five more potions at Captain Osric\'s, at the north gate. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      tooWeak: 'Greyfang\'s pack would tear you apart, friend. Come back at level 2.',
       done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
     },
   },
+  // south: Wendel the fisher is stranded on a rock off Lighthouse Point, ringed by crabs: clear them (a step's clear: none
+  // left near him), talk to him, and he makes his own way home (goesHome); then tell Tilda
   gate_south: {
-    name: 'The Gate Watch: Crabs on the Beach', giver: 'gate_south', level: 3, after: 'gate_west', kill: { crab: 6, old_snapper: 1 },
+    name: 'The Gate Watch: Stranded', giver: 'gate_south', level: 3, after: 'gate_west',
     reward: { xp: 300, gold: 30, items: [['leather_legs', 1]] },
-    summary: 'Kill 6 crabs and Old Snapper, the biggest of them, on the beaches of Lighthouse Point (down the south road), and report to Guard Tilda at the south gate.',
+    summary: 'Wendel the fisher is stranded on a rock off the west beach of Lighthouse Point, ringed by crabs. Get him off it, and tell Guard Tilda at the south gate.',
+    steps: [
+      { npc: 'oak_stranded', word: 'help', clear: { types: ['crab'], at: [101, 220, 8], range: 3 }, goesHome: true,
+        summary: 'Wendel is stranded on a rock off the west beach of Lighthouse Point (down the south road): a sand spit runs out to it. Kill the crabs round him, and talk to him.',
+        progress: 'Crabs! They are still all round me, $name! Get rid of them, or I will never get off this rock!',
+        done: 'They are gone! Bless you, $name. With them gone I can lash a raft together from what is left of my boat, and paddle home to Fisher\'s Rest. Tell Guard Tilda that Wendel is safe - and that I owe her a fish supper. Oh, and take this to her: I found it in the wreck. It is no use to me.' },
+      { summary: 'Tell Guard Tilda at the south gate that Wendel is safe.', progress: 'Well? Did you find Wendel?',
+        done: 'Wendel is safe? Ha! That old fool will be out on that rock again by tomorrow. These leggings will keep the pincers off you, $name. And what is this he sent... a page, soaked through. "...the year of the long winter we came ashore, the spark wrapped in sailcloth, and the sea froze behind us..." The rest has washed away. Sister Ama would want to see the words, if not the page. Guard Hilde at the east gate keeps talking about {spiders} - see her next.' },
+    ],
     text: {
-      offer: 'Crabs, $name. Big ones, snapping at the fishermen\'s nets on the beaches. I can\'t leave my gate. Would you kill six of them for me - and Old Snapper, the one with a shell like a cart wheel? ({yes}/{no})',
-      accept: 'Down the south road, all the way to Lighthouse Point: the beaches there are crawling with them. Their shells are hard - hit them, and keep hitting. Old Snapper\'s is harder still: bring your best weapon. Then come back and tell me about the {crabs}.',
-      progress: 'So far: $progress. The beaches are at the end of the south road.',
-      reward: 'Six crabs and Old Snapper, and you still have all your fingers! These leggings will keep the pincers off. And look what Old Snapper sat on: a page, soaked through. "...the year of the long winter we came ashore, the spark wrapped in sailcloth, and the sea froze behind us..." The rest has washed away. Sister Ama would want to see the words, if not the page. Guard Hilde at the east gate keeps talking about {spiders} - see her next.',
+      offer: 'Crabs, $name. Big ones. Wendel went out fishing off Lighthouse Point, a wave threw his boat on a rock, and now the crabs have him penned in on it. I can\'t leave my gate. Will you get him off? ({yes}/{no})',
+      accept: 'Down the south road, all the way to Lighthouse Point; the rock is off its west beach, and a sand spit runs out to it at low tide. Their shells are hard - hit them, and keep hitting. Talk to Wendel once they are gone, then come back and tell me.',
+      elsewhere: 'Help! The crabs have me trapped on this rock, and my boat is matchwood! Will nobody tell Guard Tilda at the south gate?',
       tooWeak: 'Those pincers would snap you in two. Come back at level 3.',
       notYet: 'One thing at a time, friend. Sergeant Bram at the west gate has work for you first.',
-      done: 'The nets are safe again. Guard Hilde at the east gate has trouble with {spiders}.',
+      done: 'Wendel is fishing again. Guard Hilde at the east gate has trouble with {spiders}.',
     },
   },
+  // east: four spider nests round the Spider Hills burn (burnable things: Torchlight cast next to one, or a torch, which
+  // Hilde gives you as you set out)
   gate_east: {
-    name: 'The Gate Watch: Spiders in the East', giver: 'gate_east', level: 4, after: 'gate_south', kill: { spider: 8, thornmother: 1 },
+    name: 'The Gate Watch: Nests in the Hills', giver: 'gate_east', level: 4, after: 'gate_south',
     reward: { xp: 450, gold: 40, items: [['chain_helmet', 1]] },
-    summary: 'Kill 8 spiders, and the Thornmother who leads them round the Spider Hills (south-east), and report to Guard Hilde at the east gate.',
+    summary: 'Burn four spider nests round the Spider Hills (south-east) with a torch or the Torchlight spell, and report to Guard Hilde at the east gate.',
+    steps: [
+      { burn: 4, summary: 'Burn four spider nests round the foot of the Spider Hills, south-east of town: use the torch on one, or cast Torchlight ("lumen") next to it. Then report to Guard Hilde at the east gate.',
+        progress: 'So far: $progress. The nests are round the foot of the Spider Hills, south-east of town. Use the torch on them, or say "lumen" next to one.',
+        done: 'Four nests, burnt to ash! That will keep the trails clear for a season. Take this helmet - it was mine, when I was younger. One thing troubles me: you say there was a sign burnt into the biggest nest, a flame inside a ring? Spiders do not burn signs. I do not like it. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.' },
+    ],
     text: {
-      offer: 'Spiders, $name. They spin their webs over the trails in the south-east, and their bite burns. Kill eight for me, and the Thornmother who spins for them all, and you shall have a proper helmet. ({yes}/{no})',
-      accept: 'Take the spider trail south from the east road, or go through Thorn Thicket south of Sunny Fields. Their poison burns: carry potions. The Thornmother lurks at the foot of the Spider Hills, and her young come to her. Then come back and tell me about the {spiders}.',
-      progress: 'So far: $progress. Thorn Thicket and the Spider Hills are south-east of town.',
-      reward: 'Eight, and the Thornmother! You fight like a guard already. Take this helmet - it was mine, when I was younger. And burnt into the Thornmother\'s web there was a sign: a flame inside a ring. Spiders do not burn signs. I do not like it. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.',
+      offer: 'Spiders, $name. They spin their nests over the trails round the Spider Hills, and every nest is a hundred more spiders by summer. Killing them is no use: burn the nests. Four of them, and you shall have a proper helmet. ({yes}/{no})',
+      accept: 'Take the spider trail south from the east road. The nests are round the foot of the hills: use a torch on them, or cast Torchlight right next to one - fire is fire. The spiders will not thank you: their poison burns, so carry potions. Then come back and tell me about the {spiders}.',
       tooWeak: 'Their poison would finish you. Come back at level 4.',
       notYet: 'One thing at a time, friend. Guard Tilda at the south gate has work for you first.',
       done: 'The trails are clearer now. Captain Osric at the north gate wants to talk to you about {goblins}.',
     },
   },
+  // north: Gnash's war plans lie in the war chest in his camp on Goblin Hill; the goblins there sleep at night (sleeps),
+  // unless you step right next to one, or hit one
   gate_north: {
-    name: 'The Gate Watch: Goblins in the North', giver: 'gate_north', level: 5, after: 'gate_east', kill: { goblin: 8, gnash: 1 },
+    name: 'The Gate Watch: Gnash\'s War Plans', giver: 'gate_north', level: 5, after: 'gate_east',
     reward: { xp: 700, gold: 60, items: [['studded_shield', 1], ['health_potion', 2]] },
-    summary: 'Kill 8 goblins and their chief, Gnash, on Goblin Hill (north-east, past Mirror Lake), and report to Captain Osric at the north gate.',
+    summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate.',
+    steps: [
+      { fetch: 'gnash_plans', summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate. Go at night, when the goblins sleep, and never step right next to one.',
+        progress: 'No plans yet? Goblin Hill is north-east, past Mirror Lake; the camp is at the top of the goblin trail. Go at night, and tread softly.',
+        done: 'Gnash\'s war plans! Three arrows on my gate, and a moon... they meant to come at night. And this, in a neat human hand: "When the bell is silent, they may take what they like. - G." So the hooded man the goblins trade with is behind this too. You have earned this shield, $name, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.' },
+    ],
     text: {
-      offer: 'So you are the one the gate watch keeps talking about. Goblins, $name: scouts on Stony Field, and a whole camp on Goblin Hill. They grow bolder. Kill eight of them, and their chief, Gnash. ({yes}/{no})',
-      accept: 'Stony Field is up the north road, below the North Peaks. Goblin Hill lies north-east, past Mirror Lake. They hit hard and they fight together, and Gnash calls them to him. Take potions. Then come back and tell me about the {goblins}.',
-      progress: 'So far: $progress. Stony Field is up the north road; Goblin Hill is north-east.',
-      reward: 'Eight goblins, and Gnash! You have earned this shield, and my respect. Gnash\'s goblins talked, before the end: they traded with a hooded man who smelled of smoke. Paid them in old bones from the crypt, they said. Whoever he is, he has been under Bone Rocks. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.',
+      offer: 'So you are the one the gate watch keeps talking about. Goblins, $name: their chief, Gnash, has a whole camp on Goblin Hill, and he is planning something. Fight your way in and you will be fighting all night. But goblins sleep like the dead after dark... Will you sneak into his camp and steal his war plans? ({yes}/{no})',
+      accept: 'Goblin Hill lies north-east, past Mirror Lake: follow the goblin trail to the top, and the camp is right there, round its fire. His war chest stands by his tent. Go at night: they sleep then, and a careful thief walks past them. Step right next to one, or hit one, and the whole camp wakes - and they hit hard. Then come back and tell me about the {goblins}.',
       tooWeak: 'Goblins are no rats, friend. Come back at level 5.',
       notYet: 'One thing at a time, friend. Guard Hilde at the east gate has work for you first.',
       done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
@@ -1941,7 +1963,35 @@ Object.assign(QUESTS, {
   },
 });
 
+// Every task a gate guard hands out (the gate's own task, and its hunts) comes with two health potions from the watch's
+// stores, given as you take it on (startGift: { items, say }, game-gates.js). Hilde adds a torch for the nests.
+for (const [id, say, more] of [
+  ['gate_west', 'Take these two potions: Greyfang does not fight fair, and neither should you.'],
+  ['gate_south', 'Here, two potions from the watch\'s stores. Crabs pinch harder than you think.'],
+  ['gate_east', 'Two potions for the poison, and a torch for the nests. Mind your eyebrows.', [['hand_torch', 1]]],
+  ['gate_north', 'Take two potions. If the camp wakes up, you will need them.'],
+  ['task_west', 'Two potions to take along: you will need them out there.'],
+  ['task_south', 'Take these two potions: those pincers draw blood.'],
+  ['task_east', 'Here, two potions. Spider bites burn for hours.'],
+  ['task_north', 'Two potions from the stores, soldier. Goblins hit hard.'],
+]) QUESTS[id].startGift = { items: [['health_potion', 2], ...(more || [])], say };
+
 Object.assign(NPCS, {
+  // Wendel the fisher, stranded on a rock off Lighthouse Point (The Gate Watch: south): once the crabs round him are gone
+  // he paddles home to Fisher's Rest by himself (goesHome), and after a while goes back out to fish there
+  oak_stranded: {
+    name: 'Wendel the fisher', wander: 1, idle: 6000,
+    look: { skin: '#d8a070', hair: '#8a6a4a', beard: '#8a6a4a', body: '#3a5a7a', arms: '#d8a070', legs: '#4a4a3a', feet: '#2a2a2a', belt: '#5a3a1a', hat: { style: 'hood', color: '#d8c070' } },
+    goesHome: { x: 41, y: 176, z: 8, ms: 3 * 60000 },
+    greet: 'Ahoy, $name! Wendel\'s the name. Mind the {crabs}: they have it in for me.',
+    keywords: {
+      'help|rescue|crabs|raft': { after: 'gate_south', text: 'You got me off that rock once, $name, and I came straight back out: the fish bite best round it. I keep an eye on the crabs now. Mostly.' },
+      'rescue|help|crabs|raft|home': { quest: ['gate_south'] },
+      job: 'I fish. Or I did, until the crabs took a liking to me.',
+      'boat|wreck': 'That was my boat. A wave threw her on the rocks, and the crabs came up out of the sea before I could get away.',
+    },
+    chatter: ['Shoo! Shoo, you brutes!', 'Is that someone over there? Ahoy!', 'Nothing biting but crabs today.'],
+  },
   ama: {
     name: 'Sister Ama',
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },

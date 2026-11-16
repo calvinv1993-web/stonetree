@@ -607,6 +607,7 @@ function castSpell(id) {
   } else if (s.kind === 'light') {
     player.lightUntil = now + 180000;
     addSparkle(player, '#ffe080');
+    burnAround(); // (a spider nest next to you catches fire: game-gates.js)
   } else if (s.kind === 'cure') {
     delete player.conditions.poison;
     addSparkle(player, '#7ad040');
@@ -762,6 +763,7 @@ function spawnAll(spawns, each = m => m) {
 // An aggressive monster notices you once you could see it on your screen, or 2-3 tiles beyond its edge
 // (inView): it comes for you then, not only when you're right next to it. Peaceful ones (aggro 0) never do.
 function monsterTarget(m) {
+  if (monsterAsleep(m) && !rouse(m)) return null; // (goblins asleep at night: game-gates.js)
   let best = null, bestD = Infinity;
   for (const p of players) {
     if (p.dead || p.z !== m.z || p.ride) continue; // nobody attacks someone being picked up or on a ride
@@ -823,10 +825,11 @@ function updateMonster(m, i) {
   if (m.walk) return;
   if (m.returning) reengage(m);
   if (strayHome(m)) return;
+  m.asleep = monsterAsleep(m);
   const target = m.returning ? null : monsterTarget(m);
   if (m.goal && (m.def.comesBack || m.returning || !target)) return walkToGoal(m); // walking back home; Lucky Tobb minds nobody on the way
   m.goal = null;
-  if (!target) return wander(m);
+  if (!target) return m.asleep ? undefined : wander(m); // (a sleeper stays where it lies)
   // a monster with a voice (voices in creatures.js): a word when it first sees you, and when it's nearly beaten
   if (m.def.voices) {
     if (!m.spoke && m.def.voices.aggro) { m.spoke = true; addSpeech(m, m.def.voices.aggro, true); }
