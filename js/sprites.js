@@ -7313,7 +7313,8 @@ const Sprites = (() => {
       k: 0.9, head: [66, 66, 126, 126], hat: [100, 118], top: 20 },
   };
   STAND_UP.lamppost_off = STAND_UP.lamppost;
-  const STAND_UP_IDS = new Set([...Object.keys(STAND_UP), 'statue']);
+  // (off: the owner wants their pictures as painted, leaning with the camera. Add ids here to stand them up again)
+  const STAND_UP_IDS = new Set([]);
   for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) STAND_UP[id] = STAND_UP.pillar;
   const stoodUp = new Map();
   // The owner's picture of id stood upright (a canvas in the picture's own pixels, taller by its top), or null.
