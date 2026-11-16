@@ -6377,7 +6377,8 @@ const Sprites = (() => {
     return sheetPixels;
   }
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
-  // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is.
+  // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
+  // on two legs likewise (sheet_<monster type>).
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
@@ -7474,6 +7475,7 @@ const Sprites = (() => {
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       if (key.startsWith('player:') && Sprites.PLAYER_SHEET && customImage('player_sheet')) return playerFromSheet(key, dir, frame);
       if (key.startsWith('npc:') && customImage(`sheet_${key.slice(4)}`)) return npcFromSheet(key.slice(4), dir, frame);
+      if (customImage(`sheet_${key}`)) return npcFromSheet(key, dir, frame); // (a monster on two legs with its own sheet, laid out the same)
       const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || key.startsWith('rare:') || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}:${Sprites.TILT}`, g => {
         g.canvas.res = R;
