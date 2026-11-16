@@ -435,3 +435,11 @@ body.welcome .hud, body.welcome #actionDock, body.welcome .guide, body.welcome #
 .companion-card.flash { animation: pet-flash 1.2s ease-out; }
 @keyframes pet-flash { from { box-shadow: 0 0 0 2px #ffd98a; } to { box-shadow: 0 0 0 2px transparent; } }
 .ctx-menu button.ctx-default { background: rgba(255, 255, 255, 0.06); }
+/* auto-heal (game-ui.js autoHealControls): a potion drunk by itself below a part of your health or mana, two sliders */
+.auto-heal-box { margin: 2px 0 8px; }
+.auto-heal { display: flex; flex-direction: column; gap: 6px; }
+.auto-heal-row { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #d8cdb6; }
+.auto-heal-row b { font-weight: 600; color: #8a8070; }
+.auto-heal-row b.on { color: #ffd76a; }
+.auto-heal-row input[type="range"] { width: 100%; margin: 0; accent-color: #d84a4a; }
+.auto-heal-row.mana input[type="range"] { accent-color: #4a8ad8; }

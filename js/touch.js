@@ -120,6 +120,7 @@ function renderFavs() {
   const favs = favourites();
   const current = [...favs.slice(favPageIndex * FAV_SLOTS, (favPageIndex + 1) * FAV_SLOTS), ...favs.slice(9 + favItemPage * 3, 12 + favItemPage * 3)];
   const shown = current.map(id => entries.find(x => x.id === id)).map(e => (e ? `${e.name}|${e.sub}|${e.locked}` : '-'));
+  shown.push(JSON.stringify(player.autoHeal || {})); // (a potion's auto-heal mark)
   if (favHold || shown.join() === favShown) return; // redrawing mid-press would lose the press
   favShown = shown.join();
   const root = $('favs');
@@ -400,7 +401,7 @@ function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
   const pet = player.pet, petState = pet ? `${pet.name}:${pet.home}:${!!pet.downUntil}` : ''; // (its row says where your companion is)
-  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}|${pet ? pet.level : 0}|${player.level}`;
+  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}|${pet ? pet.level : 0}|${player.level}|${JSON.stringify(player.autoHeal || {})}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -423,6 +424,9 @@ function renderMenu() {
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
     row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
+    h('div', { className: 'menu-head' }, 'Auto-heal'),
+    h('div', { className: 'menu-sub' }, h('span', {}, 'Drink a potion by itself ', h('small', {}, 'below this much health or mana, from your backpack'))),
+    autoHealControls(),
     ...(player.pet ? [row([player.pet.name, h('small', {}, player.pet.downUntil ? 'Resting at the temple' : player.pet.home ? 'Waiting at the temple: tap to call' : 'With you: tap to send home')], h('span', {}, '›'), player.pet.downUntil ? null : () => { (player.pet.home ? Actions.petCall() : Actions.petHome()); menuShown = ''; renderMenu(); })] : []), // (resting: nothing to tap)
     row(['The guide', h('small', {}, player.vocation === 'none' ? 'From the start: how everything works' : 'For the starter island')], h('span', {}, '›'), () => { Actions.restartGuide(); InventoryDrawer.close(); }),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); openOutfit(); }),

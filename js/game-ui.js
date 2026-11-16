@@ -128,6 +128,7 @@ function updateBars() {
   const m = Math.floor(worldMinutes()), clock = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   setText($('pos'), `${player.x}, ${player.y} · floor ${map.floorLabel(player.z)} · ${clock} · cap ${freeCapacity()} oz`);
   renderBattle();
+  renderAutoHeal();
   renderParty();
   renderGuide();
   if (!$('guild').hidden) renderGuild();
@@ -354,6 +355,31 @@ function h(tag, props, ...kids) {
   const el = Object.assign(document.createElement(tag), props || {});
   el.append(...kids.filter(k => k !== null && k !== undefined && k !== false));
   return el;
+}
+
+// ---- auto-heal: two sliders, a potion drunk for you below this much health / mana (Actions.setAutoHeal) -------------
+// (the same controls in the Battle panel on a computer and in the Settings on a phone)
+function autoHealControls() {
+  const set = player.autoHeal || { hp: 0, mana: 0 }, box = h('div', { className: 'auto-heal' });
+  for (const [kind, label] of [['hp', 'Health potion'], ['mana', 'Mana potion']]) {
+    const out = h('b', null), slider = h('input', { type: 'range', min: 0, max: AUTO_HEAL_MAX, step: 5, value: set[kind] || 0 });
+    slider.setAttribute('aria-label', `${label}: drink it by itself below this much ${kind === 'hp' ? 'health' : 'mana'}`);
+    const show = () => { out.textContent = +slider.value ? `below ${slider.value}%` : 'off'; out.classList.toggle('on', +slider.value > 0); };
+    slider.addEventListener('input', show);
+    slider.addEventListener('change', () => Actions.setAutoHeal(kind, +slider.value));
+    show();
+    box.appendChild(h('label', { className: `auto-heal-row ${kind}` }, h('span', null, label, ' ', out), slider));
+  }
+  return box;
+}
+let autoHealKey = '';
+function renderAutoHeal() {
+  const box = $('autoHealBox');
+  if (!box || touchScreen) return;
+  const key = JSON.stringify(player.autoHeal || {});
+  if (key === autoHealKey || box.contains(document.activeElement)) return; // (not while a slider is in your hand)
+  autoHealKey = key;
+  box.replaceChildren(h('div', { className: 'muted small' }, 'Auto-heal: drink a potion by itself'), autoHealControls());
 }
 
 let partyKey = '';

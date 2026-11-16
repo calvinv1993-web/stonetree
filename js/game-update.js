@@ -245,6 +245,15 @@ const Actions = {
     uiDirty();
   },
   // Secure mode: on, you can't hurt players without a skull (nor your party); off, you can.
+  // auto-heal: drink a health (kind 'hp') or mana potion by yourself below pct percent; 0 turns it off
+  setAutoHeal(kind, pct) {
+    if (kind !== 'hp' && kind !== 'mana') return;
+    const v = Math.max(0, Math.min(AUTO_HEAL_MAX, Math.round((Number(pct) || 0) / 5) * 5));
+    if (!player.autoHeal || typeof player.autoHeal !== 'object') player.autoHeal = { hp: 0, mana: 0 };
+    player.autoHeal[kind] = v;
+    player.autoHealOut = {}; // (out of potions: say so again)
+    uiDirty();
+  },
   setSecure(on) {
     player.secure = !!on;
     log(on ? 'Secure mode is on: you won\'t hurt players without a skull, nor your party.' : 'Secure mode is off: your attacks and area spells hurt any player around you (outside safe places).');
@@ -609,6 +618,29 @@ function petCare() {
   return `${pet.name} looks well, $name. There: a little blessing for the road.`;
 }
 
+// Auto-heal (the Settings' sliders): below the health or mana you chose, a potion from your backpack is drunk for you,
+// just as a tap on it would (the same potions, the same second between two). Health comes first. Not while you trade.
+// Your last potion is warned of, and running out is said once (till you have some again).
+function autoHeal() {
+  const set = player.autoHeal;
+  if (!set || (!set.hp && !set.mana) || now < (player.potionReady || 0) || player.shopNpc) return;
+  const out = player.autoHealOut || (player.autoHealOut = {});
+  const need = [['hp', player.hp / player.maxHp, d => d.heal, 'health'], ['mana', player.mana / player.maxMana, d => d.mana, 'mana']]
+    .filter(([k, frac]) => set[k] > 0 && frac * 100 < set[k]);
+  for (const [k, , kind, word] of need) {
+    const ref = findInBag(it => { const d = ITEMS[it.id]; return !!(d.use && kind(d.use)); });
+    if (!ref) {
+      if (!out[k]) { out[k] = true; log(`Out of ${word} potions: auto-heal is waiting.`, 'damage'); }
+      continue;
+    }
+    out[k] = false;
+    const id = resolve(ref).item.id;
+    drink(ref);
+    if (!countItem(id)) log(`That was your last ${ITEMS[id].name}!`, 'damage');
+    return; // (one potion a turn: the next waits for the potion's second)
+  }
+}
+
 function updatePlayer() {
   if (player.dead) {
     player.petBody = null; // (your companion waits for you at the temple)
@@ -620,6 +652,7 @@ function updatePlayer() {
   updatePet();
   tickConditions(player);
   if (player.dead) return;
+  autoHeal();
   if (player.skullUntil && now >= player.skullUntil) {
     player.skullUntil = 0;
     log('Your white skull has faded. You can enter temples again.', 'quest');

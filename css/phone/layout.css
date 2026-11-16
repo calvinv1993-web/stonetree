@@ -417,6 +417,10 @@ body.touch-ui:has(#talk:not([hidden])) .fight-bar { display: none !important; }
 /* the quality's line above its choice in the phone's Menu */
 body.touch-ui .menu-sub { margin: 10px 4px 6px; font: 500 15px var(--ui); text-align: left; }
 body.touch-ui .menu-sub small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+/* auto-heal's two sliders in the Settings: a thumb's width to drag */
+body.touch-ui #menuSec .auto-heal { gap: 12px; margin: 0 4px 10px; }
+body.touch-ui #menuSec .auto-heal-row { font: 500 14px var(--ui); color: var(--text); gap: 6px; }
+body.touch-ui #menuSec .auto-heal-row input[type="range"] { height: 30px; }
 /* On a phone the guide folds away to a small tab (its step in full stays at the top of the Quests tab) */
 body.touch-ui .guide.folded { width: auto !important; padding: 2px 6px !important; }
 body.touch-ui .guide.folded #guideNow { display: none !important; }

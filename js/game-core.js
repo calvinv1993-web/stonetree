@@ -21,6 +21,7 @@ const map = customMap || createDefaultMap();
 
 let now = 0;           // time of the current frame (ms)
 const POTION_COOLDOWN = 1000; // ms between two potions
+const AUTO_HEAL_MAX = 80; // the highest auto-heal setting (percent): above it a potion would mostly be wasted
 let monsters = [];
 let npcs = [];
 const players = [];    // everyone in the world (offline: just you)
@@ -50,6 +51,7 @@ function newPlayer(name) {
     id: newId(), type: 'player', name, vocation: 'none', promoted: false, home: 'start', outfit: {},
     x: 0, y: 0, z: 0, dir: 2, walk: null,
     level: 1, xp: 0, hp: 150, maxHp: 150, mana: 50, maxMana: 50, gold: 20, bank: 0, skills,
+    autoHeal: { hp: 0, mana: 0 }, // drink a potion by yourself below this much health / mana (percent; 0: off): autoHeal() in game-update.js
     equipment: {
       head: null, neck: null, body: null, legs: null, feet: null, shield: null, ring: null, ammo: null,
       weapon: makeItem('wooden_club'),
@@ -1678,7 +1680,7 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };
@@ -1693,6 +1695,7 @@ function applySave(data) {
   if (data.tutorial === undefined) player.tutorial = 0; // from before the guide: they know their way
   if (data.huntDay === undefined) player.huntDay = ''; // (from before the daily bonus: today's is still to have)
   if (data.born === undefined) player.born = ''; // (from before the mark: its action buttons stay under its name)
+  if (!player.autoHeal || typeof player.autoHeal !== 'object') player.autoHeal = { hp: 0, mana: 0 }; // (from before auto-heal: off)
   if (player.pet && player.pet.downUntil) player.pet.downUntil = now + 30000; // (a clock that started again: back soon)
   if (player.pet && !Object.hasOwn(PET_MODES, player.pet.mode || '')) player.pet.mode = 'assist'; // (from before its modes: it fights at your side)
   const valid = it => it && ITEMS[it.id] && (!it.contents || (it.contents = it.contents.filter(valid)));

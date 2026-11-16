@@ -930,6 +930,36 @@ test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood),
   assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
 });
 
+test('auto-heal drinks a potion by itself below the health or mana you chose, health first, and says when you run out', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 170, z: 8 });
+  const potions = () => state.countItem('health_potion');
+  A.setAutoHeal('hp', 999); assert.strictEqual(p.autoHeal.hp, 80, 'the setting stays within its slider');
+  A.setAutoHeal('mana', 'x'); assert.strictEqual(p.autoHeal.mana, 0, 'nonsense turns it off');
+  A.setAutoHeal('gold', 50); assert(!('gold' in p.autoHeal), 'only health and mana');
+  A.setAutoHeal('hp', 40);
+  p.hp = Math.floor(p.maxHp * 0.5); const n0 = potions(); tick(game, 300);
+  assert.strictEqual(potions(), n0, 'above the setting: no potion');
+  p.hp = Math.floor(p.maxHp * 0.3); p.potionReady = 0; tick(game, 300);
+  assert.strictEqual(potions(), n0 - 1, 'below it: one potion drunk');
+  assert(p.hp > Math.floor(p.maxHp * 0.3), 'and it healed');
+  // health before mana, one potion a second
+  ctx.addItem('mana_potion', 3); A.setAutoHeal('mana', 50);
+  p.hp = 10; p.mana = 1; p.potionReady = 0; const m0 = state.countItem('mana_potion'), h0 = potions(); tick(game, 200);
+  assert(potions() === h0 - 1 && state.countItem('mana_potion') === m0, 'health comes first');
+  // out of health potions: said once, and the mana potion is drunk meanwhile
+  while (potions()) ctx.removeItem('health_potion', 1);
+  p.hp = 10; p.mana = 1; p.potionReady = 0; tick(game, 1500);
+  assert(messages.some(m => /Out of health potions/.test(m)), 'running out is said');
+  assert.strictEqual(messages.filter(m => /Out of health potions/.test(m)).length, 1, 'once');
+  assert(state.countItem('mana_potion') < m0, 'mana still looked after');
+  A.setAutoHeal('hp', 0); A.setAutoHeal('mana', 0);
+  p.hp = 10; p.mana = 1; p.potionReady = 0; const m1 = state.countItem('mana_potion'); tick(game, 1500);
+  assert.strictEqual(state.countItem('mana_potion'), m1, 'off: nothing drunk');
+});
+
 test('Clang, a companion: follows you, fights what you fight, and grows as he fights and trains', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

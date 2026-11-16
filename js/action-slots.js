@@ -61,7 +61,12 @@ const ActionSlots = (() => {
     left.className = 'slot-left'; // (the seconds of cooldown left)
     lasts.className = 'slot-lasts'; // (how long what it gave you still lasts)
     if (!(entry && entry.id === 'm' && player.vocation === 'none' && entry.sub === '×0')) button.classList.remove('quiet');
-    button.replaceChildren(face, badge, cool, left, lasts);
+    // (a potion that auto-heal drinks for you: a small A and its setting, top left)
+    const auto = entry && (entry.id === 'h' || entry.id === 'm') && player.autoHeal && player.autoHeal[entry.id === 'h' ? 'hp' : 'mana'];
+    const mark = document.createElement('u');
+    mark.className = 'slot-auto';
+    if (auto) mark.textContent = `A${auto}`;
+    button.replaceChildren(face, badge, cool, left, lasts, ...(auto ? [mark] : []));
     button.dataset.action = entry ? entry.id : '';
     button.setAttribute('aria-label', entry ? `${entry.name}${spell ? `, ${spell.mana} mana` : entry.sub ? `, ${entry.sub}` : ''}` : 'Empty: tap to choose what goes here');
     refresh(button);
