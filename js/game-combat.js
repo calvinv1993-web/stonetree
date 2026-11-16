@@ -823,6 +823,8 @@ function updateMonster(m, i) {
   }
   finishWalk(m);
   if (m.walk) return;
+  m.dazed = m.dazedUntil > now;
+  if (m.dazed) return; // (dazed by a companion's bell: it stands, and does nothing)
   if (m.returning) reengage(m);
   if (strayHome(m)) return;
   m.asleep = monsterAsleep(m);

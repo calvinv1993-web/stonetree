@@ -490,9 +490,12 @@ const FIELDS = {
 //   look: the creature it's drawn as; hitEvery: ms between its blows; dmg(level): [min, max] a blow;
 //   hp(level): its health; xpFor(level): what it needs to grow from that level to the next; maxLevel;
 //   dummyLevel: how far a training dummy can teach it (beyond that, only fights do)
+//   special: its special attack, learned at `level`: { name, level, every (ms), dmg(level): [min, max] each, daze (ms) }
+//     (Clang's Guardian's Toll: he rings his bell, and every monster beside him is hurt and stands dazed a moment)
 // It learns half the experience of each monster it helped to kill, and never grows past your own level.
 const PETS = {
-  cat: { look: 'cat', hitEvery: 2000, dmg: l => [0, 1 + l], hp: l => 30 + 12 * l, xpFor: l => 18 * l * l, maxLevel: 10, dummyLevel: 4 },
+  cat: { look: 'cat', hitEvery: 2000, dmg: l => [0, 1 + l], hp: l => 30 + 12 * l, xpFor: l => 18 * l * l, maxLevel: 10, dummyLevel: 4,
+    special: { name: "Guardian's Toll", level: 8, every: 15000, dmg: l => [2 * l, 4 * l], daze: 2000 } },
 };
 // How a companion fights (player.pet.mode, Actions.petMode): what the game says when you choose it
 const PET_MODES = {

@@ -498,7 +498,9 @@ function updatePet() {
   if (creatureAt(b.x, b.y, b.z)) return petStep(b, goal, Infinity);
   if (t && dist(b, t) <= 1) { // at its target: a scratch every so often
     b.dir = dirTo(t.x - b.x, t.y - b.y);
-    if (now >= b.nextHit) { b.nextHit = now + kind.hitEvery; petHit(t, kind); }
+    const sp = kind.special;
+    if (sp && pet.level >= sp.level && now >= (b.nextToll || 0) && now >= b.nextHit) { b.nextToll = now + sp.every; b.nextHit = now + kind.hitEvery; petToll(b, sp); }
+    else if (now >= b.nextHit) { b.nextHit = now + kind.hitEvery; petHit(t, kind); }
     return;
   }
   if (dist(b, goal) <= (t ? 1 : 1.5)) return;
@@ -531,6 +533,19 @@ function petHit(m, kind) {
   if (dmg <= 0) return void addBurst(m.x, m.y, m.z, '#9cf'); // (a swipe that misses)
   addSound('hit', m.x, m.y, m.z);
   damageMonster(m, dmg, 'physical');
+}
+// A grown companion's special attack (PETS: special): Clang rings his bell. Every monster beside him is hurt and stands
+// dazed for a moment (a boss, with a voice, half as long); never one in a protection zone.
+function petToll(b, sp) {
+  const pet = player.pet, [lo, hi] = sp.dmg(pet.level);
+  addSpeech(b, 'CLANG!');
+  addSound('bell', b.x, b.y, b.z);
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) addBurst(b.x + dx, b.y + dy, b.z, '#ffd860');
+  for (const m of monsters.filter(o => !o.dead && o.z === b.z && dist(o, b) <= 1.5 && !inPZ(o))) {
+    (m.petHelp || (m.petHelp = {}))[player.id] = true;
+    m.dazedUntil = now + (m.def.voices ? sp.daze / 2 : sp.daze);
+    damageMonster(m, randInt(lo, hi), 'physical');
+  }
 }
 // A monster your companion helped to kill: half its experience, for your companion
 function petLearnFromKill(m) {
@@ -570,6 +585,7 @@ function petLearn(n) {
   pet.xp = 0; pet.level++;
   pet.hp = petMaxHp(pet);
   log(`${pet.name} grows stronger! (level ${pet.level})`, 'level');
+  if (kind.special && pet.level === kind.special.level) log(`${pet.name} is fully grown, and has learned the ${kind.special.name}: now and then in a fight, ${pet.name} rings the bell, hurting and dazing every monster around.`, 'level');
   if (player.petBody) addSparkle(player.petBody, '#ffe080');
   uiDirty();
 }

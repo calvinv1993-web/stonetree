@@ -955,6 +955,20 @@ test('Clang, a companion: follows you, fights what you fight, and grows as he fi
   p.dead = true; ctx.updatePet(); assert.strictEqual(p.petBody, null, 'gone while you are dead');
 });
 
+test("grown Clang rings his bell: the Guardian's Toll hurts and dazes every monster beside him", () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  p.level = 10; p.pet = { name: 'Clang', kind: 'cat', level: 8, xp: 0, mode: 'assist' };
+  ctx.teleport({ x: 128, y: 170, z: 8 }); tick(game, 200);
+  const b = p.petBody, rats = [1, -1].map(d => { const r = ctx.spawnMonster({ type: 'rat', x: b.x + d, y: b.y + 1, z: 8 }); r.hp = r.maxHp = 999; r.def = { ...r.def, aggro: 0 }; state.monsters.push(r); return r; });
+  p.target = rats[0]; tick(game, 1500);
+  assert(rats.every(r => r.hp < 999), 'both rats beside him are hurt');
+  assert(rats.every(r => r.dazedUntil > 0), 'and dazed');
+  assert(state.effects.some(fx => fx.kind === 'speech' && fx.text === 'CLANG!'), 'with a CLANG!');
+  const at = b.nextToll; tick(game, 3000); assert.strictEqual(b.nextToll, at, 'not again for a while');
+});
+
 // A companion's world: you with Clang at level 5, somewhere open on the island
 function petGame() {
   const game = quietGame();

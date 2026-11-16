@@ -422,7 +422,7 @@ function snapshot(conn, tiles) {
       partyMark: W.partyMark(o, p), guildInfo: W.guildInfo(o), lightUntil: o.lightUntil, petBody: o.petBody || null,
     })),
     monsters: G.monsters.filter(m => !m.dead && near(p, m)).map(m => ({
-      id: m.id, type: m.type, name: m.name, rare: m.rare || undefined, x: m.x, y: m.y, z: m.z, dir: m.dir, walk: m.walk, hp: m.hp, maxHp: m.maxHp, asleep: m.asleep || undefined,
+      id: m.id, type: m.type, name: m.name, rare: m.rare || undefined, x: m.x, y: m.y, z: m.z, dir: m.dir, walk: m.walk, hp: m.hp, maxHp: m.maxHp, asleep: m.asleep || undefined, dazed: m.dazed || undefined,
     })),
     npcs: G.npcs.filter(n => n.def.wander && near(p, n)).map(n => ({ id: n.id, x: n.x, y: n.y, z: n.z, dir: n.dir, walk: n.walk })),
     piles: G.piles.filter(pl => near(p, pl)).map(pl => ({ id: pl.id, x: pl.x, y: pl.y, z: pl.z, corpse: pl.corpse, name: pl.name, items: pl.items })),
