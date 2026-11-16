@@ -553,6 +553,8 @@ body.touch-ui .guide.task:not(.open) #guideNow { display: -webkit-box; -webkit-l
 /* while the backpack drawer is open the guide stays over the map above it, short (its picture away), so Next stays in reach */
 body.touch-ui.drawer-open .guide .guide-art { display: none; }
 body.touch-ui.drawer-open .guide:not(.folded) #guideText { -webkit-line-clamp: 3; }
-body.touch-ui.drawer-full .guide { display: none; }
+/* all the way open: the guide stays, short, over the backpack (GuideSpot places it: at the top, or just above the action bar) */
+body.touch-ui.drawer-full .guide.over-drawer { top: var(--guide-top, 60px) !important; z-index: 40; }
+body.touch-ui.drawer-full .guide.over-drawer:not(.folded) #guideText { -webkit-line-clamp: 3; }
 body.touch-ui .guide #guideProg { margin: 2px 0 0; color: var(--accent, #ffd84a); font-weight: 700; }
 body.touch-ui .guide.folded #guideProg { display: none; }

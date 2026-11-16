@@ -173,9 +173,7 @@ function renderGuide() {
   guideKey = key;
   const box = $('guide'), view = $('view');
   box.hidden = !step;
-  // the parts of the screen this step is about glow (a ring round them), until the step is passed
-  for (const el of document.querySelectorAll('.guide-spot')) el.classList.remove('guide-spot');
-  if (step && !guideFolded) for (const sel of (touchScreen ? step.ui : step.uiDesk) || []) for (const el of document.querySelectorAll(sel)) el.classList.add('guide-spot');
+  // (the part of the screen this step is about is lit, with a ring round it: GuideSpot, below)
   if (!step) return;
   box.classList.toggle('folded', guideFolded);
   // a step with a task: short on a phone (its first lines and how far you are); one that only explains: in full
@@ -263,20 +261,25 @@ const GUIDE_ART = (() => {
 // ---- the guide's spotlight: the rest of the screen dims, the part a step is about stays lit, a hand points at it ----
 // (a see-through layer over everything that takes no taps: the lit part and the guide's own box are holes in it)
 const GuideSpot = (() => {
-  let layer = null, hand = null, path = null;
+  let layer = null, hand = null, path = null, ring = null;
   const make = () => {
     layer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     layer.id = 'guideSpot'; layer.setAttribute('aria-hidden', 'true');
     path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('fill-rule', 'evenodd');
-    layer.appendChild(path);
+    ring = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    ring.setAttribute('class', 'ring');
+    layer.append(path, ring);
     hand = document.createElement('div'); hand.id = 'guideHand'; hand.setAttribute('aria-hidden', 'true');
     hand.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10m0-.5V3a1.5 1.5 0 0 1 3 0v7m0-1a1.5 1.5 0 0 1 3 0v4.5c0 4-2.5 7.5-6.5 7.5-2.4 0-4-1-5.3-2.8L3.5 15a1.6 1.6 0 0 1 2.5-2L9 15.5V11"/></svg>';
     document.body.append(layer, hand);
   };
   const visible = el => { if (!el || el.hidden) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
     return r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };
-  const hole = (r, pad, rad) => { const x = r.left - pad, y = r.top - pad, w = r.width + 2 * pad, hh = r.height + 2 * pad, k = Math.min(rad, w / 2, hh / 2);
+  // a rounded hole round a rect, pad wider, kept inside the screen (a button at its edge is lit, ring and all, not cut off)
+  const hole = (r, pad, rad) => {
+    const x = Math.max(3, r.left - pad), y = Math.max(3, r.top - pad), w = Math.min(innerWidth - 3, r.right + pad) - x, hh = Math.min(innerHeight - 3, r.bottom + pad) - y;
+    const k = Math.max(0, Math.min(rad, w / 2, hh / 2));
     return `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + hh - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + hh}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + hh - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`; };
   let passed = 0; // (the step this browser last moved the guide on from: once, not every frame while the server answers)
   function frame() {
@@ -304,8 +307,17 @@ const GuideSpot = (() => {
       target = [...document.querySelectorAll(sel)].find(visible); if (target) break;
     }
     // (the guide's box steps aside while a window is open, e.g. the chooser of an action button: then the light
-    // follows into that window on its own)
-    const box = $('guide'), boxShown = visible(box);
+    // follows into that window on its own. With the backpack all the way open it stays, short, over the backpack:
+    // at the top, or just above the action bar when what it's about is up there)
+    const box = $('guide');
+    const full = !!step && document.body.classList.contains('drawer-full');
+    box.classList.toggle('over-drawer', full);
+    if (full) {
+      const dock = $('actionDock'), low = !target || target.getBoundingClientRect().top > innerHeight * 0.4;
+      const top = low ? ($('touch').querySelector('.hud') || dock).getBoundingClientRect().bottom + 8 : (dock ? dock.getBoundingClientRect().top : innerHeight) - box.offsetHeight - 8;
+      box.style.setProperty('--guide-top', `${Math.round(top)}px`);
+    }
+    const boxShown = visible(box);
     const on = !!target && (boxShown || !!target.closest('#favPicker')) && !document.body.classList.contains('panel-open');
     if (!layer) { if (!on) return; make(); }
     layer.classList.toggle('on', on);
@@ -315,14 +327,16 @@ const GuideSpot = (() => {
     const r = target.getBoundingClientRect();
     layer.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
     path.setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0Z${hole(r, 6, 12)}${boxShown ? hole(box.getBoundingClientRect(), 0, 12) : ''}`);
+    ring.setAttribute('d', hole(r, 6, 12));
     // the hand: pointing up at it from below, or down at it from above when it's low on the screen (not for something
     // as wide as the screen, like the status bar: the light round it says enough)
-    const wide = r.width > innerWidth * 0.6;
-    hand.classList.toggle('on', !wide || !!target.closest('#favPicker')); // (a wide choice in a list: pointed at near its end)
+    const wide = r.width > innerWidth * 0.6, choice = wide && !!target.closest('#favPicker');
+    hand.classList.toggle('on', !wide || choice);
     const below = r.bottom + 64 < innerHeight;
-    hand.classList.toggle('down', !below);
-    hand.style.left = `${Math.round(wide ? r.right - 64 : r.left + r.width / 2 - 20)}px`;
-    hand.style.top = `${Math.round(below ? r.bottom + 6 : r.top - 52)}px`;
+    hand.classList.toggle('down', !below && !choice);
+    // (a wide choice in a list: the finger on its right end, not on the choice under it)
+    hand.style.left = `${Math.round(choice ? r.right - 46 : Math.min(innerWidth - 44, Math.max(4, r.left + r.width / 2 - 20)))}px`;
+    hand.style.top = `${Math.round(choice ? r.top + r.height * 0.4 : below ? r.bottom + 6 : r.top - 52)}px`;
   }
   requestAnimationFrame(frame);
   return {};
