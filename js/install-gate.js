@@ -6,10 +6,14 @@
 (() => {
   // the app's service worker (sw.js): with it a phone's browser offers to install the game (Android's Install button)
   if ('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => { /* not this time */ });
-  const touchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
-  const app = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
-  if (!touchOnly || app || navigator.webdriver) return;
   const ua = navigator.userAgent;
+  // a phone or tablet: by its name, or by having only a finger to point with. (Samsung's browser was let through: a Galaxy
+  // with a pen says it has a fine pointer, and in its desktop mode it calls itself a Linux computer, but with a touch screen.)
+  const touchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  const handheld = /Android|iPhone|iPad|iPod|Mobile|SamsungBrowser/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (/Linux/.test(ua) && !/Windows/.test(ua) && navigator.maxTouchPoints > 1);
+  const app = navigator.standalone === true || ['standalone', 'fullscreen', 'minimal-ui'].some(m => matchMedia(`(display-mode: ${m})`).matches);
+  if (!(touchOnly || handheld) || app || navigator.webdriver) return;
+  const samsung = /SamsungBrowser/.test(ua);
   const ios = /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   const inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|GSA\//.test(ua); // (a link opened inside another app)
   document.documentElement.classList.remove('booting'); // (the page is shown: this is all it shows)
@@ -21,7 +25,9 @@
     : ios
       ? [`In <b>Safari</b>, tap <b>Share</b> ${share} in the bar at the bottom (on newer iPhones: <b>⋯</b>, then <b>Share</b>). Opened from a link in another app? Choose <b>Open in Safari</b> first.`,
         `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list, or tap <b>More</b>, if you don't see it).`, 'Open <b>Lickii</b> from your home screen.']
-      : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>Lickii</b> from your home screen.'];
+      : samsung
+        ? ['Tap the menu <b>≡</b> (bottom right).', 'Choose <b>Add page to</b>, then <b>Home screen</b> (or tap <b>Install</b> if it\'s offered).', 'Open <b>Lickii</b> from your home screen.']
+        : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>Lickii</b> from your home screen.'];
   const gate = document.createElement('div');
   gate.id = 'installGate';
   gate.innerHTML = `
