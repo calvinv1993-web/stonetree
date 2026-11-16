@@ -230,8 +230,8 @@ const GUIDE = [
     minLevel: 10, // (till then: hunt at the gates)
   },
   {
-    text: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
-    touch: 'The bell rings again! The oracle, upstairs in the academy, lets you choose a vocation at level 10, and sends you on to the mainland. Until then, explore the island: many things have a story.',
+    text: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: knight, paladin, sorcerer or druid (ask about each before you decide).',
+    touch: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: knight, paladin, sorcerer or druid (ask about each before you decide).',
     target: [{ npc: 'oak_oracle', level: 10 }],
   },
 ];

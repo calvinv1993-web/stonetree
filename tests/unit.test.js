@@ -801,14 +801,15 @@ test('a newcomer who doesn\'t know the words is understood: "what do I do", "tha
   assert(/long winter|ship/i.test(said('founders')), 'and she tells of the founders');
 });
 
-test('the Gravewaker was Sir Galen: he speaks, and what people say changes once the bell rings', () => {
+test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood), and what people say changes once the bell rings', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   const g = ctx.spawnMonster({ type: 'gravewaker', x: 69, y: 180, z: 6 });
   state.monsters.push(g); ctx.teleport({ ...ctx.findFreeTile(g.x + 2, g.y, 6, 3), z: 6 });
   p.level = 20; tick(game, 600);
-  assert(state.effects.some(fx => fx.kind === 'speech' && /Galen of Oakvale/.test(fx.text)), 'he names himself');
+  const spoke = state.effects.filter(fx => fx.kind === 'speech' && /Ashen Choir/.test(fx.text));
+  assert(spoke.length && !spoke.some(fx => /Galen/.test(fx.text)), 'he speaks of the Choir, not of who he was');
   const corwin = state.npcs.find(n => n.npcId === 'corwin');
   const talk = w => { ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); A.say('hi'); tick(game, 100); const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
   assert(/rats got him/.test(talk('galen')), 'before: a knight the rats killed');
@@ -878,6 +879,76 @@ test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bell
   const n = messages.filter(m => /rings in the dawn/.test(m)).length;
   for (let i = 0; i < 30; i++) tick(game, 60000);
   assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
+});
+
+test('a save from before the shared bell: whoever brought the clapper home goes on the plaque when they come back', () => {
+  const { ctx, state } = quietGame();
+  const p = state.player;
+  p.quests.bell_4 = { status: 'done', step: 2, kills: {} };
+  const save = JSON.parse(JSON.stringify(ctx.serializePlayer(p)));
+  state.townBell = { ringers: [], first: null, dawn: -1 };
+  ctx.applySave(save);
+  assert.strictEqual(state.townBell.first, p.name, 'nobody was first yet: they are the Bellringer');
+  assert(JSON.stringify(state.townBell.ringers) === JSON.stringify([p.name]) && p.chests.bell_ringer, 'and on the plaque');
+  // someone else got there first meanwhile: on the plaque, not first, and only once
+  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
+  ctx.applySave(save); ctx.applySave(save);
+  assert.strictEqual(state.townBell.first, 'Ana');
+  assert.strictEqual(JSON.stringify(state.townBell.ringers), JSON.stringify([p.name, 'Ana']), 'on the plaque once, before those who came after');
+  // and nobody who hasn't brought it home
+  delete p.quests.bell_4; state.townBell = { ringers: [], first: null, dawn: -1 };
+  ctx.applySave(JSON.parse(JSON.stringify(ctx.serializePlayer(p))));
+  assert.strictEqual(state.townBell.ringers.length, 0);
+});
+
+test('the oracle: no mainland yet, so you stay as Oakvale\'s own; once there is one, she sends you across', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  assert(!vm.runInContext('mainlandOpen()', ctx), 'the beginners\' island comes first: no mainland in the built-in world');
+  const oracle = state.npcs.find(n => n.npcId === 'oak_oracle');
+  const ask = (...words) => { ctx.teleport({ ...ctx.findFreeTile(oracle.x, oracle.y, oracle.z, 2), z: oracle.z }); const n = messages.length; A.say('hi'); for (const w of words) A.say(w); tick(game, 3000); return messages.slice(n).join(' | '); };
+  p.level = 10; p.xp = state.xpForLevel(10);
+  const said = ask('destiny', 'knight', 'yes'), at = { x: p.x, y: p.y, z: p.z };
+  assert.strictEqual(p.vocation, 'knight');
+  assert(/has not come yet/.test(said) && /Oakvale's first knight/.test(said), 'the farewell is honest: the ship has not come yet');
+  assert(!/mainland|Orin|Valoria|dream|never come back/i.test(said), `nothing of a mainland that isn't there: ${said}`);
+  assert.strictEqual(oracle.z, p.z, 'and nobody is sent anywhere');
+  assert(state.dist(oracle, p) <= 3, 'you are still beside her');
+  assert(state.countItem('health_potion') > 0 || p.equipment.backpack.contents.length, 'the oracle\'s gift');
+  assert.strictEqual(vm.runInContext('homeTown()', ctx), 'Oakvale', 'you wake in Oakvale');
+  // coming back later: no second crossing, no second gift
+  const things = JSON.stringify(p.equipment);
+  ctx.applySave(JSON.parse(JSON.stringify(ctx.serializePlayer(p)))); tick(game, 2000);
+  assert.strictEqual(JSON.stringify(p.equipment), things, 'nothing given twice');
+  assert(p.x === at.x && p.y === at.y && p.z === at.z, 'nor sent anywhere');
+  // level 20: nobody in the world promotes yet, so nobody is named
+  const n = messages.length; p.xp = state.xpForLevel(20) - 1; ctx.gainXp(2);
+  assert(!messages.slice(n).some(m => /promot|Orin|Valoria/.test(m)), 'no promoter to send you to');
+  // with a mainland the old way is back: off you go
+  const game2 = quietGame(), p2 = game2.state.player;
+  game2.state.map.mainStart = { x: 128, y: 170, z: 8 }; // (somewhere else: as if it were the mainland)
+  assert(vm.runInContext('mainlandOpen()', game2.ctx));
+  p2.level = 10;
+  game2.ctx.chooseVocation('druid'); tick(game2, 3000);
+  assert(p2.x === game2.state.map.mainStart.x && p2.y === game2.state.map.mainStart.y && p2.home === 'main', 'sent to the mainland');
+  assert(game2.messages.some(m => /Welcome to the mainland/.test(m)));
+});
+
+test('the bell rung home by someone else: for a newcomer its clapper was stolen again, and the plaque says who rang it', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const A = state.Actions;
+  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
+  const ama = state.npcs.find(n => n.npcId === 'ama');
+  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
+  const n = messages.length; A.say('hi'); A.say('bell');
+  const said = messages.slice(n).join(' | ');
+  assert(/rung home by Ana/.test(said) && /stolen again/.test(said), `a newcomer hears the story starts over: ${said}`);
+  assert(!/three days/.test(said));
+  state.townBell = { ringers: [], first: null, dawn: -1 };
+  A.say('bye'); const m = messages.length; A.say('hi'); A.say('bell');
+  assert(/three days/.test(messages.slice(m).join(' | ')), 'and the first to come hears it as it was');
 });
 
 test('the spiders\' den under the Spider Hills: reachable, spiders, and the Brood Queen with her rare fang', () => {

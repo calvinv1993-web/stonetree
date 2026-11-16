@@ -31,7 +31,7 @@ const MONSTERS = {
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
     // (Sir Galen of Oakvale, under the Ashen Choir's hood: The Silent Bell IV)
     voices: {
-      aggro: 'So the bell sends its little ringer. I was Galen of Oakvale once. Now I sing for the Ashen Choir.',
+      aggro: 'So the bell sends its little ringer. Come closer. The dead are waking, and I sing for the Ashen Choir.',
       low: 'The founders\' spark... was never theirs to keep!',
       death: 'The Choir... will send the ship... for the spark...',
     },

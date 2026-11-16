@@ -1029,7 +1029,8 @@ function renderQuests() {
     if (st) (stories[st === true ? 'The Ember Seal' : st] = stories[st === true ? 'The Ember Seal' : st] || []).push(id);
   }
   for (const [title, story] of Object.entries(stories)) {
-    if ((title === 'The Ember Seal') === (player.vocation === 'none') && !story.some(id => questState(id) !== 'none')) continue; // the mainland's story waits for the mainland
+    const waits = title === 'The Ember Seal' ? player.vocation === 'none' || !mainlandOpen() : player.vocation !== 'none'; // the mainland's story waits for the mainland
+    if (waits && !story.some(id => questState(id) !== 'none')) continue;
     const box = document.createElement('div'), head = document.createElement('b');
     box.className = 'story';
     const done = story.filter(id => questState(id) === 'done').length;

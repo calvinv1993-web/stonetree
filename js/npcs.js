@@ -43,6 +43,8 @@ const BUYS = {
 // text.elsewhere: what anyone else in the chain says when asked before it is offered.
 // after: a quest that must be done before this one is offered (text.notYet: what the giver says till then).
 // word: the word to ask about it (or a step's own word), when the NPC's keyword has several.
+// again: { key: text } (in text, or on a step): what is said instead once someone else has rung the bell of Oakvale
+// home and its clapper was stolen again for you (bellAgain in game-core.js); $ringer is the first Bellringer.
 const QUESTS = {
   // ---- The Ember Seal: the main story, from the Seer's dream to the bottom of the demon pit ----
   // Long ago the first Grandmaster of the Order of the Seal bound Vharzul the Ashen beneath the
@@ -642,6 +644,21 @@ const LORE = [
   'A treatise on runes: "A blank rune holds nothing until a mage speaks its form into it."',
   'A cookbook. Most recipes involve fish.',
   'A sailor\'s almanac: "Gull\'s Wake, lost off Brightwater Isle with all hands. Her captain\'s sword was never recovered."',
+];
+
+// What you read on the bookshelves of Oakvale Isle (the starter island: map.isle).
+const OAKVALE_LORE = [
+  'A weather almanac, kept by the fishers of Oakvale: "Gulls inland by noon: a storm by night. Frost on the Willow: a hard winter. The bell sounds dull: rain tomorrow."',
+  'An almanac of the long winter, in a shaky hand: "Day forty. The sea is ice as far as the eye can see. We burn the Dawn\'s chairs to keep warm, and sing to keep awake."',
+  'The lighthouse log of Lighthouse Point: "The great storm. Waves over the point all night. At dawn the lamp was gone, and the tower with it. The boats came home by the light of our bonfire." The last pages are in Keeper Tamsin\'s hand.',
+  'A founder\'s notes on bell-founding: "Copper and tin, four parts to one. Pour it hot and all at once, and never let the mould crack. A bell cast in anger rings sour."',
+  'A hymnal, its pages grey with ash: "Sing the spark home, sing it under the mountain, sing till the bronze breaks." Someone has scratched out the last page.',
+  'A herbal: "Marsh-mint for a sore belly, willow bark for an aching head, and for a wolf bite: run faster next time."',
+  'A ledger of the Sleepy Boar, the year the bridge was built: "Forty pints for the bridge-builders. Paid in planks."',
+  'A primer of the academy: "The four paths - steel, arrow, flame and leaf - begin at the oracle\'s word, upstairs. Choose with care: there is no unchoosing."',
+  'A treatise on runes: "A blank rune holds nothing until a mage speaks its form into it."',
+  'A book of tides for Lighthouse Point: "Low water at the tip: crabs. High water: more crabs."',
+  'A cookbook. Most recipes involve fish.',
 ];
 
 const ASHPORT = { x: 53, y: 93, z: 4 }, VALORIA_PIER = { x: 79, y: 72, z: 4 }, GREYMOOR_PIER = { x: 226, y: 13, z: 4 };
@@ -1403,7 +1420,6 @@ const NPCS = {
     greet: 'Eh? Speak up, youngster! Do you want to hear a {story}?',
     keywords: {
       story: 'In my day there was no bridge to the academy. We waded the Willow! Both ways! And the rats in the sewers were the size of sheep.',
-      'tobb|lucky|orange': 'Lucky Tobb, the lad in the orange hood? Do not bother. I have seen him killed nine times this week. He always comes back.',
       job: 'I sit. I have earned it.',
     },
     chatter: ['In my day...', 'Kids these days.', 'My knee says rain is coming.', 'Zzz... eh? I was not sleeping!', 'I once punched a troll. Well, near a troll.'],
@@ -1589,10 +1605,10 @@ Object.assign(QUESTS, {
         done: 'Sister Ama sent you? Good. Before I teach you anything, show me you can hold a weapon. Rats have been running wild in {Sunny Fields}, out of the south gate. Kill five of them, then come back and tell me about the {bell} again.' },
       { npc: 'corwin', kill: { rat: 5 }, summary: 'Kill 5 rats in Sunny Fields, out of the south gate, and report to Master Corwin.',
         progress: 'So far you have killed $progress. The rats are in the fields south of town.',
-        done: 'Five rats! You will do. Now: everything you carry can be lost when you die. Go to the depot east of the temple and ask Postmaster Hobb about your {locker}.' },
+        done: 'Five rats! You will do. Now: once you have a vocation, everything you carry can be lost when you die. Learn your locker now: go to the depot east of the temple and ask Postmaster Hobb about your {locker}.' },
       { npc: 'postmaster', summary: 'Ask Postmaster Hobb in the depot, east of the temple, about your locker.',
         progress: 'The depot is the slate-roofed house at the east end of the square, south of the bell tower.',
-        done: 'Your locker? Open any locker here and it is yours - and it is the same locker in every town. Put what you treasure in it. Now, would you take a letter to Pip at the provisions shop on the main street? Give him the {letter} and he will know it is from me.' },
+        done: 'Your locker? Open any locker here and it is yours, for as long as you live. Put what you treasure in it. Now, would you take a letter to Pip at the provisions shop on the main street? Give him the {letter} and he will know it is from me.' },
       { npc: 'pip', summary: 'Bring the postmaster\'s letter to Pip at Pip\'s Provisions, on the main street.',
         progress: 'Pip\'s Provisions is on the main street, south of the square, with a rope on its sign.',
         done: 'A letter for me? Thank you! Here is a tip, newcomer: I {trade} anything you find on monsters, and no adventurer should leave town without a rope and a shovel. Now go back to Sister Ama in the temple and tell her about the {bell} - she was worried about something.' },
@@ -1601,6 +1617,7 @@ Object.assign(QUESTS, {
     ],
     text: {
       offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} has not rung for three days. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})',
+      again: { offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} was rung home by $ringer, and last night its clapper was stolen again, and its new rope cut. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})' },
       accept: 'Good. Go down the steps, cross the square to the west and over the bridge to the academy. Master Corwin teaches there: tell him about the {bell}, and that I sent you.',
       reward: 'You have met half the town already, $name - and you are still alive. Take this rope; you will need it. As for the bell... I fear something is down in the dark beneath us, and you are not ready for it yet. Grow stronger first: the guards at the town gates have work for you, and good gear to give. Start with Sergeant Bram at the west gate, and ask him about the {wolves}.',
       done: 'The bell is still silent, $name. Grow stronger at the town gates; Master Corwin will send for you when you are ready.',
@@ -1686,14 +1703,15 @@ Object.assign(QUESTS, {
         done: 'The great slime bursts and seeps away into the cracks. The narrow way east is open: beyond it lies the bottom of the bell shaft.' },
       { npc: 'ama', fetch: 'chewed_rope', summary: 'At the bottom of the bell shaft, east of the cistern, find the bell\'s rope and bring it to Sister Ama.',
         progress: 'The rope lies at the bottom of the bell shaft, east of the deep cistern.',
-        done: 'Our rope... cut clean with a blade, then gnawed by the rats. So the note spoke true. And the clapper "stays with me, below": below the crypt, $name, in the founder\'s tomb itself. Whoever this G is, he waits down there for the dead to wake. He will be stronger than anything you have faced. When you are level 8, ask me about the {gravewaker}.' },
+        done: 'Our rope... cut clean with a blade, then gnawed by the rats. So the note spoke true. And the clapper "stays with me, below": below the crypt, $name, in the founder\'s tomb itself. Whoever this G is, he waits down there for the dead to wake. He will be stronger than anything you have faced. When you are level 8, ask me about the {gravewaker}.',
+        again: { done: 'Our rope... cut clean with a blade, then gnawed by the rats, just like the last time. And the clapper "stays with me, below": in the founder\'s tomb again. $ringer struck the Gravewaker down there once, $name, but something wears his shape again, and waits for the dead to wake. When you are level 8, ask me about the {gravewaker}.' } },
     ],
     text: {
       offer: 'Master Corwin told me about the note. So our rope lies at the bottom of the bell shaft, under the town... The rats have dug their way down there, $name, and worse lives in the deep cistern. Will you bring our rope home? ({yes}/{no})',
       accept: 'Go down a grate into the sewers and east to the rats\' nest under the graveyard: a trapdoor there leads down to the old drains, and another to the cistern. This is the most dangerous place on the isle for one of your strength. Eat well, carry health potions from Pip, get the best armour Brenna has, and come back to me if you are hurt: I will {heal} you. Bring me the {rope}.',
       tooWeak: 'Under the town is no place for you yet, $name. Come back at level 6.',
       elsewhere: 'Sister Ama in the temple wants to know what you found in the crypt.',
-      done: 'We have our rope again. But the bell is still silent without its clapper.',
+      done: 'We have our rope again. But without its clapper, the bell is dumb.',
     },
   },
   bell_4: {
@@ -1703,14 +1721,17 @@ Object.assign(QUESTS, {
     steps: [
       { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
         progress: 'The tomb lies below the hall of coffins, past the iron gate. The Gravewaker waits there with the dead he woke.',
-        done: 'The Gravewaker falls, and his grey hood slips back: an old knight\'s face, weathered and burnt. Sir Galen, whose gravestone says the rats killed him. In his fist, a letter written in ash: "The isle\'s spark is ready. Send the ship. - G." In the open coffin of the founder, something of bronze glints.' },
+        done: 'The Gravewaker falls, and his grey hood slips back: an old knight\'s face, weathered and burnt. Sir Galen, whose gravestone says the rats killed him. Burnt into the hood is a sign: a flame inside a ring, like the one in the Thornmother\'s web. In his fist, a letter written in ash: "The isle\'s spark is ready. Send the ship. - G." In the open coffin of the founder, something of bronze glints.',
+        again: { done: 'The Gravewaker\'s echo falls, and crumbles under its hood into ash and grey rags. Burnt into the cloth: a flame inside a ring. Whatever the Choir sends now only wears Galen\'s shape. In the open coffin of the founder, something of bronze glints.' } },
       { npc: 'ama', fetch: 'bell_clapper', word: 'clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
         progress: 'The clapper lies in the founder\'s open tomb.',
-        done: 'The clapper of our bell... it is warm, $name. Bronze from a tomb, and warm as a hearthstone. And this grey dust in its seams is not grave dust: it is ash. Sir Galen? We buried him twenty years ago... we buried a coffin. So the Ashen Choir has found us, and what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will send you on.' },
+        done: 'The clapper of our bell... it is warm, $name. Bronze from a tomb, and warm as a hearthstone. And this grey dust in its seams is not grave dust: it is ash. Sir Galen? We buried him twenty years ago... we buried a coffin. So the Ashen Choir has found us, and what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will show you your path.',
+        again: { done: 'Our clapper, home again, and as warm as ever, with ash in its seams. $ringer brought it home once, and now you have, $name. So the Ashen Choir has not given up on what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will show you your path.' } },
     ],
     text: {
       offer: 'The rope is home, $name, but the bell is dumb without its clapper - and the one who took it waits in the founder\'s tomb. The Gravewaker, the old stories call such a one. Will you face him? ({yes}/{no})',
-      accept: 'The iron gate to the tomb stairs, in the crypt, will open for you now. He throws poison and raises the dead around him: fight the dead first, keep your health high, and bring many potions - ten would not be too many. Brenna\'s best armour, and food. Then bring me the {clapper}.',
+      again: { offer: 'The rope is home, $name, but the clapper is still below, in the founder\'s tomb - and whatever took it wears the Gravewaker\'s shape again. $ringer struck him down once. Will you face his echo? ({yes}/{no})' },
+      accept: 'Armourer Brenna has lent me the key to the iron gate her great-grandmother forged: the gate to the tomb stairs, in the crypt, will open for you now. He throws poison and raises the dead around him: fight the dead first, keep your health high, and bring many potions - ten would not be too many. Brenna\'s best armour, and food. Then bring me the {clapper}.',
       tooWeak: 'The Gravewaker would kill you, $name. Grow stronger - come back at level 8.',
       elsewhere: 'Sister Ama in the temple wants to see you about the bell.',
       done: 'The bell rings again, thanks to you. At level 10, go and see the oracle upstairs, $name.',
@@ -1724,49 +1745,50 @@ Object.assign(QUESTS, {
     steps: [
       { npc: 'oak_keeper', word: 'lights', summary: 'Go to Lighthouse Point, south of Sunny Fields, and ask Keeper Tamsin about the lights.',
         progress: 'Keeper Tamsin keeps her fire at Lighthouse Point, where the lighthouse stood, south of Sunny Fields.',
-        done: 'Lights? A boat without a lamp, every night since the bell rang again. They come ashore at the tip of the point, grey robes, and they sing. Not sea shanties. If you mean to chase them off, $name, mind the one who leads the singing.' },
+        done: 'Lights? A boat without a lamp. Now and then for years, far out; but every night now, since the clapper came home. They come ashore at the tip of the point, grey robes, and they sing. Not sea shanties. If you mean to chase them off, $name, mind the one who leads the singing.' },
       { auto: true, kill: { choir_cultist: 4, choir_cantor: 1 }, summary: 'At the tip of Lighthouse Point, defeat 4 Choir singers and their cantor.',
         progress: 'The Choir lands at the very tip of Lighthouse Point. So far: $progress.',
-        done: 'The cantor falls, and the singing stops. In his satchel: orders in ash ("Wait for the ship"), and a page torn from an old diary, in a careful, old-fashioned hand.' },
+        done: 'The cantor falls, and the singing stops. In his satchel: orders in ash ("Wait for the ship"), sealed with a flame inside a ring; a ring of swiftness with a name scratched inside it; and a page torn from an old diary, in a careful, old-fashioned hand.' },
       { npc: 'corwin', word: 'choir', summary: 'Bring the diary page and the cantor\'s orders to Master Corwin.',
         progress: 'Master Corwin at the academy will want to read the diary page.',
-        done: 'The founder\'s own hand... "We fled the burning mountain with a splinter of the seal\'s fire, and sealed it in the bronze of our bell, that it might ring and keep the dead asleep, and keep Him from finding it." So that is what Galen wanted, and what the Choir waits for. They will send their ship, $name. Grow strong. When you are ready, the oracle upstairs will send you where they come from. Take this ring: it was Galen\'s, before. It should go to someone better.' },
+        done: 'The founder\'s own hand... "The bell is cast, and its bronze holds the spark. Let no one ever silence it. If the singers of ash come, they will come for the bell." The spark she carried across the sea, that sang like the burning mountain they fled. So that is what Galen wanted, and what the Choir waits for. They will send their ship, $name. Grow strong, and be here when it comes. And this ring from the satchel: GALEN, it says inside. Keep it: it should go to someone better.' },
     ],
     text: {
-      offer: 'Keeper Tamsin sends word from Lighthouse Point: lights on the water at night, and singing. The Choir did not give up with Galen, $name. Will you go and see who comes ashore? ({yes}/{no})',
+      offer: 'The Ashen Choir... The old {books} in my study speak of them: a cult that sings to something sleeping under a burning mountain, far across the sea. And now Keeper Tamsin sends word from Lighthouse Point: lights on the water at night, and singing. The Choir did not give up with Galen, $name. Will you go and see who comes ashore? ({yes}/{no})',
       accept: 'Lighthouse Point is south of Sunny Fields, past the beaches. Talk to Tamsin by her fire first. And go prepared: if they are the Choir, they throw fire.',
       tooWeak: 'The Choir would burn you, $name. Come back at level 8, and after the bell rings again.',
       elsewhere: 'Master Corwin wants to hear what you found at Lighthouse Point.',
       done: 'The founder\'s page lies on my desk. I read it every night. Grow strong, $name.',
     },
   },
-  // VI: level 10, the farewell: ring the bell yourself, and the town says goodbye before the oracle sends you on
+  // VI: level 10, the farewell to your newcomer days: ring the bell yourself, and the town cheers, before the oracle names
+  // your path (no ship has come for anyone yet: you stay, as Oakvale's own)
   bell_6: {
     name: 'The Silent Bell VI: Farewell', story: 'The Silent Bell', giver: 'ama', level: 10, word: 'farewell', after: 'bell_5',
     reward: { xp: 500, gold: 200, items: [['health_potion', 5], ['mana_potion', 5]] },
-    summary: 'Before the oracle sends you on, ring the bell of Oakvale yourself, and say goodbye to those who helped you.',
+    summary: 'Before the oracle names your path, ring the bell of Oakvale yourself, and say farewell to those who helped you as a newcomer.',
     steps: [
       { thing: 'bell', summary: 'Climb the bell tower, east of the temple, and ring the bell of Oakvale yourself.',
         progress: 'The bell tower stands east of the temple. Climb to the top and ring the bell.',
         done: 'You ring the bell, and Oakvale stops to listen. Down in the streets, people look up at the tower, and wave.' },
       { npc: 'corwin', word: 'farewell', summary: 'Say farewell to Master Corwin at the academy.',
         progress: 'Master Corwin is at the academy.',
-        done: 'So the rat-catcher is a hero now. I taught you to hold a weapon; you taught me that the founders\' bell is worth keeping. Go well, $name. When the Choir sends its ship, I hope it finds you waiting.' },
+        done: 'So the rat-catcher is a hero now. I taught you to hold a weapon; you taught me that the founders\' bell is worth keeping. Go well to the oracle, $name. When the Choir sends its ship, I hope it finds you waiting.' },
       { npc: 'pip', word: 'farewell', summary: 'Say farewell to Pip at Pip\'s Provisions.',
         progress: 'Pip\'s Provisions is on the main street.',
-        done: 'You are leaving? Then take a tip from your first shopkeeper: never leave town without a rope. Or a shovel. Or both! I will miss you, $name. Write!' },
+        done: 'Off to the oracle? Then take a tip from your first shopkeeper: never leave town without a rope. Or a shovel. Or both! You were my best customer as a newcomer, $name. Don\'t be a stranger now!' },
       { npc: 'gate_west', word: 'farewell', summary: 'Say farewell to Sergeant Bram at the west gate.',
         progress: 'Sergeant Bram keeps the west gate.',
-        done: 'At ease, $name. You came to my gate a newcomer with a club and went out to fight Greyfang. The gate is quieter for you. Salute! Now go and see Sister Ama.' },
+        done: 'At ease, $name. You came to my gate a newcomer with a wooden club and went out to fight Greyfang. The gate is quieter for you. When the oracle has named your path, the watch will be glad of you. Salute! Now go and see Sister Ama.' },
       { npc: 'ama', word: 'farewell', summary: 'Go back to Sister Ama in the temple.',
         progress: 'Sister Ama waits in the temple.' },
     ],
     text: {
-      offer: 'You have grown, $name. Level ten: the oracle upstairs in the academy will send you on, and you will not come back. Before you go, will you ring our bell one last time, and say goodbye to those who helped you? ({yes}/{no})',
+      offer: 'You have grown, $name. Level ten: the oracle upstairs in the academy will name your path, and you will be a newcomer no more. Before you go to her, will you ring our bell yourself, and say farewell to those who helped you as one? ({yes}/{no})',
       accept: 'Climb the bell tower and ring it yourself. Then go round: Master Corwin, Pip, Sergeant Bram. And come back to me last.',
       tooWeak: 'It is not time to say goodbye yet, $name. Come back at level 10.',
-      elsewhere: 'Sister Ama in the temple wants to say goodbye.',
-      reward: 'Then this is goodbye. You woke in this temple a stranger, and you leave it the one who rang our bell home. Take these for the road. Oakvale will ring for you, every dawn. Now go to the {oracle}, $name, and may the Dawn light your way.',
+      elsewhere: 'Sister Ama in the temple wants to say farewell.',
+      reward: 'Then this is farewell to the newcomer. You woke in this temple a stranger, and now you are the one who rang our bell home. Take these, for whatever comes from the sea. Oakvale will ring for you, every dawn. Now go to the {oracle}, $name, and may the Dawn light your way.',
       done: 'Go with the Dawn, $name. The oracle upstairs in the academy is waiting.',
     },
   },
@@ -1897,7 +1919,7 @@ Object.assign(NPCS, {
       oakvale: 'A small town, but a good one. The {academy} is west over the bridge, the {depot} is east of this mount, and the shops line the main street to the south.',
       'bell|quest|mission|task|help|rope|cellar|clapper|gravewaker|farewell|goodbye': { quest: ['bell_1', 'bell_2', 'bell_3', 'bell_4', 'bell_6'] },
       'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10. Some say she will send our best across the sea one day - but no ship has come for anyone yet.',
       sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, over the bridge west of the square.',
       depot: 'The depot is the slate-roofed house at the east end of the square, below the bell tower. The postmaster will explain your locker.',
@@ -1928,7 +1950,7 @@ Object.assign(NPCS, {
       spells: 'You learn your first spells as you grow: Torchlight at level 2, Light Heal at level 3. Your {vocation} teaches you more.',
       tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
       'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation and sends you to the mainland - and you never come back.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: knight, paladin, sorcerer or druid. Choose with care: it cannot be undone. The mainland? No ship has come for anyone yet. Until one does, Oakvale needs its own.',
       'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate. The rats there are a good first fight.',
     },
   },
@@ -1939,6 +1961,12 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I see the paths that lie before those who come here.',
       'destiny|vocation': { destiny: true },
+      // (the spark in the bell, and the burning mountain it came from: The Silent Bell IV and V)
+      'choir|ash|ashen|mountain': { after: 'bell_4', text: 'I have seen them in the smoke: grey robes, singing to a mountain that burns far across the sea. Something sleeps under it, and it lost a spark once. The founders carried that spark here. The Choir wants it home.',
+        before: 'Ash, and singing, and a mountain on fire... It comes to me in the smoke, $name, but not clearly yet. Help Sister Ama with her bell, and you may learn more than I can see.' },
+      'bell|spark|bronze': { after: 'bell_4', text: 'The founders cast the spark of the burning mountain into the bronze of your bell. While it rings, what sleeps under the mountain cannot hear it. When it is silent... the mountain listens.',
+        before: 'The bell is Sister Ama\'s care. But I see it in the smoke, silent, and something under a far mountain listening.' },
+      galen: { after: 'bell_4', text: 'Galen came up these stairs once, long ago, and asked me what I saw for him. I saw ash. I told him so. I should have said it louder.' },
       knight: { vocation: 'knight' }, paladin: { vocation: 'paladin' }, sorcerer: { vocation: 'sorcerer' }, druid: { vocation: 'druid' },
     },
   },
@@ -1949,8 +1977,8 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I run the depot and the post.',
       'ship|dawn|sea': 'The founders\' ship, the Dawn? Her bronze fittings went into our bell, they say, and her timbers into the depot\'s roof. Look up when you are in here: those beams have crossed an ocean.',
-      'locker|letter|quest|mission|task': { quest: ['bell_1'], otherwise: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.' },
-      depot: 'Open any locker here and it is yours. What you put in it is safe - and you find the same locker in every town\'s depot.',
+      'locker|letter|quest|mission|task': { quest: ['bell_1'], otherwise: 'Open any locker here and it is yours. What you put in it is safe, whatever happens to you out there.' },
+      depot: 'Open any locker here and it is yours. What you put in it is safe, whatever happens to you out there.',
     },
   },
   pip: {
@@ -1994,7 +2022,7 @@ Object.assign(NPCS, {
     greet: 'Welcome to my little shop, $name. Potions, runes and wands - would you like to {trade}?',
     keywords: {
       job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.',
-      'bell|magic|bronze': 'The temple bell? There is more in that bronze than bronze, if you ask me. When it rang, my candles burned straighter. Since it stopped... they flicker.',
+      'bell|magic|bronze': 'The temple bell? There is more in that bronze than bronze, if you ask me. When it rings, my candles burn straighter. When its clapper is gone... they flicker.',
     },
     trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },

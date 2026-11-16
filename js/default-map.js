@@ -177,13 +177,13 @@ const OAKVALE = {
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 108, x1: 149, y1: 113, door: [147, 113], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe; you find the same locker in every town\'s depot.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle sends adventurers of level 10 on to the mainland.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 145, y0: 108, x1: 149, y1: 113, door: [147, 113], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 104, y0: 99, x1: 116, y1: 106, door: [110, 106], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_green', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 109, x1: 108, y1: 116, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 131, y0: 122, x1: 137, y1: 127, door: [134, 127], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 122, x1: 143, y1: 127, door: [141, 127], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
-    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 133, x1: 122, y1: 138, door: [119, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: ropes, shovels, torches and fishing rods. Every adventurer needs a rope and a shovel.' },
-    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 116, y0: 140, x1: 121, y1: 143, door: [121, 142], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread, cheese and ham. Eat to get your health and mana back faster.' },
+    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 116, y0: 133, x1: 122, y1: 138, door: [119, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
+    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 116, y0: 140, x1: 121, y1: 143, door: [121, 142], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread, cheese, apples and meat. Eat to get your health and mana back faster.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 131, y0: 133, x1: 140, y1: 140, wings: [[131, 141, 135, 143]], door: [135, 133], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
     { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 118, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
     { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 113, y0: 118, x1: 118, y1: 122, door: [113, 120], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
@@ -211,7 +211,7 @@ const OAKVALE = {
   // Things with something to say when you look at them: [x, y, text]
   looks: [
     [124, 110, 'A rope runs down into black water. Someone has scratched a little rat on the stone.'],
-    [140, 119, 'Tamsin Oakhart, who built the first house by the river, and the bridge after it.'],
+    [140, 119, 'Tobias Oakhart, who built the first house by the river, and the bridge after it.'],
   ],
   // A forgotten chest for whoever explores the strip behind the academy: [x, y, gold]
   cache: [105, 97, 30],
@@ -362,7 +362,7 @@ const CRYPT = {
   door: [81, 198],
   niche: [[82, 198], [82, 199]], // the crag cut back beside the steps, so they show (the rock leans over the tile west of it)
   path: [[77, 200], [81, 200], [81, 199]],
-  sign: [80, 199, 'The founders\' crypt. Sealed by order of the town in the year of the long winter. LET THEM SLEEP.'],
+  sign: [80, 199, 'The founders\' crypt. Sealed when the last of the founders was laid to rest. LET THEM SLEEP.'],
   floors: [
     {
       z: 7,
@@ -1312,8 +1312,9 @@ function buildTown(m, S, runs, river) {
     m.get(sx, sy, top).items = ['stairs_down'];
     const ropes = [[top, 'shaft_rope_top', 'The bell rope runs from a wheel beside the bell down through an open hatch in the floor.']];
     for (let z = top - 1; z > base; z--) ropes.push([z, 'shaft_rope', 'The bell rope runs down the tower through an open hatch in every floor.']);
-    ropes.push([base, 'shaft_rope_cut', 'The bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through. The rest of it fell down the shaft, into the dark below.']);
-    for (const [z, id, look] of ropes) { m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, { look }); } // an open hatch: no floor
+    ropes.push([base, 'shaft_rope_cut', 'The bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through. The rest of it fell down the shaft, into the dark below.',
+      'The new bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through again. The rest of it fell down the shaft, like the old one.']); // (lookAgain: see bellAgain)
+    for (const [z, id, look, lookAgain] of ropes) { m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, lookAgain ? { look, lookAgain } : { look }); } // an open hatch: no floor
     for (let z = S; z < base; z++) m.set(hx, hy, z, { ground: 'pit', items: [] }); // the shaft on down through the rock of the mount
     const [bx, by] = BT.bell;
     for (const [id, ox, oy] of [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]]) { put(bx + ox, by + oy, top, id); m.setMeta(bx + ox, by + oy, top, { look: BT.look }); }
@@ -1358,7 +1359,7 @@ function buildTown(m, S, runs, river) {
     { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         const ft = m.get(fx + c, fy + r, Z); ft.ground = 'grass'; ft.items = [`founder_${c}${r}`];
-        m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale in white marble, a golden laurel on his brow, his hands folded on a sword. On the blue banner below him, the oak of Oakvale. The plinth reads: "He found this island in a storm, and called it home."' });
+        m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale in white marble, a cloak on her shoulders, one hand on a sword\'s hilt and the other holding a golden sun high. The plinth reads: "She brought us through the long winter." $founder' });
       } }
     for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
       const tt = m.get(x, y, Z);
