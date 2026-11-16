@@ -240,7 +240,7 @@ const SPRITE_HASHES = {
   "noticeboard@4x.png":"51f718040c",
   "npc-ama.png":"d37441dd66",
   "npc-child.png":"68a423a9db",
-  "npc-corwin.png":"8844c101cd",
+  "npc-corwin.png":"cf03dc0a20",
   "npc-gate_east.png":"672f89452a",
   "npc-gate_north.png":"cb3bffba47",
   "npc-gate_south.png":"b7d9b686a8",
