@@ -248,6 +248,7 @@ const SPRITE_HASHES = {
   "npc-oak_armourer.png":"66894e97a7",
   "npc-oak_baker.png":"091b4fcd95",
   "npc-oak_innkeeper.png":"02dbf84a47",
+  "npc-oak_landlady.png":"3503fc0b48",
   "npc-oak_mage.png":"af13c27c8b",
   "npc-oak_oracle.png":"9cc7c23325",
   "npc-oak_smith.png":"5ac9bb13a8",
