@@ -252,6 +252,7 @@ const SPRITE_HASHES = {
   "monster-skeleton.png":"88d360d596",
   "monster-slime.png":"844eafbd7a",
   "monster-spider.png":"1c443cd3d6",
+  "monster-thornmother.png":"10c32d1d17",
   "monster-watchman_shade.png":"c62b45396b",
   "monster-wolf.png":"6436059847",
   "mountain-own.png":"d119fe701f",
