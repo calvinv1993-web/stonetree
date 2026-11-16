@@ -30,14 +30,9 @@ Painted and in the game: chain helmet, steel helmet, crown helmet, witch hat, wi
 
 Painted and in the game: rod of the glacier, blank rune and the eight runes, ring of life, ring of swiftness, amulet of keeping, guardian amulet, the Ember Seal, health and mana potions (on the action buttons too), dragon ham, watch mark. (The gold coins kept sheet 1's.)
 
-## Sheet 5: tools, keys, books and ore (17)
+## Sheet 5: tools, keys, books and ore: done
 
-```
-1 shovel, 2 coiled rope, 3 bronze key, 4 silver key, 5 adventurer's handbook (a small leather book),
-6 old book (worn, brown), 7 table kit (a wooden crate with planks), 8 chair kit, 9 bed kit, 10 potted plant,
-11 rough ore (a dull grey lump), 12 iron ore (dark with metal flecks), 13 mithril ore (silvery blue), 14 starsteel ore (dark with white star flecks), 15 sunsteel ore (golden),
-16 golem core (a glowing blue stone heart), 17 living ember (a glowing coal)
-```
+Painted and in the game: shovel, rope, bronze key, silver key, adventurer's handbook, old book, table kit, chair kit, bed kit, potted plant, rough, iron, mithril, starsteel and sunsteel ore, golem core, living ember. (The pickaxe and fishing rod kept sheet 1's.)
 
 ## Sheet 6: what monsters leave behind (20)
 
