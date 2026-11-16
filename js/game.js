@@ -723,6 +723,8 @@ function outlinedText(text, x, y, color, font) {
   ctx.fillText(text, x, y);
 }
 
+const underRoof = o => { const t = map.get(o.x, o.y, o.z + 1); return !!(t && t.ground && THINGS[t.ground] && THINGS[t.ground].roof); };
+
 // Name, health bar and frames: red around your target, green around whoever you
 // follow, white around the one hovered in the battle list, and a widening orange
 // flash around whoever just hit you.
@@ -747,6 +749,8 @@ function drawCreatureInfo(c, screen, struck) {
     return;
   }
   if (c.type === 'npc') {
+    // (indoors, under a roof you see from outside: no name floating over the roof)
+    if (underRoof(c) && !underRoof(player)) return;
     outlinedText(c.name, sx + size / 2, ty - 4, '#8fd0ff', 'bold 12px sans-serif');
     // Above anyone who has something for you: ! a new quest (grey until you're strong enough), ? news to hand in.
     const news = questNews(c.npcId), mark = news && { offer: ['!', '#ffd84a'], report: ['?', '#ffd84a'], later: ['!', '#a0a0a0'] }[news.mark];

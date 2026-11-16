@@ -871,7 +871,10 @@ function renderLoot() {
       hint: 'Click to take it, or drag it somewhere.',
     }));
   });
-  if (!p.items.length) root.textContent = 'Nothing left.';
+  // (the last thing taken: the window closes by itself; one that was empty from the start says so)
+  if (!p.items.length && renderLoot.had === p.id) { renderLoot.had = null; Actions.closePile(); return; }
+  if (!p.items.length) root.textContent = 'Nothing in it.';
+  renderLoot.had = p.items.length ? p.id : null;
 }
 
 // ---- trade window ----------------------------------------------------------------------
@@ -1926,9 +1929,9 @@ function setRideMode(on) {
 function toggleWorldMap(ride = false) {
   const w = $('worldmap');
   w.hidden = !w.hidden;
-  // upstairs in a building (a temple, a tower), its own floor is mostly empty: open on the ground outside instead
-  const indoors = player.z > map.surfaceZ && map.get(player.x, player.y, player.z + 1) && THINGS[(map.get(player.x, player.y, player.z + 1).ground) || 'grass'].roof;
-  worldMap.z = indoors || map.isShelter(player.x, player.y, player.z) && player.z > map.surfaceZ ? map.surfaceZ : null;
+  // above ground (upstairs, the temple's hill, a mountain top) a floor is mostly empty and dark: open on the ground
+  // level instead, where the island is (underground: your own floor)
+  worldMap.z = player.z > map.surfaceZ ? map.surfaceZ : null;
   worldMap.center = null;
   setRideMode(!w.hidden && ride);
   document.body.classList.remove('panel-open'); // on a phone, the drawer would cover it
