@@ -14,14 +14,9 @@ Each item seen at a slight 3/4 angle, filling about 80% of its cell, nothing tou
 Order, left to right, top to bottom:
 ```
 
-## Sheet 1: the first hour (20)
+## Sheet 1: the first hour: done
 
-```
-1 wooden club, 2 dagger, 3 hatchet, 4 short sword, 5 spiked club (a wooden club with iron spikes),
-6 mace, 7 round wooden shield, 8 studded wooden shield with an iron rim, 9 leather cap, 10 leather armor (a vest),
-11 leather legs (trousers), 12 leather boots, 13 iron boots, 14 red apple, 15 loaf of bread,
-16 wedge of cheese, 17 raw meat (a ham on the bone), 18 fish, 19 small cloth bag tied with a cord, 20 brown leather backpack
-```
+Painted and in the game: wooden club, dagger, hatchet, short sword, spiked club, mace, wooden shield, studded shield, leather cap, leather armor, leather legs, iron boots, apple, bread, fish, gold coins, bag, pickaxe, fishing rod. (Leather boots, cheese, meat and the backpack, painted before, are again at the end of sheet 7.)
 
 ## Sheet 2: weapons (19)
 
@@ -50,13 +45,13 @@ Order, left to right, top to bottom:
 16 health potion (a round red potion with a cork), 17 mana potion (a round blue potion with a cork), 18 dragon ham, 19 bronze watch mark (a bronze token stamped with a sun), 20 gold coins (a small stack)
 ```
 
-## Sheet 5: tools, keys, books and ore (19)
+## Sheet 5: tools, keys, books and ore (17)
 
 ```
-1 pickaxe, 2 shovel, 3 coiled rope, 4 fishing rod with line, 5 bronze key,
-6 silver key, 7 adventurer's handbook (a small leather book), 8 old book (worn, brown), 9 table kit (a wooden crate with planks), 10 chair kit,
-11 bed kit, 12 potted plant, 13 rough ore (a dull grey lump), 14 iron ore (dark with metal flecks), 15 mithril ore (silvery blue),
-16 starsteel ore (dark with white star flecks), 17 sunsteel ore (golden), 18 golem core (a glowing blue stone heart), 19 living ember (a glowing coal)
+1 shovel, 2 coiled rope, 3 bronze key, 4 silver key, 5 adventurer's handbook (a small leather book),
+6 old book (worn, brown), 7 table kit (a wooden crate with planks), 8 chair kit, 9 bed kit, 10 potted plant,
+11 rough ore (a dull grey lump), 12 iron ore (dark with metal flecks), 13 mithril ore (silvery blue), 14 starsteel ore (dark with white star flecks), 15 sunsteel ore (golden),
+16 golem core (a glowing blue stone heart), 17 living ember (a glowing coal)
 ```
 
 ## Sheet 6: what monsters leave behind (20)
@@ -75,4 +70,4 @@ Order, left to right, top to bottom:
 6 strange carved stone (a small stone with spiral carvings), 7 sea chart (a rolled map), 8 Hilda's parcel (a small package tied with string)
 ```
 
-Sheet 7 also has room for odd things: old boot and old sock (8 items + 2 = 10) can be added as 9 old boot, 10 old sock.
+Sheet 7 also has room for these, as 9 to 14: old boot, old sock, leather boots, wedge of cheese, raw meat (a ham on the bone), brown leather backpack.
