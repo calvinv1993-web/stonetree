@@ -6560,8 +6560,9 @@ const Sprites = (() => {
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
-  // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle]
-  const BIG_SHEETS = { clang_3: [1.5, 8] };
+  // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle,
+  // and a row painted smaller than the others a little more: { dir: how much }] (Clang's front, beside his new side view)
+  const BIG_SHEETS = { clang_3: [1.5, 8, { 2: 1.15 }] };
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
@@ -6570,7 +6571,7 @@ const Sprites = (() => {
       g.canvas.res = R;
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       // (a big beast fills two tiles, as in the old games: grown larger round its feet, which move left to keep it in the picture)
-      const [k, left] = BIG_SHEETS[id] || [1, 0], fx = TILE + 16 - left, fy = TILE + 29;
+      const [big, left, rows] = BIG_SHEETS[id] || [1, 0], k = big * ((rows && rows[dir]) || 1), fx = TILE + 16 - left, fy = TILE + 29;
       const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (fx - SHEET.feet[0] * k) * R, oy = (fy - SHEET.feet[1] * k) * R;
       if (dir === 3) { g.translate(ox + CW * k * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * k * R, CH * k * R); }
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
