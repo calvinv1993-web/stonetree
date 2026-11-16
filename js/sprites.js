@@ -6584,6 +6584,13 @@ const Sprites = (() => {
       if (look.feather || look.cloak) sheetCosmetics(cell, look, dir, S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
+      // a soft shadow on the ground under the feet, darkest right under them (the people's sheets have one painted in;
+      // the players' have none)
+      const fx = (TILE + 16) * R, fy = (TILE + 29) * R, rx = 10 * R, ry = 3.2 * R;
+      g.save(); g.translate(fx, fy); g.scale(1, ry / rx);
+      const sh = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+      sh.addColorStop(0, 'rgba(10,8,6,0.62)'); sh.addColorStop(0.55, 'rgba(10,8,6,0.38)'); sh.addColorStop(1, 'rgba(10,8,6,0)');
+      g.fillStyle = sh; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill(); g.restore();
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
       else g.drawImage(cell, ox, oy, CW * R, CH * R);
