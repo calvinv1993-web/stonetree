@@ -6,12 +6,15 @@
 # It keeps each cell's biggest figure (stray specks and the red or yellow fringe ChatGPT leaves are dropped), scales
 # every cell alike so the standing front figure has that height, and puts the feet at the same spot as Sister Ama's.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
+# Every figure gets Sister Ama's thin edge: its outermost pixels darkened to a warm dark brown (EDGE), so all sheets
+# stand out from the ground alike, whatever outline ChatGPT drew.
 import sys
 from collections import deque
 import numpy as np
 from PIL import Image, ImageOps
 
 CELL_W, CELL_H, FEET_Y, CENTRE_X = 128, 192, 184, 64
+EDGE, EDGE_MIX = (78, 58, 38), 0.8  # Sister Ama's edge colour, and how much of it
 
 def main_figure(cell):
     a = np.array(cell.convert('RGBA'))
@@ -48,6 +51,16 @@ def main_figure(cell):
     out = Image.fromarray(a)
     return out.crop(out.getbbox())
 
+def edge(fig):
+    a = np.array(fig.convert('RGBA')).astype(float)
+    solid = a[:, :, 3] > 128
+    pad = np.pad(solid, 1)
+    inner = pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:]
+    ring = solid & ~inner
+    a[ring, :3] = a[ring, :3] * (1 - EDGE_MIX) + np.array(EDGE) * EDGE_MIX
+    a[ring, 3] = 255
+    return Image.fromarray(a.astype(np.uint8))
+
 def alike(p, q):
     """How alike two figures are, 0 (nothing alike) to 1 (the same)."""
     size = (64, 96)
@@ -67,7 +80,7 @@ def install(src_path, out_path, height=146):
             print(f'row {r + 1}: the second step repeated the first: mirrored' if r != 1 else 'row 2: the steps look alike (side view, kept)')
         for c in range(3):
             f = figs[r][c]
-            f = f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS)
+            f = edge(f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS))
             sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - f.width // 2, r * CELL_H + FEET_Y - f.height))
     sheet.save(out_path)
 
