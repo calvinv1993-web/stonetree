@@ -267,6 +267,55 @@ old man and the child know some of them. Armourer Brenna tells of her shield whe
 | South, Guard Tilda (3) | Stranded: get Wendel the fisher off his rock | A sand spit (100,216–218) off the west beach of Lighthouse Point to an islet (98–104, 219–222) with rocks, a fish rack and his wreck (105,221); 2 crabs on it (Old Snapper on the beach) | No crab within 3 of (101,220) (a step's `clear`), then talk to him: he goes home to Fisher's Rest (41,176) for 3 minutes (`goesHome`), then back out. |
 | East, Guard Hilde (4) | Nests in the Hills: burn four spider nests | (179,162), (195,163), (200,172: a flame in a ring burnt into it), (165,186), among the spider packs | A torch (Hilde gives one) used on a nest, or Torchlight cast next to it (`burnable` things); spun again after 10 minutes. Counted per character (step `burn`). |
 | North, Captain Osric (5) | Gnash's war plans | The goblin camp at the top of the goblin trail: tents (194,67), (200,67) and Gnash's (197,70), a totem (199,65), the fire (197,66), the war chest (198,70); Gnash (197,68) and 3 goblins round him | The goblins of Goblin Hill (174–208, 56–90) sleep at night (`sleeps`), unless someone steps right next to one or hits one: then those within 4 wake too. |
+### Phase 7: discovery quests
+
+Hidden quests for the 7-10 stretch: no guide step, no arrow, no mark over the giver's head (`hidden` in `QUESTS`;
+`questNews(id, true)`), only the giver's greeting hints at the word. Each giver's own words carry the clue to the next.
+The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the mechanics `digUp` and `questDeed` in
+`js/game-core.js`.
+
+**Tidecutter** (level 7, Old Maddock at Fisher's Rest, `tidecutter`; 600 xp, 60 gold, 3 potions)
+- Fisher's Rest: Old Maddock's hut (49–53, 176–179, door 51,179) with his sea chest (52,177), a jetty out over the sea
+  (31–36, 174–175) with a rowing boat (32,173), nets drying on the beach, a sign at (55,170). Maddock stands on the jetty.
+- His tale: his sister Wenna's sword went down with her boat, the Gull, in the sea cave south of here; she locked the cave
+  and buried the key. The chart in his chest (`tide_chart`, readable) has her rhyme: south along the strand to where the beach
+  grows thin, three grey stones in the sand, the key between them.
+- The spot: (50,188), three boulders round it (49,187), (51,188), (49,189). Nothing shows there: dig it with a shovel while on
+  the quest (map meta `dig`, `thing`) for the **barnacled key** (`sea_key`). Lost, it's there again while the quest needs it.
+- The sea cave (z 7): steps down in the rocks at (51,196); a landing, a narrow way, the **gate** at (48,196) (`sea_gate`: the
+  key opens it for a minute, then it shuts and locks again); a grotto with a pool (43,196) and crabs; the wreck of the Gull
+  in the second grotto (41,202), its chest (43,202) holding **Tidecutter**; **Brineshell**, Old Snapper's mate (260 hp), by it.
+- Show the blade to Maddock (he lets you keep it: step `has`): the reward, and the clue to the lighthouse.
+- Tidecutter: sword, attack 17, defense 11, level 7: the best blade on the isle, below the broadsword (level 12).
+
+**The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
+- The lighthouse: a new stone tower in the Lighthouse clearing (122–126, 201–205, door 124,205), three floors, stairs at
+  (123,202) and (125,202), the **great lamp** on the top floor (124,203,10), dark. The old one's stump stays on the point.
+- It needs **lamp oil** (Farmer Odo's cellar), **3 spider silk** (a wick: the spiders' loot) and **flint** (the cave under the
+  North Peaks, below). Use the lamp with all three: it burns for a quarter of an hour, for everyone to see.
+- The Sunny Fields farm: Farmer Odo's farmhouse (117–122, 153–157, door 119,157), a windmill (124,153), a fenced field
+  of crops (113–121, 159–163), a scarecrow and haystacks. A trapdoor in the house (121,154) goes down to his cellar (z 7,
+  116–123, 152–157): four giant rats, and the jars of oil (117,153).
+- Tamsin's reward: the **keeper's coat** (armor 7, level 8: better than chain armour, as good as the paladins' level-12
+  cloak), and the clue to the hermit and the eagles.
+
+**The Eagle's Eyrie** (level 9, Hermit Brannoc on Hermit Rock, at night, `eagle_eyrie`; 900 xp, 50 gold)
+- The cave under the North Peaks (z 7): steps down cut into the foot of the south face at (83,61). Four chambers: the
+  mouth (83,60); the flint hollow (79,56) with the **seam of flint** (78,54: a pick breaks a piece off, The Keeper's Coat);
+  the moaning hall (87,55); the wind chamber (94,52). **Cracked rock** (a pick): (91,54) on the way on, and (85,58), a
+  shortcut from the mouth to the moaning hall. Five **shades** (80 hp, weak to holy and fire).
+- The climbers' chimney, cut up through the mountain: a ladder at (95,51,7); rooms of rock on floors 8 and 9 (94–96,
+  49–51), ladder and trapdoor on each; a hole at (94,49,10) comes out on the **eyrie**: the second tier's top on the
+  peak's east shoulder (about 91–100, 47–53, floor 10), walkable now, two more shades, and the **eagles' nest** (98,50)
+  with a feather in it.
+- The hermit makes **featherstep boots** from it: armor 2, level 9, and 15 speed while worn.
+
+**Tools**
+- **Loose sand** (`buried`) on about 35 beach tiles round the isle: a shovel turns up a seashell, a few coins, now and
+  then a potion, a bottle with a letter or a pearl; the hole (`dug_sand`) fills in again after 20 minutes.
+- **Fishing**: besides fish and old boots, now and then a pearl (1%) or a message in a bottle (0.7%: its letter sends you to
+  Old Maddock).
+- **A pick**: cracked rock in the North Peaks cave (one of them a shortcut), and the seam of flint.
 
 ## 5. Open questions
 

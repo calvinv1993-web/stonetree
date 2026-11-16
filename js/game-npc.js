@@ -118,8 +118,10 @@ function startConversation(npc) {
 //   busy    a step of yours is reported here, but it isn't done yet
 //   later   a new quest, once you reach `level`
 // word: the keyword to say (the first of its alternatives, so put the plainest word first).
+// overhead: for the mark over their head, which never gives away a hidden quest that isn't yet yours (they are found
+// by talking: the greeting still hints at it)
 const NEWS_ORDER = { report: 0, offer: 1, busy: 2, later: 3 };
-function questNews(npcId) {
+function questNews(npcId, overhead) {
   const def = NPCS[npcId];
   let best = null;
   for (const [keys, s] of Object.entries((def && def.keywords) || {})) {
@@ -131,7 +133,7 @@ function questNews(npcId) {
       const word = questWord(npcId, id);
       let news = null;
       if (state === 'none') {
-        if (questWaits(q)) break;
+        if (questWaits(q) || (overhead && q.hidden)) break;
         if (q.giver === npcId || (q.offers && q.offers[npcId])) news = player.level >= (q.level || 0) ? { mark: 'offer', word, id } : { mark: 'later', word, id, level: q.level };
       } else if (!questStep(id).auto && (questStep(id).npc || q.giver) === npcId) news = { mark: stepReady(id) ? 'report' : 'busy', word, id };
       if (news && (!best || NEWS_ORDER[news.mark] < NEWS_ORDER[best.mark])) best = news;

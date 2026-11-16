@@ -1269,6 +1269,7 @@ const Sprites = (() => {
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
+  for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open']) RAISED.add(id); // (the hidden quests' things)
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   // (inside upright(): above height z0 things rise straight up the screen, k times as tall, from where they stand at z0)
@@ -1795,6 +1796,30 @@ const Sprites = (() => {
   }
   const BARK = { light: '#7a5030', mid: '#5b3a1e', dark: '#3a2410', top: '#c8a070' };
   const LEAVES = { shade: '#163e16', dark: '#2a6a22', mid: '#358230', light: '#4a9a3a', glint: '#80c860' };
+  // The great lamp at the top of the lighthouse (The Keeper's Coat): a stone plinth, a brass base, a glass cage on four
+  // brass posts under a brass cap; dark and dusty glass until it's lit, then a flame and the glass glowing gold.
+  function greatLamp(g, lit) {
+    floorShadow(g, 12, 4);
+    const stone = { top: '#b8b2a6', south: '#8e887c', east: '#6a645a', edge: '#d8d2c6' };
+    const brass = { top: '#d8b048', south: '#a8822c', east: '#7a5a1a', edge: '#f0d070' };
+    prism(g, 3, 3, 29, 29, 0, 6, stone);
+    prism(g, 5, 5, 27, 27, 6, 9, brass);
+    const [a, b, z0, z1] = [6, 26, 9, 25], glass = lit ? 'rgba(255,214,110,0.9)' : 'rgba(46,62,72,0.85)', back = lit ? 'rgba(255,236,170,0.9)' : 'rgba(30,40,48,0.9)';
+    poly(g, back, [...P(a, a, z0), ...P(b, a, z0), ...P(b, a, z1), ...P(a, a, z1)]); // the far glass, seen through the near
+    poly(g, back, [...P(a, a, z0), ...P(a, b, z0), ...P(a, b, z1), ...P(a, a, z1)]);
+    if (lit) {
+      const [fx, fy] = P(16, 16, 15);
+      ellipse(g, 'rgba(255,248,200,0.8)', fx, fy, 6, 8);
+      ellipse(g, '#ffc030', fx, fy + 1, 3, 4.5); ellipse(g, '#fff8d8', fx, fy + 2, 1.4, 2.4);
+    } else { const [wx, wy] = P(16, 16, 9); rect(g, '#4a3a22', wx - 2, wy - 6, 4, 6); } // the dry wick-holder
+    poly(g, glass, [...P(b, a, z0), ...P(b, b, z0), ...P(b, b, z1), ...P(b, a, z1)]); // the east glass
+    poly(g, glass, [...P(a, b, z0), ...P(b, b, z0), ...P(b, b, z1), ...P(a, b, z1)]); // the south glass
+    if (!lit) for (const [u, z] of [[10, 14], [17, 20]]) line(g, 'rgba(170,180,180,0.4)', 1, ...P(u, b, z), ...P(u + 5, b, z - 3)); // dust
+    for (const [u, v] of [[a, b], [b, a], [b, b]]) prism(g, u - 1, v - 1, u + 1, v + 1, z0, z1, brass); // the posts in front
+    prism(g, 5, 5, 27, 27, z1, z1 + 2, brass);
+    taper(g, 6, 6, 26, 26, z1 + 2, z1 + 9, 7, brass);
+    prism(g, 15, 15, 17, 17, z1 + 9, z1 + 12, brass);
+  }
   // --- map tiles: draw(g, rng, animationFrame, shape, material) ---------------------
   // Trees, walls and things on walls are 64x64, drawn with their tile in the bottom-right quarter.
   const DRAW = {
@@ -2803,6 +2828,31 @@ const Sprites = (() => {
       for (const z of [14, 18, 22, 25]) frontRing(g, 16, 17, z, 8.5 * Math.sqrt(Math.max(0, 1 - ((z - 10) / 18) ** 2)) + 1, 'rgba(120,88,30,0.6)', 1);
       const [hx, hy] = P(16, 17, 11); ellipse(g, '#3a2a10', hx, hy + 7.5, 1.8, 1.4); // the entrance
       for (const [x, y] of [[66, 50], [84, 46], [88, 56], [70, 42]]) { rect(g, '#f0c020', x, y, 2, 1); rect(g, '#1a1a1a', x + 1, y, 1, 1); }
+    },
+    // The eyrie of the great eagles on the North Peaks, long empty: a great ring of sticks, long grey feathers caught in
+    // it, a bone or two (The Eagle's Eyrie)
+    eagle_nest(g, r) {
+      floorShadow(g, 14, 4);
+      const [nx, ny] = P(16, 17, 3);
+      ellipse(g, '#4e3a22', nx, ny + 2, 15, 8); ellipse(g, '#6e5230', nx, ny, 14, 7); ellipse(g, '#3a2a18', nx, ny, 9, 4);
+      for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, d = 8 + r() * 6; line(g, i % 3 ? '#8a6a3c' : '#4e3820', 1, nx + Math.cos(a) * d, ny + Math.sin(a) * d * 0.5, nx + Math.cos(a + 0.5) * d, ny + Math.sin(a + 0.5) * d * 0.5); }
+      for (const [a, b, c, d] of [[-7, -1, 1, -4], [2, 1, 10, -2], [-3, 3, 4, 2]]) { line(g, '#7a7a76', 2, nx + a, ny + b + 1, nx + c, ny + d + 1); line(g, '#cfcfc6', 1.5, nx + a, ny + b, nx + c, ny + d); } // feathers
+      rect(g, '#e8e4d4', nx - 9, ny + 3, 5, 1.5); ellipse(g, '#e8e4d4', nx - 9, ny + 3.7, 1.2, 1.2); // a bone
+    },
+    // The great lamp of the lighthouse, dark, and burning
+    lighthouse_lamp: g => greatLamp(g, false),
+    lighthouse_lamp_lit: g => greatLamp(g, true),
+    // An iron gate swung open against the north side of its passage (the gate of the sea cave, unlocked)
+    sea_gate_open(g) {
+      const iron = { top: '#5a5a62', south: '#46464e', east: '#2e2e34', edge: '#7a7a84' };
+      prism(g, 13, 0, 17, 4, 0, 46, iron); // the hinge post
+      for (let u = 19; u <= 31; u += 5) prism(g, u, 1, u + 2, 3, 0, 44, iron); // the bars
+      for (const z of [6, 24, 40]) prism(g, 17, 1, 32, 3, z, z + 3, iron);  // crossbars
+    },
+    // Sand dug up and thrown about: a shallow pit in the beach, filling in again with the tides
+    dug_sand(g, r) {
+      ellipse(g, '#c9b273', 16, 18, 10, 7); ellipse(g, '#a38c56', 16, 19, 7.5, 5); ellipse(g, '#7e6a3c', 16, 20, 4.5, 2.8);
+      for (let i = 0; i < 7; i++) ellipse(g, i % 2 ? '#e8d8a4' : '#d8c48c', 4 + r() * 24, 7 + r() * 20, 2, 1.3); // thrown-up sand
     },
     eggs(g, r) {
       floorShadow(g, 12, 4);
@@ -4553,6 +4603,48 @@ const Sprites = (() => {
       line(g, '#c03030', 1, 9, 20, 21, 12);
       rect(g, '#c03030', 20, 11, 2, 2);
     },
+    // The hidden quests of Oakvale Isle: what you find, and what you get
+    tide_chart(g) { // Old Maddock's chart: the west coast, a cross on the rocks, a rhyme in the margin
+      rect(g, '#cfc096', 4, 6, 24, 20); rect(g, '#e8dcb0', 5, 7, 22, 18);
+      poly(g, '#7ab0e0', [5, 7, 15, 7, 13, 16, 15, 25, 5, 25]);
+      poly(g, '#d8c690', [13, 7, 17, 7, 16, 14, 18, 25, 15, 25, 13, 16]);
+      line(g, '#c03030', 1.5, 14, 19, 17, 22); line(g, '#c03030', 1.5, 17, 19, 14, 22);
+      for (const y of [10, 13, 16]) line(g, '#8a7a5a', 1, 20, y, 25, y);
+    },
+    sea_key: g => { key(g, '#8a6a3a'); for (const [x, y] of [[8, 13], [11, 18], [19, 16], [24, 15]]) ellipse(g, '#d8d4c4', x, y, 1.5, 1.2); }, // crusted with barnacles
+    tidecutter: g => sword(g, 18, '#c8e0e8', '#2a4a5a', 4), // sea-grey steel, a grip wound in blue
+    lamp_oil(g) { // a stoppered clay jar
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 27, 9, 2.5);
+      ellipse(g, '#a8683a', 16, 19, 9, 9); ellipse(g, '#c88a52', 14, 17, 5, 5);
+      rect(g, '#8a5028', 12, 7, 8, 5); rect(g, '#d8c8a0', 13, 5, 6, 3);
+      rect(g, '#6a3a18', 8, 21, 16, 2);
+    },
+    flint(g) { // a dark, glassy shard
+      poly(g, '#2a2a30', [7, 22, 12, 9, 22, 6, 26, 15, 20, 26, 10, 26]);
+      poly(g, '#4a4a56', [12, 10, 21, 7, 23, 13, 15, 16]);
+      line(g, '#9a9aa8', 1, 13, 11, 20, 8);
+    },
+    keeper_coat: g => { armor(g, '#3a4a5a', 'leather'); rect(g, '#c8a040', 15, 8, 2, 2); rect(g, '#c8a040', 15, 14, 2, 2); }, // oiled wool and leather, brass buttons
+    eagle_feather(g) {
+      line(g, '#5a5048', 1.5, 8, 27, 24, 5);
+      poly(g, '#b8b8b0', [9, 24, 13, 13, 22, 5, 24, 7, 18, 18, 11, 26]);
+      poly(g, '#e0e0d8', [13, 13, 22, 5, 20, 10]);
+      for (let i = 0; i < 4; i++) line(g, '#8a8a84', 1, 12 + i * 3, 21 - i * 4, 17 + i * 3, 19 - i * 4);
+    },
+    featherstep_boots: g => { boots(g, '#6a6a62'); for (const x of [6, 18]) { line(g, '#e0e0d8', 2, x, 12, x + 5, 6); line(g, '#9a9a92', 1, x + 1, 12, x + 5, 7); } }, // grey, a feather at each
+    seashell(g) {
+      ellipse(g, 'rgba(0,0,0,0.15)', 16, 25, 9, 2.5);
+      poly(g, '#e8c8b0', [6, 22, 10, 10, 16, 6, 22, 10, 26, 22, 16, 25]);
+      for (const x of [10, 13, 16, 19, 22]) line(g, '#c89a80', 1, 16, 8, x, 23);
+    },
+    bottle_message(g) { // a green bottle, corked, a rolled letter inside
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 26, 10, 2.5);
+      poly(g, 'rgba(80,150,90,0.85)', [5, 22, 7, 15, 20, 11, 24, 12, 26, 18, 11, 25]);
+      poly(g, 'rgba(80,150,90,0.85)', [22, 12, 27, 9, 28, 11, 25, 14]);
+      rect(g, '#a8784a', 27, 8, 3, 3);
+      line(g, '#efe4c4', 3, 9, 20, 20, 15);
+      line(g, 'rgba(255,255,255,0.5)', 1, 8, 17, 19, 12);
+    },
     parcel(g) {
       shadow(g, 16, 27, 12, 3);
       rect(g, '#c8a46a', 5, 9, 22, 17);
@@ -4680,6 +4772,7 @@ const Sprites = (() => {
   // read clearly against any ground. Their soft shadows (half see-through) get none.
   const NO_INK = new Set(['vault_shadow', 'portcullis_s0', 'portcullis_s1', 'portcullis_s2', 'portcullis_e0', 'portcullis_e1', 'portcullis_e2', 'flowers', 'tallgrass', 'grass_tuft', 'leaves', 'pebbles', 'shells', 'puddle', 'rubble', 'bones', 'web',
     'fern', 'reeds', 'lilypad', 'crops', 'eggs', 'mushrooms', 'driftwood', 'rails', 'loose_sand', 'teleport', 'campfire', 'torch', 'grate', 'chimney']);
+  for (const id of ['dug_sand', 'eagle_nest', 'lighthouse_lamp_lit']) NO_INK.add(id); // (flat, or glowing)
   const inkable = (id, def) => !def.ground && !def.wall && !def.onWall && !def.roof && !def.change && !NO_INK.has(id);
   // A selective outline (docs/art-style.md): every pixel round the thing takes a deep shade of the colour it borders,
   // not black, so a wooden crate is edged in dark brown and a stone in dark grey.
@@ -5597,6 +5690,7 @@ const Sprites = (() => {
     return MONSTER_LOOKS[key] || null;
   }
   const BIG_BEASTS = ['greyfang', 'old_snapper', 'thornmother', 'cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
+  BIG_BEASTS.push('brineshell'); // (the sea cave's: Tidecutter)
 
   // ---- dolls: people and beasts built in 3D -------------------------------------------------------------
   // A figure is put together from parts in space (blocks, round limbs, balls), each in the figure's own frame (a: to
@@ -6918,6 +7012,21 @@ const Sprites = (() => {
         g.filter = 'brightness(0.75) saturate(1.4) hue-rotate(-12deg)';
         crab(g, d, f);
         g.filter = 'none';
+      },
+      brineshell: (g, d, f) => { // Old Snapper's mate: as big, her shell green with weed and pale with barnacles
+        g.translate(16, 26);
+        g.scale(1.55, 1.55);
+        g.translate(-16, -26);
+        g.filter = 'hue-rotate(70deg) saturate(0.8) brightness(0.8)';
+        crab(g, d, f);
+        g.filter = 'none';
+      },
+      shade: (g, d, f) => { // a ghost grown thin and grey: the dead of the North Peaks' cave
+        g.globalAlpha = 0.8;
+        g.filter = 'grayscale(0.8) brightness(0.75) contrast(1.2)';
+        ghost(g, d, f);
+        g.filter = 'none';
+        g.globalAlpha = 1;
       },
       thornmother: (g, d, f) => { // the spider queen: purple-black, bigger than a dog
         g.translate(16, 26);

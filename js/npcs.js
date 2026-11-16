@@ -2159,6 +2159,7 @@ Object.assign(NPCS, {
       honey: 'Willa\'s flour for my honey, every spring. The bees up here feed on the heather. Best honey on the isle. The bears agree.',
       'page|diary|chronicle': { chroniclePage: 5, text: 'A gull brought this up to its nest, years ago. Old writing: the founder\'s, I think. I have read it a hundred times. Take it to someone who can make sense of it. Corwin, maybe.' },
       'stars|night|sea': 'At night you can see the boats without lamps, far out. Singing. I do not go down when they sing.',
+      'eagle|eagles|eyrie|feather|boots|peaks': { quest: ['eagle_eyrie'] },
       'bears|bear': 'They let me be. Do not try their patience, $name: they hit like falling trees.',
     },
     chatter: ['The stars are clear tonight.', 'Shh. Bears sleeping.', 'Another boat with no lamp...'],
@@ -2169,8 +2170,12 @@ Object.assign(NPCS, {
     look: { skin: '#d8a880', hair: '#c8c0b8', hairStyle: 'long', female: true, body: '#3a4a5a', arms: '#3a4a5a', legs: '#2a2a32', feet: '#2a1a0a', belt: '#8a6a3a', coat: true },
     greet: 'A visitor, out here? Sit by the fire, $name. Mind the wind. Ask me about the {lighthouse}, if you like.',
     keywords: {
-      job: 'I keep the light. There is no lighthouse any more, so I keep a fire, and that will have to do.',
-      'lighthouse|storm': 'The great storm took it, the year Pip was born. The sea threw the lamp right over the point. I keep a fire where it stood, so the fishing boats find their way home.',
+      job: 'I keep the light. The new tower has never burned, so I keep a fire at its foot, and that will have to do.',
+      'lighthouse|lamp|tower|coat|oil|wick|flint': { quest: ['keeper_coat'],
+        otherwise: 'The great storm took the old lighthouse, the year Pip was born: the sea threw it right over the point. The town built this one after, stone by stone, but its lamp has never burned.' },
+      storm: 'The great storm took the old lighthouse, the year Pip was born. The sea threw the lamp right over the point - its stump is still out there. I keep a fire, so the fishing boats find their way home.',
+      'eagle|eagles|peaks|hermit|cave|shades': { after: 'keeper_coat', text: 'That cave under the North Peaks goes further than the flint, they say: up inside the mountain, to where the great eagles nested. The hermit on Hermit Rock climbed it, when he was young. Ask him about the {eagles} - at night: he sleeps by day.',
+        before: 'The North Peaks? A cave runs in under their south face. The old keepers went there for their flint. Nobody goes now: the dead walk in there.' },
       'lights|choir|boat|boats|singing|grey': { quest: ['bell_5'] },
     },
     chatter: ['The wind is turning.', 'A boat out there, without a lamp. Again.', 'Who sings out at sea at night?'],
@@ -2200,5 +2205,107 @@ Object.assign(NPCS, {
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['meat', 7], ['fish', 5], ['health_potion', 45]], buys: ['loot'] },
+  },
+});
+
+// Oakvale Isle's hidden quests (docs/world-plan.md, Phase 7): nobody's guide points at them (hidden). They are found
+// by listening: rumours in town, a bottle from the sea, and each giver's own words, which carry the clue to the next.
+// Each needs a tool, a fight and a find.
+// (step.thing: done at that thing in the world (questDeed in game-core.js), needs: what it takes there, give: what you
+// get there; step.has: you only show it, and keep it)
+Object.assign(QUESTS, {
+  // Old Maddock's tale: the Gull went down in the great storm, in the sea cave south of Fisher's Rest, with his sister's
+  // sword aboard. His chart has a rhyme for where she buried the cave's key; Old Snapper's mate keeps the wreck.
+  tidecutter: {
+    name: 'Tidecutter', giver: 'rest_fisher', level: 7, hidden: true, word: 'tale',
+    reward: { xp: 600, gold: 60, items: [['health_potion', 3]] },
+    summary: 'Find Tidecutter, the blade that went down with the Gull, in the sea cave south of Fisher\'s Rest.',
+    steps: [
+      { thing: 'tide_dig', give: [['sea_key', 1]], summary: 'Take the sea chart from Old Maddock\'s sea chest in his hut, read its rhyme, and dig where it says with a shovel.',
+        progress: 'The chart is in my sea chest, in the hut. Read the rhyme on it, then dig where it points. You have a shovel?',
+        done: 'Your shovel strikes wood: a little box, tarred shut. Inside, wrapped in oilcloth, lies a heavy key crusted with barnacles. Maddock\'s chart marks the sea cave, south along the rocks.' },
+      { npc: 'rest_fisher', has: 'tidecutter', summary: 'Open the gate of the sea cave in the rocks south of Fisher\'s Rest with the barnacled key, take Tidecutter from the wreck of the Gull, and show it to Old Maddock.',
+        progress: 'The cave opens in the rocks south of the beach, and the key opens its gate. Mind the crabs in there, and the big one: Old Snapper\'s mate, they call her Brineshell.',
+        done: 'Tidecutter... Wenna\'s blade. Look at the edge: fifty years under the sea, and not a spot of rust. She would want it used, $name, not hung on a wall. Keep it. And take these, for the cuts you got fetching it. If you have the luck of the sea, use it: the new {lighthouse} on the point has never been lit. Ask Keeper Tamsin.' },
+    ],
+    text: {
+      offer: 'A tale, then. My sister Wenna sailed the Gull, and she wore a sword called Tidecutter - forged from the anchor chain of the founders\' ship, they said. In the great storm she ran for the sea cave south of here, and the Gull went down inside it. Wenna swam out. The sword did not. She locked the cave behind her and buried the key, and wrote where on my chart, in a rhyme, as she always did. She never went back. Will you? ({yes}/{no})',
+      accept: 'The chart is in my sea chest, in the hut: take it. Read the rhyme, take a shovel, and dig where it says. And mind: the crabs have the cave now, and the biggest of them all - Old Snapper\'s mate. Ask me about the {tale} when you have the blade.',
+      tooWeak: 'That tale is not for you yet, $name. The cave would eat you. Come back at level 7.',
+      done: 'Wenna\'s blade, back in the sun. Use it well, $name.',
+    },
+  },
+  // Keeper Tamsin's dark lighthouse: oil from the farm's cellar (rats), silk from the spiders (a wick), flint from the
+  // cave under the North Peaks (shades, a pick); then the lamp at the top of the tower.
+  keeper_coat: {
+    name: 'The Keeper\'s Coat', giver: 'oak_keeper', level: 8, hidden: true, word: 'lighthouse',
+    reward: { xp: 750, gold: 80, items: [['keeper_coat', 1]] },
+    summary: 'Light the lamp of the lighthouse at Lighthouse Point. It needs lamp oil, a wick and a flint.',
+    steps: [
+      { thing: 'lighthouse_lamp', needs: [['lamp_oil', 1], ['spider_silk', 3], ['flint', 1]],
+        summary: 'Bring a jar of lamp oil (Farmer Odo keeps them in his cellar, at the farm in Sunny Fields), 3 spider silk for a wick, and a piece of flint (in the cave under the North Peaks\' south face: a pick breaks it off), and light the great lamp at the top of the lighthouse.',
+        progress: 'Lamp oil from Farmer Odo\'s cellar, at the farm in Sunny Fields. Three spider silk, from the spiders of the hills. And flint from the cave under the North Peaks: bring a pick. Then climb the tower and light the lamp.',
+        missing: 'The lamp is dry, it has no wick, and there is nothing to strike a light with.',
+        done: 'Oil in the bowl, a wick twisted from spider silk... the flint sparks once, twice - and the great lamp catches! Its light sweeps out over the sea, for the first time since the storm.' },
+      { npc: 'oak_keeper', summary: 'Tell Keeper Tamsin that the lamp burns.',
+        progress: 'I saw it from down here. Come and tell me, $name!',
+        done: 'I saw it from down here - the light, sweeping the water! The boats will find their way home. Here: the keeper\'s coat, oiled wool and leather, warmer than any mail and tougher than most. It was always meant for whoever lit that lamp. And while you were in that cave... the hermit on Hermit Rock climbed those peaks, when he was young. Ask him about the {eagles}, at night.' },
+    ],
+    text: {
+      offer: 'The tower behind me? The town built it again after the storm, stone by stone. But the lamp at the top has never burned: no oil, no wick, and the old keepers\' flint went into the sea with the old tower. Every winter a boat goes on the rocks for want of it. Will you light it for me? ({yes}/{no})',
+      accept: 'Bless you. Three things. A jar of lamp oil: Farmer Odo presses it, at the farm in Sunny Fields, and keeps it in his cellar. Spider silk for the wick: three good threads, from the spiders of the hills. And a flint: the old keepers struck their light with flint from a cave under the North Peaks\' south face. Bring a pick - and potions: the dead walk in that cave. Then climb the tower and light the {lamp}.',
+      tooWeak: 'The lamp needs things from dangerous places, $name. Come back at level 8, and I will tell you.',
+      done: 'The lamp burns every night now. The boats come home by it. Thank you, $name.',
+    },
+  },
+  // Hermit Brannoc climbed the North Peaks when he was young: up through the cave and the old climbers' chimney inside
+  // the mountain, to the eyrie of the great eagles. A feather from it, and he makes boots that walk like the wind.
+  eagle_eyrie: {
+    name: 'The Eagle\'s Eyrie', giver: 'oak_hermit', level: 9, hidden: true, word: 'eagle', fetch: 'eagle_feather',
+    reward: { xp: 900, gold: 50, items: [['featherstep_boots', 1]] },
+    summary: 'Bring Hermit Brannoc a feather from the old eagles\' eyrie, high on the North Peaks: through the cave under their south face, and up the chimney inside the mountain.',
+    text: {
+      offer: 'The eagles... When I was young I climbed the North Peaks, all the way to the eyrie, where the great eagles nested. They are gone now. But their feathers keep - and a feather of theirs, sewn into a boot, and you walk like the wind. Bring me one, and I will make you a pair. ({yes}/{no})',
+      accept: 'There is no way up the outside. The way is through the cave under the south face, where the shades walk: fallen rock blocks it, so bring a pick. At its end the old climbers cut a chimney up inside the mountain, with ladders. The nest is on the shoulder of the highest peak. Bring me a {feather} - and come at night.',
+      progress: 'A feather from the eyrie, $name. Through the cave under the south face of the North Peaks, a pick for the fallen rock, and up the climbers\' chimney.',
+      reward: 'A feather of the great eagles... I had almost forgotten how grey they are. Sit, sit. (The hermit works by the fire, needle and sinew, and before long hands you a pair of boots, light as nothing.) Featherstep boots. You will walk quicker in them. Walk softly near my bears.',
+      tooWeak: 'The peaks would kill you, $name. Come back at level 9, and we will talk of eagles.',
+      done: 'Do the boots fit? They will. The eagles\' feathers know the wind.',
+    },
+  },
+});
+
+Object.assign(NPCS, {
+  // Old Maddock of Fisher's Rest: he fishes off his jetty, sells rods, and tells his sister's tale (Tidecutter)
+  rest_fisher: {
+    name: 'Old Maddock',
+    look: { skin: '#c89a70', hair: '#d8d4cc', beard: '#d8d4cc', body: '#3a5a6a', arms: '#3a5a6a', legs: '#4a3a28', feet: '#2a1a0a', belt: '#5a3a1a', hat: { style: 'wide', color: '#4a5a3a' } },
+    greet: 'Mind the nets, $name. Old Maddock, of Fisher\'s Rest. Sit a while, if you like a {tale}. Or do you {fish}?',
+    keywords: {
+      'tale|story|tidecutter|sword|wenna|gull|chart|key|cave': { quest: ['tidecutter'] },
+      job: 'I fish. Fifty years now. The sea gives and the sea takes, and I let her.',
+      'fish|fishing|rod': 'Use a rod on the water, any water. Mostly fish. Now and then an old boot - or a pearl, or a bottle with a letter in it. The sea keeps odd things. I sell rods, if you want to {trade}.',
+      'bottle|message|letter': 'A letter in a bottle? Read it, then. The sea only gives those to the ones it means them for.',
+      'beach|dig|sand|shovel': 'The tide buries things on the beaches. Where the sand lies loose, dig: shells, a few coins, now and then better. The next tides fill it in again.',
+      'lighthouse|tamsin|light|lamp': { after: 'tidecutter', text: 'You have the luck of the sea, $name. Use it: the new lighthouse on the point has never been lit, and every winter a boat goes on the rocks for want of it. Ask Keeper Tamsin about the {lighthouse}.',
+        before: 'Tamsin keeps a fire at Lighthouse Point, south of the fields. The new tower there has never shown a light. Shame.' },
+    },
+    trade: { sells: [['fishing_rod', 110], ['fish', 4]], buys: ['jewelry'] },
+    chatter: ['The tide is turning.', 'Fish are biting today.', 'The sea keeps what she takes.'],
+  },
+  // Farmer Odo of the Sunny Fields farm: wheat, the mill, and lamp oil, kept in a cellar the rats have taken (The Keeper's Coat)
+  fields_farmer: {
+    name: 'Farmer Odo',
+    look: { skin: '#e0a878', hair: '#8a6a3a', beard: '#8a6a3a', body: '#6a7a3a', arms: '#e0a878', legs: '#5a4a2a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a858' } },
+    greet: 'Morning, $name! Odo\'s the name, and this is my farm. Mind the {rats}: they are everywhere this year. Want some fresh food? Just ask to {trade}.',
+    keywords: {
+      job: 'I grow wheat, I press oil, and the rats eat half of both.',
+      'rats|rat|cellar|trapdoor': 'Rats in the fields, and worse in my cellar: big ones, as long as your arm. They came up from somewhere and moved in under my floor. The trapdoor is inside the house, if you are brave.',
+      'oil|lamp|jar|jars': 'Lamp oil? I press it from the seed, and the jars are in my cellar, under the trapdoor in the house. If Tamsin sent you for her lighthouse, take a jar and welcome - if the rats down there let you.',
+      'mill|windmill|wheat|flour': 'The mill grinds my wheat, and Baker Willa buys the flour. When the wind blows, that is.',
+      'lighthouse|tamsin': 'Tamsin? A good woman. She keeps a fire out on the point, for the boats, since the new tower has never been lit.',
+    },
+    trade: { sells: [['apple', 2], ['bread', 4], ['cheese', 3]], buys: [] },
+    chatter: ['Shoo, rats!', 'Good weather for the wheat.', 'The mill wants wind.'],
   },
 });

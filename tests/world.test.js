@@ -32,9 +32,9 @@ function test(name, fn) {
 const key = (x, y, z) => (z * H + y) * W + x;
 const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y, z: (r - y) / H }; };
 // Walkable for this check: free ground, or a door someone can open (closed doors, quest and level doors, house doors for
-// their owners), a boulder (it can be pushed out of the way) or a cracked rock (a pick breaks it). Roofs don't count:
-// nobody walks on them.
-const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor // (quest and level doors open for some)
+// their owners, locked doors and gates for whoever has the key), a boulder (it can be pushed out of the way) or a cracked
+// rock (a pick breaks it). Roofs don't count: nobody walks on them.
+const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor || THINGS[id].lockDoor // (some open for some)
   || THINGS[id].push || THINGS[id].breakable;
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
@@ -131,7 +131,7 @@ test('the sea meets the land on a beach or rocks, never straight on grass or for
   for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
     const t = map.get(x, y, S);
     if (t.ground === 'water' || !(sea.has(y * W + x - 1) || sea.has(y * W + x + 1) || sea.has((y - 1) * W + x) || sea.has((y + 1) * W + x))) continue;
-    if (!['sand', 'mountain', 'dirt', 'swamp', 'bridge_ns', 'bridge_ew'].includes(t.ground)) bad.push(`${x},${y} ${t.ground}`);
+    if (!['sand', 'mountain', 'dirt', 'swamp', 'bridge_ns', 'bridge_ew', 'pier'].includes(t.ground)) bad.push(`${x},${y} ${t.ground}`); // (a jetty goes out over the sea)
   }
   assert.deepStrictEqual(bad, []);
 });
