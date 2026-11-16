@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Puts a character sheet made outside the game (ChatGPT) into sprites/, laid out like the player sheet: 3 x 3 cells of
 # 128 x 192 pixels (rows front, side facing east, back; columns standing and two steps), feet on the same line.
-#   python3 tests/install-sheet.py <picture.png> <out.png> [height]
-# height: the standing figure's height in pixels (146: Sister Ama, every grown-up; a child or a goblin about 110;
-#   more for a tall hat, so the body matches: Postmaster Hobb's wide hat 168).
-# It keeps each cell's biggest figure (stray specks and the red or yellow fringe ChatGPT leaves are dropped), scales
-# every cell alike so the standing front figure has that height, and puts the feet at the same spot as Sister Ama's.
+#   python3 tests/install-sheet.py <picture.png> <out.png> [size]
+# size: 1 for a grown-up (the default), about 0.75 for a child or a goblin, a little more for someone tall.
+# It keeps each cell's biggest figure (stray specks and the red or yellow fringe ChatGPT leaves are dropped), and
+# scales every cell alike so that from the feet to the eyes the standing front figure measures EYE_TO_FEET times size
+# (Sister Ama's; hats and big hair don't count that way), with the feet at the same spot as hers.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
 # Every figure gets Sister Ama's thin edge: its outermost pixels darkened to a warm dark brown (EDGE), so all sheets
 # stand out from the ground alike, whatever outline ChatGPT drew.
@@ -16,6 +16,7 @@ from PIL import Image, ImageOps
 
 CELL_W, CELL_H, FEET_Y, CENTRE_X = 128, 192, 184, 64
 EDGE, EDGE_MIX = (78, 58, 38), 0.8  # Sister Ama's edge colour, and how much of it
+EYE_TO_FEET = 98  # Sister Ama's eyes above her feet, in pixels of the sheet
 
 def main_figure(cell):
     a = np.array(cell.convert('RGBA'))
@@ -67,6 +68,34 @@ def edge(fig):
     a[ring, 3] = 255
     return Image.fromarray(a.astype(np.uint8))
 
+# Where the eyes are in a cell (the middle of the pair of tall dark ovals every face has), or None.
+def eye_y(cell):
+    a=np.array(cell.convert('RGBA')).astype(int)
+    lum=(a[:,:,0]*30+a[:,:,1]*59+a[:,:,2]*11)/100
+    m=(a[:,:,3]>200)&(lum<40)
+    h,w=m.shape; seen=np.zeros_like(m); blobs=[]
+    for y in range(h):
+        for x in range(w):
+            if m[y,x] and not seen[y,x]:
+                q=deque([(y,x)]); seen[y,x]=True; pts=[]
+                while q:
+                    cy,cx=q.popleft(); pts.append((cy,cx))
+                    for ny,nx in ((cy+1,cx),(cy-1,cx),(cy,cx+1),(cy,cx-1)):
+                        if 0<=ny<h and 0<=nx<w and m[ny,nx] and not seen[ny,nx]: seen[ny,nx]=True; q.append((ny,nx))
+                ys=[p[0] for p in pts]; xs=[p[1] for p in pts]
+                bh=max(ys)-min(ys)+1; bw=max(xs)-min(xs)+1
+                blobs.append((len(pts),bh,bw,np.mean(ys),np.mean(xs)))
+    # eyes: a pair of tall small blobs at about the same height
+    cand=[b for b in blobs if b[1]>=b[2]*1.2 and 0.0005*h*w<b[0]<0.01*h*w and b[3]<h*0.65]
+    best=None
+    for i in range(len(cand)):
+        for j in range(i+1,len(cand)):
+            p,q=cand[i],cand[j]
+            if abs(p[3]-q[3])<h*0.03 and abs(p[0]-q[0])<max(p[0],q[0])*0.6 and w*0.08<abs(p[4]-q[4])<w*0.45:
+                score=p[0]+q[0]
+                if not best or score>best[0]: best=(score,(p[3]+q[3])/2)
+    return best[1] if best else None
+
 def alike(p, q):
     """How alike two figures are, 0 (nothing alike) to 1 (the same)."""
     size = (64, 96)
@@ -74,21 +103,31 @@ def alike(p, q):
     y = np.array(q.resize(size)).astype(float)
     return 1 - np.abs(x - y).mean() / 255
 
-def install(src_path, out_path, height=146):
-    src = Image.open(src_path).convert('RGBA')
-    cw, ch = src.width / 3, src.height / 3
-    figs = [[main_figure(src.crop((int(c * cw), int(r * ch), int((c + 1) * cw), int((r + 1) * ch)))) for c in range(3)] for r in range(3)]
-    scale = height / figs[0][0].height
+def build(figs, scale):
     sheet = Image.new('RGBA', (CELL_W * 3, CELL_H * 3), (0, 0, 0, 0))
     for r in range(3):
-        if alike(figs[r][1], figs[r][2]) > 0.97:  # (two steps the same: the second is the first, mirrored)
-            figs[r][2] = ImageOps.mirror(figs[r][1]) if r != 1 else figs[r][2]
-            print(f'row {r + 1}: the second step repeated the first: mirrored' if r != 1 else 'row 2: the steps look alike (side view, kept)')
         for c in range(3):
             f = figs[r][c]
             f = edge(f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS))
             sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - f.width // 2, r * CELL_H + FEET_Y - f.height))
-    sheet.save(out_path)
+    return sheet
+
+def install(src_path, out_path, size=1.0):
+    src = Image.open(src_path).convert('RGBA')
+    cw, ch = src.width / 3, src.height / 3
+    figs = [[main_figure(src.crop((int(c * cw), int(r * ch), int((c + 1) * cw), int((r + 1) * ch)))) for c in range(3)] for r in range(3)]
+    for r in (0, 2):  # (two steps the same, front or back: the second is the first, mirrored)
+        if alike(figs[r][1], figs[r][2]) > 0.97:
+            figs[r][2] = ImageOps.mirror(figs[r][1])
+            print(f'row {r + 1}: the second step repeated the first: mirrored')
+    scale = 146 / figs[0][0].height  # (a first guess: Sister Ama's height)
+    eye = eye_y(build(figs, scale).crop((0, 0, CELL_W, CELL_H)))
+    if eye is None:
+        print('no eyes found: sized by height')
+        scale *= size
+    else:
+        scale *= EYE_TO_FEET * size / (FEET_Y - eye)
+    build(figs, scale).save(out_path)
 
 if __name__ == '__main__':
-    install(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 146)
+    install(sys.argv[1], sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 1.0)
