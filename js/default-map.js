@@ -346,6 +346,77 @@ const DEEP_SEWERS = [
 //             [x, y, 'stairs_up' | 'stairs_down'], dais [x0, y0, x1, y1] (paved), torches on north walls,
 //             props [x, y, id], monsters [type, x, y]
 // Keep things off the row along a south wall and the column along an east wall: those walls hide them.
+// The gate watch's tasks out in the wilds (the gate quests in npcs.js, their mechanics in game-gates.js), all on the surface:
+//   prints:  Greyfang's paw prints [x, y, look], from the lumber trail north through the pines; a narrow way is
+//            cleared between them; den: [x0, y0, x1, y1] his den against the rocks, cleared of trees
+//   rock:    the rock off the west beach of Lighthouse Point where Wendel the fisher is stranded [x, y], a sand spit out
+//            to it (spit), the islet round it (islet: rows [y, x0, x1]), its crabs; wreck: his boat [x, y];
+//            fisherHome: where he rows home to, at Fisher's Rest
+//   nests:   the spider nests round the Spider Hills [x, y]
+//   camp:    the goblin camp on Goblin Hill: tents, a totem, a fire, the war chest [x, y], its sleepers (goblins);
+//            sleepers: everything in this box sleeps at night [x0, y0, x1, y1]
+const GATE_SITES = {
+  prints: [
+    [69, 98, 'Paw prints in the soft earth by the trail, bigger than any wolf\'s you have seen. They leave the trail and go north, into the pines.'],
+    [68, 95, 'More of the big paw prints, deep in the needles. North.'],
+    [69, 92, 'A tuft of coarse grey fur on a twig, and the big paw prints under it, going north.'],
+    [68, 89, 'The prints are fresher here. Something heavy was dragged this way: there is blood on the needles.'],
+    [69, 86, 'Big paw prints, and the smaller prints of the pack round them, all going north.'],
+    [68, 83, 'A gnawed deer bone, and the big paw prints. The trees grow thick to the north.'],
+    [69, 80, 'The prints wind north between the trunks, towards the grey rocks.'],
+    [68, 77, 'The ground is trampled bare. You smell wet fur and old bones. Something big sleeps in the thicket ahead.'],
+  ],
+  den: [65, 70, 70, 73],
+  rock: [101, 220], spit: [[100, 216], [100, 217], [100, 218]],
+  islet: [[219, 99, 103], [220, 98, 104], [221, 98, 104], [222, 99, 103]],
+  rockCrabs: [[99, 220], [103, 221]], wreck: [105, 221], fisherHome: [41, 176],
+  nests: [[179, 162], [195, 163], [200, 172], [165, 186]],
+  camp: { tents: [[194, 67], [200, 67], [197, 70]], totem: [199, 65], fire: [197, 66], chest: [198, 70], bones: [[195, 69], [201, 65]],
+    goblins: [[194, 65], [201, 69], [195, 70]] },
+  sleepers: [174, 56, 208, 90],
+};
+
+// The gate watch's places (GATE_SITES), built before the hunting grounds are filled
+function buildGateSites(m, S) {
+  const G = GATE_SITES, put = (x, y, id) => m.addItem(x, y, S, id);
+  const unblock = (x, y) => { const t = m.get(x, y, S); if (t) t.items = t.items.filter(id => !THINGS[id].block); return t; };
+  // west: the den, cleared, with bones about; the prints, with a narrow way between them through the pines
+  const [dx0, dy0, dx1, dy1] = G.den;
+  for (let y = dy0; y <= dy1; y++) for (let x = dx0; x <= dx1; x++) if (m.get(x, y, S).ground !== 'mountain') unblock(x, y);
+  // (a thicket of firs round it, the rocks behind it: the only way in is from the south, where the prints go)
+  const thicket = (x, y) => { const t = m.get(x, y, S); if (t && t.ground === 'grass' && !t.items.some(id => THINGS[id].block)) t.items = ['pine']; };
+  for (let y = dy0 - 2; y <= dy1; y++) for (const x of [dx0 - 2, dx0 - 1]) thicket(x, y);
+  for (let x = dx0; x <= dx1 + 1; x++) for (const y of [dy0 - 2, dy0 - 1]) thicket(x, y);
+  for (let x = dx0 - 2; x < dx0 + 2; x++) thicket(x, dy1 + 1);
+  for (const [x, y, id] of [[66, 71, 'bones'], [69, 73, 'bones'], [70, 71, 'pebbles'], [67, 73, 'leaves']]) put(x, y, id);
+  m.setMeta(66, 71, S, { look: 'Among the bones lies a grey hood, singed at the edges. It stinks of smoke. No hunter wore this.' });
+  G.prints.forEach(([x, y, look], i) => {
+    const next = G.prints[i + 1] || [68, 74];
+    const n = Math.max(Math.abs(next[0] - x), Math.abs(next[1] - y));
+    for (let k = 0; k <= n; k++) unblock(Math.round(x + ((next[0] - x) * k) / n), Math.round(y + ((next[1] - y) * k) / n));
+    m.get(x, y, S).items = ['paw_prints'];
+    m.setMeta(x, y, S, { look });
+  });
+  // south: a sand spit out to the rock, the islet round it, rocks on its edge and the fisher's wrecked boat beside it
+  for (const [x, y] of G.spit) m.set(x, y, S, { ground: 'sand', items: [] });
+  for (const [y, x0, x1] of G.islet) for (let x = x0; x <= x1; x++) m.set(x, y, S, { ground: 'sand', items: [] });
+  for (const [x, y, id] of [[98, 221, 'rock'], [104, 220, 'rock'], [102, 222, 'driftwood'], [99, 219, 'shells'], [103, 219, 'fish_rack']]) put(x, y, id);
+  put(...G.wreck, 'wreck');
+  m.npcs.push({ type: 'oak_stranded', x: G.rock[0], y: G.rock[1], z: S });
+  for (const [x, y] of G.rockCrabs) m.spawns.push({ type: 'crab', x, y, z: S });
+  // east: the nests
+  m.setMeta(...G.nests[2], S, { look: 'Burnt into the web, as neat as a brand: a flame inside a ring.' });
+  for (const [x, y] of G.nests) { unblock(x, y).items = ['spider_nest']; for (const [ox, oy] of [[1, 0], [-1, 1]]) { const t = m.get(x + ox, y + oy, S); if (t && !t.items.length && t.ground === 'grass') put(x + ox, y + oy, 'web'); } }
+  // north: the camp
+  const C = G.camp;
+  for (const [x, y] of C.tents) unblock(x, y).items = ['tent'];
+  unblock(...C.totem).items = ['totem'];
+  unblock(...C.fire).items = ['campfire'];
+  unblock(...C.chest).items = ['qchest_gnash_plans'];
+  for (const [x, y] of C.bones) unblock(x, y).items = ['bones'];
+  for (const [x, y] of C.goblins) { unblock(x, y); m.spawns.push({ type: 'goblin', x, y, z: S }); }
+}
+
 // The spiders' den under the Spider Hills (z 7): steps down at the foot of the hills' south face, a winding tunnel full
 // of spiders, and the Brood Queen in her egg chamber at the end. The hardest place on the starter island.
 const SPIDER_DEN = {
@@ -775,6 +846,7 @@ function createDefaultMap() {
   buildCrypt(m, S);
   buildSpiderDen(m, S);
   buildDeepSewers(m, S);
+  buildGateSites(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
   // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
@@ -862,10 +934,15 @@ function createDefaultMap() {
   }
 
   // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
-  for (const [type, x, y, ground] of [['greyfang', 62, 84], ['old_snapper', 104, 213, 'sand'], ['thornmother', 184, 190], ['gnash', 177, 66]]) {
+  // (Greyfang in his den in Wolf Woods, Gnash in his camp: GATE_SITES)
+  for (const [type, x, y, ground] of [['greyfang', 67, 71], ['old_snapper', 104, 213, 'sand'], ['thornmother', 184, 190], ['gnash', 197, 68]]) {
     const p = spot(x, y, S, ground, 12);
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
   }
+  // Greyfang's den is his own: the packs of Wolf Woods keep out of it (he calls his own wolves when he fights)
+  for (let i = m.spawns.length - 1; i >= 0; i--) { const s = m.spawns[i]; if (s.type === 'wolf' && s.z === S && Math.max(Math.abs(s.x - 67), Math.abs(s.y - 72)) <= 6) m.spawns.splice(i, 1); }
+  // the goblins of Goblin Hill sleep at night (game-gates.js)
+  { const [x0, y0, x1, y1] = GATE_SITES.sleepers; for (const s of m.spawns) if (s.z === S && ['goblin', 'gnash'].includes(s.type) && s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1) s.sleeps = true; }
   // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): four singers round their cantor
   // (placed by hand: the point is too small for the packs' spacing). They come ashore only at night once the bell rings
   // again, or for whoever is on The Silent Bell V (night: see ashore in game-combat.js), notice you only up close (lurk)

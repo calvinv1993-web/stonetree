@@ -38,6 +38,8 @@ const DY = [-1, 0, 1, 0];
 //             and look: what you read when you look at it (a gravestone's inscription)
 //   ...and flags for things you can use: lever, teleport, ropeSpot, digSpot,
 //   breakable, depot, readable, houseDoor, questDoor, levelDoor, lockDoor, bookshelf, oreVein (mine it with a pick)
+//   burnable: fire burns it (Torchlight cast next to it, or a torch used on it): it turns into this thing for a while
+//             (burnThing in game-gates.js)
 const THINGS = {
   grass:       { name: 'grass', cat: 'Ground', ground: true },
   dirt:        { name: 'dirt', cat: 'Ground', ground: true },
@@ -461,6 +463,21 @@ const THINGS = {
     chest: { flag: 'tide_hoard', quest: 'tide_hoard', gold: 1000, items: [['amulet_keeping', 1], ['ring_life', 1]] },
   },
 };
+
+// The gate watch's tasks on Oakvale Isle (the gate quests in npcs.js, their mechanics in game-gates.js):
+// Greyfang's paw prints (look at them: map.meta look) lead to his den; the spider nests round the Spider Hills burn;
+// Gnash's war chest stands in the goblin camp on Goblin Hill.
+Object.assign(THINGS, {
+  paw_prints:  { name: 'paw prints', cat: 'Nature' },
+  spider_nest: { name: 'spider nest', cat: 'Nature', block: true, low: true, burnable: 'nest_burnt' },
+  nest_burnt:  { name: 'burnt spider nest', cat: 'Nature' },
+  qchest_gnash_plans: {
+    name: 'goblin war chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'gnash_plans', requires: 'gate_north', items: [['gnash_plans', 1]],
+      locked: 'A goblin war chest, daubed with red. Captain Osric would want to know what is in it, but it is no business of yours yet.',
+      empty: 'Only goblin scribbles and gnawed bones are left in the chest.' },
+  },
+});
 
 // Each ground's speed, as in Tibia: a step takes 1000 x this / your speed (in ms). Roads, paving and floors are
 // quickest (100), grass, sand and rough ground slower, deep snow and swamp slowest.

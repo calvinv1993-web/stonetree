@@ -13,7 +13,7 @@
 //   ring:       worn effects that run out: { regen: [hp, mana], speed, duration (ms) }
 //   keeping:    an amulet that saves your things when you die (used up)
 //   rune:       used on a target (see castRune): { kind, element, power, radius, field, condition, ml, range }
-//   tool:       rope | shovel | pick | fishing, used on a target
+//   tool:       rope | shovel | pick | fishing | torch, used on a target
 //   key:        opens locked doors with this lock name
 //   kit:        furniture you can set up in your house
 //   text:       readable
@@ -193,6 +193,14 @@ const ITEMS = {
   ore_starsteel: { name: 'starsteel ore', stack: true, ore: 3, value: 400, weight: 5 },
   ore_sunsteel:  { name: 'sunsteel ore', stack: true, ore: 4, value: 1800, weight: 5 },
 };
+
+// The gate watch's tasks (game-gates.js): what you bring back, and the torch that burns the spiders' nests
+Object.assign(ITEMS, {
+  greyfang_pelt: { name: 'Greyfang\'s pelt', quest: true, weight: 14 }, // from Greyfang, in his den (The Gate Watch: west)
+  gnash_plans:   { name: 'goblin war plans', quest: true, weight: 1, // from the war chest in Gnash's camp (north)
+    text: 'A goblin map, drawn in soot on a scrap of hide: the north gate of Oakvale, with three fat arrows pointing at it, and a moon. Under it, in another hand, neat and human: "When the bell is silent, they may take what they like. - G."' },
+  hand_torch:    { name: 'torch', tool: 'torch', weight: 8 }, // use it on a spider nest to burn it (east; worth nothing to a trader)
+});
 
 function itemName(id, count = 1, q = 0) {
   const name = (q ? `${QUALITIES[q].name} ` : '') + ITEMS[id].name;

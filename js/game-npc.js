@@ -341,7 +341,7 @@ function questTalk(ids, npc, otherwise) {
       if (q.level && player.level < q.level) return storyText(t, 'tooWeak');
       return ask(storyText(own, 'offer'), () => {
         startQuest(id);
-        return storyText(own, 'accept');
+        return [storyText(own, 'accept'), questStartGift(id)].filter(Boolean).join(' '); // (a gift to take along: game-gates.js)
       }, () => 'Maybe another time then.');
     }
     const s = questStep(id), single = !q.steps;
@@ -352,6 +352,7 @@ function questTalk(ids, npc, otherwise) {
     if (!stepReady(id)) return storyText(single ? t : s, 'progress').replace('$progress', questProgress(id));
     const said = single ? storyText(t, 'reward') : storyText(s, 'done');
     advanceQuest(id);
+    if (s.goesHome) goHome(npc); // (someone you rescued makes their own way home: game-gates.js)
     return said;
   }
   const last = QUESTS[ids[ids.length - 1]];

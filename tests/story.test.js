@@ -68,9 +68,22 @@ const STEPS = [
   ['the Rats\' Hoard', d => { d.talk('corwin', 'shield', 'yes'); d.go({ x: 131, y: 112, z: 7 }); d.kill('rat', 5); d.use(105, 121, 7); d.wear('wooden_shield'); d.talk('corwin', 'shield'); }],
   ['Clang', d => { d.talk('ama', 'clang', 'yes'); d.go({ x: 140, y: 104, z: 7 }); d.kill('rat', 3); d.use(148, 105, 7); d.talk('ama', 'clang'); }],
   ['the gate watch', d => {
-    for (const [id, word, type, n, level, boss] of [['gate_west', 'wolves', 'wolf', 8, 2, 'greyfang'], ['gate_south', 'crabs', 'crab', 6, 3, 'old_snapper'],
-      ['gate_east', 'spiders', 'spider', 8, 4, 'thornmother'], ['gate_north', 'goblins', 'goblin', 8, 5, 'gnash']]) {
-      d.levelTo(level); d.talk(id, word, 'yes'); d.kill(type, n); d.kill(boss, 1); d.talk(id, word);
+    // west: Greyfang's pack and Greyfang (his pelt); south: Wendel off his rock (wherever he is: a friend may have sent
+    // him home already); east: four nests (one a friend burnt is spun again after a while); north: Gnash's war plans
+    const deeds = {
+      gate_west: () => { d.kill('wolf', 4); d.kill('greyfang', 1); },
+      gate_south: () => d.talk('oak_stranded', 'help'),
+      gate_east: () => {
+        for (const [x, y] of d.run('GATE_SITES.nests')) {
+          d.go({ x, y: y + 1, z: 8 });
+          if (!d.state.map.get(x, y, 8).items.includes('spider_nest')) { d.state.now += 11 * 60000; d.tick(100); }
+          d.ctx.burnThing(x, y, 8); d.tick(100);
+        }
+      },
+      gate_north: () => d.use(198, 70, 8),
+    };
+    for (const [id, word, level] of [['gate_west', 'wolves', 2], ['gate_south', 'crabs', 3], ['gate_east', 'spiders', 4], ['gate_north', 'goblins', 5]]) {
+      d.levelTo(level); d.talk(id, word, 'yes'); deeds[id](); d.talk(id, word);
     }
   }],
   ['a watch hunt and the stores', d => { d.talk('gate_west', 'hunt', 'yes'); d.kill('wolf', 10); d.talk('gate_west', 'hunt'); d.talk('gate_north', 'potions'); }],

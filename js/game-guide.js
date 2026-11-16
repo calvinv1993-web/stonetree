@@ -6,7 +6,9 @@
 
 // text: what to do (touch: the same for a phone); target: what the arrow points at, the
 // first of these that is there - an NPC, the nearest monster of a kind, the nearest
-// corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget; done: when the step is done (as the
+// corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget (a target
+// with active: 'quest' or 'quest@step' counts only while you're on it; lead: a spot until you're near it, then no arrow;
+// nest: the nearest spider nest you haven't burnt); done: when the step is done (as the
 // player), or on: the deed that does it (see guideDid). A step with neither just explains: it waits for "Next"
 // (Actions.guideNext), and the last step for "Got it". ui / uiDesk: the parts of the screen it's about on a phone / a
 // computer (CSS selectors): the first one in sight is lit while the rest of the screen dims, with a hand pointing
@@ -184,7 +186,11 @@ const GUIDE = [
   {
     text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
     touch: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
-    target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { npc: 'gate_west', level: 2 }],
+    // (each gate's task: Greyfang's pack, then his paw prints from the trailhead on, and him once he's near; the fisher's
+    // rock; the nearest nest you haven't burnt; Gnash's war chest)
+    target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
+      { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' }, { at: [101, 220, 8], active: 'gate_south@0' },
+      { nest: true, active: 'gate_east@0' }, { at: [198, 70, 8], active: 'gate_north@0' }, { npc: 'gate_west', level: 2 }],
     done: () => questState('gate_north') === 'done' || questState('bell_2') !== 'none',
   },
   {
@@ -282,6 +288,7 @@ function guideTarget(step) {
   }
   for (const t of step.target || []) {
     if (t.level && player.level < t.level) continue;
+    if (t.active && !questOnStep(t.active)) continue; // ('quest', or 'quest@step': only while on that one)
     if (t.quest && (questState(t.quest) !== 'active' || !stepReady(t.quest))) continue; // only a step that's ready to hand in
     if (t.quest && !t.npc) { // the NPC this quest's current step is reported to
       const q = player.quests[t.quest], def = QUESTS[t.quest];
@@ -317,9 +324,18 @@ function guideTarget(step) {
       const c = near(piles.filter(p => p.corpse));
       if (c) return c;
     }
+    if (t.nest) { const n = nextNest(); if (n) return n; }
+    // lead: to a spot until you're within `near` of it; from there on you find your own way (no arrow)
+    if (t.lead) return t.lead[2] === player.z && dist(player, { x: t.lead[0], y: t.lead[1] }) > (t.near || 0) ? { x: t.lead[0], y: t.lead[1], z: t.lead[2] } : null;
     if (t.at && t.at[2] === player.z) return { x: t.at[0], y: t.at[1], z: t.at[2] };
   }
   return null;
+}
+
+// Is the quest active ('quest'), and on that step ('quest@step')?
+function questOnStep(spec) {
+  const [id, step] = spec.split('@'), q = player.quests[id];
+  return !!q && q.status === 'active' && (step === undefined || (q.step || 0) === +step);
 }
 
 // ---- the island is one way ----------------------------------------------------------------

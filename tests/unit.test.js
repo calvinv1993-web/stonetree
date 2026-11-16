@@ -454,31 +454,141 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
 });
 
 
-test('the gate watch: a task beyond each gate, gear for it, and each guard sends you on to the next', () => {
+test('the gate watch: a task beyond each gate, two potions to set out with, gear for it, and each guard sends you on to the next', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
-  const guard = id => state.npcs.find(n => n.npcId === id);
-  const talk = (id, ...words) => { const g = guard(id); ctx.teleport({ ...ctx.findFreeTile(g.x, g.y, g.z, 2), z: g.z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
-  for (const id of ['gate_west', 'gate_south', 'gate_east', 'gate_north']) assert(guard(id), `${id} stands at a gate`);
+  const npc = id => state.npcs.find(n => n.npcId === id);
+  const talk = (id, ...words) => { const g = npc(id); ctx.teleport({ ...ctx.findFreeTile(g.x, g.y, g.z, 2), z: g.z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  for (const id of ['gate_west', 'gate_south', 'gate_east', 'gate_north']) assert(npc(id), `${id} stands at a gate`);
   talk('gate_west', 'wolves', 'yes');
   assert.strictEqual(state.questState('gate_west'), 'none', 'not at level 1');
   p.level = 5;
-  for (const [id, word, kill, n, boss, item, next] of [['gate_west', 'wolves', 'wolf', 8, 'greyfang', 'leather_armor', /Tilda/],
-    ['gate_south', 'crabs', 'crab', 6, 'old_snapper', 'leather_legs', /Hilde/], ['gate_east', 'spiders', 'spider', 8, 'thornmother', 'chain_helmet', /Osric/],
-    ['gate_north', 'goblins', 'goblin', 8, 'gnash', 'studded_shield', /crypt/]]) {
+  const nests = vm.runInContext('GATE_SITES.nests', game.ctx);
+  const deeds = {
+    // west: his pack, then Greyfang himself: his pelt
+    gate_west: () => {
+      for (let i = 0; i < 4; i++) ctx.onMonsterKilled('wolf');
+      assert.strictEqual(ctx.questNews('gate_west').mark, 'busy', 'the pack alone is not enough');
+      ctx.onMonsterKilled('greyfang');
+      assert.strictEqual(state.countItem('greyfang_pelt'), 1, 'his pelt, taken from him');
+      ctx.onMonsterKilled('greyfang'); assert.strictEqual(state.countItem('greyfang_pelt'), 1, 'only one');
+    },
+    // south: Wendel on his rock; then he rows home by himself
+    gate_south: () => {
+      const w = npc('oak_stranded');
+      assert.deepStrictEqual([w.x, w.y], [101, 220], 'Wendel on his rock');
+      talk('oak_stranded', 'help');
+      assert.strictEqual(state.player.quests.gate_south.step, 1, 'rescued');
+      assert(Math.abs(w.x - 41) <= 3 && Math.abs(w.y - 176) <= 3, 'and he is home at Fisher\'s Rest');
+    },
+    // east: four nests burnt, the first with Hilde's torch
+    gate_east: () => {
+      const [x, y] = nests[0];
+      ctx.teleport({ x, y: y + 1, z: 8 });
+      A.useItemOn(bagRef(state, 'hand_torch'), x, y, 8);
+      assert(state.map.get(x, y, 8).items.includes('nest_burnt'), 'the torch burns a nest');
+      ctx.burnThing(x, y, 8); // (burnt already: nothing)
+      assert.strictEqual(ctx.burntCount('gate_east'), 1);
+      for (const [nx, ny] of nests.slice(1)) ctx.burnThing(nx, ny, 8);
+      assert.strictEqual(ctx.burntCount('gate_east'), 4);
+    },
+    // north: the plans from the war chest in Gnash's camp
+    gate_north: () => { ctx.useThing(198, 70, 8); assert.strictEqual(state.countItem('gnash_plans'), 1, 'the war plans'); },
+  };
+  for (const [id, word, item, next] of [['gate_west', 'wolves', 'leather_armor', /Tilda/], ['gate_south', 'crabs', 'leather_legs', /Hilde/],
+    ['gate_east', 'spiders', 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'studded_shield', /crypt/]]) {
     assert.strictEqual(ctx.questNews(id).mark, 'offer', `${id} has a task: !`);
+    const potions = state.countItem('health_potion');
     talk(id, word, 'yes');
-    for (let i = 0; i < n; i++) ctx.onMonsterKilled(kill);
-    assert.strictEqual(ctx.questNews(id).mark, 'busy', `${id}: the pack alone is not enough`);
-    ctx.onMonsterKilled(boss);
-    assert(state.map.spawns.some(s => s.type === boss), `${boss} lives in the hunting ground`);
+    assert.strictEqual(state.questState(id), 'active', `${id} taken on`);
+    assert.strictEqual(state.countItem('health_potion'), potions + 2, `${id} gives two potions to set out with`);
+    // (Tilda's task goes to Wendel first: with no crabs round him, he's waiting for you)
+    if (id === 'gate_south') assert.strictEqual(ctx.questNews('oak_stranded').mark, 'report', 'Wendel: ?');
+    else assert.strictEqual(ctx.questNews(id).mark, 'busy', `${id}: not done yet`);
+    deeds[id]();
     assert.strictEqual(ctx.questNews(id).mark, 'report', `${id} waits for the news: ?`);
     talk(id, word);
     assert.strictEqual(state.questState(id), 'done', `${id} is done`);
     assert.strictEqual(state.countItem(item), 1, `${id} gives ${item}`);
     assert(next.test(messages.join(' ')), `${id} sends you on`);
   }
+  assert.strictEqual(state.countItem('greyfang_pelt') + state.countItem('gnash_plans'), 0, 'what was brought is handed in');
+});
+
+test('the gate watch\'s hunts give two potions as you take one on, lying at your feet when your bag is full', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  p.level = 5; p.quests.gate_west = { status: 'done', step: 1, kills: {} };
+  const bram = state.npcs.find(n => n.npcId === 'gate_west');
+  ctx.teleport({ ...ctx.findFreeTile(bram.x, bram.y, 8, 2), z: 8 });
+  const bag = p.equipment.backpack;
+  bag.contents = Array.from({ length: state.ITEMS[bag.id].container }, () => ({ id: 'wooden_shield', count: 1 })); // (full)
+  A.say('hi'); A.say('hunt'); A.say('yes'); A.say('bye');
+  assert.strictEqual(state.questState('task_west'), 'active');
+  const pile = state.piles.find(pl => pl.x === p.x && pl.y === p.y && pl.z === p.z);
+  assert(pile && pile.items.some(i => i.id === 'health_potion' && i.count === 2), 'two potions at your feet');
+});
+
+test('Wendel stays on his rock while a crab of his rock lives, even one lured away', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  p.level = 3; p.quests.gate_south = { status: 'active', step: 0, kills: {} };
+  const s = state.map.spawns.find(sp => sp.type === 'crab' && Math.max(Math.abs(sp.x - 101), Math.abs(sp.y - 220)) <= 3);
+  assert(s, 'crabs live on the rock');
+  const crab = ctx.spawnMonster(s); state.monsters.push(crab);
+  Object.assign(crab, { x: 100, y: 212 }); // (lured up the beach)
+  const w = state.npcs.find(n => n.npcId === 'oak_stranded');
+  ctx.teleport({ x: w.x, y: w.y - 1, z: 8 });
+  state.Actions.say('hi'); state.Actions.say('help'); state.Actions.say('bye');
+  assert.strictEqual(p.quests.gate_south.step, 0, 'not yet');
+  crab.dead = true;
+  state.Actions.say('hi'); state.Actions.say('help'); state.Actions.say('bye');
+  assert.strictEqual(p.quests.gate_south.step, 1, 'rescued');
+  state.now += 4 * 60000; ctx.teleport({ x: 129, y: 124, z: 8 }); tick(game, 100);
+  assert.deepStrictEqual([w.x, w.y], [101, 220], 'and after a while he is back out on his rock');
+});
+
+test('Gnash\'s war chest opens only for the north gate\'s task, and a burnt nest is spun again after a while', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  ctx.teleport({ x: 198, y: 71, z: 8 });
+  ctx.useThing(198, 70, 8);
+  assert.strictEqual(state.countItem('gnash_plans'), 0, 'not without the task');
+  const [x, y] = vm.runInContext('GATE_SITES.nests[1]', game.ctx);
+  ctx.teleport({ x, y: y + 1, z: 8 });
+  state.player.level = 2; state.player.mana = 100; state.player.spellReady = 0;
+  state.Actions.say('lumen'); tick(game, 100);
+  assert(state.map.get(x, y, 8).items.includes('nest_burnt'), 'Torchlight cast next to a nest burns it');
+  ctx.teleport({ x: 129, y: 124, z: 8 });
+  state.now += 11 * 60000; tick(game, 100);
+  assert(state.map.get(x, y, 8).items.includes('spider_nest'), 'spun again');
+});
+
+test('the goblins of Goblin Hill sleep at night: they wake when you step right next to one, or hit one', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  while (ctx.daylight() >= 0.5) state.now += 60000; // (night)
+  const s = state.map.spawns.find(sp => sp.type === 'goblin' && sp.sleeps);
+  assert(s, 'sleeping goblins on Goblin Hill');
+  const g = ctx.spawnMonster(s), buddy = ctx.spawnMonster({ ...s, x: s.x + 2 });
+  state.monsters.push(g, buddy);
+  ctx.teleport({ ...ctx.findFreeTile(g.x + 3, g.y, g.z, 1), z: g.z });
+  assert.strictEqual(ctx.monsterTarget(g), null, 'three tiles off, it sleeps on');
+  ctx.updateMonster(g, 0); assert(g.asleep, 'asleep');
+  ctx.teleport({ ...ctx.findFreeTile(g.x + 1, g.y, g.z, 0) || ctx.findFreeTile(g.x, g.y + 1, g.z, 0) || ctx.findFreeTile(g.x - 1, g.y, g.z, 0), z: g.z });
+  assert(Math.max(Math.abs(p.x - g.x), Math.abs(p.y - g.y)) <= 1, 'right next to it');
+  assert.strictEqual(ctx.monsterTarget(g), p, 'it wakes');
+  assert(buddy.awakeUntil > state.now, 'and wakes the goblins round it');
+  // by day they are up anyway; a hit wakes one at night
+  const h = ctx.spawnMonster(s); state.monsters.push(h);
+  ctx.teleport({ x: h.x + 4, y: h.y, z: h.z });
+  assert(ctx.monsterAsleep(h));
+  h.angryAt = p.id; h.angryUntil = state.now + 15000;
+  assert(!ctx.monsterAsleep(h), 'a hit wakes it');
 });
 
 test('walking goes north, east, south and west; a diagonal step only where nothing else gets past', () => {
@@ -1199,7 +1309,19 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {
     levelTo(level);
     assert.strictEqual(mark(id), 'offer', `${id} has a task`);
-    talk(id, word, 'yes'); kill(type, n); kill({ gate_west: 'greyfang', gate_south: 'old_snapper', gate_east: 'thornmother', gate_north: 'gnash' }[id], 1);
+    talk(id, word, 'yes');
+    if (id === 'gate_west') { // the pack, then the arrow to where his paw prints start; from there you follow them yourself
+      kill('wolf', 4); assert.strictEqual(arrow(), '69,98,8', 'to the paw prints by the lumber trail');
+      on(null, { x: 69, y: 96, z: 8 }); assert.strictEqual(arrow(), null, 'then you follow the prints');
+      kill('greyfang', 1);
+    } else if (id === 'gate_south') {
+      assert.strictEqual(arrow(), '101,220,8', 'to Wendel\'s rock'); assert.strictEqual(mark('oak_stranded'), 'report');
+      talk('oak_stranded', 'help');
+    } else if (id === 'gate_east') {
+      for (const [x, y] of run('GATE_SITES.nests')) { assert.strictEqual(arrow(), `${x},${y},8`, 'to the nearest nest'); on(null, { x, y: y + 1, z: 8 }); ctx.burnThing(x, y, 8); }
+    } else {
+      assert.strictEqual(arrow(), '198,70,8', 'to Gnash\'s war chest'); ctx.useThing(198, 70, 8);
+    }
     assert.strictEqual(mark(id), 'report'); assert.strictEqual(arrow(), id, `the arrow goes back to ${id}`);
     talk(id, word);
     if (next) assert.strictEqual(arrow(), next, `and on to ${next}`);

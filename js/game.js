@@ -778,6 +778,12 @@ function drawCreatureInfo(c, screen, struck) {
   ctx.fillRect(sx + 6, ty - 6, Math.ceil((size - 12) * frac), 5);
   const name = c.type === 'player' ? c.name : capitalize(c.name);
   outlinedText(name, sx + size / 2, ty - 11, color, 'bold 12px sans-serif');
+  if (c.asleep) { // a monster asleep (goblins at night): a drowsy z drifting up over its head
+    const k = (now / 1400) % 1;
+    ctx.globalAlpha = 1 - k;
+    outlinedText('z', sx + size / 2 + 12 + k * 8, ty - 22 - k * 12, '#cfe0ff', `bold ${10 + Math.round(k * 5)}px sans-serif`);
+    ctx.globalAlpha = 1;
+  }
   if (c.type === 'player') {
     ctx.font = 'bold 12px sans-serif';
     drawSocialIcons(c, sx + size / 2 + ctx.measureText(name).width / 2 + 4, ty - 15);

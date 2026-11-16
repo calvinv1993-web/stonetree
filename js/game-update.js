@@ -691,6 +691,7 @@ function updateWorld() {
   });
   monsters = monsters.filter(m => !m.remove);
   updateNpcs();
+  updateGates();
   updateParties();
   updateFields();
   updateReverts();

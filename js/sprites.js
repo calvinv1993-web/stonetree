@@ -3117,6 +3117,37 @@ const Sprites = (() => {
       }
       g.globalAlpha = 1;
     },
+    // The gate watch's tasks: Greyfang's paw prints (big, pressed into the earth, heading north), a spider nest (a mound
+    // of silk over the ground, strands pulled out to the sides, eggs showing through) and what is left of one burnt
+    paw_prints(g) {
+      const paw = (x, y, s) => {
+        ellipse(g, 'rgba(255,236,190,0.18)', x + 0.6 * s, y + 1.6 * s, 2.8 * s, 2.2 * s); // (the light catching the pressed rim)
+        ellipse(g, 'rgba(46,28,10,0.78)', x, y + 1, 2.6 * s, 2.1 * s);
+        for (const [ox, oy] of [[-2.7, -2.4], [-1, -3.7], [1, -3.7], [2.7, -2.4]]) ellipse(g, 'rgba(46,28,10,0.78)', x + ox * s, y + oy * s, 0.95 * s, 1.15 * s);
+      };
+      paw(9, 26, 1.5); paw(22, 17, 1.5); paw(10, 8, 1.5);
+    },
+    spider_nest(g) {
+      ellipse(g, 'rgba(0,0,0,0.28)', 18, 23, 15, 7);
+      g.globalAlpha = 0.85;
+      for (const [a, l] of [[0.2, 16], [0.7, 15], [1.6, 13], [2.4, 16], [3.0, 15], [3.6, 14], [4.3, 15], [5.4, 16]]) line(g, '#e8e8f0', 0.8, 16, 15, 16 + Math.cos(a) * l, 15 + Math.sin(a) * l * 0.8);
+      g.globalAlpha = 1;
+      ellipse(g, '#a8a8b4', 16, 19, 14, 9); // the mound of silk, shaded underneath
+      ellipse(g, '#cacad4', 15, 17, 13, 8);
+      ellipse(g, '#e2e2ec', 14, 15, 10, 6);
+      ellipse(g, '#f4f4fa', 11, 12, 5, 3);
+      ellipse(g, '#2a2420', 21, 20, 3, 2); // a way in, dark
+      for (const [x, y] of [[9, 18], [14, 21], [17, 15], [12, 15]]) ellipse(g, 'rgba(150,130,90,0.6)', x, y, 1.8, 1.4); // eggs under the silk
+      g.strokeStyle = 'rgba(140,140,155,0.75)'; g.lineWidth = 0.6;
+      for (const r of [5, 9, 13]) { g.beginPath(); g.ellipse(16, 17, r, r * 0.65, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); }
+    },
+    nest_burnt(g) {
+      ellipse(g, 'rgba(20,16,14,0.55)', 16, 18, 13, 7);
+      ellipse(g, 'rgba(40,36,34,0.7)', 15, 17, 9, 5);
+      for (const [x, y] of [[10, 17], [14, 20], [19, 16], [22, 19], [13, 14]]) rect(g, '#8a8480', x, y, 2, 1); // flakes of grey ash
+      for (const [x0, y0, x1, y1] of [[4, 12, 9, 15], [24, 11, 28, 14], [6, 23, 10, 21]]) line(g, 'rgba(60,56,54,0.8)', 0.7, x0, y0, x1, y1); // charred strands
+      rect(g, '#d06020', 17, 18, 1, 1); rect(g, '#a04010', 12, 18, 1, 1); // an ember or two
+    },
     bones(g) {
       rect(g, '#e6e0cc', 8, 20, 12, 2);
       ellipse(g, '#e6e0cc', 8, 21, 2, 2);
@@ -4192,6 +4223,30 @@ const Sprites = (() => {
     spider_silk(g) {
       ellipse(g, '#e8e8f0', 16, 18, 9, 8);
       for (let i = 0; i < 5; i++) line(g, '#b0b0c0', 1, 8, 12 + i * 3, 24, 14 + i * 2);
+    },
+    // The gate watch's tasks: Greyfang's pelt (big, dark grey, a pale scar down it), the goblins' war plans (soot on a
+    // scrap of hide, red arrows) and a torch
+    greyfang_pelt(g) {
+      shadow(g, 16, 27, 12, 3);
+      poly(g, '#4e4e52', [3, 9, 11, 4, 21, 5, 29, 10, 30, 21, 25, 28, 16, 26, 7, 28, 2, 21]);
+      poly(g, '#6e6e74', [8, 10, 16, 7, 24, 10, 24, 20, 12, 22]);
+      line(g, '#c8c4b8', 1.2, 12, 9, 19, 21); // the old scar
+      for (const [x, y] of [[3, 9], [29, 10], [7, 28], [25, 28]]) ellipse(g, '#3a3a3e', x, y, 2, 1.5); // the paws
+    },
+    gnash_plans(g) {
+      poly(g, '#b89a6a', [5, 8, 25, 6, 28, 14, 26, 25, 8, 27, 4, 18]);
+      poly(g, '#a0845a', [5, 8, 9, 10, 7, 18, 4, 18]);
+      rect(g, '#3a3028', 18, 10, 6, 3); // the gate, in soot
+      for (const [x, y] of [[8, 14], [10, 21], [13, 25]]) { line(g, '#b02818', 1.5, x, y, x + 7, y - 4); poly(g, '#b02818', [x + 9, y - 5, x + 5, y - 6, x + 7, y - 2]); }
+      ellipse(g, '#e8e0c8', 22, 22, 2, 2); ellipse(g, '#b89a6a', 23, 21.5, 1.6, 1.6); // a moon
+    },
+    hand_torch(g) {
+      shadow(g, 16, 27, 9, 2);
+      line(g, '#6a4422', 3, 9, 26, 20, 11);
+      line(g, '#8a5a2e', 1, 9, 25, 19, 11);
+      rect(g, '#4a4a52', 18, 9, 5, 4); // the pitch-soaked rag, bound with iron
+      ellipse(g, '#ff7a1a', 21, 7, 4, 5);
+      ellipse(g, '#ffd060', 21, 8, 2, 3);
     },
     bone(g) {
       diagonal(g, () => {

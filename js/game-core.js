@@ -522,6 +522,7 @@ function useThing(x, y, z) {
     if (def.digSpot) return log('You could dig here with a shovel.'), true;
     if (def.breakable) return log('A pick could break this rock.'), true;
     if (def.oreVein) return log('Ore glitters in the rock. Use a pick on it to mine it.'), true;
+    if (def.burnable) return log('Thick, sticky web. Fire would burn it: a torch, or the Torchlight spell ("lumen") cast next to it.'), true;
     if (def.teleport) return log('A magic forcefield. Step into it to travel.'), true;
     if (player.furniture.some(f => f.x === x && f.y === y && f.z === z && f.id === id)) return packFurniture(x, y, z, i), true;
     if (['chest', 'barrel', 'crate'].includes(id)) return log(`The ${def.name} is empty.`), true;
@@ -706,6 +707,7 @@ function useTool(tool, x, y, z) {
     return;
   }
   if (!near) return log('You need to stand next to it.');
+  if (tool === 'torch') return burnThing(x, y, z) || log('There is nothing here that would burn.');
   if (tool === 'rope') {
     if (!t || !t.items.some(id => THINGS[id].ropeSpot)) return log('There is nothing to climb up to here.');
     const from = { x: player.x, y: player.y };
@@ -1342,19 +1344,24 @@ const questStep = id => questSteps(QUESTS[id])[player.quests[id].step || 0];
 function stepReady(id) {
   const s = questStep(id), kills = player.quests[id].kills;
   if (s.thing) return false; // (done at a thing in the world: rescueAt)
-  if (s.kill) return Object.entries(s.kill).every(([type, n]) => (kills[type] || 0) >= n);
-  if (s.fetch) return countItem(s.fetch) > 0;
+  if (s.clear && !areaClear(s.clear)) return false; // (the gate watch's tasks: game-gates.js)
+  if (s.burn) return burntCount(id) >= s.burn;
+  if (s.kill && !Object.entries(s.kill).every(([type, n]) => (kills[type] || 0) >= n)) return false;
+  if (s.fetch) return countItem(s.fetch) > 0; // (a kill and a fetch: both)
   return true;
 }
 
 function questProgress(id) {
   const s = questStep(id), kills = player.quests[id].kills;
+  const fetched = s.fetch && `${ITEMS[s.fetch].name}: ${countItem(s.fetch) ? 'found' : 'not found yet'}`;
   if (s.kill) {
-    return Object.entries(s.kill)
-      .map(([type, n]) => `${Math.min(n, kills[type] || 0)}/${n} ${MONSTERS[type].proper ? MONSTERS[type].name : MONSTERS[type].plural || MONSTERS[type].name + 's'}`)
-      .join(', ');
+    return [...Object.entries(s.kill)
+      .map(([type, n]) => `${Math.min(n, kills[type] || 0)}/${n} ${MONSTERS[type].proper ? MONSTERS[type].name : MONSTERS[type].plural || MONSTERS[type].name + 's'}`), fetched]
+      .filter(Boolean).join(', ');
   }
   if (s.fetch) return countItem(s.fetch) ? 'found' : 'not found yet';
+  if (s.burn) return `${Math.min(s.burn, burntCount(id))}/${s.burn} burnt`;
+  if (s.clear) return areaClear(s.clear) ? 'the way is clear' : 'they are still there';
   return '';
 }
 
@@ -1395,6 +1402,7 @@ function advanceQuest(id) {
 }
 
 function onMonsterKilled(type) {
+  questTrophies(type); // (what a quest has you take from it: game-gates.js)
   for (const [id, s] of Object.entries(player.quests)) {
     if (s.status !== 'active' || !QUESTS[id]) continue;
     const st = questStep(id);
