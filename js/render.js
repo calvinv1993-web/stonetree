@@ -960,6 +960,10 @@ const Render = {
             } else if (def.wall === 'block') { // a mountain side: whether more of it stands south and east (its open corners are rounded)
               const blockAt = (bx, by) => { const w = wallAt(bx, by); return w && THINGS[w].wall === 'block' ? '1' : '0'; };
               shape = blockAt(x, y + 1) + blockAt(x + 1, y);
+              if (id === 'rampart') { // the town wall: which of its edges are outer (the battlements on its walkway above)
+                const up = map.floors[z + 1], t2 = up && up[y * map.width + x];
+                shape += `:${t2 ? t2.items.filter(i => i.startsWith('battlement_')).map(i => i.slice(-1)).join('') : ''}`;
+              }
             } else if (id === 'steps') { // a flight of steps several tiles wide: its ends and its middle
               const stepsAt = sx => { const n = tileAt(sx, y); return n && n.items.includes('steps') ? '1' : '0'; };
               shape = stepsAt(x - 1) + stepsAt(x + 1);

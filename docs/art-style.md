@@ -27,6 +27,11 @@ Every new or redone sprite is held up against it:
   sill standing out; a torch, a lantern or a sign is an object on an iron bracket standing out from the face; a banner
   hangs flat against it, with its shadow on the wall.
 - Only flames rise straight up the screen (fire goes up), and the figures: people, and the figures of statues (`stoneFigure()`: a person's figure in marble or bronze, upright on a plinth that leans as things do).
+- The same rule for slender upright things, which looked fallen over when they leaned: street lamps, the rune stone,
+  pillars, training dummies. Their shaft stands straight up the screen, only the plinth or foot leans with the camera,
+  and they keep their contact shadow to the south-east. Drawn ones use `upright()` in `sprites.js`; the owner's leaning
+  paintings of them are stood up when drawn (`STAND_UP`, `standUpright()`; the PNGs are left as they are), and the
+  square's statue is the owner's plinth with the bronze hero standing on it.
 - **Players** are drawn from the owner's own picture, `sprites/player-sheet.png` (`playerFromSheet()`): front, side and back, standing and two steps, at 4 pixels a world pixel; their hair, shirt, trousers and boots take the outfit's colours. A new sheet for other outfits follows the same layout (cells of 32 x 48 world pixels, feet at 16, 46).
 - **An NPC with its own sheet** (`sprites/custom.js`: `sheet_<npc id>`, laid out as the player sheet, e.g. Sister Ama: `npc-ama.png`) is drawn from it as it is (`npcFromSheet()`).
 - **Other people** stand upright (`tiltPerson()`, `Sprites.PEOPLE = 'tilt'`, `Sprites.TILT = 0`): a plain figure seen from the front, back or side, big simple shapes (head with hair and a face, body, belt, arms and hands, legs and boots) in two or three tones, lit from the top left, at a pixel per world pixel with a black edge. `TILT` can lean them along the world's slant (degrees); the owner chose upright. Looks it can't draw (bones, wings, tails...) and the beasts are dolls (`doll()`). Tried before and not used: `'art'`, `'hd'`, `'pixel'`, `'lean'`.

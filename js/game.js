@@ -15,6 +15,9 @@ const LIFT = 4; // creatures stand a little raised, like on a 3D floor
 // Creatures lean into the walls' slant (see Render.slanted): their heads are this far left of their feet, so
 // what hangs over a head (a name, a health bar, words) moves along; a frame round them sits half way.
 const HEAD_LEAN = 26; // (times Render.CREATURE_LEAN)
+// Where every monster's (and a companion's) health bar sits, in world pixels below the top of its tile: one height for
+// all, whatever the size of its picture, so a rat's name doesn't float a tile above it and a big beast's isn't elsewhere.
+const MONSTER_BAR_Y = 2;
 let paused = false;
 const online = () => typeof Net !== 'undefined' && Net.online;
 
@@ -472,6 +475,7 @@ canvas.addEventListener('pointerdown', e => {
 function creatureKey(c) {
   if (c.type === 'player') return Sprites.playerKey(c.vocation, c.outfit);
   if (c.type === 'npc') return NPCS[c.npcId].creature || `npc:${c.npcId}`;
+  if (c.pet === true) return Sprites.petKey(c.type); // (a companion: Clang wears his bell)
   return c.type;
 }
 
@@ -737,7 +741,9 @@ const underRoof = o => { const t = map.get(o.x, o.y, o.z + 1); return !!(t && t.
 function drawCreatureInfo(c, screen, struck) {
   const v = visual(c);
   const [sx0, sy0] = screen(v.x, v.y), sx = sx0 - (LIFT + HEAD_LEAN * Render.CREATURE_LEAN) * SCALE, sy = sy0 - LIFT * SCALE;
-  const ty = sy - Sprites.headroom(c) * SCALE; // (names and bars above the head of a tall figure)
+  const companion = c.pet === true; // (a companion's body; a player's own pet field is the companion's record, not this)
+  const fixed = companion || (c.type !== 'player' && c.type !== 'npc'); // (monsters and companions: one height for all)
+  const ty = fixed ? sy0 + MONSTER_BAR_Y * SCALE : sy - Sprites.headroom(c) * SCALE; // (players' and NPCs' above the head of a tall figure)
   const size = TILE * SCALE, fx = sx + (HEAD_LEAN * Render.CREATURE_LEAN / 2) * SCALE; // (the frame half way between feet and head)
   const frame = (color, inset, alpha = 1) => {
     ctx.globalAlpha = alpha;
@@ -747,7 +753,7 @@ function drawCreatureInfo(c, screen, struck) {
     ctx.globalAlpha = 1;
   };
   if (player.follow === c.id && c !== player.target) frame('#30e040', 1);
-  if (c.pet) { // a companion: its name and level, warm, and a thin health bar
+  if (companion) { // a companion: its name and level, warm, and a thin health bar
     const f = Math.max(0, Math.min(1, (c.hp || 0) / (c.maxHp || 1)));
     // (as high as a monster's: his name and numbers don't sit on yours or theirs)
     ctx.fillStyle = '#000'; ctx.fillRect(sx + 9, ty - 6, size - 18, 5);

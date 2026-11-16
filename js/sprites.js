@@ -545,14 +545,45 @@ const Sprites = (() => {
   // shape: whether more rock stands south and east of it ('10'...), from the renderer. So it doesn't look like a built
   // wall, its foot is ragged where it meets the ground (by world position, so it runs on from tile to tile, repeating
   // with the strip), and an open corner (nothing south or east) is rounded: the light turns softly round it.
+  // The town wall's top as you see it from the street (the walkway on the floor above isn't drawn while you stand under
+  // the wall): the walkway's paving, and along its outer edges (outer: the battlements' sides up there, 'n', 'e'...) a
+  // parapet of the wall's sandstone with merlons and gaps, its top lit and its inner face in shade, a soft shadow inside it.
+  function rampartTop(g, x, y, outer) {
+    const pave = customImage('temple_paving');
+    if (pave) {
+      const k = pave.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
+      g.imageSmoothingEnabled = true; g.drawImage(pave, c * k, r * k, k, k, -0.5, -0.5, TILE + 1, TILE + 1);
+    } else rect(g, '#d8c8b0', 0, 0, TILE, TILE);
+    rect(g, 'rgba(40,30,20,0.1)', 0, 0, TILE, TILE);
+    const stone = { top: '#e2cfa4', lit: '#f2e2bc', face: '#a88e64', side: '#8a734e', gap: '#5e4c34', edge: '#6e5a3c' };
+    const T = 6, H = 5, M = 4; // (the parapet's thickness, how much of its inner face shows, a merlon's length along it)
+    for (const side of outer) {
+      g.save();
+      // turn so the parapet runs along the top edge (y = 0), its inner face looking south (down the screen)
+      if (side === 'e') { g.translate(TILE, 0); g.rotate(Math.PI / 2); }
+      else if (side === 's') { g.translate(TILE, TILE); g.rotate(Math.PI); }
+      else if (side === 'w') { g.translate(0, TILE); g.rotate(-Math.PI / 2); }
+      rect(g, 'rgba(30,20,10,0.25)', 0, T + H, TILE, 4);             // its shadow on the walkway
+      for (let u = 0; u < TILE; u += 2 * M) {                        // merlons, with gaps between
+        rect(g, stone.top, u, 0, M, T); rect(g, stone.lit, u, 0, M, 1); // their tops
+        rect(g, side === 'w' ? stone.side : stone.face, u, T, M, H);  // their inner faces (one turned east, in shade)
+        rect(g, stone.edge, u + M - 1, 0, 1, T + H);
+        rect(g, stone.gap, u + M, 0, M, T - 2);                        // a gap: down to the parapet below it
+        rect(g, stone.top, u + M, T - 2, M, 2); rect(g, stone.face, u + M, T, M, 1);
+      }
+      g.restore();
+    }
+  }
   function blockFromPicture(id, x, y, shape = '00') {
     const pic = customImage(`${id}_face`), def = THINGS[id];
     if (!pic || !def || def.wall !== 'block') return null;
     const res = Sprites.CREATURE_RES, n = Math.max(1, Math.round(pic.naturalWidth / pic.naturalHeight));
     const at = v => ((v % n) + n) % n, src = pic.naturalHeight;
     // (only natural rock gets a ragged foot and rounded corners: a built wall such as the town wall keeps its edges)
-    const open = !def.natural ? '11' : shape === '00' || !/^[01]{2}$/.test(shape) ? '00' : shape, corner = open === '00';
-    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${open}:${res}`, g => {
+    const [around, outer = ''] = String(shape).split(':');
+    const open = !def.natural ? '11' : around === '00' || !/^[01]{2}$/.test(around) ? '00' : around, corner = open === '00';
+    const town = id === 'rampart'; // (the town wall: its top is the walkway, paved, its battlements on its outer edges)
+    return cached(`ownblock:${id}:${at(x)}:${at(y)}:${((x % 4) + 4) % 4}${((y % 4) + 4) % 4}:${open}:${town ? outer : ''}:${res}`, g => {
       g.canvas.res = res;
       const side = (which, i, shade) => {
         g.save();
@@ -570,8 +601,8 @@ const Sprites = (() => {
         if (shade || corner) g.fillRect(0, 0, TILE, TILE);
         g.restore();
       };
-      side('south', at(x), 0);
-      side('east', at(y), 0.38);
+      side('south', at(x), town ? 0.12 : 0);
+      side('east', at(y), town ? 0.45 : 0.38);
       // its foot, ragged: bites out of each face's lower edge, a smooth wave that repeats with the strip (n tiles)
       const L = n * TILE, bite = w => {
         const k = 2 * Math.PI / L;
@@ -596,7 +627,8 @@ const Sprites = (() => {
       g.save(); g.scale(res, res);
       g.beginPath(); g.rect(0, 0, TILE, TILE); g.clip();
       const topPic = customImage(`${id}_top`); // its own top, seen from above (a strip of n tiles, as the face), where there is one
-      if (topPic) { // (a square of 4 x 4 tiles from above, as a ground: the ground template)
+      if (town) rampartTop(g, x, y, outer);
+      else if (topPic) { // (a square of 4 x 4 tiles from above, as a ground: the ground template)
         const k = topPic.naturalWidth / 4, c = ((x % 4) + 4) % 4, r = ((y % 4) + 4) % 4;
         g.imageSmoothingEnabled = true; g.drawImage(topPic, c * k, r * k, k, k, -0.5, -0.5, TILE + 1, TILE + 1); // (a hair over its edges: no seam between tiles)
       }
@@ -1239,7 +1271,17 @@ const Sprites = (() => {
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
-  const P = (u, v, z) => [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  // (inside upright(): above height z0 things rise straight up the screen, k times as tall, from where they stand at z0)
+  let UP = null;
+  const P = (u, v, z) => UP && z > UP.z0 ? [64 + u - UP.z0 * HEIGHT * LEAN, 64 + v - UP.z0 * HEIGHT - (z - UP.z0) * HEIGHT * UP.k]
+    : [64 + u - z * HEIGHT * LEAN, 64 + v - z * HEIGHT];
+  // Draw fn's parts standing upright above height z0: the stoneFigure rule (docs/art-style.md) for poles and shafts, which
+  // looked fallen over leaning with the camera. Only what is below z0 (a plinth, a foot) leans as things do.
+  function upright(z0, fn, k = 1.3) {
+    const was = UP;
+    UP = { z0, k };
+    try { fn(); } finally { UP = was; }
+  }
   // The owner's ladder (sprites/custom.js ladder_front, painted straight on), stood upright against the tile's north side
   // from the floor to the floor above, in the world's slant: laid into the upright plane a little out from the wall, again
   // and again a little further out, darker, for the wood's thickness. False when there's no picture.
@@ -1682,24 +1724,27 @@ const Sprites = (() => {
     floorShadow(g, 7, 2);
     const iron = { top: '#3a3a40', south: '#2a2a30', east: '#1e1e22', edge: '#5a5a62' };
     prism(g, 12, 13, 20, 21, 0, 4, { top: '#9a9a96', south: '#7a7a76', east: '#5e5e5a', edge: '#bcbcb8' });
+    upright(4, () => { // (the post upright on its foot)
     prism(g, 15, 16, 17, 18, 4, 40, iron);
     prism(g, 12, 13, 20, 21, 40, 42, iron);
     prism(g, 13, 14, 19, 20, 42, 52, { top: '#ffe090', south: lit ? '#ffe9a8' : '#59626e', east: lit ? '#e8c060' : '#3a4048', edge: '#fff4c8' });
     onSouth(g, 21, f => { rect(f, '#2a2a30', 15, 42, 1, 10); rect(f, '#2a2a30', 12, 47, 8, 1); });
     prism(g, 12, 13, 20, 21, 52, 54, { top: '#6a6a72', south: '#3a3a40', east: '#2a2a30', edge: '#8a8a92' });
     prism(g, 15, 16, 17, 18, 54, 58, iron); // the finial
+    }, 1);
   }
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
   function onSouth(g, v, fn) {
     g.save();
-    g.setTransform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); // (u, z) -> P(u, v, z)
+    if (UP) g.setTransform(1, 0, 0, -HEIGHT * UP.k, 64 - UP.z0 * HEIGHT * LEAN, 64 + v - UP.z0 * HEIGHT * (1 - UP.k)); // (standing upright)
+    else g.setTransform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); // (u, z) -> P(u, v, z)
     fn(g);
     g.restore();
   }
   // A round column standing at (cu, cv), radius rad, from z0 up to z1: lit on its left, dark on its right.
   function column(g, cu, cv, rad, z0, z1, c) {
     const [bx, by] = P(cu, cv, z0), [tx, ty] = P(cu, cv, z1);
-    const n = Math.hypot(1, LEAN), kx = rad / n, ky = (rad * LEAN) / n; // across the column's axis
+    const n = Math.hypot(tx - bx, ty - by) || 1, kx = rad * (by - ty) / n, ky = rad * (bx - tx) / n; // across the column's axis
     const grad = g.createLinearGradient(bx - kx, by + ky, bx + kx, by - ky);
     grad.addColorStop(0, c.light); grad.addColorStop(0.45, c.mid); grad.addColorStop(1, c.dark);
     g.fillStyle = grad;
@@ -2775,13 +2820,15 @@ const Sprites = (() => {
       floorShadow(g, 10, 4);
       const stone = { top: '#5a5a66', south: '#46464f', east: '#30303a', edge: '#6e6e7a' };
       prism(g, 7, 7, 25, 25, 0, 5, { top: '#4a4a54', south: '#3a3a44', east: '#2a2a32', edge: '#62626e' });
-      taper(g, 10, 10, 22, 22, 5, 44, 2.5, stone); // under the ceiling, as a pillar reaches it, point and all
-      pyramid(g, 12.5, 12.5, 19.5, 19.5, 44, 8, stone);
-      for (let z = 10; z < 42; z += 7) { // the runes on its south face, glowing
-        const v = 22 - ((z - 5) / 39) * 2.5, [x, y] = P(15, v, z);
-        ellipse(g, 'rgba(120,220,255,0.28)', x + 1.5, y - 1, 4, 3);
-        rect(g, 'rgba(150,235,255,0.95)', x, y - 2, 3, 2);
-      }
+      upright(5, () => { // the shaft stands upright on its plinth
+        taper(g, 10, 10, 22, 22, 5, 44, 2.5, stone); // under the ceiling, as a pillar reaches it, point and all
+        pyramid(g, 12.5, 12.5, 19.5, 19.5, 44, 8, stone);
+        for (let z = 10; z < 42; z += 7) { // the runes on its south face, glowing
+          const v = 22 - ((z - 5) / 39) * 2.5, [x, y] = P(15, v, z);
+          ellipse(g, 'rgba(120,220,255,0.28)', x + 1.5, y - 1, 4, 3);
+          rect(g, 'rgba(150,235,255,0.95)', x, y - 2, 3, 2);
+        }
+      });
     },
     // An iron cauldron on three short legs over a fire, something green bubbling in it.
     cauldron(g, r, frame) {
@@ -3049,6 +3096,7 @@ const Sprites = (() => {
     // arms and a straw head.
     dummy(g) {
       floorShadow(g, 9, 3);
+      UP = { z0: 0, k: 1.2 }; // (standing upright, as a person would)
       const wood = { top: '#7a4e28', south: '#5a3618', east: '#3e2410', edge: '#8a5a2e' };
       prism(g, 15, 16, 17, 18, 0, 16, wood);                   // the post
       const straw = { edge: '#8a6a30', light: '#e8d090', mid: '#d0b070', dark: '#a08048' };
@@ -3059,6 +3107,7 @@ const Sprites = (() => {
       prism(g, 4, 16, 28, 18, 30, 33, wood);                   // the crossbar
       prism(g, 15, 16, 17, 18, 34, 37, wood);
       drum(g, 16, 17, 37, 45, t => 3.8 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1, straw); // the head
+      UP = null;
       void bx; void by;
     },
     // A scarecrow in the tiles' slant: a post and a crossbar, an old patched coat, straw hands, a sack head and a hat.
@@ -3079,9 +3128,11 @@ const Sprites = (() => {
     pillar(g) {
       floorShadow(g, 12, 3);
       prism(g, 5, 5, 27, 27, 0, 5, { top: '#f2efe8', south: '#cdc8be', east: '#aaa59b', edge: '#ffffff' });
-      column(g, 16, 16, 8, 5, 50, { light: '#f4f1ea', mid: '#d6d1c7', dark: '#9c978d', top: '#e8e4dc' });
-      for (const o of [-4, 0, 4]) line(g, 'rgba(120,114,104,0.45)', 1, ...P(16 + o * 0.7, 16 - o * 0.7, 6), ...P(16 + o * 0.7, 16 - o * 0.7, 49));
-      prism(g, 4, 4, 28, 28, 50, 56, { top: '#f2efe8', south: '#cdc8be', east: '#aaa59b', edge: '#ffffff' });
+      upright(5, () => { // the shaft and its capital upright on the plinth
+        column(g, 16, 16, 8, 5, 50, { light: '#f4f1ea', mid: '#d6d1c7', dark: '#9c978d', top: '#e8e4dc' });
+        for (const o of [-4, 0, 4]) line(g, 'rgba(120,114,104,0.45)', 1, ...P(16 + o, 24, 6), ...P(16 + o, 24, 49));
+        prism(g, 4, 4, 28, 28, 50, 56, { top: '#f2efe8', south: '#cdc8be', east: '#aaa59b', edge: '#ffffff' });
+      }, 1);
     },
     // A noticeboard: two posts, a board with notes pinned on it and a little roof.
     noticeboard(g) {
@@ -5312,6 +5363,22 @@ const Sprites = (() => {
       }
     });
   }
+  // Clang, the temple's cat (a companion): a cat with a red collar and a small gold bell on it, under his chin.
+  function clang(g, dir, frame) {
+    cat(g, dir, frame);
+    const collar = '#a8322a', gold = '#e0b040', deep = '#8a6418', shine = '#fff0b0';
+    const bell = (x, y) => { ellipse(g, deep, x, y, 1.6, 1.6); ellipse(g, gold, x - 0.2, y - 0.2, 1.2, 1.2); rect(g, shine, x - 0.8, y - 0.9, 0.7, 0.7); rect(g, deep, x - 0.3, y + 0.8, 0.6, 0.5); };
+    if (dir === 1 || dir === 3) {
+      g.save();
+      if (dir === 3) { g.translate(32, 0); g.scale(-1, 1); }
+      line(g, collar, 1.2, 19.2, 17.6, 21.2, 19.6); // (round his neck, behind the head)
+      bell(21.6, 20.8);
+      g.restore();
+    } else {
+      rect(g, collar, 12.5, 17.6, 7, 1.2);
+      if (dir === 2) bell(16, 19.6); // (from behind only the collar shows)
+    }
+  }
   function dog(g, dir, frame) {
     const fur = '#a8743e', dark = '#6a4422', light = '#d0a070';
     smallAnimal(g, dir, frame, k => {
@@ -6592,7 +6659,7 @@ const Sprites = (() => {
     const look = lookFor(key);
     if (look) return (g, d, f) => (Sprites.PEOPLE === 'tilt' && tiltable(look) ? tiltPerson(g, look, d, f) : Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
-      rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
+      rat, slime, spider, wolf, ghost, crab, cat, clang, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       brood_queen: (g, d, f) => { // a giant spider bigger still, black and violet, with a pale mark on her back
         g.translate(16, 27); g.scale(1.25, 1.25); g.translate(-16, -27);
         g.filter = 'hue-rotate(250deg) saturate(1.4) brightness(0.8)';
@@ -6892,6 +6959,86 @@ const Sprites = (() => {
     return img && img.complete && img.naturalWidth ? img : null;
   };
 
+  // --- the owner's leaning pictures, stood upright (the stoneFigure rule) ---
+  // The owner painted the street lamp, the rune stone, the pillars and the training dummy leaning up-left with the
+  // camera, as everything with height did; standing in the street they looked fallen over. Only their foot follows
+  // the camera now: the foot (a plinth) is kept as painted, the shaft is laid upright on it, row by row from the
+  // picture's own shaft, and a head (the lamp's lantern, a pillar's capital) is set on its top as painted. The PNGs
+  // themselves are left as they are. All in the picture's own pixels:
+  //   foot: rects kept as painted; stub: a rect of the foot painted over with the foot turned round sock (where the
+  //   leaning shaft lay on it); band: [r0, a0, r1, a1], the shaft's rows in the picture (top, bottom) and its middle at
+  //   each; at: [x, y] where the upright shaft stands; h: how tall it is; k: how wide, against the painted rows
+  //   (a slanting shaft is wider across than it is thick); head: a rect set whole on the shaft's top, its point hat
+  //   there; top: room above the picture.
+  const STAND_UP = {
+    lamppost: { foot: [[212, 230, 320, 320]], stub: [216, 234, 251, 261], sock: [251, 261], band: [184, 186.5, 229, 225.5], at: [251, 261],
+      h: 122, k: 0.75, head: [78, 54, 172, 166], hat: [146, 160], top: 80 },
+    obelisk: { foot: [[262, 312, 384, 384]], band: [192, 215, 305, 300], at: [314, 318], h: 130, k: 0.8, top: 60 },
+    dummy: { band: [125, 164, 276, 264], at: [264, 276], h: 170, k: 0.85, top: 60 },
+    // (a pillar's shaft: one clean row of its flutes, between the capital and the base, stood up as a column)
+    pillar: { foot: [[128, 130, 192, 192]], stub: [128, 128, 140, 150], sock: [160, 152], band: [127, 128.5, 129, 128.5], at: [154, 164], h: 100,
+      k: 0.9, head: [66, 66, 126, 126], hat: [100, 118], top: 20 },
+  };
+  STAND_UP.lamppost_off = STAND_UP.lamppost;
+  const STAND_UP_IDS = new Set([...Object.keys(STAND_UP), 'statue']);
+  for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) STAND_UP[id] = STAND_UP.pillar;
+  const stoodUp = new Map();
+  // The owner's picture of id stood upright (a canvas in the picture's own pixels, taller by its top), or null.
+  function standUpright(id, img) {
+    if (id === 'statue') return statueUpright(img);
+    const s = STAND_UP[id];
+    if (!s) return null;
+    let c = stoodUp.get(img);
+    if (c) return c;
+    const W = img.naturalWidth, H = img.naturalHeight, top = s.top;
+    c = document.createElement('canvas'); c.width = W; c.height = H + top;
+    const g = c.getContext('2d');
+    // the picture without its foot and head: what the shaft's rows are taken from
+    const body = document.createElement('canvas'); body.width = W; body.height = H;
+    const bg = body.getContext('2d');
+    bg.drawImage(img, 0, 0);
+    for (const [x0, y0, x1, y1] of [...(s.foot || []), ...(s.head ? [s.head] : [])]) bg.clearRect(x0, y0, x1 - x0, y1 - y0);
+    for (const [x0, y0, x1, y1] of s.foot || []) g.drawImage(img, x0, y0, x1 - x0, y1 - y0, x0, y0 + top, x1 - x0, y1 - y0);
+    if (s.stub) {
+      const [x0, y0, x1, y1] = s.stub, [sx, sy] = s.sock;
+      g.save(); g.beginPath(); g.rect(x0, y0 + top, x1 - x0, y1 - y0); g.clip();
+      g.translate(sx, sy + top); g.rotate(Math.PI); g.translate(-sx, -sy); g.drawImage(img, 0, 0);
+      g.restore();
+    }
+    const [r0, a0, r1, a1] = s.band, [X, Y] = s.at;
+    g.imageSmoothingEnabled = true;
+    for (let i = 0; i < s.h; i++) {
+      const row = Math.round(r1 + (r0 - r1) * (i / s.h)), mid = a1 + (a0 - a1) * (r1 - row) / (r1 - r0);
+      g.drawImage(body, 0, row, W, 1, Math.round(X - mid * s.k), Y - i + top, W * s.k, 1);
+    }
+    if (s.head) {
+      const [x0, y0, x1, y1] = s.head, [hx, hy] = s.hat;
+      g.drawImage(img, x0, y0, x1 - x0, y1 - y0, Math.round(X - (hx - x0)), Math.round(Y - s.h - (hy - y0)) + top, x1 - x0, y1 - y0);
+    }
+    c.res = img.res; c.naturalWidth = c.width; c.naturalHeight = c.height; c.src = `${img.src}#upright`;
+    stoodUp.set(img, c);
+    return c;
+  }
+  // The owner's statue: its stepped plinth as painted, and on it, where the green blocks leaned, the bronze hero gone
+  // green standing upright as people stand (stoneFigure), as the founder and the saints do.
+  function statueUpright(img) {
+    let c = stoodUp.get(img);
+    if (c) return c;
+    const res = img.res || 1, W = img.naturalWidth, H = img.naturalHeight, top = 24 * res;
+    c = document.createElement('canvas'); c.width = W; c.height = H + top;
+    const g = c.getContext('2d');
+    const foot = [170, 156, 320, 320].map(v => v * res / 4), stub = [172, 158, 236, 218].map(v => v * res / 4), [sx, sy] = [213, 199].map(v => v * res / 4);
+    g.drawImage(img, foot[0], foot[1], foot[2] - foot[0], foot[3] - foot[1], foot[0], foot[1] + top, foot[2] - foot[0], foot[3] - foot[1]);
+    g.save(); g.beginPath(); g.rect(stub[0], stub[1] + top, stub[2] - stub[0], stub[3] - stub[1]); g.clip();
+    g.translate(sx, sy + top); g.rotate(Math.PI); g.translate(-sx, -sy); g.drawImage(img, 0, 0);
+    g.restore();
+    g.imageSmoothingEnabled = false; // (the figure in whole pixels, as people are drawn)
+    g.drawImage(stoneFigure('hero', BRONZE_HERO), Math.round(sx - 20 * res), Math.round(sy + top - 40.5 * res), 40 * res, 48 * res);
+    c.res = img.res; c.naturalWidth = c.width; c.naturalHeight = c.height; c.src = `${img.src}#upright`;
+    stoodUp.set(img, c);
+    return c;
+  }
+
   const hashStr = s => [...s].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261);
   const hashXY = (x, y) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0;
 
@@ -7015,10 +7162,11 @@ const Sprites = (() => {
       if (id === 'carpet_rug') return carpetTile(x, y, arguments.length < 5 ? '0000' : shape);
       if (id === 'water') time = 0; // (the ground's water is still: the ripples go over it, see waterFrame)
       if (id === 'water') { const surface = waterTile(x, y, time); if (surface) return surface; }
-      const own = ((id === 'stairs_up' || id === 'stairs_down') && shape && customImage(`${id}_${shape}`)) || customImage(id) || (THINGS[id] && THINGS[id].sprite && customImage(THINGS[id].sprite)) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or the picture of the thing it is drawn as - a quest chest looks like a chest - or its own picture for each variant: <id>_0, _1...)
+      let own = ((id === 'stairs_up' || id === 'stairs_down') && shape && customImage(`${id}_${shape}`)) || customImage(id) || (THINGS[id] && THINGS[id].sprite && customImage(THINGS[id].sprite)) || (OWN_VARIANTS.has(id) ? customImage(`${id}_${hashXY(x, y) % variantsOf(id)}`) : null); // (or the picture of the thing it is drawn as - a quest chest looks like a chest - or its own picture for each variant: <id>_0, _1...)
       if (SEAMLESS[id]) return seamlessPart(id, x, y, true); // (a ground's own PNG is one texture over 4 x 4 tiles or so)
       if ((id === 'bridge_ns' || id === 'bridge_ew') && customImage('bridge_deck')) return bridgeFromPicture(id === 'bridge_ns', shape, x, y);
       if (THINGS[id] && THINGS[id].roof) { const ownRoof = roofFromPicture(id, shape); if (ownRoof) return ownRoof; }
+      if (own && STAND_UP_IDS.has(id)) own = standUpright(id, own) || own; // (the owner's leaning lamp, rune stone, pillars, dummy and statue, stood up)
       if (own && own.res > 1) { // (a fine PNG: put once on a canvas exactly as fine as the screen, so it's drawn 1:1, never scaled per frame)
         const k = Sprites.CREATURE_RES, w = Math.round(own.naturalWidth / own.res * k), h = Math.round(own.naturalHeight / own.res * k);
         // (the owner's chimney: its smoke still curls up from its mouth, a picture for each frame)
@@ -7144,6 +7292,8 @@ const Sprites = (() => {
       const def = c.type === 'npc' && NPCS[c.npcId];
       return def && !def.creature && able(def.look) ? rise : 0;
     },
+    // the picture of a companion of this look: the temple's cat is Clang, with his bell (town cats have none)
+    petKey: look => (look === 'cat' ? 'clang' : look),
     // a picture's size in world pixels (creatures are drawn finer: see creature())
     w: img => img.width / (img.res || 1),
     h: img => img.height / (img.res || 1),
