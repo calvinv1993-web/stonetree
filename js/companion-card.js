@@ -27,7 +27,7 @@ const CompanionCard = (() => {
 
   // his picture, his own sprite drawn big and sharp
   function portrait(canvas) {
-    const g = canvas.getContext('2d'), img = Sprites.creature(PETS[player.pet.kind].look, 2, 0);
+    const g = canvas.getContext('2d'), img = Sprites.creature(Sprites.petKey(PETS[player.pet.kind].look), 2, 0);
     g.clearRect(0, 0, canvas.width, canvas.height);
     g.imageSmoothingEnabled = false;
     // (a cat stands small in the lower middle of its tile: the part round it, filling the frame)

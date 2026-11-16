@@ -67,7 +67,12 @@ const Icons = (() => {
     // the empty equipment slots: what goes there
     'slot-neck': `<path d="M6 3.5c0 5 2.7 9 6 9s6-4 6-9"/><path d="M12 12.5l3 3.5-3 4.5-3-4.5z"/>`,
     'slot-head': `<path d="M5.5 20V12a6.5 6.5 0 0 1 13 0v8"/><path d="M5.5 13.2h13M12 13.2V19"/>`,
-    'slot-backpack': `<path d="M8 6.5V5a4 4 0 0 1 8 0v1.5"/><rect x="4.5" y="6.5" width="15" height="14.5" rx="3.5"/><path d="M8 13h8v4H8z"/>`,
+    // (a backpack, not a padlock: a small carry loop, a body wider than tall at the shoulders, its flap with a buckle, a
+    // front pocket and the straps at its sides)
+    'slot-backpack': `<path d="M9.8 5.4V4.5a2.2 2.2 0 0 1 4.4 0v.9"/>
+      <path d="M7.4 5.4h9.2a3 3 0 0 1 3 3V19a2 2 0 0 1-2 2H6.4a2 2 0 0 1-2-2V8.4a3 3 0 0 1 3-3z"/>
+      <path d="M4.4 10.2c2.4 1.5 4.9 2.2 7.6 2.2s5.2-.7 7.6-2.2"/><path d="M12 12.4v2.4"/>
+      <path d="M8.2 21v-3.4a1.2 1.2 0 0 1 1.2-1.2h5.2a1.2 1.2 0 0 1 1.2 1.2V21"/>`,
     'slot-weapon': `<path d="M20 4l-.6 3.8L10 17.2 6.8 14l9.4-9.4z"/><path d="M5.5 12.7l5.8 5.8M7.6 16.4 4 20"/>`,
     'slot-body': `<path d="M8.5 3.5 4 6v6l2.5 1v7.5h11V13l2.5-1V6l-4.5-2.5c-.5 1.6-1.8 2.5-3.5 2.5s-3-.9-3.5-2.5z"/>`,
     'slot-shield': `<path d="M12 3 19.5 5.5V11c0 4.8-3.2 8.3-7.5 10-4.3-1.7-7.5-5.2-7.5-10V5.5z"/><path d="M12 3v18M4.8 11h14.4"/>`,
