@@ -400,7 +400,7 @@ function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
   const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
   const pet = player.pet, petState = pet ? `${pet.name}:${pet.home}:${!!pet.downUntil}` : ''; // (its row says where your companion is)
-  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}`;
+  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}|${pet ? pet.level : 0}|${player.level}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -431,6 +431,9 @@ function renderMenu() {
     h('div', { className: 'menu-head' }, 'Make'),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),
     row(['Data editor', h('small', {}, 'Items, monsters and NPCs, in this browser')], h('span', {}, '›'), () => { location.href = 'data.html'; }),
+    // (a test character playing alone: Clang at its level, if it was made before test characters got him)
+    ...(!Net.online && isTestHero() && !(pet && pet.level >= player.level) ? [row(['Test: Clang at level ' + player.level, h('small', {}, 'For trying things out')], h('span', {}, '›'),
+      () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); menuShown = ''; renderMenu(); })] : []),
     row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
   );
 }

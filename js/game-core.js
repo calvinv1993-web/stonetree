@@ -1140,13 +1140,20 @@ function makeTestHero(vocation) {
   eq.ammo = ammo ? makeItem(ammo, MAX_STACK) : null;
   eq.backpack = { ...makeItem('backpack'), contents: [] };
   for (const [id, n] of [['health_potion', 50], ['mana_potion', 50], ['rope', 1], ['shovel', 1], ['meat', 20]]) if (ITEMS[id]) giveItem(id, n);
-  // and Clang at his level, full grown (the temple's guardian), for testing what a companion does that high
-  const cat = PETS.cat;
-  p.pet = { name: (p.pet && p.pet.name) || 'Clang', kind: 'cat', level: L, xp: 0, hp: cat.hp(L), mode: 'assist', downUntil: 0, home: false };
-  p.petBody = null;
+  giveTestClang();
   log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank, and ${p.pet.name} at level ${L} beside you.`, 'quest');
   uiDirty();
   return true;
+}
+
+// For testing: Clang at your level (full grown, the temple's guardian), beside you. A test character gets him on making;
+// one made before that can ask for him (Menu: "Test: Clang at level 100"). Playing alone only: the server has no button.
+function isTestHero(p = player) { return p.level >= TEST_HERO_LEVEL && p.promoted; }
+function giveTestClang() {
+  const p = player, L = p.level;
+  p.pet = { name: (p.pet && p.pet.name) || 'Clang', kind: 'cat', level: L, xp: 0, hp: PETS.cat.hp(L), mode: 'assist', downUntil: 0, home: false };
+  p.petBody = null;
+  uiDirty();
 }
 
 // Takes plain items only: forged gear (with a grade) is never taken by mistake.
