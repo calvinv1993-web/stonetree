@@ -293,7 +293,7 @@ const SPRITE_HASHES = {
   "pebbles-2@4x.png":"e846d4ed63",
   "pet-clang-1.png":"cb4d0e7abd",
   "pet-clang-2.png":"be31643cfe",
-  "pet-clang-3.png":"29fb166cde",
+  "pet-clang-3.png":"bca32ca5a3",
   "pew@2x.png":"0cdbdba3d7",
   "pillar@2x.png":"be4ad7cf27",
   "pillar_amethyst@2x.png":"a0da7a081a",
