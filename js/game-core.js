@@ -325,7 +325,10 @@ function changeFloor(dz, dx = 0, dy = 0) {
 
 // Where you wake up: the starter island's temple, or the temple of the town you're a citizen of.
 const homePos = () => (player.home === 'start' ? map.start : map.temples.find(t => t.home === player.home) || map.mainStart);
-const homeTown = () => (player.home === 'start' ? 'Oakvale' : (map.temples.find(t => t.home === player.home) || { town: 'Valoria' }).town);
+const homeTown = () => (player.home === 'start' ? 'Oakvale' : (map.temples.find(t => t.home === player.home) || { town: mainlandOpen() ? 'Valoria' : 'Oakvale' }).town);
+// Is there a mainland to sail on to? Only once the map has a mainStart of its own (the beginners' island comes
+// first: until the mainland is built, mainStart is the start, and the oracle's new vocations stay to defend Oakvale).
+const mainlandOpen = () => !!map.mainStart && (map.mainStart.x !== map.start.x || map.mainStart.y !== map.start.y || map.mainStart.z !== map.start.z);
 
 function teleport(pos) {
   const p = findFreeTile(pos.x, pos.y, pos.z, 6) || pos;
@@ -489,7 +492,10 @@ function useThing(x, y, z) {
       playerEvent('openContainer', { root: 'depot', path: [], title: 'Depot' });
       return true;
     }
-    if (def.bookshelf) return showText('Bookshelf', LORE[(x * 7 + y * 13) % LORE.length]), true;
+    if (def.bookshelf) { // (Oakvale's own books on the starter island; the old world's elsewhere)
+      const books = map.isle && onIsle({ x, y }) ? OAKVALE_LORE : LORE;
+      return showText('Bookshelf', books[(x * 7 + y * 13) % books.length]), true;
+    }
     if (def.toggle || def.lockDoor || def.questDoor || def.levelDoor) {
       if (def.block) return bumpDoor(x, y, z), true;
       if (creatureAt(x, y, z)) return log('Someone is standing in the doorway.'), true;
@@ -531,6 +537,14 @@ let bellRungAt = -Infinity;
 // the dawn by itself. Online it's kept in server/town.json; playing alone, in your save.
 let townBell = { ringers: [], first: null, dawn: -1 };
 const bellHung = () => townBell.ringers.length > 0 || questState('bell_4') === 'done';
+// The bell was rung home by someone else, and you haven't yet: for you its clapper was stolen again, and the story
+// starts over. A quest's texts (or a step's) may have such a variant in again: { key: text }; $ringer is the first
+// Bellringer.
+const bellAgain = () => !!townBell.first && questState('bell_4') !== 'done';
+const storyText = (o, key) => {
+  const s = (bellAgain() && o.again && o.again[key]) || o[key];
+  return typeof s === 'string' ? s.replace(/\$ringer/g, townBell.first || '') : s;
+};
 
 // The clapper is home (The Silent Bell IV): your name on the plaque, and the first of all is the Bellringer
 function bellRestored() {
@@ -545,6 +559,15 @@ function bellRestored() {
       playerEvent('banner', { message: `${townBell.first} is the first Bellringer of Oakvale!` });
     });
   }
+}
+
+// A save from before the shared bell: who brought the clapper home goes on the plaque all the same (and is the
+// Bellringer, if nobody is yet), so the bell rings at dawn for them too
+function rememberBellRinger() {
+  if (questState('bell_4') !== 'done' || !player.name || townBell.ringers.includes(player.name)) return;
+  if (!townBell.first) { townBell.first = player.name; player.chests.bellringer = true; }
+  townBell.ringers = [player.name, ...townBell.ringers].slice(-40); // (they rang it before those on the plaque now)
+  player.chests.bell_ringer = true;
 }
 
 // The plaque in the bell tower: who rang the bell home
@@ -568,7 +591,7 @@ function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings 
   for (const p of players) asPlayer(p, () => { addSound('bell', p.x, p.y, p.z); log(text, 'quest'); });
 }
 
-// The level at which the oracle lets you choose a vocation (and sends you to the mainland).
+// The level at which the oracle lets you choose a vocation (and, once there is one, sends you to the mainland).
 const vocationLevel = () => 10;
 
 // Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
@@ -580,18 +603,18 @@ function ringBell(x, y, z) {
   const st = questState('bell_6') === 'active' && questStep('bell_6');
   if (st && st.thing === 'bell') {
     for (const n of npcs) if (n.z === map.surfaceZ && map.isTown(n.x, n.y, n.z) && FAREWELLS[n.npcId]) addSpeech(n, FAREWELLS[n.npcId], true);
-    if (st.done) log(st.done, 'quest');
+    if (st.done) log(storyText(st, 'done'), 'quest');
     advanceQuest('bell_6');
   }
 }
 
-// What the people of Oakvale call up to the tower when you ring the bell to say goodbye
+// What the people of Oakvale call up to the tower when you ring the bell to say farewell to your newcomer days
 const FAREWELLS = {
-  pip: 'Don\'t forget your rope!', oak_baker: 'Take a loaf for the road!', oak_smith: 'Keep that blade sharp!',
-  oak_armourer: 'Mind the armour, it\'s mine!', oak_innkeeper: 'The Boar will miss you!', postmaster: 'Write to us!',
-  oak_landlady: 'Your cottage will wait!', townsman: 'There goes the hero!', townswoman: 'Goodbye, dear!',
+  pip: 'Don\'t forget your rope!', oak_baker: 'Bread\'s on me tonight!', oak_smith: 'Keep that blade sharp!',
+  oak_armourer: 'Mind the armour, it\'s mine!', oak_innkeeper: 'A round for the hero!', postmaster: 'Well rung!',
+  oak_landlady: 'A cottage for a hero?', townsman: 'There goes the hero!', townswoman: 'Bless you, dear!',
   child: 'I\'m going to be just like you!', old_man: 'In my day... oh, go on then!', cat: 'Mrrrow!',
-  gate_north: 'Salute!', gate_east: 'Good hunting!', gate_south: 'Fair winds!', gate_west: 'At ease, hero!',
+  gate_north: 'Salute!', gate_east: 'Good hunting!', gate_south: 'Well done!', gate_west: 'At ease, hero!',
 };
 
 function showText(title, text) {
@@ -1298,12 +1321,15 @@ function gainXp(amount, shared) {
         log(`You learned the spell ${s.name} ("${s.words}"): it's on your action bar${i < 9 ? ` (on a keyboard: key ${i + 1})` : ''}.`, 'level'); // (a phone has no keys)
       }
     });
-    if (player.level === 10 && player.vocation === 'none') {
-      log('You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
+    if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: The Silent Bell VI)
+      log(questState('bell_5') === 'done' && questState('bell_6') !== 'done'
+        ? 'You are ready to choose a vocation! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
+        : 'You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
     }
-    if (player.level === 20 && player.vocation !== 'none' && !player.promoted) {
-      log('You can now be promoted. Visit Grandmaster Orin in the temple of Valoria.', 'quest');
-    }
+    // (only where someone in the world can promote you)
+    const promoter = player.level === 20 && player.vocation !== 'none' && !player.promoted
+      && npcs.find(n => NPCS[n.npcId] && Object.values(NPCS[n.npcId].keywords || {}).some(k => k && k.promote));
+    if (promoter) log(`You can now be promoted. Visit ${NPCS[promoter.npcId].name}.`, 'quest');
   }
   uiDirty();
 }
@@ -1353,9 +1379,9 @@ function advanceQuest(id) {
   player.quests[id] = { status: 'done', step: state.step, kills: {}, doneAt: now }; // (doneAt: for a quest that can be done again)
   log(`Quest completed: ${q.name}!`, 'quest');
   addSound('level', player.x, player.y, player.z);
+  if ((r.items || []).length) log(`You received ${r.items.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest'); // (before "lying at your feet")
   if (r.gold) addItem('gold', r.gold);
   for (const [item, n] of r.items || []) giveItem(item, n);
-  if ((r.items || []).length) log(`You received ${r.items.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest');
   if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
@@ -1377,7 +1403,7 @@ function onMonsterKilled(type) {
     s.kills[type] = Math.min(st.kill[type], (s.kills[type] || 0) + 1);
     if (before || !stepReady(id)) continue;
     if (st.auto) { // a task out in the wilds: done the moment it's done, and the quest goes on from there
-      if (st.done) log(st.done, 'quest');
+      if (st.done) log(storyText(st, 'done'), 'quest');
       advanceQuest(id);
     } else log(`${QUESTS[id].name}: done! Report to ${NPCS[st.npc || QUESTS[id].giver].name}.`, 'quest');
   }
@@ -1388,7 +1414,7 @@ function onMonsterKilled(type) {
 function rescueAt(questId, thingId) {
   const st = questState(questId) === 'active' && questStep(questId);
   if (st && st.thing === thingId) {
-    if (st.done) log(st.done, 'quest');
+    if (st.done) log(storyText(st, 'done'), 'quest');
     addSparkle(player, '#ffe080');
     return advanceQuest(questId);
   }
@@ -1424,18 +1450,21 @@ function openChest(chest) {
 
 function chooseVocation(v) {
   player.vocation = v;
-  player.home = 'main';
-  player.teleportAt = now + 2500; // give the player a moment to read the Seer's farewell
+  player.home = mainlandOpen() ? 'main' : 'start'; // (no mainland yet: you stay, and wake in Oakvale's temple)
+  player.teleportAt = now + 2500; // give the player a moment to read the oracle's farewell
   uiDirty();
 }
 
+// The oracle's gift, a moment after you choose: and once there is a mainland, the crossing to it
 function arriveOnMainland() {
   player.teleportAt = 0;
   endConversation(true);
-  teleport(map.mainStart);
+  const away = mainlandOpen();
+  if (away) teleport(map.mainStart);
   for (const [id, n] of VOCATIONS[player.vocation].kit || []) giveItem(id, n);
   addSparkle(player, '#c58cff');
-  log(`You are now a ${player.vocation}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
+  log(away ? `You are now a ${player.vocation}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`
+    : `You are now a ${player.vocation}, Oakvale's own! The ship has not come yet: until it does, the isle is yours to defend. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
 }
 
 // ---- saving ------------------------------------------------------------------------
@@ -1483,7 +1512,8 @@ function applySave(data) {
     player.house = null;
     player.furniture = [];
   }
-  if (player.vocation !== 'none' && onIsle(player)) player.teleportAt = now + 1000; // the Seer was about to send you
+  if (player.vocation !== 'none' && mainlandOpen() && onIsle(player)) player.teleportAt = now + 1000; // the oracle was about to send you
+  rememberBellRinger();
   if (!map.inBounds(player.x, player.y, player.z) || !map.isWalkable(player.x, player.y, player.z)) teleport(homePos());
 }
 
@@ -1516,7 +1546,7 @@ function loadGame() {
     data.explored = null;
   }
   if (data.guilds) guilds = data.guilds;
-  if (data.townBell && Array.isArray(data.townBell.ringers)) townBell = data.townBell;
+  if (data.townBell && Array.isArray(data.townBell.ringers)) { townBell = data.townBell; rememberBellRinger(); }
   if (typeof importExplored === 'function') importExplored(data.explored);
   return true;
 }

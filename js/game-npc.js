@@ -332,16 +332,16 @@ function questTalk(ids, npc, otherwise) {
     if (!q) continue;
     questRenew(id);
     const t = q.text || {}, state = questState(id);
-    if (state === 'done' && q.repeat && q.giver === npc.npcId) return t.later || 'Nothing for now. Come back later.';
+    if (state === 'done' && q.repeat && q.giver === npc.npcId) return storyText(t, 'later') || 'Nothing for now. Come back later.';
     if (state === 'done') continue;
     if (state === 'none') {
       const own = q.giver === npc.npcId ? t : q.offers && q.offers[npc.npcId]; // the giver, or someone who may offer it too
-      if (!own) return otherwise || t.elsewhere || 'I know nothing about that. Maybe someone else does.';
-      if (questWaits(q)) return otherwise || t.notYet || 'Not yet. Come back to me later.';
-      if (q.level && player.level < q.level) return t.tooWeak;
-      return ask(own.offer, () => {
+      if (!own) return otherwise || storyText(t, 'elsewhere') || 'I know nothing about that. Maybe someone else does.';
+      if (questWaits(q)) return otherwise || storyText(t, 'notYet') || 'Not yet. Come back to me later.';
+      if (q.level && player.level < q.level) return storyText(t, 'tooWeak');
+      return ask(storyText(own, 'offer'), () => {
         startQuest(id);
-        return own.accept;
+        return storyText(own, 'accept');
       }, () => 'Maybe another time then.');
     }
     const s = questStep(id), single = !q.steps;
@@ -349,13 +349,13 @@ function questTalk(ids, npc, otherwise) {
       const who = s.npc || q.giver, word = questWord(who, id);
       return `${otherwise ? `${otherwise} ` : ''}${NPCS[who].name} is waiting for you${word ? `: ask about the ${word}` : ''}. (${s.summary || q.summary})`;
     }
-    if (!stepReady(id)) return (single ? t.progress : s.progress).replace('$progress', questProgress(id));
-    const said = single ? t.reward : s.done;
+    if (!stepReady(id)) return storyText(single ? t : s, 'progress').replace('$progress', questProgress(id));
+    const said = single ? storyText(t, 'reward') : storyText(s, 'done');
     advanceQuest(id);
     return said;
   }
   const last = QUESTS[ids[ids.length - 1]];
-  return otherwise || (last && last.text && last.text.done) || 'Thank you again for your help.';
+  return otherwise || (last && last.text && storyText(last.text, 'done')) || 'Thank you again for your help.';
 }
 
 function destinyTalk() {
@@ -366,12 +366,16 @@ function destinyTalk() {
 
 function vocationTalk(v) {
   if (player.vocation !== 'none') return `You already walk the path of the ${player.vocation}.`;
-  return ask(`${VOCATIONS[v].desc} Do you want to become a ${v}? This cannot be undone, and you will leave the starter island for good. ({yes}/{no})`, () => {
+  // (once there is a mainland, the oracle sends you across the sea; till then you stay, as Oakvale's own)
+  const away = mainlandOpen();
+  return ask(`${VOCATIONS[v].desc} Do you want to become a ${v}? This cannot be undone${away ? ', and you will leave the starter island for good' : ''}. ({yes}/{no})`, () => {
     if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()}.`;
     chooseVocation(v);
-    // the whole isle hears it: the bell rings for the one who leaves
-    ringTownBell(`Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${v}, who leaves the isle today.`);
-    return `So be it, ${v}! I will now send you across the sea to the mainland. Farewell, $name - and if you have not heard my {dream} yet, Grandmaster Orin in Valoria will tell it to you.`;
+    // the whole isle hears it: the bell rings for the new vocation
+    ringTownBell(away ? `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${v}, who leaves the isle today.`
+      : `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, Oakvale's new ${v}.`);
+    return away ? `So be it, ${v}! I will now send you across the sea to the mainland. Farewell, $name, and may the Dawn light your way.`
+      : `So be it, ${v}! The ship that will take you across the sea has not come yet, $name. Until it does, you are Oakvale's first ${v}: its defender. Guard the bell well - the Choir has not forgotten it.`;
   }, () => 'Take your time.');
 }
 

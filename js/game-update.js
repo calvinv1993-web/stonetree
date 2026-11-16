@@ -213,7 +213,10 @@ const Actions = {
   // It can be started again from the menu while on the starter island.
   skipGuide() {
     if (!player.tutorial) return;
-    for (const step of GUIDE) if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
+    // (in one plain line: whoever the present was from, you may not have met them yet)
+    const gifts = GUIDE.filter(step => step.gift && !player.chests[step.gift.flag]).map(step => step.gift);
+    for (const gift of gifts) { player.chests[gift.flag] = true; for (const [id, n] of gift.items) giveItem(id, n); }
+    if (gifts.length) log(`The guide's presents are in your bag: ${gifts.flatMap(g => g.items).map(([id, n]) => itemName(id, n)).join(' and ')}.`, 'level');
     player.tutorial = 0;
     log('The guide is put away. You can start it again under Settings (The guide), as long as you are on the starter island.');
     uiDirty();
@@ -268,6 +271,13 @@ const Actions = {
   },
 };
 
+// What a look says can change with the story: lookAgain, once someone else rang the bell home and its clapper was
+// stolen again for you (bellAgain); $founder, the founder's name on her statue, worn away till the Chronicle is whole.
+function lookText(meta) {
+  const text = (bellAgain() && meta.lookAgain) || meta.look;
+  return text.replace('$founder', player.chests.chronicle_done ? 'Now that you know it, you can make it out: EDDA MARROWIND.' : 'Below it, a name, worn away by a hundred winters.');
+}
+
 function look(x, y, monster) {
   const z = player.z, c = monster || creatureAt(x, y, z);
   if (c && c.type === 'npc') return log(`You see ${c.name}.`, 'look');
@@ -289,7 +299,7 @@ function look(x, y, monster) {
   const id = t && (topItem(t) || t.ground);
   const house = map.houseAt(x, y, z), meta = map.getMeta(x, y, z);
   let extra = house && t && t.items.some(i => THINGS[i].houseDoor) ? ` It belongs to ${house.name}${house.owner ? `, rented by ${house.owner}` : ', which is for rent'}.` : '';
-  if (meta && meta.look && id && !THINGS[id].ground) extra += ` ${meta.look}`; // an inscription, say
+  if (meta && meta.look && id && !THINGS[id].ground) extra += ` ${lookText(meta)}`; // an inscription, say
   // a chest you may choose from (one of several): what's in it, so you can choose
   const chest = id && THINGS[id].chest;
   if (chest && chest.choice && !player.chests[chest.flag]) {
