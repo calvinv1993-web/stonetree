@@ -19,7 +19,12 @@ EDGE, EDGE_MIX = (78, 58, 38), 0.8  # Sister Ama's edge colour, and how much of 
 def main_figure(cell):
     a = np.array(cell.convert('RGBA'))
     r, g, b, alpha = (a[:, :, i].astype(int) for i in range(4))
-    fringe = (r > 150) & (g < 90) & (b < 90)  # (bright red specks along the edges)
+    # (bright red specks ChatGPT leaves along the edges: only near the empty background, never red inside a figure)
+    clear = alpha <= 100
+    near = clear.copy()
+    for _ in range(3):
+        n = near.copy(); n[1:] |= near[:-1]; n[:-1] |= near[1:]; n[:, 1:] |= near[:, :-1]; n[:, :-1] |= near[:, 1:]; near = n
+    fringe = (r > 150) & (g < 90) & (b < 90) & near
     mask = (alpha > 100) & ~fringe
     h, w = mask.shape
     seen = np.zeros_like(mask)
