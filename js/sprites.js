@@ -6507,6 +6507,21 @@ const Sprites = (() => {
       const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
       const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
       const data = g.getImageData(0, 0, c.width, c.height).data, part = new Uint8Array(c.width * c.height), CH = SHEET.cell[1] * SHEET.res;
+      // the sheet's own map of its parts (sprites/player-mask.png, painted over it), when there is one: exact
+      const mask = customImage('player_mask');
+      if (!mask && custom.has('player_mask')) return false; // (still on its way: in the sheet's own colours till then, not cached)
+      if (mask && mask.naturalWidth === c.width && mask.naturalHeight === c.height) {
+        const mg = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        mg.canvas.width = c.width; mg.canvas.height = c.height; mg.drawImage(mask, 0, 0);
+        const md = mg.getImageData(0, 0, c.width, c.height).data;
+        for (let i = 0; i < part.length; i++) {
+          const r = md[i * 4], gg = md[i * 4 + 1], b = md[i * 4 + 2];
+          if (md[i * 4 + 3] < 128 || data[i * 4 + 3] < 128) continue;
+          part[i] = r > 200 && gg < 60 && b < 60 ? 1 : r < 60 && b > 200 ? 2 : r < 60 && gg > 150 && b < 60 ? 3 : r > 200 && gg > 180 && b < 60 ? 4 : 0;
+        }
+        return (sheetPixels = { data, width: c.width, part });
+      }
+      // (otherwise worked out from the colours)
       for (let i = 0; i < part.length; i++) {
         const r = data[i * 4] / 255, gg = data[i * 4 + 1] / 255, b = data[i * 4 + 2] / 255, a = data[i * 4 + 3];
         if (a < 128) continue;
@@ -7302,6 +7317,7 @@ const Sprites = (() => {
       if (SEAMLESS[id] || id.startsWith('edge_') || ['temple_wall_texture', 'carpet_texture', 'water_texture', 'window_front', 'shaft_hatch', 'gate_arch_front', 'portcullis_front', 'wall_banner_front', 'sign_weapons_front', 'sign_blank_front', 'lantern_side', 'ladder_front', 'door_open_front', 'door_closed_front', 'ramp_front', 'temple_arch_front', 'temple_wall_out', 'temple_wall_in', 'temple_wall_top'].includes(id) || /^sign_[a-z]+_front$/.test(id) || /^wall_[a-z]+_(face|face_in|top)$/.test(id) || THINGS[id] && THINGS[id].mosaic) img.onload = redrawSoon;
       const res = /@(\d)x\.png$/.exec(file); // (a picture finer than a pixel a world pixel says so in its name: tree@2x.png)
       if (res) img.res = +res[1];
+      if (id === 'player_mask') img.onload = () => { sheetPixels = null; redrawSoon(); }; // (the players drawn again, in their colours)
       img.src = `sprites/${file}${versionOf(file)}`;
       custom.set(id, img);
     }
