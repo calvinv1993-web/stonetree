@@ -271,6 +271,7 @@ const CUSTOM_SPRITES = {
   sheet_brood_queen: 'monster-brood_queen.png', // the spiders' den
   sheet_brineshell: 'monster-brineshell.png', // Old Snapper's mate, in the sea cave
   sheet_cistern_slime: 'monster-cistern_slime.png', // the great slime under Oakvale
+  sheet_shade: 'monster-shade.png', // the lost climbers of the North Peaks cave
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
