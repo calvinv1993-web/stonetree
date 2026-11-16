@@ -242,6 +242,7 @@ const SPRITE_HASHES = {
   "npc-ama.png":"6d4183ff22",
   "npc-child.png":"530109fdbd",
   "npc-corwin.png":"a78add75de",
+  "npc-fields_farmer.png":"f62c1c5051",
   "npc-gate_east.png":"92bb311002",
   "npc-gate_north.png":"47aaab8913",
   "npc-gate_south.png":"4030aaf8fe",
