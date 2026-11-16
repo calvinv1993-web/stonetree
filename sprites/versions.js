@@ -239,7 +239,7 @@ const SPRITE_HASHES = {
   "mushrooms@4x.png":"de723461e7",
   "noticeboard@4x.png":"51f718040c",
   "npc-ama.png":"6d4183ff22",
-  "npc-child.png":"68a423a9db",
+  "npc-child.png":"530109fdbd",
   "npc-corwin.png":"a78add75de",
   "npc-gate_east.png":"92bb311002",
   "npc-gate_north.png":"47aaab8913",
