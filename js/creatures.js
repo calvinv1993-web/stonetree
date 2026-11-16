@@ -115,7 +115,7 @@ const MONSTERS = {
   },
   orc_shaman: {
     name: 'orc shaman', hp: 80, xp: 55, dmg: [1, 6], armor: 2, speed: 110, attackSpeed: 1800, aggro: 7, corpse: 'blood',
-    ranged: { range: 4, dmg: [8, 22], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    ranged: { range: 4, dmg: [6, 16], missile: 'fire', element: 'fire', chance: 0.5, keepDistance: true },
     spells: [{ kind: 'heal', chance: 0.2, dmg: [15, 30] }, { kind: 'condition', chance: 0.1, condition: 'burning', power: 6, range: 4 }],
     loot: { gold: [5, 30], items: [['mana_potion', 0.1], ['blank_rune', 0.1], ['orc_tooth', 0.2]] },
   },
@@ -136,13 +136,13 @@ const MONSTERS = {
   // and their cantor with them. Level 8 to 10.
   choir_cultist: {
     name: 'Choir singer', hp: 110, xp: 70, dmg: [2, 12], armor: 2, speed: 120, attackSpeed: 2000, aggro: 6, corpse: 'blood',
-    ranged: { range: 4, dmg: [8, 22], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    ranged: { range: 4, dmg: [6, 16], missile: 'fire', element: 'fire', chance: 0.5, keepDistance: true },
     loot: { gold: [5, 25], items: [['mana_potion', 0.2], ['health_potion', 0.15], ['blank_rune', 0.08]] },
   },
   choir_cantor: {
     name: 'Choir Cantor', proper: true, hp: 420, xp: 320, dmg: [6, 16], defense: 4, armor: 4, speed: 130, attackSpeed: 1900, aggro: 7, corpse: 'blood',
     respawn: 300000,
-    ranged: { range: 5, dmg: [12, 30], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    ranged: { range: 5, dmg: [10, 24], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
     summon: { type: 'choir_cultist', max: 1, chance: 0.06 },
     spells: [{ kind: 'heal', chance: 0.06, dmg: [30, 50] }],
     loot: { gold: [40, 110], items: [['health_potion', 0.6], ['mana_potion', 0.4], ['ring_swift', 0.05]] },
