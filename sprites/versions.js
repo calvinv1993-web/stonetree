@@ -241,6 +241,7 @@ const SPRITE_HASHES = {
   "monster-cat.png":"1e3fe54b5d",
   "monster-choir_cantor.png":"ceea666583",
   "monster-choir_cultist.png":"a9f7db6d2f",
+  "monster-cistern_slime.png":"2c876b8e37",
   "monster-crab.png":"e2c36c7324",
   "monster-giant_rat.png":"da857c6269",
   "monster-gnash.png":"d103fcbac2",
