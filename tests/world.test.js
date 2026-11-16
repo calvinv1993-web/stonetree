@@ -200,6 +200,27 @@ test('the start, monsters and NPCs stand on free ground, and no monster in a pro
   for (const n of map.npcs) assert.ok(walkable(n.x, n.y, n.z), `NPC ${n.type} at ${n.x},${n.y},${n.z} is not walkable`);
 });
 
+test('along the main roads, nothing tougher than a level-2 monster lives within 6 tiles of the road (rats and wolves may)', () => {
+  // a monster's level: the lowest level of a quest that sends you to kill it (none: tougher than any of them)
+  const QUESTS = require('vm').runInContext('QUESTS', ctx), level = {};
+  for (const q of Object.values(QUESTS)) {
+    for (const kill of [q.kill, ...(q.steps || []).map(s => s.kill)]) {
+      for (const type of Object.keys(kill || {})) level[type] = Math.min(level[type] || Infinity, q.level || 1);
+    }
+  }
+  // tiles from the middle of a road's line, along its straight runs
+  const fromRoad = (road, x, y) => Math.min(...road.line.slice(1).map((q, i) => {
+    const p = road.line[i], cx = Math.max(Math.min(p[0], q[0]), Math.min(Math.max(p[0], q[0]), x)), cy = Math.max(Math.min(p[1], q[1]), Math.min(Math.max(p[1], q[1]), y));
+    return Math.max(Math.abs(cx - x), Math.abs(cy - y));
+  }));
+  const near = [];
+  for (const s of map.spawns) {
+    if (s.z !== S || (level[s.type] || Infinity) <= 2) continue;
+    for (const road of DESIGN.roads) if (fromRoad(road, s.x, s.y) <= 6) near.push(`${s.type} at ${s.x},${s.y} by the ${road.name}`);
+  }
+  assert.deepStrictEqual(near, []);
+});
+
 test('in Oakvale, everything inside the walls (buildings, the temple mount, gardens, the yard, the graveyard) stands at least two tiles clear of the town wall', () => {
   const T = require('vm').runInContext('OAKVALE', ctx), [wx0, wy0, wx1, wy1] = [101, 96, 152, 146];
   const close = [];

@@ -78,7 +78,7 @@ const MONSTERS = {
     loot: { gold: [40, 80], items: [['chain_helmet', 1], ['health_potion', 1, 2, 3], ['leather_boots', 0.5]] },
   },
   crab: {
-    name: 'crab', hp: 45, xp: 28, dmg: [0, 15], defense: 2, armor: 4, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
+    name: 'crab', hp: 45, xp: 28, dmg: [0, 15], defense: 2, armor: 2, speed: 150, attackSpeed: 1500, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['crab_claw', 0.5], ['fish', 0.2], ['pearl', 0.02]] },
   },
   // The gate watch's bosses on Oakvale Isle: each task ends with the one who leads them (respawn: 5 minutes).
@@ -256,7 +256,7 @@ const MONSTERS = {
   },
   bear: {
     name: 'bear', hp: 90, xp: 60, dmg: [0, 25], defense: 4, armor: 3, speed: 230, attackSpeed: 1500, aggro: 5, corpse: 'big',
-    loot: { items: [['meat', 0.6, 1, 3], ['bear_paw', 0.3]] },
+    loot: { gold: [2, 8], items: [['meat', 0.6, 1, 3], ['bear_paw', 0.3]] },
   },
   stone_golem: {
     name: 'stone golem', hp: 520, xp: 320, dmg: [16, 60], armor: 18, speed: 72, attackSpeed: 1900, aggro: 5, corpse: 'none',

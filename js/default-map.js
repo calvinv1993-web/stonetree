@@ -781,22 +781,25 @@ function createDefaultMap() {
   // spawns were, each on the nearest free tile (outside town, off roads and bridges, on `ground` if given), at
   // fixed places worked out from the coordinates.
   const huntingGrounds = [
-    ['rat', 24, [112, 148, 136, 186]],                       // Sunny Fields: the first fights
+    ['rat', 20, [110, 154, 140, 186]],                       // Sunny Fields: the first fights, in pairs over the whole meadow
     // (Fox Copse's pack keeps to the copse's far west side: well out of sight of the first rats, so a newcomer's first
     // task isn't a fight with three wolves)
     ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 91, 162]], // Owl Grove, Fox Copse
     ['crab', 6, [148, 56, 178, 86], S, 'sand'],              // the shore of Mirror Lake
-    ['crab', 8, [110, 200, 148, 226], S, 'sand'],            // the beaches of Lighthouse Point (away from the spiders)
+    ['crab', 2, [94, 210, 97, 215], S, 'sand'],              // the west beach of Lighthouse Point (Old Snapper's, further east)
+    ['crab', 6, [150, 204, 186, 212], S, 'sand'],            // the long south beach, east of the point (away from the spiders)
     ['crab', 5, [30, 160, 60, 190], S, 'sand'],              // the beach by Fisher's Rest
-    ['slime', 12, [44, 114, 70, 144]],                       // Frog Marsh
+    ['slime', 12, [44, 123, 64, 144]],                       // Frog Marsh (its south: off the west road)
     ['wolf', 21, [42, 60, 84, 110]],                         // Wolf Woods
-    ['spider', 7, [146, 178, 158, 190]],                     // Thorn Thicket (a walk past Sunny Fields)
-    ['spider', 10, [164, 168, 198, 204]],                    // round the foot of the Spider Hills (south of Deer Woods)
-    ['goblin', 6, [86, 64, 108, 82]],                        // Stony Field: goblin scouts
+    // (none in Thorn Thicket on the trail south any more, nor round the Thornmother's corner in the south-east)
+    ['spider', 5, [162, 178, 168, 192]],                     // the west foot of the Spider Hills, past Thorn Thicket (off the trail)
+    ['spider', 10, [170, 162, 204, 180]],                    // round the north foot of the Spider Hills (south of Deer Woods)
+    ['goblin', 2, [83, 63, 87, 68]],                         // Stony Field: a pair of goblin scouts, up under the North Peaks
     ['goblin', 15, [174, 58, 208, 88]],                      // Goblin Hill
     ['wolf', 8, [154, 92, 214, 158]],                        // Deer Woods
     ['skeleton', 6, [186, 110, 204, 126], S + 1],            // the top of the Old Tower hill
-    ['bear', 4, [184, 120, 212, 150]],                       // deep in Deer Woods
+    ['bear', 6, [200, 136, 212, 152]],                       // deep in Deer Woods
+    ['bear', 3, [198, 94, 212, 106]],                        // the north-east of Deer Woods
     ['bear', 3, [192, 40, 212, 56], S + 1],                  // the top of Hermit Rock
   ];
   // Lighthouse Point: the stump of the fallen lighthouse (a ring of rubble round two broken pillars), and the keeper's fire
@@ -833,7 +836,8 @@ function createDefaultMap() {
   };
   // Packs keep apart (PACK_GAP tiles between their centres, whatever their kind), so a careful hunter can take on
   // one at a time; walk carelessly and you'll still have the next one on you.
-  const PACK_GAP = 8, centres = [], placedAt = [], PACK = { crab: 2 }; // crabs are tough: two at a time
+  const PACK_GAP = 8, centres = [], placedAt = [], PACK = { crab: 2, rat: 2, goblin: 2, skeleton: 2 }; // (in twos: crabs are tough, and
+  // rats, goblins and skeletons are many)
   let packs = 0; // which pack is being placed
   const roomy = (x, y, z) => centres.every(c => c.z !== z || Math.max(Math.abs(c.x - x), Math.abs(c.y - y)) >= PACK_GAP);
   for (const [type, count, [x0, y0, x1, y1], z = S, ground] of huntingGrounds) {
@@ -858,15 +862,17 @@ function createDefaultMap() {
   }
 
   // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
-  for (const [type, x, y, ground] of [['greyfang', 62, 84], ['old_snapper', 157, 211, 'sand'], ['thornmother', 184, 190], ['gnash', 196, 70]]) {
+  for (const [type, x, y, ground] of [['greyfang', 62, 84], ['old_snapper', 104, 213, 'sand'], ['thornmother', 184, 190], ['gnash', 177, 66]]) {
     const p = spot(x, y, S, ground, 12);
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
   }
   // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): four singers round their cantor
-  // (placed by hand: the point is too small for the packs' spacing)
+  // (placed by hand: the point is too small for the packs' spacing). They come ashore only at night once the bell rings
+  // again, or for whoever is on The Silent Bell V (night: see ashore in game-combat.js), notice you only up close (lurk)
+  // and keep to the tip (leash: 3 tiles), so the keeper's fire and the beaches stay safe.
   for (const [type, x, y] of [['choir_cantor', 128, 221], ['choir_cultist', 125, 220], ['choir_cultist', 131, 220], ['choir_cultist', 126, 223], ['choir_cultist', 130, 223]]) {
     const p = spot(x, y, S, null, 3);
-    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S }); }
+    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, night: 'bell_5', lurk: true, leash: 3 }); }
   }
 
   tidyWorld(m, S);
