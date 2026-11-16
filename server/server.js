@@ -130,7 +130,7 @@ function saveWorld() {
   const spawnIndex = new Map(G.map.spawns.map((s, i) => [s, i]));
   const world = {
     savedAt: Date.now(), map: mapId,
-    monsters: G.monsters.filter(m => spawnIndex.has(m.spawn)).map(m => ({ spawn: spawnIndex.get(m.spawn), type: m.type, at: [m.spawn.x, m.spawn.y, m.spawn.z], x: m.x, y: m.y, z: m.z, hp: m.hp, dead: m.dead, respawnAt: m.respawnAt })),
+    monsters: G.monsters.filter(m => spawnIndex.has(m.spawn)).map(m => ({ spawn: spawnIndex.get(m.spawn), type: m.spawn.type, at: [m.spawn.x, m.spawn.y, m.spawn.z], x: m.x, y: m.y, z: m.z, hp: m.hp, dead: m.dead, respawnAt: m.respawnAt })),
     piles: G.piles.filter(p => !p.house), // things in houses are saved with their owner
     fields: G.fields,
   };
@@ -151,6 +151,8 @@ const savedWorld = loadWorld();
 const savedMonsters = new Map(((savedWorld && savedWorld.monsters) || []).map(m => [m.spawn, m]));
 // A monster comes back only if its spawn is still the same (the world may have been rebuilt since).
 const sameSpawn = (old, s) => old && old.type === s.type && old.at && old.at.join() === `${s.x},${s.y},${s.z}`;
+// (the bell first: once it has been rung home, the Gravewaker's spawn brings his echo, from the start)
+{ const t = readSave(TOWN_FILE); if (t && Array.isArray(t.ringers)) G.townBell = t; }
 W.spawnAll(G.map.spawns, (m, i) => {
   const old = savedMonsters.get(i), s = G.map.spawns[i];
   if (sameSpawn(old, s)) {
@@ -185,7 +187,6 @@ function readSave(file) {
   }
 }
 G.guilds = readSave(GUILD_FILE) || G.guilds;
-{ const t = readSave(TOWN_FILE); if (t && Array.isArray(t.ringers)) G.townBell = t; }
 
 // ---- accounts -----------------------------------------------------------------------------
 const accounts = readSave(SAVE_FILE) || {};

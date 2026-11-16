@@ -350,7 +350,8 @@ function questTalk(ids, npc, otherwise) {
       return `${otherwise ? `${otherwise} ` : ''}${NPCS[who].name} is waiting for you${word ? `: ask about the ${word}` : ''}. (${s.summary || q.summary})`;
     }
     if (!stepReady(id)) return storyText(single ? t : s, 'progress').replace('$progress', questProgress(id));
-    const said = single ? storyText(t, 'reward') : storyText(s, 'done');
+    const daily = single && dailyDue(q) && storyText(t, 'daily'); // (the first of the watch's hunts today: more marks)
+    const said = single ? `${storyText(t, 'reward')}${daily ? ` ${daily}` : ''}` : storyText(s, 'done');
     advanceQuest(id);
     return said;
   }

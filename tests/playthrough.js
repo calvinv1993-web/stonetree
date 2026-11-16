@@ -2,10 +2,12 @@
 // A bot plays Oakvale Isle as a player would, from a new character to level 10, on the real world with all its
 // monsters: it walks with the game's own pathfinding (over floors, through doors), talks to the NPCs with the
 // words they offer, hunts in the real hunting grounds, picks up gold, buys potions and food at Pip's with its
-// own money, buys armour at Brenna's when it can, rests to full before a fight, only takes on a monster with at
-// most one other close by (and looks for a quieter spot otherwise), goes back to town for potions when it runs out
-// or after dying, and does The Silent Bell and the gate watch: as a careful player would. It reports when things happen, how
-// long each part took, deaths, money, and anything it got stuck on.
+// own money (and at Captain Osric's for watch marks), buys armour at Brenna's when it can, rests to full before a
+// fight, only takes on a monster with at most one other close by (and looks for a quieter spot otherwise), goes back
+// to town for potions when it runs out or after dying, and follows the guide's route as a careful player would: The
+// Silent Bell I, the Rats' Hoard and Clang at level 2 (Clang then fights along), the gate watch from level 2 to 5,
+// the watch's hunts from level 3 whenever one is free, The Silent Bell II to VI, the Chronicle pages on the way, and
+// the oracle. It reports when things happen, how long each part took, deaths, money, and anything it got stuck on.
 //   node tests/playthrough.js [seed=1] [hours=5] [lazy]
 
 const { loadGame } = require('./harness');
@@ -24,7 +26,7 @@ const min = () => (state.now / 60000).toFixed(1);
 const problems = [];
 const note = text => { console.log(`${min().padStart(6)}  L${p.level}  ${text}`); }; // as it happens, so a long run can be followed
 const problem = text => { problems.push(`${min()} min, level ${p.level}: ${text}`); note(`!! ${text}`); };
-let deaths = 0, potionsBought = 0, goldSpent = 0, killsTotal = 0;
+let deaths = 0, potionsBought = 0, potionsFromMarks = 0, goldSpent = 0, killsTotal = 0;
 const levelAt = {};
 
 // ---- time ----------------------------------------------------------------------------------------------------
@@ -62,11 +64,15 @@ function landing(x, y, z) {
   }
   return null;
 }
+// (a goal tile is one nobody stands on, and not one a walk there just got stuck on: an NPC idling on the tile next to
+// a shopkeeper, or on the landing of a stair, would otherwise send the bot at the same tile again and again)
+const stuck = new Set();
+const goalTile = (x, y, z) => (x === p.x && y === p.y && z === p.z) || (!stuck.has(key(x, y, z)) && !ctx.creatureAt(x, y, z));
 function route(gx, gy, gz, near = 0) {
   const start = key(p.x, p.y, p.z), prev = new Map([[start, null]]), queue = [[p.x, p.y, p.z]];
   for (let i = 0; i < queue.length && i < 200000; i++) {
     const [x, y, z] = queue[i];
-    if (z === gz && Math.max(Math.abs(x - gx), Math.abs(y - gy)) <= near) {
+    if (z === gz && Math.max(Math.abs(x - gx), Math.abs(y - gy)) <= near && goalTile(x, y, z)) {
       const path = [];
       for (let k = key(x, y, z); k; k = prev.get(k)) path.push(k.split(',').map(Number));
       return path.reverse();
@@ -87,6 +93,7 @@ function route(gx, gy, gz, near = 0) {
 }
 // Walk there (within `near` tiles), floor by floor, as a player clicking ahead would.
 function goTo(gx, gy, gz, near = 0, why = '') {
+  stuck.clear();
   for (let tries = 0; tries < 60; tries++) {
     if (p.z === gz && Math.max(Math.abs(p.x - gx), Math.abs(p.y - gy)) <= near) return true;
     const path = route(gx, gy, gz, near);
@@ -96,12 +103,14 @@ function goTo(gx, gy, gz, near = 0, why = '') {
     for (let i = 1; i < path.length; i++) if (path[i][2] !== p.z) { target = path[i - 1]; break; }
     for (let i = 1; i < path.length && path[i][2] === p.z; i++) if (map.floorChange(...path[i])) { target = path[i]; break; }
     const leg = path.indexOf(target); if (leg > 30) target = path[30]; // click ahead a stretch at a time, as a player does (a click can't plan the whole isle)
-    const z0 = p.z, tt = map.get(target[0], target[1], p.z);
+    if (path.length > 1 && !goalTile(...target)) target = path[path.indexOf(target) - 1] || target; // (someone on it: the tile before)
+    const z0 = p.z, x0 = p.x, y0 = p.y, tt = map.get(target[0], target[1], p.z);
     if (tt && tt.items.some(id => state.THINGS ? state.THINGS[id].useToClimb : id === 'grate')) A.interact('use', target[0], target[1], p.z); // a grate: you climb down by using it
     else A.walkTo(target[0], target[1]);
     const end = state.now + 120000;
     while (state.now < end && (p.path.length || p.walk)) { tick(); if (fightBack()) break; }
     if (p.z !== z0) continue;
+    if (p.x === x0 && p.y === y0) stuck.add(key(target[0], target[1], p.z)); // went nowhere: another tile next time
     if (!p.path.length && !p.walk) wait(300); // (always let time pass)
     if (!p.path.length && !p.walk && !(p.x === target[0] && p.y === target[1]) && !map.floorChange(target[0], target[1], p.z)) wait(300);
   }
@@ -201,7 +210,25 @@ function huntFor(id, type, where) { // the kills a quest step wants: `type` firs
     while ((left = killsLeft(id, t)) > 0 && state.now < END) hunt(t, left, where, id);
   }
 }
-function levelUp(level, type, where) { while (p.level < level) hunt(type, 3, where, `to reach level ${level}`); }
+// To a level: the watch's hunts whenever one is free (as the guards ask, again and again), else `type` round `where`.
+function levelUp(level, type, where) { while (p.level < level && state.now < END) if (!watchHunt()) hunt(type, 3, where, `to reach level ${level}`); }
+// The watch's hunts (from level 3, each once its gate's own task is done, again 20 minutes after the last): the ones
+// a level past their gate's task (a careful player), the best paid first. Paid in watch marks, spent at Osric's.
+const WATCH = [['task_north', 'gate_north', 'goblin', () => GOBLINS], ['task_east', 'gate_east', 'spider', () => SPIDERS],
+  ['task_west', 'gate_west', 'wolf', () => WOLVES], ['task_south', 'gate_south', 'crab', () => CRABS]];
+function watchHunt() {
+  const free = WATCH.find(([id, gate]) => {
+    const s = p.quests[id], q = state.QUESTS[id];
+    return p.level >= Math.max(q.level, state.QUESTS[gate].level + (lazy ? 0 : 1)) && state.questState(gate) === 'done' && (!s || s.status === 'active' || state.now >= s.doneAt + q.repeat);
+  });
+  if (!free) return false;
+  const [id, gate, type, where] = free;
+  note(`== the watch's hunt: ${type}s (${id})`);
+  const marks = state.countItem('watch_mark');
+  talkFor(id, 'active', gate, 'hunt', 'yes'); huntFor(id, type, where()); talkFor(id, 'done', gate, 'hunt');
+  note(`   ${state.countItem('watch_mark') - marks} watch marks`);
+  return true;
+}
 
 // ---- the town -----------------------------------------------------------------------------------------------------
 const npc = id => state.npcs.find(n => n.npcId === id);
@@ -236,6 +263,22 @@ function use(x, y, z, what) {
   if (!/You found/.test(said)) problem(`${what} at ${x},${y},${z}: "${said.slice(0, 120)}"`);
   else note(said.match(/You found[^.]*\./)[0]);
 }
+// A thing a quest step waits for (Clang's crate, the bell): used, and the quest moves on.
+function useFor(quest, x, y, z, what) {
+  const step = (p.quests[quest] || {}).step;
+  goTo(x, y, z, 1, `to ${what}`);
+  A.interact('use', x, y, z); wait(1500);
+  if ((p.quests[quest] || {}).step === step && state.questState(quest) !== 'done') problem(`${what} at ${x},${y},${z} did nothing for ${quest}`);
+  else note(`used ${what}`);
+}
+// A page of the Oakvale Chronicle, lying where the founder wrote it.
+function page(n, x, y, z) {
+  if (p.chests[`chronicle_${n}`]) return;
+  goTo(x, y, z, 1, `to the Chronicle's page ${n}`);
+  A.interact('use', x, y, z); wait(1500);
+  if (!p.chests[`chronicle_${n}`]) problem(`the Chronicle's page ${n} at ${x},${y},${z} could not be read`);
+  else note(`read the Chronicle's page ${n}`);
+}
 // Before going out: potions and food from Pip, as far as the money goes; and a heal from Ama if hurt.
 function shop(potions = 5) {
   if (lazy) return;
@@ -257,6 +300,12 @@ function shop(potions = 5) {
   note(`shopped: now ${state.countItem('health_potion')} potions, ${p.gold} gold`);
   if (want > n) note(`  (wanted ${want} potions, could pay for ${n})`);
   armour(price * 2);
+  // watch marks: five potions for two at Captain Osric's, at the north gate
+  if (state.countItem('watch_mark') >= 2) {
+    const n0 = state.countItem('health_potion');
+    for (let i = 0; i < 4 && state.countItem('watch_mark') >= 2; i++) talk('gate_north', 'potions');
+    if (state.countItem('health_potion') > n0) { potionsFromMarks += state.countItem('health_potion') - n0; note(`watch marks: now ${state.countItem('health_potion')} potions`); }
+  }
 }
 // Better armour at Brenna's (Hide and Iron), with what's left over after keeping `keep` gold for potions.
 function armour(keep) { // better armour at Brenna's and a better club at the smithy, with what's left over
@@ -294,31 +343,42 @@ function equipBest() { // put on whatever good gear is in the bag
   }
 }
 
-// ---- the road -------------------------------------------------------------------------------------------------------
+// ---- the road: the guide's order (game-guide.js), the quests as they are now (npcs.js) ------------------------------
 const SUNNY = [128, 165, 8], WOLVES = [62, 88, 8], CRABS = [132, 210, 8], SPIDERS = [178, 192, 8], GOBLINS = [190, 72, 8];
 const CRYPT = [80, 181, 7], DRAINS = [126, 125, 6], CISTERN = [125, 110, 5], TOMB = [69, 181, 6], SEWERS = [126, 130, 7];
+const CELLAR = [140, 104, 7], POINT = [128, 219, 8];
 try {
   const step = (name, fn) => { const t0 = state.now; note(`== ${name}`); fn(); note(`   (${((state.now - t0) / 60000).toFixed(1)} min)`); };
   step('The Silent Bell I', () => {
     talkFor('bell_1', 'active', 'ama', 'bell', 'yes');
-    talk('corwin', 'bell');
+    talk('corwin', 'bell'); equipBest(); // (the guide's leather cap, from Master Corwin)
     huntFor('bell_1', 'rat', SUNNY);
     talk('corwin', 'bell'); talk('postmaster', 'locker'); talk('pip', 'letter'); talk('ama', 'bell');
   });
-  step('the sewers: a cap', () => { use(105, 121, 7, 'the storeroom chest'); equipBest(); });
   step('to level 2', () => levelUp(2, 'rat', SUNNY));
+  step('the Rats\' Hoard: a shield', () => {
+    shop(3); talkFor('cellar_shield', 'active', 'corwin', 'shield', 'yes'); huntFor('cellar_shield', 'rat', SEWERS);
+    use(105, 121, 7, 'the storeroom chest'); equipBest(); talkFor('cellar_shield', 'done', 'corwin', 'shield');
+  });
+  step('Clang', () => {
+    talkFor('clang_rescue', 'active', 'ama', 'clang', 'yes'); huntFor('clang_rescue', 'rat', CELLAR);
+    useFor('clang_rescue', 148, 105, 7, 'the fallen crate'); talkFor('clang_rescue', 'done', 'ama', 'clang');
+    note(p.pet ? `${p.pet.name} follows, and fights along` : 'no Clang!');
+  });
   step('Bram: wolves', () => { shop(3); talkFor('gate_west', 'active', 'gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES); talkFor('gate_west', 'done', 'gate_west', 'wolves'); equipBest(); });
-  step('the rats\' nest: a shield', () => { shop(3); use(144, 140, 7, 'the chest in the rats\' nest'); equipBest(); });
   step('Tilda: crabs', () => { levelUp(3, 'wolf', WOLVES); shop(3); talkFor('gate_south', 'active', 'gate_south', 'crabs', 'yes'); huntFor('gate_south', 'crab', CRABS); talkFor('gate_south', 'done', 'gate_south', 'crabs'); equipBest(); });
   step('Hilde: spiders', () => { levelUp(4, 'wolf', WOLVES); shop(4); talkFor('gate_east', 'active', 'gate_east', 'spiders', 'yes'); huntFor('gate_east', 'spider', SPIDERS); talkFor('gate_east', 'done', 'gate_east', 'spiders'); equipBest(); });
-  step('Osric: goblins', () => { levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes'); huntFor('gate_north', 'goblin', GOBLINS); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest(); });
+  step('Osric: goblins', () => {
+    levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes'); huntFor('gate_north', 'goblin', GOBLINS);
+    page(4, 197, 71, 8); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest();
+  });
   step('The Silent Bell II: the crypt', () => {
     shop(6); talkFor('bell_2', 'active', 'corwin', 'crypt', 'yes'); huntFor('bell_2', 'skeleton', CRYPT);
-    use(81, 178, 7, 'a weapon chest'); use(71, 181, 7, 'the torn note'); equipBest(); talkFor('bell_2', 'done', 'corwin', 'note');
+    use(81, 178, 7, 'a weapon chest'); page(3, 82, 181, 7); use(71, 181, 7, 'the torn note'); equipBest(); talkFor('bell_2', 'done', 'corwin', 'note');
   });
   step('to level 6', () => levelUp(6, 'goblin', GOBLINS));
   step('The Silent Bell III: the rope', () => {
-    shop(8); talkFor('bell_3', 'active', 'ama', 'rope', 'yes'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
+    shop(8); talkFor('bell_3', 'active', 'ama', 'rope', 'yes'); use(144, 140, 7, 'the chest in the rats\' nest'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
     use(147, 102, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talkFor('bell_3', 'done', 'ama', 'rope');
   });
   step('to level 8', () => levelUp(8, 'skeleton', CRYPT));
@@ -326,15 +386,23 @@ try {
     shop(10); talkFor('bell_4', 'active', 'ama', 'gravewaker', 'yes'); huntFor('bell_4', 'gravewaker', TOMB);
     use(69, 176, 6, 'the founder\'s tomb'); talkFor('bell_4', 'done', 'ama', 'clapper'); equipBest();
   });
+  step('The Silent Bell V: the Choir', () => {
+    shop(10); talkFor('bell_5', 'active', 'corwin', 'choir', 'yes'); talk('oak_keeper', 'lights');
+    huntFor('bell_5', 'choir_cultist', POINT); talkFor('bell_5', 'done', 'corwin', 'choir'); equipBest();
+  });
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));
-  talk('oak_oracle', 'destiny');
+  step('The Silent Bell VI: farewell', () => {
+    talkFor('bell_6', 'active', 'ama', 'farewell', 'yes'); useFor('bell_6', 145, 102, 13, 'the bell');
+    talk('corwin', 'farewell'); talk('pip', 'farewell'); talk('gate_west', 'farewell'); talkFor('bell_6', 'done', 'ama', 'farewell');
+  });
+  step('the oracle', () => { const o = npc('oak_oracle'); talk('oak_oracle', 'destiny'); if (Math.max(Math.abs(p.x - o.x), Math.abs(p.y - o.y)) > 2 || p.z !== o.z) problem('did not reach the oracle'); });
 } catch (e) {
   if (e instanceof Timeout) problem(`ran out of time (${hours} hours)`);
   else problem(`the bot broke: ${e.stack.split('\n').slice(0, 3).join(' | ')}`);
 }
 console.log();
-console.log(`\nSeed ${seed}: level ${p.level} after ${min()} minutes; levels at minute ${Object.entries(levelAt).map(([l, m]) => `${l}: ${m}`).join(', ')}`);
-console.log(`deaths ${deaths}, kills ${killsTotal}, potions bought ${potionsBought}, Light Heals ${healsCast}, meals ${eaten}, gold spent ${goldSpent}, gold now ${p.gold}`);
+console.log(`\nSeed ${seed}${lazy ? ' (lazy)' : ''}: level 10 at minute ${levelAt[10] || '-'}; level ${p.level} after ${min()} minutes; levels at minute ${Object.entries(levelAt).map(([l, m]) => `${l}: ${m}`).join(', ')}`);
+console.log(`deaths ${deaths}, kills ${killsTotal}, potions bought ${potionsBought} (and ${potionsFromMarks} for watch marks), Light Heals ${healsCast}, meals ${eaten}, gold spent ${goldSpent}, gold now ${p.gold}`);
 console.log(`gear: ${Object.entries(p.equipment).filter(([s, i]) => i && s !== 'backpack').map(([s, i]) => i.id).join(', ')}; skills club ${p.skills.club.level}, shielding ${p.skills.shielding.level}`);
-console.log(`guide step ${p.tutorial} of ${run('GUIDE.length')}`);
+console.log(`Chronicle pages ${run('chronicleCount()')} of 6, watch marks left ${state.countItem('watch_mark')}, Clang ${p.pet ? `level ${p.pet.level}` : 'not found'}; guide step ${p.tutorial} of ${run('GUIDE.length')}`);
 if (problems.length) console.log(`\nProblems:\n  ${problems.join('\n  ')}`);

@@ -60,6 +60,7 @@ function newPlayer(name) {
     chests: {},     // flags of quest chests already opened
     blessed: false, house: null, furniture: [], hotkeys: {}, markers: [],
     tutorial: 1, tale: 0, // the guide's step (0: done), and how far into the island's tale
+    huntDay: '', // the real day of your last first-of-the-day watch hunt (its bonus marks: reward.daily, dailyDue)
     guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
     pet: null, // a companion that follows you and fights with you: { name, kind, level, xp, hp, mode, ... } (Clang, the temple's cat; game-update.js updatePet)
     born: Math.floor(Math.random() * 36 ** 6).toString(36), // this character's own mark: what a browser keeps for it (its action buttons) starts fresh with a new one of the same name
@@ -1364,6 +1365,15 @@ function startQuest(id) {
   uiDirty();
 }
 
+// The real day, by the calendar of whoever keeps the world (the server's, online): for what can be had once a day.
+// (the one thing in the game that follows the real date rather than the game's clock)
+function realDay() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+// Whether a quest's daily bonus (reward.daily: the first of those you finish each real day) is still yours today
+const dailyDue = q => !!(q.reward && q.reward.daily) && player.huntDay !== realDay();
+
 // Finish the current step; the last step completes the quest.
 function advanceQuest(id) {
   const q = QUESTS[id], s = questStep(id), state = player.quests[id];
@@ -1383,6 +1393,11 @@ function advanceQuest(id) {
   if (r.gold) addItem('gold', r.gold);
   for (const [item, n] of r.items || []) giveItem(item, n);
   if ((r.items || []).some(([item]) => ITEMS[item].slot === 'backpack')) log('Open the backpack in your bag to carry your things in it: it holds far more.', 'quest');
+  if (r.daily && dailyDue(q)) { // the first of these you finish today: a little more (game-npc.js says so, too)
+    player.huntDay = realDay();
+    log(`The first of these today: you received ${r.daily.map(([item, n]) => itemName(item, n)).join(' and ')} more.`, 'quest');
+    for (const [item, n] of r.daily) giveItem(item, n);
+  }
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
   if (r.bell) { const first = !townBell.first; bellRestored(); ringTownBell(first ? 'Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!' : `Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`); }
@@ -1394,13 +1409,20 @@ function advanceQuest(id) {
   uiDirty();
 }
 
+// A monster's echo (echoOf in creatures.js) counts as the one it echoes only for a step told again (its again texts,
+// bellAgain): the echo is what that telling sends you to face. The first telling wants the real one.
+const killCountsAs = (st, type) => {
+  const of = MONSTERS[type] && MONSTERS[type].echoOf;
+  return st.kill[type] ? type : of && st.kill[of] && st.again && bellAgain() ? of : null;
+};
+
 function onMonsterKilled(type) {
   for (const [id, s] of Object.entries(player.quests)) {
     if (s.status !== 'active' || !QUESTS[id]) continue;
-    const st = questStep(id);
-    if (!st.kill || !st.kill[type]) continue;
+    const st = questStep(id), as = st.kill && killCountsAs(st, type);
+    if (!as) continue;
     const before = stepReady(id);
-    s.kills[type] = Math.min(st.kill[type], (s.kills[type] || 0) + 1);
+    s.kills[as] = Math.min(st.kill[as], (s.kills[as] || 0) + 1);
     if (before || !stepReady(id)) continue;
     if (st.auto) { // a task out in the wilds: done the moment it's done, and the quest goes on from there
       if (st.done) log(storyText(st, 'done'), 'quest');
@@ -1470,7 +1492,7 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };
@@ -1483,6 +1505,7 @@ function serializePlayer(p) {
 function applySave(data) {
   for (const f of SAVED_FIELDS) if (data[f] !== undefined) player[f] = data[f];
   if (data.tutorial === undefined) player.tutorial = 0; // from before the guide: they know their way
+  if (data.huntDay === undefined) player.huntDay = ''; // (from before the daily bonus: today's is still to have)
   if (data.born === undefined) player.born = ''; // (from before the mark: its action buttons stay under its name)
   if (player.pet && player.pet.downUntil) player.pet.downUntil = now + 30000; // (a clock that started again: back soon)
   if (player.pet && !Object.hasOwn(PET_MODES, player.pet.mode || '')) player.pet.mode = 'assist'; // (from before its modes: it fights at your side)

@@ -42,6 +42,8 @@ const BUYS = {
 // offers: { npc: { offer, accept } }: others who can offer it too, in their own words.
 // text.elsewhere: what anyone else in the chain says when asked before it is offered.
 // after: a quest that must be done before this one is offered (text.notYet: what the giver says till then).
+// reward.daily: [[itemId, n]] more for the first quest with one that you finish each real day (the watch's hunts), and
+// text.daily what the giver adds then.
 // word: the word to ask about it (or a step's own word), when the NPC's keyword has several.
 // again: { key: text } (in text, or on a step): what is said instead once someone else has rung the bell of Oakvale
 // home and its clapper was stolen again for you (bellAgain in game-core.js); $ringer is the first Bellringer.
@@ -1856,49 +1858,53 @@ Object.assign(QUESTS, {
   // ms after one is done before the next), paid in watch marks, spent on the watch's stores at Captain Osric's ----
   task_west: {
     name: 'The Watch\'s Hunt: Wolves', giver: 'gate_west', level: 3, after: 'gate_west', repeat: 20 * 60000, kill: { wolf: 10 },
-    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]] },
+    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]], daily: [['watch_mark', 3]] },
     summary: 'Hunt 10 wolves for Sergeant Bram, Wolf Woods or the copses near town.',
     text: {
       offer: 'The wolves are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Wolf woods or the copses near town.',
       progress: 'So far: $progress.',
       reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
   },
   task_south: {
     name: 'The Watch\'s Hunt: Crabs', giver: 'gate_south', level: 3, after: 'gate_south', repeat: 20 * 60000, kill: { crab: 8 },
-    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]] },
+    reward: { xp: 120, gold: 20, items: [['watch_mark', 2]], daily: [['watch_mark', 3]] },
     summary: 'Hunt 8 crabs for Guard Tilda, the beaches.',
     text: {
       offer: 'The crabs are back, $name. They always come back. Hunt 8 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. The beaches.',
       progress: 'So far: $progress.',
       reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
   },
   task_east: {
     name: 'The Watch\'s Hunt: Spiders', giver: 'gate_east', level: 3, after: 'gate_east', repeat: 20 * 60000, kill: { spider: 10 },
-    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]] },
+    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]], daily: [['watch_mark', 3]] },
     summary: 'Hunt 10 spiders for Guard Hilde, round the Spider Hills.',
     text: {
       offer: 'The spiders are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Round the spider hills.',
       progress: 'So far: $progress.',
       reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
   },
   task_north: {
     name: 'The Watch\'s Hunt: Goblins', giver: 'gate_north', level: 3, after: 'gate_north', repeat: 20 * 60000, kill: { goblin: 10 },
-    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]] },
+    reward: { xp: 180, gold: 20, items: [['watch_mark', 2]], daily: [['watch_mark', 3]] },
     summary: 'Hunt 10 goblins for Captain Osric, Stony Field or Goblin Hill.',
     text: {
       offer: 'The goblins are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Stony field or goblin hill.',
       progress: 'So far: $progress.',
       reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
   },
