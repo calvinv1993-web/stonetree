@@ -246,6 +246,7 @@ const CUSTOM_SPRITES = {
   sheet_oak_hermit: 'npc-oak_hermit.png', // Hermit Brannoc
   sheet_oak_stranded: 'npc-oak_stranded.png', // Wendel the fisher
   sheet_fields_farmer: 'npc-fields_farmer.png', // Farmer Odo
+  sheet_rest_fisher: 'npc-rest_fisher.png', // Old Maddock
   sheet_skeleton: 'monster-skeleton.png', // a monster on two legs: sheet_<monster type>, laid out the same
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
