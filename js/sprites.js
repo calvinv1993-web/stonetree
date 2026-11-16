@@ -6537,8 +6537,16 @@ const Sprites = (() => {
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
   // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle,
-  // and a row painted smaller than the others a little more: { dir: how much }] (Clang's front, beside his new side view)
-  const BIG_SHEETS = { clang_3: [1.5, 8, { 2: 1.15 }] };
+  // a row painted smaller than the others a little more ({ dir: how much }, or null), and a shadow under it, for a sheet
+  // painted without one (its half width in world pixels, before it's made bigger)]
+  const BIG_SHEETS = { clang_3: [1.5, 8, null, 11] };
+  // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
+  function groundShadow(g, x, y, rx) {
+    g.save(); g.translate(x, y); g.scale(1, 0.32);
+    const sh = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+    sh.addColorStop(0, 'rgba(10,8,6,0.62)'); sh.addColorStop(0.55, 'rgba(10,8,6,0.38)'); sh.addColorStop(1, 'rgba(10,8,6,0)');
+    g.fillStyle = sh; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill(); g.restore();
+  }
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
@@ -6547,7 +6555,8 @@ const Sprites = (() => {
       g.canvas.res = R;
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       // (a big beast fills two tiles, as in the old games: grown larger round its feet, which move left to keep it in the picture)
-      const [big, left, rows] = BIG_SHEETS[id] || [1, 0], k = big * ((rows && rows[dir]) || 1), fx = TILE + 16 - left, fy = TILE + 29;
+      const [big, left, rows, shade] = BIG_SHEETS[id] || [1, 0], k = big * ((rows && rows[dir]) || 1), fx = TILE + 16 - left, fy = TILE + 29;
+      if (shade) groundShadow(g, fx * R, fy * R, shade * k * R);
       const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (fx - SHEET.feet[0] * k) * R, oy = (fy - SHEET.feet[1] * k) * R;
       if (dir === 3) { g.translate(ox + CW * k * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * k * R, CH * k * R); }
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
@@ -6584,13 +6593,8 @@ const Sprites = (() => {
       if (look.feather || look.cloak) sheetCosmetics(cell, look, dir, S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
-      // a soft shadow on the ground under the feet, darkest right under them (the people's sheets have one painted in;
-      // the players' have none)
-      const fx = (TILE + 16) * R, fy = (TILE + 29) * R, rx = 10 * R, ry = 3.2 * R;
-      g.save(); g.translate(fx, fy); g.scale(1, ry / rx);
-      const sh = g.createRadialGradient(0, 0, 0, 0, 0, rx);
-      sh.addColorStop(0, 'rgba(10,8,6,0.62)'); sh.addColorStop(0.55, 'rgba(10,8,6,0.38)'); sh.addColorStop(1, 'rgba(10,8,6,0)');
-      g.fillStyle = sh; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill(); g.restore();
+      // a soft shadow on the ground under the feet (the people's sheets have one painted in; the players' have none)
+      groundShadow(g, (TILE + 16) * R, (TILE + 29) * R, 10 * R);
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
       else g.drawImage(cell, ox, oy, CW * R, CH * R);
