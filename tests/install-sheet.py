@@ -7,17 +7,17 @@
 # scales every cell alike so that from the feet to the eyes the standing front figure measures EYE_TO_FEET times size
 # (Sister Ama's; hats and big hair don't count that way), with the feet at the same spot as hers.
 # Where a walking step repeats the other one (ChatGPT does that, the back view most), the second is the first mirrored.
-# Every figure gets Sister Ama's thin edge: its outermost pixels darkened to a warm dark brown (EDGE), so all sheets
-# stand out from the ground alike, whatever outline ChatGPT drew.
+# Nothing is painted over: no filter, no added edge (SHEET_VIVID and SHEET_EDGE=1 can still add them).
+import os
 import sys
 from collections import deque
 import numpy as np
 from PIL import Image, ImageOps, ImageEnhance
 
 CELL_W, CELL_H, FEET_Y, CENTRE_X = 128, 192, 184, 64
-EDGE, EDGE_MIX = (78, 58, 38), 0.8  # Sister Ama's edge colour, and how much of it
+EDGE, EDGE_MIX = (78, 58, 38), 0.8  # an added edge's colour, and how much of it
+EDGE_ON = os.environ.get('SHEET_EDGE') == '1'  # an extra dark edge round each figure: off (the owner's choice: as painted)
 EYE_TO_FEET = 98  # Sister Ama's eyes above her feet, in pixels of the sheet
-import os
 VIVID = float(os.environ.get('SHEET_VIVID', '1.0'))  # colour strength: 1 as painted, more for fuller colours (and a touch more contrast)
 
 def main_figure(cell):
@@ -133,7 +133,8 @@ def build(figs, scale):
                 weight = Image.fromarray((weight * 255).astype(np.uint8))
                 f = Image.composite(rich, f.convert('RGB'), weight).convert('RGBA')
                 f.putalpha(alpha)
-            f = edge(f)
+            if EDGE_ON:
+                f = edge(f)
             # (placed by the figure itself, not its shadow: its feet on the line, its middle in the middle)
             sx0, sy0, sx1, sy1 = f.getchannel('A').point(lambda v: 255 if v > 200 else 0).getbbox() or (0, 0, f.width, f.height)
             sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - (sx0 + sx1) // 2, r * CELL_H + FEET_Y - sy1))
