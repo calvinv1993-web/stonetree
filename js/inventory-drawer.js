@@ -43,6 +43,7 @@ const InventoryDrawer = (() => {
       put('.drawer-gear', byId('equipment'));
       const stats = byId('gearStats'); if (stats) { borrow(stats); drawer.querySelector('.drawer-stats').prepend(stats); } // (attack, defense and armor: one line across the top)
       put('.drawer-bags', byId('containers'));
+      put('.drawer-pet', byId('petBox')); // (your companion's card, across both, under them: companion-card.js)
       put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
     } else if (page === 'map') {
       put('.drawer-map', document.querySelector('.minimap-box'));
@@ -143,7 +144,7 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-stats"><button class="drawer-skills-link" type="button">Skills ›</button></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div>'
+      + '<div class="drawer-body"><div class="drawer-stats"><button class="drawer-skills-link" type="button">Skills ›</button></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div><div class="drawer-pet"></div>'
       + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>'
       + '<div class="drawer-page drawer-map"></div><div class="drawer-page drawer-quests"></div><div class="drawer-page drawer-settings"></div>';
     drawer.dataset.page = page;

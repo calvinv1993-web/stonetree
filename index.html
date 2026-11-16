@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="css/phone/smart-button.css?v=ui310">
   <link rel="stylesheet" href="css/phone/chat-line.css?v=ui310">
   <link rel="stylesheet" href="css/phone/inventory-drawer.css?v=ui310">
+  <link rel="stylesheet" href="css/phone/companion-card.css?v=ui310">
   <link rel="stylesheet" href="css/phone/theme.css?v=ui310">
   <link rel="icon" type="image/png" sizes="32x32" href="sprites/ui/icon/icon-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="sprites/ui/icon/icon-180.png">
@@ -207,6 +208,9 @@
         <div class="muted small" id="gearStats"></div>
       </section>
 
+      <!-- your companion (Clang): companion-card.js fills it; on a phone the drawer's Gear page shows it -->
+      <section id="petBox" class="companion-card" hidden></section>
+
       <section class="sec-battle">
         <h2>Battle
           <span>
@@ -304,6 +308,7 @@
   <script src="js/smart-button.js?v=ui310"></script>
   <script src="js/chat-line.js?v=ui310"></script>
   <script src="js/inventory-drawer.js?v=ui310"></script>
+  <script src="js/companion-card.js?v=ui310"></script>
   <script src="js/touch.js?v=ui310"></script>
   <div id="loading" hidden>
     <img class="loading-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">

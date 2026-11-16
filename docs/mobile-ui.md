@@ -28,7 +28,10 @@ From top to bottom:
     button: equipment and backpack side by side; swipe up on its tab for everything, with other opened bags and the
     skills; down on its handle to go back. The backpack button, a touch on the map or dragging a thing out over the map closes
     it; the smart button goes on acting meanwhile, and the map slides up so you stay in sight above the half-open drawer.
-    Along its bottom, four tabs: Gear, Map (the minimap as big as the drawer), Quests and Settings (what the Menu
+    With a companion, the Gear page has his card under both columns (`js/companion-card.js`,
+    `css/phone/companion-card.css`): portrait, health, experience, damage, how he fights and what you can do for him;
+    holding him on the map opens it there (a monster under the finger wins), and a small bar at the end of your health
+    bar shows his health. Along its bottom, four tabs: Gear, Map (the minimap as big as the drawer), Quests and Settings (what the Menu
     held, and the help); they borrow those parts from the side panel while shown, as the gear does.
 - **The chat line** on top of the bar (`js/chat-line.js`, `css/phone/chat-line.css`): the newest message; tap it for the chat,
   which opens at the newest line above the action bar, with a send button; the tab on its edge closes it (the smart

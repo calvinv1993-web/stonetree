@@ -1,0 +1,33 @@
+/* Your companion's card on a phone (js/companion-card.js): on the drawer's Gear page, across both columns under the
+   equipment and the backpack, in the drawer's look; and a small bar for his health at the end of yours in the status bar. */
+body.touch-ui .inventory-drawer .drawer-pet { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+body.touch-ui .inventory-drawer .drawer-pet:not(:has(#petBox:not([hidden]))) { display: none; }
+body.touch-ui .companion-card { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+body.touch-ui .companion-card h2 { margin: 0 0 8px; color: #b8b5ad !important; font: 600 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 1px; }
+body.touch-ui .companion-card .pet-top { gap: 12px; }
+body.touch-ui .companion-card .pet-portrait { width: 76px; height: 76px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px;
+  background: radial-gradient(circle at 50% 62%, #34302a, #1c1d1f 72%); }
+body.touch-ui .companion-card .pet-info { gap: 5px; }
+body.touch-ui .companion-card .pet-title b { color: #f2ebdd; font-size: 16px; }
+body.touch-ui .companion-card .pet-title small, body.touch-ui .companion-card .pet-dmg { color: #b8b5ad; font-size: 12px; }
+body.touch-ui .companion-card .pet-bar { height: 16px; border: 0; border-radius: 8px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
+body.touch-ui .companion-card .pet-bar i { border-radius: 8px; background: linear-gradient(#5cc05c, #3a9a3a); }
+body.touch-ui .companion-card .pet-bar.low i { background: linear-gradient(#c84b4f, #9f2e33); }
+body.touch-ui .companion-card .pet-bar.xp i { background: linear-gradient(#e0b868, #b08a30); }
+body.touch-ui .companion-card .pet-bar span { font: 500 11.5px/16px system-ui, -apple-system, 'Segoe UI', sans-serif; color: #f2ebdd; }
+body.touch-ui .companion-card .pet-hint { margin: 8px 0 0; color: #b8b5ad; font-size: 12.5px; }
+body.touch-ui .companion-card .pet-modes { margin: 8px 0 0; }
+body.touch-ui .companion-card .pet-modes button { min-height: 36px; padding: 0; font-size: 13px; }
+body.touch-ui .companion-card .pet-buttons { gap: 6px; margin-top: 8px; }
+body.touch-ui .companion-card .pet-btn { min-height: 46px; padding: 4px; border: 1px solid rgba(255, 255, 255, 0.16) !important; border-radius: 10px;
+  background: linear-gradient(#303133, #202123) !important; color: #d5aa60 !important; box-shadow: none !important; }
+body.touch-ui .companion-card .pet-btn b { font: 600 13px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+body.touch-ui .companion-card .pet-btn small { color: #b8b5ad; font: 500 10.5px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+body.touch-ui .companion-card .pet-btn:disabled { opacity: 0.4; }
+/* his health, small, at the end of yours */
+.hud-pet-pip { display: none; }
+body.touch-ui .hud .tbar.hp .hud-pet-pip { display: block; position: absolute; right: 6px; top: 5px; z-index: 1; width: 22px; height: 5px; border-radius: 3px;
+  overflow: hidden; background: rgba(0, 0, 0, 0.55); box-shadow: 0 0 0 1px rgba(255, 217, 138, 0.55); }
+body.touch-ui .hud .tbar.hp .hud-pet-pip[hidden] { display: none; }
+body.touch-ui .hud .tbar.hp .hud-pet-pip i { display: block; height: 100%; background: #5cc05c; }
+body.touch-ui .hud .tbar.hp .hud-pet-pip.low i { background: #e0c020; }

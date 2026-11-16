@@ -208,7 +208,7 @@ function trainTick() {
   else addSkillTries(w.skill);
   player.trainHits++;
   // your companion, beside you, trains too (a blow of its own at the dummy, now and then)
-  if (player.petBody && dist(player.petBody, t) <= 2 && player.trainHits % 2 === 0) petLearn(1);
+  if (player.petBody && dist(player.petBody, t) <= 2) petTrain();
   addSound('hit', t.x, t.y, t.z);
   addBurst(t.x, t.y, t.z, '#e8d48a'); // (straw flies)
 }
@@ -372,11 +372,12 @@ function killMonster(m) {
     asPlayer(p, () => {
       if (Math.round(xp) > 0) gainXp(Math.round(xp), shared.has(p));
       onMonsterKilled(m.type);
+      petLearnFromKill(m); // (your companion, if it helped)
       guideDid('kill');
       taleDeed('kill', m.type);
     });
   }
-  m.hits = null;
+  m.hits = null; m.petHelp = null;
 }
 
 function playerDies(killer) {
