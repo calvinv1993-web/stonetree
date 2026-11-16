@@ -6561,7 +6561,7 @@ const Sprites = (() => {
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
   // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle]
-  const BIG_SHEETS = { clang_3: [1.6, 6] };
+  const BIG_SHEETS = { clang_3: [1.5, 8] };
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
