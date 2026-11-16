@@ -26,14 +26,9 @@ Painted and in the game: longsword, broadsword, war axe, battle axe, war hammer,
 
 Painted and in the game: chain helmet, steel helmet, crown helmet, witch hat, wizard hat, chain armor, plate armor, golden armor, lizard scale mail, mage robe, ranger cloak, chain legs, plate legs, iron shield, tower shield, dragon shield, demon shield, spellbook, rod of thorns.
 
-## Sheet 4: magic and jewellery (20)
+## Sheet 4: magic and jewellery: done
 
-```
-1 rod of the glacier, 2 blank rune (a small smooth grey stone tablet), 3 arcane missile rune (the tablet with a violet sign), 4 fireball rune (an orange flame sign), 5 healing rune (a green leaf sign),
-6 poison field rune (a green skull sign), 7 fire field rune (a red flame sign), 8 energy field rune (a blue lightning sign), 9 magic wall rune (a grey wall sign), 10 paralyze rune (a pale blue chain sign),
-11 ring of life (gold, a red stone), 12 ring of swiftness (silver, a feather engraved), 13 amulet of keeping (a silver locket), 14 guardian amulet (bronze, a shield emblem), 15 the Ember Seal (a round bronze seal with a glowing ember in its middle),
-16 health potion (a round red potion with a cork), 17 mana potion (a round blue potion with a cork), 18 dragon ham, 19 bronze watch mark (a bronze token stamped with a sun), 20 gold coins (a small stack)
-```
+Painted and in the game: rod of the glacier, blank rune and the eight runes, ring of life, ring of swiftness, amulet of keeping, guardian amulet, the Ember Seal, health and mana potions (on the action buttons too), dragon ham, watch mark. (The gold coins kept sheet 1's.)
 
 ## Sheet 5: tools, keys, books and ore (17)
 

@@ -21,10 +21,32 @@ cw, ch = W / cols, H / rows
 SIZE, MARGIN = 96, 3
 custom = os.path.join(root, 'sprites', 'custom.js'); js = open(custom).read()
 os.makedirs(os.path.join(root, 'sprites', 'items'), exist_ok=True)
+# Where each item lies: the painted blobs of the whole sheet (parts near each other joined), big ones only, in reading
+# order (rows by height, then left to right). A painting whose items reach past their grid cell is cut right this way;
+# if the count doesn't match the ids, the grid's cells are used instead.
+solid_all = a[..., 3] > 110
+joined = ndimage.binary_dilation(solid_all, iterations=6)
+lab_all, n_all = ndimage.label(joined)
+sizes_all = ndimage.sum(solid_all, lab_all, range(1, n_all + 1))
+big = [k + 1 for k, sz in enumerate(sizes_all) if sz >= np.median(sorted(sizes_all)[-len(ids):]) * 0.12]
+boxes = {k: ndimage.find_objects((lab_all == k).astype(int))[0] for k in big}
+cent = {k: ((bx[0].start + bx[0].stop) / 2, (bx[1].start + bx[1].stop) / 2) for k, bx in boxes.items()}
+order = []
+for k in sorted(big, key=lambda k: cent[k][0]):  # rows: a new one where the height jumps by over half a cell
+    if order and abs(cent[k][0] - np.mean([cent[j][0] for j in order[-1]])) < ch * 0.5: order[-1].append(k)
+    else: order.append([k])
+blobs = [k for row in order for k in sorted(row, key=lambda k: cent[k][1])]
+use_blobs = len(blobs) == len(ids)
+print('cut by', 'the painted shapes' if use_blobs else f'the grid (found {len(blobs)} shapes for {len(ids)} ids)')
 for i, gid in enumerate(ids):
     if gid == '-': continue
-    r, c = divmod(i, cols)
-    cell = a[int(r * ch):int((r + 1) * ch), int(c * cw):int((c + 1) * cw)].copy()
+    if use_blobs:
+        k = blobs[i]; bx = boxes[k]
+        cell = a[bx[0], bx[1]].copy()
+        cell[(lab_all[bx[0], bx[1]] != k), 3] = 0
+    else:
+        r, c = divmod(i, cols)
+        cell = a[int(r * ch):int((r + 1) * ch), int(c * cw):int((c + 1) * cw)].copy()
     al = cell[..., 3]
     # the reddish fringe round the edges: half see-through and red
     R, G, B = cell[..., 0], cell[..., 1], cell[..., 2]

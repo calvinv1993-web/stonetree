@@ -12,6 +12,25 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  watch_mark: 'items/watch_mark@3x.png', // the owner's item picture (install-items.py)
+  dragon_ham: 'items/dragon_ham@3x.png', // the owner's item picture (install-items.py)
+  mana_potion: 'items/mana_potion@3x.png', // the owner's item picture (install-items.py)
+  health_potion: 'items/health_potion@3x.png', // the owner's item picture (install-items.py)
+  ember_seal: 'items/ember_seal@3x.png', // the owner's item picture (install-items.py)
+  amulet_guard: 'items/amulet_guard@3x.png', // the owner's item picture (install-items.py)
+  amulet_keeping: 'items/amulet_keeping@3x.png', // the owner's item picture (install-items.py)
+  ring_swift: 'items/ring_swift@3x.png', // the owner's item picture (install-items.py)
+  ring_life: 'items/ring_life@3x.png', // the owner's item picture (install-items.py)
+  rune_paralyze: 'items/rune_paralyze@3x.png', // the owner's item picture (install-items.py)
+  rune_magic_wall: 'items/rune_magic_wall@3x.png', // the owner's item picture (install-items.py)
+  rune_energy_field: 'items/rune_energy_field@3x.png', // the owner's item picture (install-items.py)
+  rune_fire_field: 'items/rune_fire_field@3x.png', // the owner's item picture (install-items.py)
+  rune_poison_field: 'items/rune_poison_field@3x.png', // the owner's item picture (install-items.py)
+  rune_heal: 'items/rune_heal@3x.png', // the owner's item picture (install-items.py)
+  rune_fireball: 'items/rune_fireball@3x.png', // the owner's item picture (install-items.py)
+  rune_missile: 'items/rune_missile@3x.png', // the owner's item picture (install-items.py)
+  blank_rune: 'items/blank_rune@3x.png', // the owner's item picture (install-items.py)
+  rod_glacier: 'items/rod_glacier@3x.png', // the owner's item picture (install-items.py)
   backpack: 'items/backpack@3x.png', // the owner's item picture (install-items.py)
   meat: 'items/meat@3x.png', // the owner's item picture (install-items.py)
   cheese: 'items/cheese@3x.png', // the owner's item picture (install-items.py)
@@ -81,7 +100,6 @@ const CUSTOM_SPRITES = {
   ore_iron: 'items/ore_iron@3x.png', // the owner's item picture (from the owner's sheet of items)
   rope: 'items/rope@3x.png', // the owner's item picture (from the owner's sheet of items)
   shovel: 'items/shovel@3x.png', // the owner's item picture (from the owner's sheet of items)
-  amulet_guard: 'items/amulet_guard@3x.png', // the owner's item picture (from the owner's sheet of items)
   edge_gravel_w: 'edge-gravel-w.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
   edge_gravel_s: 'edge-gravel-s.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
   edge_gravel_e: 'edge-gravel-e.png', // the owner's gravel border (a loose PNG: install-edge-png.py)
@@ -142,8 +160,6 @@ const CUSTOM_SPRITES = {
   battlement_s: 'battlement-s@4x.png', // east edges, each placed as the drawn ones were (96 x 96 world px, their tile bottom right)
   battlement_w: 'battlement-w@4x.png',
   battlement_e: 'battlement-e@4x.png',
-  health_potion: 'items/health-potion@4x.png', // the owner's painted potions, lying on the ground (the bag and the action
-  mana_potion: 'items/mana-potion@4x.png',     // buttons show the same: sprites/ui/actions/h.png and m.png)
   water_texture: 'water-own.png', // the owner's water, from above (ground template; water-atlas.png: the one before)
   temple_paving: 'temple-paving-own.png', // the owner's temple paving, 4 x 4 slabs over 4 x 4 tiles (cut from joint to joint; temple-paving-mock.png: the one before)
   rim_kit_n: 'rim-kit-n.png', // the owner's border kit of stones: beside an edge by where the inside lies (n e s w), and
