@@ -19,7 +19,8 @@
   const steps = inApp
     ? ['Open this page in <b>Safari</b> (or Chrome) first: tap the menu of this app and choose <b>Open in browser</b>.', 'Then add it to your home screen from there.']
     : ios
-      ? [`Tap <b>Share</b> ${share} in the browser's bar.`, `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list if you don't see it).`, 'Open <b>Lickii</b> from your home screen.']
+      ? [`Tap the button above, or <b>Share</b> ${share} in Safari's bar at the bottom (on newer iPhones: <b>⋯</b>, then <b>Share</b>).`,
+        `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list, or tap <b>More</b>, if you don't see it).`, 'Open <b>Lickii</b> from your home screen.']
       : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>Lickii</b> from your home screen.'];
   const gate = document.createElement('div');
   gate.id = 'installGate';
@@ -27,26 +28,38 @@
     <style>
       html.install-gate, html.install-gate body { overflow: hidden; background: #0d0c0b; }
       #installGate { position: fixed; inset: 0; z-index: 2147483647; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 18px; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); box-sizing: border-box; overflow: auto;
+        gap: 14px; padding: max(20px, env(safe-area-inset-top)) 20px calc(52px + env(safe-area-inset-bottom)); box-sizing: border-box; overflow: auto;
         background: radial-gradient(ellipse at 50% 30%, #2a2418 0%, #0d0c0b 70%); color: #efe6d2; font: 16px/1.5 Inter, system-ui, sans-serif; text-align: center; }
-      #installGate img { width: min(70vw, 300px); height: auto; }
+      #installGate img { width: min(52vw, 220px); height: auto; }
       #installGate h1 { margin: 0; font-size: 21px; font-weight: 700; color: #e8c46a; }
       #installGate p { margin: 0; max-width: 340px; color: #cbbfa6; }
       #installGate ol { margin: 0; padding: 0; list-style: none; counter-reset: step; max-width: 340px; width: 100%; }
-      #installGate li { counter-increment: step; display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px 14px; margin: 0 0 8px;
+      #installGate li { counter-increment: step; display: flex; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; margin: 0 0 8px; font-size: 15px;
         border-radius: 12px; background: #1f1c16; box-shadow: inset 0 0 0 1px #3a3222; }
       #installGate li::before { content: counter(step); flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
         background: #e8c46a; color: #1b1a17; font-weight: 700; }
       #installGate li svg { vertical-align: -5px; color: #6fb2ff; }
       #installGate button { min-height: 48px; padding: 0 28px; border: 0; border-radius: 12px; background: linear-gradient(#f0cf78, #c9a24a); color: #1b1a17;
         font: 700 17px Inter, system-ui, sans-serif; }
+      #installGate .down { position: fixed; bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; margin-left: -18px; width: 36px; height: 36px; color: #e8c46a;
+        animation: gate-bob 1s ease-in-out infinite; pointer-events: none; }
+      @keyframes gate-bob { 50% { transform: translateY(8px); } }
     </style>
     <img src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
     <h1>Play Lickii Adventures as an app</h1>
     <p>On a phone the game is played from your home screen: the whole screen for the game, and it stays upright.</p>
     <button id="installNow" hidden>Install Lickii</button>
-    <ol>${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol>`;
+    <button id="shareNow" hidden>Add to Home Screen</button>
+    <ol>${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol>
+    ${ios && !inApp ? '<svg class="down" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v16m0 0-6-6m6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}`;
   document.body.prepend(gate);
+  // On an iPhone: a button that opens Apple's own share menu, where "Add to Home Screen" is chosen (no page can add
+  // itself; only that menu can), and an arrow down to Safari's bar for those who'd rather use its Share button
+  if (ios && !inApp && navigator.share) {
+    const b = document.getElementById('shareNow');
+    b.hidden = false;
+    b.onclick = () => navigator.share({ title: 'Lickii Adventures', url: location.href.split('#')[0] }).catch(() => { /* closed: the steps stay */ });
+  }
   // Android's own install button, where the browser offers one
   addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
