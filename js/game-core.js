@@ -60,6 +60,7 @@ function newPlayer(name) {
     chests: {},     // flags of quest chests already opened
     blessed: false, house: null, furniture: [], hotkeys: {}, markers: [],
     tutorial: 1, tale: 0, // the guide's step (0: done), and how far into the island's tale
+    guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
     pet: null, // a companion that follows you and fights with you: { name, kind, level, xp } (Clang, the temple's cat)
     born: Math.floor(Math.random() * 36 ** 6).toString(36), // this character's own mark: what a browser keeps for it (its action buttons) starts fresh with a new one of the same name
     fightMode: 'balanced', chase: true, secure: true, conditions: {},
@@ -1440,7 +1441,7 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };
@@ -1453,8 +1454,8 @@ function serializePlayer(p) {
 function applySave(data) {
   for (const f of SAVED_FIELDS) if (data[f] !== undefined) player[f] = data[f];
   if (data.tutorial === undefined) player.tutorial = 0; // from before the guide: they know their way
-  if (data.born === undefined) player.born = '';
-  if (player.pet && player.pet.downUntil) player.pet.downUntil = now + 30000; // (a clock that started again: back soon) // (from before the mark: its action buttons stay under its name)
+  if (data.born === undefined) player.born = ''; // (from before the mark: its action buttons stay under its name)
+  if (player.pet && player.pet.downUntil) player.pet.downUntil = now + 30000; // (a clock that started again: back soon)
   const valid = it => it && ITEMS[it.id] && (!it.contents || (it.contents = it.contents.filter(valid)));
   for (const slot of SLOTS) if (!valid(player.equipment[slot])) player.equipment[slot] = null;
   if (!player.equipment.backpack) player.equipment.backpack = makeItem('bag');

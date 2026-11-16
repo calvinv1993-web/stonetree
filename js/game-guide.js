@@ -241,9 +241,15 @@ function updateGuide() {
   if (!step || player.vocation !== 'none') player.tutorial = 0;
   else {
     if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
-    if (step.done && step.done()) player.tutorial++;
+    player.guideSeen = Math.max(player.guideSeen || 0, player.tutorial);
+    if ((step.done && step.done()) || (step.done && guideBeen(player.tutorial))) player.tutorial++;
   }
 }
+
+// A step to do that was done before the guide was started again: it passes by itself (opening a corpse or eating
+// can't be asked of you twice). A step you'd reached before, or one of the basics once the first quest is done.
+const GUIDE_BASICS = GUIDE.findIndex(s => (s.target || []).some(t => t.quest === 'bell_1')) + 1;
+const guideBeen = step => step < (player.guideSeen || 0) || (step < GUIDE_BASICS && questState('bell_1') === 'done');
 
 // The guide's present for a step (once): into the bag, with a word from whoever gives it
 function guideGift(gift) {

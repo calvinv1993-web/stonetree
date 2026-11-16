@@ -22,6 +22,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | Dev server: restarts on changes, pages reload themselves | `node server/dev.js 8090 --test` |
 | Unit tests (about 10 seconds: the world is built once and copied for each test) | `node tests/unit.test.js` |
 | Tests kept for later (the old world's rules and content, which wait for the mainland or a test area; they fail for now) | `node tests/later.test.js` |
+| The whole starter story, from a new character to the oracle, in seven scenarios (straight, guide skipped, saved and loaded after every step, dying after every step, everything tried too early, the guide started again half way, two friends on one server) | `node tests/story.test.js [scenario]`; part of `npm test` |
 | Playthrough: a bot plays Oakvale from level 1 to 10 on the real world, careful or lazy | `node tests/playthrough.js [seed] [hours] [lazy]` |
 | Soak test: random play on the real logic | `node tests/sim.test.js [minutes=30] [runs=4] [seed=1]`; `npm test` runs unit + sim |
 | Online test (spawns its own server) | `node tests/online.test.js` |
