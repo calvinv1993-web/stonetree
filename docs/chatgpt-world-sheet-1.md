@@ -26,3 +26,7 @@ Order, left to right, top to bottom:
 ```
 
 Send the sheet back as it comes out: it is cut up and put in the world.
+
+## Done
+
+In the game (tests/install-world.py): flowers, tall grass, reeds, fallen leaves, pebbles, the hand cart (wagon), the cannon both ways, the obelisk. The rug was left out: rugs join up into one carpet across tiles, so they keep the carpet texture.
