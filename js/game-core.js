@@ -1140,7 +1140,11 @@ function makeTestHero(vocation) {
   eq.ammo = ammo ? makeItem(ammo, MAX_STACK) : null;
   eq.backpack = { ...makeItem('backpack'), contents: [] };
   for (const [id, n] of [['health_potion', 50], ['mana_potion', 50], ['rope', 1], ['shovel', 1], ['meat', 20]]) if (ITEMS[id]) giveItem(id, n);
-  log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank.`, 'quest');
+  // and Clang at his level, full grown (the temple's guardian), for testing what a companion does that high
+  const cat = PETS.cat;
+  p.pet = { name: (p.pet && p.pet.name) || 'Clang', kind: 'cat', level: L, xp: 0, hp: cat.hp(L), mode: 'assist', downUntil: 0, home: false };
+  p.petBody = null;
+  log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank, and ${p.pet.name} at level ${L} beside you.`, 'quest');
   uiDirty();
   return true;
 }

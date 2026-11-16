@@ -1547,6 +1547,7 @@ test('a test character: level 100 with the best gear its vocation may wear, for 
     const p = run('player');
     assert.strictEqual(p.level, 100);
     assert(p.hp === p.maxHp && p.maxHp > 150, 'full health');
+    assert(p.pet && p.pet.kind === 'cat' && p.pet.level === 100 && p.pet.hp > 1000, 'Clang at level 100 beside them');
     for (const slot of ['head', 'body', 'legs', 'feet', 'weapon']) {
       const it = p.equipment[slot];
       assert(it, `${voc}: something on ${slot}`);
