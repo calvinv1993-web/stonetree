@@ -373,6 +373,22 @@ function clickTile(e, t, wx, wy) {
 let walkMark = null;
 const markWalk = t => { walkMark = { x: t.x, y: t.y, z: t.z, at: now, moved: now }; };
 // Drawn on the floor itself (Render's onFloor, in world pixels), so walls, things, roofs and creatures stand over it.
+// The guide's ring: gold on the ground round the feet of what the arrow points at (or round the spot), growing and
+// fading, so the eye finds it at once; drawn with the floor, under the figures standing on it
+function drawGuideRing(g, ox, oy, z) {
+  const step = player.tutorial && !player.dead && GUIDE[player.tutorial - 1], t = step && guideTarget(step);
+  if (!t || t.z !== z || t.z !== player.z) return;
+  const v = visual(t), k = (now % 1200) / 1200, rx = TILE * (0.3 + 0.3 * k);
+  const fx = ox + v.x * TILE + 16 - (t.type ? LIFT : 0), fy = oy + v.y * TILE + (t.type ? 29 - LIFT : 16);
+  g.save();
+  g.globalAlpha = 1 - k;
+  g.lineWidth = 1.6;
+  g.strokeStyle = '#ffd84a';
+  g.beginPath();
+  g.ellipse(fx, fy, rx, rx * 0.42, 0, 0, Math.PI * 2);
+  g.stroke();
+  g.restore();
+}
 function drawWalkMark(g, ox, oy, z) {
   const m = walkMark;
   if (!m || m.z !== z) return;
@@ -501,7 +517,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { onFloor: drawWalkMark, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.groundItem(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
@@ -872,16 +888,7 @@ function drawGuideArrow(screen) {
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();
   if (t.z === player.z && sx > m && sy > m + 30 && sx < viewPxW() - m && sy < viewPxH() - m) {
-    // a gold ring on the ground round it, growing and fading, so the eye finds it at once
-    const [gx, gy] = screen(v.x + 0.5, v.y + 0.5), k = (now % 1200) / 1200, rx = TILE * SCALE * (0.35 + 0.35 * k);
-    ctx.save();
-    ctx.globalAlpha = 1 - k;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#ffd84a';
-    ctx.beginPath();
-    ctx.ellipse(gx - (t.type ? LIFT * SCALE : 0), gy + 2, rx, rx * 0.5, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
+    // (its ring on the ground: drawGuideRing, under the figures)
     ctx.translate(sx - (LIFT + (t.type ? HEAD_LEAN * Render.CREATURE_LEAN : 0)) * SCALE, sy - 38 - (t.type ? Sprites.headroom(t) * SCALE : 0) + bob); // above the name (and a creature's head)
     ctx.rotate(Math.PI / 2);
   } else {
