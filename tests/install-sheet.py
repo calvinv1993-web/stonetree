@@ -28,7 +28,8 @@ def main_figure(cell):
     for _ in range(3):
         n = near.copy(); n[1:] |= near[:-1]; n[:-1] |= near[1:]; n[:, 1:] |= near[:, :-1]; n[:, :-1] |= near[:, 1:]; near = n
     # (and pure, glaring red anywhere: no figure is painted in it, but ChatGPT sometimes floods the gaps with it)
-    fringe = ((r > 150) & (g < 90) & (b < 90) & near) | ((r > 200) & (g < 40) & (b < 40))
+    # (only see-through specks: red hair along a figure's own edge is solid and stays)
+    fringe = ((r > 150) & (g < 90) & (b < 90) & near & (alpha < 220)) | ((r > 200) & (g < 40) & (b < 40))
     mask = (alpha > 100) & ~fringe
     h, w = mask.shape
     seen = np.zeros_like(mask)
