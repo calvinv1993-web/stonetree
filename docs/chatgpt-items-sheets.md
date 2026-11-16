@@ -18,14 +18,9 @@ Order, left to right, top to bottom:
 
 Painted and in the game: wooden club, dagger, hatchet, short sword, spiked club, mace, wooden shield, studded shield, leather cap, leather armor, leather legs, iron boots, apple, bread, fish, gold coins, bag, pickaxe, fishing rod. (Leather boots, cheese, meat and the backpack, painted before, are again at the end of sheet 7.)
 
-## Sheet 2: weapons (19)
+## Sheet 2: weapons: done
 
-```
-1 longsword, 2 broadsword, 3 war axe, 4 battle axe (double-bladed), 5 war hammer,
-6 knight blade (an ornate sword), 7 fire axe (an axe with a glowing ember-red blade), 8 frost blade (an icy blue sword), 9 spear, 10 bow,
-11 crossbow, 12 elven bow (graceful, pale wood with leaf carvings), 13 a quiver's worth of arrows (a small bundle), 14 crossbow bolts (a small bundle), 15 Brood Queen's fang (a curved bone-white fang made into a blade, dark grip),
-16 wand of sparks, 17 wand of flames, 18 wand of storms, 19 rod of frost
-```
+Painted and in the game: longsword, broadsword, war axe, battle axe, war hammer, knight blade, fire axe, frost blade, spear, bow, crossbow, elven bow, arrows, bolts, Brood Queen's fang, wand of sparks, wand of flames, wand of storms, rod of frost.
 
 ## Sheet 3: armour and shields (19)
 
