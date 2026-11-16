@@ -4658,7 +4658,7 @@ const Sprites = (() => {
   // People (players, NPCs and humanoid monsters) are drawn from a look: colours plus
   // what they wear, see person() below. A player's look comes from their outfit: its
   // type and cut, its four colours (head, primary, secondary, detail) and addons.
-  const DEFAULT_OUTFIT = { hair: '#8d5029', body: '#274dae', legs: '#584e46', feet: '#573925' }; // (the player sheet's own colours: see SHEET)
+  const DEFAULT_OUTFIT = { hair: '#844b2b', body: '#3c478c', legs: '#5f473a', feet: '#503525' }; // (the player sheet's own colours: see SHEET)
   const rgbOf = c => {
     if (c[0] === '#') {
       const n = parseInt(c.length === 4 ? c.slice(1).replace(/./g, x => x + x) : c.slice(1), 16);
@@ -6514,12 +6514,29 @@ const Sprites = (() => {
         let h = !d ? 0 : v === r ? ((gg - b) / d) % 6 : v === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
         h = (h * 60 + 360) % 360;
         const yy = (Math.floor(i / c.width) % CH) / SHEET.res;
+        // (hair, belt, trousers and boots are all browns: told apart by how grey they are and how high they sit)
+        const brown = h < 45 || h > 330;
         if (v < 0.22) continue;                                                        // the outline
         if (h > 185 && h < 265 && s > 0.3) part[i] = 2;                               // the shirt
-        else if ((h < 50 || h > 330) && s < 0.33 && v < 0.7) part[i] = 3;            // the trousers
-        else if (h > 15 && h < 42 && s < 0.68 && v > 0.84) continue;                  // skin
-        else if (h > 30 && h < 55 && s > 0.55 && v > 0.75 && yy >= 28 && yy < 38) continue; // the buckle
-        else if ((h < 45 || h > 330) && s >= 0.33) { if (yy < 27) part[i] = 1; else if (yy >= 37) part[i] = 4; } // hair, boots (the belt between stays)
+        else if (h > 12 && h < 45 && s < 0.62 && v > 0.66 && yy >= 17) continue;     // skin (the face, the hands)
+        else if (h > 30 && h < 60 && s > 0.5 && v > 0.6 && yy >= 28 && yy < 38) continue; // the buckle
+        else if (brown && s >= 0.2 && s < 0.47 && v < 0.66 && yy >= 30) part[i] = 3;  // the trousers, greyer
+        else if (brown && s >= 0.2 && yy < 27) part[i] = 1;                           // the hair
+        else if (brown && s >= 0.47 && yy >= 37) part[i] = 4;                         // the boots (the belt above them stays)
+      }
+      // (trousers and boots: each pixel goes with most of those round it, so a boot's light spot stays boot)
+      const W = c.width, H = c.height, was = part.slice();
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const k = was[y * W + x];
+        if (k !== 3 && k !== 4) continue;
+        let legs = 0, feet = 0;
+        for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+          const yy2 = y + dy, xx = x + dx;
+          if (yy2 < 0 || yy2 >= H || xx < 0 || xx >= W) continue;
+          const o = was[yy2 * W + xx];
+          if (o === 3) legs++; else if (o === 4) feet++;
+        }
+        if (legs !== feet) part[y * W + x] = legs > feet ? 3 : 4;
       }
       sheetPixels = { data, width: c.width, part };
     } catch (e) { sheetPixels = false; } // (over file:// it can't be read: drawn in its own colours)
