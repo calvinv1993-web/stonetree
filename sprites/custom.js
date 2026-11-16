@@ -253,6 +253,10 @@ const CUSTOM_SPRITES = {
   sheet_gnash: 'monster-gnash.png', // Chief Gnash
   sheet_goblin_hoardkeeper: 'monster-goblin_hoardkeeper.png', // the hoardkeeper
   sheet_choir_cultist: 'monster-choir_cultist.png', // a Choir singer
+  sheet_choir_cantor: 'monster-choir_cantor.png', // the Choir Cantor
+  sheet_gravewaker: 'monster-gravewaker.png', // the Gravewaker
+  sheet_gravewaker_echo: 'monster-gravewaker.png', // his echo: the same shape
+  sheet_watchman_shade: 'monster-watchman_shade.png', // the watchman's shade
   wall_stone_post: 'wall-stone-post.png', // the stone houses' walls, from the owner's picture (as the wooden ones)
   wall_stone_n: 'wall-stone-n.png',
   wall_stone_w: 'wall-stone-w.png',
