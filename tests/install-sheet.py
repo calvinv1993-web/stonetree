@@ -111,9 +111,12 @@ def build(figs, scale):
         for c in range(3):
             f = figs[r][c]
             f = f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS)
-            if VIVID != 1:
+            if VIVID != 1:  # (fuller colours; whites, greys and silver stay as they are: only what has colour gets more)
                 alpha = f.getchannel('A')
-                f = ImageEnhance.Contrast(ImageEnhance.Color(f.convert('RGB')).enhance(VIVID)).enhance(1 + (VIVID - 1) * 0.25).convert('RGBA')
+                rich = ImageEnhance.Contrast(ImageEnhance.Color(f.convert('RGB')).enhance(VIVID)).enhance(1 + (VIVID - 1) * 0.25)
+                sat = np.array(f.convert('HSV'))[:, :, 1].astype(float) / 255
+                weight = Image.fromarray((np.clip((sat - 0.12) / 0.25, 0, 1) * 255).astype(np.uint8))
+                f = Image.composite(rich, f.convert('RGB'), weight).convert('RGBA')
                 f.putalpha(alpha)
             f = edge(f)
             sheet.alpha_composite(f, (c * CELL_W + CENTRE_X - f.width // 2, r * CELL_H + FEET_Y - f.height))
