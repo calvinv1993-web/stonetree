@@ -12,6 +12,8 @@
 // invisible: hard to see and can't be targeted from afar; plural: the name for more than one, if not name + 's';
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 // voices: { aggro, low, death }: what it says, once, when it first goes for you, when it's nearly beaten, and as it falls
+// echo: the type that comes back in its place once the bell of Oakvale has been rung home (townBell.first; see spawnMonster);
+// echoOf: (on that echo) whom it echoes: it counts as that one for a quest step told again (again texts, bellAgain)
 const MONSTERS = {
   rat: {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',
@@ -24,7 +26,7 @@ const MONSTERS = {
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks:
     // Sir Galen, buried in the graveyard (killed by "only rats"), who never died at all and joined the Ashen Choir
     name: 'Gravewaker', proper: true, hp: 380, xp: 250, dmg: [6, 16], defense: 4, armor: 4, speed: 220, attackSpeed: 1800, aggro: 7, corpse: 'blood',
-    respawn: 300000, weak: { holy: 1.3 },
+    respawn: 300000, weak: { holy: 1.3 }, echo: 'gravewaker_echo',
     ranged: { range: 4, dmg: [8, 18], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
     summon: { type: 'skeleton', max: 2, chance: 0.12 },
@@ -391,6 +393,14 @@ const MONSTERS = {
     summon: { type: 'crab', max: 3, chance: 0.1 },
     loot: { gold: [300, 600], items: [['pearl', 1, 2, 5], ['plate_armor', 0.2], ['wand_flames', 0.15], ['rod_thorns', 0.15], ['crossbow', 0.15]] },
   },
+};
+
+// The Gravewaker's echo: once someone has rung the bell home, Sir Galen is gone, and what the Choir sends back to the
+// founder's tomb only wears his shape: the same fight, without his words. It counts for The Silent Bell IV only as told
+// again (the echo's texts there); nothing else on the isle asks for the Gravewaker.
+MONSTERS.gravewaker_echo = {
+  ...MONSTERS.gravewaker, name: 'the Gravewaker\'s echo', echo: undefined, echoOf: 'gravewaker',
+  voices: { aggro: '(The grey hood turns toward you without a word. Ash drifts from its sleeves.)' },
 };
 
 // Damage-over-time ticks every `interval` ms; poison weakens by one each tick.

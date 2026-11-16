@@ -446,7 +446,7 @@ const DEATH_TIPS = {
 };
 function deathTip(killer) {
   if (!killer || killer.type === 'player') return null;
-  const tip = DEATH_TIPS[killer.type] || 'Rest here until your health is full, $name, and when you go out again, take a potion along.';
+  const tip = DEATH_TIPS[killer.type] || (killer.def && DEATH_TIPS[killer.def.echoOf]) || 'Rest here until your health is full, $name, and when you go out again, take a potion along.';
   return `The dawn brought you back. ${tip.replace(/\$name/g, player.name)}`;
 }
 
@@ -690,12 +690,15 @@ function castRune(ref, x, y, z) {
 }
 
 // ---- monsters -------------------------------------------------------------------------------
+// (one with an echo in creatures.js comes back as that echo once the bell of Oakvale has been rung home by anyone:
+// the same for everybody in the world, as the spawn is shared; the Gravewaker himself is gone then)
 function spawnMonster(spawn, extra = {}) {
-  const def = MONSTERS[spawn.type];
+  const echo = MONSTERS[spawn.type] && MONSTERS[spawn.type].echo, type = echo && townBell.first ? echo : spawn.type;
+  const def = MONSTERS[type];
   const pos = def && findFreeTile(spawn.x, spawn.y, spawn.z, 4, true);
   if (!pos) return null;
   return {
-    id: newId(), type: spawn.type, name: def.name, def, spawn, x: pos.x, y: pos.y, z: spawn.z, dir: 2, walk: null,
+    id: newId(), type, name: def.name, def, spawn, x: pos.x, y: pos.y, z: spawn.z, dir: 2, walk: null,
     hp: def.hp, maxHp: def.hp, lastAttack: 0, nextMove: now + Math.random() * 1000, angryUntil: 0, angryAt: null,
     conditions: {}, dead: false, respawnAt: 0, ...extra,
   };

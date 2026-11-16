@@ -1091,7 +1091,7 @@ test('the watch\'s hunts: again and again after a gate\'s own task, paid in watc
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
-  p.level = 5; p.quests.gate_west = { status: 'done', step: 1, kills: {} };
+  p.level = 5; p.quests.gate_west = { status: 'done', step: 1, kills: {} }; p.huntDay = ctx.realDay(); // (today's bonus already had)
   const talk = (id, ...words) => { const n = state.npcs.find(c => c.npcId === id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100); A.say('hi'); tick(game, 100); const at = messages.length; for (const w of words) { A.say(w); tick(game, 100); } A.say('bye'); tick(game, 200); return messages.slice(at).join(' | '); };
   talk('gate_west', 'hunt', 'yes'); assert.strictEqual(state.questState('task_west'), 'active', 'a hunt');
   for (let i = 0; i < 10; i++) ctx.onMonsterKilled('wolf');
@@ -1101,6 +1101,62 @@ test('the watch\'s hunts: again and again after a gate\'s own task, paid in watc
   assert(/potions/.test(talk('gate_north', 'marks')), 'Osric lists the stores');
   talk('gate_north', 'potions'); assert.strictEqual(state.countItem('watch_mark'), 0, 'two marks spent');
   assert(state.countItem('health_potion') >= 5, 'for five potions');
+});
+
+test('the first watch hunt of each real day pays three marks more, once a day, and the guard says so', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  p.level = 5; p.quests.gate_west = { status: 'done', step: 1, kills: {} }; p.quests.gate_south = { status: 'done', step: 1, kills: {} };
+  assert.strictEqual(p.huntDay, '', 'a new character has had no bonus yet');
+  const talk = (id, ...words) => { const n = state.npcs.find(c => c.npcId === id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100); A.say('hi'); tick(game, 100); const at = messages.length; for (const w of words) { A.say(w); tick(game, 100); } A.say('bye'); tick(game, 200); return messages.slice(at).join(' | '); };
+  talk('gate_west', 'hunt', 'yes'); for (let i = 0; i < 10; i++) ctx.onMonsterKilled('wolf');
+  const said = talk('gate_west', 'hunt');
+  assert.strictEqual(state.countItem('watch_mark'), 5, 'two marks and three more');
+  assert(/first hunt for the watch today: three more marks/.test(said), 'the guard says why');
+  assert(messages.some(m => /first of these today: you received 3 watch marks more/.test(m)), 'and the log says so');
+  assert.strictEqual(p.huntDay, ctx.realDay(), 'remembered for today');
+  assert.strictEqual(JSON.parse(JSON.stringify(ctx.serializePlayer(p))).huntDay, ctx.realDay(), 'and saved');
+  talk('gate_south', 'hunt', 'yes'); for (let i = 0; i < 8; i++) ctx.onMonsterKilled('crab');
+  assert(!/three more marks/.test(talk('gate_south', 'hunt')), 'a second hunt the same day: no bonus');
+  assert.strictEqual(state.countItem('watch_mark'), 7, 'only its own two marks');
+  p.huntDay = '2020-1-1'; state.now += 21 * 60000; // (a day later)
+  talk('gate_west', 'hunt', 'yes'); for (let i = 0; i < 10; i++) ctx.onMonsterKilled('wolf'); talk('gate_west', 'hunt');
+  assert.strictEqual(state.countItem('watch_mark'), 12, 'the next day: the bonus again');
+  const old = ctx.serializePlayer(p); delete old.huntDay; ctx.applySave(old);
+  assert.strictEqual(p.huntDay, '', 'an old save without it: today\'s bonus is still to have');
+});
+
+test('once the bell is rung home, the Gravewaker comes back as his echo: his shape, his strength, not his words', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const { MONSTERS } = state, p = state.player;
+  const real = MONSTERS.gravewaker, echo = MONSTERS.gravewaker_echo;
+  for (const k of ['hp', 'xp', 'dmg', 'defense', 'armor', 'speed', 'attackSpeed', 'respawn', 'ranged', 'summon', 'loot']) {
+    assert.strictEqual(JSON.stringify(echo[k]), JSON.stringify(real[k]), `the echo's ${k} is his`);
+  }
+  assert(!/Choir|ringer/.test(JSON.stringify(echo.voices)), 'the echo says nothing of the Choir');
+  const spot = { type: 'gravewaker', x: 69, y: 180, z: 6 };
+  assert.strictEqual(ctx.spawnMonster(spot).type, 'gravewaker', 'before the bell is home: the Gravewaker himself');
+  // the first player kills him for The Silent Bell IV
+  p.level = 8; p.quests.bell_4 = { status: 'active', step: 0, kills: {} };
+  ctx.onMonsterKilled('gravewaker_echo');
+  assert.strictEqual(p.quests.bell_4.step, 0, 'the first telling wants the real one');
+  ctx.onMonsterKilled('gravewaker');
+  assert.strictEqual(p.quests.bell_4.step, 1, 'the real one counts');
+  // someone has rung it home: what comes back is the echo, for everyone
+  state.townBell.first = 'Someone';
+  const m = ctx.spawnMonster(spot);
+  assert.strictEqual(m.type, 'gravewaker_echo', 'it respawns as the echo');
+  assert.strictEqual(m.name, 'the Gravewaker\'s echo');
+  // a later player, on the echo's telling of The Silent Bell IV: the echo counts
+  p.quests.bell_4 = { status: 'active', step: 0, kills: {} };
+  ctx.onMonsterKilled('gravewaker_echo');
+  assert.strictEqual(p.quests.bell_4.step, 1, 'the echo counts for the telling that sends you to face it');
+  // he says nothing of the Choir when he sees you
+  state.monsters.push(m); ctx.teleport({ ...ctx.findFreeTile(m.x + 2, m.y, 6, 3), z: 6 }); p.level = 20; tick(game, 600);
+  assert(!state.effects.some(fx => fx.kind === 'speech' && /Ashen Choir/.test(fx.text)), 'no reveal speech');
+  assert(/Gravewaker wakes the dead/.test(ctx.deathTip(m)), 'his death tip is the Gravewaker\'s');
 });
 
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {

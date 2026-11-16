@@ -4484,6 +4484,7 @@ const Sprites = (() => {
     serpent_lord: { scale: 1.5, skin: '#2a6a5a', hair: '#1a4a3a', eye: '#ff3030', body: '#1a3a3a', belt: '#d0a030', legs: '#1a3a3a', arms: '#2a6a5a', tail: '#2a6a5a', robe: true, hat: { style: 'crown', color: '#d0a030' }, held: 'staff' },
     ashen_lord: { scale: 1.9, skin: '#3a302c', hair: '#140c0a', eye: '#ff7a10', body: '#241816', belt: '#ff5a10', legs: '#1c1210', arms: '#3a302c', horns: '#d06020', wings: '#2a0806', held: 'axe' },
     gravewaker: { skin: '#c8d0c0', hair: '#2a2a2a', eye: '#60ff80', body: '#2a3a2e', belt: '#6a5a3a', legs: '#2a3a2e', arms: '#2a3a2e', robe: true, hat: { style: 'hood', color: '#1e2a22' }, held: 'staff' },
+    get gravewaker_echo() { return this.gravewaker; }, // (his echo wears his shape)
     demon: { scale: 1.6, skin: '#a82020', hair: '#5a0a0a', eye: '#ffd020', body: '#8a1818', belt: '#3a0a0a', legs: '#6a1010', arms: '#a82020', horns: '#2a1a1a', wings: '#4a0a0a', held: 'axe' },
     drowned_king: { scale: 1.4, skin: '#5a8a8a', hair: '#2a4a4a', eye: '#a0ffff', beard: '#3a6a6a', body: '#2a4a5a', belt: '#c0a040', legs: '#1a3a4a', arms: '#5a8a8a', hat: { style: 'crown', color: '#d0b030' }, held: 'staff' },
   };

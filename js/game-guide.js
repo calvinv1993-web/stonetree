@@ -308,7 +308,7 @@ function guideTarget(step) {
       // (only those still short: once the pack is done, the arrow goes to its leader, the boss)
       const wanted = t.hunt.filter(id => questState(id) === 'active' && !stepReady(id))
         .flatMap(id => Object.entries(questStep(id).kill || {}).filter(([type, n]) => ((player.quests[id].kills || {})[type] || 0) < n).map(([type]) => type));
-      const m = near(monsters.filter(c => !c.dead && wanted.includes(c.type)));
+      const m = near(monsters.filter(c => !c.dead && (wanted.includes(c.type) || wanted.includes(c.def && c.def.echoOf))));
       if (m) return m;
       const home = map.spawns.filter(s => s.z === player.z && wanted.includes(s.type)).sort((a, b) => dist(a, player) - dist(b, player))[0];
       if (home) return { x: home.x, y: home.y, z: home.z };
