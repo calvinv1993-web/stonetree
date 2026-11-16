@@ -6528,6 +6528,8 @@ const Sprites = (() => {
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
+  // sheets drawn bigger than a person, over two tiles: [how much bigger, how far the feet sit left of the tile's middle]
+  const BIG_SHEETS = { clang_3: [1.6, 6] };
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
@@ -6535,9 +6537,11 @@ const Sprites = (() => {
     return cached(`npcsheet:${id}:${dir}:${frame}:${R}`, g => {
       g.canvas.res = R;
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-      const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
-      if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * R, CH * R); }
-      else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * R, CH * R);
+      // (a big beast fills two tiles, as in the old games: grown larger round its feet, which move left to keep it in the picture)
+      const [k, left] = BIG_SHEETS[id] || [1, 0], fx = TILE + 16 - left, fy = TILE + 29;
+      const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (fx - SHEET.feet[0] * k) * R, oy = (fy - SHEET.feet[1] * k) * R;
+      if (dir === 3) { g.translate(ox + CW * k * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * k * R, CH * k * R); }
+      else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
     }, 2 * TILE * R);
   }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
@@ -7629,6 +7633,8 @@ const Sprites = (() => {
     // the picture of a companion of this look: the temple's cat is Clang, with his bell (town cats have none)
     // the picture of a companion of this look and level: the temple's cat is Clang, with his bell (town cats have none),
     // growing up as he levels: a kitten, a young tomcat, then the temple's guardian (when those sheets are there)
+    // how much higher a big sheet's head reaches than a person's (world pixels): its name and bar go up with it
+    bigLift: key => (BIG_SHEETS[key] ? Math.round((BIG_SHEETS[key][0] - 1) * 35) : 0),
     petKey: (look, level = 1) => {
       if (look !== 'cat') return look;
       const stage = level >= 8 ? 3 : level >= 4 ? 2 : 1;

@@ -744,7 +744,7 @@ function drawCreatureInfo(c, screen, struck) {
   const companion = c.pet === true; // (a companion's body; a player's own pet field is the companion's record, not this)
   // (monsters and companions: one height for all; a monster drawn from a sheet, like a person, above its head)
   const fixed = companion || (c.type !== 'player' && c.type !== 'npc' && !Sprites.headroom(c));
-  const ty = fixed ? sy0 + MONSTER_BAR_Y * SCALE : sy - Sprites.headroom(c) * SCALE; // (players' and NPCs' above the head of a tall figure)
+  const ty = fixed ? sy0 + (MONSTER_BAR_Y - Sprites.bigLift(creatureKey(c))) * SCALE : sy - Sprites.headroom(c) * SCALE; // (players' and NPCs' above the head of a tall figure)
   const size = TILE * SCALE, fx = sx + (HEAD_LEAN * Render.CREATURE_LEAN / 2) * SCALE; // (the frame half way between feet and head)
   const frame = (color, inset, alpha = 1) => {
     ctx.globalAlpha = alpha;
