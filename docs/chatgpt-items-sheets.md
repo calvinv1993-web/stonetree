@@ -22,14 +22,9 @@ Painted and in the game: wooden club, dagger, hatchet, short sword, spiked club,
 
 Painted and in the game: longsword, broadsword, war axe, battle axe, war hammer, knight blade, fire axe, frost blade, spear, bow, crossbow, elven bow, arrows, bolts, Brood Queen's fang, wand of sparks, wand of flames, wand of storms, rod of frost.
 
-## Sheet 3: armour and shields (19)
+## Sheet 3: armour and shields: done
 
-```
-1 chain helmet, 2 steel helmet, 3 crown helmet (a golden helmet with a crown rim), 4 witch hat, 5 wizard hat,
-6 chain armor, 7 plate armor, 8 golden armor, 9 lizard scale mail (green scales), 10 mage robe,
-11 ranger cloak, 12 chain legs, 13 plate legs, 14 iron shield, 15 tower shield (tall),
-16 dragon shield (red, a dragon emblem), 17 demon shield (dark, horned), 18 spellbook (a thick leather tome used as a shield), 19 rod of thorns
-```
+Painted and in the game: chain helmet, steel helmet, crown helmet, witch hat, wizard hat, chain armor, plate armor, golden armor, lizard scale mail, mage robe, ranger cloak, chain legs, plate legs, iron shield, tower shield, dragon shield, demon shield, spellbook, rod of thorns.
 
 ## Sheet 4: magic and jewellery (20)
 
