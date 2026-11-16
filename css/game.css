@@ -112,6 +112,12 @@
 .story .now b { display: block; color: #ffd84a; }
 .story .now span { display: block; color: #e8e0d0; margin: 1px 0 3px; }
 .story .now i { display: block; color: #8fd0ff; font-style: normal; }
+/* the bestiary, under the quests: a row for each kind slain */
+.bestiary-row { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; column-gap: 6px; margin: 2px 0; }
+.bestiary-row > .muted { grid-column: 2 / 4; font-size: 11px; line-height: 1.2; }
+.bestiary-face { grid-row: span 2; width: 24px; height: 24px; image-rendering: pixelated; object-fit: contain; }
+.bestiary-name { color: inherit; }
+.bestiary-stars { color: #ffd84a; letter-spacing: 1px; white-space: nowrap; }
 .guild-window h3, .forge-window h3 { font-size: 12px; color: #e8c878; margin: 10px 0 4px; }
 /* the forge: pick your gear, put four ore in, see your chances */
 .forge-window { width: min(520px, 95vw); }
@@ -145,6 +151,7 @@
 .outfit-type { display: flex; gap: 4px; align-items: center; justify-content: center; margin: 4px 0; }
 .outfit-type b { min-width: 86px; text-align: center; }
 .outfit-addons { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 6px; font-size: 12px; }
+.outfit-cosmetics { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0 0 6px; font-size: 12px; }
 .outfit-parts { margin-bottom: 4px; }
 .outfit-palette { display: grid; grid-template-columns: repeat(19, 15px); gap: 1px; justify-content: center; }
 .swatch-color { width: 15px; height: 15px; padding: 0; border: 1px solid #000; }

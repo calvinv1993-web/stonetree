@@ -249,11 +249,37 @@ function marksTalk(offers, text) {
   const offer = offers.find(([word]) => mentions(text, word));
   if (!offer) return `You have ${have} watch mark${have === 1 ? '' : 's'}. From the stores: ${offers.map(([word, cost, , label]) => `${label} for ${cost} ({${word}})`).join(', ')}. Hunt for the watch at any gate to earn more.`;
   const [, cost, items, label] = offer;
+  const cosmetic = !Array.isArray(items) && items.cosmetic; // (something to wear: COSMETICS in defs.js)
+  if (cosmetic && player.cosmetics.includes(cosmetic)) return `You have ${label} already, $name. Wear it or put it away in your outfit window.`;
   if (have < cost) return `${label} costs ${cost} watch marks, $name, and you have ${have}. Hunt for the watch at the gates.`;
   removeItem('watch_mark', cost);
-  for (const [id, n] of items) giveItem(id, n);
   addSound('coin', player.x, player.y, player.z);
+  if (cosmetic) {
+    player.cosmetics.push(cosmetic);
+    player.outfit = { ...player.outfit, [COSMETICS[cosmetic].kind]: cosmetic }; // (worn at once: everyone sees it)
+    addSparkle(player, '#ffe080');
+    uiDirty();
+    return `Here: ${label}. Wear it with pride, $name: the watch knows its friends. (Your outfit window puts it on or takes it off.)`;
+  }
+  for (const [id, n] of items) giveItem(id, n);
   return `Here: ${label}, from the watch's stores. Well earned.`;
+}
+
+// A smith of Oakvale turns a rare named beast's trophy (trophy in items.js) into a piece of good gear, for nothing.
+function trophyTalk(npcId) {
+  const theirs = Object.keys(ITEMS).filter(id => ITEMS[id].trophy && ITEMS[id].trophy.smith === npcId);
+  const what = id => itemName(ITEMS[id].trophy.makes, 1, ITEMS[id].trophy.q);
+  const have = theirs.find(id => countItem(id) > 0);
+  if (!have) return `Now and then a beast of the isle grows old and big enough to get a name. Bring me what it leaves behind, and I make something of it: ${theirs.map(id => `${what(id)} from the ${ITEMS[id].name}`).join(', ')}.`;
+  const t = ITEMS[have].trophy, gear = makeItem(t.makes);
+  if (!removeItem(have, 1)) return 'Hm. Let me see that again, $name.';
+  gear.q = t.q;
+  const rest = freeCapacity() >= (ITEMS[t.makes].weight || 0) ? storeInBag(gear) : gear;
+  if (rest) { dropToGround(rest, player); log(`You can't carry ${what(have)}: it is lying at your feet.`); }
+  addSound('anvil', player.x, player.y, player.z);
+  addSparkle(player, QUALITIES[t.q].color);
+  uiDirty();
+  return `The ${ITEMS[have].name}! I have not seen one of those in years. Give me a moment... There: ${what(have)}, better than anything on my shelves. Wear it well.`;
 }
 
 // "What do I do now?": this NPC's own news if it has any, else the next step of a quest you're on, else the arrow
@@ -279,6 +305,7 @@ function service(s, npc, text) {
   if (s.quest) return questTalk(s.quest, npc, s.otherwise);
   if (s.pet) return petCare();
   if (s.marks) return marksTalk(s.marks, text);
+  if (s.trophy) return trophyTalk(npc.npcId);
   if (s.chronicle) return chronicleTalk();
   if (s.chroniclePage) return chronicleGive(s.chroniclePage, s.text);
   if (s.heal) {

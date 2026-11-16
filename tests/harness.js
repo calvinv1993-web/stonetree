@@ -89,6 +89,7 @@ function loadGame({ seed = 1 } = {}) {
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
     physicalMax, physicalHit, blocked, FIGHT_MODES,
+    RARE_KIN, RARE_CHANCE, BESTIARY_TIERS, COSMETICS, bestiaryTier, bestiaryBonus, withBestiary,
   })`, ctx);
 
   // Same start-up as game.js: the player, the NPCs, then the monsters.

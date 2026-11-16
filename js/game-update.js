@@ -258,6 +258,10 @@ const Actions = {
     if (o.female === true) player.outfit.female = true;
     const addons = (o.addons | 0) & allowedAddons(player.level); // addons come with levels
     if (addons) player.outfit.addons = addons;
+    for (const kind of ['feather', 'cloak']) { // cosmetics you own (COSMETICS)
+      const id = o[kind];
+      if (typeof id === 'string' && Object.hasOwn(COSMETICS, id) && COSMETICS[id].kind === kind && (player.cosmetics || []).includes(id)) player.outfit[kind] = id;
+    }
     uiDirty();
   },
   // parties and guilds: see game-social.js

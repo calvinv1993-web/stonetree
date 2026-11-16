@@ -1103,6 +1103,101 @@ test('the watch\'s hunts: again and again after a gate\'s own task, paid in watc
   assert(state.countItem('health_potion') >= 5, 'for five potions');
 });
 
+test('rare named kin: now and then a beast comes back with a name, tougher, told to those near, and its trophy becomes gear at the smith', () => {
+  const game = loadGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const i = state.monsters.findIndex(m => m.type === 'wolf'), wolf = state.monsters[i];
+  assert(i >= 0 && !state.monsters.some(m => m.rare), 'a wolf, and no rare kin at the start');
+  // it comes back as Old Scarjaw (the roll forced), while the hunter waits nearby, out of sight of its spawn
+  ctx.teleport({ ...ctx.findFreeTile(wolf.spawn.x + 18, wolf.spawn.y, wolf.spawn.z, 3), z: wolf.spawn.z });
+  Object.assign(wolf, { dead: true, respawnAt: state.now - 1 });
+  const random = ctx.Math.random;
+  ctx.Math.random = () => 0.001;
+  try { ctx.updateMonster(wolf, i); } finally { ctx.Math.random = random; }
+  const rare = state.monsters[i];
+  assert(rare !== wolf && rare.rare && rare.name === 'Old Scarjaw' && rare.type === 'wolf', 'Old Scarjaw, still a wolf');
+  assert(rare.maxHp > state.MONSTERS.wolf.hp * 2 && rare.def.xp > state.MONSTERS.wolf.xp * 2, 'tougher, and worth more');
+  assert(messages.some(t => /Old Scarjaw/.test(t)), 'those near are told');
+  // without the roll, a wolf comes back a wolf
+  Object.assign(rare, { dead: true, respawnAt: state.now - 1 });
+  ctx.Math.random = () => 0.5;
+  try { ctx.updateMonster(rare, i); } finally { ctx.Math.random = random; }
+  assert(!state.monsters[i].rare, 'mostly a plain wolf');
+  // killed: its trophy, and it counts as a wolf for the quests and the bestiary
+  const scarjaw = ctx.maybeRare(state.monsters[i], true);
+  p.quests.task_west = { status: 'active', step: 0, kills: {} };
+  ctx.teleport({ ...ctx.findFreeTile(scarjaw.x, scarjaw.y, scarjaw.z, 2), z: scarjaw.z });
+  ctx.killMonster(scarjaw);
+  const corpse = state.piles.find(pl => pl.x === scarjaw.x && pl.y === scarjaw.y && pl.z === scarjaw.z);
+  assert(corpse && corpse.items.some(it => it.id === 'scarjaw_hide'), 'its hide in the corpse');
+  assert.strictEqual(p.bestiary.wolf, 1, 'one wolf in the bestiary');
+  assert.strictEqual(p.quests.task_west.kills.wolf, 1, 'a wolf for the hunt');
+  // Armourer Brenna makes a rare leather armor of the hide
+  ctx.giveItem('scarjaw_hide');
+  const n = state.npcs.find(c => c.npcId === 'oak_armourer');
+  ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100);
+  A.say('hi'); tick(game, 100); A.say('trophy'); tick(game, 100); A.say('bye'); tick(game, 100);
+  assert.strictEqual(state.countItem('scarjaw_hide'), 0, 'the hide is taken');
+  const made = state.bagItems().find(it => it.id === 'leather_armor');
+  assert(made && made.q === 2, 'for a rare leather armor');
+  assert(/trophy/.test(ctx.itemInfo('scarjaw_hide')), 'a trophy says what it becomes');
+});
+
+test('the bestiary: kills of each kind count, and at 25, 100 and 250 you hit that kind harder for good', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  for (let k = 0; k < 24; k++) ctx.bestiaryKill('rat');
+  assert.strictEqual(state.bestiaryTier('rat'), 0, 'no star before 25');
+  assert.strictEqual(state.withBestiary(10, 'rat'), 10, 'no bonus yet');
+  ctx.bestiaryKill('rat');
+  assert.strictEqual(state.bestiaryTier('rat'), 1, 'a star at 25');
+  assert(messages.some(t => /Bestiary: 25 rats/.test(t)), 'told so');
+  p.bestiary.rat = 250;
+  assert.strictEqual(state.bestiaryTier('rat'), 3, 'three stars at 250');
+  let sum = 0;
+  for (let k = 0; k < 400; k++) sum += state.withBestiary(10, 'rat');
+  assert(Math.abs(sum / 400 - 11) < 0.15, `about 10% more on average (${sum / 400})`);
+  assert.strictEqual(state.withBestiary(10, 'wolf'), 10, 'only against that kind');
+  // in a fight: a rat with no armor takes the bonus
+  const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 1, y: p.y, z: p.z });
+  rat.def = { ...rat.def, armor: 0 };
+  state.monsters.push(rat);
+  ctx.damageMonster(rat, 10, 'fire');
+  assert(rat.maxHp - rat.hp >= 11, `a 10 hits for 11 (${rat.maxHp - rat.hp})`);
+  // kept in the save; anything unknown in it dropped
+  const data = ctx.serializePlayer(p);
+  data.bestiary.nonsense = 5;
+  state.player = ctx.newPlayer('Again');
+  ctx.applySave(data);
+  assert.strictEqual(JSON.stringify(state.player.bestiary), JSON.stringify({ rat: 250 }), 'saved and loaded');
+});
+
+test('cosmetics: Captain Osric sells a feather and cloaks for watch marks, worn over any outfit, kept and only if owned', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const talk = (id, ...words) => { const n = state.npcs.find(c => c.npcId === id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100); A.say('hi'); tick(game, 100); const at = messages.length; for (const w of words) { A.say(w); tick(game, 100); } A.say('bye'); tick(game, 200); return messages.slice(at).join(' | '); };
+  A.setOutfit({ cloak: 'ember_cloak' });
+  assert(!p.outfit.cloak, 'not before you own it');
+  ctx.giveItem('watch_mark', 7);
+  assert(/feather|cloak/.test(talk('gate_north', 'marks')), 'Osric lists them');
+  talk('gate_north', 'ember');
+  assert.strictEqual(state.countItem('watch_mark'), 2, 'five marks spent');
+  assert(p.cosmetics.includes('ember_cloak') && p.outfit.cloak === 'ember_cloak', 'owned, and worn at once');
+  assert(/already/.test(talk('gate_north', 'ember')) && state.countItem('watch_mark') === 2, 'not sold twice');
+  assert(/costs 5/.test(talk('gate_north', 'gull')), 'not without the marks');
+  A.setOutfit({ body: '#123456' });
+  assert(!p.outfit.cloak, 'taken off');
+  A.setOutfit({ body: '#123456', cloak: 'ember_cloak', feather: 'ember_cloak' });
+  assert(p.outfit.cloak === 'ember_cloak' && !p.outfit.feather, 'put on again; a cloak is no feather');
+  const data = ctx.serializePlayer(p);
+  state.player = ctx.newPlayer('Again');
+  ctx.applySave(data);
+  assert(state.player.cosmetics.includes('ember_cloak') && state.player.outfit.cloak === 'ember_cloak', 'kept in the save');
+});
+
 test('training: hit a dummy as long as you like and your weapon skill grows; walking away stops it', () => {
   const game = quietGame();
   const { ctx, state } = game;

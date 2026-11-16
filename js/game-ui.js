@@ -971,7 +971,7 @@ function renderBattle() {
     const row = document.createElement('div');
     row.className = `battle-row${player.target === c ? ' target' : player.follow === c.id ? ' followed' : ''}${struck.has(c.id) ? ' struck' : ''}`;
     const img = new Image();
-    img.src = battleFace(c.type === 'player' ? Sprites.playerKey(c.vocation, c.outfit) : c.type);
+    img.src = battleFace(c.type === 'player' ? Sprites.playerKey(c.vocation, c.outfit) : creatureKey(c));
     const name = document.createElement('span');
     name.textContent = c.type === 'player' ? c.name : capitalize(c.name);
     const bar = document.createElement('div');
@@ -1109,6 +1109,27 @@ function renderQuests() {
     el.append(head, text);
     root.appendChild(el);
   }
+  root.append(bestiaryBox());
+}
+
+// The bestiary (game-combat.js): every kind you've slain, how many, and what knowing them is worth. Under the quests:
+// in the side panel's Quests tab, and on a phone in the drawer's Quests page.
+function bestiaryBox() {
+  const kills = player.bestiary || {}, kinds = Object.keys(kills).filter(t => MONSTERS[t]).sort((a, b) => kills[b] - kills[a]);
+  const box = h('div', { className: 'story bestiary', id: 'bestiary' }, h('b', {}, `Bestiary${kinds.length ? ` · ${kinds.length} kind${kinds.length === 1 ? '' : 's'}` : ''}`));
+  if (!kinds.length) box.append(h('div', { className: 'small muted' }, `Every monster you slay is counted here. At ${BESTIARY_TIERS.map(([n]) => n).join(', ')} of a kind you know them better: more damage against them, for good.`));
+  for (const type of kinds) {
+    const n = kills[type], tier = bestiaryTier(type), next = BESTIARY_TIERS[tier];
+    const face = h('img', { className: 'bestiary-face', alt: '' });
+    face.src = battleFace(type);
+    const stars = h('span', { className: 'bestiary-stars' }, '★'.repeat(tier) + '☆'.repeat(BESTIARY_TIERS.length - tier));
+    const about = tier ? `+${Math.round(bestiaryBonus(type) * 100)}% damage` : 'no bonus yet';
+    const line = h('div', { className: 'bestiary-row small' }, face, h('span', { className: 'bestiary-name' }, capitalize(kindName(type))), stars,
+      h('span', { className: 'muted' }, `${n} slain · ${about}${next ? ` · ${next[0] - n} to ${tier ? 'the next' : 'the first'} star` : ''}`));
+    line.title = BESTIARY_TIERS.map(([at, b], i) => `${'★'.repeat(i + 1)} ${at} slain: +${Math.round(b * 100)}% damage`).join('\n');
+    box.append(line);
+  }
+  return box;
 }
 
 // ---- spell bar ---------------------------------------------------------------------------
@@ -1334,6 +1355,23 @@ function renderOutfit() {
     addons.appendChild(label);
   });
   root.appendChild(addons);
+  // cosmetics you've bought from the watch's stores (Captain Osric, for watch marks): one feather and one cloak at a time
+  const owned = (player.cosmetics || []).filter(id => COSMETICS[id]);
+  if (owned.length) {
+    const row = el('div', 'outfit-cosmetics');
+    for (const kind of ['feather', 'cloak']) {
+      const mine = owned.filter(id => COSMETICS[id].kind === kind);
+      if (!mine.length) continue;
+      const pick = el('select');
+      pick.append(new Option(`no ${kind}`, ''), ...mine.map(id => new Option(capitalize(COSMETICS[id].name), id)));
+      pick.value = outfitDraft[kind] || '';
+      pick.onchange = () => { outfitDraft[kind] = pick.value || undefined; drawOutfitPreview(); };
+      const label = el('label', '', `${capitalize(kind)}: `);
+      label.appendChild(pick);
+      row.appendChild(label);
+    }
+    root.appendChild(row);
+  }
   // which part to colour, and the palette
   const parts = el('div', 'tabs outfit-parts');
   for (const [part, label] of OUTFIT_PARTS) {

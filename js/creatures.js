@@ -393,6 +393,40 @@ const MONSTERS = {
   },
 };
 
+// Rare named kin: now and then (RARE_CHANCE of the times one comes back) a common beast of the isle returns as one with
+// a name, a bit tougher than the rest, and those near are told. It is still its kind (quests and the bestiary count it
+// as one), but it drops its trophy, which a smith of Oakvale turns into better gear (trophy in items.js).
+//   name, trophy (an item), say: what those nearby hear when it turns up.
+// Its numbers: RARE_HP times the health, RARE_DMG times the damage, RARE_XP times the experience, a little more defense
+// and armor, more gold and a potion or two; its look is its kind's, tinted and marked (sprites.js: 'rare:<type>').
+const RARE_CHANCE = 0.02;
+const RARE_HP = 2.5, RARE_DMG = 1.25, RARE_XP = 3;
+const RARE_KIN = {
+  rat:      { name: 'Whiskerjack', trophy: 'whiskerjack_tail', say: 'A squeak like a rusty hinge: Whiskerjack, the white rat with the notched ear, is about.' },
+  wolf:     { name: 'Old Scarjaw', trophy: 'scarjaw_hide', say: 'A long howl, lower than the others: Old Scarjaw, the scarred black wolf, hunts nearby.' },
+  crab:     { name: 'Ironclaw', trophy: 'ironclaw_plate', say: 'Clack, clack: Ironclaw, the crab with the blue-steel shell, has come up the shore.' },
+  spider:   { name: 'Silkwidow', trophy: 'silkwidow_spinneret', say: 'Fresh webs, thick as rope: Silkwidow, the red-marked spider, is spinning nearby.' },
+  goblin:   { name: 'Grubnose the Sly', trophy: 'grubnose_whetstone', say: 'Someone is sharpening a blade, and giggling: Grubnose the Sly, the goblin in the red cap, is near.' },
+  skeleton: { name: 'Sir Clatterbones', trophy: 'clatter_helm', say: 'A rattle of old bones and a dented helm: Sir Clatterbones walks again nearby.' },
+  slime:    { name: 'Glimmerglob', trophy: 'glimmer_core', say: 'Something glitters in the muck: Glimmerglob, the golden slime, oozes nearby.' },
+  bear:     { name: 'Mossback', trophy: 'mossback_claw', say: 'Trees shake, and the birds go quiet: Mossback, the old bear with moss on his back, is close.' },
+};
+// The monster definition of a kind's rare kin, made once (so it is the same object every time).
+const rareDefs = {};
+function rareDef(type) {
+  const kin = Object.hasOwn(RARE_KIN, type) && RARE_KIN[type], base = kin && MONSTERS[type];
+  if (!base) return null;
+  if (rareDefs[type] && rareDefs[type].base === base) return rareDefs[type].def;
+  const loot = base.loot || {}, gold = loot.gold || [0, 0];
+  const def = {
+    ...base, name: kin.name, proper: true, rare: true, hp: Math.round(base.hp * RARE_HP), xp: Math.round(base.xp * RARE_XP),
+    dmg: base.dmg.map(d => Math.round(d * RARE_DMG)), defense: (base.defense || 0) + 2, armor: (base.armor || 0) + 1, flee: 0,
+    loot: { gold: [gold[0] + 10, gold[1] * 3 + 15], items: [...(loot.items || []), [kin.trophy, 1], ['health_potion', 0.6, 1, 2]] },
+  };
+  rareDefs[type] = { base, def };
+  return def;
+}
+
 // Damage-over-time ticks every `interval` ms; poison weakens by one each tick.
 const CONDITIONS = {
   poison: { name: 'poisoned', icon: '☠', element: 'poison', interval: 2000, decay: true },

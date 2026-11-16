@@ -485,6 +485,15 @@ const ADDON_LEVELS = [20, 40];
 const VOCATION_OUTFIT = { none: 'citizen', knight: 'knight', paladin: 'hunter', sorcerer: 'mage', druid: 'druid' };
 // The addons (bit 1: first, bit 2: second) a character of this level may wear.
 const allowedAddons = level => (level >= ADDON_LEVELS[0] ? 1 : 0) | (level >= ADDON_LEVELS[1] ? 2 : 0);
+// Cosmetics: bought with watch marks at Captain Osric's (the north gate), worn over any outfit, and seen by everyone.
+//   name; kind: the outfit's part it goes in (outfit.feather or outfit.cloak: one of each at a time); color.
+const COSMETICS = {
+  gull_feather: { name: 'gull feather', kind: 'feather', color: '#f4f0e8' },
+  jay_feather: { name: 'jay feather', kind: 'feather', color: '#3a7ad8' },
+  watch_cloak: { name: 'watch cloak', kind: 'cloak', color: '#2e4a7e' },
+  ember_cloak: { name: 'ember cloak', kind: 'cloak', color: '#a0302a' },
+  moss_cloak: { name: 'moss cloak', kind: 'cloak', color: '#3e6a34' },
+};
 
 // Map marks, as in Tibia: one of these icons, with a description of your own, on any spot of the map.
 const MAX_MARKS = 200;

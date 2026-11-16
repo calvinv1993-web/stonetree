@@ -104,6 +104,9 @@ function startServer() {
     // (a character saved by an older server, its password still an unsalted SHA-256)
     const saved = JSON.parse(fs.readFileSync(SAVES, 'utf8')), old = `old${tag}`;
     saved[old] = { password: require('crypto').createHash('sha256').update(`${old}:pw`).digest('hex'), save: null };
+    // (and Bob has bought a moss-green cloak from Captain Osric meanwhile, and wears it)
+    Object.assign(saved[`bob${tag}`].save, { cosmetics: ['moss_cloak'] });
+    saved[`bob${tag}`].save.outfit = { ...saved[`bob${tag}`].save.outfit, cloak: 'moss_cloak' };
     fs.writeFileSync(SAVES, JSON.stringify(saved));
     server = startServer();
     await server.ready;
@@ -118,6 +121,14 @@ function startServer() {
     const oldOne = client(`Old${tag}`, { password: 'pw' });
     await waitFor(() => oldOne.welcome || oldOne.error);
     assert(oldOne.welcome, `an old password still logs in (${oldOne.error || 'no answer'})`);
+    // Cosmetics: Bob's page knows what he owns, and others see him wear it; one he doesn't own can't be put on
+    await sleep(300);
+    assert(JSON.stringify(afterRestart.you.cosmetics) === JSON.stringify(['moss_cloak']) && afterRestart.you.bestiary, 'his cosmetics and bestiary reach his page');
+    const bobSeen = () => oldOne.state.players.find(p => p.name === `Bob${tag}`);
+    assert(bobSeen() && bobSeen().outfit.cloak === 'moss_cloak', 'others see his cloak');
+    afterRestart.act('setOutfit', { cloak: 'ember_cloak', feather: 'gull_feather' });
+    await sleep(300);
+    assert(!bobSeen().outfit.cloak && !bobSeen().outfit.feather, 'what he does not own is not worn');
     // A page sends junk: hotkeys keep only what's real; a flood of chat is cut down; the server carries on.
     afterRestart.act('setHotkeys', { F1: { type: 'spell', id: 'light' }, F2: { type: 'spell', id: 'constructor' }, F13: { type: 'say', text: 'x' }, F3: 'gold' });
     for (let i = 0; i < 300; i++) afterRestart.act('say', `spam ${i}`);

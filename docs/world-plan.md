@@ -176,6 +176,31 @@ About 20 new NPCs:
 About 12 quests, with an original story. The monsters come from the existing list, and the
 levelling pace stays as it is.
 
+### Phase 7: discovery quests: the comeback hooks
+
+Things that bring a player back to the hunting grounds once the gate tasks are done:
+- **Rare named kin** (`RARE_KIN` in `creatures.js`): 2% of the times a rat, wolf, crab, spider, goblin, skeleton, slime or
+  bear of the isle comes back (never at the world's start), it comes back as its named kin: 2.5x the health, 1.25x the
+  damage, 3x the experience, +2 defense, +1 armor, more gold, potions, and always its trophy. Players within 24 tiles are
+  told. It still counts as its kind (quests, the bestiary). Looks: `rare:<type>` in `sprites.js` (tint, a size bigger, a
+  mark; Grubnose and Sir Clatterbones have looks of their own in `MONSTER_LOOKS`).
+
+  | Kind | Name | Trophy | Smith | Makes |
+  |---|---|---|---|---|
+  | rat | Whiskerjack | tail of Whiskerjack | Brenna | rare leather boots (armor 2) |
+  | wolf | Old Scarjaw | hide of Old Scarjaw | Brenna | rare leather armor (armor 4) |
+  | crab | Ironclaw | shell plate of Ironclaw | Brenna | rare wooden shield (defense 15) |
+  | spider | Silkwidow | spinneret of Silkwidow | Brenna | rare leather legs (armor 2) |
+  | goblin | Grubnose the Sly | whetstone of Grubnose | Dunstan | rare short sword (attack 14) |
+  | skeleton | Sir Clatterbones | dented helm of Sir Clatterbones | Brenna | fine chain helmet (armor 4) |
+  | slime | Glimmerglob | glimmering core | Dunstan | rare spiked club (attack 14) |
+  | bear | Mossback | claw of Mossback | Brenna | fine chain legs (armor 4) |
+- **The bestiary** (`bestiary` on the player; `BESTIARY_TIERS` in `game-combat.js`): kills per kind; at 25/100/250, +3/6/10%
+  damage against that kind, announced. Shown under the quests (desktop Quests tab, the phone drawer's Quests page).
+- **Cosmetics** (`COSMETICS` in `defs.js`, `cosmetics` on the player, worn as `outfit.feather` / `outfit.cloak`): 5 watch
+  marks each at Captain Osric's: gull feather, jay feather, watch, ember and moss cloaks. Drawn over the player sheet
+  (`sheetCosmetics` in `sprites.js`); others see them through the outfit in their snapshot.
+
 ## 5. Open questions
 
 1. **Leaving the island:** at level 10, after choosing a vocation, players go to the mainland and can never come back (the game already works this way). The old mainland (Valoria and the rest) is no longer in the built-in world: bringing it back from the backup branch, beside this island, is proposed.

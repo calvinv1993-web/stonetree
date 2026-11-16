@@ -4213,6 +4213,65 @@ const Sprites = (() => {
       poly(g, '#3a8a4a', [16, 16, 21, 21, 16, 28, 11, 21]);
       rect(g, '#8fd09a', 14, 19, 2, 3);
     },
+    // the trophies of the rare named beasts (RARE_KIN)
+    whiskerjack_tail(g) {
+      g.lineCap = 'round';
+      line(g, '#3a2a2a', 3.4, 7, 24, 12, 16, 19, 15, 24, 9, 26, 5);
+      line(g, '#f0d8d0', 2.2, 7, 24, 12, 16, 19, 15, 24, 9, 26, 5);
+      line(g, '#fff6f0', 0.8, 8, 22, 12, 15.5, 18, 14.5);
+      ellipse(g, '#e8e2dc', 7, 24, 3, 2.5); // the white fur where it was
+      g.lineCap = 'butt';
+    },
+    scarjaw_hide(g) {
+      shadow(g, 16, 26, 12, 3);
+      poly(g, '#1e1c1c', [5, 10, 12, 6, 20, 7, 27, 11, 28, 20, 24, 27, 16, 25, 8, 27, 4, 20]);
+      poly(g, '#3a3636', [6, 11, 12, 7, 20, 8, 26, 12, 27, 19, 23, 25, 16, 23, 9, 25, 5, 19]);
+      poly(g, '#4e4848', [10, 11, 16, 9, 22, 12, 21, 19, 12, 20]);
+      line(g, '#e8b0a0', 1.2, 12, 12, 19, 19); line(g, '#e8b0a0', 1, 15, 11, 21, 17); // the scars
+    },
+    ironclaw_plate(g) {
+      shadow(g, 16, 26, 11, 3);
+      ellipse(g, '#1e2a3a', 16, 18, 11, 8);
+      ellipse(g, '#5a7a9a', 16, 18, 10, 7);
+      ellipse(g, '#8aa8c8', 14, 16, 6, 3.5);
+      for (const x of [10, 16, 22]) line(g, '#3a5470', 1, x, 13, x + 1, 23);
+      ellipse(g, '#e6f0ff', 12, 15, 2, 1);
+    },
+    silkwidow_spinneret(g) {
+      shadow(g, 16, 26, 9, 3);
+      for (let i = 0; i < 6; i++) line(g, '#d8d8e8', 0.8, 16, 18, 16 + Math.cos(i) * 12, 18 + Math.sin(i) * 9); // a few threads
+      ellipse(g, '#141018', 16, 18, 6.5, 6);
+      ellipse(g, '#2a2430', 15, 16.5, 4.5, 3.5);
+      poly(g, '#d02020', [16, 14, 18, 17.5, 16, 21, 14, 17.5]);
+    },
+    grubnose_whetstone(g) {
+      shadow(g, 16, 25, 11, 3);
+      poly(g, '#2a2620', [5, 17, 9, 12, 27, 13, 27, 19, 23, 24, 5, 23]);
+      poly(g, '#7a766c', [6, 17, 10, 13, 26, 14, 26, 18, 22, 22, 6, 22]);
+      poly(g, '#9a968a', [10, 13.5, 26, 14.5, 22, 17, 7, 17]);
+      line(g, '#c8c4b8', 1, 11, 15, 22, 15.5);
+      rect(g, '#b02a22', 4, 15, 3, 7); // its red rag
+    },
+    clatter_helm(g) {
+      helmet(g, '#7a7466', 'chain');
+      line(g, '#3a3428', 1.4, 10, 11, 14, 15); // the dent
+      ellipse(g, '#5a5446', 12, 13, 2, 1.2);
+    },
+    glimmer_core(g) {
+      shadow(g, 16, 26, 8, 3);
+      ellipse(g, '#6a4a10', 16, 18, 7.5, 7.5);
+      ellipse(g, '#e0a828', 16, 18, 6.5, 6.5);
+      ellipse(g, '#ffe070', 14.5, 16, 3.5, 3);
+      rect(g, '#fffbe0', 13, 14, 2, 2);
+      rect(g, '#fffbe0', 20, 20, 1, 1);
+    },
+    mossback_claw(g) {
+      shadow(g, 16, 26, 10, 3);
+      ellipse(g, '#4a2e18', 16, 21, 8, 5);
+      ellipse(g, '#4f7a2e', 14, 19, 4, 2); // moss in its fur
+      for (const x of [10, 14, 18, 22]) poly(g, '#efe6d0', [x - 1.5, 18, x + 1.5, 18, x + 0.5, 7, x - 0.5, 8]);
+      for (const x of [10, 14, 18, 22]) line(g, '#b8ac90', 0.8, x + 0.8, 17, x + 0.4, 9);
+    },
     orc_tooth(g) {
       poly(g, '#f0ead0', [10, 6, 22, 6, 20, 16, 16, 28, 12, 16]);
       rect(g, '#c8b890', 10, 6, 12, 2);
@@ -4413,6 +4472,10 @@ const Sprites = (() => {
       skin: '#f0c090', hair: head, hairStyle: female ? 'long' : 'short', female,
       body: primary, arms: primary, legs: secondary, feet: detail, belt: shade(detail, 0.75),
     };
+    // cosmetics from the watch's stores (COSMETICS in defs.js): drawn over the sheet's figure (sheetCosmetics), or as a cape
+    const cosmetic = (id, kind) => (id && typeof COSMETICS !== 'undefined' && Object.hasOwn(COSMETICS, id) && COSMETICS[id].kind === kind ? COSMETICS[id].color : null);
+    look.feather = cosmetic(o.feather, 'feather');
+    look.cloak = cosmetic(o.cloak, 'cloak');
     if (type === 'citizen') {
       Object.assign(look, { collar: shade(primary, 1.35), skirt: female ? secondary : null, legs: female ? shade(secondary, 0.55) : secondary });
       if (a1) look.hat = { style: 'feather', color: shade(primary, 0.7), accent: '#f4f0e8' };
@@ -4446,9 +4509,13 @@ const Sprites = (() => {
       look.hat = a1 ? { style: 'tricorn', color: '#2a2422', accent: GOLD } : { style: 'bandana', color: detail };
       if (a2) look.held = 'sabre';
     }
+    if (look.cloak) look.cape = look.cloak;
     return look;
   }
   const MONSTER_LOOKS = {
+    // rare named kin (RARE_KIN in creatures.js) who walk upright: their kind's look, with something of their own
+    'rare:goblin': { scale: 0.9, skin: '#4e8a2c', hair: '#4e8a2c', eye: '#ff4020', body: '#3a2a4a', belt: '#d0a030', legs: '#2a2a1a', arms: '#4e8a2c', hat: { style: 'hood', color: '#b02a22' }, held: 'sword' }, // Grubnose the Sly
+    'rare:skeleton': { scale: 1.1, skin: '#d8cc9a', hair: '#d8cc9a', eye: '#e04020', body: '#c8bc8a', belt: '#6a5a3a', legs: '#c2b684', arms: '#c2b684', ribs: '#7a6e4c', hat: { style: 'helmet', color: '#7a7466' }, held: 'sword', shield: '#5a4630' }, // Sir Clatterbones
     skeleton: { skin: '#e6e2d3', hair: '#e6e2d3', eye: '#111', body: '#d6d1c0', belt: '#8a8574', legs: '#d0cbb9', arms: '#d0cbb9', ribs: '#8a8574' },
     gnash: { scale: 0.95, skin: '#5a8a34', hair: '#2a1a0a', eye: '#ff4020', body: '#6a2a1a', belt: '#d0a030', legs: '#3a2a1a', arms: '#5a8a34', hat: { style: 'helmet', color: '#8a8070' }, held: 'axe' }, // Chief Gnash
     goblin: { scale: 0.8, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a2a', arms: '#6aa040', held: 'axe' },
@@ -5386,8 +5453,8 @@ const Sprites = (() => {
   function lookFor(key) {
     if (key.startsWith('player:')) {
       const [, voc, colors = ''] = key.split(':');
-      const [hair, body, legs, feet, type, female, addons] = colors.split('|');
-      return playerLook(voc, colors ? { hair, body, legs, feet, type, female: female === '1', addons: +addons || 0 } : {});
+      const [hair, body, legs, feet, type, female, addons, feather, cloak] = colors.split('|');
+      return playerLook(voc, colors ? { hair, body, legs, feet, type, female: female === '1', addons: +addons || 0, feather, cloak } : {});
     }
     if (key.startsWith('npc:')) return NPCS[key.slice(4)].look;
     return MONSTER_LOOKS[key] || null;
@@ -6262,12 +6329,59 @@ const Sprites = (() => {
         }
         cg.putImageData(out, 0, 0);
       } else cg.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * S, CH * S);
+      if (look.feather || look.cloak) sheetCosmetics(cell, look, dir, S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
       else g.drawImage(cell, ox, oy, CW * R, CH * R);
     }, 2 * TILE * R);
+  }
+
+  // Cosmetics over a sheet's figure (a cell, S pixels a world pixel; the side row faces east): a cloak behind it (from the
+  // back, over it, its edges beside it from the front), and a feather tucked in the hair on its right.
+  function sheetCosmetics(cell, look, dir, S) {
+    const fig = document.createElement('canvas'); fig.width = cell.width; fig.height = cell.height;
+    const g = fig.getContext('2d'), front = dir === 2, back = dir === 0, side = !front && !back;
+    g.scale(S, S);
+    const outline = 'rgba(26,18,14,0.9)';
+    const cloak = (pts, over) => {
+      if (!look.cloak) return;
+      const c = look.cloak;
+      poly(g, outline, pts.map((v, i) => v + (i % 2 ? 0.5 : 0)));
+      poly(g, over ? c : shade(c, 0.7), pts);
+      if (over) { // folds, lit from the top left
+        line(g, shade(c, 0.72), 1, 12, 28, 11, 42); line(g, shade(c, 0.72), 1, 20, 28, 21, 42);
+        line(g, shade(c, 1.25), 1, 9.5, 27, 8, 41);
+      }
+    };
+    const feather = (x0, y0, x1, y1) => { // from where it's tucked in (x0, y0) to its tip
+      if (!look.feather) return;
+      const c = look.feather, a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
+      g.save(); g.translate(x0, y0); g.rotate(a);
+      g.fillStyle = outline; g.beginPath(); g.ellipse(len * 0.58, 0, len * 0.5 + 0.7, 2.3, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = shade(c, 0.78); g.beginPath(); g.ellipse(len * 0.58, 0, len * 0.5, 1.7, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = c; g.beginPath(); g.ellipse(len * 0.58, -0.5, len * 0.46, 1.1, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = shade(c, 0.6); for (const t of [0.45, 0.65]) g.fillRect(len * t, 0.6, 0.8, 1.1); // (notches in its edge)
+      line(g, shade(c, 1.3), 0.6, 0, 0, len, 0); // the quill
+      g.restore();
+    };
+    // behind the figure
+    if (front) cloak([9, 25, 23, 25, 26.5, 42.5, 5.5, 42.5], false);
+    if (side) { cloak([10.5, 25, 15, 25, 14.5, 42.5, 4.5, 43], false); feather(10, 15, 4.5, 5); }
+    g.drawImage(cell, 0, 0, cell.width / S, cell.height / S);
+    // over it
+    if (back) cloak([8.5, 25.5, 23.5, 25.5, 26, 43, 6, 43], true);
+    if (front && look.cloak) { // over the shoulders, and its clasp
+      for (const x of [7.5, 21.5]) { rect(g, outline, x - 0.5, 24.5, 4, 3); rect(g, look.cloak, x, 25, 3, 2); }
+      rect(g, outline, 14.5, 25, 3, 2.5); rect(g, '#e0b840', 15, 25.5, 2, 1.5);
+    }
+    if (side && look.cloak) { rect(g, outline, 10.5, 24.5, 5, 3); rect(g, look.cloak, 11, 25, 4, 2); } // (over the shoulder)
+    if (front) feather(11, 16, 5, 5.5);
+    if (back) feather(21, 15, 26.5, 5);
+    const cg = cell.getContext('2d');
+    cg.clearRect(0, 0, cell.width, cell.height);
+    cg.drawImage(fig, 0, 0);
   }
 
   // A person as a doll, from the same look as humanoid(): skin, hair (hairStyle), eye, body, arms, legs, feet, belt;
@@ -6588,8 +6702,36 @@ const Sprites = (() => {
       dollParts(g, dir, parts);
     });
   }
+  // Rare named kin who go on four legs (or eight, or none): their kind, a size bigger, in a colour of their own, with a mark.
+  // (Drawn in the kind's own frame: feet at about (16, 27).)
+  const RARE_BEASTS = {
+    rat: { filter: 'grayscale(1) brightness(1.75) contrast(0.95)', mark() {} }, // Whiskerjack: white as chalk
+    wolf: { filter: 'grayscale(0.9) brightness(0.5) contrast(1.35)', mark(g, d) { // Old Scarjaw: black, scars on his flank (on his face, from the front)
+      const scar = (x0, y0, x1, y1) => line(g, '#e8b0a0', 1.1, d === 3 ? 32 - x0 : x0, y0, d === 3 ? 32 - x1 : x1, y1);
+      if (d === 2) { scar(13, 13, 16, 17); scar(15, 13, 18, 16); } else if (d !== 0) { scar(11, 15, 15, 19); scar(13, 14, 17, 18); }
+    } },
+    crab: { filter: 'hue-rotate(195deg) saturate(0.75) brightness(0.95)', mark(g) { ellipse(g, 'rgba(230,240,255,0.7)', 14, 20.5, 3, 1.1); } }, // Ironclaw: blue steel
+    spider: { filter: 'brightness(0.4) contrast(1.2)', mark(g, d) { if (d !== 2) poly(g, '#e02020', [16, 20.5, 18, 23.5, 16, 26.5, 14, 23.5]); } }, // Silkwidow: black, a red mark
+    slime: { filter: 'hue-rotate(-65deg) saturate(1.9) brightness(1.2)', mark(g, d, f) { const k = f === 1 ? 1 : 0; rect(g, '#fffbe0', 11 + k, 20, 1.5, 1.5); rect(g, '#fffbe0', 19 - k, 23, 1, 1); } }, // Glimmerglob: gold
+    bear: { filter: 'hue-rotate(-12deg) saturate(0.8) brightness(0.8)', mark(g) { for (const [x, y, r] of [[12, 14, 2.6], [16, 12.5, 3], [20, 14, 2.4]]) ellipse(g, '#4f7a2e', x, y, r, r * 0.7); ellipse(g, '#7aa04a', 15, 12, 1.6, 1); } }, // Mossback
+  };
+  function rareDrawer(type) {
+    const base = creatureDrawer(type), r = RARE_BEASTS[type];
+    if (!base || !r) return base;
+    return (g, d, f) => { // (a size bigger round its feet: facing east, a step back, for the picture has no room to its right)
+      g.translate(d === 1 ? 13.5 : 16, 27);
+      g.scale(1.15, 1.15);
+      g.translate(-16, -27);
+      g.save();
+      g.filter = r.filter;
+      base(g, d, f);
+      g.restore(); // (whatever the kind's drawer did to the frame: the mark goes in ours)
+      r.mark(g, d, f);
+    };
+  }
   function creatureDrawer(key) {
     const look = lookFor(key);
+    if (!look && key.startsWith('rare:')) return rareDrawer(key.slice(5));
     if (look) return (g, d, f) => (Sprites.PEOPLE === 'tilt' && tiltable(look) ? tiltPerson(g, look, d, f) : Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
       rat, slime, spider, wolf, ghost, crab, cat, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
@@ -7111,7 +7253,7 @@ const Sprites = (() => {
     },
     playerKey(vocation, outfit = {}) {
       const o = withDefaults(outfit);
-      return `player:${vocation}:${o.hair}|${o.body}|${o.legs}|${o.feet}|${o.type}|${o.female ? 1 : 0}|${o.addons | 0}`;
+      return `player:${vocation}:${o.hair}|${o.body}|${o.legs}|${o.feet}|${o.type}|${o.female ? 1 : 0}|${o.addons | 0}|${o.feather || ''}|${o.cloak || ''}`;
     },
     // key: monster type, 'npc:<id>' or a playerKey(). Big monsters are 64x64.
     CREATURE_RES: 2,
@@ -7159,7 +7301,7 @@ const Sprites = (() => {
       // as the screen shows it, not a small picture blown up; whatever draws one draws it at its world size (resOf).
       if (key.startsWith('player:') && Sprites.PLAYER_SHEET && customImage('player_sheet')) return playerFromSheet(key, dir, frame);
       if (key.startsWith('npc:') && customImage(`sheet_${key.slice(4)}`)) return npcFromSheet(key.slice(4), dir, frame);
-      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
+      const look = lookFor(key), big = (look && look.scale > 1) || BIG_BEASTS.includes(key) || key.startsWith('rare:') || (Sprites.PEOPLE === 'hd' && hdable(look)) || (Sprites.PEOPLE === 'art' && artable(look)) || (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)), R = (Sprites.PEOPLE === 'lean' && leanable(look)) || (Sprites.PEOPLE === 'tilt' && tiltable(look)) ? 1 : Sprites.CREATURE_RES; // (lean people: a pixel per world pixel)
       return cached(`c:${key}:${dir}:${frame}${Sprites.DOLLS ? ':doll' : ''}:${R}:${Sprites.BUILD}:${Sprites.PEOPLE}:${Sprites.TILT}`, g => {
         g.canvas.res = R;
         g.scale(R, R);
