@@ -254,6 +254,7 @@ const SPRITE_HASHES = {
   "monster-goblin_hoardkeeper.png":"694f4fe9b7",
   "monster-gravewaker.png":"44eb96b1c2",
   "monster-greyfang.png":"18f4fc6111",
+  "monster-king_mogg.png":"d23d6ffe5c",
   "monster-old_snapper.png":"07e8737fb9",
   "monster-rat.png":"0cca38ca5a",
   "monster-shade.png":"7c87940ae4",
