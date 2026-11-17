@@ -4703,6 +4703,7 @@ const Sprites = (() => {
       poly(g, '#4a4a56', [12, 10, 21, 7, 23, 13, 15, 16]);
       line(g, '#9a9aa8', 1, 13, 11, 20, 8);
     },
+    watch_mail: g => { armor(g, '#8a8a92', 'chain'); rect(g, '#6a2a2a', 13, 7, 6, 3); rect(g, '#d0a040', 15, 8, 2, 1); }, // the watch's chain mail, a red collar with a brass clasp
     keeper_coat: g => { armor(g, '#3a4a5a', 'leather'); rect(g, '#c8a040', 15, 8, 2, 2); rect(g, '#c8a040', 15, 14, 2, 2); }, // oiled wool and leather, brass buttons
     eagle_feather(g) {
       line(g, '#5a5048', 1.5, 8, 27, 24, 5);

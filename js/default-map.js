@@ -609,7 +609,7 @@ const SEA_CAVES = {
       tunnels: [[133, 215, 140, 215]],
       pools: [[147, 218, 1.8, 1.2]],
       props: [[145, 213, 'qchest_smuggler_shield'], [143, 213, 'barrel'], [147, 214, 'crate'], [141, 218, 'bones'], [144, 219, 'driftwood'], [130, 216, 'bones']],
-      monsters: [['saltjaw', 144, 216], ['crab', 141, 215], ['shade', 146, 218]],
+      monsters: [['saltjaw', 144, 216], ['crab', 141, 215], ['shade', 142, 218]],
     },
   },
 };
