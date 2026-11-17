@@ -1700,7 +1700,7 @@ Object.assign(QUESTS, {
     reward: { xp: 300, gold: 60, items: [['health_potion', 3]] },
     summary: 'Go down into the founders\' crypt under Bone Rocks and find out who broke in.',
     steps: [
-      { auto: true, kill: { skeleton: 6 }, summary: 'Go down into the founders\' crypt under Bone Rocks (south-west, at the end of the bone trail) and clear the hall of coffins: kill 6 skeletons.',
+      { auto: true, kill: { skeleton: 4 }, summary: 'Go down into the founders\' crypt under Bone Rocks (south-west, at the end of the bone trail) and clear the hall of coffins: kill 4 skeletons.',
         progress: 'The crypt lies under Bone Rocks, south-west of town: steps lead down at the foot of the crag. So far: $progress.',
         done: 'The hall of coffins falls quiet. By its north wall stand three stone chests - the founders\' arms, one for each who dares - and by the iron gate to the tomb stairs lies a torn scrap of paper.' },
       { npc: 'corwin', fetch: 'torn_note', word: 'note', summary: 'Take one weapon from the stone chests in the hall of coffins, pick up the torn note by the iron gate, and bring the note to Master Corwin.',

@@ -239,6 +239,8 @@ function damageMonster(m, dmg, element) {
   dmg = withBestiary(dmg, m.type); // (you know the kind well: you hit it a little harder)
   m.angryAt = player.id;
   m.angryUntil = now + 15000; // whatever hits a monster gets hunted, even from afar
+  // a band that fights as one (the Ashen Choir: spawn.band): hit one and the rest of it near by come for you too
+  if (m.spawn && m.spawn.band) for (const o of monsters) if (o !== m && !o.dead && o.z === m.z && o.spawn && o.spawn.band === m.spawn.band && dist(o, m) <= 8) Object.assign(o, { angryAt: player.id, angryUntil: now + 15000 });
   player.foughtAt = now; // for the party's shared experience
   if (dmg <= 0) { // blocked: a blue puff where its defense stopped it, a grey spark where its armor did
     addBurst(m.x, m.y, m.z, before > 0 ? '#b8b8b8' : '#9cf');

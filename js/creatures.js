@@ -20,7 +20,7 @@ const MONSTERS = {
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
   giant_rat: { // the big rats of the Oakvale sewers
-    name: 'giant rat', hp: 50, xp: 15, dmg: [0, 16], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
+    name: 'giant rat', hp: 34, xp: 18, dmg: [0, 11], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
   gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks:
@@ -29,7 +29,7 @@ const MONSTERS = {
     respawn: 300000, weak: { holy: 1.3 }, echo: 'gravewaker_echo',
     ranged: { range: 4, dmg: [8, 18], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
-    summon: { type: 'skeleton', max: 2, chance: 0.12 },
+    summon: { type: 'skeleton', max: 1, chance: 0.1 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
     // (Sir Galen of Oakvale, under the Ashen Choir's hood: The Silent Bell IV)
     voices: {
@@ -44,13 +44,13 @@ const MONSTERS = {
     loot: { gold: [0, 3], items: [['spider_silk', 0.3]] },
   },
   wolf: {
-    name: 'wolf', plural: 'wolves', hp: 25, xp: 18, dmg: [0, 12], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
+    name: 'wolf', plural: 'wolves', hp: 25, xp: 13, dmg: [0, 12], defense: 2, armor: 1, speed: 250, attackSpeed: 1800, aggro: 6, corpse: 'blood', flee: 0.15,
     loot: { gold: [0, 3], items: [['meat', 0.5, 1, 2], ['wolf_pelt', 0.25]] },
   },
   cistern_slime: { // the great slime that keeps the way to the bottom of the bell shaft, under Oakvale
     name: 'cistern slime', hp: 320, xp: 150, dmg: [5, 28], defense: 1, armor: 2, speed: 130, attackSpeed: 1700, aggro: 4, corpse: 'slime',
     respawn: 180000, immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.3, power: 3 },
-    summon: { type: 'slime', max: 3, chance: 0.12 },
+    summon: { type: 'slime', max: 2, chance: 0.1 },
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
   },
   slime: {
@@ -59,7 +59,7 @@ const MONSTERS = {
     loot: { gold: [0, 8] },
   },
   skeleton: {
-    name: 'skeleton', hp: 50, xp: 35, dmg: [0, 20], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
+    name: 'skeleton', hp: 50, xp: 48, dmg: [0, 15], defense: 4, armor: 3, speed: 180, attackSpeed: 1600, aggro: 6, corpse: 'bones',
     weak: { holy: 1.5, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
     loot: { gold: [0, 10], items: [['bone', 0.5], ['dagger', 0.06], ['short_sword', 0.03], ['leather_legs', 0.05]] },
   },
@@ -70,7 +70,7 @@ const MONSTERS = {
     loot: { gold: [5, 30], items: [['book_lore', 0.05], ['ring_life', 0.02]] },
   },
   goblin: {
-    name: 'goblin', hp: 50, xp: 30, dmg: [0, 18], defense: 3, armor: 2, speed: 220, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
+    name: 'goblin', hp: 50, xp: 45, dmg: [0, 18], defense: 3, armor: 2, speed: 220, attackSpeed: 1500, aggro: 6, corpse: 'blood', flee: 0.2,
     loot: { gold: [0, 10], items: [['goblin_charm', 0.2], ['bread', 0.3], ['hatchet', 0.06], ['spear', 0.1, 1, 3], ['wooden_shield', 0.06], ['leather_armor', 0.04], ['bone_whistle', 0.01]] },
   },
   gnarl: {
@@ -85,8 +85,8 @@ const MONSTERS = {
   },
   // The gate watch's bosses on Oakvale Isle: each task ends with the one who leads them (respawn: 5 minutes).
   greyfang: { // the alpha of Wolf Woods: grey, scarred, and twice the size of the pack
-    name: 'Greyfang', proper: true, hp: 110, xp: 70, dmg: [2, 18], defense: 4, armor: 2, speed: 260, attackSpeed: 1500, aggro: 7, corpse: 'blood',
-    respawn: 300000, summon: { type: 'wolf', max: 2, chance: 0.06 },
+    name: 'Greyfang', proper: true, hp: 80, xp: 70, dmg: [1, 12], defense: 2, armor: 2, speed: 260, attackSpeed: 1500, aggro: 7, corpse: 'blood',
+    respawn: 300000, // (no wolves of his own: the pack round his den is enough for a level-2 task)
     loot: { gold: [10, 25], items: [['wolf_pelt', 1, 1, 2], ['meat', 0.8, 1, 3], ['health_potion', 0.3]] },
   },
   old_snapper: { // the oldest crab on Lighthouse Point: a shell like a cart wheel
@@ -96,7 +96,7 @@ const MONSTERS = {
   },
   // Oakvale Isle's hidden places (docs/world-plan.md, Phase 7)
   brineshell: { // Old Snapper's mate, who keeps the sea cave south of Fisher's Rest and the wreck of the Gull (Tidecutter)
-    name: 'Brineshell', proper: true, hp: 260, xp: 190, dmg: [3, 24], defense: 5, armor: 6, speed: 150, attackSpeed: 1600, aggro: 5, corpse: 'blood',
+    name: 'Brineshell', proper: true, hp: 220, xp: 190, dmg: [3, 20], defense: 5, armor: 6, speed: 150, attackSpeed: 1600, aggro: 5, corpse: 'blood',
     respawn: 300000, summon: { type: 'crab', max: 2, chance: 0.05 },
     loot: { gold: [20, 50], items: [['crab_claw', 1, 2, 4], ['pearl', 0.5], ['health_potion', 0.5]] },
   },
@@ -111,8 +111,8 @@ const MONSTERS = {
     loot: { gold: [15, 40], items: [['spider_silk', 1, 2, 4], ['health_potion', 0.5]] },
   },
   gnash: { // the chief of the goblin camp on Goblin Hill
-    name: 'Chief Gnash', proper: true, hp: 220, xp: 160, dmg: [2, 26], defense: 6, armor: 4, speed: 220, attackSpeed: 1500, aggro: 7, corpse: 'blood',
-    respawn: 300000, summon: { type: 'goblin', max: 2, chance: 0.07 },
+    name: 'Chief Gnash', proper: true, hp: 140, xp: 160, dmg: [2, 14], defense: 3, armor: 3, speed: 220, attackSpeed: 1500, aggro: 7, corpse: 'blood',
+    respawn: 300000, summon: { type: 'goblin', max: 1, chance: 0.05 },
     loot: { gold: [25, 60], items: [['goblin_charm', 1, 1, 2], ['bread', 0.5], ['health_potion', 0.6]] },
   },
   // Oakvale Isle's hidden quests: who guards their ends (see the chests' guard in defs.js)
@@ -129,7 +129,7 @@ const MONSTERS = {
     loot: { gold: [0, 12], items: [['arrow', 0.5, 3, 8], ['goblin_charm', 0.15], ['bread', 0.2]] },
   },
   goblin_hoardkeeper: { // the biggest of Gnash's goblins, who sits on the hoard under the hill
-    name: 'the hoardkeeper', proper: true, hp: 240, xp: 170, dmg: [2, 26], defense: 6, armor: 4, speed: 200, attackSpeed: 1500, aggro: 5, corpse: 'blood',
+    name: 'the hoardkeeper', proper: true, hp: 220, xp: 170, dmg: [2, 18], defense: 6, armor: 4, speed: 200, attackSpeed: 1500, aggro: 5, corpse: 'blood',
     respawn: 300000, loot: { gold: [20, 50], items: [['goblin_charm', 1, 1, 2], ['health_potion', 0.5]] },
     voices: { aggro: 'Mine! All mine! Gnash said so!', low: 'Not the shiny! Not the shiny!' },
   },
@@ -169,9 +169,10 @@ const MONSTERS = {
     loot: { gold: [5, 25], items: [['mana_potion', 0.2], ['health_potion', 0.15], ['blank_rune', 0.08]] },
   },
   choir_cantor: {
-    name: 'Choir Cantor', proper: true, hp: 420, xp: 320, dmg: [6, 16], defense: 4, armor: 4, speed: 130, attackSpeed: 1900, aggro: 7, corpse: 'blood',
+    name: 'Choir Cantor', proper: true, hp: 360, xp: 320, dmg: [6, 16], defense: 4, armor: 4, speed: 130, attackSpeed: 1900, aggro: 7, corpse: 'blood',
     respawn: 300000,
-    ranged: { range: 5, dmg: [10, 24], missile: 'fire', element: 'fire', chance: 0.6, keepDistance: true },
+    // (he stands and sings: no running off to keep his distance, so a fight with him doesn't drag on)
+    ranged: { range: 5, dmg: [8, 20], missile: 'fire', element: 'fire', chance: 0.6 },
     summon: { type: 'choir_cultist', max: 1, chance: 0.06 },
     spells: [{ kind: 'heal', chance: 0.06, dmg: [30, 50] }],
     loot: { gold: [40, 110], items: [['health_potion', 0.6], ['mana_potion', 0.4], ['ring_swift', 0.05]] },
@@ -286,7 +287,7 @@ const MONSTERS = {
     loot: { gold: [100, 300], items: [['frost_scale', 0.4], ['meat', 0.5, 1, 3], ['frost_blade', 0.04], ['rod_glacier', 0.03], ['crown_helmet', 0.02]] },
   },
   bear: {
-    name: 'bear', hp: 90, xp: 60, dmg: [0, 25], defense: 4, armor: 3, speed: 230, attackSpeed: 1500, aggro: 5, corpse: 'big',
+    name: 'bear', hp: 90, xp: 95, dmg: [0, 25], defense: 4, armor: 3, speed: 230, attackSpeed: 1500, aggro: 5, corpse: 'big',
     loot: { gold: [2, 8], items: [['meat', 0.6, 1, 3], ['bear_paw', 0.3]] },
   },
   stone_golem: {

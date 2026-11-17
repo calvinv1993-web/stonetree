@@ -464,6 +464,7 @@ const CRYPT = {
         [62, 175, 'web'], [70, 183, 'bones'], [63, 180, 'rubble'], [72, 186, 'bones'],
       ],
       monsters: [['skeleton', 67, 184], ['skeleton', 72, 182], ['skeleton', 70, 186], ['gravewaker', 69, 180]],
+      lurk: true, // (they notice you only up close: the tomb is fought a few at a time, not all at once by the stairs)
     },
   ],
   // The Bone Chapel (The Bone Chapel, QUESTS.bone_chapel): behind a crack in the hall of coffins' east wall (a pick
@@ -1098,13 +1099,14 @@ function createDefaultMap() {
   for (let i = m.spawns.length - 1; i >= 0; i--) { const s = m.spawns[i]; if (s.type === 'wolf' && s.z === S && Math.max(Math.abs(s.x - 67), Math.abs(s.y - 72)) <= 6) m.spawns.splice(i, 1); }
   // the goblins of Goblin Hill sleep at night (game-gates.js)
   { const [x0, y0, x1, y1] = GATE_SITES.sleepers; for (const s of m.spawns) if (s.z === S && ['goblin', 'gnash'].includes(s.type) && s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1) s.sleeps = true; }
-  // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): four singers round their cantor
+  // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): three singers round their cantor
   // (placed by hand: the point is too small for the packs' spacing). They come ashore only at night once the bell rings
   // again, or for whoever is on The Silent Bell V (night: see ashore in game-combat.js), notice you only up close (lurk)
   // and keep to the tip (leash: 3 tiles), so the keeper's fire and the beaches stay safe.
-  for (const [type, x, y] of [['choir_cantor', 128, 221], ['choir_cultist', 125, 220], ['choir_cultist', 131, 220], ['choir_cultist', 126, 223], ['choir_cultist', 130, 223]]) {
+  for (const [type, x, y] of [['choir_cantor', 128, 221], ['choir_cultist', 125, 220], ['choir_cultist', 131, 220], ['choir_cultist', 128, 223]]) {
     const p = spot(x, y, S, null, 3);
-    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, night: 'bell_5', lurk: true, leash: 3 }); }
+    // (band: they fight as one: hit one and they all come, a real last fight, not five easy ones one at a time)
+    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, night: 'bell_5', lurk: true, leash: 3, band: 'choir' }); }
   }
 
   tidyWorld(m, S);
@@ -1449,7 +1451,7 @@ function buildCrypt(m, S) {
     for (const [x, y] of f.torches) m.addItem(x, y, Z, 'wall_torch');
     for (const [x, y, id] of f.props) m.addItem(x, y, Z, id);
     for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { quest: 'bell_4', look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb.' });
-    for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z });
+    for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z, ...(f.lurk ? { lurk: true } : {}) });
   }
   // the Bone Chapel: the crack in the hall's east wall, the passage and the chapel behind it, carved walls round them
   const B = C.chapel, Z = B.z, carved = [];

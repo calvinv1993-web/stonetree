@@ -799,12 +799,12 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   talk(112, 103, 8, 'crypt', 'yes');
   assert.strictEqual(state.questState('bell_2'), 'active');
   assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
-  ctx.useThing(80, 178, 7);
   ctx.useThing(71, 181, 7);
-  assert(state.countItem('war_axe') === 0 && state.countItem('torn_note') === 0, 'no weapon and no note while the dead still walk');
-  kill('skeleton', 6);
-  assert.strictEqual(p.quests.bell_2.step, 1, 'six skeletons: the hall is cleared, without going back');
+  assert(state.countItem('torn_note') === 0, 'no note while the dead still walk');
   ctx.useThing(80, 178, 7);
+  assert(state.countItem('war_axe') === 1, 'a founder\'s weapon at once: for the fight in the hall');
+  kill('skeleton', 4);
+  assert.strictEqual(p.quests.bell_2.step, 1, 'four skeletons: the hall is cleared, without going back');
   ctx.useThing(71, 181, 7);
   assert(state.countItem('war_axe') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
   assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
@@ -1218,15 +1218,15 @@ test('the Ashen Choir is ashore at Lighthouse Point only at night once the bell 
   const p = state.player;
   const ashore = () => state.monsters.filter(m => /^choir_/.test(m.type) && !m.dead).length;
   const at = hour => { state.now = Math.ceil(state.now / 1440000) * 1440000 + ((hour - 9 + 24) % 24) * 60000; tick(game, 2000); }; // (the next such hour)
-  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5').length, 5, 'four singers and their cantor');
+  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5').length, 4, 'three singers and their cantor');
   at(12); assert.strictEqual(ashore(), 0, 'not by day');
   at(23); assert.strictEqual(ashore(), 0, 'nor at night while the bell is silent');
   state.townBell.ringers.push('Someone');
-  at(23); assert.strictEqual(ashore(), 5, 'at night once the bell rings again');
+  at(23); assert.strictEqual(ashore(), 4, 'at night once the bell rings again');
   at(12); assert.strictEqual(ashore(), 0, 'and they row away by day');
   p.quests.bell_5 = { status: 'active', step: 1, kills: {} };
   ctx.teleport({ x: 134, y: 210, z: 8 }); tick(game, 2000);
-  assert.strictEqual(ashore(), 5, 'by day too, for whoever is sent to look');
+  assert.strictEqual(ashore(), 4, 'by day too, for whoever is sent to look');
   assert(!p.dead && p.hp === p.maxHp, 'and they leave the keeper\'s fire alone');
   ctx.teleport(state.map.start); tick(game, 2000);
   assert.strictEqual(ashore(), 0, 'gone again once they have left');
