@@ -11,6 +11,7 @@ const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1,
 const BRIDGE_GROUNDS = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 const CROWN_SHADOW = new Set(['tree', 'pine', 'ancient_tree', 'jungle_tree', 'snow_pine', 'palm']); // (trees whose crown shades the ground)
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
+const FRINGE_WALL_END = TILE - 6; // (where a thin wall's face begins on a tile it doesn't go on from: its thickness short of the tile's end, as in sprites.js)
 // Streets with a stone kerb where they meet these grounds (the kerb picture: Sprites.kerbEdge)
 const KERBED = { cobble: new Set(['grass', 'jungle']) };
 const KERB_PATHS = new Set(['gravel']); // (paths that open onto a street through its kerb, the kerb curving in)
@@ -933,13 +934,19 @@ const Render = {
         const t = floor[y * map.width + x];
         if (t && fringe && t.ground === 'grass' && !standing(x, y)) {
           const f = fringe, piece = (((x + y * 7) % f.pieces) + f.pieces) % f.pieces, fw = f.res * TILE, fh = f.height;
+          // (only as far along the edge as the face stands there: a thin wall that doesn't go on west - or north - ends
+          // its face a wall's thickness from the corner, and the blades end with it)
+          const thin = (tx, ty) => { const w = wallAt(tx, ty); return !!w && THINGS[w].wall === 'thin'; };
+          const from = (sx, sy, bx, by) => (thin(sx, sy) && !wallAt(bx, by) ? FRINGE_WALL_END : 0);
           if (standing(x, y - 1)) {
-            g.drawImage(f.img, piece * fw, 0, fw, fh, ox + x * TILE, oy + y * TILE - f.reach, TILE, fh / f.res);
+            const s0 = from(x, y - 1, x - 1, y - 1);
+            g.drawImage(f.img, piece * fw + s0 * f.res, 0, fw - s0 * f.res, fh, ox + x * TILE + s0, oy + y * TILE - f.reach, TILE - s0, fh / f.res);
           }
           if (standing(x - 1, y)) { // (turned: the blades and their shadow along the east face)
+            const s0 = from(x - 1, y, x - 1, y - 1);
             g.save();
             g.transform(0, 1 / f.res, 1 / f.res, 0, ox + x * TILE - f.reach, oy + y * TILE);
-            g.drawImage(f.img, ((piece + 5) % f.pieces) * fw, 0, fw, fh, 0, 0, fw, fh);
+            g.drawImage(f.img, ((piece + 5) % f.pieces) * fw + s0 * f.res, 0, fw - s0 * f.res, fh, s0 * f.res, 0, fw - s0 * f.res, fh);
             g.restore();
           }
         }
