@@ -1736,7 +1736,7 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   assert(hits[2] - hits[0] >= 200 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
 });
 
-test('the power shot: a bow drawn to the full, one arrow loosed through every monster in its way, each hit as the arrow gets there', () => {
+test('the power shot: a bow drawn to the full for a moment and a half, one arrow ten times as hard loosed through every monster in its way, each hit as the arrow gets there', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
@@ -1753,10 +1753,10 @@ test('the power shot: a bow drawn to the full, one arrow loosed through every mo
   state.now += 3000; A.say('sagitta vis');
   assert(state.effects.some(fx => fx.kind === 'shot'), 'everyone near sees the shot');
   assert.strictEqual(p.equipment.ammo.count, 9, 'one arrow');
-  tick(game, 300);
-  assert(!hurt(near), 'nothing while the bow is drawn');
-  tick(game, 150);
-  assert(hurt(near) && !hurt(mid) && !hurt(far), 'loosed: first the nearest');
+  tick(game, 1400);
+  assert(!hurt(near), 'nothing while the bow is drawn, a moment and a half');
+  tick(game, 200);
+  assert(hurt(near) && !hurt(mid) && !hurt(far), `loosed: first the nearest ${[near, mid, far].map(m => m.hp)}`);
   tick(game, 100);
   assert(hurt(mid) && !hurt(far), 'then the next in its way');
   tick(game, 100);

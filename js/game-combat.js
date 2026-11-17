@@ -650,8 +650,8 @@ function castPierce(s) {
     if (!sightClear(player, { x, y, z })) break;
     way.push({ x, y, d });
   }
-  const reach = way.length ? way[way.length - 1].d : 1, max = physicalMax(w);
-  const shot = () => Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
+  const reach = way.length ? way[way.length - 1].d : 1;
+  const shot = () => s.times * physicalHit(w); // (each one hit as hard as that many plain shots)
   useAmmo(w);
   addSkillTries('distance');
   effects.push({ kind: 'shot', cid: player.id, weapon: 'bow', x: player.x, y: player.y, z, tx: player.x + ax * reach, ty: player.y + ay * reach,
