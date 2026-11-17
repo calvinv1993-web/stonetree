@@ -575,7 +575,7 @@ function updatePendingHits() {
     const t = h.target;
     if (!t || t.dead || t.z !== h.z || h.by.dead || !players.includes(h.by)) continue;
     asPlayer(h.by, () => {
-      addBurst(t.x, t.y, t.z, '#e8dcc0');
+      effects.push({ kind: 'impact', x: t.x, y: t.y, z: t.z, glow: h.glow || '#ffe27a', start: now, dur: 380 }); // (a burst of light rays where it lands)
       addSound('hit', t.x, t.y, t.z);
       hurt(t, h.dmg, h.element);
     });
@@ -606,7 +606,7 @@ function castArc(s) {
     const rel = inArc(c);
     if (rel === null) continue;
     // (the swing starts fast and slows to its end, as it's drawn: a hit lands when the blade is there)
-    pendingHits.push({ at: now + Math.round(s.sweep * (1 - Math.sqrt(Math.max(0, 1 - rel / Math.PI)))), by: player, target: c, z, dmg: blow(), element: 'physical' });
+    pendingHits.push({ at: now + Math.round(s.sweep * (1 - Math.sqrt(Math.max(0, 1 - rel / Math.PI)))), by: player, target: c, z, dmg: blow(), element: 'physical', glow: '#d8ff7a' });
   }
 }
 
@@ -637,7 +637,7 @@ function castPierce(s) {
   for (const { x, y, d } of way) {
     const hit = [...monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z),
       ...players.filter(p => p !== player && !p.dead && p.x === x && p.y === y && p.z === z && pvpAllowed(p) && mayHurt(p))];
-    for (const c of hit) pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg: shot(), element: 'physical' });
+    for (const c of hit) pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg: shot(), element: 'physical', glow: '#ffd25a' });
   }
   addSound('shoot', player.x, player.y, z);
 }

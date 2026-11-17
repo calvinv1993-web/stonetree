@@ -594,6 +594,13 @@ function draw() {
   Fx.ambience();
 }
 
+// A soft round glow at (x, y), radius r: rgba is the colour's 'rgba(r,g,b,' start, a its strength at the middle.
+function glowDot(x, y, r, rgba, a) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `${rgba}${a})`); g.addColorStop(0.4, `${rgba}${a * 0.5})`); g.addColorStop(1, `${rgba}0)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+}
+
 const creatureById = id => players.find(p => p.id === id) || monsters.find(m => m.id === id) || npcs.find(n => n.id === id);
 // A player in the middle of a sweeping strike (the circle throw's arc): their strike's picture for now - the wind-up, the
 // middle or the follow-through, as far as the swing has come - or null (no strike going on, or no picture for it).
@@ -652,12 +659,16 @@ function drawEffects(ox, oy, z) {
       const cx = ox + v.x * TILE + 16, cy = oy + v.y * TILE + 10, r = fx.radius * TILE + 6, ease = 1 - (1 - t) * (1 - t), a = fx.a0 + fx.sweep * ease;
       ctx.save();
       const sg = Math.sign(fx.sweep) || 1, trail = Math.min(1.2, Math.abs(fx.sweep) * ease); // (the crescent: the blade's last part of the way, fading towards its start)
+      ctx.globalCompositeOperation = 'lighter'; // (the crescent glows: light adds up)
       for (let k = 0; k < 6; k++) {
         const a1 = a - sg * trail * (k / 6), a2 = a - sg * trail * ((k + 1) / 6), lo = Math.min(a1, a2), hi = Math.max(a1, a2);
-        ctx.globalAlpha = (0.42 - k * 0.065) * (1 - t * 0.4);
-        ctx.fillStyle = '#fbf6e6';
-        ctx.beginPath(); ctx.arc(cx, cy, r, lo, hi); ctx.arc(cx, cy, r * 0.55, hi, lo, true); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = (0.5 - k * 0.075) * (1 - t * 0.4);
+        ctx.fillStyle = k < 2 ? '#f4ffb0' : '#c8f060';
+        ctx.beginPath(); ctx.arc(cx, cy, r, lo, hi); ctx.arc(cx, cy, r * (0.62 + k * 0.03), hi, lo, true); ctx.closePath(); ctx.fill();
       }
+      ctx.globalAlpha = 0.8 * (1 - t * 0.5); ctx.strokeStyle = '#fbffd8'; ctx.lineWidth = 2; // (its bright leading edge)
+      ctx.beginPath(); ctx.arc(cx, cy, r, Math.min(a, a - sg * Math.min(0.5, trail)), Math.max(a, a - sg * Math.min(0.5, trail))); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
       if (who && strikeOf(who)) { ctx.restore(); continue; } // (the spear is in the strike's picture: only the crescent here)
       ctx.translate(cx, cy); ctx.rotate(a);
@@ -666,28 +677,47 @@ function drawEffects(ox, oy, z) {
       ctx.fillStyle = '#dfe4ea'; ctx.strokeStyle = '#8a9098'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(r - 9, -3.5); ctx.lineTo(r + 3, 0); ctx.lineTo(r - 9, 3.5); ctx.closePath(); ctx.fill(); ctx.stroke(); // the blade
       ctx.restore();
-    } else if (fx.kind === 'shot') { // the power shot: a glow gathering at the bow while it's drawn, then the arrow flying straight on, a streak behind it
+    } else if (fx.kind === 'shot') { // the power shot: light gathering at the bow, a flash and a fan of rays as it's loosed, then a bolt of gold light
       const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
-      const a = Math.atan2(ey - sy, ex - sx);
+      const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10;
       ctx.save();
-      if (e < fx.charge) { // (drawing: a little gold light gathers in front of you)
+      ctx.globalCompositeOperation = 'lighter'; // (light adds up: it glows)
+      if (e < fx.charge) { // drawing: a ball of gold light grows at the bow
         const k = e / fx.charge;
-        ctx.globalAlpha = 0.25 + 0.5 * k; ctx.fillStyle = '#ffe9a0';
-        ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 10, sy + Math.sin(a) * 10, 2 + 4 * k, 0, Math.PI * 2); ctx.fill();
+        glowDot(bx, by, 3 + 9 * k, 'rgba(255,214,90,', 0.35 + 0.5 * k);
       } else {
-        const p = Math.min(1, (e - fx.charge) / Math.max(1, fx.flight)), fade = e > fx.charge + fx.flight ? 1 - (e - fx.charge - fx.flight) / 200 : 1;
-        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p, tail = Math.min(TILE * 1.6, Math.hypot(x - sx, y - sy));
-        const grad = ctx.createLinearGradient(x - Math.cos(a) * tail, y - Math.sin(a) * tail, x, y);
-        grad.addColorStop(0, 'rgba(255,240,190,0)'); grad.addColorStop(1, 'rgba(255,240,190,0.85)');
-        ctx.globalAlpha = Math.max(0, fade);
-        ctx.strokeStyle = grad; ctx.lineWidth = 4; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * tail, y - Math.sin(a) * tail); ctx.lineTo(x, y); ctx.stroke(); // the streak
-        if (p < 1) {
-          ctx.translate(x, y); ctx.rotate(a);
-          ctx.strokeStyle = '#7a5226'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(4, 0); ctx.stroke();   // the shaft
-          ctx.fillStyle = '#e8ecf0'; ctx.beginPath(); ctx.moveTo(4, -2.5); ctx.lineTo(9, 0); ctx.lineTo(4, 2.5); ctx.closePath(); ctx.fill(); // the head
-          ctx.fillStyle = '#c03030'; ctx.fillRect(-13, -2.5, 3, 1.5); ctx.fillRect(-13, 1, 3, 1.5);                                 // the fletching
+        const r = e - fx.charge, p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 200) : 1;
+        if (r < 220) { // loosed: a flash, and a fan of rays forward from the bow
+          const f = 1 - r / 220;
+          glowDot(bx, by, 14 * f + 4, 'rgba(255,236,150,', 0.9 * f);
+          ctx.lineCap = 'round';
+          for (let k = -4; k <= 4; k++) {
+            const ra = a + k * 0.16, len = (26 + (4 - Math.abs(k)) * 7) * (0.6 + 0.4 * (1 - f));
+            ctx.strokeStyle = `rgba(255,${200 + Math.abs(k) * 8},90,${0.55 * f})`; ctx.lineWidth = 2.2 - Math.abs(k) * 0.2;
+            ctx.beginPath(); ctx.moveTo(bx + Math.cos(ra) * 4, by + Math.sin(ra) * 4); ctx.lineTo(bx + Math.cos(ra) * len, by + Math.sin(ra) * len); ctx.stroke();
+          }
         }
+        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p, tail = Math.min(TILE * 2.2, Math.hypot(x - sx, y - sy));
+        const tx = x - Math.cos(a) * tail, ty = y - Math.sin(a) * tail;
+        for (const [w, al] of [[9, 0.18], [5, 0.35], [2.2, 0.9]]) { // the bolt's trail: a wide soft glow, a brighter one, a white-gold core
+          const grad = ctx.createLinearGradient(tx, ty, x, y);
+          grad.addColorStop(0, 'rgba(255,200,60,0)'); grad.addColorStop(1, `rgba(255,232,140,${al * fade})`);
+          ctx.strokeStyle = grad; ctx.lineWidth = w; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+        }
+        if (p < 1) glowDot(x, y, 7, 'rgba(255,240,170,', 0.9); // the arrow itself, all light
+      }
+      ctx.restore();
+    } else if (fx.kind === 'impact') { // where a strike lands: a flash, and rays of light shooting out every way
+      const cx = ox + fx.x * TILE + 16, cy = oy + fx.y * TILE + 10, f = 1 - t, [r, g, b] = [1, 3, 5].map(k => parseInt(fx.glow.slice(k, k + 2), 16));
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      glowDot(cx, cy, 6 + 12 * t, `rgba(${r},${g},${b},`, 0.8 * f);
+      ctx.lineCap = 'round';
+      for (let k = 0; k < 10; k++) {
+        const ra = k * Math.PI / 5 + (fx.x * 7 + fx.y * 3) % 5 * 0.2, len = (10 + (k % 3) * 6) * (0.4 + t);
+        ctx.strokeStyle = `rgba(${r},${g},${b},${0.7 * f})`; ctx.lineWidth = 2 * f + 0.5;
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(ra) * len * 0.35, cy + Math.sin(ra) * len * 0.35); ctx.lineTo(cx + Math.cos(ra) * len, cy + Math.sin(ra) * len); ctx.stroke();
       }
       ctx.restore();
     } else if (fx.kind === 'vehicle') { // a ride arriving to pick someone up (and waiting), or leaving
