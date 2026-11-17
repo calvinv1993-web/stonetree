@@ -687,11 +687,14 @@ function drawPowerArrow(bx, by, d, a, t, al) {
   ctx.strokeStyle = gold(0.6 * al); ctx.lineWidth = 1.6;
   head(d - 17, 13); ctx.stroke();
   ctx.shadowColor = gold(1); ctx.shadowBlur = 10;
-  head(d, 18); ctx.fillStyle = `rgba(255,120,14,${0.95 * al})`; ctx.fill();
+  head(d, 18); // (orange at its barbs, burning to near white at the tip)
+  { const g = ctx.createLinearGradient(d - 10, 0, d + 18, 0);
+    g.addColorStop(0, `rgba(255,120,14,${0.95 * al})`); g.addColorStop(0.55, `rgba(255,190,90,${al})`); g.addColorStop(1, `rgba(255,250,235,${al})`);
+    ctx.fillStyle = g; ctx.fill(); }
   ctx.shadowBlur = 0;
   ctx.strokeStyle = `rgba(255,190,80,${al})`; ctx.lineWidth = 1.3; ctx.stroke();
   head(d + 1, 9); ctx.fillStyle = pale(0.7 * al); ctx.fill(); // (the light inside it)
-  solid(false); glowDot(d + 8, 0, 9, 'rgba(255,200,110,', 0.6 * al);
+  solid(false); glowDot(d + 14, 0, 8, 'rgba(255,248,225,', 0.85 * al); // (the very tip: nearly white)
   ctx.restore();
 }
 
