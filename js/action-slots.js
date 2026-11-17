@@ -20,7 +20,10 @@ const ActionSlots = (() => {
   function state(id) {
     if (!player) return {};
     const spell = SPELLS[id];
-    if (spell) return { mana: spell.mana, short: player.mana < spell.mana, wait: Math.max(0, (player.spellReady || 0) - now), total: SPELL_COOLDOWN };
+    if (spell) { // (the shared pause after any spell, or this spell's own longer one: whichever is longer)
+      const own = Math.max(0, ((player.spellCooldowns || {})[id] || 0) - now), shared = Math.max(0, (player.spellReady || 0) - now);
+      return { mana: spell.mana, short: player.mana < spell.mana, wait: Math.max(own, shared), total: own > shared ? spell.cooldown : SPELL_COOLDOWN };
+    }
     if (id === 'h' || id === 'm') // (none left: dimmed as a spell without the mana for it)
       return { wait: Math.max(0, (player.potionReady || 0) - now), total: POTION_COOLDOWN, short: countItem(id === 'h' ? 'health_potion' : 'mana_potion') === 0 };
     return {};

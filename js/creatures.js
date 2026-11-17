@@ -610,7 +610,9 @@ function powerRange(p, power) {
 // whirl (all adjacent, mult) | conjure (makes items: { item, count, blank: needs a blank rune }) |
 // arc (a war spear swung round you in a half circle in front of you, radius tiles, in sweep ms: each monster hit as
 // the blade passes, mult of the spear's blow) | pierce (a bow drawn for charge ms, its arrow loosed range tiles at your
-// target or straight ahead, perTile ms a tile: each monster in its way hit as it gets there, mult of a bow shot)
+// target or straight ahead, perTile ms a tile: each monster in its way hit as it gets there, times plain shots' worth) |
+// volley (shots quick arrows at your target: lead ms to draw, then one every gap ms, each mult of a bow shot)
+// cooldown: ms before this spell can be cast again (on top of the short pause after any spell): strong attacks aren't spammed
 // promoted: only after promotion.
 const SPELLS = {
   light:        { name: 'Torchlight', words: 'lumen', level: 2, mana: 15, kind: 'light', desc: 'Lights up dark places for 3 minutes.' },
@@ -625,11 +627,11 @@ const SPELLS = {
   // A war spear swung round you in a half circle in front of you: you see the swing, and each monster within its reach is
   // hit as the blade gets there, one after the other (the swing's hits wait: pendingHits in game-combat.js). A first try
   // of the spear's skills (docs: the masteries plan).
-  circle_throw: { name: 'Circle Throw', words: 'hasta orbis', vocs: ['knight', 'paladin'], level: 10, mana: 30, kind: 'arc', radius: 2, sweep: 420, mult: [0.9, 1.6], desc: 'With a war spear in your hands: a sweeping blow round you in a half circle, and every monster in front of you within its reach is hit as the blade gets there.' },
+  circle_throw: { name: 'Circle Throw', words: 'hasta orbis', vocs: ['knight', 'paladin'], level: 10, mana: 30, kind: 'arc', cooldown: 3000, radius: 2, sweep: 420, mult: [0.9, 1.6], desc: 'With a war spear in your hands: a sweeping blow round you in a half circle, and every monster in front of you within its reach is hit as the blade gets there.' },
   // A bow drawn to the full and loosed: the arrow flies straight on through everything in its way, each monster hit as
   // the arrow gets there, one after the other (pendingHits, as the circle throw). Paladins: a first try of the bow's skills.
-  power_shot: { name: 'Power Shot', words: 'sagitta vis', vocs: ['paladin'], level: 10, mana: 40, kind: 'pierce', range: 6, charge: 1500, perTile: 45, times: 10, desc: 'With a bow and arrows: draw to the full for a moment and a half, then loose one arrow that flies through every monster in its way, at your target or straight ahead, up to 6 tiles, hitting each ten times as hard as a plain shot.' },
-  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 12, mana: 35, kind: 'volley', range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
+  power_shot: { name: 'Power Shot', words: 'sagitta vis', vocs: ['paladin'], level: 10, mana: 40, kind: 'pierce', cooldown: 5000, range: 6, charge: 1500, perTile: 45, times: 10, desc: 'With a bow and arrows: draw to the full for a moment and a half, then loose one arrow that flies through every monster in its way, at your target or straight ahead, up to 6 tiles, hitting each ten times as hard as a plain shot.' },
+  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 12, mana: 35, kind: 'volley', cooldown: 3000, range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
   // Said, not clicked: hidden from the spell bar, so nobody blows themselves up by accident.
   final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 

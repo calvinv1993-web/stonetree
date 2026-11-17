@@ -683,6 +683,8 @@ function castSpell(id) {
   if (s.promoted && !player.promoted) return log(`You need to be promoted to cast ${s.name}.`);
   if (player.mana < s.mana) return log('You do not have enough mana.');
   if (now < player.spellReady) return log('You are exhausted.');
+  const ownReady = (player.spellCooldowns || {})[id] || 0; // (a strong attack's own wait: Power Shot, Triple Shot, Circle Throw)
+  if (now < ownReady) return log(`${s.name} is not ready yet: ${Math.ceil((ownReady - now) / 1000)} s.`);
 
   const t = player.target;
   if (s.kind === 'bolt' || s.kind === 'strike') {
@@ -701,6 +703,7 @@ function castSpell(id) {
 
   player.mana -= s.mana;
   player.spellReady = now + SPELL_COOLDOWN;
+  if (s.cooldown) player.spellCooldowns = { ...(player.spellCooldowns || {}), [id]: now + s.cooldown };
   addSkillTries('magic', s.mana);
   addSpeech(player, s.words);
   addSound('magic', player.x, player.y, player.z);

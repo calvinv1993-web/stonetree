@@ -72,7 +72,7 @@ function newPlayer(name) {
     path: [], pathGoal: null, action: null, target: null, openPile: null,
     input: { held: [], queued: null }, conversation: null, shopNpc: null, events: [],
     training: null, trainHits: 0, // the dummy you're hitting ({ x, y, z, fromX, fromY }), and how often you have
-    lastAttack: 0, nextChase: 0, nextRegen: 0, fedUntil: 0, lightUntil: 0, spellReady: 0, potionReady: 0, useReady: 0,
+    lastAttack: 0, nextChase: 0, nextRegen: 0, fedUntil: 0, lightUntil: 0, spellReady: 0, spellCooldowns: {}, potionReady: 0, useReady: 0,
     teleportAt: 0, dead: false, respawnAt: 0, lastNotPossible: 0, lastWarning: 0, skullUntil: 0, redSkullUntil: 0, pzLockUntil: 0, frags: [], yellowTo: {},
   };
 }

@@ -1765,6 +1765,10 @@ test('the power shot: a bow drawn to the full for a moment and a half, one arrow
   assert(when.has(near) && when.has(mid) && when.has(far), 'every one in its way is hit');
   assert(when.get(near) < when.get(mid) && when.get(mid) < when.get(far), `the nearest first, then the next, then the furthest (${[...when.values()]})`);
   assert(!hurt(aside), 'nothing beside its way');
+  state.now += 1500; p.mana = 500; A.say('sagitta vis');
+  assert(messages.some(m => /Power Shot is not ready yet/.test(m)), 'five seconds before the next one');
+  state.now += 2000; A.say('sagitta vis');
+  assert.strictEqual(p.equipment.ammo.count, 8, 'then it can be shot again');
 });
 
 test('walking: speed grows with your level, ground counts, a diagonal step takes twice as long', () => {
