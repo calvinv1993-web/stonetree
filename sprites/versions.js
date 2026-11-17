@@ -35,7 +35,7 @@ const SPRITE_HASHES = {
   "chimney@4x.png":"27b6d8a121",
   "cliff-face.png":"f58a69a07b",
   "cobble-mock.png":"f8f9ea9401",
-  "cobble-own.png":"6d309f0232",
+  "cobble-own.png":"d333aeb2b3",
   "counter@4x.png":"edda0bc593",
   "crag@4x.png":"6ff051a402",
   "crate@4x.png":"2487b62305",
