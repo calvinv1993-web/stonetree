@@ -91,6 +91,22 @@ const KESTREL = {
   // what stands outside each kind of building, either side of its door, so you can tell from the street what it is
   frontProps: { smithy: ['anvil', 'woodpile'], inn: ['barrel', 'bench'], store: ['crate', 'sack'], healer: ['planter', 'planter'], depot: ['crate', 'barrel'],
     hall: ['flagpole', 'flagpole'], fish: ['fish_rack', 'basket'], warehouse: ['crate', 'barrel'], office: ['barrel', 'crate'] },
+  // the town's streets (town-art coordinates, [x0, y0, x1, y1], cobbled): the main street from the temple's steps down
+  // to the quay; the cross street from the west gate through the courtyard to the east way out; a lane down each side
+  // of the courtyard past the doors there, and short lanes to the doors further off. Every door opens onto one.
+  streets: [
+    [26, 13, 28, 35],                                  // main street: the temple's steps, the courtyard, the quay
+    [0, 17, 59, 18],                                   // cross street: the west gate, the courtyard, the east way out
+    [15, 12, 15, 30], [15, 23, 25, 23], [15, 30, 25, 30], // the west lane past the depot, inn and house; to the smithy and the warehouse
+    [39, 12, 39, 29], [40, 15, 41, 15], [29, 23, 38, 23], // the east lane past the store and the house; to the healer
+    [40, 12, 53, 12], [52, 12, 53, 16],                // from the north gate's road round to the east lane and down to the cross street
+    [51, 0, 53, 11],                                   // the road up the gorge to the north gate
+    [14, 27, 14, 27], [40, 34, 40, 34],                // the last steps to the house's and the fishmonger's doors
+  ],
+  // ground cut out of the rock for a way through it (town-art coordinates): the east way out
+  cuts: [[52, 17, 60, 18]],
+  // the piers: what each is for, on a signpost at its foot (town-art coordinates)
+  piers: [[20, 36, 'Fishing pier. Old Tam knows where the fish are.'], [35, 36, 'Ferry pier. The ship to the mainland ties up here, when it comes.']],
   terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
@@ -173,7 +189,7 @@ const KESTREL = {
   // out in the town (town-art coordinates)
   outside: [[27, 17, 'fountain_nw'], [28, 17, 'fountain_ne'], [27, 18, 'fountain_sw'], [28, 18, 'fountain_se'], [23, 17, 'bench'], [32, 17, 'bench'], [25, 15, 'lamppost'], [30, 15, 'lamppost'], [25, 20, 'lamppost'], [30, 20, 'lamppost'],
     [17, 16, 'stall'], [17, 18, 'basket'], [17, 20, 'stall'], [39, 17, 'stall'], [39, 19, 'basket'], [38, 21, 'stall'], [20, 15, 'planter'], [35, 15, 'planter'], [13, 35, 'barrel'], [14, 35, 'crate'], [13, 36, 'crate'], [14, 36, 'barrel'], [16, 36, 'sack'], [17, 36, 'sack'],
-    [24, 36, 'fish_rack'], [37, 36, 'fish_rack'], [40, 35, 'crate'], [41, 35, 'crate'], [40, 36, 'barrel'], [42, 36, 'sack'], [45, 35, 'barrel'], [46, 36, 'crate'],
+    [24, 36, 'fish_rack'], [37, 36, 'fish_rack'], [42, 35, 'crate'], [43, 35, 'crate'], [43, 36, 'barrel'], [42, 36, 'sack'], [45, 35, 'barrel'], [46, 36, 'crate'],
     [23, 38, 'boat'], [35, 39, 'boat'], [20, 40, 'boat'], [29, 36, 'crane']],
 };
 
@@ -324,6 +340,17 @@ function createKestrelMap() {
     for (const [x0, y0, x1, y1] of g.walls) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { set(TX + x, TY + y, S, 'grass', ['wall_stone']); for (let z = S + 1; z <= S + 2; z++) m.set(OX + TX + x, OY + TY + y, z, null); }
   }
 
+  // the streets, cut through the rock where they must, cobbled over grass and earth (not over the courtyard's paving,
+  // nor into a building), whatever stood there cleared away
+  const inAnyBuilding = (x, y) => K.buildings.some(b => !b.rock && b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1));
+  for (const [x0, y0, x1, y1] of K.cuts) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { set(TX + x, TY + y, S, 'grass'); for (let z = S + 1; z <= S + 3; z++) m.set(OX + TX + x, OY + TY + y, z, null); }
+  const onStreet = (x, y) => K.streets.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+  for (const [x0, y0, x1, y1] of K.streets) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const t = at(TX + x, TY + y);
+    if (!t || inAnyBuilding(x, y) || t.items.includes('cliff') || t.items.includes('steps') || ['paving', 'marble', 'water', 'pier'].includes(t.ground)) continue;
+    t.ground = 'cobble'; t.items = t.items.filter(i => /^wall_/.test(i) ? false : !THINGS[i].block && !['bush', 'tree', 'flowers', 'grass_tuft', 'tallgrass'].includes(i));
+  }
+
   // a tile of open grass all round every building (not its gates' towers, which their walls join): no rock or cliff
   // against its walls, and on the rock the plateau runs on round it
   for (const b of K.buildings) {
@@ -412,7 +439,7 @@ function createKestrelMap() {
     if (b.kind === 'tower') for (const [dx, dy, id] of [[1, 3, 'bell_nw'], [2, 3, 'bell_ne'], [1, 4, 'bell_sw'], [2, 4, 'bell_se']]) { const t = T(b.boxes[0][0] + dx, b.boxes[0][1] + dy, Z + floors - 1); if (t && !t.items.some(i => THINGS[i].change)) t.items.push(id); }
     homes.push(b);
   }
-  for (const [x, y, id] of K.outside) { const t = at(TX + x, TY + y); if (t && (!THINGS[t.ground]?.block || (id === 'boat' && t.ground === 'water'))) t.items = [id]; } // (boats on the water)
+  for (const [x, y, id] of K.outside) { const t = at(TX + x, TY + y); if (THINGS[id].block && onStreet(x, y) && !/^(lamppost|fountain|bench)/.test(id) && (t || {}).ground === 'cobble') continue; if (t && (!THINGS[t.ground]?.block || (id === 'boat' && t.ground === 'water'))) t.items = [id]; } // (boats on the water; nothing in a street's way, though the courtyard keeps its fountain and benches)
   // outside each building, either side of the tile in front of its door: what tells you what it is
   const placed = [];
   for (const b of K.buildings) {
@@ -435,6 +462,7 @@ function createKestrelMap() {
       if (!seen.has(`${TX + b.door[0] + dx},${TY + b.door[1] + dy}`)) for (const [o, t] of placed) if (o === b) t.items = t.items.filter(i => !K.frontProps[o.kind].includes(i));
     }
   }
+  for (const [x, y, text] of K.piers) { const t = at(TX + x, TY + y); if (t) { t.items = ['signpost']; m.setMeta(OX + TX + x, OY + TY + y, S, { text }); } }
   // the gates' lamps, banners, signposts and wardens; the town's folk
   for (const g of K.gatePasses) {
     for (const [x, y] of g.lamps) { const t = at(TX + x, TY + y); if (t) t.items = ['lamppost']; }

@@ -1781,6 +1781,28 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   }
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
   for (const n of m.npcs) assert(m.isWalkable(n.x, n.y, n.z), `${n.type} stands on open ground at ${n.x},${n.y},${n.z}`);
+  // every door opens onto a street: from the tile before it, along streets alone (cobbles, paving, steps), to the
+  // courtyard - no wading through grass, no squeezing round things
+  const street = (x, y, z) => { const t = m.get(x, y, z); return !!t && (['cobble', 'paving', 'marble', 'steps_top'].includes(t.ground) || t.items.includes('steps')) && (m.isWalkable(x, y, z) || t.items.includes('steps') || t.ground === 'steps_top'); };
+  const [qx, qy] = W(K.square[0], K.square[1] + 2), onRoads = new Set([`${qx},${qy},${m.surfaceZ}`]), todo3 = [[qx, qy, m.surfaceZ]];
+  while (todo3.length) {
+    const [x, y, z] = todo3.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      let nz = z; const nx = x + dx, ny = y + dy, t = m.get(nx, ny, z);
+      if (!t || !street(nx, ny, z)) continue;
+      if (t.items.includes('steps')) nz++; else if (t.ground === 'steps_top') nz--;
+      const k = `${nx},${ny},${nz}`; if (!onRoads.has(k)) { onRoads.add(k); todo3.push([nx, ny, nz]); }
+    }
+  }
+  const bad = [];
+  for (const b of K.buildings) {
+    const z = m.surfaceZ + (b.rock === true ? 1 : b.rock || 0), inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    const [dx, dy] = [[0, 1], [1, 0], [-1, 0], [0, -1]].find(([a2, c]) => !inB(b.door[0] + a2, b.door[1] + c));
+    const [fx, fy] = W(b.door[0] + dx, b.door[1] + dy);
+    if (!onRoads.has(`${fx},${fy},${z}`)) bad.push(`${b.name} (${b.door})`);
+  }
+  assert(!bad.length, `a street from each door to the courtyard: not from ${bad.join(', ')}`);
+  for (const [x, y] of K.gates) assert([...onRoads].some(k => k === `${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `a street out to the gate at ${x},${y}`);
   // every building stands free: at least a tile of open ground between it and the next
   const gap = (a, b) => Math.min(...a.boxes.flatMap(p => b.boxes.map(q => Math.max(q[0] - p[2], p[0] - q[2], q[1] - p[3], p[1] - q[3]))));
   K.buildings.forEach((a, i) => K.buildings.slice(i + 1).forEach(b => assert(gap(a, b) >= 2, `${a.name} and ${b.name} stand apart`)));
