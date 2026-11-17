@@ -1256,9 +1256,10 @@ function createDefaultMap() {
     }
   }
 
-  // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there).
+  // The gate watch's bosses, one each, in the heart of their hunting ground (a free open spot near there): Old Snapper
+  // on the beach where the sand spit runs out to Wendel's rock, so the south gate's task has its boss on the way
   // (Greyfang in his den in Wolf Woods, Gnash in his camp: GATE_SITES)
-  for (const [type, x, y, ground] of [['greyfang', 67, 71], ['old_snapper', 191, 206, 'sand'], ['thornmother', 184, 190], ['gnash', 197, 68]]) {
+  for (const [type, x, y, ground] of [['greyfang', 67, 71], ['old_snapper', 104, 213, 'sand'], ['thornmother', 184, 190], ['gnash', 197, 68]]) {
     const p = spot(x, y, S, ground, 12);
     // (Gnash keeps to his camp: he doesn't join every fight on Goblin Hill, only the ones in it)
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, ...(type === 'gnash' ? { leash: 5 } : {}) }); }

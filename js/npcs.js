@@ -1885,7 +1885,7 @@ Object.assign(QUESTS, {
     summary: 'Wendel the fisher is stranded on a rock off the west beach of Lighthouse Point, ringed by crabs. Get him off it, and tell Guard Tilda at the south gate.',
     steps: [
       { npc: 'oak_stranded', word: 'help', clear: { types: ['crab'], at: [101, 220, 8], range: 3 }, goesHome: true,
-        summary: 'Wendel is stranded on a rock off the west beach of Lighthouse Point (down the south road): a sand spit runs out to it. Kill the crabs round him, and talk to him.',
+        summary: 'Wendel is stranded on a rock off the west beach of Lighthouse Point (down the south road): a sand spit runs out to it, and Old Snapper, the biggest crab of all, suns himself where it starts. Kill the crabs round Wendel, and talk to him.',
         progress: 'Crabs! They are still all round me, $name! Get rid of them, or I will never get off this rock!',
         done: 'They are gone! Bless you, $name. With them gone I can lash a raft together from what is left of my boat, and paddle home to Fisher\'s Rest. Tell Guard Tilda that Wendel is safe - and that I owe her a fish supper. Oh, and take this to her: I found it in the wreck. It is no use to me.' },
       { summary: 'Tell Guard Tilda at the south gate that Wendel is safe.', progress: 'Well? Did you find Wendel?',
