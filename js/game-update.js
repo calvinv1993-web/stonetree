@@ -24,7 +24,7 @@ const Actions = {
     const inp = player.input;
     if (!DIR_KEYS[key]) return;
     player.follow = null; // walking yourself stops following
-    if (player.target && !player.target.dead) player.chaseOff = true; // walking away stops chasing this target (Chase stays on for the next)
+    walkedAway();
     if (!inp.held.includes(key)) inp.held.push(key);
     if (!repeat) inp.queued = DIR_KEYS[key];
     player.path = [];
@@ -39,6 +39,7 @@ const Actions = {
     if (player.ride) return;
     const c = creatureWithId(id);
     player.follow = c && c !== player ? c.id : null;
+    if (player.follow && player.chase) { player.chase = false; uiDirty(); } // (following someone: no chasing a target the other way)
     player.path = [];
     player.action = null;
     if (c && c !== player) log(`You follow ${c.type === 'player' ? c.name : monsterRef(c)}.`);
@@ -49,7 +50,7 @@ const Actions = {
     if (maxNodes > 4000 && now < (player.longWalkAt || 0)) return;
     if (maxNodes > 4000) player.longWalkAt = now + 500;
     player.follow = null;
-    if (player.target && !player.target.dead) player.chaseOff = true; // tap-to-walk stops chasing this target (Chase stays on for the next)
+    walkedAway();
     walkTo(x, y, Math.min(maxNodes || 4000, 30000));
   },
   // kind: 'talk' (the NPC on that tile) or 'use' (whatever is there)
@@ -85,6 +86,10 @@ const Actions = {
   },
   targetNext,
   targetNearest,
+  // stop following whoever you follow (and nothing else: your target, an open corpse or shop stay)
+  unfollow() { player.follow = null; },
+  // stop attacking (a phone's tap on its target)
+  untarget() { player.target = null; },
   stop() {
     player.training = null;
     player.target = null;
@@ -368,8 +373,16 @@ function walkTo(x, y, maxNodes = 4000) {
   }
 }
 
+// You walk somewhere yourself (the keys, the stick, a tap on the map, a tap to use something): you stop following
+// whoever you followed, and in a fight Chase goes off (as in Tibia: switch it on again to chase)
+function walkedAway() {
+  player.follow = null;
+  if (player.target && !player.target.dead && player.chase) { player.chase = false; uiDirty(); }
+}
+
 // Walk until within `range` of the spot, then talk / use.
 function interact(action) {
+  if (dist(player, action) > action.range) walkedAway();
   player.action = action;
   player.path = [];
   if (dist(player, action) <= action.range) return;
@@ -443,10 +456,8 @@ function followCreature() {
   else player.nextChase = now + 400;
 }
 
-// A new target: chased again (walking away stopped chasing the last one), and with Chase on, any walk somewhere ends and
-// you go for it (the step under way ends first)
+// A new target: with Chase on, any walk somewhere ends and you go for it (the step under way ends first)
 function targetPicked() {
-  player.chaseOff = false;
   if (player.target && player.chase) Object.assign(player, { path: [], pathGoal: null, action: null, follow: null });
 }
 
@@ -703,7 +714,7 @@ function updatePlayer() {
       followPath();
     } else if (a) {
       player.action = null; // couldn't get there
-    } else if (player.target && player.chase && !player.chaseOff && !inAttackRange(playerWeapon(), player.target)) {
+    } else if (player.target && player.chase && !inAttackRange(playerWeapon(), player.target)) {
       chase();
     } else if (player.follow) {
       followCreature();

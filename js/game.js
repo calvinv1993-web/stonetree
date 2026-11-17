@@ -312,9 +312,10 @@ function openCreatureMenu(e, c, t) {
   const name = c.type === 'player' ? c.name : c.type === 'npc' ? c.name : monsterRef(c);
   const companion = c.type === 'player' && player.secure !== false && /^(leader|member)/.test(markOf(c) || '');
   if (c !== player) {
-    if (player.follow === c.id) item('Stop following', () => Actions.stop());
+    if (player.follow === c.id) item('Stop following', () => Actions.unfollow());
     else item(`Follow ${name}`, () => Actions.follow(c.id));
     if (c.type === 'npc') item('Talk', () => Actions.interact('talk', t.x, t.y, t.z));
+    else if (!companion && player.target === c) item('Stop attacking', () => Actions.untarget());
     else if (!companion) item(c.type === 'player' ? `Attack ${name}` : 'Attack', () => Actions.setTarget(c.id));
   }
   if (c.type === 'player') socialItems(c, item);

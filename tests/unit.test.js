@@ -969,7 +969,7 @@ test('a tool used on a spot further off: you walk there and use it; walking away
   assert(state.dist(p, spot) > 1 && !p.action, 'walking away yourself calls it off');
 });
 
-test('chase: a new target ends a walk and is chased; walking away stops chasing that one, not Chase itself', () => {
+test('chase: a new target ends a walk and is chased; walking away switches Chase off, and ends a follow', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
@@ -985,11 +985,14 @@ test('chase: a new target ends a walk and is chased; walking away stops chasing 
   const dir = rat.x > p.x ? 'arrowleft' : 'arrowright';
   rat.nextMove = 1e15; // (it stays where it is)
   A.keyDown(dir); tick(game, 1500); A.keyUp(dir); tick(game, 600);
-  assert(p.chase && p.chaseOff, 'walking away: Chase stays on, but this one is not chased');
+  assert(!p.chase, 'walking away switches Chase off');
   const at = [p.x, p.y]; tick(game, 2500);
   assert(p.x === at[0] && p.y === at[1] && state.dist(p, rat) > 1.5, 'and you are not pulled back to it');
-  A.targetNearest(); A.targetNearest(); // (again on the same: the next nearest, the same rat)
-  assert(!p.chaseOff, 'a new attack is chased again');
+  A.targetNearest(); tick(game, 2500);
+  assert(p.x === at[0] && p.y === at[1], 'not even by attacking again, till you switch it on');
+  // following someone, then tapping to use something further off: the follow ends
+  A.follow(rat.id); assert(p.follow === rat.id, 'following'); A.interact('use', p.x - 3, p.y, p.z);
+  assert(!p.follow, 'walking off to use something ends the follow');
 });
 
 test('auto-heal drinks a potion by itself below the health or mana you chose, health first, and says when you run out', () => {

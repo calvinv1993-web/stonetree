@@ -39,6 +39,8 @@ const MobileHud = (() => {
     target.innerHTML = '<b></b><span class="hud-target-bar"><i></i></span><small></small>';
     // (it takes taps itself, so none reach the map behind it)
     target.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); });
+    target.addEventListener('pointerup', e => { e.stopPropagation(); if (player && player.target) Actions.untarget(); }); // (a tap on it: stop attacking)
+    target.title = 'Tap to stop attacking';
     $('touch').appendChild(target);
     requestAnimationFrame(update);
   }
