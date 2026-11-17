@@ -1734,6 +1734,20 @@ test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, sh
   assert(orange.size > 0 && [...orange].every(fx => fx.text.endsWith('!')), 'some shots land as critical hits, marked with a !');
 });
 
+test('a level 100 test paladin holds the hawkeye bow; one made before gets it from the menu, the old bow kept', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  ctx.makeTestHero('paladin');
+  assert.strictEqual(p.equipment.weapon.id, 'hawkeye_bow', 'in the hands of a new one');
+  p.equipment.weapon = { id: 'elven_bow', count: 1, q: 4 };
+  assert(state.wantsTestSpear(), 'one made before is offered it');
+  ctx.giveTestSpear();
+  assert.strictEqual(p.equipment.weapon.id, 'hawkeye_bow', 'now in their hands');
+  assert(p.equipment.backpack.contents.some(it => it.id === 'elven_bow' && it.q === 4), 'the old bow in the backpack, as it was');
+  assert(!state.wantsTestSpear(), 'and not offered again');
+});
+
 test('the triple shot: three quick arrows at your target, each hit on its own as it gets there, three arrows used', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

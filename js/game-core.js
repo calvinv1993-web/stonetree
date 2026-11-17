@@ -1141,7 +1141,7 @@ function makeTestHero(vocation) {
     const id = best(d => d.slot === slot, d => (d.armor || 0) * 10 + (d.defense || 0));
     eq[slot] = id ? legendary(id) : null;
   }
-  eq.weapon = legendary(weapon);
+  eq.weapon = legendary(vocation === 'paladin' ? 'hawkeye_bow' : weapon); // (a paladin: the bow with critical hits, to try them)
   const shield = w.twoHanded ? null : best(d => d.slot === 'shield', d => d.defense || 0);
   eq.shield = shield ? legendary(shield) : null;
   const ring = best(d => d.slot === 'ring' && d.ring, d => (d.ring.regen ? d.ring.regen[0] + d.ring.regen[1] : 0) + (d.ring.speed || 0));
@@ -1151,7 +1151,6 @@ function makeTestHero(vocation) {
   eq.backpack = { ...makeItem('backpack'), contents: [] };
   for (const [id, n] of [['health_potion', 50], ['mana_potion', 50], ['rope', 1], ['shovel', 1], ['meat', 20]]) if (ITEMS[id]) giveItem(id, n);
   if (['knight', 'paladin'].includes(vocation)) giveItem('war_spear', 1); // (to try the spear: hold it, say "hasta orbis")
-  if (vocation === 'paladin') giveItem('hawkeye_bow', 1); // (to try critical hits)
   giveTestClang();
   log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank, and ${p.pet.name} at level ${L} beside you.`, 'quest');
   uiDirty();
@@ -1161,11 +1160,24 @@ function makeTestHero(vocation) {
 // For testing: Clang at your level (full grown, the temple's guardian), beside you. A test character gets him on making;
 // one made before that can ask for him (Menu: "Test: Clang at level 100"). Playing alone only: the server has no button.
 function isTestHero(p = player) { return p.level >= TEST_HERO_LEVEL && p.promoted; }
-// For testing the circle throw: spears for a knight or paladin test character (made before they came with them)
-const wantsTestSpear = () => isTestHero() && ['knight', 'paladin'].includes(player.vocation) && !countItem('war_spear') && !playerWeapon().spear;
+// For testing: a knight or paladin test character made before they came with them gets a war spear (the circle throw),
+// and a paladin the hawkeye bow in their hands (critical hits), the bow they held put in the bag
+const hasHawkeye = () => countItem('hawkeye_bow') > 0 || (player.equipment.weapon && player.equipment.weapon.id === 'hawkeye_bow');
+const wantsTestSpear = () => isTestHero() && ['knight', 'paladin'].includes(player.vocation)
+  && ((!countItem('war_spear') && !playerWeapon().spear) || (player.vocation === 'paladin' && !hasHawkeye()));
 function giveTestSpear() {
-  giveItem('war_spear', 1);
-  log('A war spear in your bag. Take it in your hands (it needs both: no shield). Then say "hasta orbis", or use Circle Throw from your spells.', 'quest');
+  const eq = player.equipment;
+  if (!countItem('war_spear') && !playerWeapon().spear) {
+    giveItem('war_spear', 1);
+    log('A war spear in your bag. Take it in your hands (it needs both: no shield). Then say "hasta orbis", or use Circle Throw from your spells.', 'quest');
+  }
+  if (player.vocation === 'paladin' && !hasHawkeye()) {
+    const old = eq.weapon, bp = eq.backpack; // (the bow you held, its grade and all, into your backpack, or at your feet)
+    if (old) { if (bp && bp.contents && bp.contents.length < ITEMS[bp.id].container) bp.contents.push(old); else dropToGround(old, player); }
+    eq.weapon = { ...makeItem('hawkeye_bow'), q: QUALITIES.length - 1 };
+    eq.shield = null;
+    log('The hawkeye bow is in your hands: one shot in seven is a critical hit, twice as hard. Your old bow is in your bag.', 'quest');
+  }
   uiDirty();
 }
 function giveTestClang() {

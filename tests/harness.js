@@ -89,7 +89,7 @@ function loadGame({ seed = 1 } = {}) {
     get pendingHits() { return pendingHits; },
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
-    physicalMax, physicalHit, blocked, FIGHT_MODES,
+    physicalMax, physicalHit, blocked, FIGHT_MODES, wantsTestSpear,
     RARE_KIN, RARE_CHANCE, BESTIARY_TIERS, COSMETICS, bestiaryTier, bestiaryBonus, withBestiary,
   })`, ctx);
 
