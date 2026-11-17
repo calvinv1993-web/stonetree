@@ -637,6 +637,41 @@ function draw() {
 }
 
 // A soft round glow at (x, y), radius r: rgba is the colour's 'rgba(r,g,b,' start, a its strength at the middle.
+// The power shot's arrow: an arrowhead of light, pointing the way it flies (a = its angle, t = ms in flight, al = how
+// much is left of it). A soft gold halo, a body that burns brighter towards its tip, bright edges, a white-hot core,
+// streaks of speed off its wings and sparks shed behind - drawn in light ('lighter'), so it glows by day and by night.
+function drawLightArrowhead(x, y, a, t, al) {
+  const L = 22 * (1 + 0.06 * Math.sin(t / 45)), W = 15, notch = -L * 0.35, back = -L * 0.95;
+  const head = () => { ctx.beginPath(); ctx.moveTo(L, 0); ctx.lineTo(back, -W); ctx.lineTo(notch, 0); ctx.lineTo(back, W); ctx.closePath(); };
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(a);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // speed streaks off the wing tips, and sparks falling behind
+  for (const side of [-1, 1]) {
+    const g = ctx.createLinearGradient(back, 0, back - 34, 0);
+    g.addColorStop(0, `rgba(255,214,110,${0.7 * al})`); g.addColorStop(1, 'rgba(255,190,60,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(back + 2, side * (W - 1.5)); ctx.lineTo(back - 44, side * (W - 6)); ctx.stroke();
+  }
+  for (let i = 0; i < 7; i++) {
+    const ph = ((t / 260) + i / 7) % 1, sx = notch - 4 - ph * 34, sy = Math.sin(i * 2.3 + t / 90) * (3 + ph * 7);
+    glowDot(sx, sy, 2.2 * (1 - ph) + 0.6, 'rgba(255,226,130,', (1 - ph) * 0.8 * al);
+  }
+  // the halo, the body (dim at the back, burning at the tip), its edges and the white-hot core
+  glowDot(L * 0.2, 0, 30, 'rgba(255,170,40,', 0.3 * al);
+  const body = ctx.createLinearGradient(back, 0, L, 0);
+  body.addColorStop(0, `rgba(255,150,30,${0.12 * al})`); body.addColorStop(0.6, `rgba(255,190,60,${0.7 * al})`); body.addColorStop(1, `rgba(255,226,120,${0.95 * al})`);
+  ctx.shadowColor = 'rgba(255,190,60,0.9)'; ctx.shadowBlur = 10;
+  head(); ctx.fillStyle = body; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = `rgba(255,244,190,${0.9 * al})`; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(back, -W); ctx.lineTo(L, 0); ctx.lineTo(back, W); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L - 2, 0); ctx.lineTo(back * 0.45 + 2, -W * 0.42); ctx.lineTo(notch * 0.4, 0); ctx.lineTo(back * 0.45 + 2, W * 0.42); ctx.closePath();
+  ctx.fillStyle = `rgba(255,236,170,${0.55 * al})`; ctx.fill();
+  glowDot(L - 1, 0, 4, 'rgba(255,250,220,', 0.8 * al); // (the very tip, brightest)
+  ctx.restore();
+}
+
 function glowDot(x, y, r, rgba, a) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
   g.addColorStop(0, `${rgba}${a})`); g.addColorStop(0.4, `${rgba}${a * 0.5})`); g.addColorStop(1, `${rgba}0)`);
@@ -784,7 +819,7 @@ function drawEffects(ox, oy, z) {
           ctx.strokeStyle = grad; ctx.lineWidth = w; ctx.lineCap = 'round';
           ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
         }
-        if (p < 1) glowDot(x, y, 7, 'rgba(255,240,170,', 0.9); // the arrow itself, all light
+        if (p < 1 || fade > 0) drawLightArrowhead(x, y, a, r, p < 1 ? 1 : fade); // the arrow itself: an arrowhead of pure light
       }
       ctx.restore();
     } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow

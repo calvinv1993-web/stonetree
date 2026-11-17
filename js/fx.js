@@ -592,7 +592,7 @@ const Fx = (() => {
       }
       // and at its head a great arrowhead of light, pointing the way it flies
       const p = Math.min(1, r / Math.max(1, e.flight));
-      if (fade > 0.1) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: 1.5 * fade, color: LIGHT_COLORS.shot, flicker: false, arrow: Math.atan2(e.ty - e.y, e.tx - e.x) });
+      if (fade > 0.1) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: 1.8 * fade, color: LIGHT_COLORS.shot, flicker: false, arrow: Math.atan2(e.ty - e.y, e.tx - e.x) });
     }
     for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: true });
     // fire breathes: a slow swell, a quick flutter and a sputter now and then, never in step
@@ -619,7 +619,7 @@ const Fx = (() => {
         if (l === lights[0]) continue;
         const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
         if (!onView(sx, sy, r)) continue;
-        if (l.arrow !== undefined) { dctx.globalAlpha = Math.min(1, amount + 0.3); arrowLight(sx, sy, rad(l), l.arrow, arrowPicture(l.color)); continue; }
+        if (l.arrow !== undefined) continue; // (the arrowhead itself glows: game.js draws it; here only the ground it lights)
         dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
