@@ -437,11 +437,23 @@ const THINGS = {
       guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
       empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
   },
+  // King Mogg's Sabre: the deep vault under Goblin Hill (GOBLIN_DEEP in default-map.js)
+  goblin_gate: { name: 'old goblin gate', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', levelDoor: true, meta: 'level' },
+  qchest_diggers_cache: {
+    name: 'diggers\' chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'diggers_cache', gold: 30, items: [['health_potion', 3], ['mana_potion', 2]], empty: 'Only goblin teeth and a broken spade are left.' },
+  },
+  qchest_mogg_sabre: {
+    name: 'King Mogg\'s chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'mogg_sabre', quest: 'mogg_sabre', xp: 900, gold: 120, items: [['mogg_sabre', 1], ['health_potion', 2]], guard: 'king_mogg',
+      guarded: 'Bony fingers close on the lid. King Mogg will not part with his treasure while he stands.',
+      empty: 'The king\'s chest is empty. Goblin crowns, gone green, roll about the bottom.' },
+  },
   qchest_bronze_ward: {
     name: 'Gnash\'s hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'bronze_ward', quest: 'bronze_ward', xp: 700, gold: 80, items: [['bronze_ward', 1], ['health_potion', 2]], guard: 'goblin_hoardkeeper',
       guarded: 'The hoardkeeper snarls and stands over the chest. Not while he breathes.',
-      empty: 'Only stolen spoons and goblin junk are left in the hoard.' },
+      empty: 'Only stolen spoons and goblin junk are left in the hoard. Behind it, at the back of the cave, the earth has been dug and filled in again.' },
   },
   wim_bones: {
     name: 'Old Wim\'s bones', cat: 'Quest chests', sprite: 'bones',

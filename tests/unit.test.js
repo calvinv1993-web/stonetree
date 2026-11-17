@@ -1818,6 +1818,62 @@ test('The Bronze Ward: a burrow on Goblin Hill down to the goblins\' tunnels, an
   assert(messages.some(m => /Bronze Ward/.test(m) && /under their hill/.test(m)), 'Brenna misses her grandmother\'s shield');
 });
 
+test('King Mogg\'s Sabre: dig through Gnash\'s hoard, drop into the bone halls, past the level 7 gate, and the king\'s sabre four floors down', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, D = inCtx(game, 'GOBLIN_DEEP');
+  const go = (dx, dy) => { p.walk = null; const ok = ctx.step(p, dx, dy); tick(game, 1500); return ok; };
+  ctx.addItem('shovel', 1); ctx.addItem('rope', 1);
+  // the loose earth at the back of the hoard: a shovel digs through to the old diggings
+  const [dx, dy] = D.dig;
+  Object.assign(p, { x: dx - 1, y: dy, z: 7 });
+  ctx.useItemOn(bagRef(state, 'shovel'), dx, dy, 7);
+  assert(map.get(dx, dy, 7).items.includes('hole'), 'dug through');
+  go(1, 0);
+  assert.strictEqual(p.z, 6, 'down into the diggings');
+  ctx.useItemOn(bagRef(state, 'rope'), dx, dy, 6);
+  assert.strictEqual(p.z, 7, 'and a rope takes you back up');
+  // the pit drops you into the bone halls, with no way back up there
+  const [px, py] = D.pit;
+  Object.assign(p, { x: px - 1, y: py, z: 6 });
+  go(1, 0);
+  assert.strictEqual(p.z, 5, 'down the pit');
+  ctx.useItemOn(bagRef(state, 'rope'), px, py, 5);
+  assert.strictEqual(p.z, 5, 'no climbing back up the pit');
+  const [rx, ry] = D.rope;
+  Object.assign(p, { x: rx + 1, y: ry, z: 5 });
+  ctx.useItemOn(bagRef(state, 'rope'), rx, ry, 5);
+  assert.strictEqual(p.z, 6, 'the rope spot in the far hall leads back up');
+  // the old goblin gate: level 7 and up
+  const [gx, gy, level] = D.gate;
+  Object.assign(p, { x: gx, y: gy - 1, z: 5, level: level - 1 });
+  assert(!go(0, 1) && p.y === gy - 1, 'the gate holds below level 7');
+  assert(messages.some(m => m.includes(`level ${level}`)), 'and says so');
+  p.level = level;
+  go(0, 1); go(0, 1);
+  assert.strictEqual(p.y, gy + 1, 'level 7 walks through');
+  const [hx, hy] = D.down;
+  Object.assign(p, { x: hx, y: hy - 1, z: 5 });
+  go(0, 1);
+  assert.strictEqual(p.z, 4, 'down to the throne hall');
+  // King Mogg sits on his chest
+  const [cx, cy] = D.floors[4].props.find(pr => pr[2] === 'qchest_mogg_sabre');
+  const king = ctx.spawnMonster({ type: 'king_mogg', x: cx, y: cy + 2, z: 4 });
+  state.monsters.push(king);
+  Object.assign(p, { x: cx, y: cy + 1, z: 4 });
+  ctx.useThing(cx, cy, 4);
+  assert.strictEqual(state.countItem('mogg_sabre'), 0, 'not while the king stands');
+  ctx.damageMonster(king, 99999, 'physical');
+  ctx.useThing(cx, cy, 4);
+  assert.strictEqual(state.countItem('mogg_sabre'), 1, 'King Mogg\'s sabre');
+  assert.strictEqual(state.questState('mogg_sabre'), 'done');
+  const I = state.ITEMS;
+  for (const id of ['short_sword', 'longsword', 'tidecutter', 'brood_fang']) assert(I.mogg_sabre.weapon.attack > I[id].weapon.attack, `better than the ${id}`);
+  assert(I.mogg_sabre.weapon.attack < I.broadsword.weapon.attack, 'below the mainland\'s blades');
+  ctx.useThing(cx, cy, 4);
+  assert.strictEqual(state.countItem('mogg_sabre'), 1, 'once per character');
+});
+
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -1842,7 +1898,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all seven hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all eight hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -1853,9 +1909,9 @@ test('rumours: the innkeeper tells of all seven hidden quests, one at a time, an
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 7);
+  talk('oak_innkeeper', 'rumours', 8);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 7);
+  assert.strictEqual(Object.keys(R).length, 8);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');

@@ -213,7 +213,8 @@ const ITEMS = {
   tide_chart:    { name: 'Maddock\'s sea chart', quest: true, weight: 1, // Tidecutter: the riddle of where the key lies
     text: 'A sea chart of the west coast, in an old fisher\'s hand. The sea cave south of Fisher\'s Rest is marked with a cross. In the margin, a rhyme: "From the hut, go south along the strand to where the beach grows thin. Three grey stones stand in the sand: the key sleeps in between. Dig."' },
   sea_key:       { name: 'barnacled key', key: 'sea_cave', quest: true, weight: 1 }, // Tidecutter: opens the gate of the sea cave
-  tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // the best blade on the isle
+  mogg_sabre:    { name: 'King Mogg\'s sabre', slot: 'weapon', weapon: { type: 'sword', attack: 18 }, defense: 10, level: 7, value: 160, weight: 38 }, // (King Mogg's Sabre: the deepest vault on the isle)
+  tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // the best blade on the isle but King Mogg's sabre
   lamp_oil:      { name: 'jar of lamp oil', quest: true, weight: 12 }, // The Keeper's Coat, from Farmer Odo's cellar
   flint:         { name: 'piece of flint', quest: true, weight: 3 },   // The Keeper's Coat, from the cave under the North Peaks
   keeper_coat:   { name: 'keeper\'s coat', slot: 'body', armor: 7, level: 8, value: 150, weight: 70 }, // oiled wool and leather

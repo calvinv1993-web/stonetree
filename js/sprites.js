@@ -4685,6 +4685,7 @@ const Sprites = (() => {
       for (const y of [10, 13, 16]) line(g, '#8a7a5a', 1, 20, y, 25, y);
     },
     sea_key: g => { key(g, '#8a6a3a'); for (const [x, y] of [[8, 13], [11, 18], [19, 16], [24, 15]]) ellipse(g, '#d8d4c4', x, y, 1.5, 1.2); }, // crusted with barnacles
+    mogg_sabre: g => sword(g, 17, '#d8d0b0', '#5a2a5a', 5), // old goblin steel, pale and notched, a purple grip and a heavy guard
     tidecutter: g => sword(g, 18, '#c8e0e8', '#2a4a5a', 4), // sea-grey steel, a grip wound in blue
     lamp_oil(g) { // a stoppered clay jar
       ellipse(g, 'rgba(0,0,0,0.2)', 16, 27, 9, 2.5);
@@ -4800,6 +4801,7 @@ const Sprites = (() => {
     'rare:goblin': { scale: 0.9, skin: '#4e8a2c', hair: '#4e8a2c', eye: '#ff4020', body: '#3a2a4a', belt: '#d0a030', legs: '#2a2a1a', arms: '#4e8a2c', hat: { style: 'hood', color: '#b02a22' }, held: 'sword' }, // Grubnose the Sly
     'rare:skeleton': { scale: 1.1, skin: '#d8cc9a', hair: '#d8cc9a', eye: '#e04020', body: '#c8bc8a', belt: '#6a5a3a', legs: '#c2b684', arms: '#c2b684', ribs: '#7a6e4c', hat: { style: 'helmet', color: '#7a7466' }, held: 'sword', shield: '#5a4630' }, // Sir Clatterbones
     skeleton: { skin: '#e6e2d3', hair: '#e6e2d3', eye: '#111', body: '#d6d1c0', belt: '#8a8574', legs: '#d0cbb9', arms: '#d0cbb9', ribs: '#8a8574' },
+    king_mogg: { scale: 1.1, skin: '#d4cba8', hair: '#d4cba8', eye: '#70ff50', body: '#5a3a5a', belt: '#d0a030', legs: '#c8bf9c', arms: '#c8bf9c', ribs: '#7a7050', hat: { style: 'crown', color: '#a89a40' }, held: 'sword' }, // King Mogg: a goblin king's bones in a rotten purple robe, a crown gone green
     gnash: { scale: 0.95, skin: '#5a8a34', hair: '#2a1a0a', eye: '#ff4020', body: '#6a2a1a', belt: '#d0a030', legs: '#3a2a1a', arms: '#5a8a34', hat: { style: 'helmet', color: '#8a8070' }, held: 'axe' }, // Chief Gnash
     goblin: { scale: 0.8, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a2a', arms: '#6aa040', held: 'axe' },
     goblin_archer: { scale: 0.78, skin: '#6aa040', hair: '#6aa040', eye: '#e0d020', body: '#5a6a3a', belt: '#3a2a1a', legs: '#4a4a2a', arms: '#6aa040', hat: { style: 'hood', color: '#4a5a2a' }, held: 'bow' },
@@ -6620,6 +6622,7 @@ const Sprites = (() => {
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
+    king_mogg: [1.4, 8, null, 0, 34],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {

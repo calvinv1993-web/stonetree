@@ -288,6 +288,18 @@ The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the me
 - Show the blade to Maddock (he lets you keep it: step `has`): the reward, and the clue to the lighthouse.
 - Tidecutter: sword, attack 17, defense 11, level 7: the best blade on the isle, below the broadsword (level 12).
 
+**King Mogg's Sabre** (level 7, the first of the deep vaults: no giver at all, only Rolf's rumour; `mogg_sabre`; 900 xp, 120 gold)
+- `GOBLIN_DEEP` and `buildGoblinDeep` in `js/default-map.js`. Four floors under Goblin Hill, each harder than the last.
+- Floor 7: at the back of Gnash's hoard, a short tunnel east to loose earth (199,84): a shovel digs a hole (it fills in
+  again after a minute); a rope spot under it leads back up.
+- Floor 6, the Deep Diggings: the goblins' den (186,87) with archers, a boulder in the tunnel south (186,92: it rolls
+  into a niche at the end), a store cave (190,97), the diggers' chest in a side cave (180,100), and the pit (205,96).
+- Floor 5, the bone halls: the pit drops you here with no way back up it; skeletons and a shade in the hall (187,100); the
+  rope spot (182,101) climbs back up into the side cave. South, the old goblin gate (186,106, level 7), then a hole down.
+- Floor 4, the throne hall (193,115): King Mogg (340 hp, summons a skeleton now and then) with two skeletons and a shade,
+  his throne and chest (193,112).
+- King Mogg's sabre: sword, attack 18, defense 10, level 7: the best blade on the isle, below the broadsword (level 12).
+
 **The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
 - The lighthouse: a new stone tower in the Lighthouse clearing (122–126, 201–205, door 124,205), three floors, stairs at
   (123,202) and (125,202), the **great lamp** on the top floor (124,203,10), dark. The old one's stump stays on the point.

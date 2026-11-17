@@ -123,6 +123,17 @@ const MONSTERS = {
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
     voices: { aggro: 'Halt! Who goes there? The watch has not been relieved!', low: 'The tower... must not fall...', death: 'Relieved... at last...' },
   },
+  king_mogg: { // the goblin king of old, risen on his throne at the bottom of the Deep Diggings under Goblin Hill (King Mogg's Sabre)
+    name: 'King Mogg', proper: true, hp: 340, xp: 320, dmg: [4, 22], defense: 5, armor: 4, speed: 170, attackSpeed: 1600, aggro: 6, corpse: 'bones',
+    respawn: 300000, weak: { holy: 1.4, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
+    summon: { type: 'skeleton', max: 1, chance: 0.08 },
+    loot: { gold: [30, 70], items: [['health_potion', 0.6], ['goblin_charm', 0.5, 1, 2]] },
+    voices: {
+      aggro: 'Who wakes the king? Kneel, little tallfolk! This hill was MOGG\'s before your town had a stone!',
+      low: 'My sabre... you shall not have... my sabre!',
+      death: 'The hill... is yours... for now...',
+    },
+  },
   goblin_archer: { // the goblins' sharpshooters, in their tunnels under Goblin Hill: they keep their distance and shoot
     name: 'goblin archer', hp: 40, xp: 34, dmg: [0, 8], defense: 2, armor: 1, speed: 210, attackSpeed: 1700, aggro: 7, corpse: 'blood', flee: 0.2,
     ranged: { range: 5, dmg: [4, 16], missile: 'arrow', element: 'physical', chance: 0.7, keepDistance: true },

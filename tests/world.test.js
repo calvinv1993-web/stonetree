@@ -88,6 +88,18 @@ for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; 
     if (to) addEdge(a, to);
   }
 }
+// A shovel digs a hole in loose sand (it closes again a minute later): down from next to it, by the game's own code.
+for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  const t = map.get(x, y, z);
+  if (!t || !t.items.includes('loose_sand')) continue;
+  for (const [dx, dy] of N8) {
+    const a = { x: x + dx, y: y + dy, z };
+    if (!walkable(a.x, a.y, z) || change(a.x, a.y, z)) continue;
+    state.player = Object.assign(state.player, { x, y, z, walk: null });
+    const to = ctx.changeFloor(-1, -dx, -dy) ? { x: state.player.x, y: state.player.y, z: state.player.z } : null;
+    if (to) addEdge(a, to);
+  }
+}
 const reverse = new Map();
 for (const [k, list] of edges) for (const j of list) { if (!reverse.has(j)) reverse.set(j, []); reverse.get(j).push(k); }
 const flood = (graph, start) => {

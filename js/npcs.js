@@ -730,6 +730,7 @@ const RUMOURS = {
   tidecutter: 'The fishers at Fisher\'s Rest talk of a drowned blade, the Tidecutter, lost with a boat off the west shore in the founders\' day. One old fisher swears he has its sea chart still, and cannot make head or tail of it.',
   lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s coat. Oil, a wick and a spark, she says: as if that were easy, out there.',
   chapel: 'Grave robbers in the founders\' crypt under Bone Rocks, years ago, swore they felt cold air through the east wall of the hall of coffins, and heard someone counting behind it. Counting bones, they said. They ran. A pick would tell you more than I can.',
+  mogg: 'Goblins say their hill was a kingdom once, and King Mogg the worst of its kings, buried under it with his sabre across his knees. Gnash\'s lot started digging down after it, they say, and then stopped all at once, and filled the hole in again. Goblins are not easily frightened. Bring a shovel, and leave your courage switched on.',
   eagle: 'The eagles of the North Peaks nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
 };
 
@@ -1835,6 +1836,7 @@ Object.assign(QUESTS, {
 Object.assign(QUESTS, {
   watchman_greaves: { name: 'The Watchman\'s Greaves', chest: true, summary: 'You climbed the Old Tower, pulled its levers in the order the watchmen\'s graves gave, and laid the last watchman\'s shade to rest in the cellar.' },
   bronze_ward: { name: 'The Bronze Ward', chest: true, summary: 'You pushed your way through the goblin tunnels under Goblin Hill and took back Brenna\'s bronze shield from Gnash\'s hoard.' },
+  mogg_sabre: { name: 'King Mogg\'s Sabre', chest: true, summary: 'You dug through the floor of Gnash\'s hoard into the goblins\' old diggings, dropped into the bone halls of the goblin kings, and took King Mogg\'s sabre from his throne hall, four floors under Goblin Hill.' },
   old_wim: { name: 'Down the Well', chest: true, summary: 'You climbed down the town well and found Old Wim, and his ring, at the bottom of it.' },
 });
 
@@ -2227,7 +2229,7 @@ Object.assign(NPCS, {
       'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
-      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel] },
+      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel, RUMOURS.mogg] },
       bell: 'They say the temple bell went quiet the night the rats came up through the grates.',
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },

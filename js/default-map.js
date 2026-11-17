@@ -537,6 +537,47 @@ const GOBLIN_WARREN = {
   ],
 };
 
+// The Deep Diggings under Goblin Hill (King Mogg's Sabre), floors 7 to 4: the deepest vault on the isle, and nobody's
+// arrow points at it. At the far end of Gnash's hoard (floor 7) a niche of loose earth: a shovel digs through to the
+// goblins' old diggings (floor 6), full of goblins, with a boulder to push and a chest in a side cave. At their end a pit
+// drops into the bone halls of the old goblin kings (floor 5): no climbing back that way, only a rope spot in the far
+// hall, up into the side cave. Past the old goblin gate (level 7 and up) a hole goes down to King Mogg's throne hall
+// (floor 4), where the king's bones sit on his chest.
+//   floors: { z: { caves [cx, cy, rx, ry], tunnels [x0, y0, x1, y1], boulders [x, y], props [x, y, id], monsters [type, x, y] } }
+//   dig: the loose earth (floor 7), with a rope spot under it; pit: the drop (floor 6) into the halls; rope: the rope spot
+//   back up (floor 5); gate: the level gate [x, y, level]; down: the hole to the throne hall (floor 5, a ladder below)
+const GOBLIN_DEEP = {
+  dig: [199, 84, 'Loose earth, dug and then filled in again in a hurry. The goblins stopped digging here. Something made them stop.'],
+  pit: [205, 96, 'A pit in the floor, black as ink. Cold air comes up out of it, and the smell of old bones. There is no climbing back up out of that.'],
+  rope: [182, 101, 'High above, a hole in the rock, and roots hanging from it. With a rope you could climb up there.'],
+  gate: [186, 106, 7, 'An old gate of goblin iron, green with age. Scratched on it, in goblin and in plain letters: ONLY THE STRONG GO DOWN TO THE KING.'],
+  down: [186, 110, 'A hole, with goblin footholds cut into its side, going down into the dark.'],
+  floors: {
+    7: { tunnels: [[194, 84, 199, 84]], props: [[198, 84, 'rubble'], [197, 84, 'bones']] },
+    6: {
+      caves: [[200, 85, 2.4, 2], [186, 87, 3.6, 2.6], [190, 97, 3.2, 2.4], [203, 96, 2.6, 2], [182, 100, 2.4, 1.7]],
+      tunnels: [[189, 85, 197, 85], [186, 90, 186, 98], [187, 97, 188, 97], [193, 97, 201, 97], [182, 90, 182, 98], [183, 89, 183, 89]],
+      boulders: [[186, 92]],
+      props: [[180, 100, 'qchest_diggers_cache'], [184, 101, 'bones'], [188, 86, 'rubble'], [184, 88, 'bones'], [192, 98, 'rubble'], [189, 96, 'bones'], [204, 95, 'bones']],
+      monsters: [['goblin', 185, 86], ['goblin', 188, 88], ['goblin_archer', 184, 87], ['goblin_archer', 189, 86],
+        ['goblin', 190, 96], ['goblin', 191, 98], ['giant_rat', 197, 97], ['giant_rat', 203, 97], ['goblin_archer', 181, 99]],
+    },
+    5: {
+      caves: [[204, 97, 2.6, 2], [187, 100, 4.2, 3], [186, 110, 1.8, 1.6]],
+      tunnels: [[190, 99, 203, 99], [182, 101, 183, 101], [186, 104, 186, 108]],
+      props: [[184, 99, 'bones'], [190, 102, 'skull_pile'], [184, 102, 'bones'], [189, 98, 'rubble'], [199, 99, 'bones'], [205, 98, 'bones'], [187, 111, 'bones']],
+      monsters: [['skeleton', 185, 99], ['skeleton', 189, 101], ['skeleton', 188, 98], ['skeleton', 196, 99], ['shade', 186, 102]],
+    },
+    4: {
+      caves: [[186, 110, 1.8, 1.6], [193, 115, 4.6, 3.4]],
+      tunnels: [[187, 111, 188, 111], [188, 112, 189, 112], [189, 113, 189, 113]],
+      props: [[193, 112, 'qchest_mogg_sabre'], [192, 112, 'throne'], [194, 112, 'treasure'], [190, 113, 'skull_pile'], [196, 113, 'skull_pile'],
+        [190, 117, 'bones'], [196, 117, 'bones'], [193, 118, 'rubble']],
+      monsters: [['king_mogg', 193, 114], ['skeleton', 190, 115], ['skeleton', 196, 115], ['shade', 193, 117]],
+    },
+  },
+};
+
 // Under the town well (Down the Well), floor 7: tie a rope to the well and climb down. A pool at the bottom, a rope spot
 // to climb back up, and a few dark tunnels where giant rats live. At the end a cracked rock: a pick breaks through to
 // where Old Wim lies, who went down the well for a bet, with his lucky ring.
@@ -999,6 +1040,7 @@ function createDefaultMap() {
   buildDeepSewers(m, S);
   buildOldTower(m, S);
   buildGoblinWarren(m, S);
+  buildGoblinDeep(m);
   buildWellTunnels(m, S);
   buildGateSites(m, S);
   buildDiscoveries(m, S);
@@ -1599,6 +1641,40 @@ function buildGoblinWarren(m, S) {
   for (const [x, y] of G.boulders) m.addItem(x, y, Z, 'boulder');
   for (const [x, y, id] of G.props) m.addItem(x, y, Z, id);
   for (const [type, x, y] of G.monsters) m.spawns.push({ type, x, y, z: Z, lurk: true });
+}
+
+// Builds the Deep Diggings under Goblin Hill (see GOBLIN_DEEP), after the warren above them: each floor's caves and
+// tunnels with rock round them, then the ways between the floors, the gate, the chests and the dead.
+function buildGoblinDeep(m) {
+  const D = GOBLIN_DEEP, hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  for (const [zs, F] of Object.entries(D.floors)) {
+    const Z = +zs, carved = [];
+    const carve = (x, y) => { const t = m.get(x, y, Z); if (!t || t.items.includes('wall_cave')) { m.set(x, y, Z, { ground: 'cave', items: [] }); carved.push([x, y]); } };
+    for (const [cx, cy, rx, ry] of F.caves || []) {
+      for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
+        if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 0.75 + hash(x + Z, y + 11) * 0.4) carve(x, y);
+      }
+    }
+    for (const [x0, y0, x1, y1] of F.tunnels || []) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) carve(x, y);
+    for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+      if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'cave', items: ['wall_cave'] });
+    }
+  }
+  const at = (x, y, z, id, look) => { m.get(x, y, z).items = [id]; if (look) m.setMeta(x, y, z, { look }); };
+  const [dx, dy, digLook] = D.dig, [px, py, pitLook] = D.pit, [rx, ry, ropeLook] = D.rope, [gx, gy, level, gateLook] = D.gate, [hx, hy, downLook] = D.down;
+  at(dx, dy, 7, 'loose_sand', digLook);
+  at(dx, dy, 6, 'rope_spot', 'Daylight? No: torchlight, far above, through loose earth. With a rope you could climb back up.');
+  at(px, py, 6, 'hole', pitLook);
+  at(rx, ry, 5, 'rope_spot', ropeLook);
+  at(gx, gy, 5, 'goblin_gate'); m.setMeta(gx, gy, 5, { level, look: gateLook });
+  at(hx, hy, 5, 'hole', downLook);
+  at(hx, hy, 4, 'cave_ladder');
+  for (const [zs, F] of Object.entries(D.floors)) {
+    const Z = +zs;
+    for (const [x, y] of F.boulders || []) m.addItem(x, y, Z, 'boulder');
+    for (const [x, y, id] of F.props || []) m.addItem(x, y, Z, id);
+    for (const [type, x, y] of F.monsters || []) m.spawns.push({ type, x, y, z: Z, lurk: true });
+  }
 }
 
 // Builds the tunnels under the town well (see WELL_TUNNELS): the well you can rope down, the pool at the bottom with
