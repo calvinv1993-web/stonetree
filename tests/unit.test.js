@@ -1713,43 +1713,39 @@ test('every plain shot from a bow, and blow of a war spear, shows the hero loosi
   assert(seen > 0, 'the war spear is swung');
 });
 
-test('Kestrel Isle (the new world, a preview): Bellhaven builds, you wake in its temple, every door and stair leads somewhere', () => {
+test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you wake in the temple, every door can be walked to', () => {
   const game = quietGame();
   const { ctx } = game;
-  const m = ctx.createKestrelMap(), K = game.state.KESTREL_TOWN, [TX, TY] = K.at;
+  const m = ctx.createKestrelMap(), K = game.state.KESTREL, [OX, OY] = K.isleAt, [TX, TY] = K.townAt;
+  const W = (x, y) => [OX + TX + x, OY + TY + y]; // (town-art coordinates in the world)
   assert(m.isWalkable(m.start.x, m.start.y, m.start.z), 'you wake on open floor');
   assert(m.temples.some(t => t.home === 'bellhaven'), 'the temple is home');
-  const inB = (b, x, y) => [b.box, ...(b.wings || [])].some(([a, c, e, f]) => x >= a && x <= e && y >= c && y <= f);
-  for (const b of K.buildings) {
-    const [dx, dy] = b.door, Z = m.surfaceZ + (b.level || 0);
-    const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
-    assert(out && m.isWalkable(TX + out[0], TY + out[1], Z), `${b.name}: its door opens onto open ground`);
-    for (const [k, [x, y]] of (b.up || []).entries()) {
-      const z = Z + k;
-      assert(m.isWalkable(TX + x, TY + y, z + 1), `${b.name}: the stairs up from floor ${k} land on open floor`);
-      assert(m.isWalkable(TX + x + 1, TY + y, z), `${b.name}: the stairs down to floor ${k} land on open floor`);
-    }
-  }
-  for (const [x0, y0, x1, y1] of K.gates) assert(m.isWalkable(TX + Math.round((x0 + x1) / 2), TY + Math.round((y0 + y1) / 2), m.surfaceZ), 'the gates are open');
-  // from the temple you can walk to every door and out of every gate (no garden, fence or stall in the way)
-  // (the steps up the temple rock join the two floors: a step onto them climbs, a step onto their top goes down)
-  const Z = m.surfaceZ, seen = new Set([`${m.start.x},${m.start.y},${m.start.z}`]), todo = [[m.start.x, m.start.y, m.start.z]];
+  assert(m.spawns.length > 40, 'game out in the wilds');
+  // from the temple you can walk to every door, and out of the west, east and north gates (the steps down the temple
+  // rock join the floors: a step onto them climbs, a step onto their top goes down)
+  const seen = new Set([`${m.start.x},${m.start.y},${m.start.z}`]), todo = [[m.start.x, m.start.y, m.start.z]];
   while (todo.length) {
     const [x, y, z] = todo.pop();
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      let nx = x + dx, ny = y + dy, nz = z;
+      const nx = x + dx, ny = y + dy; let nz = z;
       const t = m.get(nx, ny, nz);
       if (!t) continue;
       if (t.items.includes('steps')) nz++;
       else if (t.ground === 'steps_top') nz--;
       else if (!(m.isWalkable(nx, ny, nz) || t.items.some(id => id.startsWith('door')))) continue;
       const k = `${nx},${ny},${nz}`;
-      if (seen.has(k)) continue;
-      seen.add(k); todo.push([nx, ny, nz]);
+      if (!seen.has(k)) { seen.add(k); todo.push([nx, ny, nz]); }
     }
   }
-  for (const b of K.buildings) assert(seen.has(`${TX + b.door[0]},${TY + b.door[1]},${Z + (b.level || 0)}`), `${b.name}: you can walk to its door from the temple`);
-  for (const [x0, y0, x1, y1] of K.gates) assert(seen.has(`${TX + x0},${TY + y0},${Z}`) || seen.has(`${TX + x1},${TY + y1},${Z}`), 'and out of every gate');
+  for (const b of K.buildings) {
+    const [x, y] = W(...b.door), z = m.surfaceZ + (b.rock ? 1 : 0);
+    assert(seen.has(`${x},${y},${z}`), `${b.name}: you can walk to its door from the temple`);
+    for (const [k, [sx, sy]] of (b.up || []).entries()) {
+      const [ux, uy] = W(sx, sy);
+      assert(m.isWalkable(ux, uy, z + k + 1) && m.isWalkable(ux + 1, uy, z + k), `${b.name}: its stairs land on open floor`);
+    }
+  }
+  for (const [x, y] of [[12, 40], [86, 36], [79, 1]]) assert(seen.has(`${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `out of the gate at ${x},${y}`);
 });
 
 test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, shown in orange', () => {
