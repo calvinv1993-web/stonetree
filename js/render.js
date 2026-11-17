@@ -566,7 +566,8 @@ const Render = {
           if (!here || !KERB_ON.has(here) || (tileAt(x, y) && tileAt(x, y).items.some(id => THINGS[id].wall))) continue;
           let mask = 0, street = null, soft = 0, path = null;
           for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
-            const n = groundAt(x + dx, y + dy);
+            const n = groundAt(x + dx, y + dy), nt = tileAt(x + dx, y + dy);
+            if (nt && nt.items.some(id => THINGS[id].wall)) continue; // (a house's wall: its floor is no street, no kerb along it)
             if (n && KERBED[n] && KERBED[n].has(here)) { mask |= bit; street = street || n; }
             else if (n && KERB_PATHS.has(n) && bit < 16) { soft |= bit; path = path || n; } // (a path opening onto the street)
           }
