@@ -42,7 +42,7 @@ node server/dev.js 8090        # the same, restarting itself whenever the game c
 
 The built-in world is **Oakvale Isle**, a hand-built starter island, and for now the whole world: the beginners' island comes first, the mainland after it.
 
-- **The land:** Oakvale's town in the middle, with Willow River through it; Mirror Lake, the North Peaks and Eagle Peak, Bone Rocks and the Spider Hills (rocky mountains in tiers), the Old Tower hill and Hermit Rock, Wolf Woods, Deer Woods and smaller woods, Frog Marsh, Stony Field, Goblin Hill, Sunny Fields and Lighthouse Point.
+- **The land:** Oakvale's town in the middle, with Willow River through it; Mirror Lake, the North Peaks, Bone Rocks and the Spider Hills (rocky mountains in tiers), the Old Tower hill and Hermit Rock, Wolf Woods, Deer Woods and smaller woods, Frog Marsh, Stony Field, Goblin Hill, Sunny Fields and Lighthouse Point.
 - **The town:** a walled town in a ring of water.
   - The wall is thick enough to walk on: go up through a corner tower, or the arched doorway beside the north gate, and walk all the way round, over the gates and the river. Climb a tower to its lookout, under Oakvale's blue flag with the golden sun.
   - Old bronze cannons stand on the battlements (look at one), and banners hang down the outside of the wall. Each gate has a gatehouse with a slate roof, and each corner tower a door out, over a footbridge, towards the hunting grounds.
@@ -94,7 +94,7 @@ The bell of Oakvale has stopped ringing. The story climbs in danger as you grow,
   - **The Bronze Ward** (about level 6): Armourer Brenna misses her grandmother's shield, and goblins dig like moles.
   - **Down the Well** (about level 6): Old Wim went down the town well for a bet and never came back up.
   - **The Bone Chapel** (about level 6): grave robbers once heard someone counting behind the east wall of the founders' crypt. Bring a pick, and a shovel.
-  - Rumours also speak of a drowned blade near Fisher's Rest, of the dark lighthouse, and of an eagle's feather on Eagle Peak.
+  - Rumours also speak of a drowned blade near Fisher's Rest, of the dark lighthouse, and of an eagle's feather high on the North Peaks.
 - **Levers and boulders:** some levers only work pulled in the right order (a wrong one makes them all spring back with a clank). Walk straight into a boulder to push it a tile on; pushed boulders roll back after a while.
 - **V: The Choir's Shadow** (level 8, Master Corwin, after IV): his old books speak of the Ashen Choir, who sing to something under a burning mountain across the sea. At **Lighthouse Point**, Keeper Tamsin keeps a fire at the foot of the new tower, which has never been lit; at the tip of the point the Choir comes ashore: three grey-robed singers who throw fire, and their **Choir Cantor**; they fight as one (strike one and they all come). In his satchel, Galen's ring of swiftness and the last page of the founder's diary. Corwin reads it to you, and gives you the ring.
 - **VI: Farewell** (level 10, Sister Ama): farewell to your newcomer days. Climb the bell tower and ring the bell yourself (the town looks up and cheers), say farewell to Master Corwin, Pip and Sergeant Bram, and come back to Sister Ama for her blessing and supplies.

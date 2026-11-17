@@ -1029,12 +1029,16 @@ function updateRaids() {
   if (!nextRaidAt) nextRaidAt = now + randInt(...RAID_INTERVAL);
   if (now < nextRaidAt) return;
   nextRaidAt = now + randInt(...RAID_INTERVAL);
-  startRaid(RAIDS[randInt(0, RAIDS.length - 1)]);
+  // only raids the strongest player about can take on (newcomers on the roads aren't swamped by a warband)
+  const top = Math.max(0, ...players.filter(p => !p.dead).map(p => p.level));
+  const fit = RAIDS.filter(r => top >= (r.minLevel || 0));
+  if (fit.length) startRaid(fit[randInt(0, fit.length - 1)], top);
 }
 
-const RAID_STAY = 20 * 60000; // raiders leave after this, once nobody sees them go
+const RAID_STAY = 10 * 60000; // raiders leave after this, once nobody sees them go
 
-function startRaid(raid) {
+// level: the strongest player's about; the raid comes as many as that player can take on (1 + level / 2, at most its own)
+function startRaid(raid, level = 99) {
   for (const p of players) {
     asPlayer(p, () => {
       log(`Raid: ${raid.message}`, 'raid');
@@ -1042,7 +1046,7 @@ function startRaid(raid) {
     });
   }
   for (const [type, n] of raid.spawns) {
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < Math.min(n, 1 + Math.floor(level / 2)); i++) {
       const m = spawnMonster({ type, x: raid.at.x + randInt(-3, 3), y: raid.at.y + randInt(-3, 3), z: raid.at.z }, { raid: true, until: now + RAID_STAY });
       if (m) {
         m.def = { ...m.def, aggro: 9 };

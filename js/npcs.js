@@ -619,9 +619,10 @@ const QUESTS = {
 // Raids on Oakvale Isle: now and then something comes for the town, and everyone online hears of it. They come to
 // the gates, never in (monsters keep out of town), and leave after a while.
 const RAIDS = [
-  { name: 'goblin warband', message: 'A goblin warband from Goblin Hill is marching on the north gate!', at: { x: 127, y: 86, z: 8 }, spawns: [['goblin', 6]] },
-  { name: 'wolf pack', message: 'A pack of wolves has come out of Wolf Woods, howling at the west gate!', at: { x: 90, y: 121, z: 8 }, spawns: [['wolf', 5]] },
-  { name: 'restless dead', message: 'The dead are stirring at Bone Rocks: skeletons walk the bone trail!', at: { x: 82, y: 201, z: 8 }, spawns: [['skeleton', 4]] },
+  // (minLevel: only once someone about is that strong; how many come grows with the strongest of them: startRaid)
+  { name: 'goblin warband', minLevel: 5, message: 'A goblin warband from Goblin Hill is marching on the north gate!', at: { x: 127, y: 86, z: 8 }, spawns: [['goblin', 6]] },
+  { name: 'wolf pack', minLevel: 3, message: 'A pack of wolves has come out of Wolf Woods, howling at the west gate!', at: { x: 90, y: 121, z: 8 }, spawns: [['wolf', 5]] },
+  { name: 'restless dead', minLevel: 6, message: 'The dead are stirring at Bone Rocks: skeletons walk the bone trail!', at: { x: 82, y: 201, z: 8 }, spawns: [['skeleton', 4]] },
 ];
 const RAID_INTERVAL = [15 * 60000, 25 * 60000];
 
@@ -729,7 +730,7 @@ const RUMOURS = {
   tidecutter: 'The fishers at Fisher\'s Rest talk of a drowned blade, the Tidecutter, lost with a boat off the west shore in the founders\' day. One old fisher swears he has its sea chart still, and cannot make head or tail of it.',
   lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s coat. Oil, a wick and a spark, she says: as if that were easy, out there.',
   chapel: 'Grave robbers in the founders\' crypt under Bone Rocks, years ago, swore they felt cold air through the east wall of the hall of coffins, and heard someone counting behind it. Counting bones, they said. They ran. A pick would tell you more than I can.',
-  eagle: 'The eagles of Eagle Peak nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
+  eagle: 'The eagles of the North Peaks nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
 };
 
 // look: palette for the humanoid sprite (see Sprites). trade: { sells: [[itemId, price]], buys: [BUYS keys] }

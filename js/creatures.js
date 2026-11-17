@@ -90,7 +90,7 @@ const MONSTERS = {
     loot: { gold: [10, 25], items: [['wolf_pelt', 1, 1, 2], ['meat', 0.8, 1, 3], ['health_potion', 0.3]] },
   },
   old_snapper: { // the oldest crab on Lighthouse Point: a shell like a cart wheel
-    name: 'Old Snapper', proper: true, hp: 150, xp: 100, dmg: [2, 20], defense: 4, armor: 5, speed: 150, attackSpeed: 1700, aggro: 5, corpse: 'blood',
+    name: 'Old Snapper', proper: true, hp: 130, xp: 100, dmg: [2, 15], defense: 3, armor: 4, speed: 150, attackSpeed: 1700, aggro: 5, corpse: 'blood',
     respawn: 300000,
     loot: { gold: [15, 35], items: [['crab_claw', 1, 2, 3], ['pearl', 0.3], ['health_potion', 0.4]] },
   },
@@ -106,8 +106,8 @@ const MONSTERS = {
     loot: { gold: [3, 15], items: [['health_potion', 0.1], ['bone', 0.3], ['ring_life', 0.01]] },
   },
   thornmother: { // the spider queen of the Spider Hills, who lays the webs over the trails
-    name: 'the Thornmother', proper: true, hp: 150, xp: 120, dmg: [2, 18], defense: 4, armor: 3, speed: 200, attackSpeed: 1400, aggro: 6, corpse: 'slime',
-    respawn: 300000, hitCondition: { kind: 'poison', chance: 0.35, power: 4 }, summon: { type: 'spider', max: 2, chance: 0.08 },
+    name: 'the Thornmother', proper: true, hp: 130, xp: 120, dmg: [2, 14], defense: 4, armor: 3, speed: 200, attackSpeed: 1400, aggro: 6, corpse: 'slime',
+    respawn: 300000, hitCondition: { kind: 'poison', chance: 0.3, power: 3 }, summon: { type: 'spider', max: 1, chance: 0.06 },
     loot: { gold: [15, 40], items: [['spider_silk', 1, 2, 4], ['health_potion', 0.5]] },
   },
   gnash: { // the chief of the goblin camp on Goblin Hill

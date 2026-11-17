@@ -18,7 +18,7 @@ const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
 const MAP_TOWNS = [['Oakvale', 137, 104, 9]];
 const MAP_SIGHTS = [
-  ['North Peaks', 100, 57, 9], ['Mirror Lake', 122, 60, 8], ['Willow River', 121, 76, 8], ['Wolf Woods', 60, 84, 8],
+  ['North Peaks', 100, 57, 9], ['Mirror Lake', 128, 57, 8], ['Willow River', 121, 76, 8], ['Wolf Woods', 60, 84, 8],
   ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
   ['Lighthouse Point', 128, 204, 8], ['Spider Hills', 178, 196, 9], ['Deer Woods', 176, 112, 8], ['Old Tower', 194, 118, 9],
   ['Goblin Hill', 190, 74, 8], ['Hermit Rock', 202, 48, 9], ['Stony Field', 96, 74, 8],
@@ -429,7 +429,7 @@ const SPIDER_DEN = {
   chambers: [[176, 196.5, 2.2, 1.8], [173, 191, 2.5, 2], [178, 186, 3, 2.2], [176, 180, 5.5, 3.6]],
   spiders: [[173, 191], [174, 190], [178, 186], [179, 187], [172, 181], [180, 179]],
   queen: [176, 179],
-  props: [[176, 177, 'web'], [171, 180, 'web'], [181, 181, 'web'], [174, 182, 'bones'], [179, 182, 'bones'], [172, 192, 'web'], [180, 186, 'bones']],
+  props: [[173, 178, 'qchest_brood_hoard'], [176, 177, 'web'], [171, 180, 'web'], [181, 181, 'web'], [174, 182, 'bones'], [179, 182, 'bones'], [172, 192, 'web'], [180, 186, 'bones']],
 };
 
 const CRYPT = {

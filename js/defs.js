@@ -387,6 +387,11 @@ const THINGS = {
     name: 'founders\' cairn', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'bone_lookout', gold: 35, items: [['health_potion', 2], ['rope', 1]] },
   },
+  // the Brood Queen's hoard, behind her eggs: what the spiders took from those who came before you
+  qchest_brood_hoard: {
+    name: 'silk-wrapped hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'brood_hoard', gold: 150, items: [['health_potion', 4], ['ring_swift', 1], ['spider_silk', 3]] },
+  },
   qchest_spider_cache: {
     name: 'webbed pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'spider_cache', gold: 25, items: [['spider_silk', 3], ['health_potion', 1]] },
