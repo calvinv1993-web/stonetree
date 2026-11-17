@@ -35,7 +35,7 @@ const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y,
 // their owners, locked doors and gates for whoever has the key), a boulder (it can be pushed out of the way) or a cracked
 // rock (a pick breaks it). Roofs don't count: nobody walks on them.
 const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor || THINGS[id].lockDoor // (some open for some)
-  || THINGS[id].push || THINGS[id].breakable;
+  || THINGS[id].push || THINGS[id].breakable || THINGS[id].burnable;
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;

@@ -281,6 +281,7 @@ const CUSTOM_SPRITES = {
   sheet_old_snapper: 'monster-old_snapper.png', // the old crab of the south beach
   sheet_thornmother: 'monster-thornmother.png', // the spider queen of the Spider Hills
   sheet_brood_queen: 'monster-brood_queen.png', // the spiders' den
+  sheet_old_weaver: 'monster-brood_queen.png', // the Old Weaver, under the den: the Brood Queen's shape, bigger and gone pale (SHEET_TINTS)
   sheet_brineshell: 'monster-brineshell.png', // Old Snapper's mate, in the sea cave
   sheet_saltjaw: 'monster-brineshell.png', // Saltjaw, in the smugglers' caves: Brineshell's shape, till he has a sheet of his own
   sheet_cistern_slime: 'monster-cistern_slime.png', // the great slime under Oakvale

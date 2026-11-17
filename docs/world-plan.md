@@ -320,6 +320,15 @@ The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the me
   and a shade; the smugglers' chest (145,213).
 - The smugglers' copper shield: defense 19, level 7: the best on the isle, below the iron shield (20, level 12).
 
+**The Weaver's Helm** (level 8, the fourth deep vault: only Rolf's rumour; `weaver_helm`; 950 xp, 130 gold)
+- `DEEP_WEBS` and `buildDeepWebs` in `js/default-map.js`, under the spiders' den (`SPIDER_DEN`, floor 7).
+- Floor 7: at the back of the Brood Queen's chamber a wall of web (176,176: `web_wall`, burnable: a torch or Torchlight,
+  spun again after 10 minutes), a short tunnel north and a hole (176,172).
+- Floor 6, the deep webs: caves at (176,171), (187,170) and (189,181), six spiders, a hole down at (190,182).
+- Floor 5, the larder: past an old grate (186,183, level 8) the Old Weaver (320 hp, poison, calls a spider) with two
+  spiders, and the bundle (178,181). Her way out: ladders up at (176,187,5) and (173,190,6), into the den's second chamber.
+- The silk-bound helmet: armour 4, level 8: the best on the isle, below the steel helmet (5, level 15).
+
 **The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
 - The lighthouse: a new stone tower in the Lighthouse clearing (122–126, 201–205, door 124,205), three floors, stairs at
   (123,202) and (125,202), the **great lamp** on the top floor (124,203,10), dark. The old one's stump stays on the point.

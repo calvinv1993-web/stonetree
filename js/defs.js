@@ -437,6 +437,15 @@ const THINGS = {
       guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
       empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
   },
+  // The Weaver's Helm: the deep webs under the Spider Hills (DEEP_WEBS in default-map.js)
+  web_wall:    { name: 'wall of web', cat: 'Nature', block: true, sprite: 'spider_nest', burnable: 'web_ash' },
+  web_ash:     { name: 'burnt web', cat: 'Nature', sprite: 'nest_burnt' },
+  qchest_weaver_helm: {
+    name: 'a silk-wrapped bundle', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'weaver_helm', quest: 'weaver_helm', xp: 950, gold: 130, items: [['weaver_helm', 1], ['health_potion', 2]], guard: 'old_weaver',
+      guarded: 'Threads tighten round your hand. The Old Weaver is not done with what she caught.',
+      empty: 'Only dry husks and old silk are left in the bundle.' },
+  },
   // The Smugglers' Shield: the caves under Lighthouse Point (SEA_CAVES in default-map.js)
   qchest_smuggler_shield: {
     name: 'smugglers\' chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',

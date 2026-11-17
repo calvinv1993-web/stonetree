@@ -1988,6 +1988,51 @@ test('The Carrot Bandit: Farmer Odo\'s rabbits, One-Eye Patch in his den, and th
   assert(state.ITEMS.lucky_paw.ring.speed > 0 && state.ITEMS.carrot.use.food > 0, 'the paw runs, the carrot feeds');
 });
 
+test('The Weaver\'s Helm: fire through the web wall behind the Brood Queen, down the deep webs, the level 8 grate, the Old Weaver, and the ladders back up into the den', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, D = inCtx(game, 'DEEP_WEBS');
+  const go = (dx, dy) => { p.walk = null; const ok = ctx.step(p, dx, dy); tick(game, 1500); return ok; };
+  ctx.addItem('hand_torch', 1);
+  const [wx, wy] = D.webWall;
+  Object.assign(p, { x: wx, y: wy + 1, z: 7 });
+  assert(!go(0, -1) && p.y === wy + 1, 'the web wall blocks the way');
+  ctx.useItemOn(bagRef(state, 'hand_torch'), wx, wy, 7);
+  assert(!map.get(wx, wy, 7).items.includes('web_wall'), 'fire burns it away');
+  for (const [x, y, z] of D.holes) {
+    Object.assign(p, { x, y: y + 1, z });
+    if (!map.isWalkable(x, y + 1, z)) Object.assign(p, { x: x - 1, y });
+    go(x - p.x, y - p.y);
+    assert.strictEqual(p.z, z - 1, `down the hole on floor ${z}`);
+  }
+  const [gx, gy, level] = D.gate;
+  Object.assign(p, { x: gx + 1, y: gy, z: 5, level: level - 1 });
+  assert(!go(-1, 0) && p.x === gx + 1, 'the grate holds below level 8');
+  assert(messages.some(m => m.includes(`level ${level}`)), 'and says so');
+  p.level = level;
+  go(-1, 0); go(-1, 0);
+  assert.strictEqual(p.x, gx - 1, 'a strong arm heaves it aside');
+  const [cx, cy] = D.floors[5].props.find(pr => pr[2] === 'qchest_weaver_helm');
+  const weaver = ctx.spawnMonster({ type: 'old_weaver', x: cx, y: cy + 2, z: 5 });
+  state.monsters.push(weaver);
+  Object.assign(p, { x: cx, y: cy + 1, z: 5 });
+  ctx.useThing(cx, cy, 5);
+  assert.strictEqual(state.countItem('weaver_helm'), 0, 'not while the Old Weaver lives');
+  ctx.damageMonster(weaver, 99999, 'physical');
+  ctx.useThing(cx, cy, 5);
+  assert.strictEqual(state.countItem('weaver_helm'), 1, 'the silk-bound helmet');
+  assert.strictEqual(state.questState('weaver_helm'), 'done');
+  const I = state.ITEMS;
+  for (const id of ['leather_cap', 'chain_helmet']) assert(I.weaver_helm.armor > I[id].armor, `better than the ${id}`);
+  assert(I.weaver_helm.armor < I.steel_helmet.armor, 'below the steel helmet');
+  // her way out: up, back into the den
+  for (const [x, y, z] of D.exit) {
+    Object.assign(p, { x, y, z });
+    assert(ctx.changeFloor(1) && p.z === z + 1, `up the ladder from floor ${z}`);
+  }
+  assert.strictEqual(p.z, 7, 'back in the spiders\' den');
+});
+
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -2012,7 +2057,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all ten hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all eleven hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -2023,9 +2068,9 @@ test('rumours: the innkeeper tells of all ten hidden quests, one at a time, and 
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 10);
+  talk('oak_innkeeper', 'rumours', 11);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 10);
+  assert.strictEqual(Object.keys(R).length, 11);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');

@@ -4317,6 +4317,13 @@ const Sprites = (() => {
       ellipse(g, '#e8c060', 16, 16, 2.5, 2.5);
     },
     iron_shield: g => roundShield(g, '#9a9aa2', '#6a6a72', true, false),
+    weaver_helm: g => { // a steel helmet bound round and round with grey spider silk
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 27, 9, 2.5);
+      ellipse(g, '#8a8a92', 16, 16, 9, 9); rect(g, '#8a8a92', 7, 16, 18, 7); ellipse(g, '#b0b0b8', 13, 12, 3, 2.5);
+      rect(g, '#2a2a30', 10, 18, 12, 2);
+      for (const y of [10, 14, 21]) line(g, 'rgba(225,225,230,0.75)', 1, 7, y, 25, y + 3);
+      line(g, 'rgba(225,225,230,0.6)', 1, 9, 24, 23, 8);
+    },
     smuggler_shield: g => { // a round copper shield, green with the sea at the rim, barnacles on its face
       roundShield(g, '#c07a42', '#4f8a7a', true, false);
       ellipse(g, 'rgba(255,220,180,0.3)', 12, 11, 4, 3);
@@ -6678,7 +6685,7 @@ const Sprites = (() => {
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
-    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17], one_eye_patch: [1.35, 8, null, 0, 35],
+    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17], one_eye_patch: [1.35, 8, null, 0, 35], old_weaver: [1.6, 8, null, 0, 31],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {
@@ -6687,6 +6694,8 @@ const Sprites = (() => {
     sh.addColorStop(0, 'rgba(10,8,6,0.62)'); sh.addColorStop(0.55, 'rgba(10,8,6,0.38)'); sh.addColorStop(1, 'rgba(10,8,6,0)');
     g.fillStyle = sh; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill(); g.restore();
   }
+  // a sheet borrowed from another creature, coloured as its own (a canvas filter): the Old Weaver, the Brood Queen gone pale
+  const SHEET_TINTS = { old_weaver: 'grayscale(0.9) brightness(1.75) contrast(0.95)' };
   function npcFromSheet(id, dir, frame) {
     // (made only as fine as the screen shows people, R, from the sheet's own S pixels a world pixel: a phone or a computer
     // keeps far smaller pictures, and nothing is scaled when they're drawn)
@@ -6698,14 +6707,16 @@ const Sprites = (() => {
       const [big, left, rows, shade] = BIG_SHEETS[id] || [1, 0], k = big * ((rows && rows[dir]) || 1), fx = TILE + 16 - left, fy = TILE + 29;
       if (shade) groundShadow(g, fx * R, fy * R, shade * k * R);
       const sx = (frame || 0) * CW * S, sy = SHEET.rows[dir] * CH * S, ox = (fx - SHEET.feet[0] * k) * R, oy = (fy - SHEET.feet[1] * k) * R;
+      if (SHEET_TINTS[id]) g.filter = SHEET_TINTS[id];
       if (dir === 3) { g.translate(ox + CW * k * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * k * R, CH * k * R); }
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
+      g.filter = 'none';
     }, 2 * TILE * R);
   }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
     || (c.type !== 'player' && c.type !== 'npc' && !c.rare && !c.pet && !LOW_SHEETS.includes(c.type) && customImage(`sheet_${c.type}`))); // (a monster on two legs with its own sheet)
   // (beasts drawn from a sheet that stand low: their name stays at the monsters' height, not above a person's head)
-  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'cistern_slime', 'clang_1', 'clang_2', 'clang_3'];
+  const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'saltjaw', 'old_weaver', 'cistern_slime', 'clang_1', 'clang_2', 'clang_3'];
   // the sheet of a player's body: a woman's, when there is one
   const playerSheetId = key => (lookFor(key) || {}).female && customImage('player_sheet_female') ? 'player_sheet_female' : 'player_sheet';
   function playerFromSheet(key, dir, frame) {

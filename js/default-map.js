@@ -614,6 +614,24 @@ const SEA_CAVES = {
   },
 };
 
+// Builds the deep webs under the Spider Hills (see DEEP_WEBS), after the den above them: the web wall, the holes and
+// their ladders, the grate, the ladders out, the webs and the spiders.
+function buildDeepWebs(m) {
+  const D = DEEP_WEBS;
+  carveVault(m, D.floors);
+  const [wx, wy, wallLook] = D.webWall;
+  m.get(wx, wy, 7).items = ['web_wall']; m.setMeta(wx, wy, 7, { look: wallLook });
+  for (const [x, y, z, look] of D.holes) { m.get(x, y, z).items = ['hole']; m.setMeta(x, y, z, { look }); m.get(x, y, z - 1).items = ['cave_ladder']; }
+  const [gx, gy, level, gateLook] = D.gate;
+  m.get(gx, gy, 5).items = ['tower_grille']; m.setMeta(gx, gy, 5, { level, look: gateLook });
+  for (const [x, y, z] of D.exit) m.get(x, y, z).items = ['cave_ladder'];
+  for (const [zs, F] of Object.entries(D.floors)) {
+    const Z = +zs;
+    for (const [x, y, id] of F.props || []) if (m.isWalkable(x, y, Z) && !m.get(x, y, Z).items.length) m.addItem(x, y, Z, id);
+    for (const [type, x, y] of F.monsters || []) m.spawns.push({ type, x, y, z: Z, lurk: true });
+  }
+}
+
 // Builds the smugglers' caves under Lighthouse Point (see SEA_CAVES): the walled-up crevice in the rocks, the grotto and the
 // drowned hall, the hole down between them, the grille, the ladder up into the lighthouse, and who lives there now.
 function buildSeaCaves(m, S) {
@@ -641,6 +659,35 @@ function buildSeaCaves(m, S) {
 // One-Eye Patch's den in Sunny Fields (The Carrot Bandit): dug-up ground in the meadow south-east of the farm, past the
 // pond, with Farmer Odo's stolen sacks, where the rabbits' leader waits. at: the den's middle; sacks: [x, y]
 const PATCH_DEN = { at: [139, 181], sacks: [[138, 180], [140, 182]] };
+
+// The Deep Webs under the Spider Hills (The Weaver's Helm), floors 7 to 5: below the Brood Queen's den. At the back of her
+// egg chamber (floor 7) a wall of old web fills a crack in the rock: fire burns it away (a torch, or Torchlight; it is
+// spun again after a while). A hole beyond drops to the deep webs (floor 6), spiders in every cave, and a second hole to
+// the Old Weaver's larder (floor 5), past an old iron grate (level 8), where the oldest spider on the isle keeps what was
+// left of those she caught: an adventurer's helm, wrapped in silk. Her way out: ladders up, back into the den.
+//   webWall: [x, y, look] (floor 7); holes: [x, y, z] down (a ladder below each); gate [x, y, level, look] (floor 5);
+//   exit: ladders [x, y, z] up, one floor at a time; floors: as GOBLIN_DEEP's
+const DEEP_WEBS = {
+  webWall: [176, 176, 'A wall of old web, thick as felt, grey with dust, stretched across a crack in the rock. Cold air breathes through it. It would burn.'],
+  holes: [[176, 172, 7, 'A hole, its edges furred with web. Threads go down into the dark, and they tremble.'], [190, 182, 6, 'A shaft, hung with web like curtains. Something below has been eating well.']],
+  gate: [186, 183, 8, 'An old iron grate, gummed shut with web. Only a strong arm could heave it aside.'],
+  exit: [[176, 187, 5], [173, 190, 6]],
+  floors: {
+    7: { tunnels: [[176, 172, 176, 175]], props: [[176, 174, 'bones']] },
+    6: {
+      caves: [[176, 171, 2, 1.6], [187, 170, 3.2, 2.4], [189, 181, 3, 2.2]],
+      tunnels: [[178, 170, 184, 170], [188, 173, 188, 178], [173, 187, 176, 187], [173, 188, 173, 190]],
+      props: [[186, 168, 'web'], [189, 171, 'bones'], [185, 171, 'web'], [188, 175, 'web'], [190, 180, 'web'], [187, 182, 'bones'], [191, 181, 'web'], [174, 187, 'web']],
+      monsters: [['spider', 186, 170], ['spider', 188, 169], ['spider', 189, 171], ['spider', 188, 181], ['spider', 187, 180], ['spider', 188, 176]],
+    },
+    5: {
+      caves: [[191, 183, 2, 1.7], [179, 184, 4.5, 3.2]],
+      tunnels: [[184, 183, 189, 183], [176, 186, 176, 187]],
+      props: [[178, 181, 'qchest_weaver_helm'], [176, 182, 'web'], [182, 182, 'web'], [177, 186, 'bones'], [181, 186, 'bones'], [183, 184, 'web'], [175, 184, 'bones']],
+      monsters: [['old_weaver', 179, 184], ['spider', 181, 182], ['spider', 177, 185]],
+    },
+  },
+};
 
 // Under the town well (Down the Well), floor 7: tie a rope to the well and climb down. A pool at the bottom, a rope spot
 // to climb back up, and a few dark tunnels where giant rats live. At the end a cracked rock: a pick breaks through to
@@ -1106,6 +1153,7 @@ function createDefaultMap() {
   buildTowerTop(m, S);
   buildGoblinWarren(m, S);
   buildGoblinDeep(m);
+  buildDeepWebs(m); // (after the spiders' den: it goes on below it)
   buildWellTunnels(m, S);
   buildGateSites(m, S);
   buildDiscoveries(m, S);

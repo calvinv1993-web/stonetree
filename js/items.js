@@ -113,6 +113,7 @@ const ITEMS = {
 
   leather_cap:   { name: 'leather cap', slot: 'head', armor: 1, value: 4, weight: 8 },
   chain_helmet:  { name: 'chain helmet', slot: 'head', armor: 3, value: 25, weight: 42 },
+  weaver_helm:   { name: 'silk-bound helmet', slot: 'head', armor: 4, level: 8, value: 120, weight: 40 }, // (The Weaver's Helm: a lost adventurer's, wound in spider silk: the best helmet on the isle)
   steel_helmet:  { name: 'steel helmet', slot: 'head', armor: 5, level: 15, vocations: ['knight', 'paladin'], value: 150, weight: 46 },
   wizard_hat:    { name: 'wizard hat', slot: 'head', armor: 2, vocations: MAGES, value: 60, weight: 7.5 },
   leather_armor: { name: 'leather armor', slot: 'body', armor: 3, value: 10, weight: 60 },

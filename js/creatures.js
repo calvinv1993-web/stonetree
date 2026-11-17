@@ -134,6 +134,13 @@ const MONSTERS = {
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
     voices: { aggro: 'Halt! Who goes there? The watch has not been relieved!', low: 'The tower... must not fall...', death: 'Relieved... at last...' },
   },
+  old_weaver: { // the oldest spider on the isle, pale with age, in her larder at the bottom of the deep webs (The Weaver's Helm)
+    name: 'the Old Weaver', proper: true, hp: 320, xp: 320, dmg: [3, 17], defense: 4, armor: 4, speed: 200, attackSpeed: 1500, aggro: 6, corpse: 'slime',
+    respawn: 300000, immune: ['poison', 'earth'], hitCondition: { kind: 'poison', chance: 0.3, power: 4 },
+    ranged: { range: 4, dmg: [3, 11], missile: 'poison', element: 'earth', chance: 0.3 },
+    summon: { type: 'spider', max: 1, chance: 0.07 },
+    loot: { gold: [25, 60], items: [['spider_silk', 1, 2, 4], ['health_potion', 0.5]] },
+  },
   saltjaw: { // the great crab of the smugglers' drowned hall under Lighthouse Point, their copper shield grown into his shell
     name: 'Saltjaw', proper: true, hp: 300, xp: 300, dmg: [3, 18], defense: 6, armor: 6, speed: 150, attackSpeed: 1600, aggro: 5, corpse: 'blood',
     respawn: 300000, summon: { type: 'crab', max: 1, chance: 0.06 },
