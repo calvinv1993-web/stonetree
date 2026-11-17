@@ -150,11 +150,27 @@ const KESTREL = {
     workshop: ['barrel', 'crate', 'woodpile', 'barrel', 'sack'], warehouse: ['crate', 'crate', 'barrel', 'barrel', 'crate', 'sack', 'barrel', 'crate'],
     fish: ['fish_rack', 'barrel', 'counter', 'counter', 'basket'], office: ['table', 'chest', 'bookshelf'],
   },
+  // the sewers under Bellhaven (one floor down, town-art coordinates): the first hunt, as under every town worth the
+  // name. Grates in the streets with ladders under them; brick walkways round a channel; the bell cellar under the
+  // temple, where Clang is stuck behind a fallen crate (The Silent Bell's 'Clang'); the rats' nest east of Main Street.
+  sewers: {
+    rooms: [[41, 9, 57, 15, 'paving'], [39, 23, 47, 28, 'sewer']],                   // the bell cellar; the chamber under the square
+    nest: [61, 43, 6, 4],                                                           // the rats' nest, a cave they dug: centre, radii
+    tunnels: [ // [points], width, a channel down the middle
+      [[[43, 16], [43, 23]], 2], [[[46, 28], [46, 38], [48, 46], [48, 58], [48, 68]], 3, true],
+      [[[40, 27], [32, 31], [24, 35]], 2], [[[47, 27], [58, 29], [70, 28]], 2], [[[49, 41], [56, 43]], 2]],
+    grates: [[42, 25], [47, 48], [48, 66], [24, 36], [70, 28]],
+    rats: 16, cellarRats: 3, bigRats: 2,
+    props: [[56, 13, 'clang_crate'], [54, 13, 'crate'], [42, 10, 'web'], [51, 10, 'web'], [47, 14, 'rubble'], [44, 12, 'bones'], [64, 45, 'bones'], [58, 41, 'rubble'], [48, 70, 'bars']],
+  },
   // out in the town (town-art coordinates)
   outside: [[45, 26, 'fountain_nw'], [46, 26, 'fountain_ne'], [45, 27, 'fountain_sw'], [46, 27, 'fountain_se'], [40, 24, 'bench'], [52, 24, 'bench'],
     [38, 23, 'lamppost'], [55, 23, 'lamppost'], [44, 30, 'lamppost'], [48, 40, 'lamppost'], [45, 49, 'lamppost'], [48, 62, 'lamppost'], [30, 70, 'lamppost'], [66, 70, 'lamppost'],
     [36, 72, 'barrel'], [37, 72, 'crate'], [50, 72, 'fish_rack'], [62, 72, 'barrel'], [63, 72, 'sack'], [34, 86, 'boat'], [58, 86, 'boat'], [55, 47, 'stall'], [24, 50, 'woodpile']],
 };
+
+// (in the preview, Clang can be rescued from the start: on the old island he came after The Silent Bell I)
+if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeof QUESTS !== 'undefined' && QUESTS.clang_rescue) delete QUESTS.clang_rescue.after;
 
 function createKestrelMap() {
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;
@@ -290,6 +306,42 @@ function createKestrelMap() {
     homes.push(b);
   }
   for (const [x, y, id] of K.outside) { const t = at(TX + x, TY + y); if (t && !THINGS[t.ground]?.block) t.items = [id]; }
+
+  // ---- the sewers under the town ----
+  {
+    const Q = K.sewers, SZ = S - 1, key = (x, y) => `${x},${y}`, ways = new Set();
+    const wx = x => OX + TX + x, wy = y => OY + TY + y;
+    const dig = (x, y, ground = 'sewer') => { m.set(wx(x), wy(y), SZ, { ground, items: [] }); ways.add(key(x, y)); };
+    for (const [x0, y0, x1, y1, g] of Q.rooms) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) dig(x, y, g);
+    { const [cx, cy, rx, ry] = Q.nest; for (let y = cy - ry - 1; y <= cy + ry + 1; y++) for (let x = cx - rx - 1; x <= cx + rx + 1; x++) if (Math.hypot((x - cx) / rx, (y - cy) / ry) + (smooth(x, y, 2, 51) - 0.5) * 0.4 < 1) dig(x, y, 'cave'); }
+    const channel = new Set();
+    for (const [pts, w, wet] of Q.tunnels) for (let i = 1; i < pts.length; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], n = Math.max(Math.abs(bx - ax), Math.abs(by - ay), 1);
+      for (let t = 0; t <= n; t++) {
+        const x = Math.round(ax + (bx - ax) * t / n), y = Math.round(ay + (by - ay) * t / n), across = Math.abs(bx - ax) < Math.abs(by - ay);
+        const bend = ax !== bx && ay !== by, ww = bend ? w + 2 : w; // (where a tunnel turns aside, it widens: no corner to squeeze past)
+        for (let d = 0; d < ww; d++) dig(across ? x + d - (ww >> 1) : x, across ? y : y + d - (ww >> 1));
+        if (wet && !bend && t % 9 !== 4) channel.add(key(x, y)); // (a plank bridge over it every so often; none where it turns)
+      }
+    }
+    for (const k of channel) { const [x, y] = k.split(',').map(Number); if (!Q.grates.some(([gx, gy]) => Math.abs(gx - x) + Math.abs(gy - y) <= 1)) m.get(wx(x), wy(y), SZ).ground = 'sewer_water'; }
+    // brick walls round every walkway; a torch here and there on them
+    for (const k of [...ways]) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) if (!ways.has(key(x + dx, y + dy)) && !m.get(wx(x + dx), wy(y + dy), SZ)) m.set(wx(x + dx), wy(y + dy), SZ, { ground: 'sewer', items: ['wall_sewer'] }); }
+    let torch = 0;
+    for (const k of ways) { const [x, y] = k.split(',').map(Number), n = m.get(wx(x), wy(y - 1), SZ); if (n && n.items.includes('wall_sewer') && hash(x, y, 52) < 0.12 && torch++ < 40) n.items.push('wall_torch'); }
+    // the grates in the streets, a ladder under each
+    for (const [x, y] of Q.grates) { const t = at(TX + x, TY + y); t.items = ['grate']; if (!ways.has(key(x, y))) dig(x, y); m.get(wx(x), wy(y), SZ).items = ['sewer_ladder']; m.get(wx(x), wy(y), SZ).ground = 'sewer'; }
+    for (const [x, y, id] of Q.props) { const t = m.get(wx(x), wy(y), SZ); if (t && !t.items.length) t.items.push(id); }
+    // the rats: three in the bell cellar (Clang's quest), the rest along the walkways, two big ones in their nest
+    const open = [...ways].map(k => k.split(',').map(Number)).filter(([x, y]) => { const t = m.get(wx(x), wy(y), SZ); return t.ground !== 'sewer_water' && !t.items.length; });
+    const inRoom = ([x, y], r) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3], cellar = Q.rooms[0], [nx, ny, nrx, nry] = Q.nest;
+    const pick = (list, n, seed) => list.filter((p, i) => hash(p[0], p[1], seed) < n / list.length * 1.3).slice(0, n);
+    for (const [x, y] of pick(open.filter(p => inRoom(p, cellar)), Q.cellarRats, 53)) m.spawns.push({ type: 'rat', x: wx(x), y: wy(y), z: SZ });
+    for (const [x, y] of pick(open.filter(p => !inRoom(p, cellar) && Math.hypot(p[0] - nx, p[1] - ny) > Math.max(nrx, nry) + 1 && !Q.grates.some(([gx, gy]) => Math.abs(gx - p[0]) + Math.abs(gy - p[1]) < 4)), Q.rats, 54)) m.spawns.push({ type: 'rat', x: wx(x), y: wy(y), z: SZ });
+    for (const [x, y] of pick(open.filter(p => Math.hypot(p[0] - nx, p[1] - ny) < 3), Q.bigRats, 55)) m.spawns.push({ type: 'giant_rat', x: wx(x), y: wy(y), z: SZ });
+  }
+  // Sister Ama in the temple, by the altar (she sends you after Clang)
+  { const t = K.buildings[0]; m.npcs.push({ type: 'ama', x: OX + TX + t.door[0] + 1, y: OY + TY + t.boxes[0][1] + 1, z: S + 1 }); }
 
   // ---- roads from the town's gates out to every part of the island, wandering a little ----
   const road = (pts) => { for (let i = 1; i < pts.length; i++) { let [x, y] = pts[i - 1]; const [bx, by] = pts[i]; let n = 0; while ((Math.abs(x - bx) + Math.abs(y - by) > 0) && n++ < 400) {

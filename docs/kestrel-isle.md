@@ -25,7 +25,8 @@ places of its own. The picture of every layer is `kestrel-isle-layers.png` besid
 ## Building it, step by step
 
 1. The isle and Bellhaven (done: the surface).
-2. The sewers under the town, with the rats and Clang.
+2. The sewers under the town, with the rats and Clang (done: five grates, the bell cellar under the temple with
+   Clang's crate, a channel down Main Street to the harbour, the rats' nest; Sister Ama in the temple).
 3. Layer -1 and its ways in.
 4. Layers -2 to -4.
 5. New monsters (deer, snakes, sheep, poison spiders, smugglers), once they have pictures.

@@ -1746,6 +1746,28 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
     }
   }
   for (const [x, y] of [[12, 40], [86, 36], [79, 1]]) assert(seen.has(`${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `out of the gate at ${x},${y}`);
+  // the sewers: a grate in the street over a ladder at every way down; from the ladder under the square you can walk to
+  // every other ladder, to the rats and to Clang's crate in the bell cellar
+  const SZ = m.surfaceZ - 1, Q = K.sewers;
+  for (const [x, y] of Q.grates) {
+    assert(m.get(...W(x, y), m.surfaceZ).items.includes('grate') && seen.has(`${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `a grate you can reach at ${x},${y}`);
+    assert(m.get(...W(x, y), SZ).items.includes('sewer_ladder'), `a ladder under it`);
+  }
+  const below = new Set(), todo2 = [W(...Q.grates[0])];
+  while (todo2.length) {
+    const [x, y] = todo2.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const k = `${x + dx},${y + dy}`, t = m.get(x + dx, y + dy, SZ);
+      if (below.has(k) || !t || !(m.isWalkable(x + dx, y + dy, SZ) || t.items.includes('sewer_ladder'))) continue;
+      below.add(k); todo2.push([x + dx, y + dy]);
+    }
+  }
+  for (const [x, y] of Q.grates) assert(below.has(W(x, y).join()), `the ladder at ${x},${y} is joined to the rest`);
+  const crate = Q.props.find(p => p[2] === 'clang_crate');
+  assert([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => below.has(W(crate[0] + dx, crate[1] + dy).join())), 'Clang\'s crate can be reached');
+  const rats = m.spawns.filter(sp => sp.z === SZ && sp.type === 'rat');
+  assert(rats.length >= 15 && rats.every(r => below.has(`${r.x},${r.y}`)), `rats all through the sewers (${rats.length})`);
+  assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
 });
 
 test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, shown in orange', () => {
