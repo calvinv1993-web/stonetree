@@ -388,6 +388,19 @@ const THINGS = {
     chest: { flag: 'bone_lookout', gold: 35, items: [['health_potion', 2], ['rope', 1]] },
   },
   // the Brood Queen's hoard, behind her eggs: what the spiders took from those who came before you
+  // The Silent Bell's longer roads (STORY_SITES in default-map.js): the founders' shrine at Mirror Lake (blessed water,
+  // The Silent Bell IV), and the Choir's ash trail (The Silent Bell V): a singed hood in Greyfang's den, their altar of
+  // ash in Frog Marsh, their signal fire built on Stony Field
+  lake_shrine: { name: 'founders\' shrine', cat: 'Quest chests', block: true, low: true,
+    chest: { flag: 'lake_water', requires: 'bell_4@0', items: [['blessed_water', 3]],
+      locked: 'A little stone shrine by the water, a basin of lake water in it, clear as glass. Carved on it: a bell, and "Edda".',
+      empty: 'The basin fills again, slowly. You have taken your share.' } },
+  singed_hood: { name: 'singed grey hood', cat: 'Quest chests', deed: 'bell_5',
+    idle: 'A grey hood, singed at the edges, among the bones. It stinks of smoke and of marsh mud.' },
+  ash_altar:   { name: 'altar of ash', cat: 'Quest chests', block: true, low: true, deed: 'bell_5',
+    idle: 'A flat stone heaped with grey ash, a flame inside a ring drawn in it. Cold now.' },
+  signal_cairn:{ name: 'unlit signal fire', cat: 'Quest chests', block: true, low: true, deed: 'bell_5',
+    idle: 'Driftwood and pitch, stacked tall, never lit. From here you can see the tip of Lighthouse Point.' },
   qchest_brood_hoard: {
     name: 'silk-wrapped hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'brood_hoard', gold: 150, items: [['health_potion', 4], ['ring_swift', 1], ['spider_silk', 3]] },

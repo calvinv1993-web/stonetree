@@ -1003,6 +1003,7 @@ function createDefaultMap() {
   buildGateSites(m, S);
   buildDiscoveries(m, S);
   dressMountains(m, S);
+  buildStorySites(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
   // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
@@ -1123,6 +1124,18 @@ function createDefaultMap() {
 // Last touches over the whole world, so the rules hold everywhere, not only where someone looked:
 //   - nothing hangs on a wall that a stair or ladder climbs against (it would show through the steps)
 //   - a single tile of grass left in the middle of a trail becomes trail
+// The Silent Bell's longer roads, through the places the story never went (all on the surface):
+//   shrine: the founders' shrine by Mirror Lake (blessed water for the Gravewaker, The Silent Bell IV)
+//   hood:   the singed grey hood in Greyfang's den, Wolf Woods (the start of the Choir's ash trail, The Silent Bell V)
+//   altar:  the Choir's altar of ash at the end of the causeway into Frog Marsh, a singer on watch at night
+//   cairn:  their unlit signal fire on Stony Field, facing Lighthouse Point, a singer on watch at night
+const STORY_SITES = { shrine: [127, 58], hood: [66, 71], altar: [60, 125], altarSinger: [62, 126], cairn: [89, 77], cairnSinger: [90, 79] };
+function buildStorySites(m, S) {
+  const T = STORY_SITES, place = ([x, y], id) => { const t = m.get(x, y, S); t.items = t.items.filter(i => !THINGS[i].block && i !== 'bones'); t.items.push(id); };
+  place(T.shrine, 'lake_shrine'); place(T.hood, 'singed_hood'); place(T.altar, 'ash_altar'); place(T.cairn, 'signal_cairn');
+  for (const at of [T.altarSinger, T.cairnSinger]) m.spawns.push({ type: 'choir_cultist', x: at[0], y: at[1], z: S, night: 'bell_5', lurk: true, leash: 3 });
+}
+
 // The hills' ledges and plateaus, so climbing up pays: the founders' lookout on Bone Rocks (a cairn with a find, the
 // view over the bone trail, two skeletons on watch), the spiders' hatchery on the Spider Hills (eggs and webs, an old
 // pack in them with silk, two spiders), and the hermit's heather on Hermit Rock (his beehives, a fire, bushes, flowers).

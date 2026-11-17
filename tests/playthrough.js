@@ -400,6 +400,7 @@ try {
   });
   step('The Silent Bell V: the Choir', () => {
     shop(10); talkFor('bell_5', 'active', 'corwin', 'choir', 'yes'); talk('oak_keeper', 'lights');
+    for (const [x, y] of [[66, 71], [60, 125], [89, 77]]) useFor('bell_5', x, y, 8, 'the Choir\'s ash trail'); // (the hood, the altar, the signal fire)
     huntFor('bell_5', 'choir_cultist', POINT); talkFor('bell_5', 'done', 'corwin', 'choir'); equipBest();
   });
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));

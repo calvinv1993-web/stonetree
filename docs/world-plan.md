@@ -367,3 +367,15 @@ graveyard grew full, stands at (95,179) and counts them. Three bones of the cres
    crest with the knucklebone. Ossian gives a bone amulet (armour 3), 700 xp and 60 gold.
 He also knows Sir Galen's coffin came down empty (a hint at the Gravewaker). The innkeeper's and townsfolk's rumours tell of
 counting behind the crypt's east wall (RUMOURS.chapel).
+
+
+## The Silent Bell's longer roads
+
+The story now goes through the places it never went (STORY_SITES in default-map.js):
+- **IV**: the founders' shrine on Mirror Lake's south shore (127,58,8): blessed water, three flasks once (heals 110-160),
+  for the fight with the Gravewaker. Ama points there; her words "mirror", "lake", "shrine".
+- **V, the ash trail** (three new steps between Tamsin and the landing): the singed hood in Greyfang's den (66,71,8),
+  the Choir's altar of ash at the end of the Frog Marsh causeway (60,125,8; a singer on watch at night, 62,126), and their
+  unlit signal fire on Stony Field (89,77,8; a singer on watch, 90,79), facing Lighthouse Point. The altar's map carries
+  the "G." of Gnash's war plans. Then the landing: three singers and their cantor, fighting as one (band 'choir').
+Still to give a story beat: Deer Woods.

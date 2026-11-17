@@ -1216,9 +1216,9 @@ test('the Ashen Choir is ashore at Lighthouse Point only at night once the bell 
   const game = loadGame();
   const { ctx, state } = game;
   const p = state.player;
-  const ashore = () => state.monsters.filter(m => /^choir_/.test(m.type) && !m.dead).length;
+  const ashore = () => state.monsters.filter(m => /^choir_/.test(m.type) && !m.dead && m.spawn && m.spawn.band === 'choir').length; // (the landing at the point)
   const at = hour => { state.now = Math.ceil(state.now / 1440000) * 1440000 + ((hour - 9 + 24) % 24) * 60000; tick(game, 2000); }; // (the next such hour)
-  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5').length, 4, 'three singers and their cantor');
+  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5' && s.band === 'choir').length, 4, 'three singers and their cantor');
   at(12); assert.strictEqual(ashore(), 0, 'not by day');
   at(23); assert.strictEqual(ashore(), 0, 'nor at night while the bell is silent');
   state.townBell.ringers.push('Someone');
@@ -1635,7 +1635,11 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   // V: the Choir's landing at Lighthouse Point
   assert.strictEqual(arrow(), 'corwin', 'Corwin has news of the Choir'); assert.strictEqual(mark('corwin'), 'offer');
   talk('corwin', 'choir', 'yes'); assert.strictEqual(arrow(), 'oak_keeper', 'to Keeper Tamsin');
-  talk('oak_keeper', 'lights'); kill('choir_cultist', 4); kill('choir_cantor', 1);
+  talk('oak_keeper', 'lights'); assert.strictEqual(arrow(), '66,71,8', 'the ash trail: the hood in Greyfang\'s den');
+  ctx.teleport({ x: 66, y: 72, z: 8 }); ctx.useThing(66, 71, 8); assert.strictEqual(arrow(), '60,125,8', 'then the altar in Frog Marsh');
+  ctx.teleport({ x: 59, y: 125, z: 8 }); ctx.useThing(60, 125, 8); assert.strictEqual(arrow(), '89,77,8', 'then the signal fire on Stony Field');
+  ctx.teleport({ x: 89, y: 78, z: 8 }); ctx.useThing(89, 77, 8);
+  kill('choir_cultist', 3); kill('choir_cantor', 1);
   assert.strictEqual(arrow(), 'corwin', 'back to Corwin with the page'); talk('corwin', 'choir');
   assert.strictEqual(state.questState('bell_5'), 'done');
   // VI: the farewell

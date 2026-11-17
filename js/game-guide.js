@@ -215,16 +215,18 @@ const GUIDE = [
     minLevel: 6, // (till then: hunt at the gates)
   },
   {
-    text: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
-    touch: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Bring ten potions and your best armour.',
+    text: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Fill a flask at the founders\' shrine by Mirror Lake first, and bring potions and your best armour.',
+    touch: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Fill a flask at the founders\' shrine by Mirror Lake first, and bring potions and your best armour.',
     target: [{ quest: 'bell_4' }, { news: ['ama'] }, { hunt: ['bell_4'] }, { at: [69, 176, 6] }, { at: [66, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_4') === 'done',
     minLevel: 8, // (till then: hunt at the gates)
   },
   {
-    text: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
-    touch: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, then go and see Keeper Tamsin.',
-    target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
+    text: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
+    touch: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
+    // (the ash trail: the hood in Greyfang's den, the altar in Frog Marsh, the signal fire on Stony Field: STORY_SITES)
+    target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { at: [66, 71, 8], active: 'bell_5@1' }, { at: [60, 125, 8], active: 'bell_5@2' },
+      { at: [89, 77, 8], active: 'bell_5@3' }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
     done: () => questState('bell_5') === 'done',
     minLevel: 8, // (till then: hunt at the gates)
   },

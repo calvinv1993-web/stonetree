@@ -219,7 +219,7 @@ section('bell_4', () => {                         // IV: the Gravewaker
   take(6); boss(['gravewaker', 'skeleton']); finish('bell_4', 8); equip('body', 'chain_armor');
 });
 section('bell_5', () => {                         // V: Keeper Tamsin, the Choir at Lighthouse Point
-  take(6); fight(['choir_cultist', 'choir_cultist']); fight(['choir_cultist', 'choir_cultist']); boss(['choir_cantor']);
+  take(6); fight(['choir_cultist']); fight(['choir_cultist']); boss(['choir_cantor', 'choir_cultist', 'choir_cultist', 'choir_cultist']); // (the trail's two watch singers, then the band as one)
   finish('bell_5', 6); p.equipment.ring = { id: 'ring_swift', count: 1 };
 });
 section('to level 10', () => grind(10));

@@ -1270,7 +1270,7 @@ const Sprites = (() => {
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open']) RAISED.add(id); // (the hidden quests' things)
-  for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest']) RAISED.add(id); // (the Bone Chapel's)
+  for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest', 'lake_shrine', 'ash_altar', 'signal_cairn']) RAISED.add(id); // (the Bone Chapel's, the story's roads)
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   // (inside upright(): above height z0 things rise straight up the screen, k times as tall, from where they stand at z0)
@@ -3259,6 +3259,37 @@ const Sprites = (() => {
       rect(g, '#3a3a3a', 22, 11, 2, 2);
       line(g, '#d8d2be', 2, 6, 27, 14, 25);
     },
+    // The founders' shrine by Mirror Lake: a low stone block, a basin of clear water in it, a bronze bell carved on its face
+    lake_shrine(g) {
+      floorShadow(g, 13, 4);
+      prism(g, 6, 9, 26, 25, 0, 12, { top: '#bcb8ae', south: '#9a968c', east: '#7a766e', edge: '#dcd8ce' });
+      const [cx, cy] = P(16, 17, 12); ellipse(g, '#5a7a8a', cx, cy, 7, 4); ellipse(g, '#9ad0e8', cx - 1, cy - 0.5, 5.5, 3); ellipse(g, '#e8f6ff', cx - 3, cy - 1.2, 1.5, 0.7);
+      onSouth(g, 25, f => { poly(f, '#b08a3a', [13, 9, 19, 9, 21, 3, 11, 3]); rect(f, '#b08a3a', 15, 9, 2, 2); });
+    },
+    // A grey hood, singed, lying among the bones: a flame inside a ring burnt into it
+    singed_hood(g) {
+      poly(g, '#6e6c68', [8, 22, 12, 13, 20, 12, 25, 21, 21, 25, 11, 25]);
+      poly(g, '#86847e', [11, 20, 13, 14, 19, 14, 21, 20]);
+      for (const [x, y] of [[9, 23], [24, 22], [12, 25]]) ellipse(g, '#2a2420', x, y, 1.5, 1); // singed edges
+      g.strokeStyle = '#a04a20'; g.lineWidth = 0.8; g.beginPath(); g.arc(16, 18, 2.6, 0, Math.PI * 2); g.stroke();
+      poly(g, '#c8602a', [16, 15.6, 17.1, 18.4, 16, 19.6, 14.9, 18.4]);
+    },
+    // The Choir's altar in the marsh: a flat slab heaped with grey ash, a flame inside a ring drawn in it
+    ash_altar(g) {
+      floorShadow(g, 14, 4);
+      prism(g, 5, 9, 27, 24, 0, 8, { top: '#4a4644', south: '#363230', east: '#2a2624', edge: '#6a6662' });
+      const [cx, cy] = P(16, 16, 8);
+      ellipse(g, '#8a8680', cx, cy, 8, 4.5); ellipse(g, '#a8a49e', cx - 1, cy - 0.6, 5, 2.6);
+      g.strokeStyle = '#b04a20'; g.lineWidth = 0.9; g.beginPath(); g.ellipse(cx, cy, 3.4, 1.9, 0, 0, Math.PI * 2); g.stroke();
+      poly(g, '#d0602a', [cx, cy - 1.6, cx + 1, cy, cx, cy + 0.9, cx - 1, cy]);
+    },
+    // An unlit signal fire on Stony Field: driftwood and pitch stacked in a cone on a ring of stones
+    signal_cairn(g) {
+      floorShadow(g, 13, 4);
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, [x, y] = P(16 + Math.cos(a) * 10, 16 + Math.sin(a) * 10, 0); ellipse(g, '#8a8680', x, y, 2.4, 1.6); }
+      for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2; line(g, k % 2 ? '#7a5a34' : '#5e4428', 2.2, ...P(16 + Math.cos(a) * 8, 16 + Math.sin(a) * 8, 0), ...P(16, 16, 26)); }
+      const [tx, ty] = P(16, 16, 22); ellipse(g, '#2a2420', tx, ty + 2, 3, 2); // the pitch
+    },
     // A pyramid of skulls, stacked in rows that get shorter to the top, as Brother Ossian laid them (the Bone Chapel)
     skull_pile(g) {
       floorShadow(g, 14, 4);
@@ -4220,6 +4251,7 @@ const Sprites = (() => {
     health_potion: g => potion(g, '#d02a2a'),
     mana_potion: g => potion(g, '#3a5ad0'),
     pet_tonic: g => potion(g, '#5fbf6a'),
+    blessed_water: g => potion(g, '#a8d8f0'),
     crest_jaw: g => { line(g, '#e6e0cc', 3, 8, 12, 14, 24); line(g, '#e6e0cc', 3, 14, 24, 24, 22); line(g, '#a8a08a', 1, 10, 14, 15, 22); for (const x of [16, 19, 22]) rect(g, '#f4f0e0', x, 19, 2, 3); },
     crest_knuckle: g => { ellipse(g, '#e6e0cc', 16, 16, 6, 5); ellipse(g, '#c8c0a8', 18, 18, 3, 2); line(g, '#8a8270', 1, 12, 14, 19, 13); },
     crest_skull: g => { ellipse(g, '#e6e0cc', 16, 14, 9, 8); rect(g, '#e6e0cc', 11, 18, 10, 6); ellipse(g, '#2a2420', 12, 15, 2.5, 2.5); ellipse(g, '#2a2420', 20, 15, 2.5, 2.5); rect(g, '#2a2420', 15, 19, 2, 2); for (const x of [12, 15, 18]) rect(g, '#a8a08a', x, 23, 1, 2); line(g, '#c8a030', 1, 9, 9, 23, 9); },

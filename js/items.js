@@ -203,6 +203,7 @@ const ITEMS = {
   carved_stone:  { name: 'strange carved stone', quest: true, weight: 8,
     text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },
+  blessed_water: { name: 'blessed water', stack: true, use: { heal: [110, 160] }, value: 20, weight: 1.5 }, // from the founders' shrine at Mirror Lake
   crest_jaw:     { name: 'carved jawbone', quest: true, weight: 2 },      // the Bone Chapel's crest (The Bone Chapel)
   crest_knuckle: { name: 'carved knucklebone', quest: true, weight: 1 },
   crest_skull:   { name: 'carved skull', quest: true, weight: 4 },
