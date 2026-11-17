@@ -60,7 +60,11 @@ const KESTREL = {
   // in the town (town-art coordinates): the courtyard's middle (where the town is walked from), the ways out of it
   // (the west gate, the gorge north, the quay), and the first row of the harbour (the art's sea from there on is only
   // the harbour basin)
-  square: [27, 17], gates: [[0, 17], [52, 0], [27, 36]], harbourRow: 37,
+  square: [27, 17], gates: [[-26, 17], [52, -24], [27, 36]], harbourRow: 37,
+  // the town's gates stand out on its roads, a little way off (half a minute's walk from the courtyard): a paved road
+  // from the town out to a pair of watchtowers, and between them the way on (town-art coordinates: [x0, y0, x1, y1],
+  // 3 wide or tall). The towers are buildings (below), with stairs up to a lookout.
+  approaches: [[-26, 17, -1, 18], [51, -24, 53, -1]],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
   regions: {
@@ -75,20 +79,30 @@ const KESTREL = {
   // the town's buildings (town-art coordinates): boxes (outer walls), the door, what kind (it decides the furniture),
   // floors, and stairs up ([x, y] on each floor but the top, down again from the tile east of it)
   buildings: [ // (the harbour's three close the town's south side: no wall needed)
-    { name: 'Temple', boxes: [[20,  3,  34,  10],  [25,  1,  29,  3]], door: [27,  10], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
-    { name: 'Bell tower', boxes: [[35,  4,  39,  9]], door: [37,  9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
-    { name: 'Hall of Paths', boxes: [[40,  4,  49,  11]], door: [45,  11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
-    { name: 'Depot', boxes: [[7,  11,  14,  16]], door: [14,  13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate' },
-    { name: 'General store', boxes: [[42,  13,  50,  18]], door: [42,  15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Inn: The Cracked Bell', boxes: [[6,  19,  14,  25]], door: [14,  22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Smithy', boxes: [[16,  24,  23,  29]], door: [20,  24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
-    { name: 'Healer', boxes: [[31,  24,  37,  29]], door: [34,  24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
-    { name: 'House', boxes: [[9,  26,  14,  30]], door: [14,  28], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[40,  21,  46,  26]], door: [40,  23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[47,  19,  52,  24]], door: [49,  24], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'Warehouse', boxes: [[12,  31,  24,  34]], door: [20,  31], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Harbour master', boxes: [[29,  30,  35,  34]], door: [32,  34], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
-    { name: 'Fishmonger', boxes: [[36,  30,  44,  33]], door: [40,  33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Temple', boxes: [[20, 3, 34, 10], [25, 1, 29, 3]], door: [27, 10], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
+    { name: 'Bell tower', boxes: [[35, 4, 39, 9]], door: [37, 9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
+    { name: 'Hall of Paths', boxes: [[40, 4, 49, 11]], door: [45, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
+    { name: 'Depot', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
+      upstairs: [['depot', 'depot', 'depot', 'depot', 'depot', 'plant']] }, // (more lockers upstairs)
+    { name: 'General store', boxes: [[42, 13, 50, 18]], door: [42, 15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle',
+      cellar: { stairs: [48, 14], monsters: [['rat', 3]], props: [[43, 16, 'crate'], [44, 17, 'barrel'], [47, 17, 'sack'], [43, 14, 'crate']], torch: [45, 13] } }, // (its storeroom: rats in it)
+    { name: 'Inn: The Cracked Bell', boxes: [[6, 19, 14, 25]], door: [14, 22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle', floors: 2, up: [[7, 20]],
+      upstairs: [['bed_head', 'bed_head', 'chest', 'bed_head', 'bed_head', 'plant']] }, // (rooms upstairs)
+    { name: 'Smithy', boxes: [[16, 24, 23, 29]], door: [20, 24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
+    { name: 'Healer', boxes: [[31, 24, 37, 29]], door: [34, 24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[32, 25]],
+      upstairs: [['bed_head', 'plant', 'bed_head', 'chest']] }, // (the sickroom upstairs)
+    { name: 'House', boxes: [[9, 26, 14, 30]], door: [14, 28], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[40, 21, 46, 26]], door: [40, 23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[47, 19, 52, 24]], door: [49, 24], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'Warehouse', boxes: [[12, 31, 24, 34]], door: [20, 31], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Harbour master', boxes: [[29, 30, 35, 34]], door: [32, 34], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[30, 31], [30, 33]],
+      upstairs: [['table', 'chest', 'bookshelf'], ['chest']] }, // (his rooms, and a lookout over the bay at the top)
+    { name: 'Fishmonger', boxes: [[36, 30, 44, 33]], door: [40, 33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    // the gates' watchtowers, out on the roads: two storeys and a lookout on top
+    { name: 'West gate, north tower', boxes: [[-25, 12, -21, 16]], door: [-23, 16], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[-24, 13], [-24, 15]] },
+    { name: 'West gate, south tower', boxes: [[-25, 19, -21, 23]], door: [-23, 19], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[-24, 21]] },
+    { name: 'North gate, west tower', boxes: [[46, -22, 50, -18]], door: [50, -20], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[47, -21], [47, -19]] },
+    { name: 'North gate, east tower', boxes: [[54, -22, 58, -18]], door: [54, -20], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[55, -21]] },
   ],
   // the sign beside each door (by kind), and what it says when you look at it
   signs: {
@@ -98,7 +112,7 @@ const KESTREL = {
     depot: ['sign_depot', 'Depot. Put things in a locker to keep them safe: your locker is yours for good.'],
     smithy: ['sign_weapons', 'The smithy. Weapons made and mended.'], shop: ['sign_armour', 'Arms and armour, bought and sold.'],
     store: ['sign_tools', 'General store: rope, shovels, food, backpacks, all you need out there.'], bakery: ['sign_food', 'The bakery. Fresh bread every morning.'],
-    healer: ['sign_magic', 'The healer. Potions, and a bed when you need one.'], inn: ['sign_inn', 'The Cracked Bell: food, drink and a bed.'],
+    healer: ['sign_magic', 'The healer. Potions, and a bed when you need one.'], gatehouse: ['sign_wall', 'A gate of Bellhaven. Up the stairs to the lookout.'], inn: ['sign_inn', 'The Cracked Bell: food, drink and a bed.'],
     fish: ['sign_food', 'Fresh fish, caught this morning in the bay.'], office: ['sign_wall', 'The harbour master. Ships to the mainland - when you are ready.'],
   },
   // what goes inside, by kind: things set along the walls (away from the door), in turn
@@ -109,7 +123,7 @@ const KESTREL = {
     bakery: ['counter', 'counter', 'sack', 'basket', 'barrel'], healer: ['bed_head', 'plant', 'bed_head', 'chest'],
     inn: ['counter', 'counter', 'counter', 'barrel', 'barrel', 'table', 'table', 'table', 'plant'], house: ['bed_head', 'chest', 'table', 'plant'],
     workshop: ['barrel', 'crate', 'woodpile', 'barrel', 'sack'], warehouse: ['crate', 'crate', 'barrel', 'barrel', 'crate', 'sack', 'barrel', 'crate'],
-    fish: ['fish_rack', 'barrel', 'counter', 'counter', 'basket'], office: ['table', 'chest', 'bookshelf'],
+    fish: ['fish_rack', 'barrel', 'counter', 'counter', 'basket'], office: ['table', 'chest', 'bookshelf'], gatehouse: ['barrel'],
   },
   // the Hall of Paths' four practice rooms, one floor down (town-art coordinates of the first room's corner, walls
   // included; the others follow it eastward): reached only through a teacher (game-paths.js), left by a forcefield
@@ -124,8 +138,9 @@ const KESTREL = {
     nest: [43, 30, 5, 3],                                                           // the rats' nest, a cave they dug: centre, radii
     tunnels: [ // [points], width, a channel down the middle
       [[[27, 9], [27, 14]], 2], [[[27, 19], [27, 33]], 3, true],
-      [[[23, 17], [10, 17]], 2], [[[31, 16], [40, 13]], 2], [[[28, 26], [39, 29]], 2]],
+      [[[23, 17], [10, 17]], 2], [[[31, 16], [40, 13]], 2], [[[28, 26], [39, 29]], 2], [[[27, 32], [18, 32]], 2]],
     grates: [[25, 19], [27, 30], [10, 17], [40, 13]],
+    hatches: [[18, 32]], // (a trapdoor in the warehouse's floor)
     rats: 12, cellarRats: 3, bigRats: 2,
     props: [[34, 6, 'clang_crate'], [32, 6, 'crate'], [20, 3, 'web'], [30, 3, 'web'], [27, 8, 'rubble'], [22, 5, 'bones'], [45, 31, 'bones'], [41, 29, 'rubble'], [27, 33, 'bars']],
   },
@@ -243,6 +258,13 @@ function createKestrelMap() {
   }
   // (no trees scattered in the town: the few it has are in its art, t)
 
+  // the roads out to the gates, paved, and the ground under the gates' towers cleared (no rock, no tree, nothing above)
+  const clear = (x, y, ground) => { set(x, y, S, ground); for (let z = S + 1; z <= S + 3; z++) m.set(OX + x, OY + y, z, null); };
+  for (const [x0, y0, x1, y1] of K.approaches) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) clear(TX + x, TY + y, 'cobble');
+  for (const b of K.buildings.filter(o => o.kind === 'gatehouse')) for (const [x0, y0, x1, y1] of b.boxes) for (let y = y0 - 1; y <= y1 + 1; y++) for (let x = x0 - 1; x <= x1 + 1; x++) {
+    const t = at(TX + x, TY + y); if (!t || t.ground !== 'cobble') clear(TX + x, TY + y, 'grass');
+  }
+
   // the buildings: walls (windows on straight runs), floors, a door, upper floors and stairs, a roof, furniture
   const homes = [];
   for (const b of K.buildings) {
@@ -266,10 +288,27 @@ function createKestrelMap() {
     for (const [x, y] of tiles) if (b.boxes.some(([x0, y0, x1, y1]) => x > x0 && y > y0 && x <= x1 && y <= y1) && inB(x, y - 1) && inB(x - 1, y)) m.set(OX + TX + x, OY + TY + y, Z + floors, { ground: b.roof, items: [] });
     // furniture: along the walls, not in front of the door, the middle kept free to walk
     const inner = tiles.filter(([x, y]) => !rim(x, y));
-    const byWall = inner.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => rim(x + dx, y + dy)) && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 2 && !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 1 && Math.abs(sy - y) <= 1));
+    const byWall = inner.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => rim(x + dx, y + dy)) && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 2 && !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 1 && Math.abs(sy - y) <= 1)
+      && !(b.cellar && Math.abs(b.cellar.stairs[0] + 1 - x) <= 1 && Math.abs(b.cellar.stairs[1] - y) <= 1));
     const list = K.furnish[b.kind] || [];
     byWall.sort((a, c) => (a[1] - c[1]) || (a[0] - c[0]));
-    list.forEach((id, i) => { const p = byWall[Math.floor(i * byWall.length / Math.max(1, list.length))]; if (p) { const t = T(p[0], p[1], Z); if (!t.items.length) t.items.push(id); if (id === 'bed_head') { const f = T(p[0], p[1] + 1, Z); if (f && !f.items.length && inner.some(([a, c]) => a === p[0] && c === p[1] + 1)) f.items.push('bed_foot'); else t.items = ['chest']; } } });
+    const furnish = (list, z, spots) => list.forEach((id, i) => { const p = spots[Math.floor(i * spots.length / Math.max(1, list.length))]; if (p) { const t = T(p[0], p[1], z); if (!t.items.length) t.items.push(id); if (id === 'bed_head') { const f = T(p[0], p[1] + 1, z); if (f && !f.items.length && inner.some(([a, c]) => a === p[0] && c === p[1] + 1)) f.items.push('bed_foot'); else t.items = ['chest']; } } });
+    furnish(list, Z, byWall);
+    // the floors above: what they hold (b.upstairs, by floor), along the walls, away from the stairs
+    (b.upstairs || []).forEach((ids, k) => {
+      const z = Z + k + 1, clear = ([x, y]) => !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 1 && Math.abs(sy - y) <= 1) && !T(x, y, z).items.length;
+      furnish(ids, z, inner.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => rim(x + dx, y + dy))).filter(clear).sort((a, c) => (a[1] - c[1]) || (a[0] - c[0])));
+    });
+    // a cellar under it (b.cellar): the building's floor plan a floor down, old brick round it, stairs down by the given
+    // spot (down from the tile east of it, up again from the tile itself), and what's kept - or lives - there
+    if (b.cellar) {
+      const C = b.cellar, Zc = Z - 1, [sx, sy] = C.stairs;
+      for (const [x, y] of tiles) m.set(OX + TX + x, OY + TY + y, Zc, rim(x, y) ? { ground: 'sewer', items: ['wall_sewer'] } : { ground: C.floor || 'wood', items: [] });
+      T(sx, sy, Zc).items.push('stairs_up'); T(sx + 1, sy, Z).items.push('stairs_down');
+      for (const [x, y, id] of C.props || []) { const t = T(x, y, Zc); if (t && !t.items.length) t.items.push(id); }
+      for (const [type, n] of C.monsters || []) for (let i = 0; i < n; i++) { const [x, y] = inner[Math.floor((i + 0.5) * inner.length / n)]; m.spawns.push({ type, x: OX + TX + x, y: OY + TY + y, z: Zc }); }
+      if (C.torch) T(...C.torch, Zc).items.push('wall_torch');
+    }
     // its sign on the wall beside the door; window boxes under the windows of the houses; banners either side of the temple's door
     const beside = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [b.door[0] + dx, b.door[1] + dy]).filter(([x, y]) => rim(x, y) && T(x, y, Z).items.includes(b.wall));
     if (K.signs[b.kind] && beside.length) { const [x, y] = beside[0], [id, text] = K.signs[b.kind], t = T(x, y, Z); t.items = [b.wall, id]; m.setMeta(OX + TX + x, OY + TY + y, Z, { text }); }
@@ -326,6 +365,8 @@ function createKestrelMap() {
     let torch = 0;
     for (const k of ways) { const [x, y] = k.split(',').map(Number), n = m.get(wx(x), wy(y - 1), SZ); if (n && n.items.includes('wall_sewer') && hash(x, y, 52) < 0.12 && torch++ < 40) n.items.push('wall_torch'); }
     // the grates in the streets, a ladder under each
+    // and trapdoors in a building's floor (Q.hatches), a ladder under each
+    for (const [x, y] of Q.hatches || []) { const t = at(TX + x, TY + y); t.items = ['trapdoor']; if (!ways.has(key(x, y))) dig(x, y); m.get(wx(x), wy(y), SZ).items = ['sewer_ladder']; m.get(wx(x), wy(y), SZ).ground = 'sewer'; }
     for (const [x, y] of Q.grates) { const t = at(TX + x, TY + y); t.items = ['grate']; if (!ways.has(key(x, y))) dig(x, y); m.get(wx(x), wy(y), SZ).items = ['sewer_ladder']; m.get(wx(x), wy(y), SZ).ground = 'sewer'; }
     for (const [x, y, id] of Q.props) { const t = m.get(wx(x), wy(y), SZ); if (t && !t.items.length) t.items.push(id); }
     // the rats: three in the bell cellar (Clang's quest), the rest along the walkways, two big ones in their nest

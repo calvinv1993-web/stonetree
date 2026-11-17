@@ -37,3 +37,26 @@ places of its own. The picture of every layer is `kestrel-isle-layers.png` besid
 5. Layer -1 and its ways in.
 6. Layers -2 to -4.
 7. New monsters (deer, snakes, sheep, poison spiders, smugglers), once they have pictures.
+
+## How far things are (walking at level 1, from the courtyard)
+
+A step takes 400 ms on a road, 450 on dirt and 550 on grass at level 1 (speed 278). The unit test "how far things are
+from the courtyard" checks the first three rows on the real map.
+
+| Place | Aim | Now |
+|---|---|---|
+| Shops and temple | 10-30 s | 5-12 s (the town is kept small) |
+| The town's gates (watchtowers out on the roads) | 20-45 s | west 23 s, north 28 s |
+| First monsters out in the open | 30-60 s | rabbits 34 s, crabs 42 s (rats in the store's cellar, in town) |
+| Beginner hunting ground | 1-2 min | wolves and spiders of the Old Wood, about 70 s |
+| Middling caves | 2-4 min | still to build: their mouths that far out |
+| Dangerous wilds | 4-6 min | still to build: the island is 210 tiles across, so its far corners are about 2 min away; 4-6 min needs the mainland, long winding ways (mountain paths, swamps) or a slower walk |
+
+## The town's buildings, and what each is for
+
+- Temple and bell tower (on the rock): you wake there; the tower has four storeys up to the bell.
+- Depot: lockers on both floors. General store: its storeroom cellar, down the stairs, has rats.
+- Inn: the tavern below, rooms with beds upstairs. Healer: the shop below, a sickroom upstairs.
+- Harbour master: three storeys, a lookout over the bay at the top. Warehouse: a trapdoor down into the sewers.
+- Hall of Paths: the Pathkeeper and the four teachers (their practice rooms are reached through them).
+- The gates: a pair of watchtowers on each road, with stairs up to a lookout.

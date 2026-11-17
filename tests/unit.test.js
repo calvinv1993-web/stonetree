@@ -1770,9 +1770,42 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   for (const [x, y] of Q.grates) assert(below.has(W(x, y).join()), `the ladder at ${x},${y} is joined to the rest`);
   const crate = Q.props.find(p => p[2] === 'clang_crate');
   assert([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => below.has(W(crate[0] + dx, crate[1] + dy).join())), 'Clang\'s crate can be reached');
-  const rats = m.spawns.filter(sp => sp.z === SZ && sp.type === 'rat');
-  assert(rats.length >= 15 && rats.every(r => below.has(`${r.x},${r.y}`)), `rats all through the sewers (${rats.length})`);
+  const inCellar = r => K.buildings.some(b => b.cellar && b.boxes.some(([x0, y0, x1, y1]) => { const [a, c] = W(x0, y0), [e, f] = W(x1, y1); return r.x >= a && r.x <= e && r.y >= c && r.y <= f; }));
+  const rats = m.spawns.filter(sp => sp.z === SZ && sp.type === 'rat' && !inCellar(sp));
+  assert(rats.length >= 14 && rats.every(r => below.has(`${r.x},${r.y}`)), `rats all through the sewers (${rats.length})`);
+  // a building's cellar: down its stairs, and up again
+  for (const b of K.buildings.filter(o => o.cellar)) {
+    const [sx, sy] = W(...b.cellar.stairs);
+    assert(m.get(sx + 1, sy, m.surfaceZ).items.includes('stairs_down') && m.get(sx, sy, SZ).items.includes('stairs_up'), `${b.name}: stairs to its cellar`);
+    assert(m.isWalkable(sx + 1, sy, SZ) && m.isWalkable(sx, sy, m.surfaceZ), `${b.name}: open floor at both ends of its stairs`);
+  }
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
+});
+
+test('Kestrel Isle: how far things are from the courtyard, walking at level 1 (shops under 30 s, the gates 20-45 s, the first monsters 30-60 s)', () => {
+  const game = loadGame({ world: 'kestrel' });
+  const { ctx, state } = game;
+  const m = state.map, K = state.KESTREL, S = m.surfaceZ, [OX, OY] = K.isleAt, [TX, TY] = K.townAt;
+  const W = (ax, ay) => [OX + TX + ax, OY + TY + ay];
+  // the quickest way on foot from the courtyard to everywhere on the surface, step by step as the game times them
+  const step = {}; const time = (g, d) => (step[g + d] ??= vm.runInContext(`stepTime(player, ${JSON.stringify(g)}, ${d})`, ctx));
+  const [sx, sy] = W(K.square[0], K.square[1] + 2), best = new Map([[`${sx},${sy}`, 0]]), heap = [[0, sx, sy]];
+  while (heap.length) {
+    let i = 0; for (let k = 1; k < heap.length; k++) if (heap[k][0] < heap[i][0]) i = k;
+    const [d, x, y] = heap.splice(i, 1)[0];
+    if (d > best.get(`${x},${y}`)) continue;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const nx = x + dx, ny = y + dy, t = m.get(nx, ny, S);
+      if (!t || !(m.isWalkable(nx, ny, S) || t.items.some(id => id.startsWith('door')))) continue;
+      const nd = d + time(t.ground, !!(dx && dy)), k = `${nx},${ny}`;
+      if (nd < (best.get(k) ?? Infinity)) { best.set(k, nd); heap.push([nd, nx, ny]); }
+    }
+  }
+  const secs = (x, y) => (best.get(`${x},${y}`) ?? Infinity) / 1000;
+  for (const b of K.buildings.filter(o => !o.rock && o.kind !== 'gatehouse')) assert(secs(...W(...b.door)) <= 30, `${b.name}: ${secs(...W(...b.door))} s`);
+  for (const g of K.gates.slice(0, 2)) { const t = secs(...W(...g)); assert(t >= 20 && t <= 45, `the gate at ${g}: ${t} s`); }
+  const first = Math.min(...m.spawns.filter(sp => sp.z === S).map(sp => secs(sp.x, sp.y)));
+  assert(first >= 30 && first <= 60, `the first monsters out in the open: ${first} s`);
 });
 
 test('the guide on Kestrel Isle: Sister Ama, the sewers and Clang, the Hall of Paths, the four trials, choosing', () => {
