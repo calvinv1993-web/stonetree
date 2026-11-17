@@ -441,6 +441,7 @@ function renderMenu() {
     ...(!Net.online && wantsTestSpear() ? [row(['Test: spears (circle throw)', h('small', {}, 'Hold one, say "hasta orbis"')], h('span', {}, '›'),
       () => { giveTestSpear(); menuShown = ''; renderMenu(); })] : []),
     row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
+    h('div', { className: 'menu-version' }, versionText()),
   );
 }
 

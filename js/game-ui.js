@@ -3,6 +3,13 @@
 // skills and quests, spell bar, hotkeys, outfit, world map, message log, minimap,
 // and dragging items around. Player actions always go through Actions.
 
+// The version that's live (the ?v= of the page's own scripts, bumped with every update): shown on the loading screen
+// and in the settings, so you can tell whether an update has reached you.
+const GAME_VERSION = (((document.querySelector('script[src*="?v="]') || {}).src || '').match(/[?&]v=([^&]+)/) || [])[1] || 'dev';
+const versionText = () => `Version ${GAME_VERSION.replace(/^ui/, '')}`;
+const showVersion = () => { for (const id of ['versionLoading', 'versionMenu', 'versionCreate']) { const el = document.getElementById(id); if (el) el.textContent = versionText(); } };
+showVersion(); document.addEventListener('DOMContentLoaded', showVersion); // (the loading screen comes after the scripts in the page)
+
 // A touch screen (a phone or tablet, or anywhere with ?mobile in the address): touch.js shows its controls.
 const touchScreen = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('mobile');
 // what the chat line says while empty: shorter on a phone, where there's no Enter key to press

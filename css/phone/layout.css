@@ -316,6 +316,7 @@ body.touch-ui .slot[data-rarity="epic"] { border-color: #a26bf0 !important; }
 body.touch-ui .slot[data-rarity="legendary"] { border-color: var(--accent) !important; }
 /* the Menu: grouped rows, small captions, plain switches */
 body.touch-ui .menu-head { margin: 18px 4px 6px; color: var(--muted); font: 600 11px var(--ui); letter-spacing: 0.8px; text-transform: uppercase; text-align: left; display: block; }
+body.touch-ui .menu-version { margin: 18px 4px 8px; color: var(--muted); font: 500 11px var(--ui); text-align: center; }
 body.touch-ui .menu-head::before, body.touch-ui .menu-head::after { display: none; }
 body.touch-ui .menu-row { min-height: 50px; padding: 8px 14px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: var(--bg-2); color: var(--text); font: 500 15px var(--ui); text-shadow: none; }
 body.touch-ui .menu-head + .menu-row, body.touch-ui .menu-head + .seg + .menu-row { border-radius: 12px 12px 0 0; }

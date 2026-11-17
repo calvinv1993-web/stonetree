@@ -160,6 +160,7 @@
           <p>Name your character</p>
           <input id="createName" maxlength="20" placeholder="Adventurer" autocomplete="off">
           <button id="createStart" class="primary">Next</button>
+          <div id="versionCreate" class="version-tag"></div>
         </div>
       </div>
       <div id="hotbar" class="hotbar"></div>
@@ -269,7 +270,7 @@
       </section>
 
       <section class="actions">
-        <span class="muted small" id="mapSource"></span>
+        <span class="muted small" id="mapSource"></span> <span class="muted small version-tag" id="versionMenu"></span>
         <div class="button-row"><button id="guideBtn" title="The guide for new adventurers, from the start">Guide</button><button id="hotkeysBtn">Hotkeys</button><button id="outfitBtn">Outfit</button><button id="guildBtn">Guild</button></div>
         <div class="button-row"><button id="soundBtn">Sound</button><button id="musicBtn">Music</button><button id="speedBtn" title="Show how smoothly the game runs: frames a second and stalls">Speed</button><button id="qualityBtn" title="High: everything. Medium: no drifting clouds or weather, a little less sharp on a phone. Low: also no ripples on the water, as coarse as a phone may draw: smoothest">Quality: high</button><button id="fpsBtn" title="60 frames a second is smoothest; 30 keeps a phone cooler and saves its battery">60 fps</button><button id="rightBtn" class="desk-only" title="What a right-click on a monster or player does">Right-click</button></div>
         <button id="fullscreen">Fullscreen</button>
@@ -318,7 +319,7 @@
   <script src="js/touch.js?v=ui353"></script>
   <div id="loading" hidden>
     <img class="loading-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
-    <div class="loading-box"><div id="loadingText">Getting the world ready...</div><div class="loading-track"><div id="loadingBar"></div></div><div id="loadingPercent">0%</div></div>
+    <div class="loading-box"><div id="loadingText">Getting the world ready...</div><div class="loading-track"><div id="loadingBar"></div></div><div id="loadingPercent">0%</div><div id="versionLoading" class="version-tag loading-version"></div></div>
   </div>
 <script src="js/mobile-hud.js?v=ui353"></script>
 <script src="js/mobile-viewport.js?v=ui353"></script>

@@ -152,6 +152,7 @@ The bell of Oakvale has stopped ringing. The story climbs in danger as you grow,
 - **Capacity:** you can carry 400 oz plus 10 per level (more per level as a knight or paladin), gear you wear included. What you can't carry lands at your feet.
 - Monsters respawn about a minute after they die (faster when several players hunt together: with three, twice as fast), where no player can see it happen. If someone stands in sight of a spawn, its monster walks in from beyond the edge of their screen instead, so a hunting ground never runs dry.
 - You walk faster as you level, quickly at first and then less and less (230 ms per tile at level 1, about 160 at level 50, 120 at level 100). Haste and the like are on top of that.
+- **The version** you are playing shows on the loading screen and at the bottom of the settings (Menu): after an update it goes up by one.
 - **Your hero's strikes are in your own colours** (hair, shirt, trousers, boots), the same as walking.
 - **Shooting with a bow**: every arrow you shoot shows your hero at full draw and then loosing it (a crossbow doesn't, for now). With a war spear, every blow shows your hero winding up and swinging it.
 - **Triple Shot** ("sagitta trina", level 12+, paladins, a bow or crossbow and its ammunition, a target within 6 tiles): three quick arrows at your target, one right after the other, each a streak of pale light that bursts small where it hits; each does less than a Power Shot. It costs three arrows.
