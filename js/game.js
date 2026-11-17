@@ -1307,8 +1307,10 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 
 // Calm: you stand still, with no target, no monster near, and haven't touched the screen or a key for a moment. Then
 // the game draws 30 frames a second instead of 60 (only the small movements round you, water, leaves, torches, are a
-// little less smooth): half the work, a cooler phone and a longer battery. Anything happening brings 60 back at once.
+// little less smooth): half the work, a cooler phone and a longer battery. Anything happening brings 60 back at once,
+// a shot or a swing on its way too (a power shot is drawn for 1.5 s with no key touched: it flew at 30, and stuttered).
 let lastInputAt = 0, calmCheckedAt = 0, calmNow = false;
+const FAST_EFFECTS = new Set(['shot', 'volley', 'arc', 'loose']); // (quick movements that need every frame)
 for (const kind of ['pointerdown', 'pointermove', 'keydown', 'wheel']) window.addEventListener(kind, () => { lastInputAt = performance.now(); calmNow = false; }, { passive: true, capture: true });
 function calm(t) {
   if (t - calmCheckedAt < 250 && t >= calmCheckedAt) return calmNow;
@@ -1316,7 +1318,8 @@ function calm(t) {
   const p = player;
   calmNow = !!p && Preload.ready && !p.dead && t - lastInputAt > 1500 && !(p.path && p.path.length) && !p.target && !p.follow
     && !(p.walk && now < p.walk.start + p.walk.dur + 300) && !document.body.classList.contains('fighting')
-    && !monsters.some(m => !m.dead && m.z === p.z && Math.abs(m.x - p.x) <= 8 && Math.abs(m.y - p.y) <= 8);
+    && !monsters.some(m => !m.dead && m.z === p.z && Math.abs(m.x - p.x) <= 8 && Math.abs(m.y - p.y) <= 8)
+    && !effects.some(e => FAST_EFFECTS.has(e.kind) && e.z === p.z && now < e.start + e.dur); // (a power shot flying, a swing: never at 30)
   return calmNow;
 }
 
