@@ -13,6 +13,7 @@ const CROWN_SHADOW = new Set(['tree', 'pine', 'ancient_tree', 'jungle_tree', 'sn
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 // Streets with a stone kerb where they meet these grounds (the kerb picture: Sprites.kerbEdge)
 const KERBED = { cobble: new Set(['grass', 'jungle']) };
+const KERB_PATHS = new Set(['gravel']); // (paths that open onto a street through its kerb, the kerb curving in)
 const KERB_ON = new Set(Object.values(KERBED).flatMap(s => [...s])); // (the grounds a kerb lies on)
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
@@ -563,12 +564,13 @@ const Render = {
         if (Sprites.hasOwnKerb()) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
           const here = groundAt(x, y);
           if (!here || !KERB_ON.has(here) || (tileAt(x, y) && tileAt(x, y).items.some(id => THINGS[id].wall))) continue;
-          let mask = 0, street = null;
+          let mask = 0, street = null, soft = 0, path = null;
           for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
             const n = groundAt(x + dx, y + dy);
             if (n && KERBED[n] && KERBED[n].has(here)) { mask |= bit; street = street || n; }
+            else if (n && KERB_PATHS.has(n) && bit < 16) { soft |= bit; path = path || n; } // (a path opening onto the street)
           }
-          const pic = mask && Sprites.kerbEdge(mask, x, y, street);
+          const pic = mask && Sprites.kerbEdge(mask, x, y, street, soft, path);
           if (pic) g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
 

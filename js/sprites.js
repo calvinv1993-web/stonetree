@@ -8089,29 +8089,33 @@ const Sprites = (() => {
     // outward): mask, the street's sides round this grass tile (1 n, 2 e, 4 s, 8 w; 16 ne, 32 se, 64 sw, 128 nw). Straight
     // along a side; where the street is on two sides that meet (the corner of a block of grass) the corner is rounded off,
     // the street filling it beyond a curve of kerb; where the street only touches a corner, a small round of kerb there.
+    // soft: the sides a path (gravel) comes in on, with its ground: no kerb along them, but where one meets the street's
+    // side the kerb curves round into the path, the path filling the corner beyond it (a path opening onto the street).
     // null when there's no kerb picture.
-    kerbEdge(mask, x, y, street) {
+    kerbEdge(mask, x, y, street, soft = 0, path = null) {
       const pics = {};
       for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_kerb_${d}`))) return null;
       const res = pics.n.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pics.n.naturalWidth / T));
       const cell = v => ((v % cells) + cells) % cells, m4 = v => ((v % 4) + 4) % 4;
       for (const [c, a, b] of [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]]) if (mask & (a | b)) mask &= ~c;
-      return cached(`kerb2:${mask}:${street}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
+      soft &= 15;
+      return cached(`kerb2:${mask}:${soft}:${street}:${path}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
         g.canvas.res = res;
         for (const [bit, d, i] of [[1, 'n', cell(x)], [2, 'e', cell(y)], [4, 's', cell(x)], [8, 'w', cell(y)]]) if (mask & bit) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
         const strip = edgePixels(pics.n), D = Math.round(T * 12 / 64), R = T * 0.5;
         const img = g.getImageData(0, 0, T, T), px = img.data;
-        let tex = null;
-        const street_ = () => tex || (tex = (() => { const c = document.createElement('canvas'); c.width = c.height = T; const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(street, x, y, 0), 0, 0, T, T); return cg.getImageData(0, 0, T, T).data; })());
+        const texs = {};
+        const groundPx = id => texs[id] || (texs[id] = (() => { const c = document.createElement('canvas'); c.width = c.height = T; const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(id, x, y, 0), 0, 0, T, T); return cg.getImageData(0, 0, T, T).data; })());
         const stone = (i, row, col) => { const si = (row * strip.width + (((col % strip.width) + strip.width) % strip.width)) * 4; for (let k = 0; k < 4; k++) px[i + k] = strip.data[si + k]; };
         // the corner of a block of grass: rounded, the street beyond the curve, the kerb along it
         for (const [both, cx, cy] of [[1 | 8, 0, 0], [1 | 2, T, 0], [4 | 2, T, T], [4 | 8, 0, T]]) {
-          if ((mask & both) !== both) continue;
+          if (((mask | soft) & both) !== both || !(mask & both)) continue;
+          const fill = soft & both ? path : street; // (a path's opening: the path fills the corner)
           const ccx = cx ? T - R : R, ccy = cy ? T - R : R;
           for (let py = 0; py < T; py++) for (let qx = 0; qx < T; qx++) {
             if ((cx ? qx < ccx : qx >= ccx) || (cy ? py < ccy : py >= ccy)) continue; // (only the corner's quarter)
             const i = (py * T + qx) * 4, dist = Math.hypot(qx + 0.5 - ccx, py + 0.5 - ccy);
-            if (dist > R) { const t = street_(); for (let k = 0; k < 3; k++) px[i + k] = t[i + k]; px[i + 3] = 255; }
+            if (dist > R) { const t = groundPx(fill); for (let k = 0; k < 3; k++) px[i + k] = t[i + k]; px[i + 3] = 255; }
             else if (dist > R - D) stone(i, Math.floor(R - dist), Math.floor(Math.atan2(py + 0.5 - ccy, qx + 0.5 - ccx) * R));
             else px[i + 3] = 0;
           }
