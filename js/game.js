@@ -604,11 +604,12 @@ function glowDot(x, y, r, rgba, a) {
 const creatureById = id => players.find(p => p.id === id) || monsters.find(m => m.id === id) || npcs.find(n => n.id === id);
 // A player in the middle of a sweeping strike (the circle throw's arc): their strike's picture for now - the wind-up, the
 // middle or the follow-through, as far as the swing has come - or null (no strike going on, or no picture for it).
-// (a power shot likewise: drawing the bow, at full draw, loosed)
-const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc' || fx.kind === 'shot') && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
+// (a power shot likewise: drawing the bow, at full draw, loosed; and every plain shot from a bow: full draw, then loosed)
+const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc' || fx.kind === 'shot' || fx.kind === 'loose') && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
 function strikeOf(c) {
   const fx = swingOf(c);
   if (!fx) return null;
+  if (fx.kind === 'loose') return c.walk ? null : Sprites.playerAttack(creatureKey(c), c.dir, now - fx.start < 110 ? 1 : 2, 'bow');
   if (fx.kind === 'shot') {
     const e = now - fx.start;
     return Sprites.playerAttack(creatureKey(c), c.dir, e < fx.charge * 0.55 ? 0 : e < fx.charge ? 1 : 2, 'bow');

@@ -1693,6 +1693,25 @@ test('the war spear and its circle throw: held in both hands it reaches two tile
   assert(!hurt(north), 'nothing behind you');
 });
 
+test('every plain shot from a bow shows the hero loosing it (a crossbow or a wand does not)', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20 });
+  p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
+  const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m);
+  let seen = 0;
+  const watch = ms => { for (let t = 0; t < ms; t += 50) { tick(game, 50); seen += state.effects.filter(fx => fx.kind === 'loose' && fx.cid === p.id).length; } };
+  A.setTarget(m.id); watch(2500);
+  assert(seen > 0, 'the bow is drawn and loosed');
+  assert(p.equipment.ammo.count < 10, 'arrows were shot');
+  state.effects.length = 0;
+  p.equipment.weapon = { id: 'crossbow', count: 1 }; p.equipment.ammo = { id: 'bolt', count: 10 };
+  seen = 0; watch(2500);
+  assert(p.equipment.ammo.count < 10 && !seen, 'a crossbow has no such picture');
+});
+
 test('the power shot: a bow drawn to the full, one arrow loosed through every monster in its way, each hit as the arrow gets there', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

@@ -170,6 +170,8 @@ function playerCombat() {
   } else if (w.kind === 'distance') {
     useAmmo(w);
     addMissile(player, t, w.missile);
+    // an arrow from a bow: the hero is seen holding the full draw a moment, then loosing (only a picture: game.js strikeOf)
+    if (w.missile === 'arrow') effects.push({ kind: 'loose', cid: player.id, x: player.x, y: player.y, z: player.z, start: now, dur: 360 });
     addSkillTries('distance');
     const hitChance = Math.min(0.95, 0.6 + player.skills.distance.level / 150);
     if (Math.random() < hitChance) hurt(t, physicalHit(w) - blocked(t), 'physical');
