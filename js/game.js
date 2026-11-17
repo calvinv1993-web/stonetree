@@ -637,64 +637,106 @@ function draw() {
 }
 
 // A soft round glow at (x, y), radius r: rgba is the colour's 'rgba(r,g,b,' start, a its strength at the middle.
-// The power shot in flight, from the bow (bx, by) along angle a to its head d pixels on (t: ms since it was loosed,
-// al: how much is left of it): a golden shaft of light the whole way back to the bow, a crescent of light bowed out in
-// front of the bow, wisps sweeping from it along the shaft, sparks, and at the head a sharp arrowhead of light with a
-// second, fainter one just behind it. All drawn in light ('lighter'), so it shines by day and by night.
-function drawPowerArrow(bx, by, d, a, t, al) {
+// ---- the power shot (the effect 'shot', castPierce in game-combat.js): only how it looks; its hits are the game's -----
+// Gold #FFD54A, amber #FFAA00, a near-white core #FFF4B0. Drawn in the shot's own frame (turned to its direction, so
+// every one of the eight works the same), from the bow out:
+//   charge  sparks drift in to the bow, a faint arc forms round it, the light at the nock grows
+//   release a bright flash and a half circle of light at the bow; the arrow's beam stretched behind it for its speed
+//   flight  a sharp golden arrowhead with a near-white core, a narrow beam behind it, thin ribbons curving round the
+//           beam, sparks coming off and fading
+//   impact  where it ends, a short burst and sparks flying out, gone in 200 ms
+// Sparks are one small soft dot picture, made once and stamped (no gradient per spark per frame: smooth on a phone).
+const PS_GOLD = '255,213,74', PS_AMBER = '255,170,0', PS_CORE = '255,244,176';
+let psSpark = null;
+function powerSpark(x, y, r, alpha) {
+  if (!psSpark) {
+    psSpark = document.createElement('canvas'); psSpark.width = psSpark.height = 16;
+    const g = psSpark.getContext('2d'), grad = g.createRadialGradient(8, 8, 0, 8, 8, 8);
+    grad.addColorStop(0, `rgba(${PS_CORE},1)`); grad.addColorStop(0.35, `rgba(${PS_GOLD},0.85)`); grad.addColorStop(1, `rgba(${PS_AMBER},0)`);
+    g.fillStyle = grad; g.fillRect(0, 0, 16, 16);
+  }
+  if (alpha <= 0.01) return;
+  ctx.globalAlpha = Math.min(1, alpha);
+  ctx.drawImage(psSpark, x - r, y - r, r * 2, r * 2);
+  ctx.globalAlpha = 1;
+}
+function powerHead(x, len, half) { // a sharp triangle with a slight notch at its back, pointing along +x
+  ctx.beginPath(); ctx.moveTo(x + len * 0.62, 0); ctx.lineTo(x - len * 0.38, -half); ctx.lineTo(x - len * 0.24, 0); ctx.lineTo(x - len * 0.38, half); ctx.closePath();
+}
+function drawPowerShot(fx, ox, oy) {
+  const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
+  const a = Math.atan2(ey - sy, ex - sx), D = Math.max(12, Math.hypot(ex - sx, ey - sy) - 10); // (D: from the bow to where it ends)
   ctx.save();
-  ctx.translate(bx, by); ctx.rotate(a);
+  ctx.translate(sx + Math.cos(a) * 10, sy + Math.sin(a) * 10); ctx.rotate(a); // (the bow, a little in front of the archer)
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const gold = (o) => `rgba(255,128,16,${o})`, pale = (o) => `rgba(255,236,170,${o})`; // (orange, and a light inside)
-  const solid = on => { ctx.globalCompositeOperation = on ? 'source-over' : 'lighter'; }; // (the shapes in true orange; the glows add light)
-  // the shaft: a wide soft glow, a brighter band, a white-gold core; faint at the bow, full at the head
-  for (const [w, o, col] of [[14, 0.16, '255,110,10'], [7, 0.5, '255,128,16'], [2.6, 0.95, '255,224,150']]) {
-    solid(w < 10);
-    const g = ctx.createLinearGradient(0, 0, d, 0);
-    g.addColorStop(0, `rgba(${col},${0.15 * o * al})`); g.addColorStop(0.6, `rgba(${col},${0.7 * o * al})`); g.addColorStop(1, `rgba(${col},${o * al})`);
-    ctx.strokeStyle = g; ctx.lineWidth = w;
-    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(d - 6, 0); ctx.stroke();
+  if (e < fx.charge) { // ---- charge: drawn in, a faint arc, the nock brightening
+    const k = e / fx.charge;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 10; i++) {
+      const ph = (e / 650 + i / 10) % 1, ang = i * 2.4 + e / 900, rad = 26 * (1 - ph) + 3;
+      powerSpark(Math.cos(ang) * rad, Math.sin(ang) * rad * 0.85, 1.6 + 0.8 * ph, ph * (0.25 + 0.65 * k));
+    }
+    powerSpark(4, 0, 3 + 6 * k, 0.35 + 0.6 * k);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `rgba(${PS_GOLD},${0.12 + 0.45 * k})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(-4, 0, 14, -1.3, 1.3); ctx.stroke();
+    if (k > 0.6) { ctx.globalAlpha = (k - 0.6) / 0.4; ctx.fillStyle = `rgb(${PS_GOLD})`; powerHead(12, 10, 4); ctx.fill(); ctx.globalAlpha = 1; } // (the arrow taking shape)
+    ctx.restore();
+    return;
   }
-  solid(true);
-  // the crescent before the bow, fading as the arrow flies on, and wisps sweeping from its horns along the shaft
-  const c = al * Math.max(0.35, 1 - t / 900), R = 28, O = 6, reach = Math.max(36, d * 0.75);
-  ctx.shadowColor = gold(0.9); ctx.shadowBlur = 8;
-  ctx.strokeStyle = gold(0.9 * c); ctx.lineWidth = 3.5;
-  ctx.beginPath(); ctx.arc(O, 0, R, -1.15, 1.15); ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = pale(0.9 * c); ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.arc(O, 0, R, -1.05, 1.05); ctx.stroke();
-  for (const side of [-1, 1]) for (const [lift, w, o] of [[34, 2.2, 0.9], [52, 1.4, 0.6]]) {
-    const hx = O + Math.cos(1.1) * R, hy = side * Math.sin(1.1) * R;
-    const g = ctx.createLinearGradient(hx, 0, reach, 0);
-    g.addColorStop(0, gold(o * c)); g.addColorStop(1, 'rgba(255,150,24,0)');
-    ctx.strokeStyle = g; ctx.lineWidth = w;
-    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(reach * 0.3, side * lift * (0.9 + 0.1 * Math.sin(t / 120)), reach, side * 2.5); ctx.stroke();
+  const r = e - fx.charge;
+  if (r < fx.flight) { // ---- release and flight
+    const p = r / Math.max(1, fx.flight), hx = D * p, rel = Math.max(0, 1 - r / 110); // (rel: the release, its first 110 ms)
+    const tail = Math.min(hx, TILE * 2.6 + 40 * rel), t0 = hx - tail; // (the beam: stretched just after release)
+    // the beam: amber edge, gold body (both painted), a near-white core (light)
+    const beam = (w, col, o) => {
+      const g = ctx.createLinearGradient(t0, 0, hx, 0);
+      g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},${o})`);
+      ctx.strokeStyle = g; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(t0, 0); ctx.lineTo(hx - 6, 0); ctx.stroke();
+    };
+    beam(5, PS_AMBER, 0.55); beam(2.8, PS_GOLD, 0.95);
+    // ribbons curving round the beam behind the head, thin, waving a little
+    for (const [side, lift, w] of [[1, 9, 1.3], [-1, 8, 1.3], [1, 14, 0.8]]) {
+      const g = ctx.createLinearGradient(hx - tail, 0, hx - 4, 0);
+      g.addColorStop(0, `rgba(${PS_GOLD},0)`); g.addColorStop(1, `rgba(${PS_GOLD},0.75)`);
+      ctx.strokeStyle = g; ctx.lineWidth = w;
+      const wave = side * lift * (0.85 + 0.15 * Math.sin(r / 70 + lift));
+      ctx.beginPath(); ctx.moveTo(hx - 5, side * 1.5); ctx.quadraticCurveTo(hx - tail * 0.4, wave, hx - tail * 0.95, side * lift * 0.35); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    beam(1.3, PS_CORE, 0.9);
+    // sparks coming off behind the head, drifting out and fading
+    for (let i = 0; i < 9; i++) {
+      const ph = (r / 420 + i / 9) % 1, back = ph * tail * 0.9;
+      if (back > hx) continue;
+      powerSpark(hx - 6 - back, Math.sin(i * 1.9) * (2 + ph * 9), 1.8 - ph, (1 - ph) * 0.85);
+    }
+    // the release: a bright flash and a half circle of light round the bow
+    if (rel > 0) {
+      powerSpark(0, 0, 8 + 10 * rel, rel);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = `rgba(${PS_GOLD},${rel})`; ctx.lineWidth = 2.6 * rel + 0.6;
+      ctx.beginPath(); ctx.arc(-2, 0, 22 - 6 * rel, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+    }
+    // the arrowhead: amber at its back, gold, a near-white core; a thin gold edge so it holds on any ground
+    ctx.globalCompositeOperation = 'source-over';
+    const L = 24 * (1 + 0.15 * rel), H = 10; // (a little longer just after release: speed)
+    const g = ctx.createLinearGradient(hx - L * 0.4, 0, hx + L * 0.62, 0);
+    g.addColorStop(0, `rgb(${PS_AMBER})`); g.addColorStop(0.55, `rgb(${PS_GOLD})`); g.addColorStop(1, `rgb(${PS_CORE})`);
+    powerHead(hx, L, H); ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = 'rgba(150,90,0,0.55)'; ctx.lineWidth = 1; ctx.stroke(); // (a dark rim: clear on grass, water, dirt and stone)
+    ctx.globalCompositeOperation = 'lighter';
+    powerHead(hx + 2, L * 0.55, H * 0.45); ctx.fillStyle = `rgba(${PS_CORE},0.9)`; ctx.fill();
+    powerSpark(hx + L * 0.5, 0, 6, 0.7); // (a little warm light round its tip)
+  } else { // ---- impact: a short burst and sparks flying out where it ends
+    const f = Math.min(1, (r - fx.flight) / 200);
+    ctx.globalCompositeOperation = 'lighter';
+    powerSpark(D, 0, 6 + 10 * f, 0.9 * (1 - f));
+    ctx.strokeStyle = `rgba(${PS_GOLD},${0.9 * (1 - f)})`; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4 + 0.3; ctx.moveTo(D + Math.cos(an) * (4 + 12 * f), Math.sin(an) * (4 + 12 * f)); ctx.lineTo(D + Math.cos(an) * (8 + 20 * f), Math.sin(an) * (8 + 20 * f)); }
+    ctx.stroke();
   }
-  // sparks drifting along the shaft
-  solid(false);
-  for (let i = 0; i < 14; i++) {
-    const u = ((i * 0.618 + t / 1400) % 1), sxp = u * d, syp = Math.sin(i * 2.7 + t / 160) * (3 + 7 * (1 - u));
-    glowDot(sxp, syp, 1.6 + (i % 3) * 0.5, 'rgba(255,170,50,', (0.4 + 0.5 * Math.abs(Math.sin(i + t / 70))) * al);
-  }
-  if (t < 220) glowDot(0, 0, 18 * (1 - t / 220) + 4, 'rgba(255,180,70,', 0.9 * (1 - t / 220)); // (the flash as it's loosed)
-  // the head: a fainter arrowhead just behind, then the sharp one, its tip burning white
-  const head = (hx, size) => {
-    ctx.beginPath(); ctx.moveTo(hx + size, 0); ctx.lineTo(hx - size * 0.55, -size * 0.75); ctx.lineTo(hx - size * 0.25, -size * 0.22);
-    ctx.lineTo(hx - size * 0.25, size * 0.22); ctx.lineTo(hx - size * 0.55, size * 0.75); ctx.closePath();
-  };
-  solid(true);
-  ctx.strokeStyle = gold(0.6 * al); ctx.lineWidth = 1.6;
-  head(d - 17, 13); ctx.stroke();
-  ctx.shadowColor = gold(1); ctx.shadowBlur = 10;
-  head(d, 18); // (orange at its barbs, burning to near white at the tip)
-  { const g = ctx.createLinearGradient(d - 10, 0, d + 18, 0);
-    g.addColorStop(0, `rgba(255,120,14,${0.95 * al})`); g.addColorStop(0.55, `rgba(255,190,90,${al})`); g.addColorStop(1, `rgba(255,250,235,${al})`);
-    ctx.fillStyle = g; ctx.fill(); }
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = `rgba(255,190,80,${al})`; ctx.lineWidth = 1.3; ctx.stroke();
-  head(d + 1, 9); ctx.fillStyle = pale(0.7 * al); ctx.fill(); // (the light inside it)
-  solid(false); glowDot(d + 14, 0, 8, 'rgba(255,248,225,', 0.85 * al); // (the very tip: nearly white)
   ctx.restore();
 }
 
@@ -793,44 +835,8 @@ function drawEffects(ox, oy, z) {
       ctx.fillStyle = '#dfe4ea'; ctx.strokeStyle = '#8a9098'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(r - 9, -3.5); ctx.lineTo(r + 3, 0); ctx.lineTo(r - 9, 3.5); ctx.closePath(); ctx.fill(); ctx.stroke(); // the blade
       ctx.restore();
-    } else if (fx.kind === 'shot') { // the power shot: light gathering at the bow, a flash and a fan of rays as it's loosed, then a bolt of gold light
-      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
-      const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10;
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter'; // (light adds up: it glows)
-      if (e < fx.charge) { // drawing: power gathering - a ring of runes on the ground, sparks rising, light drawn into the bow, then lightning
-        const k = e / fx.charge, ease = k * k, pulse = 0.78 + 0.22 * Math.sin(e / 55), fy = sy + 17; // (fy: the hero's feet)
-        glowDot(sx, sy, 18 + 12 * ease, 'rgba(255,180,50,', 0.28 * k * pulse); // an aura round the hero
-        const R = 13 + 11 * ease; // (the ring of runes is on the ground, under the hero: drawPowerGround)
-        for (let i = 0; i < 16; i++) { // sparks rising from the ring
-          const ph = (e / 650 + i / 16) % 1, a = i * 2.39996;
-          glowDot(sx + Math.cos(a) * R * (0.4 + 0.6 * ((i * 7) % 5) / 4), fy + Math.sin(a) * R * 0.45 - ph * (26 + 14 * k), 2.2, 'rgba(255,226,120,', (1 - ph) * (0.3 + 0.7 * k));
-        }
-        for (let i = 0; i < 10; i++) { // light drawn in from all round into the bow
-          const ph = (e / 420 + i / 10) % 1, a = i * 0.628 + e / 500, r = (1 - ph) * (34 - 8 * k);
-          const mx = bx + Math.cos(a) * r, my = by + Math.sin(a) * r * 0.8;
-          ctx.strokeStyle = `rgba(255,220,110,${0.5 * ph * (0.4 + 0.6 * k)})`; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-          ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + (bx - mx) * 0.25, my + (by - my) * 0.25); ctx.stroke();
-          glowDot(mx, my, 2.4, 'rgba(255,240,170,', ph * (0.4 + 0.6 * k));
-        }
-        glowDot(bx, by, 4 + 14 * ease, 'rgba(255,214,90,', (0.45 + 0.5 * k) * pulse); // the ball of light at the bow
-        glowDot(bx, by, 1.5 + 4 * k, 'rgba(255,255,235,', 0.95);
-        if (k > 0.55) { // near full: lightning crackling off the bow
-          ctx.strokeStyle = `rgba(255,246,190,${0.5 + 0.5 * (k - 0.55) / 0.45})`; ctx.lineWidth = 1.3;
-          for (let j = 0; j < 3; j++) {
-            let x = bx, y = by, a = Math.random() * Math.PI * 2;
-            ctx.beginPath(); ctx.moveTo(x, y);
-            for (let q = 0; q < 4; q++) { a += (Math.random() - 0.5) * 1.4; x += Math.cos(a) * (4 + 4 * k); y += Math.sin(a) * (4 + 4 * k); ctx.lineTo(x, y); }
-            ctx.stroke();
-          }
-        }
-        if (k > 0.9) { const f = (k - 0.9) / 0.1; ctx.strokeStyle = `rgba(255,250,210,${0.8 * (1 - f)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bx, by, 6 + 22 * f, 0, Math.PI * 2); ctx.stroke(); } // ready: a ring of light snaps out
-      } else {
-        const r = e - fx.charge, p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 200) : 1;
-        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p;
-        if (fade > 0) drawPowerArrow(bx, by, Math.hypot(x - bx, y - by), a, r, fade); // the arrow of light, its beam back to the bow
-      }
-      ctx.restore();
+    } else if (fx.kind === 'shot') { // the power shot: charged at the bow, loosed with a flash, a golden arrow in flight, a burst where it ends
+      drawPowerShot(fx, ox, oy);
     } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow
       const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
       const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10, nx = -Math.sin(a), ny = Math.cos(a);
