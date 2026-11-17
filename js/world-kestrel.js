@@ -251,8 +251,11 @@ function createKestrelMap() {
   // ---- Bellhaven: the town's art, tile by tile ----
   const Z1 = S + 1, plateau = new Set();
   const onRock = (ax, ay) => K.buildings.some(b => b.rock && b.boxes.some(([x0, y0, x1, y1]) => ax >= x0 && ax <= x1 && ay >= y0 && ay <= y1)); // (the temple and its tower stand on the rock)
+  // (a tile of the temple rock that sticks out alone, joined to the rest by a side at most, is just grass)
+  const artAt = (ax, ay) => (KESTREL_TOWN_ART[ay] || '')[ax] || ' ';
+  const stub = (ax, ay) => artAt(ax, ay) === 'r' && !onRock(ax, ay) && [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => 'rsxWf+'.includes(artAt(ax + dx, ay + dy))).length < 2;
   for (let ay = 0; ay < KESTREL_TOWN_ART.length; ay++) for (let ax = 0; ax < KESTREL_TOWN_ART[ay].length; ax++) {
-    const ch = KESTREL_TOWN_ART[ay][ax], x = TX + ax, y = TY + ay;
+    const ch = stub(ax, ay) ? '.' : KESTREL_TOWN_ART[ay][ax], x = TX + ax, y = TY + ay;
     if (ch === ' ') continue;
     // (the art's sea below the quay: only the harbour, a rounded basin opening into the bay; the rest is the island's)
     if (ch === '~' && ay >= 74 && Math.hypot((x - 102) / 31, (y - 149) / 12) + (smooth(x, y, 4, 27) - 0.5) * 0.25 > 1) continue;
@@ -407,6 +410,25 @@ function createKestrelMap() {
     const a = hash(k, i, key.length * 7 + 1) * 6.283, d = Math.sqrt(hash(i, k, key.length * 7 + 2)), x = Math.round(R.c[0] + Math.cos(a) * R.r[0] * d), y = Math.round(R.c[1] + Math.sin(a) * R.r[1] * d);
     if (!m.isWalkable(OX + x, OY + y, S) || art(x, y) !== ' ') continue;
     m.spawns.push({ type, x: OX + x, y: OY + y, z: S }); i++;
+  }
+
+  // ---- the tops of the rocks and the peaks: rugged, not bare slabs - crags, boulders, a bush in a crack, tufts ----
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    // a rock only a tile across is a boulder lying in the grass, not a cliff
+    const t = m.get(x, y, S);
+    if (t && t.items.includes('cliff') && t.ground === 'mountain' && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => (m.get(x + dx, y + dy, S) || { items: [] }).items.includes('cliff'))) {
+      const top = m.get(x, y, S + 1); if (top && top.ground === 'rock_top') m.set(x, y, S + 1, null);
+      m.set(x, y, S, { ground: 'grass', items: ['rock'] });
+    }
+  }
+  for (const z of [S + 1, S + 2]) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const t = m.get(x, y, z);
+    if (!t || t.ground !== 'rock_top' || t.items.length) continue;
+    const r = hash(x, y, 70 + z), patch = smooth(x, y, 3, 71 + z);
+    if (r < 0.1) t.items.push('crag');
+    else if (r < 0.16) t.items.push('rock');
+    else if (patch > 0.62 && r < 0.6) t.items.push(r < 0.45 ? 'bush' : 'grass_tuft');
+    else if (r < 0.36) t.items.push('pebbles');
   }
 
   // ---- under the ground nothing is empty, as in Tibia: wherever no tunnel or cave is dug, solid rock (never black) ----
