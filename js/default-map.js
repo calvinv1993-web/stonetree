@@ -546,33 +546,37 @@ const GOBLIN_WARREN = {
 //   floors: { z: { caves [cx, cy, rx, ry], tunnels [x0, y0, x1, y1], boulders [x, y], props [x, y, id], monsters [type, x, y] } }
 //   dig: the loose earth (floor 7), with a rope spot under it; pit: the drop (floor 6) into the halls; rope: the rope spot
 //   back up (floor 5); gate: the level gate [x, y, level]; down: the hole to the throne hall (floor 5, a ladder below)
+//   exit: the king's way out, behind his throne: ladders [x, y, z] up through old tunnels, one floor at a time, to a hollow
+//   in the Deer Woods (floor 8). Only up: nothing on any floor above leads back down it. outLook: what the hollow says
 const GOBLIN_DEEP = {
+  exit: [[178, 117, 4], [174, 117, 5], [171, 117, 6], [170, 116, 7]],
+  outLook: [171, 116, 'A hollow among the roots, where the earth has fallen in. Far down, rough steps cut by small hands. They were cut for going up, not down.'],
   dig: [199, 84, 'Loose earth, dug and then filled in again in a hurry. The goblins stopped digging here. Something made them stop.'],
   pit: [205, 96, 'A pit in the floor, black as ink. Cold air comes up out of it, and the smell of old bones. There is no climbing back up out of that.'],
   rope: [182, 101, 'High above, a hole in the rock, and roots hanging from it. With a rope you could climb up there.'],
   gate: [186, 106, 7, 'An old gate of goblin iron, green with age. Scratched on it, in goblin and in plain letters: ONLY THE STRONG GO DOWN TO THE KING.'],
   down: [186, 110, 'A hole, with goblin footholds cut into its side, going down into the dark.'],
   floors: {
-    7: { tunnels: [[194, 84, 199, 84]], props: [[198, 84, 'rubble'], [197, 84, 'bones']] },
+    7: { tunnels: [[194, 84, 199, 84], [170, 116, 171, 117]], props: [[198, 84, 'rubble'], [197, 84, 'bones']] },
     6: {
       caves: [[200, 85, 2.4, 2], [186, 87, 3.6, 2.6], [190, 97, 3.2, 2.4], [203, 96, 2.6, 2], [182, 100, 2.4, 1.7]],
-      tunnels: [[189, 85, 197, 85], [186, 90, 186, 98], [187, 97, 188, 97], [193, 97, 201, 97], [182, 90, 182, 98], [183, 89, 183, 89]],
+      tunnels: [[189, 85, 197, 85], [186, 90, 186, 98], [187, 97, 188, 97], [193, 97, 201, 97], [182, 90, 182, 98], [183, 89, 183, 89], [171, 117, 174, 117]],
       boulders: [[186, 92]],
-      props: [[180, 100, 'qchest_diggers_cache'], [184, 101, 'bones'], [188, 86, 'rubble'], [184, 88, 'bones'], [192, 98, 'rubble'], [189, 96, 'bones'], [204, 95, 'bones']],
+      props: [[180, 100, 'qchest_diggers_cache'], [184, 101, 'bones'], [188, 86, 'rubble'], [184, 88, 'bones'], [192, 98, 'rubble'], [189, 96, 'bones'], [204, 95, 'bones'], [173, 117, 'rubble']],
       monsters: [['goblin', 185, 86], ['goblin', 188, 88], ['goblin_archer', 184, 87], ['goblin_archer', 189, 86],
         ['goblin', 190, 96], ['goblin', 191, 98], ['giant_rat', 197, 97], ['giant_rat', 203, 97], ['goblin_archer', 181, 99]],
     },
     5: {
       caves: [[204, 97, 2.6, 2], [187, 100, 4.2, 3], [186, 110, 1.8, 1.6]],
-      tunnels: [[190, 99, 203, 99], [182, 101, 183, 101], [186, 104, 186, 108]],
-      props: [[184, 99, 'bones'], [190, 102, 'skull_pile'], [184, 102, 'bones'], [189, 98, 'rubble'], [199, 99, 'bones'], [205, 98, 'bones'], [187, 111, 'bones']],
+      tunnels: [[190, 99, 203, 99], [182, 101, 183, 101], [186, 104, 186, 108], [174, 117, 178, 117]],
+      props: [[184, 99, 'bones'], [190, 102, 'skull_pile'], [184, 102, 'bones'], [189, 98, 'rubble'], [199, 99, 'bones'], [205, 98, 'bones'], [187, 111, 'bones'], [176, 117, 'bones']],
       monsters: [['skeleton', 185, 99], ['skeleton', 189, 101], ['skeleton', 188, 98], ['skeleton', 196, 99], ['shade', 186, 102]],
     },
     4: {
       caves: [[186, 110, 1.8, 1.6], [193, 115, 4.6, 3.4]],
-      tunnels: [[187, 111, 188, 111], [188, 112, 189, 112], [189, 113, 189, 113]],
+      tunnels: [[187, 111, 188, 111], [188, 112, 189, 112], [189, 113, 189, 113], [178, 117, 189, 117]],
       props: [[193, 112, 'qchest_mogg_sabre'], [192, 112, 'throne'], [194, 112, 'treasure'], [190, 113, 'skull_pile'], [196, 113, 'skull_pile'],
-        [190, 117, 'bones'], [196, 117, 'bones'], [193, 118, 'rubble']],
+        [190, 117, 'bones'], [196, 117, 'bones'], [193, 118, 'rubble'], [183, 117, 'bones']],
       monsters: [['king_mogg', 193, 114], ['skeleton', 190, 115], ['skeleton', 196, 115], ['shade', 193, 117]],
     },
   },
@@ -1669,6 +1673,9 @@ function buildGoblinDeep(m) {
   at(gx, gy, 5, 'goblin_gate'); m.setMeta(gx, gy, 5, { level, look: gateLook });
   at(hx, hy, 5, 'hole', downLook);
   at(hx, hy, 4, 'cave_ladder');
+  for (const [x, y, z] of D.exit) at(x, y, z, 'cave_ladder');
+  const [ox, oy, outLook] = D.outLook;
+  m.addItem(ox, oy, m.surfaceZ, 'rubble'); m.setMeta(ox, oy, m.surfaceZ, { look: outLook });
   for (const [zs, F] of Object.entries(D.floors)) {
     const Z = +zs;
     for (const [x, y] of F.boulders || []) m.addItem(x, y, Z, 'boulder');

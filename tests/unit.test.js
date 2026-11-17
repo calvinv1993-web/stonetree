@@ -1872,6 +1872,14 @@ test('King Mogg\'s Sabre: dig through Gnash\'s hoard, drop into the bone halls, 
   assert(I.mogg_sabre.weapon.attack < I.broadsword.weapon.attack, 'below the mainland\'s blades');
   ctx.useThing(cx, cy, 4);
   assert.strictEqual(state.countItem('mogg_sabre'), 1, 'once per character');
+  // the king's way out: ladders up behind his throne, floor by floor, to a hollow in the Deer Woods, and no way back down
+  for (const [x, y, z] of D.exit) {
+    Object.assign(p, { x: x + 1, y, z });
+    go(-1, 0);
+    assert.strictEqual(p.z, z + 1, `up the ladder from floor ${z}`);
+    assert(!state.map.floorChange(p.x, p.y, p.z), 'nothing leads back down');
+  }
+  assert.strictEqual(p.z, state.map.surfaceZ, 'out in the Deer Woods');
 });
 
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {

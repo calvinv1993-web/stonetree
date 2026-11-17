@@ -297,7 +297,8 @@ The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the me
 - Floor 5, the bone halls: the pit drops you here with no way back up it; skeletons and a shade in the hall (187,100); the
   rope spot (182,101) climbs back up into the side cave. South, the old goblin gate (186,106, level 7), then a hole down.
 - Floor 4, the throne hall (193,115): King Mogg (340 hp, summons a skeleton now and then) with two skeletons and a shade,
-  his throne and chest (193,112).
+  his throne and chest (193,112). Behind it a tunnel west to the king's way out: ladders up (178,117,4), (174,117,5),
+  (171,117,6), (170,116,7) to a hollow in the Deer Woods (170,116,8). Only up: the caves join the woods, one way.
 - King Mogg's sabre: sword, attack 18, defense 10, level 7: the best blade on the isle, below the broadsword (level 12).
 
 **The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
