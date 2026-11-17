@@ -705,6 +705,13 @@ function drawPowerShot(fx, ox, oy) {
     }
     ctx.globalCompositeOperation = 'lighter';
     beam(1.3, PS_CORE, 0.9);
+    // the shine: white light running up the beam to the head, again and again
+    for (const off of [0, 0.5]) {
+      const u = ((r / 170) + off) % 1, at = t0 + (hx - t0) * u, len = 18;
+      const g = ctx.createLinearGradient(at - len, 0, at + len, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(255,255,255,${0.9 * Math.sin(u * Math.PI)})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.strokeStyle = g; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(Math.max(t0, at - len), 0); ctx.lineTo(Math.min(hx - 4, at + len), 0); ctx.stroke();
+    }
     // sparks coming off behind the head, drifting out and fading
     for (let i = 0; i < 9; i++) {
       const ph = (r / 420 + i / 9) % 1, back = ph * tail * 0.9;
@@ -727,6 +734,15 @@ function drawPowerShot(fx, ox, oy) {
     ctx.strokeStyle = 'rgba(150,90,0,0.55)'; ctx.lineWidth = 1; ctx.stroke(); // (a dark rim: clear on grass, water, dirt and stone)
     ctx.globalCompositeOperation = 'lighter';
     powerHead(hx + 2, L * 0.55, H * 0.45); ctx.fillStyle = `rgba(${PS_CORE},0.9)`; ctx.fill();
+    { // the shine running over the arrowhead: a white band sweeping from its back to its tip, where it flares
+      const u = (r / 170) % 1, bx0 = hx - L * 0.4, sweep = bx0 + (L * 1.02) * u, w = 7;
+      ctx.save(); powerHead(hx, L, H); ctx.clip();
+      const g = ctx.createLinearGradient(sweep - w, 0, sweep + w, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(sweep - w, -H, w * 2, H * 2);
+      ctx.restore();
+      if (u > 0.8) powerSpark(hx + L * 0.6, 0, 4 + 8 * (u - 0.8) / 0.2, (u - 0.8) / 0.2); // (and a glint at the tip)
+    }
     powerSpark(hx + L * 0.5, 0, 6, 0.7); // (a little warm light round its tip)
   } else { // ---- impact: a short burst and sparks flying out where it ends
     const f = Math.min(1, (r - fx.flight) / 200);
