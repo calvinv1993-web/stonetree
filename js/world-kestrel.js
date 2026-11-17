@@ -65,14 +65,16 @@ const KESTREL = {
   // the town's gates stand out on its roads, a little way off (half a minute's walk from the courtyard): a paved road
   // from the town out to a pair of watchtowers, and between them the way on (town-art coordinates: [x0, y0, x1, y1],
   // 3 wide or tall). The towers are buildings (below), with stairs up to a lookout.
-  approaches: [[-26, 17, -1, 18], [51, -12, 53, -1]],
+  approaches: [[-26, 17, -1, 18], [-26, 19, -19, 19], [51, -12, 53, -1]],
   // the gates: from each tower a short stone wall out to an outcrop of rock, so the road through between the towers is the
   // only way in; lamps either side of it, banners on the towers, a pair of wardens on its town side, a signpost outside
   // (town-art coordinates: walls [x0, y0, x1, y1], rocks [cx, cy, rx, ry], lamps, banners on tower walls, wardens, signs)
   gatePasses: [
-    { walls: [[-23, 7, -23, 11], [-23, 24, -23, 28]], rocks: [[-23, 4, 4, 3], [-23, 31, 4, 3]], lamps: [[-20, 16], [-20, 19], [-27, 16], [-27, 19]],
-      banners: [[-21, 15], [-21, 20]], wardens: [[-19, 16], [-19, 19]], sign: [-28, 15, 'Bellhaven. Lay down your quarrels at the gate: inside it, you are safe.'] },
+    { walls: [[-23, 7, -23, 11], [-23, 25, -23, 28]], rocks: [[-23, 4, 4, 3], [-23, 31, 4, 3]], lamps: [[-20, 16], [-20, 20], [-27, 16], [-27, 20]],
+      arch: { at: [-24, 17, -22, 19], face: 'e' },
+      banners: [[-21, 15], [-21, 21]], wardens: [[-19, 16], [-19, 20]], sign: [-28, 15, 'Bellhaven. Lay down your quarrels at the gate: inside it, you are safe.'] },
     { walls: [[41, -8, 45, -8], [59, -8, 63, -8]], rocks: [[38, -8, 3, 4], [66, -8, 3, 4]], lamps: [[50, -5], [54, -5], [50, -11], [54, -11]],
+      arch: { at: [51, -9, 53, -7], face: 's' },
       banners: [[49, -6], [55, -6]], wardens: [[50, -4], [54, -4]], sign: [55, -13, 'Bellhaven, below. The temple bell can be heard from here at dawn.'] },
   ],
   // the courtyard's and the harbour's life: who's there, and what lies about (town-art coordinates)
@@ -86,6 +88,9 @@ const KESTREL = {
   fountainRing: [27, 17, 2],
   // the way up to the temple: banners either side of the steps from the courtyard, lamps either side of its door
   templeWay: [[25, 13, 8, 'flagpole'], [29, 13, 8, 'flagpole'], [24, 9, 10, 'lamppost'], [30, 9, 10, 'lamppost']],
+  // what stands outside each kind of building, either side of its door, so you can tell from the street what it is
+  frontProps: { smithy: ['anvil', 'woodpile'], inn: ['barrel', 'bench'], store: ['crate', 'sack'], healer: ['planter', 'planter'], depot: ['crate', 'barrel'],
+    hall: ['flagpole', 'flagpole'], fish: ['fish_rack', 'basket'], warehouse: ['crate', 'barrel'], office: ['barrel', 'crate'] },
   terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
@@ -121,7 +126,7 @@ const KESTREL = {
     { name: 'Fishmonger', boxes: [[37, 30, 44, 33]], door: [40, 33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
     // the gates' watchtowers, out on the roads: two storeys and a lookout on top
     { name: 'West gate, north tower', boxes: [[-25, 12, -21, 16]], door: [-23, 16], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[-24, 13], [-24, 15]] },
-    { name: 'West gate, south tower', boxes: [[-25, 19, -21, 23]], door: [-23, 19], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[-24, 21]] },
+    { name: 'West gate, south tower', boxes: [[-25, 20, -21, 24]], door: [-23, 20], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[-24, 22]] },
     { name: 'North gate, west tower', boxes: [[46, -10, 50, -6]], door: [50, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[47, -9], [47, -7]] },
     { name: 'North gate, east tower', boxes: [[54, -10, 58, -6]], door: [54, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[55, -9]] },
   ],
@@ -408,11 +413,48 @@ function createKestrelMap() {
     homes.push(b);
   }
   for (const [x, y, id] of K.outside) { const t = at(TX + x, TY + y); if (t && (!THINGS[t.ground]?.block || (id === 'boat' && t.ground === 'water'))) t.items = [id]; } // (boats on the water)
+  // outside each building, either side of the tile in front of its door: what tells you what it is
+  const placed = [];
+  for (const b of K.buildings) {
+    const props = K.frontProps[b.kind]; if (!props || b.rock) continue;
+    const inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]].find(([a, c]) => !inB(b.door[0] + a, b.door[1] + c)) || [0, 1];
+    const [fx, fy] = [b.door[0] + dx, b.door[1] + dy];
+    [[dy, dx], [-dy, -dx]].forEach(([sx, sy], i) => { // (the two tiles beside the door's front, along the wall)
+      const x = fx + sx, y = fy + sy, t = at(TX + x, TY + y);
+      if (t && !t.items.length && t.ground === 'grass') { t.items.push(props[i]); placed.push([b, t]); } // (on the grass beside the path, never on the path)
+    });
+  }
+  { // (and none that shuts a door off: from the courtyard every door's front must still be reached, or its props go)
+    const seen = new Set(), todo = [[TX + K.square[0], TY + K.square[1] + 2]];
+    while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (seen.has(k) || x + dx < TX - 30 || x + dx > TX + TW + 10 || y + dy < TY - 30 || y + dy > TY + TH) continue; if (!m.isWalkable(OX + x + dx, OY + y + dy, S)) continue; seen.add(k); todo.push([x + dx, y + dy]); } }
+    for (const b of K.buildings) {
+      if (b.rock) continue;
+      const inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+      const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]].find(([a2, c]) => !inB(b.door[0] + a2, b.door[1] + c)) || [0, 1];
+      if (!seen.has(`${TX + b.door[0] + dx},${TY + b.door[1] + dy}`)) for (const [o, t] of placed) if (o === b) t.items = t.items.filter(i => !K.frontProps[o.kind].includes(i));
+    }
+  }
   // the gates' lamps, banners, signposts and wardens; the town's folk
   for (const g of K.gatePasses) {
     for (const [x, y] of g.lamps) { const t = at(TX + x, TY + y); if (t) t.items = ['lamppost']; }
     for (const [x, y] of g.banners) { const t = at(TX + x, TY + y); if (t && t.items.includes('wall_stone')) t.items.push('banner'); }
     const [sx, sy, text] = g.sign, st = at(TX + sx, TY + sy); if (st) { st.items = ['signpost']; m.setMeta(OX + TX + sx, OY + TY + sy, S, { text }); }
+    // the gateway: a vaulted passage between the towers, a walk with battlements over it, a great arch on the face you see
+    if (g.arch) {
+      const { at: [x0, y0, x1, y1], face } = g.arch;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const t = at(TX + x, TY + y); if (!t) continue;
+        t.items = t.items.filter(i => !THINGS[i].block && i !== 'lamppost');
+        t.items.push('vault_shadow');
+        if (face === 's' && y === y1) t.items.push(`arch_gate_s${x - x0}`);
+        if (face === 'e' && x === x1) t.items.push(`arch_gate_e${y - y0}`);
+        m.set(OX + TX + x, OY + TY + y, S + 1, { ground: 'temple_paving', items: [] });
+        const top = at(TX + x, TY + y, S + 1);
+        if (face === 's') { if (y === y0) top.items.push('battlement_n'); if (y === y1) top.items.push('battlement_s'); }
+        else { if (x === x0) top.items.push('battlement_w'); if (x === x1) top.items.push('battlement_e'); }
+      }
+    }
     for (const [x, y] of g.wardens) { const t = at(TX + x, TY + y); if (t) t.items = []; m.npcs.push({ type: 'bell_guard', x: OX + TX + x, y: OY + TY + y, z: S }); }
   }
   for (const [type, x, y] of K.townsfolk) { const t = at(TX + x, TY + y); if (t && t.ground !== 'water' && t.ground !== 'pier') t.items = t.items.filter(i => !THINGS[i].block); m.npcs.push({ type, x: OX + TX + x, y: OY + TY + y, z: S }); }
