@@ -65,6 +65,19 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
     return errors;
   });
   problems.push(...spriteErrors);
+  // Every creature drawn as the code draws it, before (or without) its own picture: the map editor on a phone can draw
+  // one before its sheet has loaded, and a creature with no drawing of its own must not throw
+  {
+    const bare = await browser.newPage();
+    await bare.route(/\/sprites\/[^?]*\.png/, r => r.abort());
+    await bare.goto(`${await serve()}/index.html`);
+    problems.push(...await bare.evaluate(() => {
+      const errors = [];
+      for (const id of Object.keys(MONSTERS)) { try { Sprites.creature(id, 2, 1); } catch (e) { errors.push(`monster ${id} without its picture: ${e.message}`); } }
+      return errors;
+    }));
+    await bare.close();
+  }
   // The page builds the built-in world itself: it must be exactly the server's (Node's), or online play can't start.
   {
     const vm = require('vm'), fs = require('fs'), c = {};

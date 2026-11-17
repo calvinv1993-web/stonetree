@@ -5828,7 +5828,7 @@ const Sprites = (() => {
     return MONSTER_LOOKS[key] || null;
   }
   const BIG_BEASTS = ['greyfang', 'old_snapper', 'thornmother', 'cistern_slime', 'giant_rat', 'giant_spider', 'dragon', 'frost_dragon', 'dragon_lord', 'polar_bear', 'crocodile'];
-  BIG_BEASTS.push('brineshell'); // (the sea cave's: Tidecutter)
+  BIG_BEASTS.push('brineshell', 'saltjaw', 'old_weaver', 'one_eye_patch', 'watch_captain'); // (the sea cave's: Tidecutter; the deep vaults' keepers, Farmer Odo's bandit)
 
   // ---- dolls: people and beasts built in 3D -------------------------------------------------------------
   // A figure is put together from parts in space (blocks, round limbs, balls), each in the figure's own frame (a: to
@@ -7178,6 +7178,29 @@ const Sprites = (() => {
         ghost(g, d, f);
         g.filter = 'none';
       },
+      // the deep vaults' keepers and Farmer Odo's bandit, drawn as their kind (their own sheets, when loaded, come first)
+      watch_captain: (g, d, f) => { // Captain Harrow: a watchman's ghost, taller, grey-gold
+        g.translate(16, 27); g.scale(1.3, 1.3); g.translate(-16, -27);
+        g.filter = 'sepia(0.6) brightness(1.05)';
+        ghost(g, d, f);
+        g.filter = 'none';
+      },
+      saltjaw: (g, d, f) => { // the great crab of the smugglers' hall, copper-green with age
+        g.translate(16, 26); g.scale(1.6, 1.6); g.translate(-16, -26);
+        g.filter = 'hue-rotate(110deg) saturate(0.9) brightness(0.85)';
+        crab(g, d, f);
+        g.filter = 'none';
+      },
+      old_weaver: (g, d, f) => { // the oldest spider on the isle: pale grey
+        g.translate(16, 27); g.scale(1.3, 1.3); g.translate(-16, -27);
+        g.filter = 'grayscale(0.85) brightness(1.7) contrast(0.9)';
+        giantSpider(g, d, f);
+        g.filter = 'none';
+      },
+      one_eye_patch: (g, d, f) => { // the rabbits' bandit king: a big buck, darker
+        g.translate(16, 27); g.scale(1.4, 1.4); g.translate(-16, -27);
+        rabbit(g, d, f, { fur: '#8a6a4e', dark: '#5a4028', light: '#d8c8b0', ear: '#c88a80', eye: '#d02020' });
+      },
       // the gate watch's bosses: the beast they lead, bigger and darker
       greyfang: (g, d, f) => { // the alpha: grey and scarred, a head taller than the pack
         g.translate(16, 27);
@@ -7228,7 +7251,7 @@ const Sprites = (() => {
         g.translate(-4, -30);
         dragon(g, d, f, DRAGON_LORD);
       },
-    }[key];
+    }[key] || slime; // (a creature with no drawing of its own, its sheet not loaded yet: a blob, never an error)
   }
 
   const CORPSES = {
