@@ -437,6 +437,14 @@ const THINGS = {
       guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
       empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
   },
+  // The Captain's Mail: the top of the Old Tower (TOWER_TOP in default-map.js)
+  tower_grille: { name: 'iron grille', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', levelDoor: true, meta: 'level' },
+  qchest_watch_mail: {
+    name: 'the watch\'s pay chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'watch_mail', quest: 'watch_mail', xp: 1000, gold: 150, items: [['watch_mail', 1], ['health_potion', 2]], guard: 'watch_captain',
+      guarded: 'A cold gauntlet slams the lid shut. Captain Harrow still keeps the watch\'s pay.',
+      empty: 'The pay chest is empty. Far below, the Deer Woods sway in the wind.' },
+  },
   // King Mogg's Sabre: the deep vault under Goblin Hill (GOBLIN_DEEP in default-map.js)
   goblin_gate: { name: 'old goblin gate', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', levelDoor: true, meta: 'level' },
   qchest_diggers_cache: {

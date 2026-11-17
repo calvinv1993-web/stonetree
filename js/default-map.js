@@ -490,7 +490,6 @@ const CRYPT = {
 //   x0..y1:  the tower's walls, on the hilltop (floor 9), and its broken top (floor 10)
 //   breach:  the fallen doorway (a rope spot; a hole above it); rubble: fallen stone inside, behind it
 //   stairs:  down from the top (stairs_down on 10, stairs_up on 9); gaps: the top's broken battlements;
-//   remnants: walls of the fallen storey above still standing (floor 11)
 //   levers:  [x, y, order, look] on floor 9; trapdoor: the way down, under a rusted grate
 //   cellar:  floor 8, cut into the hill: rooms [x0, y0, x1, y1], props [x, y, id], the shade and his chest
 //   skeletons: on the top
@@ -500,7 +499,6 @@ const OLD_TOWER = {
   rubble: [[192, 119], [193, 119], [194, 119]],
   stairs: [191, 115],
   gaps: [[190, 117], [196, 116], [192, 114], [195, 114], [196, 119], [190, 119]],
-  remnants: [[190, 114], [191, 114], [190, 115], [190, 116], [196, 114], [196, 115]], // walls still standing a storey higher (floor 11)
   levers: [
     [192, 115, 2, 'An iron lever on the west side of the room. "WEST" is cut into its plate.'],
     [193, 115, 3, 'An iron lever in the middle of the room. "MIDDLE" is cut into its plate.'],
@@ -1043,6 +1041,7 @@ function createDefaultMap() {
   buildSpiderDen(m, S);
   buildDeepSewers(m, S);
   buildOldTower(m, S);
+  buildTowerTop(m, S);
   buildGoblinWarren(m, S);
   buildGoblinDeep(m);
   buildWellTunnels(m, S);
@@ -1574,6 +1573,48 @@ function buildCrypt(m, S) {
   m.setMeta(gx, gy, S, { dig: 'bone_chapel', thing: 'ossian_grave', look: 'A low mound of earth between the stones, sunken a little, with no stone of its own. Somebody tends it: the grass is cut.' });
 }
 
+// The Old Tower's upper storeys (The Captain's Mail): the tower's top is open to the sky, but above it, on the old beams,
+// three storeys still stand, tilted and creaking, where the watch kept its pay and its captain kept his post. Nobody's
+// arrow points there: you hear of a lantern at the top at night. From the broken top (floor 10) a rope up through a gap
+// in the beams to the watch room (floor 11), its far half behind an iron grille (level 8 and up), stairs up to the
+// captain's quarters (floor 12), and up again to the lookout on the roof (floor 13), where Captain Harrow keeps his post.
+//   rope: the rope spot on floor 10, under the gap (a hole on floor 11); split: the watch room's dividing wall (y) and its
+//   grille [x, level, look]; stairs: [x, y, from z]; props [x, y, z, id]; monsters [type, x, y, z]; gaps: the roof's
+//   broken battlements (floor 13)
+const TOWER_TOP = {
+  rope: [195, 115, 'Above, the beams of the storey that still stands. Through a gap where the stair fell, an old iron hook. With a rope you could climb up.'],
+  split: [117, [193, 8, 'An iron grille, its bars bent but holding. Cut into the beam above it: OFFICERS OF THE WATCH ONLY.']],
+  stairs: [[191, 119, 11], [195, 119, 12]],
+  props: [
+    [191, 115, 11, 'barrel'], [192, 115, 11, 'crate'], [194, 116, 11, 'bones'], [191, 116, 11, 'rubble'], [195, 118, 11, 'bones'],
+    [191, 115, 12, 'bed'], [192, 115, 12, 'table'], [195, 115, 12, 'bookshelf'], [193, 117, 12, 'bones'], [194, 118, 12, 'rubble'],
+    [193, 115, 13, 'qchest_watch_mail'], [195, 117, 13, 'flagpole'], [191, 118, 13, 'bones'],
+  ],
+  monsters: [['skeleton', 192, 116, 11], ['skeleton', 194, 115, 11], ['shade', 193, 118, 11],
+    ['shade', 192, 117, 12], ['skeleton', 194, 116, 12], ['shade', 192, 119, 12],
+    ['watch_captain', 193, 117, 13], ['shade', 191, 116, 13]],
+  gaps: [[190, 117], [196, 116], [193, 120], [196, 119]],
+};
+
+// Builds the Old Tower's upper storeys (see TOWER_TOP) on top of the tower (OLD_TOWER): three storeys of the same
+// walls, the dividing wall and grille of the watch room, the rope up, the stairs, and who keeps them.
+function buildTowerTop(m, S) {
+  const T = OLD_TOWER, P = TOWER_TOP, ring = (x, y) => x === T.x0 || x === T.x1 || y === T.y0 || y === T.y1;
+  for (let z = S + 3; z <= S + 5; z++) for (let y = T.y0; y <= T.y1; y++) for (let x = T.x0; x <= T.x1; x++) {
+    const roof = z === S + 5, gap = roof && P.gaps.some(([gx, gy]) => gx === x && gy === y);
+    m.set(x, y, z, { ground: roof ? 'cobble' : 'wood', items: ring(x, y) && !gap ? ['wall_stone'] : [] });
+  }
+  const [rx, ry, look] = P.rope;
+  m.addItem(rx, ry, S + 2, 'rope_spot'); m.setMeta(rx, ry, S + 2, { look });
+  m.addItem(rx, ry, S + 3, 'hole'); m.setMeta(rx, ry, S + 3, { look: 'The gap where the stair fell. Far below, the broken top of the tower.' });
+  const [wy, [gx, level, gateLook]] = P.split;
+  for (let x = T.x0 + 1; x < T.x1; x++) m.addItem(x, wy, S + 3, x === gx ? 'tower_grille' : 'wall_stone');
+  m.setMeta(gx, wy, S + 3, { level, look: gateLook });
+  for (const [x, y, z] of P.stairs) { m.addItem(x, y, z, 'stairs_up'); m.addItem(x, y, z + 1, 'stairs_down'); }
+  for (const [x, y, z, id] of P.props) m.addItem(x, y, z, id);
+  for (const [type, x, y, z] of P.monsters) m.spawns.push({ type, x, y, z, lurk: true });
+}
+
 // Builds the ruined watchtower on the Old Tower hill (see OLD_TOWER): the tower on the hilltop (floor 9), its broken
 // top (floor 10), and the cellar cut into the hill under it (floor 8).
 function buildOldTower(m, S) {
@@ -1599,7 +1640,6 @@ function buildOldTower(m, S) {
   m.addItem(...T.stairs, up, 'stairs_down');
   m.addItem(...T.stairs, top, 'stairs_up');
   for (const [x, y] of [[T.x0 + 1, T.y1 - 1], [T.x1 - 1, T.y1 - 2]]) m.addItem(x, y, up, 'rubble');
-  for (const [x, y] of T.remnants) m.set(x, y, up + 1, { ground: 'cobble', items: ['wall_stone'] }); // what's left of the storey above
   for (const [x, y, order, text] of T.levers) { m.addItem(x, y, top, 'lever'); m.setMeta(x, y, top, { puzzle: 'old_tower', order, target: { x: T.trapdoor[0], y: T.trapdoor[1], z: top }, look: text }); }
   m.get(...T.trapdoor, top).items = ['trapdoor', 'cellar_bars'];
   m.setMeta(...T.trapdoor, top, { look: 'A trapdoor down into the cellar, under a rusted iron grate. Chains run from the grate up to the levers.' });

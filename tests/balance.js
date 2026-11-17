@@ -43,6 +43,8 @@ const stages = [
   { name: 'L6 longsword, 2 goblins + 2 archers (diggings)', level: 6, skill: 24, weapon: 'longsword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 4, pack: ['goblin', 'goblin', 'goblin_archer', 'goblin_archer'] },
   { name: 'L7 longsword, 3 skeletons + shade (bone halls)', level: 7, skill: 25, weapon: 'longsword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 4, pack: ['skeleton', 'skeleton', 'skeleton', 'shade'] },
   { name: 'L7 longsword, King Mogg + skeleton', level: 7, skill: 25, weapon: 'longsword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 5, pack: ['king_mogg', 'skeleton'] },
+  { name: 'L8 longsword, 2 skeletons + 2 shades (tower)', level: 8, skill: 27, weapon: 'longsword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 4, pack: ['skeleton', 'skeleton', 'shade', 'shade'] },
+  { name: 'L8 longsword, Captain Harrow + shade', level: 8, skill: 27, weapon: 'longsword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 5, pack: ['watch_captain', 'shade'] },
   { name: 'L8 sword, 2 bears', level: 8, skill: 26, weapon: 'short_sword', gear: { head: CH, shield: ST, body: AR, feet: BO, legs: LE }, potions: 4, pack: ['bear', 'bear'] },
 ];
 const only = process.argv[2];

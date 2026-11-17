@@ -1882,6 +1882,46 @@ test('King Mogg\'s Sabre: dig through Gnash\'s hoard, drop into the bone halls, 
   assert.strictEqual(p.z, state.map.surfaceZ, 'out in the Deer Woods');
 });
 
+test('The Captain\'s Mail: a rope up from the Old Tower\'s broken top, the officers\' grille at level 8, two stairs up, and Captain Harrow\'s pay chest', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, P = inCtx(game, 'TOWER_TOP'), S = map.surfaceZ;
+  const go = (dx, dy) => { p.walk = null; const ok = ctx.step(p, dx, dy); tick(game, 1500); return ok; };
+  ctx.addItem('rope', 1);
+  const [rx, ry] = P.rope;
+  Object.assign(p, { x: rx - 1, y: ry, z: S + 2 });
+  ctx.useItemOn(bagRef(state, 'rope'), rx, ry, S + 2);
+  assert.strictEqual(p.z, S + 3, 'a rope up into the watch room');
+  // the officers' grille: level 8 and up
+  const [wy, [gx, level]] = P.split;
+  Object.assign(p, { x: gx, y: wy - 1, z: S + 3, level: level - 1 });
+  assert(!go(0, 1) && p.y === wy - 1, 'the grille holds below level 8');
+  assert(messages.some(m => m.includes(`level ${level}`)), 'and says so');
+  p.level = level;
+  go(0, 1); go(0, 1);
+  assert.strictEqual(p.y, wy + 1, 'an officer walks through');
+  for (const [x, y, z] of P.stairs) {
+    Object.assign(p, { x: x + 1, y, z });
+    go(-1, 0);
+    assert.strictEqual(p.z, z + 1, `up the stairs from floor ${z}`);
+  }
+  // Captain Harrow keeps the pay chest
+  const [cx, cy, cz] = P.props.find(pr => pr[3] === 'qchest_watch_mail');
+  assert.strictEqual(cz, S + 5, 'on the roof');
+  const captain = ctx.spawnMonster({ type: 'watch_captain', x: cx, y: cy + 2, z: cz });
+  state.monsters.push(captain);
+  Object.assign(p, { x: cx, y: cy + 1, z: cz });
+  ctx.useThing(cx, cy, cz);
+  assert.strictEqual(state.countItem('watch_mail'), 0, 'not while the captain stands');
+  ctx.damageMonster(captain, 99999, 'physical');
+  ctx.useThing(cx, cy, cz);
+  assert.strictEqual(state.countItem('watch_mail'), 1, 'the watch captain\'s mail');
+  assert.strictEqual(state.questState('watch_mail'), 'done');
+  const I = state.ITEMS;
+  for (const id of ['leather_armor', 'chain_armor', 'keeper_coat']) assert(I.watch_mail.armor > I[id].armor, `better than the ${id}`);
+  assert(I.watch_mail.armor < I.plate_armor.armor, 'below plate');
+});
+
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -1906,7 +1946,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all eight hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all nine hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -1917,9 +1957,9 @@ test('rumours: the innkeeper tells of all eight hidden quests, one at a time, an
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 8);
+  talk('oak_innkeeper', 'rumours', 9);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 8);
+  assert.strictEqual(Object.keys(R).length, 9);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');

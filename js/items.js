@@ -217,6 +217,7 @@ const ITEMS = {
   tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // the best blade on the isle but King Mogg's sabre
   lamp_oil:      { name: 'jar of lamp oil', quest: true, weight: 12 }, // The Keeper's Coat, from Farmer Odo's cellar
   flint:         { name: 'piece of flint', quest: true, weight: 3 },   // The Keeper's Coat, from the cave under the North Peaks
+  watch_mail:    { name: 'watch captain\'s mail', slot: 'body', armor: 8, level: 8, value: 200, weight: 95 }, // (The Captain's Mail: the best armour on the isle, below plate)
   keeper_coat:   { name: 'keeper\'s coat', slot: 'body', armor: 7, level: 8, value: 150, weight: 70 }, // oiled wool and leather
   eagle_feather: { name: 'eagle feather', quest: true, weight: 0.5 }, // The Eagle's Eyrie, from the old nest on the North Peaks
   featherstep_boots: { name: 'featherstep boots', slot: 'feet', armor: 2, speed: 15, level: 9, value: 140, weight: 8 }, // the hermit's work

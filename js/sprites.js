@@ -6622,7 +6622,7 @@ const Sprites = (() => {
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
-    king_mogg: [1.5, 8, null, 0, 37],
+    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {

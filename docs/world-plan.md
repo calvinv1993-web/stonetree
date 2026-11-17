@@ -301,6 +301,14 @@ The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the me
   (171,117,6), (170,116,7) to a hollow in the Deer Woods (170,116,8). Only up: the caves join the woods, one way.
 - King Mogg's sabre: sword, attack 18, defense 10, level 7: the best blade on the isle, below the broadsword (level 12).
 
+**The Captain's Mail** (level 8, the second deep vault: only Rolf's rumour; `watch_mail`; 1000 xp, 150 gold)
+- `TOWER_TOP` and `buildTowerTop` in `js/default-map.js`: three storeys on top of the Old Tower (190–196, 114–120).
+- Floor 10 (the broken top): a rope spot (195,115) under a gap in the beams. Floor 11, the watch room: two skeletons and a
+  shade; a wall across it (y 117) with the officers' grille (193,117, level 8); stairs up (191,119). Floor 12, the captain's
+  quarters: a bed, a table, shelves, two shades and a skeleton; stairs up (195,119). Floor 13, the lookout roof:
+  Captain Harrow (340 hp, summons a shade now and then) and a shade, the watch's pay chest (193,115).
+- The watch captain's mail: armour 8, level 8: the best on the isle, below plate (10, level 15).
+
 **The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
 - The lighthouse: a new stone tower in the Lighthouse clearing (122–126, 201–205, door 124,205), three floors, stairs at
   (123,202) and (125,202), the **great lamp** on the top floor (124,203,10), dark. The old one's stump stays on the point.

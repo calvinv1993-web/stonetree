@@ -123,6 +123,18 @@ const MONSTERS = {
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
     voices: { aggro: 'Halt! Who goes there? The watch has not been relieved!', low: 'The tower... must not fall...', death: 'Relieved... at last...' },
   },
+  watch_captain: { // Captain Harrow of the Old Tower's watch, who went up with the watch's pay the night the stair fell (The Captain's Mail)
+    name: 'Captain Harrow', proper: true, hp: 340, xp: 340, dmg: [4, 21], defense: 5, armor: 4, speed: 170, attackSpeed: 1600, aggro: 6,
+    corpse: 'none', respawn: 300000, weak: { holy: 1.4, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
+    hitCondition: { kind: 'paralyze', chance: 0.06, power: 1 },
+    summon: { type: 'shade', max: 1, chance: 0.06 },
+    loot: { gold: [30, 80], items: [['health_potion', 0.6], ['mana_potion', 0.3]] },
+    voices: {
+      aggro: 'Who comes up the tower without the password? The watch\'s pay stays with the watch!',
+      low: 'Hold the line... hold the tower...',
+      death: 'Relieved of command... at last...',
+    },
+  },
   king_mogg: { // the goblin king of old, risen on his throne at the bottom of the Deep Diggings under Goblin Hill (King Mogg's Sabre)
     name: 'King Mogg', proper: true, hp: 340, xp: 320, dmg: [4, 22], defense: 5, armor: 4, speed: 170, attackSpeed: 1600, aggro: 6, corpse: 'bones',
     respawn: 300000, weak: { holy: 1.4, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],
