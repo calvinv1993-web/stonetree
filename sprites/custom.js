@@ -281,6 +281,7 @@ const CUSTOM_SPRITES = {
   sheet_thornmother: 'monster-thornmother.png', // the spider queen of the Spider Hills
   sheet_brood_queen: 'monster-brood_queen.png', // the spiders' den
   sheet_brineshell: 'monster-brineshell.png', // Old Snapper's mate, in the sea cave
+  sheet_saltjaw: 'monster-brineshell.png', // Saltjaw, in the smugglers' caves: Brineshell's shape, till he has a sheet of his own
   sheet_cistern_slime: 'monster-cistern_slime.png', // the great slime under Oakvale
   sheet_shade: 'monster-shade.png', // the lost climbers of the North Peaks cave
   sheet_clang_1: 'pet-clang-1.png', // Clang as a kitten (pet levels 1-3)

@@ -4300,6 +4300,11 @@ const Sprites = (() => {
       ellipse(g, '#e8c060', 16, 16, 2.5, 2.5);
     },
     iron_shield: g => roundShield(g, '#9a9aa2', '#6a6a72', true, false),
+    smuggler_shield: g => { // a round copper shield, green with the sea at the rim, barnacles on its face
+      roundShield(g, '#c07a42', '#4f8a7a', true, false);
+      ellipse(g, 'rgba(255,220,180,0.3)', 12, 11, 4, 3);
+      for (const [x, y] of [[10, 20], [21, 10], [20, 21], [12, 12]]) { ellipse(g, '#d8d0b8', x, y, 1.6, 1.4); rect(g, '#7a7060', x - 0.5, y - 0.5, 1, 1); }
+    },
     demon_shield: g => {
       kiteShield(g, '#5a1010', '#2a2a2a');
       poly(g, '#e8d8c0', [11, 9, 14, 14, 12, 15]);
@@ -6622,7 +6627,7 @@ const Sprites = (() => {
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
-    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37],
+    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {

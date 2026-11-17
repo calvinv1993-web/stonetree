@@ -580,6 +580,64 @@ const GOBLIN_DEEP = {
   },
 };
 
+// The smugglers' caves under Lighthouse Point (The Smugglers' Shield), floors 7 and 6: no arrow, only a rumour. In the
+// rocks east of the point, a crevice the old keeper walled up with stones: a pick breaks them (they fall back after a
+// minute) and you drop into the sea grotto (floor 7), crabs and slimes round its pools. West along the smugglers' way, a
+// hole down to their drowned hall (floor 6), past a rusted grille (level 7), where Saltjaw, the great crab, has grown
+// the smugglers' shield into his shell. Their way out is still there: the tunnel north, and a ladder up under the
+// lighthouse's floor. Only up: nothing in the lighthouse leads down.
+//   crevice: the hole in the rocks (floor 8) [x, y, look], the cracked rock in front of it [x, y], the rocks round it;
+//   down: the hole to the drowned hall (floor 7, a ladder below); gate: [x, y, level, look] (floor 6); exit: the ladder up
+//   into the lighthouse [x, y] (floor 7) and what the flagstones there say; floors: as GOBLIN_DEEP's
+const SEA_CAVES = {
+  crevice: [147, 207, 'A crevice between the rocks, black and wet. The sea booms somewhere far below. There is no climbing out of that again.'],
+  crack: [146, 207, 'Stones stacked into the gap between two rocks, and mortared, long ago. Behind them the sea booms. A pick would make short work of them.'],
+  rocks: [[146, 206], [147, 206], [148, 206], [148, 207], [146, 208], [147, 208], [148, 208]],
+  down: [131, 215, 'A round hole in the rock floor, its edges worn smooth by ropes. Far down, water drips.'],
+  gate: [138, 215, 7, 'A rusted grille across the tunnel. A smugglers\' sign is scratched on it: a crab, and under it, ONLY OLD HANDS.'],
+  exit: [125, 203, 'Loose flagstones. The keeper says something knocks under them on stormy nights. They lift from below, not from up here.'],
+  floors: {
+    7: {
+      caves: [[147, 208, 2.2, 1.8], [150, 214, 4.2, 3], [132, 214, 2.6, 2]],
+      tunnels: [[148, 210, 148, 211], [135, 215, 146, 215], [126, 212, 130, 212], [125, 203, 125, 212]],
+      pools: [[152, 215, 2, 1.4]],
+      props: [[146, 213, 'shells'], [149, 217, 'driftwood'], [153, 212, 'shells'], [140, 215, 'bones'], [133, 213, 'barrel'], [131, 213, 'crate'], [125, 207, 'rubble']],
+      monsters: [['crab', 148, 213], ['crab', 151, 212], ['crab', 147, 216], ['slime', 149, 216], ['slime', 143, 215], ['crab', 133, 215]],
+    },
+    6: {
+      caves: [[131, 215, 2, 1.8], [144, 216, 4.6, 3.2]],
+      tunnels: [[133, 215, 140, 215]],
+      pools: [[147, 218, 1.8, 1.2]],
+      props: [[145, 213, 'qchest_smuggler_shield'], [143, 213, 'barrel'], [147, 214, 'crate'], [141, 218, 'bones'], [144, 219, 'driftwood'], [130, 216, 'bones']],
+      monsters: [['saltjaw', 144, 216], ['crab', 141, 215], ['shade', 146, 218]],
+    },
+  },
+};
+
+// Builds the smugglers' caves under Lighthouse Point (see SEA_CAVES): the walled-up crevice in the rocks, the grotto and the
+// drowned hall, the hole down between them, the grille, the ladder up into the lighthouse, and who lives there now.
+function buildSeaCaves(m, S) {
+  const C = SEA_CAVES;
+  carveVault(m, C.floors);
+  const [cx, cy, crevLook] = C.crevice, [kx, ky, crackLook] = C.crack;
+  for (const [x, y] of C.rocks) m.get(x, y, S).items = ['rock'];
+  m.get(kx, ky, S).items = ['cracked_rock']; m.setMeta(kx, ky, S, { look: crackLook });
+  m.get(cx, cy, S).items = ['hole']; m.setMeta(cx, cy, S, { look: crevLook });
+  const [dx, dy, downLook] = C.down;
+  m.get(dx, dy, 7).items = ['hole']; m.setMeta(dx, dy, 7, { look: downLook });
+  m.get(dx, dy, 6).items = ['cave_ladder'];
+  const [gx, gy, level, gateLook] = C.gate;
+  m.get(gx, gy, 6).items = ['tower_grille']; m.setMeta(gx, gy, 6, { level, look: gateLook });
+  const [ex, ey, exitLook] = C.exit;
+  m.get(ex, ey, 7).items = ['cave_ladder'];
+  m.setMeta(ex, ey, S, { look: exitLook });
+  for (const [zs, F] of Object.entries(C.floors)) {
+    const Z = +zs;
+    for (const [x, y, id] of F.props || []) if (m.isWalkable(x, y, Z)) m.addItem(x, y, Z, id);
+    for (const [type, x, y] of F.monsters || []) m.spawns.push({ type, x, y, z: Z, lurk: true });
+  }
+}
+
 // Under the town well (Down the Well), floor 7: tie a rope to the well and climb down. A pool at the bottom, a rope spot
 // to climb back up, and a few dark tunnels where giant rats live. At the end a cracked rock: a pick breaks through to
 // where Old Wim lies, who went down the well for a bet, with his lucky ring.
@@ -1047,6 +1105,7 @@ function createDefaultMap() {
   buildWellTunnels(m, S);
   buildGateSites(m, S);
   buildDiscoveries(m, S);
+  buildSeaCaves(m, S); // (after the lighthouse: its ladder comes up under the lighthouse's floor)
   dressMountains(m, S);
   buildStorySites(m, S);
 
@@ -1689,9 +1748,11 @@ function buildGoblinWarren(m, S) {
 
 // Builds the Deep Diggings under Goblin Hill (see GOBLIN_DEEP), after the warren above them: each floor's caves and
 // tunnels with rock round them, then the ways between the floors, the gate, the chests and the dead.
-function buildGoblinDeep(m) {
-  const D = GOBLIN_DEEP, hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
-  for (const [zs, F] of Object.entries(D.floors)) {
+// Carves a deep vault's floors (GOBLIN_DEEP, SEA_CAVES): each floor's caves and tunnels, with rock round them, and its
+// pools of water. floors: { z: { caves [cx, cy, rx, ry], tunnels [x0, y0, x1, y1], pools [cx, cy, rx, ry] } }
+function carveVault(m, floors) {
+  const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000 / 1000;
+  for (const [zs, F] of Object.entries(floors)) {
     const Z = +zs, carved = [];
     const carve = (x, y) => { const t = m.get(x, y, Z); if (!t || t.items.includes('wall_cave')) { m.set(x, y, Z, { ground: 'cave', items: [] }); carved.push([x, y]); } };
     for (const [cx, cy, rx, ry] of F.caves || []) {
@@ -1703,7 +1764,15 @@ function buildGoblinDeep(m) {
     for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
       if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'cave', items: ['wall_cave'] });
     }
+    for (const [cx, cy, rx, ry] of F.pools || []) for (const [x, y] of carved) {
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) m.setGround(x, y, Z, 'water');
+    }
   }
+}
+
+function buildGoblinDeep(m) {
+  const D = GOBLIN_DEEP;
+  carveVault(m, D.floors);
   const at = (x, y, z, id, look) => { m.get(x, y, z).items = [id]; if (look) m.setMeta(x, y, z, { look }); };
   const [dx, dy, digLook] = D.dig, [px, py, pitLook] = D.pit, [rx, ry, ropeLook] = D.rope, [gx, gy, level, gateLook] = D.gate, [hx, hy, downLook] = D.down;
   at(dx, dy, 7, 'loose_sand', digLook);

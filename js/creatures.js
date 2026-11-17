@@ -123,6 +123,11 @@ const MONSTERS = {
     loot: { gold: [10, 30], items: [['health_potion', 0.5]] },
     voices: { aggro: 'Halt! Who goes there? The watch has not been relieved!', low: 'The tower... must not fall...', death: 'Relieved... at last...' },
   },
+  saltjaw: { // the great crab of the smugglers' drowned hall under Lighthouse Point, their copper shield grown into his shell
+    name: 'Saltjaw', proper: true, hp: 300, xp: 300, dmg: [3, 18], defense: 6, armor: 6, speed: 150, attackSpeed: 1600, aggro: 5, corpse: 'blood',
+    respawn: 300000, summon: { type: 'crab', max: 1, chance: 0.06 },
+    loot: { gold: [25, 60], items: [['crab_claw', 1, 2, 4], ['pearl', 0.6], ['health_potion', 0.5]] },
+  },
   watch_captain: { // Captain Harrow of the Old Tower's watch, who went up with the watch's pay the night the stair fell (The Captain's Mail)
     name: 'Captain Harrow', proper: true, hp: 340, xp: 340, dmg: [4, 21], defense: 5, armor: 4, speed: 170, attackSpeed: 1600, aggro: 6,
     corpse: 'none', respawn: 300000, weak: { holy: 1.4, fire: 1.2 }, immune: ['poison', 'earth', 'paralyze'],

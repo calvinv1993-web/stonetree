@@ -437,6 +437,13 @@ const THINGS = {
       guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
       empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
   },
+  // The Smugglers' Shield: the caves under Lighthouse Point (SEA_CAVES in default-map.js)
+  qchest_smuggler_shield: {
+    name: 'smugglers\' chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'smuggler_shield', quest: 'smuggler_shield', xp: 800, gold: 110, items: [['smuggler_shield', 1], ['health_potion', 2]], guard: 'saltjaw',
+      guarded: 'A claw as big as a door slams down on the lid. Saltjaw is not done with his treasure.',
+      empty: 'Only wet rope and a smuggler\'s boot are left in the chest.' },
+  },
   // The Captain's Mail: the top of the Old Tower (TOWER_TOP in default-map.js)
   tower_grille: { name: 'iron grille', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', levelDoor: true, meta: 'level' },
   qchest_watch_mail: {

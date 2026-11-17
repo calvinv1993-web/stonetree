@@ -1922,6 +1922,51 @@ test('The Captain\'s Mail: a rope up from the Old Tower\'s broken top, the offic
   assert(I.watch_mail.armor < I.plate_armor.armor, 'below plate');
 });
 
+test('The Smugglers\' Shield: a pick through the walled-up crevice on Lighthouse Point, the grotto, the drowned hall past the level 7 grille, Saltjaw, and up into the lighthouse', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, map = state.map, C = inCtx(game, 'SEA_CAVES'), S = map.surfaceZ;
+  const go = (dx, dy) => { p.walk = null; const ok = ctx.step(p, dx, dy); tick(game, 1500); return ok; };
+  ctx.addItem('pick', 1);
+  const [cx, cy] = C.crevice, [kx, ky] = C.crack;
+  Object.assign(p, { x: kx - 1, y: ky, z: S });
+  assert(!go(1, 0) && p.x === kx - 1, 'the old keeper\'s stones block the way');
+  ctx.useItemOn(bagRef(state, 'pick'), kx, ky, S);
+  go(1, 0); go(1, 0);
+  assert.strictEqual(p.z, 7, 'down the crevice into the grotto');
+  assert(map.spawns.some(sp => sp.z === 7 && sp.type === 'crab' && Math.abs(sp.x - cx) < 10), 'crabs in the grotto');
+  const [dx, dy] = C.down;
+  Object.assign(p, { x: dx + 1, y: dy, z: 7 });
+  go(-1, 0);
+  assert.strictEqual(p.z, 6, 'down to the drowned hall');
+  const [gx, gy, level] = C.gate;
+  Object.assign(p, { x: gx - 1, y: gy, z: 6, level: level - 1 });
+  assert(!go(1, 0) && p.x === gx - 1, 'the grille holds below level 7');
+  assert(messages.some(m => m.includes(`level ${level}`)), 'and says so');
+  p.level = level;
+  go(1, 0); go(1, 0);
+  assert.strictEqual(p.x, gx + 1, 'an old hand walks through');
+  const [qx, qy] = C.floors[6].props.find(pr => pr[2] === 'qchest_smuggler_shield');
+  const crab = ctx.spawnMonster({ type: 'saltjaw', x: qx, y: qy + 2, z: 6 });
+  state.monsters.push(crab);
+  Object.assign(p, { x: qx, y: qy + 1, z: 6 });
+  ctx.useThing(qx, qy, 6);
+  assert.strictEqual(state.countItem('smuggler_shield'), 0, 'not while Saltjaw lives');
+  ctx.damageMonster(crab, 99999, 'physical');
+  ctx.useThing(qx, qy, 6);
+  assert.strictEqual(state.countItem('smuggler_shield'), 1, 'the smugglers\' copper shield');
+  assert.strictEqual(state.questState('smuggler_shield'), 'done');
+  const I = state.ITEMS;
+  for (const id of ['wooden_shield', 'studded_shield', 'bronze_ward']) assert(I.smuggler_shield.defense > I[id].defense, `better than the ${id}`);
+  assert(I.smuggler_shield.defense < I.iron_shield.defense, 'below the iron shield');
+  // the smugglers' way out: up under the lighthouse's floor, and not back down
+  const [ex, ey] = C.exit;
+  Object.assign(p, { x: ex, y: ey + 1, z: 7 });
+  go(0, -1);
+  assert.strictEqual(p.z, S, 'up into the lighthouse');
+  assert(!map.floorChange(ex, ey, S), 'the flagstones don\'t lead down');
+});
+
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -1946,7 +1991,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all nine hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all ten hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -1957,9 +2002,9 @@ test('rumours: the innkeeper tells of all nine hidden quests, one at a time, and
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 9);
+  talk('oak_innkeeper', 'rumours', 10);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 9);
+  assert.strictEqual(Object.keys(R).length, 10);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');

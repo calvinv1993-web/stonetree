@@ -309,6 +309,17 @@ The places are `DISCOVERY` and `buildDiscoveries` in `js/default-map.js`; the me
   Captain Harrow (340 hp, summons a shade now and then) and a shade, the watch's pay chest (193,115).
 - The watch captain's mail: armour 8, level 8: the best on the isle, below plate (10, level 15).
 
+**The Smugglers' Shield** (level 7, the third deep vault: only Rolf's rumour; `smuggler_shield`; 800 xp, 110 gold)
+- `SEA_CAVES` and `buildSeaCaves` in `js/default-map.js` (floors carved by `carveVault`, shared with the Deep Diggings).
+- Floor 8: in the rocks east of Lighthouse Point a crevice (147,207, a hole) walled in by rocks, the way in through
+  cracked rock (146,207: a pick; it falls back after a minute).
+- Floor 7, the sea grotto: a landing cave, the big grotto with a pool (150,214), crabs and slimes; the smugglers' way west
+  (y 215) to their store cave (132,214) with a hole down (131,215), and their tunnel north to a ladder (125,203) up under
+  the lighthouse's floor: the way out, only up.
+- Floor 6, the drowned hall: past the rusted grille (138,215, level 7), Saltjaw (300 hp, calls a crab now and then), a crab
+  and a shade; the smugglers' chest (145,213).
+- The smugglers' copper shield: defense 19, level 7: the best on the isle, below the iron shield (20, level 12).
+
 **The Keeper's Coat** (level 8, Keeper Tamsin, `keeper_coat`; 750 xp, 80 gold)
 - The lighthouse: a new stone tower in the Lighthouse clearing (122–126, 201–205, door 124,205), three floors, stairs at
   (123,202) and (125,202), the **great lamp** on the top floor (124,203,10), dark. The old one's stump stays on the point.

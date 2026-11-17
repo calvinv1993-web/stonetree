@@ -94,6 +94,7 @@ const ITEMS = {
   wooden_shield: { name: 'wooden shield', slot: 'shield', defense: 12, value: 5, weight: 40 },
   studded_shield:{ name: 'studded shield', slot: 'shield', defense: 15, value: 15, weight: 59 },
   bronze_ward:   { name: 'bronze ward', slot: 'shield', defense: 18, value: 60, weight: 62 }, // (The Bronze Ward: Brenna's grandmother's shield, from Gnash's hoard)
+  smuggler_shield: { name: 'smugglers\' copper shield', slot: 'shield', defense: 19, level: 7, value: 90, weight: 55 }, // (The Smugglers' Shield: barnacled copper, the best shield on the isle)
   iron_shield:   { name: 'iron shield', slot: 'shield', defense: 20, level: 12, value: 80, weight: 80 },
   dragon_shield: { name: 'dragon shield', slot: 'shield', defense: 30, level: 30, value: 900, weight: 60 },
   demon_shield:  { name: 'demon shield', slot: 'shield', defense: 36, level: 60, value: 3000, weight: 70 },
