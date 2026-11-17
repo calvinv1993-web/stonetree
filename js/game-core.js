@@ -1298,6 +1298,12 @@ function useItem(ref) {
   const found = resolve(ref);
   if (!found || !found.item) return;
   const item = found.item, d = ITEMS[item.id];
+  if (d.petHeal) { // (a pet tonic: for your companion)
+    const pet = player.pet;
+    if (!pet || pet.home || pet.downUntil) return log('That is for a companion at your side.');
+    if (pet.hp >= petMaxHp(pet)) return log(`${pet.name} isn't hurt.`);
+    return tendPet('tonic');
+  }
   if (d.use && d.use.food) return eat(ref);
   if (d.use) return drink(ref);
   if (d.whistle) return blowWhistle();

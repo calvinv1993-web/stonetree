@@ -4183,6 +4183,7 @@ const Sprites = (() => {
     },
     health_potion: g => potion(g, '#d02a2a'),
     mana_potion: g => potion(g, '#3a5ad0'),
+    pet_tonic: g => potion(g, '#5fbf6a'),
     bag(g) {
       ellipse(g, '#8a6a3a', 16, 21, 10, 9);
       rect(g, '#8a6a3a', 12, 8, 8, 6);
@@ -6585,7 +6586,7 @@ const Sprites = (() => {
       const cg = cell.getContext('2d');
       const px = sheetParts(id);
       // (the outfit's own colours, from the key: not the look's, which a vocation's clothes or a skirt change)
-      const own = key.split(':')[2].split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
+      const own = (key.split(':')[2] || '').split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
       const targets = SHEET.parts.map(p => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p]) : null));
       if (px && targets.some(Boolean)) { // recolour: each part's pixels, as light or dark against the part's own colour
         const out = cg.createImageData(cell.width, cell.height), o = out.data, base = px.base;

@@ -11,6 +11,7 @@
 //   stack:      stacks up to 100 per slot
 //   weight:     in oz; what you carry is limited by your capacity
 //   use:        { food: seconds } | { heal: [min, max] } | { mana: [min, max] }
+//   petHeal:    for your companion: how much of its health it heals (used from the bag, or by its card or auto-heal)
 //   ring:       worn effects that run out: { regen: [hp, mana], speed, duration (ms) }
 //   keeping:    an amulet that saves your things when you die (used up)
 //   rune:       used on a target (see castRune): { kind, element, power, radius, field, condition, ml, range }
@@ -59,6 +60,8 @@ const ITEMS = {
   meat:          { name: 'meat', stack: true, use: { food: 180 }, value: 3, weight: 13 },
   health_potion: { name: 'health potion', stack: true, use: { heal: [60, 90] }, value: 15, weight: 1.8 },
   mana_potion:   { name: 'mana potion', stack: true, use: { mana: [60, 90] }, value: 18, weight: 1.8 },
+  // for your companion: heals it by half (its card's potion button, or auto-heal's Clang slider); you can't drink it
+  pet_tonic:     { name: 'pet tonic', stack: true, petHeal: 0.5, value: 5, weight: 1 },
 
   bag:           { name: 'bag', slot: 'backpack', container: 8, value: 3, weight: 8 },
   backpack:      { name: 'backpack', slot: 'backpack', container: 20, value: 20, weight: 18 },

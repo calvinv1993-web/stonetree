@@ -370,9 +370,11 @@ function h(tag, props, ...kids) {
 // (the same controls in the Battle panel on a computer and in the Settings on a phone)
 function autoHealControls() {
   const set = player.autoHeal || { hp: 0, mana: 0 }, box = h('div', { className: 'auto-heal' });
-  for (const [kind, label] of [['hp', 'Health potion'], ['mana', 'Mana potion']]) {
+  const rows = [['hp', 'Health potion'], ['mana', 'Mana potion']];
+  if (player.pet) rows.push(['pet', `${player.pet.name}: pet tonic or food`]); // (your companion, with its own tonics)
+  for (const [kind, label] of rows) {
     const out = h('b', null), slider = h('input', { type: 'range', min: 0, max: AUTO_HEAL_MAX, step: 5, value: set[kind] || 0 });
-    slider.setAttribute('aria-label', `${label}: drink it by itself below this much ${kind === 'hp' ? 'health' : 'mana'}`);
+    slider.setAttribute('aria-label', `${label}: by itself below this much ${kind === 'mana' ? 'mana' : 'health'}`);
     const show = () => { out.textContent = +slider.value ? `below ${slider.value}%` : 'off'; out.classList.toggle('on', +slider.value > 0); };
     slider.addEventListener('input', show);
     slider.addEventListener('change', () => Actions.setAutoHeal(kind, +slider.value));
@@ -385,7 +387,7 @@ let autoHealKey = '';
 function renderAutoHeal() {
   const box = $('autoHealBox');
   if (!box || touchScreen) return;
-  const key = JSON.stringify(player.autoHeal || {});
+  const key = JSON.stringify(player.autoHeal || {}) + (player.pet ? player.pet.name : '');
   if (key === autoHealKey || box.contains(document.activeElement)) return; // (not while a slider is in your hand)
   autoHealKey = key;
   box.replaceChildren(h('div', { className: 'muted small' }, 'Auto-heal: drink a potion by itself'), autoHealControls());

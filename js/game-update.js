@@ -186,7 +186,8 @@ const Actions = {
     const pet = player.pet;
     if (!pet || pet.home || pet.downUntil) return;
     if (pet.hp >= petMaxHp(pet)) return log(`${pet.name} isn't hurt.`);
-    if (!countItem('health_potion')) return log('You have no health potion.');
+    if (countItem('pet_tonic')) return void tendPet('tonic'); // (its own tonic first: your health potions are for you)
+    if (!countItem('health_potion')) return log('You have no pet tonic or health potion.');
     removeItem('health_potion', 1);
     pet.hp = petMaxHp(pet);
     log(`${pet.name} laps up the potion and looks much better.`);
@@ -251,7 +252,7 @@ const Actions = {
   // Secure mode: on, you can't hurt players without a skull (nor your party); off, you can.
   // auto-heal: drink a health (kind 'hp') or mana potion by yourself below pct percent; 0 turns it off
   setAutoHeal(kind, pct) {
-    if (kind !== 'hp' && kind !== 'mana') return;
+    if (kind !== 'hp' && kind !== 'mana' && kind !== 'pet') return;
     const v = Math.max(0, Math.min(AUTO_HEAL_MAX, Math.round((Number(pct) || 0) / 5) * 5));
     if (!player.autoHeal || typeof player.autoHeal !== 'object') player.autoHeal = { hp: 0, mana: 0 };
     player.autoHeal[kind] = v;
@@ -494,10 +495,12 @@ const petFood = () => (bagItems().find(i => ITEMS[i.id].use && ITEMS[i.id].use.f
 // What your companion would fight now, by its mode: your target, if it's a monster in reach and nobody's safe
 function petTarget(pet, b) {
   const t = player.target, mode = pet.mode || 'assist';
-  if (mode === 'follow' || !t || t.dead || t.type === 'player' || t.type === 'npc' || !t.def || t.z !== b.z) return null;
-  if (dist(t, player) > (mode === 'close' ? 1.5 : 7)) return null;
-  if (inPZ() || inPZ(t)) return null; // (no fighting from a safe place, nor into one)
-  return t;
+  if (mode === 'follow' || inPZ()) return null; // (no fighting from a safe place)
+  const ok = m => !!m && !m.dead && !!m.def && m.type !== 'player' && m.type !== 'npc' && m.z === b.z && !inPZ(m);
+  if (ok(t) && dist(t, player) <= (mode === 'close' ? 1.5 : 7)) return t;
+  // with no target of yours (or one out of reach): whatever is attacking you or it, right beside you or it
+  return monsters.filter(m => ok(m) && (dist(m, player) <= 1 || dist(m, b) <= 1) && (m.angryAt === player.id || dist(m, player) <= 1))
+    .sort((a, c) => dist(a, b) - dist(c, b))[0] || null;
 }
 function updatePet() {
   const pet = player.pet, kind = pet && PETS[pet.kind];
@@ -512,18 +515,31 @@ function updatePet() {
     b = player.petBody = { id: (b && b.id) || newId(), type: kind.look, pet: true, name: pet.name, level: pet.level, x: at.x, y: at.y, z: player.z, dir: 2, walk: null, nextMove: 0, nextHit: 0 };
   }
   Object.assign(b, { name: pet.name, level: pet.level, hp: pet.hp, maxHp: petMaxHp(pet) });
-  const hurt = pet.hp < b.maxHp * 0.3; // badly hurt: it keeps behind you, out of the fight
-  if (hurt && !b.warned) { b.warned = true; log(`${pet.name} is badly hurt and keeps back. Feed ${pet.name} or give a health potion.`, 'damage'); }
+  // badly hurt (under 30%): it keeps back, out of the fight, till it's healed to 60% (not straight back in at 31%)
+  if (pet.hp < b.maxHp * 0.3) b.resting = true;
+  else if (pet.hp >= b.maxHp * 0.6) b.resting = false;
+  const hurt = !!b.resting;
+  if (hurt && !b.warned) { b.warned = true; log(`${pet.name} is badly hurt and keeps back. Give a pet tonic or food, or let auto-heal do it (Settings).`, 'damage'); }
   else if (!hurt) b.warned = false;
-  // it heals a little every two seconds: out of a fight, kept back hurt, or with nothing beside it
+  // it heals a little every two seconds: out of a fight, or with nothing beside it; kept back hurt, twice as fast
   if (pet.hp < b.maxHp && now >= (b.nextHeal || 0)) {
     b.nextHeal = now + 2000;
-    if (!player.target || hurt || !monsters.some(m => !m.dead && m.z === b.z && dist(m, b) <= 1)) pet.hp = b.hp = Math.min(b.maxHp, pet.hp + Math.ceil(b.maxHp / 30));
+    if (hurt || !player.target || !monsters.some(m => !m.dead && m.z === b.z && dist(m, b) <= 1)) pet.hp = b.hp = Math.min(b.maxHp, pet.hp + Math.ceil(b.maxHp / (hurt ? 15 : 30)));
   }
   if (b.walk && now - b.walk.start >= b.walk.dur) b.walk = null;
   if (b.walk || now < b.nextMove) return;
   const t = hurt ? null : petTarget(pet, b);
   b.fighting = !!t;
+  // kept back hurt: to a tile beside you that no monster is beside
+  if (hurt && monsters.some(m => !m.dead && m.z === b.z && dist(m, b) <= 1)) {
+    const safe = [];
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const x = player.x + dx, y = player.y + dy;
+      if ((dx || dy) && isFree(x, y, b.z) && !map.floorChange(x, y, b.z) && !monsters.some(m => !m.dead && m.z === b.z && dist(m, { x, y }) <= 1)) safe.push({ x, y });
+    }
+    const to = safe.sort((p, q) => dist(p, b) - dist(q, b))[0];
+    if (to && (to.x !== b.x || to.y !== b.y)) return petStep(b, to, dist(b, to) + 0.5);
+  }
   const goal = t || player;
   // on someone's tile (you walked onto it, or a monster did): a step aside first
   if (creatureAt(b.x, b.y, b.z)) return petStep(b, goal, Infinity);
@@ -547,6 +563,10 @@ function petStep(b, goal, within) {
     if (!isFree(n.x, n.y, n.z) || map.floorChange(n.x, n.y, n.z)) continue;
     const d = dist(n, goal) + (dx && dy ? 0.1 : 0);
     if (d < within) { best = [dx, dy]; within = d; }
+  }
+  if (!best && Number.isFinite(within)) { // (nothing nearer straight on: round what's in the way, by a short path)
+    const path = findPath((x, y) => isFree(x, y, b.z) && !map.floorChange(x, y, b.z), b.x, b.y, goal.x, goal.y, { adjacent: true, maxNodes: 300 });
+    if (path && path.length) best = [path[0][0] - b.x, path[0][1] - b.y];
   }
   if (!best) return void (b.nextMove = now + 300);
   const [dx, dy] = best;
@@ -588,7 +608,7 @@ function petLearnFromKill(m) {
 // while it's fighting.
 function petTakesHit(attacker) {
   const b = player.petBody, pet = player.pet;
-  if (!b || !pet || pet.downUntil || pet.home || attacker.z !== b.z || dist(attacker, b) > 1) return false;
+  if (!b || !pet || pet.downUntil || pet.home || b.resting || attacker.z !== b.z || dist(attacker, b) > 1) return false;
   return Math.random() < (b.fighting ? 0.2 : 0.08);
 }
 // A blow on your companion (one that would hurt nothing does nothing)
@@ -644,6 +664,7 @@ function petCare() {
 // just as a tap on it would (the same potions, the same second between two). Health comes first. Not while you trade.
 // Your last potion is warned of, and running out is said once (till you have some again).
 function autoHeal() {
+  petAutoHeal();
   const set = player.autoHeal;
   if (!set || (!set.hp && !set.mana) || now < (player.potionReady || 0) || player.shopNpc) return;
   const out = player.autoHealOut || (player.autoHealOut = {});
@@ -661,6 +682,29 @@ function autoHeal() {
     if (!countItem(id)) log(`That was your last ${ITEMS[id].name}!`, 'damage');
     return; // (one potion a turn: the next waits for the potion's second)
   }
+}
+
+// Your companion tended for you (auto-heal's Clang slider): below the part of its health you chose, a pet tonic from
+// your bag, or else a bit of food, every couple of seconds at most (never your own potions). Running out is said once.
+function petAutoHeal() {
+  const pct = player.autoHeal && player.autoHeal.pet, pet = player.pet, b = player.petBody;
+  if (!pct || !pet || !b || pet.home || pet.downUntil || now < (pet.tendReady || 0)) return;
+  if (pet.hp * 100 >= petMaxHp(pet) * pct) return;
+  const out = player.autoHealOut || (player.autoHealOut = {});
+  const kind = countItem('pet_tonic') ? 'tonic' : petFood() ? 'food' : null;
+  if (!kind) { if (!out.pet) { out.pet = true; log(`No pet tonic or food left for ${pet.name}: auto-heal is waiting.`, 'damage'); } return; }
+  out.pet = false;
+  tendPet(kind);
+}
+// Heal your companion with a pet tonic or a bit of food (half its health)
+function tendPet(kind) {
+  const pet = player.pet, max = petMaxHp(pet), id = kind === 'tonic' ? 'pet_tonic' : petFood();
+  if (!id || !removeItem(id, 1)) return;
+  pet.hp = Math.min(max, pet.hp + Math.ceil(max * 0.5));
+  pet.tendReady = now + 2000;
+  log(kind === 'tonic' ? `${pet.name} laps up a pet tonic.` : `${pet.name} eats ${itemName(id)} and purrs.`);
+  if (player.petBody) { player.petBody.hp = pet.hp; addSparkle(player.petBody, '#8fe08a'); }
+  uiDirty();
 }
 
 function updatePlayer() {

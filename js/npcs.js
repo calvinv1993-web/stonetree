@@ -2081,7 +2081,7 @@ Object.assign(NPCS, {
       'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
     },
     trade: {
-      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['backpack', 60], ['rope', 50], ['shovel', 50],
+      sells: [['apple', 3], ['bread', 5], ['meat', 8], ['health_potion', 25], ['mana_potion', 50], ['pet_tonic', 8], ['backpack', 60], ['rope', 50], ['shovel', 50],
         ['pick', 50], ['fishing_rod', 120]],
       buys: ['loot', 'tools'],
     },

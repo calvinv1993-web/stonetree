@@ -1074,6 +1074,32 @@ function petGame() {
   return game;
 }
 
+test('Clang defends you without a target, keeps back hurt till 60%, and auto-heal tends him with pet tonics', () => {
+  const game = petGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, b = p.petBody;
+  // a rat biting you, nothing targeted: he goes for it
+  const rat = ctx.spawnMonster({ type: 'rat', x: p.x + 1, y: p.y, z: 8 }); rat.hp = rat.maxHp = 999; rat.angryAt = p.id; rat.angryUntil = state.now + 60000;
+  state.monsters.push(rat); p.target = null; tick(game, 5000);
+  assert(rat.hp < 999, 'he scratches what attacks you');
+  // hurt: back at 29%, still back at 45%, in again at 60%
+  p.pet.hp = Math.floor(b.maxHp * 0.29); tick(game, 300);
+  assert(b.resting, 'badly hurt: he keeps back');
+  p.pet.hp = Math.floor(b.maxHp * 0.45); tick(game, 300);
+  assert(b.resting, 'not straight back in');
+  p.pet.hp = Math.ceil(b.maxHp * 0.61); tick(game, 300);
+  assert(!b.resting, 'healed: back in the fight');
+  // auto-heal: a tonic below the setting, never your health potions
+  ctx.addItem('pet_tonic', 2); const hp0 = state.countItem('health_potion');
+  A.setAutoHeal('pet', 50); p.pet.hp = 5; p.pet.tendReady = 0; tick(game, 300);
+  assert(p.pet.hp > 5 && state.countItem('pet_tonic') === 1, 'a pet tonic tended him');
+  assert.strictEqual(state.countItem('health_potion'), hp0, 'your potions untouched');
+  while (state.countItem('pet_tonic')) ctx.removeItem('pet_tonic', 1);
+  for (const it of state.bagItems().filter(i => state.ITEMS[i.id].use && state.ITEMS[i.id].use.food)) ctx.removeItem(it.id, it.count);
+  p.pet.hp = 5; p.pet.tendReady = 0; tick(game, 2500);
+  assert(messages.some(m => /auto-heal is waiting/.test(m)), 'running out is said');
+});
+
 test('Clang never stands on your tile or a monster\'s: he steps aside', () => {
   const game = petGame();
   const { ctx, state } = game;
