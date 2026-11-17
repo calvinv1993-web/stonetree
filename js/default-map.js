@@ -1121,6 +1121,15 @@ function tidyWorld(m, S) {
       if (around.every(g => g === 'dirt')) t.ground = 'dirt';
     }
   }
+  // A strip of grass between two houses runs on up to the street, beside the houses' walls: their walls stand higher
+  // than the tile, so a street tile left at the strip's head looks like a notch of paving cut into the gap
+  const wallAt = (x, y) => (m.get(x, y, S) || { items: [] }).items.some(id => THINGS[id].wall);
+  const bare = (x, y) => { const t = m.get(x, y, S); return t && t.ground === 'cobble' && !t.items.length ? t : null; };
+  for (let y = 2; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
+    const g = m.get(x, y, S);
+    if (!g || g.ground !== 'grass' || !wallAt(x - 1, y) || !wallAt(x + 1, y)) continue; // (a narrow strip between two walls)
+    for (let k = 1, up; (up = bare(x, y - k)) && (k === 1 || wallAt(x - 1, y - k) || wallAt(x + 1, y - k)); k++) up.ground = 'grass';
+  }
 }
 
 // Builds the places of Oakvale Isle's hidden quests (see DISCOVERY): Fisher's Rest with its hut and jetty, the sea cave,
