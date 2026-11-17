@@ -270,9 +270,11 @@ function createKestrelMap() {
     if (ch === 'R') { // rock: away from the town's ground, now and then a second step up (the hill rising, not a flat rim)
       set(x, y, S, 'mountain', ['cliff']);
       const byTown = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => '._=:f#tsrhux~p'.includes(artAt(ax + dx, ay + dy)) && artAt(ax + dx, ay + dy) !== ' ');
-      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'grass'); } else set(x, y, Z1, 'grass'); // (the town's rocks green on top)
-      const top = at(x, y, at(x, y, Z1 + 1) ? Z1 + 1 : Z1), r = hash(x, y, 79);
-      if (top) top.items = r < 0.06 ? ['bush'] : r < 0.11 ? ['flowers'] : r < 0.16 ? ['grass_tuft'] : r < 0.18 ? ['rock'] : [];
+      // partly green: the higher knolls bare rock, the lower tops grass, with a few big bare patches (whole patches, not
+      // tile by tile: a mix tile by tile draws a maze of edges)
+      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'rock_top'); }
+      else if (smooth(x, y, 6, 83) > 0.62) set(x, y, Z1, 'rock_top');
+      else { set(x, y, Z1, 'grass'); const r = hash(x, y, 79); at(x, y, Z1).items = r < 0.06 ? ['bush'] : r < 0.11 ? ['flowers'] : r < 0.16 ? ['grass_tuft'] : []; }
       continue;
     }
     if (ch === 'h' || ch === 'u' || onHigh(ax, ay)) { // the higher rock: cliffs two floors tall, grass on top; its steps up from the terrace
