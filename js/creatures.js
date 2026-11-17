@@ -607,7 +607,9 @@ function powerRange(p, power) {
 // kind: heal | light | cure | haste | shield (magic shield) | bolt (ranged, needs a
 // target) | area (around you, radius) | wave (cone in front of you) | beam (line in
 // front of you, length) | strike (melee, needs a target, mult of your weapon damage) |
-// whirl (all adjacent, mult) | conjure (makes items: { item, count, blank: needs a blank rune })
+// whirl (all adjacent, mult) | conjure (makes items: { item, count, blank: needs a blank rune }) |
+// arc (a spear in hand swept round you in a half circle in front of you, radius tiles, in sweep ms: each monster hit as
+// it passes, mult of a spear's blow)
 // promoted: only after promotion.
 const SPELLS = {
   light:        { name: 'Torchlight', words: 'lumen', level: 2, mana: 15, kind: 'light', desc: 'Lights up dark places for 3 minutes.' },
@@ -619,8 +621,12 @@ const SPELLS = {
   whirlwind:    { name: 'Whirlwind', words: 'vis turbo', vocs: ['knight'], level: 15, mana: 45, kind: 'whirl', mult: [0.7, 1.3], desc: 'Hits every monster next to you.' },
   shield_bash:  { name: 'Shield Bash', words: 'scutum ictus', vocs: ['knight'], level: 18, mana: 35, kind: 'strike', mult: [0.6, 1.2], condition: 'paralyze', desc: 'Stuns your target for a moment.' },
   earthshaker:  { name: 'Earthshaker', words: 'terra quassa', vocs: ['knight'], level: 20, promoted: true, mana: 80, kind: 'whirl', radius: 2, mult: [1, 1.8], desc: 'Shakes the ground: hits everything within 2 tiles.' },
+  // A spear swung round you in a half circle in front of you: you see it go round, and each monster it passes is hit as
+  // it gets there, one after the other (the arc's hits wait: pendingHits in game-combat.js). A first try of the spear's
+  // skills (docs: the masteries plan).
+  circle_throw: { name: 'Circle Throw', words: 'hasta orbis', vocs: ['knight', 'paladin'], level: 10, mana: 30, kind: 'arc', radius: 2, sweep: 650, mult: [0.9, 1.6], desc: 'With a spear in hand: it sweeps round you in a half circle, and every monster in front of you within 2 tiles is hit as it passes.' },
   // Said, not clicked: hidden from the spell bar, so nobody blows themselves up by accident.
-  final_blaze:  { name: 'Final Blaze', words: 'allahu akbar', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
+  final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 
   holy_bolt:    { name: 'Holy Bolt', words: 'sanctus', vocs: ['paladin'], level: 10, mana: 25, kind: 'bolt', element: 'holy', range: 5, power: { min: [0.5, 2, 0.4, 8], max: [0.8, 3, 0.6, 18] }, desc: 'Holy damage at range. Very strong against the undead.' },
   conjure_arrows: { name: 'Conjure Arrows', words: 'forma sagitta', vocs: ['paladin'], level: 10, mana: 40, kind: 'conjure', item: 'arrow', count: 15, desc: 'Makes 15 arrows.' },

@@ -712,7 +712,7 @@ test('protection zones: no attacks, attack spells or runes in a temple, nor into
   assert(p.target === orc, 'outside, you fight as usual');
 });
 
-test('allahu akbar: you blow yourself up and burn everyone around you', () => {
+test('ignis ultima: you blow yourself up and burn everyone around you', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
@@ -724,13 +724,13 @@ test('allahu akbar: you blow yourself up and burn everyone around you', () => {
   const other = ctx.newPlayer('Bystander');
   Object.assign(other, { vocation: 'druid', level: 20, x: p.x, y: p.y + 2, z: 4, hp: 2000, maxHp: 2000 });
   state.players.push(other);
-  A.say('allahu akbar');
+  A.say('ignis ultima');
   assert(orc.hp < orc.maxHp && far.hp === far.maxHp, 'it hits what is close, not what is far');
   assert(other.hp < 2000, 'players around you burn too');
   assert(p.dead && messages.some(m => /blow yourself up/.test(m)), 'and you die');
   tick(game, 4000);
   ctx.teleport({ x: 112, y: 45, z: 4 }); // the temple
-  A.say('allahu akbar');
+  A.say('ignis ultima');
   assert(!p.dead && /protection zone/.test(messages[messages.length - 1]), 'not in a protection zone');
   assert(!ctx.spellsFor('knight').slice(0, -1).includes('final_blaze'), 'it comes last, after the spells on the number keys');
 });

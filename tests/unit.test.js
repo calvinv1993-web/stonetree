@@ -1662,6 +1662,31 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
 });
 
+test('the circle throw: a spear in hand sweeps a half circle in front of you, and each monster is hit as it gets there, one after the other', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'knight', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  p.skills.sword.level = 40;
+  A.say('hasta orbis'); tick(game, 100);
+  assert(messages.some(m => /spear in your hand/.test(m)), 'not without a spear in your hand');
+  p.equipment.weapon = { id: 'spear', count: 3 };
+  p.dir = 2; // (facing south: the sweep runs from east, round the south, to west)
+  const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
+  const east = at(2, 0), south = at(0, 2), west = at(-2, 0), north = at(0, -2);
+  const hurt = m => m.hp < 9999;
+  state.now += 3000; A.say('hasta orbis');
+  assert(state.effects.some(fx => fx.kind === 'arc'), 'everyone near sees the spear go round');
+  tick(game, 120);
+  assert(hurt(east) && !hurt(south) && !hurt(west), 'first the one where the sweep starts');
+  tick(game, 300);
+  assert(hurt(south) && !hurt(west), 'then the one in front of you');
+  tick(game, 400);
+  assert(hurt(west), 'then the one where it ends');
+  assert(!hurt(north), 'nothing behind you');
+});
+
 test('walking: speed grows with your level, ground counts, a diagonal step takes twice as long', () => {
   const game = quietGame();
   const { ctx, state } = game;

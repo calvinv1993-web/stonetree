@@ -1149,6 +1149,7 @@ function makeTestHero(vocation) {
   eq.ammo = ammo ? makeItem(ammo, MAX_STACK) : null;
   eq.backpack = { ...makeItem('backpack'), contents: [] };
   for (const [id, n] of [['health_potion', 50], ['mana_potion', 50], ['rope', 1], ['shovel', 1], ['meat', 20]]) if (ITEMS[id]) giveItem(id, n);
+  if (['knight', 'paladin'].includes(vocation)) giveItem('spear', 5); // (to try the circle throw: hold one, say "hasta orbis")
   giveTestClang();
   log(`Test character: a level ${L} ${title(p)} with the best gear there is, 100000 gold and a million in the bank, and ${p.pet.name} at level ${L} beside you.`, 'quest');
   uiDirty();
@@ -1158,6 +1159,13 @@ function makeTestHero(vocation) {
 // For testing: Clang at your level (full grown, the temple's guardian), beside you. A test character gets him on making;
 // one made before that can ask for him (Menu: "Test: Clang at level 100"). Playing alone only: the server has no button.
 function isTestHero(p = player) { return p.level >= TEST_HERO_LEVEL && p.promoted; }
+// For testing the circle throw: spears for a knight or paladin test character (made before they came with them)
+const wantsTestSpear = () => isTestHero() && ['knight', 'paladin'].includes(player.vocation) && !countItem('spear') && playerWeapon().missile !== 'spear';
+function giveTestSpear() {
+  giveItem('spear', 5);
+  log('Five spears in your bag. Hold one (put it in your weapon hand), then say "hasta orbis", or use Circle Throw from your spells.', 'quest');
+  uiDirty();
+}
 function giveTestClang() {
   const p = player, L = p.level;
   p.pet = { name: (p.pet && p.pet.name) || 'Clang', kind: 'cat', level: L, xp: 0, hp: PETS.cat.hp(L), mode: 'assist', downUntil: 0, home: false };

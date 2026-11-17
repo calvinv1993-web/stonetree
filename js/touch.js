@@ -438,6 +438,8 @@ function renderMenu() {
     // (a test character playing alone: Clang at its level, if it was made before test characters got him)
     ...(!Net.online && isTestHero() && !(pet && pet.level >= player.level) ? [row(['Test: Clang at level ' + player.level, h('small', {}, 'For trying things out')], h('span', {}, '›'),
       () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); menuShown = ''; renderMenu(); })] : []),
+    ...(!Net.online && wantsTestSpear() ? [row(['Test: spears (circle throw)', h('small', {}, 'Hold one, say "hasta orbis"')], h('span', {}, '›'),
+      () => { giveTestSpear(); menuShown = ''; renderMenu(); })] : []),
     row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
   );
 }

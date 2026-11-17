@@ -132,7 +132,7 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'selfdestruct'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'selfdestruct'];
 
 function hurt(target, dmg, element) {
   if (target.type === 'player') {
@@ -562,6 +562,51 @@ function shapeTiles(kind, length = 5) {
 
 // An area attack: every monster on these tiles is hit - and every player, where players
 // may fight and your secure mode lets you.
+// Hits that land a moment later, where something thrown gets to them (the circle throw): each waits for its time,
+// then lands as the player who threw it. { at, by: the player, target, dmg, element }
+let pendingHits = [];
+function updatePendingHits() {
+  if (!pendingHits.length) return;
+  const due = pendingHits.filter(h => now >= h.at);
+  if (!due.length) return;
+  pendingHits = pendingHits.filter(h => now < h.at);
+  for (const h of due) {
+    const t = h.target;
+    if (!t || t.dead || t.z !== h.z || h.by.dead || !players.includes(h.by)) continue;
+    asPlayer(h.by, () => {
+      addBurst(t.x, t.y, t.z, '#e8dcc0');
+      addSound('hit', t.x, t.y, t.z);
+      hurt(t, h.dmg, h.element);
+    });
+  }
+}
+
+// The circle throw (kind arc): the spear sweeps round the player from their left to their right, across the way they
+// face, radius tiles out. Each monster in that half circle is hit when the spear's sweep passes its direction.
+function castArc(s) {
+  const w = playerWeapon(), face = Math.atan2(DY[player.dir || 0], DX[player.dir || 0]);
+  const skill = ['distance', 'sword', 'axe', 'club'].reduce((a, k) => (player.skills[k].level > player.skills[a].level ? k : a), 'distance');
+  const max = physicalMax({ skill, attack: w.attack || 14 });
+  const blow = () => Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
+  const z = player.z, from = face - Math.PI / 2;
+  effects.push({ kind: 'arc', x: player.x, y: player.y, z, a0: from, sweep: Math.PI, radius: s.radius, start: now, dur: s.sweep, style: 'spear' });
+  addSound('shoot', player.x, player.y, z);
+  const inArc = c => {
+    const dx = c.x - player.x, dy = c.y - player.y, d = Math.hypot(dx, dy);
+    if (!d || d > s.radius + 0.5 || c.z !== z || !sightClear(player, c)) return null;
+    let rel = Math.atan2(dy, dx) - from; // (how far round the sweep it lies: 0 at its start, PI at its end)
+    while (rel < -0.01) rel += Math.PI * 2;
+    while (rel > Math.PI * 2) rel -= Math.PI * 2;
+    return rel <= Math.PI + 0.01 ? rel : null;
+  };
+  const targets = [...monsters.filter(m => !m.dead), ...players.filter(p => p !== player && !p.dead && pvpAllowed(p) && mayHurt(p))];
+  for (const c of targets) {
+    const rel = inArc(c);
+    if (rel === null) continue;
+    pendingHits.push({ at: now + Math.round(s.sweep * rel / Math.PI), by: player, target: c, z, dmg: blow(), element: 'physical' });
+  }
+}
+
 function hitTiles(tiles, element, roll, z = player.z) {
   for (const [x, y] of tiles) {
     addBurst(x, y, z, ELEMENT_COLORS[element]);
@@ -587,6 +632,7 @@ function castSpell(id) {
     if (!ok) return log(s.kind === 'bolt' ? 'Your target is out of range.' : 'You need to stand next to your target.');
   }
   if (s.kind === 'conjure' && s.blank && !countItem('blank_rune')) return log('You need a blank rune.');
+  if (s.kind === 'arc' && playerWeapon().missile !== 'spear') return log('You need a spear in your hand for that.');
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
@@ -638,6 +684,8 @@ function castSpell(id) {
       if ((dx || dy) && sightClear(player, { x: player.x + dx, y: player.y + dy, z: player.z })) tiles.push([player.x + dx, player.y + dy]);
     }
     hitTiles(tiles, element, s.kind === 'area' ? roll : melee);
+  } else if (s.kind === 'arc') {
+    castArc(s);
   } else if (s.kind === 'selfdestruct') { // everything around you burns, and so do you
     for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
       const x = player.x + dx, y = player.y + dy;

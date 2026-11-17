@@ -2126,6 +2126,8 @@ function initUI() {
   // (a test character playing alone: Clang at its level; the button shows only for one)
   $('testClang').addEventListener('click', () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); });
   setInterval(() => { if (player) $('testClang').hidden = !(!Net.online && isTestHero() && !(player.pet && player.pet.level >= player.level)); }, 1000);
+  $('testSpear').addEventListener('click', () => giveTestSpear());
+  setInterval(() => { if (player) $('testSpear').hidden = !(!Net.online && wantsTestSpear()); }, 1000);
   $('newChar').addEventListener('click', () => {
     if (online()) { // online: log out of this browser, so you can log in as someone else
       if (!confirm('Log out? You can log in again with your name and password.')) return;

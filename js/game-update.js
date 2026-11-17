@@ -813,6 +813,7 @@ function updateWorld() {
   updateGates();
   updateParties();
   updateFields();
+  updatePendingHits();
   updateReverts();
   updateRaids();
   updateTownBell();

@@ -633,6 +633,22 @@ function drawEffects(ox, oy, z) {
         ctx.fillStyle = '#fff';
         ctx.fillRect(x - 1, y - 1, 2, 2);
       }
+    } else if (fx.kind === 'arc') { // the circle throw: a spear sweeping round in a half circle, spinning, a pale trail behind it
+      const cx = ox + fx.x * TILE + 16, cy = oy + fx.y * TILE + 16, r = fx.radius * TILE, a = fx.a0 + fx.sweep * t;
+      ctx.save();
+      ctx.globalAlpha = 0.45 * (1 - t * 0.5);
+      ctx.strokeStyle = '#f2ead2';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(cx, cy, r, Math.max(fx.a0, a - 1.1), a); ctx.stroke(); // (the trail: the last part of the way)
+      ctx.globalAlpha = 1;
+      const sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r, spin = t * Math.PI * 6;
+      ctx.translate(sx, sy); ctx.rotate(spin);
+      ctx.strokeStyle = '#7a5226'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(8, 0); ctx.stroke();      // the shaft
+      ctx.fillStyle = '#d8dde4';
+      ctx.beginPath(); ctx.moveTo(8, -3); ctx.lineTo(15, 0); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); // the head
+      ctx.restore();
     } else if (fx.kind === 'vehicle') { // a ride arriving to pick someone up (and waiting), or leaving
       const p = fx.travel ? Math.min(1, (now - fx.start) / fx.travel) : t, s = p * p * (3 - 2 * p), off = fx.from + (fx.to - fx.from) * s;
       if (fx.vehicle === 'balloon') drawVehicle('balloon', ox + fx.x * TILE, oy + fx.y * TILE - Math.abs(off) * 6 * TILE, false, false);
