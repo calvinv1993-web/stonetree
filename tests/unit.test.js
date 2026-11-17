@@ -938,18 +938,18 @@ test('the guide never waits for Next: an explaining step passes once read, or at
   assert.strictEqual(p.tutorial, 1, 'the welcome stays a moment');
   tick(game, 17000);
   assert(p.tutorial >= 2, 'then passes by itself');
-  // played on: talking to Sister Ama while the bars step is still up passes it at once
-  p.tutorial = 2; tick(game, 100);
+  // played on: talking to Sister Ama while the welcome is still up passes it at once
+  p.tutorial = 1; tick(game, 100);
   const ama = state.npcs.find(n => n.npcId === 'ama');
   ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y + 1, ama.z, 2), z: ama.z }); state.Actions.say('hi'); tick(game, 300);
-  assert(p.tutorial >= 4, 'played on: past the bars, and past meeting her');
-  // the sewer step: a shield bought at the shop doesn't pass it, the rats' shield does
+  assert(p.tutorial >= 3, 'played on: past the welcome, and past meeting her');
+  // the sewer chapter: a shield bought at the shop doesn't pass it; Corwin hearing of the rats' shield does
   const i = G.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes('cellar_shield'))) + 1;
   p.quests.cellar_shield = { status: 'active', step: 1, kills: {} };
   p.equipment.shield = { id: 'wooden_shield', count: 1 }; p.tutorial = i; tick(game, 300);
-  assert.strictEqual(p.tutorial, i, 'any shield: still on the sewer step');
-  p.chests.oak_hoard = true; tick(game, 300);
-  assert.strictEqual(p.tutorial, i + 1, 'the rats\' shield: on');
+  assert.strictEqual(p.tutorial, i, 'any shield: still on the sewer chapter');
+  p.quests.cellar_shield.status = 'done'; tick(game, 300);
+  assert.strictEqual(p.tutorial, i + 1, 'the rats\' shield shown to Corwin: on');
 });
 
 test('a tool used on a spot further off: you walk there and use it; walking away yourself calls it off', () => {
@@ -1533,14 +1533,14 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   on(null, { x: 137, y: 103, z: 9 });
   // a step that only explains waits for Next (and Next does nothing on a step with something to do)
   const next = what => { const at = p.tutorial; A.guideNext(); assert.strictEqual(p.tutorial, at + 1, `Next past ${what}`); };
-  assert.strictEqual(arrow(), null, 'the welcome points at nothing'); next('the welcome'); next('the health and mana bars');
+  assert.strictEqual(arrow(), null, 'the welcome points at nothing'); next('the welcome and the bars');
   assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
-  A.guideNext(); assert.strictEqual(p.tutorial, 3, 'Next doesn\'t skip a step with something to do');
+  A.guideNext(); assert.strictEqual(p.tutorial, 2, 'Next doesn\'t skip a step with something to do');
   A.endGuide();
-  assert.strictEqual(p.tutorial, 3, 'the guide can\'t be put away before its end (only folded)');
+  assert.strictEqual(p.tutorial, 2, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
-  next('where to look when lost'); next('the map');
+  next('where to look when lost, and the map');
   assert.strictEqual(arrow(), 'corwin', 'first to Corwin at the academy'); assert.strictEqual(mark('corwin'), 'report');
   talk('corwin'); tick(game, 100);
   assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rats only count once he has heard about the bell');
@@ -1555,14 +1555,12 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   while (p.tutorial <= step) { A.guideNext(); tick(game, 100); }
   assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'leather_cap').length, 0, 'no second present when the guide starts again');
   p.tutorial = step + 1;
-  next('what dying costs');
   assert.strictEqual(arrow(), '110,141,8', 'then the training yard, on the way to the rats');
   on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
   assert(p.trainHits >= 5, 'hitting the dummy');
-  next('the big button');
   kill('rat', 5);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
-  p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons'); next('putting Eat on an action button (the browser sees it)');
+  p.fedUntil = state.now + 99999; tick(game, 100); next('putting Eat on an action button (the browser sees it)');
   assert.strictEqual(arrow(), 'corwin');
   talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
   talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');
@@ -1571,7 +1569,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   p.shopNpc = 'pip'; tick(game, 100); p.shopNpc = null;
   // level 2: a light, then the first way under the town, for a shield
   levelTo(2); tick(game, 100);
-  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => s.art === "torch")') + 1, 'the guide waits for Torchlight');
+  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => s.art === "sewer")') + 1, 'from here on the story leads: the shield chapter');
   A.say('lumen'); tick(game, 300); assert(p.lightUntil > state.now, 'lit');
   assert.strictEqual(arrow(), 'corwin', 'then to Corwin, for the shield'); assert.strictEqual(mark('corwin'), 'offer');
   talk('corwin', 'shield', 'yes'); on(null, { x: 128, y: 120, z: 8 });

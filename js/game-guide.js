@@ -7,7 +7,7 @@
 // text: what to do (touch: the same for a phone); target: what the arrow points at, the
 // first of these that is there - an NPC, the nearest monster of a kind, the nearest
 // corpse, a spot ([x, y, z]), or the first of some NPCs who has a quest or news for you (news) - see guideTarget (a target
-// with active: 'quest' or 'quest@step' counts only while you're on it; lead: a spot until you're near it, then no arrow;
+// with active: 'quest' or 'quest@step' counts only while you're on it, with when: () => true only while that holds; lead: a spot until you're near it, then no arrow;
 // nest: the nearest spider nest you haven't burnt); done: when the step is done (as the
 // player), or on: the deed that does it (see guideDid). A step with neither just explains: it waits for "Next"
 // (Actions.guideNext), and the last step for "Got it". ui / uiDesk: the parts of the screen it's about on a phone / a
@@ -17,15 +17,10 @@
 // browser sees done (it calls Actions.guideNext; it has no Next button); touchOnly: only for a phone (passed at once
 // on a computer).
 const GUIDE = [
-  // ---- the basics, one thing at a time (a step without done or on is read and passed with "Next") ----
+  // ---- the basics, the first half hour: one thing at a time (a step without done or on is read and passed by itself) ----
   {
-    text: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Press Next to begin.',
-    touch: 'Welcome to Oakvale Isle! This guide shows you how everything works, one thing at a time. When it asks you to do something, do it and it moves on by itself. Tap Next to begin.',
-    art: 'welcome',
-  },
-  {
-    text: 'Your health and mana are in the panel on the right. Red is your health: when it runs out, you die. Blue is your mana, for spells. Under them, your experience: when it is full you reach the next level.',
-    touch: 'At the top: red is your health (when it runs out, you die), blue is your mana (for spells). Under them, your experience: when the bar is full you reach the next level.',
+    text: 'Welcome to Oakvale Isle! In the panel on the right: red is your health (when it runs out, you die), blue your mana, for spells, and under them your experience: full, and you reach the next level. When this guide asks you to do something, do it and it moves on by itself.',
+    touch: 'Welcome to Oakvale Isle! At the top: red is your health (when it runs out, you die), blue your mana, for spells, and under them your experience: full, and you reach the next level. When this guide asks you to do something, do it and it moves on by itself.',
     ui: ['#touch .hud'], uiDesk: ['.sec-status'],
     art: 'bars',
   },
@@ -44,16 +39,10 @@ const GUIDE = [
     art: 'words',
   },
   {
-    text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. Lost? Look there.',
-    touch: 'You have a quest! Whenever you are lost: the yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next.',
+    text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. The minimap shows the land round you (click a spot to walk there); G opens the map of the whole island.',
+    touch: 'You have a quest! Lost? The yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next. The map button (top left) shows the land round you.',
     ui: ['#inventoryDrawer .drawer-tabs [data-page="quests"]', '#hudBag'], uiDesk: ['[data-tab="quests"]'],
     art: 'lost',
-  },
-  {
-    text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
-    touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
-    ui: ['#hudMap'], uiDesk: ['.minimap-box'],
-    art: 'map',
   },
   {
     text: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Talk to him, and ask him about the bell.',
@@ -71,29 +60,19 @@ const GUIDE = [
     done: () => !!player.equipment.head,
   },
   {
-    text: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, and your level: you only lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
-    touch: 'Before you go out of town: if you die, you wake in the temple. Until you choose a vocation you keep all your things, and your level: you only lose a little experience. In the temple, the depot and the shops nothing can hurt you: rest there to heal.',
-    art: 'death',
-  },
-  {
-    text: 'On your way to the rats: train! The training yard is in the south-west of town, by the south gate. Click a dummy and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
-    touch: 'On your way to the rats, train: tap a dummy in the training yard (south-west of town, by the south gate) and you keep hitting it until you walk away. Every hit raises your weapon skill, and a higher skill hits harder. Hit it 5 times ($trained).',
+    text: 'On your way to the rats: train! The training yard is in the south-west of town, by the south gate. Click a dummy and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
+    touch: 'On your way to the rats, train: tap a dummy in the training yard (south-west of town, by the south gate) and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
     target: [{ at: [110, 141, 8] }],
     done: () => player.trainHits >= 5,
     art: 'train',
   },
   {
-    text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
-    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. Grey: nothing to do here. You will use it a lot.',
+    text: 'Rats run in Sunny Fields, out of the south gate. Space attacks the nearest monster (again for the next one), or click one. Rats are easy; grey wolves come in packs: keep away from them for now. Kill 5 rats ($progress).',
+    touch: 'Rats run in Sunny Fields, out of the south gate. The big button does what the moment asks: red attacks the nearest monster, blue talks, amber opens a corpse, green opens a door. Rats are easy; grey wolves come in packs: keep away from them for now. Kill 5 rats ($progress).',
     ui: ['#tAttack'], uiDesk: ['#hotbar'],
-    art: 'smart',
-  },
-  {
-    text: 'Rats run in Sunny Fields, out of the south gate. Click a rat, or press Space. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
-    touch: 'Rats run in Sunny Fields, out of the south gate. Press the big red button near a rat, or tap the rat. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
     target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
     done: () => ratsDone(), // (the five for Corwin: also if they fell while an earlier step was still being read)
-    art: 'rats',
+    art: 'smart',
   },
   {
     text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
@@ -103,122 +82,61 @@ const GUIDE = [
     art: 'loot',
   },
   {
-    text: 'With a full stomach you heal much faster. Eat an apple: right-click it in your bag.',
+    text: 'With a full stomach you heal much faster. Eat an apple: right-click it in your bag. The bar under the map: spells on 1 to 9, H for a health potion, M for mana, F to eat.',
     touch: 'With a full stomach you heal much faster. Open the backpack, tap an apple, then Use to eat it.',
     ui: ['#inventoryDrawer .slot[data-item="apple"]', '#hudBag'], uiDesk: ['#containers'],
     done: () => player.fedUntil > now,
     art: 'eat',
   },
   {
-    text: 'The bar under the map: your spells on 1 to 9 (they come with levels), H for a health potion, M for mana, F to eat. Low on health? Press H.',
-    touch: 'The buttons beside the big one: spells on the left, potions and food on the right. Low on health? Tap the red potion. Hold a button to choose what goes there; swipe sideways for more.',
-    ui: ['#favs'], uiDesk: ['#hotbar'],
-    art: 'actions',
-  },
-  {
     // (a phone's action buttons live in the browser, not in the game: touch.js sees Eat put on one and moves the guide on;
     // a computer has F for eating and passes this step at once)
     text: 'Press F to eat whenever you like.',
-    touch: 'Now try it: put Eat on your last action button. Tap the empty + on the far right, then choose Eat. From then on one tap eats, wherever you are.',
+    touch: 'The buttons beside the big one: spells on the left, potions and food on the right (low on health? tap the red potion). Put Eat on your last one: tap the empty + on the far right, then choose Eat.',
     client: 'eatSlot', touchOnly: true, art: 'eatslot',
     ui: ['#favPicker:not([hidden]) [data-action="f"]', '#favs .fav:nth-child(6)'],
   },
   {
-    text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The Quests tab says where; the arrow points the way.',
-    touch: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. The arrow points the way; the Quests tab (backpack button, Quests) says what to do.',
+    text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, south of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
+    touch: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, south of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
     target: [{ quest: 'bell_1' }, { monster: 'rat' }],
     done: () => questState('bell_1') === 'done',
   },
+  // ---- the story, a chapter at a time: the arrow follows it to the oracle ----
   {
-    text: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
-    touch: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
-    target: [{ npc: 'pip' }],
-    done: () => !!player.shopNpc || !!player.hasTraded,
-  },
-  // ---- level 2: a light, and the first way under the town ----
-  {
-    text: 'Level 2 brings your first spell: Torchlight. Press 1 (or say "lumen") to glow like a torch for three minutes. The sewers are dark: try it now.',
-    touch: 'Level 2 brings your first spell: Torchlight! Tap its button on the left (still an empty +? Tap it and choose Torchlight first): you glow like a torch for three minutes. The sewers are dark: try it now.',
-    art: 'torch', ui: ['#favPicker:not([hidden]) [data-action="light"]', '#favs .fav:nth-child(1)'], uiDesk: ['#hotbar'],
-    target: [{ at: [131, 111, 8] }], // (the grate on the square: where the light is for)
-    done: () => player.level >= 2 && player.lightUntil > now,
-  },
-  {
-    text: 'Master Corwin has a task for you under the town: a shield the rats stole. Talk to him and ask about the shield.',
-    touch: 'Master Corwin has a task for you under the town: a shield the rats stole. Talk to him and ask about the shield.',
-    target: [{ news: ['corwin'] }, { npc: 'corwin' }],
-    done: () => questState('cellar_shield') !== 'none',
-  },
-  {
-    text: 'Down the grate on the square into the sewers (the arrow). Kill 5 rats ($progress), then open the old chest in the storeroom at the west end and put on the shield.',
-    touch: 'Down the grate on the square into the sewers (the arrow): tap the grate to climb down. Kill 5 rats ($progress), then open the old chest in the storeroom at the west end and put on the shield.',
+    text: 'Level 2: your first spell, Torchlight (press 1, or say "lumen"). Master Corwin has a task under the town: a shield the rats stole. Down the grate on the square, kill 5 rats ($progress), take the shield from the old chest in the storeroom, and tell him.',
+    touch: 'Level 2: your first spell, Torchlight (its button on the left). Master Corwin has a task under the town: a shield the rats stole. Down the grate on the square, kill 5 rats ($progress), take the shield from the old chest in the storeroom, and tell him.',
     art: 'sewer',
-    target: [{ at: [131, 111, 8] }, { hunt: ['cellar_shield'] }, { at: [105, 121, 7] }],
-    // (the rats' shield from the storeroom's chest, on your arm: not just any shield bought at the shop)
-    done: () => (!!player.chests.oak_hoard && !!player.equipment.shield) || questState('cellar_shield') === 'done',
-  },
-  {
-    text: 'A shield! Blows glance off it now. Climb back up the ladder and tell Master Corwin.',
-    touch: 'A shield! Blows glance off it now. Climb back up the ladder and tell Master Corwin.',
-    target: [{ at: [131, 111, 7] }, { quest: 'cellar_shield' }, { npc: 'corwin' }],
+    // (the grate on the square; the rats; the storeroom's chest till it's open; the ladder back up; Corwin)
+    target: [{ news: ['corwin'], when: () => questState('cellar_shield') === 'none' }, { at: [131, 111, 8], active: 'cellar_shield@0' }, { hunt: ['cellar_shield'] },
+      { at: [105, 121, 7], when: () => !player.chests.oak_hoard }, { at: [131, 111, 7], active: 'cellar_shield@1' }, { quest: 'cellar_shield' }],
     done: () => questState('cellar_shield') === 'done',
   },
-  // ---- Clang: the temple's cat, a companion for the road ----
   {
-    text: 'Sister Ama has lost her cat, Clang: he chased the rats down into the bell cellar under the temple. Ask her about Clang.',
-    touch: 'Sister Ama has lost her cat, Clang: he chased the rats down into the bell cellar under the temple. Ask her about Clang.',
-    target: [{ news: ['ama'] }, { npc: 'ama' }],
-    done: () => questState('clang_rescue') !== 'none',
-  },
-  {
-    text: 'Down the grate on the square, then north under it to the bell cellar. Kill the rats there ($progress), then move the fallen crate at its east end.',
-    touch: 'Down the grate on the square, then north under it to the bell cellar. Kill the rats there ($progress), then tap the fallen crate at its east end.',
+    text: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north). Kill the rats there ($progress), move the fallen crate, and bring him home: he fights at your side from then on.',
+    touch: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north). Kill the rats there ($progress), tap the fallen crate, and bring him home: he fights at your side from then on.',
     art: 'clang',
-    target: [{ at: [131, 111, 8] }, { hunt: ['clang_rescue'] }, { at: [148, 105, 7] }],
-    done: () => questState('clang_rescue') === 'done' || (!!player.quests.clang_rescue && player.quests.clang_rescue.step >= 2),
-  },
-  {
-    text: 'Clang is free! Bring him home to Sister Ama: he will follow you. From then on he fights at your side, and grows stronger as he fights and trains with you.',
-    touch: 'Clang is free! Bring him home to Sister Ama: he will follow you. From then on he fights at your side, and grows stronger as he fights and trains with you.',
-    art: 'clang',
-    target: [{ at: [131, 111, 7] }, { quest: 'clang_rescue' }, { npc: 'ama' }],
+    // (the grate; the rats in the bell cellar; the fallen crate; the ladder back up; Ama)
+    target: [{ news: ['ama'], when: () => questState('clang_rescue') === 'none' }, { at: [131, 111, 8], when: () => questOnStep('clang_rescue@0') || questOnStep('clang_rescue@1') }, { hunt: ['clang_rescue'] },
+      { at: [148, 105, 7], active: 'clang_rescue@1' }, { at: [131, 111, 7], active: 'clang_rescue@2' }, { quest: 'clang_rescue' }],
     done: () => questState('clang_rescue') === 'done',
   },
-  // ---- the gate watch: one gate at a time, each with its task and its gear (game-gates.js) ----
   {
-    text: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you. Start with Sergeant Bram at the west gate: Greyfang, the grey wolf.',
-    touch: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you. Start with Sergeant Bram at the west gate: Greyfang, the grey wolf.',
-    target: [{ news: ['gate_west'] }, { hunt: ['gate_west'] }, { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' }, { npc: 'gate_west', level: 2 }],
-    done: () => questState('gate_west') === 'done' || questState('bell_2') !== 'none',
+    text: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you, one after the other. West (Greyfang, the grey wolf), south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans).',
+    touch: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you, one after the other. West (Greyfang, the grey wolf), south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans).',
+    target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
+      { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
+      { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' },
+      { at: [101, 220, 8], active: 'gate_south@0' }, { nest: true, active: 'gate_east@0' }, { at: [198, 70, 8], active: 'gate_north@0' },
+      { quest: 'gate_west' }, { quest: 'gate_south' }, { quest: 'gate_east' }, { quest: 'gate_north' },
+      // (the next guard who will have a task, once you're strong enough)
+      ...[['gate_south', 3], ['gate_east', 4], ['gate_north', 5]].map(([id, level]) => ({ npc: id, level, when: () => questState(id) === 'none' }))],
+    done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_2') !== 'none',
   },
   {
-    text: 'Guard Tilda at the south gate: a fisher is stranded on a rock off Lighthouse Point, with crabs all round him. Rescue him.',
-    touch: 'Guard Tilda at the south gate: a fisher is stranded on a rock off Lighthouse Point, with crabs all round him. Rescue him.',
-    target: [{ news: ['gate_south'] }, { hunt: ['gate_south'] }, { at: [101, 220, 8], active: 'gate_south@0' }, { npc: 'gate_south', level: 3 }],
-    done: () => questState('gate_south') === 'done' || questState('bell_2') !== 'none',
-  },
-  {
-    text: 'Guard Hilde at the east gate: spiders are spinning nests over the trails of the Spider Hills. Burn them, with a torch or Torchlight.',
-    touch: 'Guard Hilde at the east gate: spiders are spinning nests over the trails of the Spider Hills. Burn them, with a torch or Torchlight.',
-    target: [{ news: ['gate_east'] }, { hunt: ['gate_east'] }, { nest: true, active: 'gate_east@0' }, { npc: 'gate_east', level: 4 }],
-    done: () => questState('gate_east') === 'done' || questState('bell_2') !== 'none',
-  },
-  {
-    text: 'Captain Osric at the north gate: the goblins of Goblin Hill are planning something. Sneak into their camp at night, when they sleep, and steal Chief Gnash\'s war plans.',
-    touch: 'Captain Osric at the north gate: the goblins of Goblin Hill are planning something. Sneak into their camp at night, when they sleep, and steal Chief Gnash\'s war plans.',
-    target: [{ news: ['gate_north'] }, { hunt: ['gate_north'] }, { at: [198, 70, 8], active: 'gate_north@0' }, { npc: 'gate_north', level: 5 }],
-    done: () => questState('gate_north') === 'done' || questState('bell_2') !== 'none',
-  },
-  {
-    text: 'At level 5, Master Corwin at the academy has a task about the crypt under Bone Rocks. Talk to him and ask about the crypt.',
-    touch: 'At level 5, Master Corwin at the academy has a task about the crypt under Bone Rocks. Talk to him and ask about the crypt.',
-    target: [{ news: ['corwin'] }],
-    done: () => questState('bell_2') !== 'none',
-  },
-  {
-    text: 'Take the bone trail to Bone Rocks, south-west of town, and go down into the crypt. Take a founder\'s weapon from the stone chests, clear the hall of coffins, and bring the torn note to Corwin.',
-    touch: 'Take the bone trail to Bone Rocks, south-west of town, and go down into the crypt. Take a founder\'s weapon from the stone chests, clear the hall of coffins, and bring the torn note to Corwin.',
-    target: [{ quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
+    text: 'At level 5, Master Corwin has a task about the crypt under Bone Rocks, south-west of town. Take a founder\'s weapon from its stone chests, clear the hall of coffins, and bring him the torn note.',
+    touch: 'At level 5, Master Corwin has a task about the crypt under Bone Rocks, south-west of town. Take a founder\'s weapon from its stone chests, clear the hall of coffins, and bring him the torn note.',
+    target: [{ news: ['corwin'] }, { quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_2') === 'done',
     minLevel: 5, // (till then: hunt at the gates)
   },
@@ -237,8 +155,8 @@ const GUIDE = [
     minLevel: 8, // (till then: hunt at the gates)
   },
   {
-    text: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
-    touch: 'The bell rings, but the Choir is not done: at level 8, Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
+    text: 'The bell rings, but the Choir is not done: Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
+    touch: 'The bell rings, but the Choir is not done: Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
     // (the ash trail: the hood in Greyfang's den, the altar in Frog Marsh, the signal fire on Stony Field: STORY_SITES)
     target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { at: [66, 71, 8], active: 'bell_5@1' }, { at: [60, 125, 8], active: 'bell_5@2' },
       { at: [89, 77, 8], active: 'bell_5@3' }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
@@ -326,6 +244,7 @@ function guideTarget(step) {
   for (const t of step.target || []) {
     if (t.level && player.level < t.level) continue;
     if (t.active && !questOnStep(t.active)) continue; // ('quest', or 'quest@step': only while on that one)
+    if (t.when && !t.when()) continue; // (only while this holds)
     if (t.quest && (questState(t.quest) !== 'active' || !stepReady(t.quest))) continue; // only a step that's ready to hand in
     if (t.quest && !t.npc) { // the NPC this quest's current step is reported to
       const q = player.quests[t.quest], def = QUESTS[t.quest];
