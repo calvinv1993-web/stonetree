@@ -491,6 +491,13 @@ function createKestrelMap() {
     else if (r < 0.36) t.items.push('pebbles');
   }
 
+  // ---- no rock top hangs in the air: a top a floor up stands only on a cliff (a river, a road or the town's touches
+  // laid over a cliff later leave its top behind: it goes) ----
+  for (let z = S + 1; z <= S + 3; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const t = m.get(x, y, z), under = m.get(x, y, z - 1);
+    if (t && ['rock_top', 'mountain'].includes(t.ground) && !(under && under.items.includes('cliff'))) m.set(x, y, z, null);
+  }
+
   // ---- under the ground nothing is empty, as in Tibia: wherever no tunnel or cave is dug, solid rock (never black) ----
   for (let z = S - 1; z >= S - 4; z--) {
     if (!m.floors[z].some(Boolean)) continue; // (a layer not dug yet stays as it is)

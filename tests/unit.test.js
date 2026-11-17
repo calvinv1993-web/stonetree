@@ -1721,6 +1721,11 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   assert(m.isWalkable(m.start.x, m.start.y, m.start.z), 'you wake on open floor');
   assert(m.temples.some(t => t.home === 'bellhaven'), 'the temple is home');
   assert(m.spawns.length > 40, 'game out in the wilds');
+  // no rock top hangs in the air: each stands on a cliff a floor down
+  for (let z = 9; z <= 11; z++) for (let y = 0; y < m.height; y++) for (let x = 0; x < m.width; x++) {
+    const t = m.get(x, y, z), under = m.get(x, y, z - 1);
+    if (t && ['rock_top', 'mountain'].includes(t.ground)) assert(under && under.items.includes('cliff'), `a rock top in the air at ${x},${y},${z}`);
+  }
   // from the temple you can walk to every door, and out of the west, east and north gates (the steps down the temple
   // rock join the floors: a step onto them climbs, a step onto their top goes down)
   const seen = new Set([`${m.start.x},${m.start.y},${m.start.z}`]), todo = [[m.start.x, m.start.y, m.start.z]];
