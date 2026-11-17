@@ -629,6 +629,7 @@ function castVolley(s) {
     pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, element: 'physical', glow: '#bfe6ff', small: true });
   }
   addSkillTries('distance');
+  player.drawingUntil = now + s.lead + (shots - 1) * s.gap + 80; player.path = []; player.action = null; // (rooted till the last arrow is off)
   const flight = Math.round(d * s.perTile);
   effects.push({ kind: 'volley', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, start: now, lead: s.lead, gap: s.gap, shots, flight,
     dur: s.lead + (shots - 1) * s.gap + flight + 160 });
@@ -654,6 +655,7 @@ function castPierce(s) {
   const shot = () => s.times * physicalHit(w); // (each one hit as hard as that many plain shots)
   useAmmo(w);
   addSkillTries('distance');
+  player.drawingUntil = now + s.charge; player.path = []; player.action = null; // (rooted while the bow is drawn)
   effects.push({ kind: 'shot', cid: player.id, weapon: 'bow', x: player.x, y: player.y, z, tx: player.x + ax * reach, ty: player.y + ay * reach,
     start: now, charge: s.charge, flight: Math.round(reach * s.perTile), dur: s.charge + Math.round(reach * s.perTile) + 200 });
   for (const { x, y, d } of way) {

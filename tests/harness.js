@@ -86,6 +86,7 @@ function loadGame({ seed = 1 } = {}) {
     get parties() { return parties; }, get guilds() { return guilds; }, get townBell() { return townBell; }, set townBell(v) { townBell = v; },
     players, piles, fields, effects,
     get now() { return now; }, set now(v) { now = v; },
+    get pendingHits() { return pendingHits; },
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
     physicalMax, physicalHit, blocked, FIGHT_MODES,

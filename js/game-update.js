@@ -742,7 +742,8 @@ function updatePlayer() {
     }
   }
 
-  if (!player.walk) {
+  const drawing = player.drawingUntil > now; // (a power or triple shot being drawn: no walking or plain blows till it's loosed)
+  if (!player.walk && !drawing) {
     const inp = player.input, tapped = inp.queued;
     const dir = tapped || (inp.held.length ? DIR_KEYS[inp.held[inp.held.length - 1]] : null);
     inp.queued = null;
@@ -764,7 +765,7 @@ function updatePlayer() {
       followCreature();
     }
   }
-  playerCombat();
+  if (!drawing) playerCombat();
   trainTick();
   regenerate();
   updateConversation();

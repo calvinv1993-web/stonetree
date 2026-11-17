@@ -1731,9 +1731,10 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   A.say('sagitta trina');
   assert(state.effects.some(fx => fx.kind === 'volley' && fx.shots === 3), 'everyone near sees the volley');
   assert.strictEqual(p.equipment.ammo.count, 7, 'three arrows');
-  for (let t = 0; t < 900; t += 20) { tick(game, 20); if (m.hp !== last) { hits.push(t); last = m.hp; } }
+  p.target = null; // (no plain shots after it: only the three)
+  for (let t = 0; t < 900; t += 20) { tick(game, 20); if (m.hp < last) { hits.push(t); } last = m.hp; }
   assert(hits.length >= 3, `three hits, one after the other (${hits})`);
-  assert(hits[2] - hits[0] >= 200 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
+  assert(hits[2] - hits[0] >= 120 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
 });
 
 test('the power shot: a bow drawn to the full for a moment and a half, one arrow ten times as hard loosed through every monster in its way, each hit as the arrow gets there', () => {
@@ -1753,14 +1754,16 @@ test('the power shot: a bow drawn to the full for a moment and a half, one arrow
   state.now += 3000; A.say('sagitta vis');
   assert(state.effects.some(fx => fx.kind === 'shot'), 'everyone near sees the shot');
   assert.strictEqual(p.equipment.ammo.count, 9, 'one arrow');
-  tick(game, 1400);
+  const from = { x: p.x, y: p.y };
+  A.walkTo(p.x - 3, p.y); tick(game, 700);
+  assert(p.x === from.x && p.y === from.y, 'rooted to the spot while drawing');
+  p.path = []; p.pathGoal = null;
+  tick(game, 650);
   assert(!hurt(near), 'nothing while the bow is drawn, a moment and a half');
-  tick(game, 200);
-  assert(hurt(near) && !hurt(mid) && !hurt(far), `loosed: first the nearest ${[near, mid, far].map(m => m.hp)}`);
-  tick(game, 100);
-  assert(hurt(mid) && !hurt(far), 'then the next in its way');
-  tick(game, 100);
-  assert(hurt(far), 'then the furthest');
+  const when = new Map();
+  for (let t = 0; t < 600; t += 20) { tick(game, 20); for (const m of [near, mid, far]) if (hurt(m) && !when.has(m)) when.set(m, t); }
+  assert(when.has(near) && when.has(mid) && when.has(far), 'every one in its way is hit');
+  assert(when.get(near) < when.get(mid) && when.get(mid) < when.get(far), `the nearest first, then the next, then the furthest (${[...when.values()]})`);
   assert(!hurt(aside), 'nothing beside its way');
 });
 

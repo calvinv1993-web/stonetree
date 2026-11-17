@@ -273,6 +273,7 @@ function stepTime(c, ground, diagonal) {
 
 // The logical position changes immediately; `walk` animates the sprite from the old tile.
 function step(c, dx, dy) {
+  if (c.type === 'player' && c.drawingUntil > now) return false; // (drawing a bow for a power or triple shot: rooted to the spot)
   c.dir = dirTo(dx, dy);
   const nx = c.x + dx, ny = c.y + dy;
   const isPlayer = c.type === 'player';
