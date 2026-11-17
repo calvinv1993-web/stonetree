@@ -1713,6 +1713,27 @@ test('every plain shot from a bow, and blow of a war spear, shows the hero loosi
   assert(seen > 0, 'the war spear is swung');
 });
 
+test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, shown in orange', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  const w = state.ITEMS.hawkeye_bow.weapon;
+  let n = 0, crits = 0;
+  for (; n < 4000; n++) { const [dmg, crit] = ctx.critical(w, 50); if (crit) { crits++; assert.strictEqual(dmg, 100, 'twice as hard'); } else assert.strictEqual(dmg, 50); }
+  assert(crits / n > 0.12 && crits / n < 0.18, `about 15% (${crits / n})`);
+  assert.strictEqual(ctx.critical(state.ITEMS.bow.weapon, 50)[1], false, 'a plain bow has none');
+  assert(/critical hit 15%, 100% harder/.test(ctx.itemInfo('hawkeye_bow')), 'its look says so');
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { level: 20 }); p.skills.distance.level = 60;
+  p.equipment.weapon = { id: 'hawkeye_bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 100 };
+  assert(ctx.playerWeapon().crit, 'held, it shoots criticals');
+  const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 99999; Object.assign(m.def = { ...m.def }, { speed: 0 }); state.monsters.push(m);
+  state.Actions.setTarget(m.id);
+  const orange = new Set();
+  for (let t = 0; t < 120000; t += 100) { tick(game, 100); for (const fx of state.effects) if (fx.kind === 'text' && fx.color === '#ffb22e') orange.add(fx); }
+  assert(orange.size > 0 && [...orange].every(fx => fx.text.endsWith('!')), 'some shots land as critical hits, marked with a !');
+});
+
 test('the triple shot: three quick arrows at your target, each hit on its own as it gets there, three arrows used', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

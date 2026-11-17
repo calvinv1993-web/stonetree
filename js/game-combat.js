@@ -58,7 +58,7 @@ function playerWeapon() {
     if (w.thrown) return { kind: 'distance', skill: 'distance', attack: qualityStat(w.attack, q), range: w.range, thrown: w, missile: 'spear' };
     const ammo = eq.ammo && ITEMS[eq.ammo.id].ammo;
     if (!ammo || ammo.type !== w.ammo) return { kind: 'distance', range: w.range, noAmmo: w.ammo };
-    return { kind: 'distance', skill: 'distance', attack: qualityStat(w.attack, q) + ammo.attack, range: w.range, missile: w.ammo };
+    return { kind: 'distance', skill: 'distance', attack: qualityStat(w.attack, q) + ammo.attack, range: w.range, missile: w.ammo, crit: w.crit };
   }
   return { kind: 'melee', skill: w.skill || w.type, attack: qualityStat(w.attack, q), reach: w.reach || 1, spear: w.type === 'spear' };
 }
@@ -135,14 +135,19 @@ const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
 const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'selfdestruct'];
 
-function hurt(target, dmg, element) {
+// A critical hit, now and then, from a weapon that has them (crit: { chance, mult }): [the damage, whether it was one]
+function critical(w, dmg) {
+  return w && w.crit && Math.random() < w.crit.chance ? [Math.round(dmg * w.crit.mult), true] : [dmg, false];
+}
+
+function hurt(target, dmg, element, crit) {
   if (target.type === 'player') {
     if (!pvpAllowed(target) || !mayHurt(target)) return;
     markAggression(player, target);
     const attacker = player;
     asPlayer(target, () => damagePlayer(attacker, dmg, element));
   } else {
-    damageMonster(target, dmg, element);
+    damageMonster(target, dmg, element, crit);
   }
 }
 
@@ -176,7 +181,7 @@ function playerCombat() {
     if (w.missile === 'arrow') effects.push({ kind: 'loose', weapon: 'bow', cid: player.id, x: player.x, y: player.y, z: player.z, start: now, dur: 360 });
     addSkillTries('distance');
     const hitChance = Math.min(0.95, 0.6 + player.skills.distance.level / 150);
-    if (Math.random() < hitChance) hurt(t, physicalHit(w) - blocked(t), 'physical');
+    if (Math.random() < hitChance) { const [dmg, crit] = critical(w, physicalHit(w)); hurt(t, dmg - blocked(t), 'physical', crit); }
     else addBurst(t.x, t.y, t.z, '#9cf');
   } else {
     player.mana -= w.mana;
@@ -231,7 +236,7 @@ function useAmmo(w) {
 
 // ---- damage ----------------------------------------------------------------------------
 // The current player hurts a monster (also used for conditions and fields the player caused).
-function damageMonster(m, dmg, element) {
+function damageMonster(m, dmg, element, crit) {
   if (m.dead) return;
   const immune = m.def.immune || [];
   if (immune.includes(element)) {
@@ -256,8 +261,9 @@ function damageMonster(m, dmg, element) {
   hit.dmg += Math.min(dmg, m.hp);
   hit.at = now;
   m.hp = Math.max(0, m.hp - dmg);
-  addText(m, String(dmg), '#ffffff');
+  addText(m, crit ? `${dmg}!` : String(dmg), crit ? '#ffb22e' : '#ffffff');
   addBurst(m.x, m.y, m.z, ELEMENT_COLORS[element]);
+  if (crit) effects.push({ kind: 'impact', x: m.x, y: m.y, z: m.z, glow: '#ff9a2e', small: true, start: now, dur: 300 }); // (a critical hit: a burst of orange light)
   if (m.hp === 0) killMonster(m);
 }
 
@@ -581,7 +587,7 @@ function updatePendingHits() {
     asPlayer(h.by, () => {
       effects.push({ kind: 'impact', x: t.x, y: t.y, z: t.z, glow: h.glow || '#ffe27a', small: h.small, start: now, dur: h.small ? 260 : 380 }); // (a burst of light rays where it lands)
       addSound('hit', t.x, t.y, t.z);
-      hurt(t, h.dmg, h.element);
+      hurt(t, h.dmg, h.element, h.crit);
     });
   }
 }
@@ -625,8 +631,8 @@ function castVolley(s) {
   let shots = 0;
   for (let i = 0; i < s.shots && player.equipment.ammo && player.equipment.ammo.count > 0; i++) {
     useAmmo(w); shots++;
-    const dmg = Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
-    pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, element: 'physical', glow: '#bfe6ff', small: true });
+    const [dmg, crit] = critical(w, Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
+    pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, crit, element: 'physical', glow: '#bfe6ff', small: true });
   }
   addSkillTries('distance');
   player.drawingUntil = now + s.lead + (shots - 1) * s.gap + 80; player.path = []; player.action = null; // (rooted till the last arrow is off)
@@ -661,7 +667,7 @@ function castPierce(s) {
   for (const { x, y, d } of way) {
     const hit = [...monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z),
       ...players.filter(p => p !== player && !p.dead && p.x === x && p.y === y && p.z === z && pvpAllowed(p) && mayHurt(p))];
-    for (const c of hit) pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg: shot(), element: 'physical', glow: '#ffd25a' });
+    for (const c of hit) { const [dmg, crit] = critical(w, shot()); pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg, crit, element: 'physical', glow: '#ffd25a' }); }
   }
   addSound('shoot', player.x, player.y, z);
 }

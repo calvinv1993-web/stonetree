@@ -4349,6 +4349,11 @@ const Sprites = (() => {
       axe(g, '#d84a20', 8, true);
       ellipse(g, 'rgba(255,200,60,0.6)', 20, 12, 3, 3);
     },
+    hawkeye_bow: g => { // a dark bow with an amber eye set in its grip, and a hawk's feathers bound at its tips
+      bow(g);
+      ellipse(g, '#2a1a0a', 12, 16, 3, 3); ellipse(g, '#ffb22e', 12, 16, 2.2, 2.2); ellipse(g, '#2a1a0a', 12.4, 16, 0.9, 1.6); rect(g, '#fff0c0', 11, 15, 1, 1);
+      for (const [x, y, dx] of [[9, 6, -3], [9, 26, -3]]) { line(g, '#8a5a2a', 2, x, y, x + dx, y - 2); line(g, '#e8d8b0', 1, x, y + 1, x + dx, y - 1); }
+    },
     elven_bow: g => {
       bow(g);
       for (const [x, y] of [[9, 8], [9, 24], [12, 16]]) ellipse(g, '#5ab04a', x, y, 2.5, 1.5);

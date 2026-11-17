@@ -3,7 +3,8 @@
 //   slot:       where it is worn (see SLOTS)
 //   weapon:     { type: sword|axe|club|spear|distance|wand, attack, range, twoHanded, ammo, thrown, reach (a held
 //                 weapon that hits this many tiles away: a spear, 2), skill (the skill it trains, if not its type),
-//                 breakChance, dmg: [min, max] and mana per shot for wands/rods, element }
+//                 breakChance, dmg: [min, max] and mana per shot for wands/rods, element, crit: { chance (0-1), mult }:
+//                 a bow's critical hits, that many times as hard, plain shots and its spells alike }
 //   ammo:       { type: arrow|bolt, attack }
 //   armor:      damage absorbed while worn
 //   speed:      boots: walking speed added while worn (players walk at 278, and 2 more each level)
@@ -104,6 +105,7 @@ const ITEMS = {
   demon_shield:  { name: 'demon shield', slot: 'shield', defense: 36, level: 60, value: 3000, weight: 70 },
   frost_blade:   { name: 'frost blade', slot: 'weapon', weapon: { type: 'sword', attack: 38 }, defense: 20, level: 35, vocations: ['knight'], value: 900, weight: 55 },
   fire_axe:      { name: 'fire axe', slot: 'weapon', weapon: { type: 'axe', attack: 42 }, defense: 16, level: 45, vocations: ['knight'], value: 1400, weight: 70 },
+  hawkeye_bow:   { name: 'hawkeye bow', slot: 'weapon', weapon: { type: 'distance', attack: 4, range: 6, ammo: 'arrow', twoHanded: true, crit: { chance: 0.15, mult: 2 } }, level: 8, value: 600, weight: 28 }, // (a sharp eye: now and then a critical hit)
   elven_bow:     { name: 'elven bow', slot: 'weapon', weapon: { type: 'distance', attack: 8, range: 7, ammo: 'arrow', twoHanded: true }, level: 30, vocations: ['paladin'], value: 800, weight: 25 },
   wand_storm:    { name: 'wand of storms', slot: 'weapon', weapon: { type: 'wand', dmg: [35, 60], mana: 7, range: 4, element: 'energy' }, level: 35, vocations: ['sorcerer'], value: 900, weight: 22 },
   rod_glacier:   { name: 'rod of the glacier', slot: 'weapon', weapon: { type: 'wand', dmg: [35, 60], mana: 7, range: 4, element: 'ice' }, level: 35, vocations: ['druid'], value: 900, weight: 22 },
@@ -269,6 +271,7 @@ function itemInfo(id, q = 0) {
   if (w && w.type === 'wand') parts.push(`${w.element} ${dmg[0]}-${dmg[1]}, ${w.mana} mana per shot, range ${w.range}`);
   else if (w) parts.push(`${w.type === 'distance' ? 'distance' : w.type} attack ${qualityStat(w.attack, q)}`);
   if (w && w.ammo) parts.push(`shoots ${w.ammo}s, range ${w.range}`);
+  if (w && w.crit) parts.push(`critical hit ${Math.round(w.crit.chance * 100)}%, ${Math.round((w.crit.mult - 1) * 100)}% harder`);
   if (w && w.thrown) parts.push(`thrown, range ${w.range}`);
   if (w && w.twoHanded) parts.push('two-handed');
   if (d.ammo) parts.push(`attack +${d.ammo.attack}`);
