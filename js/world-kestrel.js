@@ -7,20 +7,20 @@
 //
 // Bellhaven, one character a tile (100 x 90; the legend is below the art).
 const KESTREL_TOWN_ART = [
-  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRRRRRrhhhhhhhhhhhhhrRRRRRRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhrrrrrrRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhrrrrrr...........:::RRRRRR",
-  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rrxrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rrxrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
-  "RRRRR...........rrrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::..RRRR",
-  " RRRRR..........rrrrrrrrrruuurrrrrrrrrrrffffffffff.:::..RRRR",
-  " RRRRR.ffffffff.rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
-  "   RRR.ffffffff.rrrrrrrrrrrrrrrrrrrrrrrr======.....:::..RRR ",
-  "  RRR..ffffffff=====......sss..........==.fffffffff.....RRR ",
+  "RRRRRRRRRRRRRRRRRRrRRrrhhhhhhhhrrrRRRRrrRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRRRrrrrhhhhhhhhhhhrrrRRrrRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhhrrrrrrrrRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhhrrrrrr...........:::RRRRRR",
+  "RRRRRRRRRRRRRr.rrxrrhhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRRrrrrxrhhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR.rrxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR.rrrxrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR.rrxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRR..........rrrrrrrhhhhhhhhhhhrrrrrrrffffffffff.:::..RRRR",
+  " RRRRR.........rrrrrrrrrrruuurrrrrrrrrrrffffffffff.:::..RRRR",
+  " RRRRR.ffffffff...rrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
+  "   RRR.ffffffff...rrrrrrrrrrrrrrrrrr...=======.....:::..RRR ",
+  "  RRR..ffffffff=====......sss..........=..fffffffff.....RRR ",
   "  RRR..ffffffff....=.__________._.._...=..fffffffff.....RRR ",
   "  RRR..ffffffff....________________._..===fffffffff.....RR  ",
   "   RR..ffffffff...____________________.=..fffffffff.....RRR ",
@@ -77,6 +77,11 @@ const KESTREL = {
   ],
   // the courtyard's and the harbour's life: who's there, and what lies about (town-art coordinates)
   townsfolk: [['bell_market', 18, 17], ['townsman', 30, 21], ['cat', 33, 16], ['dog', 22, 22], ['bell_harbour', 31, 35], ['bell_fisher', 22, 39], ['fisher', 34, 39]],
+  // the temple's hill is rock, not lawn: a paved walk over it (town-art coordinates, by floor: 1 the terrace, 2 the
+  // temple's own rock) and grass only round the graves
+  templeWalk: (x, y, k) => (k === 2 ? y === 9 && x >= 25 && x <= 29
+    : (y === 11 && x >= 19 && x <= 37) || (y === 12 && x >= 25 && x <= 29) || (y === 10 && (x === 25 || x === 29 || x === 36 || x === 37))),
+  graveyard: (x, y) => x >= 15 && x <= 20 && y >= 3 && y <= 10,
   terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
@@ -92,7 +97,7 @@ const KESTREL = {
   // the town's buildings (town-art coordinates): boxes (outer walls), the door, what kind (it decides the furniture),
   // floors, and stairs up ([x, y] on each floor but the top, down again from the tile east of it)
   buildings: [ // (the harbour's three close the town's south side: no wall needed)
-    { name: 'Temple', boxes: [[22, 3, 32, 8], [25, 1, 29, 3]], door: [27, 8], kind: 'temple', rock: 2, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
+    { name: 'Temple', boxes: [[23, 3, 31, 8], [25, 1, 29, 3]], door: [27, 8], kind: 'temple', rock: 2, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
     { name: 'Bell tower', boxes: [[35, 4, 39, 9]], door: [37, 9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
     { name: 'Hall of Paths', boxes: [[40, 4, 49, 11]], door: [45, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
     { name: 'Depot', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
@@ -272,13 +277,13 @@ function createKestrelMap() {
       plateau.add(`${x},${y}`);
       set(x, y, S, 'mountain', ['cliff']);
       set(x, y, Z1, 'mountain', ch === 'u' ? ['steps'] : ['cliff']);
-      set(x, y, Z1 + 1, ch === 'u' ? 'steps_top' : 'grass');
+      set(x, y, Z1 + 1, ch === 'u' ? 'steps_top' : K.templeWalk(ax, ay, 2) ? 'paving' : 'rock_top'); // (rugged rock up there, a paved forecourt)
       continue;
     }
     if (ch === 'r' || ch === 'x' || ch === 's' || onRock(ax, ay)) {
       plateau.add(`${x},${y}`);
       set(x, y, S, 'mountain', ['cliff']);
-      set(x, y, Z1, 'grass', ch === 'x' ? ['gravestone'] : []);
+      set(x, y, Z1, K.templeWalk(ax, ay, 1) ? 'paving' : K.graveyard(ax, ay) || ch === 'x' ? 'grass' : 'rock_top', ch === 'x' ? ['gravestone'] : []); // (a rugged hill, a paved walk over it, grass round the graves)
       if (ch === 's') { set(x, y, S, 'mountain', ['steps']); set(x, y, Z1, 'steps_top'); }
       continue;
     }
