@@ -2115,6 +2115,15 @@ test('The Carrot Bandit: Farmer Odo\'s rabbits, One-Eye Patch in his den, and th
   const den = inCtx(game, 'PATCH_DEN');
   assert(map.spawns.some(s => s.type === 'one_eye_patch' && s.x === den.at[0] && s.y === den.at[1]), 'Patch waits in his den');
   assert(map.spawns.filter(s => s.type === 'rabbit').length >= 6, 'rabbits in Sunny Fields');
+  { // the rabbits are harmless: they never bite, and hit, they run
+    ctx.teleport({ x: 140, y: 170, z: 8 });
+    const r = ctx.spawnMonster({ type: 'rabbit', x: p.x + 1, y: p.y, z: 8 }); state.monsters.push(r);
+    const hp = p.hp; tick(game, 5000);
+    assert.strictEqual(p.hp, hp, 'a rabbit next to you never bites');
+    r.hp = r.maxHp; ctx.damageMonster(r, 3, 'physical'); const d0 = state.dist(r, p); tick(game, 2000);
+    assert(state.dist(r, p) > d0, 'hit, it runs');
+    state.monsters = state.monsters.filter(m => m !== r);
+  }
   const odo = state.npcs.find(n => n.npcId === 'fields_farmer');
   const talk = (...words) => { Object.assign(p, { x: odo.x, y: odo.y + 1, z: odo.z }); ctx.startConversation(odo); for (const w of words) ctx.say(w); ctx.endConversation(true); };
   p.level = 2;

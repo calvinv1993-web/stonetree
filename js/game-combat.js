@@ -16,9 +16,9 @@ const FIGHT_MODES = { offensive: { attack: 1, defense: 0.6 }, balanced: { attack
 let nextRaidAt = 0;
 
 // ---- visual effects and sounds (drawn and played by the browser) ---------------------
-function addText(c, text, color) {
+function addText(c, text, color, crit) {
   const v = visual(c);
-  effects.push({ kind: 'text', x: v.x, y: v.y, z: c.z, text, color, start: now, dur: 1000 });
+  effects.push({ kind: 'text', x: v.x, y: v.y, z: c.z, text, color, crit, start: now, dur: crit ? 1300 : 1000 }); // (a critical hit: bigger, with CRITICAL! over it)
 }
 // Text above a creature's head. With `says` it reads "Name says:" in yellow, like
 // talk; without, it's orange, like spell words. `viewer`: only that player sees it.
@@ -261,9 +261,9 @@ function damageMonster(m, dmg, element, crit) {
   hit.dmg += Math.min(dmg, m.hp);
   hit.at = now;
   m.hp = Math.max(0, m.hp - dmg);
-  addText(m, crit ? `${dmg}!` : String(dmg), crit ? '#ffb22e' : '#ffffff');
+  addText(m, crit ? `${dmg}!` : String(dmg), crit ? '#ffb22e' : '#ffffff', crit);
   addBurst(m.x, m.y, m.z, ELEMENT_COLORS[element]);
-  if (crit) effects.push({ kind: 'impact', x: m.x, y: m.y, z: m.z, glow: '#ff9a2e', small: true, start: now, dur: 300 }); // (a critical hit: a burst of orange light)
+  if (crit) effects.push({ kind: 'impact', x: m.x, y: m.y, z: m.z, glow: '#ff9a2e', start: now, dur: 420 }); // (a critical hit: a big burst of orange light)
   if (m.hp === 0) killMonster(m);
 }
 

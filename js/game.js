@@ -1131,10 +1131,12 @@ function drawTexts(screen, z) {
     const age = (now - fx.start) / fx.dur;
     if (fx.kind === 'text') { // numbers pop out, arc up and drift aside; the bigger the hit, the bigger the number
       const [sx, sy] = screen(fx.x, fx.y);
-      const n = Math.abs(parseInt(fx.text, 10)) || 0, size = n >= 100 ? 22 : n >= 40 ? 18 : 15, pop = age < 0.12 ? 1 + (1 - age / 0.12) * 0.6 : 1;
-      const drift = ((Math.floor(fx.start) % 7) - 3) * 6 * age;
+      const n = Math.abs(parseInt(fx.text, 10)) || 0, size = (n >= 100 ? 22 : n >= 40 ? 18 : 15) * (fx.crit ? 1.6 : 1), pop = age < 0.12 ? 1 + (1 - age / 0.12) * (fx.crit ? 1 : 0.6) : 1;
+      const drift = fx.crit ? 0 : ((Math.floor(fx.start) % 7) - 3) * 6 * age; // (a critical hit rises straight up)
       ctx.globalAlpha = age > 0.7 ? Math.max(0, (1 - age) / 0.3) : 1;
-      outlinedText(fx.text, sx + half + drift, sy + half - Math.sin(Math.min(1, age * 1.4) * Math.PI / 2) * 48, fx.color, `bold ${Math.round(size * pop)}px sans-serif`);
+      const ty = sy + half - Math.sin(Math.min(1, age * 1.4) * Math.PI / 2) * 48;
+      if (fx.crit) outlinedText('CRITICAL!', sx + half, ty - size * pop * 0.95, '#ffe066', `bold italic ${Math.round(13 * pop)}px sans-serif`);
+      outlinedText(fx.text, sx + half + drift, ty, fx.color, `bold ${Math.round(size * pop)}px sans-serif`);
       ctx.globalAlpha = 1;
     } else if (fx.kind === 'flyby' && age < 1) {
       const [who, line] = FLYBY_LINES[Math.min(FLYBY_LINES.length - 1, Math.floor(age * FLYBY_LINES.length))];

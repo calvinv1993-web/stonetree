@@ -19,8 +19,8 @@ const MONSTERS = {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
-  rabbit: { // the wild rabbits of Sunny Fields, fat on Farmer Odo's carrots: they bite when cornered, and run when hurt
-    name: 'rabbit', hp: 16, xp: 6, dmg: [0, 3], defense: 0, armor: 0, speed: 240, attackSpeed: 1600, aggro: 2, corpse: 'blood', flee: 0.4,
+  rabbit: { // the wild rabbits of Sunny Fields, fat on Farmer Odo's carrots: harmless thieves, they never bite: chased, they run
+    name: 'rabbit', hp: 16, xp: 6, dmg: [0, 0], defense: 0, armor: 0, speed: 240, attackSpeed: 1600, aggro: 0, corpse: 'blood', flee: 1.01,
     loot: { gold: [0, 2], items: [['carrot', 0.5, 1, 2], ['rabbit_foot', 0.1]] },
   },
   one_eye_patch: { // the bandit king of the rabbits, with his eye patch and a gnawed carrot for a club (The Carrot Bandit)
