@@ -1269,7 +1269,7 @@ const Sprites = (() => {
     'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
-  for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open']) RAISED.add(id); // (the hidden quests' things)
+  for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open', 'crane']) RAISED.add(id); // (the hidden quests' things)
   for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest', 'lake_shrine', 'ash_altar', 'signal_cairn']) RAISED.add(id); // (the Bone Chapel's, the story's roads)
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
@@ -2903,6 +2903,16 @@ const Sprites = (() => {
       const [px, py] = P(16, 20, 37); ellipse(g, '#a87a20', px + 0.4, py + 0.4, 2.2, 2.2); ellipse(g, '#e0b040', px, py, 1.8, 1.8); // the pommel
     },
     // A flag on a tall pole: the pole in the slant, the flag hanging in its own plane, east of the pole.
+    // A harbour crane: a stout post on a stone foot, a jib reaching out over the water (east), a rope and a crate on its hook
+    crane(g) { // (its jib reaching south, out over the water off the quay)
+      floorShadow(g, 8, 3);
+      prism(g, 9, 6, 23, 18, 0, 5, { top: '#8a8a92', south: '#6a6a72', east: '#4e4e56', edge: '#a8a8b0' });
+      prism(g, 13, 9, 19, 15, 5, 58, { top: '#8a6a3e', south: '#6a4a26', east: '#4a3018', edge: '#a8844e' });
+      prism(g, 14, 9, 18, 31, 54, 60, { top: '#9a7a48', south: '#7a5a32', east: '#5a3a1e', edge: '#b08c56' });
+      line(g, '#5a3a1e', 2, ...P(16, 15, 30), ...P(16, 24, 55));
+      line(g, '#d8c8a0', 1, ...P(16, 29, 54), ...P(16, 29, 26));
+      prism(g, 12, 25, 20, 32, 16, 26, { top: '#c08a48', south: '#9a6a32', east: '#7a4a1e', edge: '#d8a060' });
+    },
     flagpole(g, r) {
       const c = ['#c03030', '#2e6ab0', '#3f8a3a'][(r() * 3) | 0];
       floorShadow(g, 5, 2);

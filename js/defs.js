@@ -269,6 +269,7 @@ const THINGS = {
   basket:      { name: 'basket of goods', cat: 'Town', block: true, low: true },
   sack:        { name: 'sack', cat: 'Town', block: true, low: true, movable: true },
   boat:        { name: 'rowing boat', cat: 'Town', block: true, low: true, tall: true },
+  crane:       { name: 'harbour crane', cat: 'Town', block: true, low: true, tall: true }, // a wooden crane on the quay, a crate on its hook
   wreck:       { name: 'old shipwreck', cat: 'Nature', block: true, low: true },
   scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
   dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true, trainer: true },

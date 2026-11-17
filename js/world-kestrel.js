@@ -61,19 +61,19 @@ const KESTREL = {
   // in the town (town-art coordinates): the courtyard's middle (where the town is walked from), the ways out of it
   // (the west gate, the gorge north, the quay), and the first row of the harbour (the art's sea from there on is only
   // the harbour basin)
-  square: [27, 18], gates: [[-26, 17], [52, -24], [27, 36]], harbourRow: 37,
+  square: [27, 18], gates: [[-26, 17], [52, -12], [27, 36]], harbourRow: 37,
   // the town's gates stand out on its roads, a little way off (half a minute's walk from the courtyard): a paved road
   // from the town out to a pair of watchtowers, and between them the way on (town-art coordinates: [x0, y0, x1, y1],
   // 3 wide or tall). The towers are buildings (below), with stairs up to a lookout.
-  approaches: [[-26, 17, -1, 18], [51, -24, 53, -1]],
+  approaches: [[-26, 17, -1, 18], [51, -12, 53, -1]],
   // the gates: from each tower a short stone wall out to an outcrop of rock, so the road through between the towers is the
   // only way in; lamps either side of it, banners on the towers, a pair of wardens on its town side, a signpost outside
   // (town-art coordinates: walls [x0, y0, x1, y1], rocks [cx, cy, rx, ry], lamps, banners on tower walls, wardens, signs)
   gatePasses: [
     { walls: [[-23, 7, -23, 11], [-23, 24, -23, 28]], rocks: [[-23, 4, 4, 3], [-23, 31, 4, 3]], lamps: [[-20, 16], [-20, 19], [-27, 16], [-27, 19]],
       banners: [[-21, 15], [-21, 20]], wardens: [[-19, 16], [-19, 19]], sign: [-28, 15, 'Bellhaven. Lay down your quarrels at the gate: inside it, you are safe.'] },
-    { walls: [[41, -20, 45, -20], [59, -20, 63, -20]], rocks: [[38, -20, 3, 4], [66, -20, 3, 4]], lamps: [[50, -17], [54, -17], [50, -23], [54, -23]],
-      banners: [[49, -18], [55, -18]], wardens: [[50, -16], [54, -16]], sign: [55, -25, 'Bellhaven, below. The temple bell can be heard from here at dawn.'] },
+    { walls: [[41, -8, 45, -8], [59, -8, 63, -8]], rocks: [[38, -8, 3, 4], [66, -8, 3, 4]], lamps: [[50, -5], [54, -5], [50, -11], [54, -11]],
+      banners: [[49, -6], [55, -6]], wardens: [[50, -4], [54, -4]], sign: [55, -13, 'Bellhaven, below. The temple bell can be heard from here at dawn.'] },
   ],
   // the courtyard's and the harbour's life: who's there, and what lies about (town-art coordinates)
   townsfolk: [['bell_market', 18, 17], ['townsman', 30, 21], ['cat', 33, 16], ['dog', 22, 22], ['bell_harbour', 31, 35], ['bell_fisher', 22, 39], ['fisher', 34, 39]],
@@ -82,6 +82,10 @@ const KESTREL = {
   templeWalk: (x, y, k) => (k === 2 ? y === 9 && x >= 25 && x <= 29
     : (y === 11 && x >= 19 && x <= 37) || (y === 12 && x >= 25 && x <= 29) || (y === 10 && (x === 25 || x === 29 || x === 36 || x === 37))),
   graveyard: (x, y) => x >= 15 && x <= 20 && y >= 3 && y <= 10,
+  // the fountain: the courtyard's heart, in a square of light paving framed by cobbles, a lamp at each corner
+  fountainRing: [27, 17, 2],
+  // the way up to the temple: banners either side of the steps from the courtyard, lamps either side of its door
+  templeWay: [[25, 13, 8, 'flagpole'], [29, 13, 8, 'flagpole'], [24, 9, 10, 'lamppost'], [30, 9, 10, 'lamppost']],
   terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
@@ -111,7 +115,6 @@ const KESTREL = {
       upstairs: [['bed_head', 'plant', 'bed_head', 'chest']] }, // (the sickroom upstairs)
     { name: 'House', boxes: [[9, 26, 14, 30]], door: [14, 28], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'House', boxes: [[40, 21, 46, 26]], door: [40, 23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[47, 19, 52, 24]], door: [49, 24], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'Warehouse', boxes: [[12, 31, 24, 34]], door: [20, 31], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
     { name: 'Harbour master', boxes: [[29, 30, 35, 34]], door: [32, 34], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[30, 31], [30, 33]],
       upstairs: [['table', 'chest', 'bookshelf'], ['chest']] }, // (his rooms, and a lookout over the bay at the top)
@@ -119,8 +122,8 @@ const KESTREL = {
     // the gates' watchtowers, out on the roads: two storeys and a lookout on top
     { name: 'West gate, north tower', boxes: [[-25, 12, -21, 16]], door: [-23, 16], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[-24, 13], [-24, 15]] },
     { name: 'West gate, south tower', boxes: [[-25, 19, -21, 23]], door: [-23, 19], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[-24, 21]] },
-    { name: 'North gate, west tower', boxes: [[46, -22, 50, -18]], door: [50, -20], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[47, -21], [47, -19]] },
-    { name: 'North gate, east tower', boxes: [[54, -22, 58, -18]], door: [54, -20], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[55, -21]] },
+    { name: 'North gate, west tower', boxes: [[46, -10, 50, -6]], door: [50, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[47, -9], [47, -7]] },
+    { name: 'North gate, east tower', boxes: [[54, -10, 58, -6]], door: [54, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[55, -9]] },
   ],
   // the sign beside each door (by kind), and what it says when you look at it
   signs: {
@@ -163,10 +166,10 @@ const KESTREL = {
     props: [[34, 6, 'clang_crate'], [32, 6, 'crate'], [20, 3, 'web'], [30, 3, 'web'], [27, 8, 'rubble'], [22, 5, 'bones'], [45, 31, 'bones'], [41, 29, 'rubble'], [27, 33, 'bars']],
   },
   // out in the town (town-art coordinates)
-  outside: [[27, 17, 'fountain_nw'], [28, 17, 'fountain_ne'], [27, 18, 'fountain_sw'], [28, 18, 'fountain_se'], [24, 16, 'bench'], [31, 16, 'bench'],
+  outside: [[27, 17, 'fountain_nw'], [28, 17, 'fountain_ne'], [27, 18, 'fountain_sw'], [28, 18, 'fountain_se'], [23, 17, 'bench'], [32, 17, 'bench'], [25, 15, 'lamppost'], [30, 15, 'lamppost'], [25, 20, 'lamppost'], [30, 20, 'lamppost'],
     [17, 16, 'stall'], [17, 18, 'basket'], [17, 20, 'stall'], [39, 17, 'stall'], [39, 19, 'basket'], [38, 21, 'stall'], [20, 15, 'planter'], [35, 15, 'planter'], [13, 35, 'barrel'], [14, 35, 'crate'], [13, 36, 'crate'], [14, 36, 'barrel'], [16, 36, 'sack'], [17, 36, 'sack'],
     [24, 36, 'fish_rack'], [37, 36, 'fish_rack'], [40, 35, 'crate'], [41, 35, 'crate'], [40, 36, 'barrel'], [42, 36, 'sack'], [45, 35, 'barrel'], [46, 36, 'crate'],
-    [23, 38, 'boat'], [35, 39, 'boat'], [20, 40, 'boat']],
+    [23, 38, 'boat'], [35, 39, 'boat'], [20, 40, 'boat'], [29, 36, 'crane']],
 };
 
 // (in the preview, Clang can be rescued from the start: on the old island he came after The Silent Bell I)
@@ -262,7 +265,8 @@ function createKestrelMap() {
   const artAt = (ax, ay) => (KESTREL_TOWN_ART[ay] || '')[ax] || ' ';
   const stub = (ax, ay) => artAt(ax, ay) === 'r' && !onRock(ax, ay) && [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => 'rsxWf+'.includes(artAt(ax + dx, ay + dy))).length < 2;
   for (let ay = 0; ay < KESTREL_TOWN_ART.length; ay++) for (let ax = 0; ax < KESTREL_TOWN_ART[ay].length; ax++) {
-    const ch = stub(ax, ay) ? '.' : KESTREL_TOWN_ART[ay][ax], x = TX + ax, y = TY + ay;
+    const inBuilding = K.buildings.some(b => b.boxes.some(([x0, y0, x1, y1]) => ax >= x0 && ax <= x1 && ay >= y0 && ay <= y1));
+    const ch = stub(ax, ay) || (KESTREL_TOWN_ART[ay][ax] === 'f' && !inBuilding) ? '.' : KESTREL_TOWN_ART[ay][ax], x = TX + ax, y = TY + ay; // (a floor with no building on it any more: grass)
     if (ch === ' ') continue;
     // (the art's sea below the quay: only the harbour, a rounded basin opening into the bay; the rest is the island's)
     if (ch === '~' && ay >= K.harbourRow && Math.hypot((x - TX - TW / 2) / 31, (y - TY - K.harbourRow - 3) / 8) + (smooth(x, y, 4, 27) - 0.5) * 0.25 > 1) continue;
@@ -272,7 +276,12 @@ function createKestrelMap() {
       const byTown = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => '._=:f#tsrhux~p'.includes(artAt(ax + dx, ay + dy)) && artAt(ax + dx, ay + dy) !== ' ');
       // partly green: the higher knolls bare rock, the lower tops grass, with a few big bare patches (whole patches, not
       // tile by tile: a mix tile by tile draws a maze of edges)
-      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'rock_top'); }
+      const far = ![...Array(9)].some((_, i) => [...Array(9)].some((__, j) => '._=:f#tsrhuxp'.includes(artAt(ax + i - 4, ay + j - 4)) && artAt(ax + i - 4, ay + j - 4) !== ' '));
+      if (!byTown && smooth(x, y, 3, 77) > 0.45) {
+        set(x, y, Z1, 'mountain', ['cliff']);
+        if (far && smooth(x, y, 2, 78) > 0.55) { set(x, y, Z1 + 1, 'mountain', ['cliff']); set(x, y, Z1 + 2, 'rock_top'); } // (a crag a floor higher still, far from the streets)
+        else set(x, y, Z1 + 1, smooth(x, y, 3, 84) > 0.5 ? 'grass' : 'rock_top');
+      }
       else if (smooth(x, y, 6, 83) > 0.62) set(x, y, Z1, 'rock_top');
       else { set(x, y, Z1, 'grass'); const r = hash(x, y, 79); at(x, y, Z1).items = r < 0.06 ? ['bush'] : r < 0.11 ? ['flowers'] : r < 0.16 ? ['grass_tuft'] : []; }
       continue;
@@ -395,6 +404,14 @@ function createKestrelMap() {
   }
   for (const [type, x, y] of K.townsfolk) { const t = at(TX + x, TY + y); if (t && t.ground !== 'water' && t.ground !== 'pier') t.items = t.items.filter(i => !THINGS[i].block); m.npcs.push({ type, x: OX + TX + x, y: OY + TY + y, z: S }); }
 
+  // the fountain's square (before the things on it go down): light paving inside, a frame of cobbles
+  { const [fx, fy, r] = K.fountainRing;
+    for (let y = fy - r; y <= fy + 1 + r; y++) for (let x = fx - r; x <= fx + 1 + r; x++) {
+      const t = at(TX + x, TY + y); if (!t) continue;
+      const edge = x === fx - r || x === fx + 1 + r || y === fy - r || y === fy + 1 + r;
+      t.ground = edge ? 'cobble' : 'marble';
+    } }
+  for (const [x, y, z, id] of K.templeWay) { const t = at(TX + x, TY + y, z); if (t && !t.items.length) t.items.push(id); }
   // the temple's terrace: statues either side of the steps up to it, flower boxes along its edge
   for (const [x, y, id] of K.terrace || []) { const t = at(TX + x, TY + y, S + 1); if (t && !t.items.length) t.items.push(id); }
 
@@ -522,7 +539,7 @@ function createKestrelMap() {
       m.set(x, y, S, { ground: 'grass', items: ['rock'] });
     }
   }
-  for (const z of [S + 1, S + 2]) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  for (const z of [S + 1, S + 2, S + 3]) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const t = m.get(x, y, z);
     if (!t || t.ground !== 'rock_top' || t.items.length) continue;
     // most of a top grown over (grass in its hollows, a bush, flowers), bare rock between; few loose stones
