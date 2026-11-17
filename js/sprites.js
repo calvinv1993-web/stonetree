@@ -6689,14 +6689,6 @@ const Sprites = (() => {
     sheetPixels.set(id, result);
     return result;
   }
-  // The middle of one part (1 hair, 2 shirt...) of a sheet's figure in the cell at sx, sy (w x h sheet pixels), or null
-  const partCentre = (id, sx, sy, w, h, k) => {
-    const px = sheetParts(id);
-    if (!px) return null;
-    let x = 0, y = 0, n = 0;
-    for (let yy = 0; yy < h; yy += 2) for (let xx = 0; xx < w; xx += 2) if (px.part[(sy + yy) * px.width + sx + xx] === k) { x += xx; y += yy; n++; }
-    return n ? [x / n, y / n] : null;
-  };
   const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
   // An NPC with its own sheet (sprites/custom.js: sheet_<npc id>, laid out as the player sheet), drawn as it is; a monster
   // on two legs likewise (sheet_<monster type>).
@@ -6782,14 +6774,6 @@ const Sprites = (() => {
       const [CW, CH] = ATTACK.cell, sx = phase * CW * S, sy = SHEET.rows[dir] * CH * S;
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       recolourCell(cell.getContext('2d'), id, key, sx, sy, 'player_sheet');
-      const look = lookFor(key) || {};
-      if (look.feather || look.cloak) { // (the cloak and feather go along: moved to where this figure's hair and shirt are)
-        const [WW, WH] = SHEET.cell, wy = SHEET.rows[dir] * WH * S, shift = k => {
-          const a = partCentre(id, sx, sy, CW * S, CH * S, k), b = partCentre('player_sheet', 0, wy, WW * S, WH * S, k);
-          return a && b ? [(a[0] - b[0]) / S, (a[1] - b[1]) / S] : [(CW - WW) / 2, 0];
-        };
-        sheetCosmetics(cell, look, dir, S, { hair: shift(1), body: shift(2) });
-      }
       const fx = 2 * TILE + 16, fy = TILE + 29, ox = (fx - ATTACK.feet[0]) * R, oy = (fy - ATTACK.feet[1]) * R;
       groundShadow(g, fx * R, fy * R, 10 * R);
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
@@ -6820,10 +6804,7 @@ const Sprites = (() => {
 
   // Cosmetics over a sheet's figure (a cell, S pixels a world pixel; the side row faces east): a cloak behind it (from the
   // back, over it, its edges beside it from the front), and a feather tucked in the hair on its right.
-  // off: how far the hair (feather) and the shirt (cloak) sit from where they are on the walking sheet's standing figure
-  // ({ hair: [dx, dy], body: [dx, dy] }, world pixels): a strike's figure, wider and leaning, wears them where it is.
-  function sheetCosmetics(cell, look, dir, S, off) {
-    const oh = (off && off.hair) || [0, 0], ob = (off && off.body) || [0, 0];
+  function sheetCosmetics(cell, look, dir, S) {
     const fig = document.createElement('canvas'); fig.width = cell.width; fig.height = cell.height;
     const g = fig.getContext('2d'), front = dir === 2, back = dir === 0, side = !front && !back;
     g.scale(S, S);
@@ -6831,20 +6812,17 @@ const Sprites = (() => {
     const cloak = (pts, over) => {
       if (!look.cloak) return;
       const c = look.cloak;
-      pts = pts.map((v, i) => v + ob[i % 2]);
       poly(g, outline, pts.map((v, i) => v + (i % 2 ? 0.5 : 0)));
       poly(g, over ? c : shade(c, 0.7), pts);
       if (over) { // folds, lit from the top left
-        g.save(); g.translate(ob[0], ob[1]);
         line(g, shade(c, 0.72), 1, 12, 28, 11, 42); line(g, shade(c, 0.72), 1, 20, 28, 21, 42);
         line(g, shade(c, 1.25), 1, 9.5, 27, 8, 41);
-        g.restore();
       }
     };
     const feather = (x0, y0, x1, y1) => { // from where it's tucked in (x0, y0) to its tip
       if (!look.feather) return;
       const c = look.feather, a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
-      g.save(); g.translate(x0 + oh[0], y0 + oh[1]); g.rotate(a);
+      g.save(); g.translate(x0, y0); g.rotate(a);
       g.fillStyle = outline; g.beginPath(); g.ellipse(len * 0.58, 0, len * 0.5 + 0.7, 2.3, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = shade(c, 0.78); g.beginPath(); g.ellipse(len * 0.58, 0, len * 0.5, 1.7, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = c; g.beginPath(); g.ellipse(len * 0.58, -0.5, len * 0.46, 1.1, 0, 0, Math.PI * 2); g.fill();
@@ -6858,13 +6836,11 @@ const Sprites = (() => {
     g.drawImage(cell, 0, 0, cell.width / S, cell.height / S);
     // over it
     if (back) cloak([8.5, 25.5, 23.5, 25.5, 26, 43, 6, 43], true);
-    g.save(); g.translate(ob[0], ob[1]);
     if (front && look.cloak) { // over the shoulders, and its clasp
       for (const x of [7.5, 21.5]) { rect(g, outline, x - 0.5, 24.5, 4, 3); rect(g, look.cloak, x, 25, 3, 2); }
       rect(g, outline, 14.5, 25, 3, 2.5); rect(g, '#e0b840', 15, 25.5, 2, 1.5);
     }
     if (side && look.cloak) { rect(g, outline, 10.5, 24.5, 5, 3); rect(g, look.cloak, 11, 25, 4, 2); } // (over the shoulder)
-    g.restore();
     if (front) feather(11, 16, 5, 5.5);
     if (back) feather(21, 15, 26.5, 5);
     const cg = cell.getContext('2d');
