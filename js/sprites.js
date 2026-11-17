@@ -8084,6 +8084,29 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       }, T);
     },
+    // The stone kerb along a street where it meets grass (edge_kerb_n/e/s/w, from the kerb template): its straight
+    // pieces on the sides the grass is on (mask as ownEdge's: 1 n, 2 e, 4 s, 8 w; 16 ne, 32 se, 64 sw, 128 nw), and at a
+    // corner where the grass only touches diagonally, one stone's end turned round the corner. Where two sides meet the
+    // two rows simply cross. null when there's no kerb picture.
+    kerbEdge(mask, x, y) {
+      const pics = {};
+      for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_kerb_${d}`))) return null;
+      const res = pics.n.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pics.n.naturalWidth / T));
+      const cell = v => ((v % cells) + cells) % cells;
+      for (const [c, a, b] of [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]]) if (mask & (a | b)) mask &= ~c;
+      return cached(`kerb:${mask}:${cell(x)}:${cell(y)}`, g => {
+        g.canvas.res = res;
+        for (const [bit, d, i] of [[1, 'n', cell(x)], [2, 'e', cell(y)], [4, 's', cell(x)], [8, 'w', cell(y)]]) if (mask & bit) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
+        // an outer corner: the corner square of the north piece (a stone's end), turned to that corner
+        const K = Math.round(T * 0.3);
+        for (const [bit, turn, cx, cy] of [[16, 1, T, 0], [32, 2, T, T], [64, 3, 0, T], [128, 0, 0, 0]]) {
+          if (!(mask & bit)) continue;
+          g.save(); g.translate(cx, cy); g.rotate((turn * Math.PI) / 2);
+          g.drawImage(pics.n, 0, 0, K, K, 0, 0, K, K);
+          g.restore();
+        }
+      }, T);
+    },
     // squash: how deep the border reaches, 1 as painted; less over water, so the beach's foam still shows past it
     ownEdge(ground, mask, x, y, squash = 1) {
       const pics = {};

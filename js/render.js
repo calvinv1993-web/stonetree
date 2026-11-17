@@ -11,6 +11,8 @@ const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1,
 const BRIDGE_GROUNDS = new Set(['bridge_ns', 'bridge_ew', 'sewer_bridge_ns', 'sewer_bridge_ew']);
 const CROWN_SHADOW = new Set(['tree', 'pine', 'ancient_tree', 'jungle_tree', 'snow_pine', 'palm']); // (trees whose crown shades the ground)
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
+// Streets with a stone kerb where they meet these grounds (the kerb picture: Sprites.kerbEdge)
+const KERBED = { cobble: new Set(['grass', 'jungle']) };
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const STANDING = new WeakMap(); // tile -> whether something stands on it filling it (for the grass round things' feet)
@@ -548,6 +550,9 @@ const Render = {
           }
           const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
           for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
+            // a street meeting the grass: the stone kerb along it, instead of the grass spilling over (Sprites.kerbEdge)
+            const kerb = KERBED[here] && KERBED[here].has(n) && Sprites.kerbEdge(mask, x, y);
+            if (kerb) { g.drawImage(kerb, ox + x * TILE, oy + y * TILE, TILE, TILE); continue; }
             const own = Sprites.hasOwnEdge(n) && Sprites.ownEdge(n, mask, x, y, WET.has(here) ? SQUASH_WET : 1); // (a ground's own border pictures, if it has any)
             if (own) g.drawImage(own, ox + x * TILE, oy + y * TILE, TILE, TILE);
             else g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);

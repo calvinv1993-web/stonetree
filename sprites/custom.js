@@ -12,6 +12,10 @@
 // temple) as one picture of the whole thing. sprites/templates/ (node tests/sprite-templates.js)
 // shows each size in the game's camera: give it to PixelLab as a guide.
 const CUSTOM_SPRITES = {
+  edge_kerb_w: 'edge-kerb-w.png', // the owner's stone kerb along a street where it meets grass (kerb template)
+  edge_kerb_s: 'edge-kerb-s.png', // the owner's stone kerb along a street where it meets grass (kerb template)
+  edge_kerb_e: 'edge-kerb-e.png', // the owner's stone kerb along a street where it meets grass (kerb template)
+  edge_kerb_n: 'edge-kerb-n.png', // the owner's stone kerb along a street where it meets grass (kerb template)
   old_sock: 'items/old_sock@3x.png', // the owner's item picture (install-items.py)
   old_boot: 'items/old_boot@3x.png', // the owner's item picture (install-items.py)
   parcel: 'items/parcel@3x.png', // the owner's item picture (install-items.py)
