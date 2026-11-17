@@ -258,6 +258,7 @@ const CUSTOM_SPRITES = {
   sheet_rest_fisher: 'npc-rest_fisher.png', // Old Maddock
   sheet_skeleton: 'monster-skeleton.png', // a monster on two legs: sheet_<monster type>, laid out the same
   sheet_king_mogg: 'monster-king_mogg.png', // King Mogg
+  sheet_one_eye_patch: 'monster-one_eye_patch.png', // One-Eye Patch, the rabbits' bandit king
   sheet_watch_captain: 'monster-watchman_shade.png', // Captain Harrow: a watchman's shade, till he has a sheet of his own
   sheet_goblin: 'monster-goblin.png',
   sheet_goblin_archer: 'monster-goblin_archer.png',

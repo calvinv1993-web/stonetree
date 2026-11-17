@@ -1832,6 +1832,22 @@ Object.assign(QUESTS, {
   },
 });
 
+// Farmer Odo's carrots (Sunny Fields): the rabbits, and the one with the eye patch who leads them.
+Object.assign(QUESTS, {
+  carrot_bandit: {
+    name: 'The Carrot Bandit', giver: 'fields_farmer', level: 2, kill: { rabbit: 4, one_eye_patch: 1 },
+    reward: { xp: 180, gold: 25, items: [['lucky_paw', 1], ['carrot', 5]] },
+    summary: 'The rabbits of Sunny Fields are stealing Farmer Odo\'s carrots, led by a big one with an eye patch: One-Eye Patch, who keeps his loot in a den in the meadow south-east of the farm, past the pond. Chase off 4 rabbits and deal with Patch, then go back to Odo.',
+    text: {
+      offer: 'Rabbits! Bold as brass, they come in the night and dig up my carrots, row after row. And they have a leader: a great big buck with a patch over one eye, if you can believe it. He keeps my sacks in his den out past the pond. Will you sort them out for me? ({yes}/{no})',
+      accept: 'Bless you. Chase off a few of the little thieves, 4 should teach them, and then find old One-Eye. South-east, past the pond, where the grass is all dug up. Mind him: he throws.',
+      progress: 'How goes the war on the rabbits? $progress so far.',
+      reward: 'You got old One-Eye? Ha! My carrots are safe at last. Here: he dropped this the first time he raided me, his lucky paw. Wear it, and you\'ll run like a rabbit yourself. And some carrots, of course!',
+      done: 'Not a rabbit has dared touch my carrots since. Well, hardly any.',
+    },
+  },
+});
+
 // Oakvale Isle's hidden quests: nobody hands them out and the guide's arrow never points at them. Rumours at the Sleepy
 // Boar and in the streets ({rumours}), gravestones and old books tell of them; each ends at a chest (defs.js) that marks
 // it done. The plan, with every coordinate: docs/world-plan.md, phase 7.
@@ -2355,9 +2371,10 @@ Object.assign(NPCS, {
   fields_farmer: {
     name: 'Farmer Odo',
     look: { skin: '#e0a878', hair: '#8a6a3a', beard: '#8a6a3a', body: '#6a7a3a', arms: '#e0a878', legs: '#5a4a2a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a858' } },
-    greet: 'Morning, $name! Odo\'s the name, and this is my farm. Mind the {rats}: they are everywhere this year. Want some fresh food? Just ask to {trade}.',
+    greet: 'Morning, $name! Odo\'s the name, and this is my farm. Mind the {rats}: they are everywhere this year. And somebody\'s been at my {carrots}! Want some fresh food? Just ask to {trade}.',
     keywords: {
       job: 'I grow wheat, I press oil, and the rats eat half of both.',
+      'carrots|carrot|rabbits|rabbit|bandit|patch|quest|mission|task': { quest: ['carrot_bandit'] },
       'rats|rat|cellar|trapdoor': 'Rats in the fields, and worse in my cellar: big ones, as long as your arm. They came up from somewhere and moved in under my floor. The trapdoor is inside the house, if you are brave.',
       'oil|lamp|jar|jars': 'Lamp oil? I press it from the seed, and the jars are in my cellar, under the trapdoor in the house. If Tamsin sent you for her lighthouse, take a jar and welcome - if the rats down there let you.',
       'mill|windmill|wheat|flour': 'The mill grinds my wheat, and Baker Willa buys the flour. When the wind blows, that is.',

@@ -57,6 +57,7 @@ const ITEMS = {
   bread:         { name: 'bread', stack: true, use: { food: 120 }, value: 2, weight: 5 },
   fish:          { name: 'fish', stack: true, use: { food: 200 }, value: 5, weight: 5 },
   dragon_ham:    { name: 'dragon ham', stack: true, use: { food: 360 }, value: 10, weight: 30 },
+  carrot:        { name: 'carrot', stack: true, use: { food: 60 }, value: 1, weight: 2 },
   meat:          { name: 'meat', stack: true, use: { food: 180 }, value: 3, weight: 13 },
   health_potion: { name: 'health potion', stack: true, use: { heal: [60, 90] }, value: 15, weight: 1.8 },
   mana_potion:   { name: 'mana potion', stack: true, use: { mana: [60, 90] }, value: 18, weight: 1.8 },
@@ -128,6 +129,8 @@ const ITEMS = {
 
   ring_life:     { name: 'ring of life', slot: 'ring', ring: { regen: [3, 3], duration: 20 * MIN }, value: 50, weight: 1 },
   ring_swift:    { name: 'ring of swiftness', slot: 'ring', ring: { speed: 0.8, duration: 30 * MIN }, value: 60, weight: 1 },
+  lucky_paw:     { name: 'Patch\'s lucky paw', slot: 'ring', ring: { speed: 0.5, duration: 30 * MIN }, value: 30, weight: 1 }, // (The Carrot Bandit: a rabbit's foot on a string, worn on a finger)
+  rabbit_foot:   { name: 'rabbit\'s foot', stack: true, value: 3, weight: 1 },
   wim_ring:      { name: 'lucky ring', slot: 'ring', ring: { regen: [2, 1], duration: 120 * MIN }, value: 40, weight: 1 }, // (Old Wim's, from Down the Well: slow, but it lasts)
   amulet_guard: { name: 'guardian amulet', slot: 'neck', armor: 2, value: 80, weight: 4 },
   amulet_keeping:{ name: 'amulet of keeping', slot: 'neck', keeping: true, value: 200, weight: 4 },

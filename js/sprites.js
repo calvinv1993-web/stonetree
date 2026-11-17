@@ -4232,6 +4232,23 @@ const Sprites = (() => {
       rect(g, '#5a3a1a', 15, 7, 2, 5);
       ellipse(g, '#4a9a3a', 20, 9, 4, 2);
     },
+    carrot(g) { // an orange root with a green top
+      poly(g, '#e07a20', [10, 12, 15, 9, 23, 25, 21, 26]);
+      line(g, '#b85a10', 1, 13, 13, 17, 13); line(g, '#b85a10', 1, 16, 17, 19, 17); line(g, '#b85a10', 1, 18, 21, 21, 21);
+      for (const [x, y] of [[9, 4], [12, 3], [7, 7]]) line(g, '#4a9a2a', 2, 12, 10, x, y);
+    },
+    rabbit_foot(g) { // a soft grey-brown paw
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 26, 7, 2);
+      ellipse(g, '#9a7a5a', 16, 18, 5, 8); ellipse(g, '#c8b098', 15, 16, 3, 5);
+      for (const x of [13, 16, 19]) ellipse(g, '#6e5238', x, 25, 1.6, 1.2);
+    },
+    lucky_paw(g) { // a rabbit's foot on a red string, tied in a ring
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 26, 7, 2);
+      ellipse(g, '#c03030', 16, 10, 6, 5); ellipse(g, 'rgba(0,0,0,0)', 16, 10, 4, 3);
+      g.strokeStyle = '#c03030'; g.lineWidth = 1.5; g.beginPath(); g.arc(16, 9, 5, 0, Math.PI * 2); g.stroke();
+      ellipse(g, '#9a7a5a', 16, 19, 4, 6); ellipse(g, '#d8c8b0', 15, 17, 2, 3.5);
+      rect(g, '#e0c040', 15, 13, 2, 2);
+    },
     cheese(g) {
       poly(g, '#e8c040', [4, 24, 28, 24, 28, 12, 4, 21]);
       poly(g, '#f8d860', [4, 21, 28, 12, 24, 10, 4, 19]);
@@ -5322,6 +5339,39 @@ const Sprites = (() => {
     }
   }
 
+  // A wild rabbit of Sunny Fields: brown-grey, a white scut, long ears; it hops (the frames lift it off the ground)
+  const RABBIT = { fur: '#9a7a5a', dark: '#6e5238', light: '#d8c8b0', ear: '#c88a80', eye: '#1a1210' };
+  function rabbit(g, dir, frame, c = RABBIT) {
+    const dx = DX[dir], hop = frame === 1 ? -3 : frame === 2 ? -1 : 0;
+    shadow(g, 16, 27, 7, 2);
+    g.save(); g.translate(0, hop);
+    if (dx !== 0) {
+      ellipse(g, c.dark, 16 - dx * 3, 24, 4, 2);            // the big hind foot
+      ellipse(g, c.fur, 16 - dx * 1, 20, 7, 5);             // body
+      ellipse(g, c.light, 16 - dx * 7, 19, 2, 2);           // scut
+      ellipse(g, c.light, 16 + dx * 2, 22, 4, 2);           // belly
+      rect(g, c.dark, 16 + dx * 4 - 1, 23, 2, 3);           // fore paw
+      const hx = 16 + dx * 6;
+      ellipse(g, c.fur, hx, 14, 4, 3.5);                    // head
+      poly(g, c.fur, [hx - dx * 2, 12, hx - dx * 4, 3, hx - dx * 1, 3, hx, 11]);   // ears, laid back
+      poly(g, c.ear, [hx - dx * 2, 11, hx - dx * 3.4, 5, hx - dx * 1.6, 5]);
+      rect(g, c.eye, hx + dx * 1.5, 13, 1, 1);
+      rect(g, c.ear, hx + dx * 3.5, 14, 1, 1);              // nose
+    } else {
+      rect(g, c.dark, 11, 24, 4, 2); rect(g, c.dark, 17, 24, 4, 2);
+      ellipse(g, c.fur, 16, 20, 6, 5);
+      const front = dir === 2;
+      if (front) ellipse(g, c.light, 16, 22, 3.5, 2.5);
+      else ellipse(g, c.light, 16, 21, 2.2, 2);             // the scut, from behind
+      ellipse(g, c.fur, 16, 13, 4.5, 4);
+      for (const ex of [13.5, 18.5]) {
+        poly(g, c.fur, [ex - 1.5, 11, ex - 1, 2, ex + 1, 2, ex + 1.5, 11]);
+        if (front) poly(g, c.ear, [ex - 0.6, 10, ex - 0.4, 4, ex + 0.4, 4, ex + 0.6, 10]);
+      }
+      if (front) { rect(g, c.eye, 14, 12, 1, 1); rect(g, c.eye, 17, 12, 1, 1); rect(g, c.ear, 15.5, 14, 1, 1); rect(g, c.light, 15, 15, 2, 1); }
+    }
+    g.restore();
+  }
   const WOLF = { leg: '#5a5a5a', tail: '#6a6a6a', body: '#7a7a7a', light: '#a0a0a0', head: '#808080', ear: '#606060', eye: '#ffd040' };
   const ICE_WOLF = { leg: '#a8bccc', tail: '#c0d0dc', body: '#d0dce6', light: '#f0f6fa', head: '#dce6ee', ear: '#a8bccc', eye: '#40a0ff' };
   function wolf(g, dir, frame, c = WOLF) {
@@ -6628,7 +6678,7 @@ const Sprites = (() => {
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
-    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17],
+    king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17], one_eye_patch: [1.35, 8, null, 0, 35],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {
@@ -7087,7 +7137,7 @@ const Sprites = (() => {
     if (!look && key.startsWith('rare:')) return rareDrawer(key.slice(5));
     if (look) return (g, d, f) => (Sprites.PEOPLE === 'tilt' && tiltable(look) ? tiltPerson(g, look, d, f) : Sprites.PEOPLE === 'lean' && leanable(look) ? leanPerson(g, look, d, f) : Sprites.PEOPLE === 'art' && artable(look) ? artPerson(g, look, d, f) : Sprites.PEOPLE === 'hd' && hdable(look) ? hdPerson(g, look, d, f) : Sprites.PEOPLE === 'pixel' && pixelable(look) ? pixelPerson(g, look, d, f) : Sprites.DOLLS ? doll(g, look, d, f) : humanoid(g, look, d, f));
     return {
-      rat, slime, spider, wolf, ghost, crab, cat, clang, dog, chicken, giant_spider: giantSpider, dragon, bear, scorpion, viper,
+      rat, slime, spider, wolf, ghost, crab, cat, clang, dog, chicken, rabbit, giant_spider: giantSpider, dragon, bear, scorpion, viper,
       brood_queen: (g, d, f) => { // a giant spider bigger still, black and violet, with a pale mark on her back
         g.translate(16, 27); g.scale(1.25, 1.25); g.translate(-16, -27);
         g.filter = 'hue-rotate(250deg) saturate(1.4) brightness(0.8)';

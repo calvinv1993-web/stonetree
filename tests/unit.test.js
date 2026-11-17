@@ -1967,6 +1967,27 @@ test('The Smugglers\' Shield: a pick through the walled-up crevice on Lighthouse
   assert(!map.floorChange(ex, ey, S), 'the flagstones don\'t lead down');
 });
 
+test('The Carrot Bandit: Farmer Odo\'s rabbits, One-Eye Patch in his den, and the lucky paw', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, map = state.map, A = state.Actions;
+  const den = inCtx(game, 'PATCH_DEN');
+  assert(map.spawns.some(s => s.type === 'one_eye_patch' && s.x === den.at[0] && s.y === den.at[1]), 'Patch waits in his den');
+  assert(map.spawns.filter(s => s.type === 'rabbit').length >= 6, 'rabbits in Sunny Fields');
+  const odo = state.npcs.find(n => n.npcId === 'fields_farmer');
+  const talk = (...words) => { Object.assign(p, { x: odo.x, y: odo.y + 1, z: odo.z }); ctx.startConversation(odo); for (const w of words) ctx.say(w); ctx.endConversation(true); };
+  p.level = 2;
+  talk('carrots', 'yes');
+  assert.strictEqual(state.questState('carrot_bandit'), 'active');
+  const kill = type => { const m = ctx.spawnMonster({ type, x: odo.x + 3, y: odo.y + 3, z: odo.z }); state.monsters.push(m); ctx.damageMonster(m, 99999, 'physical'); };
+  for (let i = 0; i < 4; i++) kill('rabbit');
+  kill('one_eye_patch');
+  talk('carrots');
+  assert.strictEqual(state.questState('carrot_bandit'), 'done');
+  assert(state.countItem('lucky_paw') === 1 && state.countItem('carrot') >= 5, 'the lucky paw, and carrots');
+  assert(state.ITEMS.lucky_paw.ring.speed > 0 && state.ITEMS.carrot.use.food > 0, 'the paw runs, the carrot feeds');
+});
+
 test('Down the Well: a rope down the town well, rats in the dark, a pick through the fall of stone, and Old Wim\'s lucky ring', () => {
   const game = quietGame();
   const { ctx, state } = game;

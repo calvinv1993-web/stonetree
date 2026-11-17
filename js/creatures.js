@@ -19,6 +19,17 @@ const MONSTERS = {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
   },
+  rabbit: { // the wild rabbits of Sunny Fields, fat on Farmer Odo's carrots: they bite when cornered, and run when hurt
+    name: 'rabbit', hp: 16, xp: 6, dmg: [0, 3], defense: 0, armor: 0, speed: 240, attackSpeed: 1600, aggro: 2, corpse: 'blood', flee: 0.4,
+    loot: { gold: [0, 2], items: [['carrot', 0.5, 1, 2], ['rabbit_foot', 0.1]] },
+  },
+  one_eye_patch: { // the bandit king of the rabbits, with his eye patch and a gnawed carrot for a club (The Carrot Bandit)
+    name: 'One-Eye Patch', proper: true, hp: 75, xp: 80, dmg: [1, 8], defense: 2, armor: 2, speed: 250, attackSpeed: 1500, aggro: 6, corpse: 'blood',
+    respawn: 300000, ranged: { range: 4, dmg: [1, 7], missile: 'earth', element: 'physical', chance: 0.25 },
+    summon: { type: 'rabbit', max: 1, chance: 0.06 },
+    loot: { gold: [8, 25], items: [['carrot', 1, 2, 5], ['rabbit_foot', 0.5]] },
+    voices: { aggro: 'Oi! These carrots are spoken for, tallfolk. Lads, get \'im!', low: 'Not the ears! Anything but the ears!', death: 'Tell Odo... his carrots... were delicious...' },
+  },
   giant_rat: { // the big rats of the Oakvale sewers
     name: 'giant rat', hp: 34, xp: 18, dmg: [0, 11], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },

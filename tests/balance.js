@@ -35,6 +35,7 @@ const stages = [
   { name: 'L3 club+cap+shield, 3 giant rats (cistern)', level: 3, skill: 14, weapon: 'wooden_club', gear: { head: C, shield: S }, potions: 2, pack: ['giant_rat', 'giant_rat', 'giant_rat'] },
   { name: 'L3 club+cap+shield, slime', level: 3, skill: 14, weapon: 'wooden_club', gear: { head: C, shield: S }, potions: 2, pack: ['cistern_slime'] },
   { name: 'L3 +armor, 3 wolves (Bram)', level: 3, skill: 15, weapon: 'wooden_club', gear: { head: C, shield: S, body: AR }, potions: 2, pack: ['wolf', 'wolf', 'wolf'] },
+  { name: 'L3 club+cap+shield, One-Eye Patch + rabbit', level: 3, skill: 14, weapon: 'wooden_club', gear: { head: C, shield: S }, potions: 2, pack: ['one_eye_patch', 'rabbit'] },
   { name: 'L4 +boots, 2 crabs (Tilda)', level: 4, skill: 17, weapon: 'wooden_club', gear: { head: C, shield: S, body: AR, feet: BO }, potions: 2, pack: ['crab', 'crab'] },
   { name: 'L4 +legs, 3 spiders (Hilde)', level: 4, skill: 18, weapon: 'wooden_club', gear: { head: C, shield: S, body: AR, feet: BO, legs: LE }, potions: 2, pack: ['spider', 'spider', 'spider'] },
   { name: 'L5 +helmet, 3 goblins (Osric)', level: 5, skill: 20, weapon: 'wooden_club', gear: { head: CH, shield: S, body: AR, feet: BO, legs: LE }, potions: 3, pack: ['goblin', 'goblin', 'goblin'] },

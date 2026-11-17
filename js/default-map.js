@@ -638,6 +638,10 @@ function buildSeaCaves(m, S) {
   }
 }
 
+// One-Eye Patch's den in Sunny Fields (The Carrot Bandit): dug-up ground in the meadow south-east of the farm, past the
+// pond, with Farmer Odo's stolen sacks, where the rabbits' leader waits. at: the den's middle; sacks: [x, y]
+const PATCH_DEN = { at: [139, 181], sacks: [[138, 180], [140, 182]] };
+
 // Under the town well (Down the Well), floor 7: tie a rope to the well and climb down. A pool at the bottom, a rope spot
 // to climb back up, and a few dark tunnels where giant rats live. At the end a cracked rock: a pick breaks through to
 // where Old Wim lies, who went down the well for a bet, with his lucky ring.
@@ -1105,6 +1109,15 @@ function createDefaultMap() {
   buildWellTunnels(m, S);
   buildGateSites(m, S);
   buildDiscoveries(m, S);
+  { // One-Eye Patch's den (see PATCH_DEN): dug-up earth, Odo's sacks, and Patch
+    const [px, py] = PATCH_DEN.at;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const t = m.get(px + dx, py + dy, S);
+      if (t && m.isWalkable(px + dx, py + dy, S) && !t.items.length) t.ground = 'dirt';
+    }
+    for (const [x, y] of PATCH_DEN.sacks) if (m.isWalkable(x, y, S)) m.addItem(x, y, S, 'sack');
+    m.spawns.push({ type: 'one_eye_patch', x: px, y: py, z: S });
+  }
   buildSeaCaves(m, S); // (after the lighthouse: its ladder comes up under the lighthouse's floor)
   dressMountains(m, S);
   buildStorySites(m, S);
@@ -1115,6 +1128,7 @@ function createDefaultMap() {
   // fixed places worked out from the coordinates.
   const huntingGrounds = [
     ['rat', 20, [110, 154, 140, 186]],                       // Sunny Fields: the first fights, in pairs over the whole meadow
+    ['rabbit', 10, [134, 158, 150, 186]],                    // Sunny Fields: the rabbits that raid Farmer Odo's carrots, east of the road
     // (Fox Copse's pack keeps to the copse's far west side: well out of sight of the first rats, so a newcomer's first
     // task isn't a fight with three wolves)
     ['wolf', 3, [132, 84, 146, 96]], ['wolf', 3, [86, 152, 91, 162]], // Owl Grove, Fox Copse
