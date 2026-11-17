@@ -637,38 +637,56 @@ function draw() {
 }
 
 // A soft round glow at (x, y), radius r: rgba is the colour's 'rgba(r,g,b,' start, a its strength at the middle.
-// The power shot's arrow: an arrowhead of light, pointing the way it flies (a = its angle, t = ms in flight, al = how
-// much is left of it). A soft gold halo, a body that burns brighter towards its tip, bright edges, a white-hot core,
-// streaks of speed off its wings and sparks shed behind - drawn in light ('lighter'), so it glows by day and by night.
-function drawLightArrowhead(x, y, a, t, al) {
-  const L = 22 * (1 + 0.06 * Math.sin(t / 45)), W = 15, notch = -L * 0.35, back = -L * 0.95;
-  const head = () => { ctx.beginPath(); ctx.moveTo(L, 0); ctx.lineTo(back, -W); ctx.lineTo(notch, 0); ctx.lineTo(back, W); ctx.closePath(); };
+// The power shot in flight, from the bow (bx, by) along angle a to its head d pixels on (t: ms since it was loosed,
+// al: how much is left of it): a golden shaft of light the whole way back to the bow, a crescent of light bowed out in
+// front of the bow, wisps sweeping from it along the shaft, sparks, and at the head a sharp arrowhead of light with a
+// second, fainter one just behind it. All drawn in light ('lighter'), so it shines by day and by night.
+function drawPowerArrow(bx, by, d, a, t, al) {
   ctx.save();
-  ctx.translate(x, y); ctx.rotate(a);
+  ctx.translate(bx, by); ctx.rotate(a);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // speed streaks off the wing tips, and sparks falling behind
-  for (const side of [-1, 1]) {
-    const g = ctx.createLinearGradient(back, 0, back - 34, 0);
-    g.addColorStop(0, `rgba(255,214,110,${0.7 * al})`); g.addColorStop(1, 'rgba(255,190,60,0)');
-    ctx.strokeStyle = g; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(back + 2, side * (W - 1.5)); ctx.lineTo(back - 44, side * (W - 6)); ctx.stroke();
+  const gold = (o) => `rgba(255,196,64,${o})`, pale = (o) => `rgba(255,240,180,${o})`;
+  // the shaft: a wide soft glow, a brighter band, a white-gold core; faint at the bow, full at the head
+  for (const [w, o] of [[14, 0.18], [7, 0.4], [3, 1]]) {
+    const g = ctx.createLinearGradient(0, 0, d, 0);
+    g.addColorStop(0, `rgba(255,190,60,${0.15 * o * al})`); g.addColorStop(0.6, `rgba(255,210,90,${0.7 * o * al})`); g.addColorStop(1, `rgba(255,244,200,${o * al})`);
+    ctx.strokeStyle = g; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(d - 6, 0); ctx.stroke();
   }
-  for (let i = 0; i < 7; i++) {
-    const ph = ((t / 260) + i / 7) % 1, sx = notch - 4 - ph * 34, sy = Math.sin(i * 2.3 + t / 90) * (3 + ph * 7);
-    glowDot(sx, sy, 2.2 * (1 - ph) + 0.6, 'rgba(255,226,130,', (1 - ph) * 0.8 * al);
-  }
-  // the halo, the body (dim at the back, burning at the tip), its edges and the white-hot core
-  glowDot(L * 0.2, 0, 30, 'rgba(255,170,40,', 0.3 * al);
-  const body = ctx.createLinearGradient(back, 0, L, 0);
-  body.addColorStop(0, `rgba(255,150,30,${0.12 * al})`); body.addColorStop(0.6, `rgba(255,190,60,${0.7 * al})`); body.addColorStop(1, `rgba(255,226,120,${0.95 * al})`);
-  ctx.shadowColor = 'rgba(255,190,60,0.9)'; ctx.shadowBlur = 10;
-  head(); ctx.fillStyle = body; ctx.fill();
+  // the crescent before the bow, fading as the arrow flies on, and wisps sweeping from its horns along the shaft
+  const c = al * Math.max(0.35, 1 - t / 900), R = 28, O = -8, reach = Math.max(36, d * 0.75);
+  ctx.shadowColor = gold(0.9); ctx.shadowBlur = 8;
+  ctx.strokeStyle = gold(0.9 * c); ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.arc(O, 0, R, -1.15, 1.15); ctx.stroke();
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = `rgba(255,244,190,${0.9 * al})`; ctx.lineWidth = 1.4;
-  ctx.beginPath(); ctx.moveTo(back, -W); ctx.lineTo(L, 0); ctx.lineTo(back, W); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(L - 2, 0); ctx.lineTo(back * 0.45 + 2, -W * 0.42); ctx.lineTo(notch * 0.4, 0); ctx.lineTo(back * 0.45 + 2, W * 0.42); ctx.closePath();
-  ctx.fillStyle = `rgba(255,236,170,${0.55 * al})`; ctx.fill();
-  glowDot(L - 1, 0, 4, 'rgba(255,250,220,', 0.8 * al); // (the very tip, brightest)
+  ctx.strokeStyle = pale(0.9 * c); ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(O, 0, R, -1.05, 1.05); ctx.stroke();
+  for (const side of [-1, 1]) for (const [lift, w, o] of [[34, 2.2, 0.9], [52, 1.4, 0.6]]) {
+    const hx = O + Math.cos(1.1) * R, hy = side * Math.sin(1.1) * R;
+    const g = ctx.createLinearGradient(hx, 0, reach, 0);
+    g.addColorStop(0, gold(o * c)); g.addColorStop(1, 'rgba(255,196,64,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(reach * 0.3, side * lift * (0.9 + 0.1 * Math.sin(t / 120)), reach, side * 2.5); ctx.stroke();
+  }
+  // sparks drifting along the shaft
+  for (let i = 0; i < 14; i++) {
+    const u = ((i * 0.618 + t / 1400) % 1), sxp = u * d, syp = Math.sin(i * 2.7 + t / 160) * (3 + 7 * (1 - u));
+    glowDot(sxp, syp, 1.6 + (i % 3) * 0.5, 'rgba(255,224,120,', (0.4 + 0.5 * Math.abs(Math.sin(i + t / 70))) * al);
+  }
+  if (t < 220) glowDot(0, 0, 18 * (1 - t / 220) + 4, 'rgba(255,236,150,', 0.9 * (1 - t / 220)); // (the flash as it's loosed)
+  // the head: a fainter arrowhead just behind, then the sharp one, its tip burning white
+  const head = (hx, size) => {
+    ctx.beginPath(); ctx.moveTo(hx + size, 0); ctx.lineTo(hx - size * 0.55, -size * 0.75); ctx.lineTo(hx - size * 0.25, -size * 0.22);
+    ctx.lineTo(hx - size * 0.25, size * 0.22); ctx.lineTo(hx - size * 0.55, size * 0.75); ctx.closePath();
+  };
+  ctx.strokeStyle = gold(0.55 * al); ctx.lineWidth = 1.4;
+  head(d - 17, 13); ctx.stroke();
+  ctx.shadowColor = gold(1); ctx.shadowBlur = 10;
+  head(d, 18); ctx.fillStyle = `rgba(255,214,96,${0.95 * al})`; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = pale(al); ctx.lineWidth = 1.3; ctx.stroke();
+  head(d + 1, 9); ctx.fillStyle = pale(0.85 * al); ctx.fill();
+  glowDot(d + 16, 0, 6, 'rgba(255,252,230,', 0.9 * al);
   ctx.restore();
 }
 
@@ -801,25 +819,8 @@ function drawEffects(ox, oy, z) {
         if (k > 0.9) { const f = (k - 0.9) / 0.1; ctx.strokeStyle = `rgba(255,250,210,${0.8 * (1 - f)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bx, by, 6 + 22 * f, 0, Math.PI * 2); ctx.stroke(); } // ready: a ring of light snaps out
       } else {
         const r = e - fx.charge, p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 200) : 1;
-        if (r < 220) { // loosed: a flash, and a fan of rays forward from the bow
-          const f = 1 - r / 220;
-          glowDot(bx, by, 14 * f + 4, 'rgba(255,236,150,', 0.9 * f);
-          ctx.lineCap = 'round';
-          for (let k = -4; k <= 4; k++) {
-            const ra = a + k * 0.16, len = (26 + (4 - Math.abs(k)) * 7) * (0.6 + 0.4 * (1 - f));
-            ctx.strokeStyle = `rgba(255,${200 + Math.abs(k) * 8},90,${0.55 * f})`; ctx.lineWidth = 2.2 - Math.abs(k) * 0.2;
-            ctx.beginPath(); ctx.moveTo(bx + Math.cos(ra) * 4, by + Math.sin(ra) * 4); ctx.lineTo(bx + Math.cos(ra) * len, by + Math.sin(ra) * len); ctx.stroke();
-          }
-        }
-        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p, tail = Math.min(TILE * 2.2, Math.hypot(x - sx, y - sy));
-        const tx = x - Math.cos(a) * tail, ty = y - Math.sin(a) * tail;
-        for (const [w, al] of [[9, 0.18], [5, 0.35], [2.2, 0.9]]) { // the bolt's trail: a wide soft glow, a brighter one, a white-gold core
-          const grad = ctx.createLinearGradient(tx, ty, x, y);
-          grad.addColorStop(0, 'rgba(255,200,60,0)'); grad.addColorStop(1, `rgba(255,232,140,${al * fade})`);
-          ctx.strokeStyle = grad; ctx.lineWidth = w; ctx.lineCap = 'round';
-          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
-        }
-        if (p < 1 || fade > 0) drawLightArrowhead(x, y, a, r, p < 1 ? 1 : fade); // the arrow itself: an arrowhead of pure light
+        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p;
+        if (fade > 0) drawPowerArrow(bx, by, Math.hypot(x - bx, y - by), a, r, fade); // the arrow of light, its beam back to the bow
       }
       ctx.restore();
     } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow
