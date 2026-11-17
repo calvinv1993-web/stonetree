@@ -169,7 +169,7 @@ window.addEventListener('keydown', e => {
     if (useWith) cancelUseWith();
     else if (!$('worldmap').hidden) toggleWorldMap();
     else {
-      for (const id of ['read', 'hotkeys', 'guild']) $(id).hidden = true;
+      for (const id of ['read', 'paths', 'hotkeys', 'guild']) $(id).hidden = true;
       closeForge();
       Actions.stop();
     }

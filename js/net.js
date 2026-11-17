@@ -53,7 +53,7 @@ const Net = (() => {
         const voc = document.createElement('select');
         voc.id = 'createVocation';
         voc.add(new Option('Start fresh on Brightwater Isle (level 1, with the guide)', 'none'));
-        for (const v of ['knight', 'paladin', 'sorcerer', 'druid']) voc.add(new Option(`Test server: level 20 ${v}`, v));
+        for (const v of ['knight', 'paladin', 'sorcerer', 'druid']) voc.add(new Option(`Test server: level 20 ${vocName(v)}`, v));
         pw.after(voc);
       }).catch(() => {});
     }

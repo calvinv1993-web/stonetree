@@ -9,7 +9,7 @@ const vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 const LOGIC_FILES = [
   'defs', 'items', 'creatures', 'npcs', 'data', 'map', 'world-kestrel', 'default-map',
-  'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-tales', 'game-gates', 'game-update',
+  'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-paths', 'game-tales', 'game-gates', 'game-update',
 ];
 
 // Seeded replacement for Math.random so a failing run can be replayed.
@@ -26,8 +26,8 @@ function seededRandom(seed) {
 
 // Building the world takes over a second, and every test loads a game: the world is built once per run and each game
 // gets its own deep copy of it (made inside its own sandbox, so its arrays and maps are that sandbox's own).
-let builtWorld = null;
-function builtWorldOnce(ctx) {
+const builtWorlds = {}; // (one per world: the built-in one, and a preview's: loadGame({ world: 'kestrel' }))
+function builtWorldOnce(ctx, world = '') {
   const build = ctx.createDefaultMap;
   const copyInto = vm.runInContext(`(function copyMap(src) {
     const copy = v => {
@@ -45,12 +45,12 @@ function builtWorldOnce(ctx) {
     return m;
   })`, ctx);
   ctx.createDefaultMap = () => {
-    if (!builtWorld) builtWorld = build();
-    return copyInto(builtWorld);
+    if (!builtWorlds[world]) builtWorlds[world] = build();
+    return copyInto(builtWorlds[world]);
   };
 }
 
-function loadGame({ seed = 1 } = {}) {
+function loadGame({ seed = 1, world = '' } = {}) {
   const messages = [];
   const storage = new Map();
   const math = Object.create(Math);
@@ -68,12 +68,13 @@ function loadGame({ seed = 1 } = {}) {
     log: text => messages.push(text),
     logDialog: (who, text) => messages.push(`${who}: ${text}`),
     uiDirty() {},
+    ...(world ? { WORLD_PREVIEW: world } : {}), // (a preview of another world, as index.html?world=kestrel)
   };
   const ctx = vm.createContext(sandbox);
   for (const f of LOGIC_FILES) {
     const file = path.join(ROOT, 'js', `${f}.js`);
     vm.runInContext(fs.readFileSync(file, 'utf8'), ctx, { filename: file });
-    if (f === 'default-map') builtWorldOnce(ctx);
+    if (f === 'default-map') builtWorldOnce(ctx, world);
   }
 
   // Top-level let/const live in the script scope, not on the global object;
@@ -87,6 +88,7 @@ function loadGame({ seed = 1 } = {}) {
     players, piles, fields, effects,
     get now() { return now; }, set now(v) { now = v; },
     get pendingHits() { return pendingHits; },
+    PATHS,
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
     physicalMax, physicalHit, blocked, FIGHT_MODES, wantsTestSpear, KESTREL,

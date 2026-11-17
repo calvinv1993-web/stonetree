@@ -162,7 +162,7 @@ test('a guild: found it, invite and join, ranks, nicks, chat, and it shows when 
   assert.strictEqual(JSON.stringify(ctx.guildInfo(b)), JSON.stringify({ name: 'Dawn Guard', rank: 'Vice-Leader', nick: 'Hawkeye' }));
   messages.length = 0;
   ctx.look(b.x, b.y);
-  assert(messages.some(m => m === 'You see Friend (Level 25). They are a paladin. They are Vice-Leader of the Dawn Guard (Hawkeye).'), messages.join(' | '));
+  assert(messages.some(m => m === 'You see Friend (Level 25). They are a Hawk. They are Vice-Leader of the Dawn Guard (Hawkeye).'), messages.join(' | '));
   ctx.asPlayer(b, () => A.say('/g hello guild'));
   assert(messages.some(m => m === 'Friend: hello guild'), 'the guild channel');
   A.guildLeave();
@@ -1280,7 +1280,7 @@ test('the oracle: no mainland yet, so you stay as Oakvale\'s own; once there is 
   p.level = 10; p.xp = state.xpForLevel(10);
   const said = ask('destiny', 'knight', 'yes'), at = { x: p.x, y: p.y, z: p.z };
   assert.strictEqual(p.vocation, 'knight');
-  assert(/has not come yet/.test(said) && /Oakvale's first knight/.test(said), 'the farewell is honest: the ship has not come yet');
+  assert(/has not come yet/.test(said) && /Oakvale's first Bastion/.test(said), 'the farewell is honest: the ship has not come yet');
   assert(!/mainland|Orin|Valoria|dream|never come back/i.test(said), `nothing of a mainland that isn't there: ${said}`);
   assert.strictEqual(oracle.z, p.z, 'and nobody is sent anywhere');
   assert(state.dist(oracle, p) <= 3, 'you are still beside her');
@@ -1768,6 +1768,80 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   const rats = m.spawns.filter(sp => sp.z === SZ && sp.type === 'rat');
   assert(rats.length >= 15 && rats.every(r => below.has(`${r.x},${r.y}`)), `rats all through the sewers (${rats.length})`);
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
+});
+
+test('the Hall of Paths (Kestrel Isle): a trial makes you that path for a while, safely, then all four stamps let you choose', () => {
+  const game = loadGame({ world: 'kestrel' });
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  state.monsters = state.monsters.filter(m => m.def.trial); // (only the practice dummies)
+  assert.strictEqual(map.trialRooms.length, 4, 'four practice rooms');
+  const npc = id => state.npcs.find(n => n.npcId === id);
+  for (const id of ['pathkeeper', 'holt', 'sill', 'vela', 'fennick']) assert(npc(id) && map.isWalkable(npc(id).x, npc(id).y, npc(id).z) !== undefined, `${id} is in the hall`);
+  const talk = (id, ...words) => { const n = npc(id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y + 1, n.z, 1), z: n.z }); const k = messages.length; A.say('hi'); for (const w of words) A.say(w); return messages.slice(k).join(' | '); };
+  // the Pathkeeper explains, and gives the Book of Paths
+  talk('pathkeeper', 'paths');
+  assert(state.countItem('book_of_paths') === 1, 'the Book of Paths');
+  assert(p.events.some(e => e.kind === 'paths'), 'the four cards open');
+  // the teachers wait until Clang is safe
+  { const said = talk('holt', 'trial'); assert(/Sister Ama/.test(said) && !p.trial, `Clang first: ${said}`); }
+  p.quests.clang_rescue = { status: 'done' };
+  const before = { xp: p.xp, level: p.level, maxMana: p.maxMana, gear: JSON.stringify(p.equipment), skills: JSON.stringify(p.skills) };
+  talk('holt', 'trial', 'yes');
+  assert(p.trial && p.vocation === 'knight', 'you are a Bastion for a while');
+  const room = map.trialRooms.find(r => r.voc === 'knight');
+  assert(p.z === room.z && p.x >= room.x0 && p.x <= room.x1 && p.y >= room.y0 && p.y <= room.y1, 'down in the practice room');
+  assert(p.equipment.weapon && p.equipment.weapon.id === 'war_spear' && p.equipment.weapon.borrowed, 'a borrowed war spear');
+  assert(p.mana >= 400, 'a deep well of mana');
+  // a save mid-trial is the player as they were, back in the hall
+  const save = ctx.serializePlayer(p);
+  assert.strictEqual(save.vocation, 'none');
+  assert(!JSON.stringify(save.equipment).includes('borrowed'), 'nothing borrowed in a save');
+  assert(save.z === map.hall.z && save.x === map.hall.x, 'saved in the hall');
+  // you can't die there
+  ctx.damagePlayer(null, 10000, 'physical');
+  assert(!p.dead && p.hp >= 1, 'nobody dies in a trial');
+  // the circle throw, at any level, and a power strike on a dummy beside you
+  const dummies = state.monsters.filter(m => m.z === room.z && m.x >= room.x0 && m.x <= room.x1 && m.y >= room.y0 && m.y <= room.y1 && !m.dead);
+  assert(dummies.length >= 4, 'dummies to practise on');
+  const d = dummies.find(m => m.type === 'straw_dummy');
+  ctx.teleport({ ...ctx.findFreeTile(d.x, d.y + 1, d.z, 2), z: d.z });
+  assert(p.trial && p.equipment.weapon, `still in the trial at ${p.x},${p.y},${p.z}`);
+  A.say('hasta orbis'); tick(game, 3100);
+  const e = state.monsters.find(m => m.def.trial && !m.dead && m.z === room.z && m.x >= room.x0 && m.x <= room.x1);
+  ctx.teleport({ ...ctx.findFreeTile(e.x, e.y, e.z, 1), z: e.z }); p.target = e; A.say('vis ictus');
+  assert(p.trial.spells.circle_throw && p.trial.spells.power_strike, `both spells tried: ${messages.slice(-4).join(' | ')}`);
+  A.say('vis turbo');
+  assert(/Not in this trial/.test(messages[messages.length - 1]), 'only the trial\'s spells');
+  for (let i = 0; i < 3; i++) { const m = state.monsters.find(x => x.def.trial && !x.dead && x.z === room.z); ctx.killMonster(m); }
+  assert(p.paths.knight, 'the Bastion\'s stamp');
+  assert.strictEqual(p.xp, before.xp, 'no experience from practice');
+  assert.strictEqual(JSON.stringify(p.skills), before.skills, 'nor skills');
+  tick(game, 3500);
+  assert(state.monsters.filter(m => m.def.trial && m.z === room.z && !m.dead).length >= 4, 'the dummies stand back up');
+  // out by the forcefield: everything back as it was
+  const exit = Object.entries(map.meta).find(([k, v]) => v.to && k.endsWith(`,${room.z}`) && +k.split(',')[0] >= room.x0 && +k.split(',')[0] <= room.x1);
+  assert(exit, 'a forcefield out');
+  ctx.teleport(map.hall); tick(game, 200);
+  assert(!p.trial && p.vocation === 'none', 'your own self again');
+  assert.strictEqual(JSON.stringify(p.equipment), before.gear, 'your own gear, nothing borrowed kept');
+  assert.strictEqual(p.maxMana, before.maxMana);
+  // choosing waits for all four stamps
+  assert(/Try all four/.test(talk('pathkeeper', 'hawk')), 'not before all four');
+  for (const v of ['paladin', 'sorcerer', 'druid']) {
+    talk(state.PATHS[v].teacher, 'trial', 'yes');
+    { const said = messages.slice(-3).join(' | '); assert(p.trial && p.vocation === v, `the ${v} trial: ${said}`); }
+    for (const id of state.PATHS[v].spells) ctx.trialProgress('cast', id);
+    for (let i = 0; i < 3; i++) ctx.trialProgress('down');
+    ctx.teleport(map.hall); tick(game, 200);
+    assert(!p.trial && p.paths[v], `the ${v} stamp`);
+  }
+  const said = talk('pathkeeper', 'hawk', 'yes');
+  assert.strictEqual(p.vocation, 'paladin', said);
+  assert(/Hawk/.test(said));
+  tick(game, 3000);
+  assert(state.countItem('arrow') >= 80, 'the teacher\'s gift');
+  assert(messages.some(m => /You are now a Hawk!/.test(m)));
 });
 
 test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, shown in orange', () => {

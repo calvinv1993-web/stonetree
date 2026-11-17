@@ -104,6 +104,12 @@
           <p id="readText" class="read-text"></p>
         </div>
 
+        <div id="paths" class="window dialog" hidden>
+          <header><b>The Book of Paths</b><button id="pathsClose" title="Close (Esc)">×</button></header>
+          <div id="pathCards" class="path-cards"></div>
+          <p id="pathsNote" class="paths-note"></p>
+        </div>
+
         <div id="hotkeys" class="window dialog" hidden>
           <header><b>Hotkeys F1-F12</b></header>
           <div id="hotkeyList"></div>
@@ -278,7 +284,7 @@
         <a class="button desk-only" href="editor.html">Map editor</a>
         <a class="button desk-only" href="data.html">Data editor</a>
         <button id="testClang" hidden title="For a level 100 test character, playing alone">Test: Clang at level 100</button>
-        <button id="testSpear" hidden title="For a level 100 knight or paladin, playing alone: a war spear to try the circle throw, and for a paladin the hawkeye bow">Test: spear (and hawkeye bow)</button>
+        <button id="testSpear" hidden title="For a level 100 Bastion or Hawk, playing alone: a war spear to try the circle throw, and for a Hawk the hawkeye bow">Test: spear (and hawkeye bow)</button>
         <button id="newChar">New character</button>
         <button id="resetMap">Use built-in map</button>
       </section>
@@ -308,6 +314,7 @@
   <script src="js/game-social.js?v=ui363"></script>
   <script src="js/game-forge.js?v=ui363"></script>
   <script src="js/game-guide.js?v=ui363"></script>
+  <script src="js/game-paths.js?v=ui363"></script>
   <script src="js/game-tales.js?v=ui363"></script>
   <script src="js/game-gates.js?v=ui363"></script>
   <script src="js/game-update.js?v=ui363"></script>

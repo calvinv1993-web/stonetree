@@ -305,6 +305,7 @@ function damagePlayer(attacker, dmg, element, cause, source = attacker) {
   addSound('hurt', player.x, player.y, player.z);
   const by = attacker ? `an attack by ${monsterRef(attacker)}` : CONDITIONS[cause] ? `being ${CONDITIONS[cause].name}` : element;
   log(`You lose ${dmg} hitpoint${dmg === 1 ? '' : 's'} due to ${by}.`, 'damage');
+  if (player.trial) player.hp = Math.max(1, player.hp); // (a trial is only practice: nobody dies there)
   if (player.hp === 0) playerDies(source);
 }
 
@@ -383,6 +384,7 @@ function killMonster(m) {
     }
   }
   for (const [p, xp] of gains) {
+    if (p.trial) { asPlayer(p, () => m.def.trial && trialProgress('down')); continue; } // (a trial is only practice: no experience, no kills)
     asPlayer(p, () => {
       if (Math.round(xp) > 0) gainXp(Math.round(xp), shared.has(p));
       onMonsterKilled(m.type);
@@ -684,8 +686,10 @@ function hitTiles(tiles, element, roll, z = player.z) {
 function castSpell(id) {
   const s = SPELLS[id];
   if (player.dead || !s) return;
-  if (!spellsFor(player.vocation).includes(id)) return log(`Only ${s.vocs.join('s and ')}s can cast ${s.name}.`);
-  if (player.level < s.level) return log(`You need level ${s.level} to cast ${s.name}.`);
+  if (!spellsFor(player.vocation).includes(id)) return log(`Only ${s.vocs.map(vocName).join('s and ')}s can cast ${s.name}.`);
+  const trying = player.trial && PATHS[player.trial.voc].spells.includes(id); // (in a trial: its spells, at any level)
+  if (player.trial && s.vocs && !trying) return log(`Not in this trial: try ${PATHS[player.trial.voc].spells.map(o => SPELLS[o].name).join(' and ')}.`);
+  if (player.level < s.level && !trying) return log(`You need level ${s.level} to cast ${s.name}.`);
   if (s.promoted && !player.promoted) return log(`You need to be promoted to cast ${s.name}.`);
   if (player.mana < s.mana) return log('You do not have enough mana.');
   if (now < player.spellReady) return log('You are exhausted.');
@@ -708,6 +712,7 @@ function castSpell(id) {
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
+  trialProgress('cast', id); // (in a trial: one of its spells, tried)
   player.spellReady = now + SPELL_COOLDOWN;
   if (s.cooldown) player.spellCooldowns = { ...(player.spellCooldowns || {}), [id]: now + s.cooldown };
   addSkillTries('magic', s.mana);
@@ -932,7 +937,7 @@ function updateMonster(m, i) {
       // of their screen. So a hunting ground never runs dry, however long you stay.
       const fresh = spawnMonster(m.spawn);
       m.due = m.due || now;
-      if (fresh && !players.some(p => inView(p, fresh) || inView(p, m.spawn))) monsters[i] = maybeRare(fresh);
+      if (fresh && (m.def.standsUp || !players.some(p => inView(p, fresh) || inView(p, m.spawn)))) monsters[i] = m.def.standsUp ? fresh : maybeRare(fresh);
       else if (!(now - m.due > 15000 && walkIn(m, i))) m.respawnAt = now + 4000;
     }
     return;
@@ -950,6 +955,11 @@ function updateMonster(m, i) {
   }
   finishWalk(m);
   if (m.walk) return;
+  if (m.def.still) { // (a practice dummy: it stands where it stands, and a sparring one hits back whoever is next to it)
+    const t = m.def.dmg[1] && players.find(p => !p.dead && p.z === m.z && Math.max(Math.abs(p.x - m.x), Math.abs(p.y - m.y)) === 1);
+    if (t && now >= (m.nextAttack || 0)) { m.nextAttack = now + m.def.attackSpeed; asPlayer(t, () => damagePlayer(m, randInt(...m.def.dmg), 'physical')); }
+    return;
+  }
   m.dazed = m.dazedUntil > now;
   if (m.dazed) return; // (dazed by a companion's bell: it stands, and does nothing)
   if (m.returning) reengage(m);

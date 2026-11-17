@@ -140,6 +140,18 @@
 .dialog header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .dialog-buttons { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; }
 .read-text { white-space: pre-wrap; max-width: 420px; line-height: 1.5; }
+/* the Book of Paths: the four paths side by side (two by two on a narrow screen), each with its colour and stamp */
+#paths { width: min(860px, 94vw); }
+.path-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 720px) { .path-cards { grid-template-columns: repeat(2, 1fr); } }
+.path-card { border: 1px solid #5a544b; border-top: 4px solid var(--path); border-radius: 8px; padding: 8px 10px; background: #1c1a17; font-size: 12px; line-height: 1.45; position: relative; }
+.path-card h3 { margin: 0 0 2px; font-size: 17px; color: var(--path); }
+.path-card .role { margin: 0 0 6px; color: #b8ac90; font-style: italic; }
+.path-card p { margin: 4px 0; }
+.path-card b { color: #e8dcc0; }
+.path-card .stamp { position: absolute; top: 6px; right: 8px; font-size: 11px; font-weight: bold; color: #1c1a17; background: #e8c858; border-radius: 10px; padding: 1px 7px; transform: rotate(6deg); }
+.path-card.mine { outline: 2px solid var(--path); }
+.paths-note { margin: 10px 2px 0; font-size: 12px; color: #b8ac90; }
 .hotkey-row { display: flex; gap: 6px; align-items: center; margin: 3px 0; }
 .hotkey-row kbd { width: 34px; text-align: center; }
 .hotkey-row select { font: inherit; background: #12110f; color: #eee; border: 1px solid #5a544b; max-width: 260px; }

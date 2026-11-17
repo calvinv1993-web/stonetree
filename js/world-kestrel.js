@@ -153,7 +153,7 @@ const KESTREL = {
   },
   // what goes inside, by kind: things set along the walls (away from the door), in turn
   furnish: {
-    temple: [], tower: [], hall: ['bookshelf', 'bookshelf', 'pillar_terracotta', 'pillar_emerald', 'pillar_royalblue', 'pillar_amethyst', 'plant'],
+    temple: [], tower: [], hall: [], // (laid out by hand: see the Hall of Paths, below)
     depot: ['depot', 'depot', 'depot', 'depot', 'depot', 'depot', 'plant'], smithy: ['anvil', 'barrel', 'crate', 'firewood', 'anvil', 'woodpile', 'barrel'],
     shop: ['counter', 'counter', 'counter', 'crate', 'barrel'], store: ['counter', 'counter', 'counter', 'barrel', 'barrel', 'sack', 'basket', 'crate', 'sack'],
     bakery: ['counter', 'counter', 'sack', 'basket', 'barrel'], healer: ['bed_head', 'plant', 'bed_head', 'chest'],
@@ -161,6 +161,11 @@ const KESTREL = {
     workshop: ['barrel', 'crate', 'woodpile', 'barrel', 'sack'], warehouse: ['crate', 'crate', 'barrel', 'barrel', 'crate', 'sack', 'barrel', 'crate'],
     fish: ['fish_rack', 'barrel', 'counter', 'counter', 'basket'], office: ['table', 'chest', 'bookshelf'],
   },
+  // the Hall of Paths' four practice rooms, one floor down (town-art coordinates of the first room's corner, walls
+  // included; the others follow it eastward): reached only through a teacher (game-paths.js), left by a forcefield
+  trials: { at: [4, -11], size: 9, order: ['knight', 'paladin', 'sorcerer', 'druid'],
+    pillar: { knight: 'pillar_amethyst', paladin: 'pillar_emerald', sorcerer: 'pillar_terracotta', druid: 'pillar_royalblue' },
+    teacher: { knight: 'holt', paladin: 'sill', sorcerer: 'vela', druid: 'fennick' } }, // (as in PATHS, game-paths.js)
   // the sewers under Bellhaven (one floor down, town-art coordinates): the first hunt, as under every town worth the
   // name. Grates in the streets with ladders under them; brick walkways round a channel; the bell cellar under the
   // temple, where Clang is stuck behind a fallen crate (The Silent Bell's 'Clang'); the rats' nest east of Main Street.
@@ -321,6 +326,19 @@ function createKestrelMap() {
       m.temples.push({ home: 'bellhaven', town: 'Bellhaven', npc: null, x: m.start.x, y: m.start.y, z: Z });
       for (const [a, c, e, f] of b.boxes) m.zones.push({ x0: OX + TX + a, y0: OY + TY + c, x1: OX + TX + e, y1: OY + TY + f, z: Z });
     }
+    if (b.kind === 'hall') { // the Hall of Paths: the Pathkeeper before her books, a teacher by a coloured pillar in each corner
+      const [x0, y0, x1, y1] = b.boxes[0], mid = b.door[0];
+      for (const x of [mid - 2, mid - 1, mid + 1, mid + 2]) T(x, y0 + 1, Z).items.push('bookshelf');
+      T(mid, y0 + 1, Z).items.push('plant');
+      for (let y = y0 + 3; y <= b.door[1] - 1; y++) T(mid, y, Z).items.push('carpet_rug');
+      m.npcs.push({ type: 'pathkeeper', x: OX + TX + mid, y: OY + TY + y0 + 2, z: Z });
+      const corners = [[x0 + 1, y0 + 1, 1, 1, 'knight'], [x1 - 1, y0 + 1, -1, 1, 'paladin'], [x0 + 1, y1 - 1, 1, -1, 'sorcerer'], [x1 - 1, y1 - 1, -1, -1, 'druid']];
+      for (const [x, y, dx, dy, v] of corners) {
+        T(x, y, Z).items.push(K.trials.pillar[v]);
+        m.npcs.push({ type: K.trials.teacher[v], x: OX + TX + x + dx, y: OY + TY + y + dy, z: Z });
+      }
+      m.hall = { x: OX + TX + mid, y: OY + TY + y0 + 4, z: Z }; // (where a trial sends you back to)
+    }
     if (b.kind === 'tower') for (const [dx, dy, id] of [[1, 3, 'bell_nw'], [2, 3, 'bell_ne'], [1, 4, 'bell_sw'], [2, 4, 'bell_se']]) { const t = T(b.boxes[0][0] + dx, b.boxes[0][1] + dy, Z + floors - 1); if (t && !t.items.some(i => THINGS[i].change)) t.items.push(id); }
     homes.push(b);
   }
@@ -358,6 +376,32 @@ function createKestrelMap() {
     for (const [x, y] of pick(open.filter(p => inRoom(p, cellar)), Q.cellarRats, 53)) m.spawns.push({ type: 'rat', x: wx(x), y: wy(y), z: SZ });
     for (const [x, y] of pick(open.filter(p => !inRoom(p, cellar) && Math.hypot(p[0] - nx, p[1] - ny) > Math.max(nrx, nry) + 1 && !Q.grates.some(([gx, gy]) => Math.abs(gx - p[0]) + Math.abs(gy - p[1]) < 4)), Q.rats, 54)) m.spawns.push({ type: 'rat', x: wx(x), y: wy(y), z: SZ });
     for (const [x, y] of pick(open.filter(p => Math.hypot(p[0] - nx, p[1] - ny) < 3), Q.bigRats, 55)) m.spawns.push({ type: 'giant_rat', x: wx(x), y: wy(y), z: SZ });
+  }
+  // ---- the Hall of Paths' practice rooms, a floor under the town: a dummy in each corner of a ring, a sparring dummy,
+  // the room's pillar, torches; in by a teacher, out by the forcefield by the entry ----
+  {
+    const Q = K.trials, Z = S - 1, n = Q.size;
+    m.trialRooms = [];
+    Q.order.forEach((v, k) => {
+      const x0 = OX + TX + Q.at[0] + k * (n + 1), y0 = OY + TY + Q.at[1], x1 = x0 + n - 1, y1 = y0 + n - 1;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (m.get(x, y, Z)) throw new Error(`the ${v} practice room runs into something at ${x},${y},${Z}`);
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const rim = x === x0 || x === x1 || y === y0 || y === y1;
+        m.set(x, y, Z, { ground: 'wood', items: rim ? ['wall_stone'] : [] });
+      }
+      const cx = x0 + (n >> 1), at = (dx, dy) => m.get(cx + dx, y0 + dy, Z);
+      for (const dx of [-2, 2]) at(dx, 0).items.push('wall_torch');
+      for (const dy of [3, 6]) { m.get(x0, y0 + dy, Z).items.push('wall_torch'); m.get(x1, y0 + dy, Z).items.push('wall_torch'); } // (well lit: a room to practise in, not a cave)
+      at(-3, 1).items.push(Q.pillar[v]); at(3, 1).items.push(Q.pillar[v]);
+      const entry = { x: cx, y: y1 - 1, z: Z }, exit = { x: cx + 2, y: y1 - 1 };
+      m.get(exit.x, exit.y, Z).items.push('teleport');
+      m.setMeta(exit.x, exit.y, Z, { to: { ...m.hall } });
+      // three straw dummies in a row, in line with the entry (a Hawk's shot goes through all of them), one more beside
+      // them (a circle throw, a flame burst: several at once), and the sparring dummy by the wall
+      for (const [dx, dy] of [[0, 2], [0, 3], [0, 4], [-1, 3]]) m.spawns.push({ type: 'straw_dummy', x: cx + dx, y: y0 + dy, z: Z });
+      m.spawns.push({ type: 'sparring_dummy', x: cx - 2, y: y1 - 2, z: Z });
+      m.trialRooms.push({ voc: v, x0, y0, x1, y1, z: Z, entry, back: { ...m.hall } });
+    });
   }
   // Sister Ama in the temple, by the altar (she sends you after Clang)
   { const t = K.buildings[0]; m.npcs.push({ type: 'ama', x: OX + TX + t.door[0] + 1, y: OY + TY + t.boxes[0][1] + 1, z: S + 1 }); }

@@ -172,8 +172,8 @@ const GUIDE = [
     minLevel: 10, // (till then: hunt at the gates)
   },
   {
-    text: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: knight, paladin, sorcerer or druid (ask about each before you decide).',
-    touch: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: knight, paladin, sorcerer or druid (ask about each before you decide).',
+    text: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: Bastion, Hawk, Ember or Grove (ask about each before you decide).',
+    touch: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose your vocation: Bastion, Hawk, Ember or Grove (ask about each before you decide).',
     target: [{ npc: 'oak_oracle', level: 10 }],
   },
 ];

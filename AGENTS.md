@@ -58,7 +58,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 ### One game logic, three hosts
 
 The **logic files** have no DOM code:
-`defs, items, creatures, npcs, data, map, default-map, game-core, game-combat, game-npc, game-social, game-forge, game-guide, game-tales, game-gates, game-update`.
+`defs, items, creatures, npcs, data, map, world-kestrel, default-map, game-core, game-combat, game-npc, game-social, game-forge, game-guide, game-paths, game-tales, game-gates, game-update`.
 
 The same files run in three places:
 - **Browser**: `index.html` loads them as plain `<script>` tags, which share one global scope. After them come the browser-only files: `sprites, render, sound, fx, game-ui, net, game, touch`.

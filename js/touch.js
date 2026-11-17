@@ -68,6 +68,8 @@ let favItemPage = 0;
 const favIndex = slot => slot < FAV_SLOTS ? favPageIndex * FAV_SLOTS + slot : FAV_SLOTS * FAV_PAGES + favItemPage * 3 + slot - FAV_SLOTS;
 
 function favourites() {
+  // (in a trial of the Hall of Paths: its two spells on the first page, for as long as it lasts; your own buttons wait)
+  if (player && player.trial) { const t = Array(FAV_SLOTS * FAV_PAGES + FAV_FIXED).fill(null); PATHS[player.trial.voc].spells.forEach((id, i) => { t[i] = id; }); t[FAV_SLOTS * FAV_PAGES] = 'h'; t[FAV_SLOTS * FAV_PAGES + 1] = 'm'; return t; }
   const saved = touchStorage.get(favKey());
   if (Array.isArray(saved) && saved.length === FAV_SLOTS * FAV_PAGES + FAV_FIXED) return saved;
   const slots = Array(FAV_SLOTS * FAV_PAGES + FAV_FIXED).fill(null);
@@ -83,6 +85,7 @@ function favourites() {
 // A spell just learned goes on the first free spell button by itself, so it's there to tap (a phone has no keys).
 // Torchlight waits while the guide still has to show how to put it there.
 function pinNewSpells(entries) {
+  if (player && player.trial) return; // (a trial's spells are only borrowed)
   const known = touchStorage.get(favKey() + '.known'), now = entries.filter(e => SPELLS[e.id] && !e.locked).map(e => e.id);
   if (!Array.isArray(known)) { touchStorage.set(favKey() + '.known', now); return; } // (first time: what's known already stays as it is)
   const fresh = now.filter(id => !known.includes(id));
@@ -175,6 +178,7 @@ function endFavPress(use) {
 }
 
 function openFavPicker(slot) {
+  if (player && player.trial) return log("Your own buttons wait until the trial is over: these are the trial's spells.");
   favPickSlot = slot;
   const list = $('favList');
   list.replaceChildren();
@@ -322,7 +326,7 @@ function initTouch() {
     // the status bar: level, experience to the next one, gold, and a red edge when you're nearly dead
     setText($('hudLvl'), player.level);
     setText($('hudName'), player.name);
-    setText($('hudTitle'), `Level ${player.level} · ${player.vocation === 'none' ? 'Adventurer' : capitalize(player.vocation)}`);
+    setText($('hudTitle'), `Level ${player.level} · ${player.vocation === 'none' ? 'Adventurer' : vocName(player.vocation)}`);
     const faceKey = creatureKey(player) + player.dir;
     if (faceKey !== hudFaceKey) { // the portrait: your own head and shoulders, big
       hudFaceKey = faceKey;

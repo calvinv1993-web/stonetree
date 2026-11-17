@@ -4702,6 +4702,7 @@ const Sprites = (() => {
     key_silver: g => key(g, '#c8c8d0'),
     book_lore: g => book(g, '#6a3a1a'),
     book_guide: g => book(g, '#2a5a3a'),
+    book_of_paths: g => { book(g, '#4a3a6a'); for (const [i, c] of ['#9a7ad0', '#4a9a4a', '#d8742a', '#3a8ab0'].entries()) rect(g, c, 11 + i * 3, 14, 2, 2); }, // (the Pathkeeper's: purple, the four paths' colours on its cover)
     kit_table: g => kit(g, '#9a6633'),
     kit_chair: g => kit(g, '#8a5a2a'),
     kit_plant: g => kit(g, '#3a8a35'),
@@ -4853,6 +4854,9 @@ const Sprites = (() => {
     // rare named kin (RARE_KIN in creatures.js) who walk upright: their kind's look, with something of their own
     'rare:goblin': { scale: 0.9, skin: '#4e8a2c', hair: '#4e8a2c', eye: '#ff4020', body: '#3a2a4a', belt: '#d0a030', legs: '#2a2a1a', arms: '#4e8a2c', hat: { style: 'hood', color: '#b02a22' }, held: 'sword' }, // Grubnose the Sly
     'rare:skeleton': { scale: 1.1, skin: '#d8cc9a', hair: '#d8cc9a', eye: '#e04020', body: '#c8bc8a', belt: '#6a5a3a', legs: '#c2b684', arms: '#c2b684', ribs: '#7a6e4c', hat: { style: 'helmet', color: '#7a7466' }, held: 'sword', shield: '#5a4630' }, // Sir Clatterbones
+    // the Hall of Paths' practice dummies: sacking stuffed with straw, a painted target for a face (creatures.js)
+    straw_dummy: { scale: 0.95, skin: '#d8c070', hair: '#e0c878', eye: '#a02a1a', body: '#b0905a', belt: '#7a5a2a', legs: '#9a7a48', arms: '#d8c070', feet: '#6a4a2a', hat: { style: 'wide', color: '#c8a860' } },
+    sparring_dummy: { skin: '#c8a868', hair: '#c8a868', eye: '#3a2a1a', body: '#7a5a3a', belt: '#4a3a2a', legs: '#6a5a3a', arms: '#c8a868', feet: '#4a3a2a', hat: { style: 'helmet', color: '#8a8070' }, held: 'club', shield: '#6a4a2a' },
     skeleton: { skin: '#e6e2d3', hair: '#e6e2d3', eye: '#111', body: '#d6d1c0', belt: '#8a8574', legs: '#d0cbb9', arms: '#d0cbb9', ribs: '#8a8574' },
     king_mogg: { scale: 1.1, skin: '#d4cba8', hair: '#d4cba8', eye: '#70ff50', body: '#5a3a5a', belt: '#d0a030', legs: '#c8bf9c', arms: '#c8bf9c', ribs: '#7a7050', hat: { style: 'crown', color: '#a89a40' }, held: 'sword' }, // King Mogg: a goblin king's bones in a rotten purple robe, a crown gone green
     gnash: { scale: 0.95, skin: '#5a8a34', hair: '#2a1a0a', eye: '#ff4020', body: '#6a2a1a', belt: '#d0a030', legs: '#3a2a1a', arms: '#5a8a34', hat: { style: 'helmet', color: '#8a8070' }, held: 'axe' }, // Chief Gnash

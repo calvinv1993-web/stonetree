@@ -76,6 +76,8 @@ function say(text) {
       asPlayer(p, () => logDialog(from, text, true));
     }
   }
+  // "hi" to someone else, nearer now (in a hall of teachers, from one to the next): the talk moves on to them
+  if (player.conversation && /^(hi|hello|hey|greetings)\b/.test(lower)) { const npc = nearestNpc(); if (npc && npc !== player.conversation.npc) return startConversation(npc); }
   if (!player.conversation) {
     if (/^(hi|hello|hey|greetings)\b/.test(lower)) {
       const npc = nearestNpc();
@@ -326,6 +328,9 @@ function service(s, npc, text) {
   }
   if (s.destiny) return destinyTalk();
   if (s.vocation) return vocationTalk(s.vocation);
+  if (s.paths) return pathsTalk();
+  if (s.trial) return trialTalk(s.trial);
+  if (s.choosePath) return choosePathTalk(s.choosePath);
   if (s.bank) return bankTalk(text);
   if (s.travel) return travelTalk(s.travel);
   if (s.promote) return promoteTalk(s.promote);
@@ -397,23 +402,23 @@ function questTalk(ids, npc, otherwise) {
 }
 
 function destinyTalk() {
-  if (player.vocation !== 'none') return `You already walk the path of the ${player.vocation}.`;
+  if (player.vocation !== 'none') return `You already walk the path of the ${vocName(player.vocation)}.`;
   if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()} (you are level ${player.level}).`;
-  return 'Your path lies before you. Will you be a {knight}, a {paladin}, a {sorcerer} or a {druid}? Ask about each before you decide.';
+  return 'Your path lies before you. Will you be a {Bastion}, a {Hawk}, an {Ember} or a {Grove}? Ask about each before you decide.';
 }
 
 function vocationTalk(v) {
-  if (player.vocation !== 'none') return `You already walk the path of the ${player.vocation}.`;
+  if (player.vocation !== 'none') return `You already walk the path of the ${vocName(player.vocation)}.`;
   // (once there is a mainland, the oracle sends you across the sea; till then you stay, as Oakvale's own)
-  const away = mainlandOpen();
-  return ask(`${VOCATIONS[v].desc} Do you want to become a ${v}? This cannot be undone${away ? ', and you will leave the starter island for good' : ''}. ({yes}/{no})`, () => {
+  const away = mainlandOpen(), name = vocName(v);
+  return ask(`${VOCATIONS[v].desc} Do you want to become ${aVoc(v)}? This cannot be undone${away ? ', and you will leave the starter island for good' : ''}. ({yes}/{no})`, () => {
     if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()}.`;
     chooseVocation(v);
     // the whole isle hears it: the bell rings for the new vocation
-    ringTownBell(away ? `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${v}, who leaves the isle today.`
-      : `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, Oakvale's new ${v}.`);
-    return away ? `So be it, ${v}! I will now send you across the sea to the mainland. Farewell, $name, and may the Dawn light your way.`
-      : `So be it, ${v}! The ship that will take you across the sea has not come yet, $name. Until it does, you are Oakvale's first ${v}: its defender. Guard the bell well - the Choir has not forgotten it.`;
+    ringTownBell(away ? `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${name}, who leaves the isle today.`
+      : `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, Oakvale's new ${name}.`);
+    return away ? `So be it, ${name}! I will now send you across the sea to the mainland. Farewell, $name, and may the Dawn light your way.`
+      : `So be it, ${name}! The ship that will take you across the sea has not come yet, $name. Until it does, you are Oakvale's first ${name}: its defender. Guard the bell well - the Choir has not forgotten it.`;
   }, () => 'Take your time.');
 }
 

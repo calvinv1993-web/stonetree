@@ -65,6 +65,7 @@ function newPlayer(name) {
     huntDay: '', // the real day of your last first-of-the-day watch hunt (its bonus marks: reward.daily, dailyDue)
     guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
     bestiary: {}, // kills of each kind of monster: type -> n (BESTIARY_TIERS in game-combat.js)
+    paths: {}, trial: null, // the Hall of Paths: your stamps ({ knight: true, ... }), and the trial you're in (game-paths.js)
     cosmetics: [], // what you've bought from the watch's stores to wear (COSMETICS in defs.js), worn through your outfit
     pet: null, // a companion that follows you and fights with you: { name, kind, level, xp, hp, mode, ... } (Clang, the temple's cat; game-update.js updatePet)
     born: Math.floor(Math.random() * 36 ** 6).toString(36), // this character's own mark: what a browser keeps for it (its action buttons) starts fresh with a new one of the same name
@@ -1209,7 +1210,7 @@ function removeItem(id, count = 1) {
 function canWear(id) {
   const d = ITEMS[id];
   if (d.level && player.level < d.level) return `You need level ${d.level} to use ${itemName(id)}.`;
-  if (d.vocations && !d.vocations.includes(player.vocation)) return `Only ${d.vocations.join('s and ')}s can use ${itemName(id)}.`;
+  if (d.vocations && !d.vocations.includes(player.vocation)) return `Only ${d.vocations.map(vocName).join('s and ')}s can use ${itemName(id)}.`;
   return null;
 }
 
@@ -1336,6 +1337,7 @@ function useItem(ref) {
   if (d.use) return drink(ref);
   if (d.whistle) return blowWhistle();
   if (d.text) return showText(capitalize(d.name), d.text);
+  if (d.paths) return playerEvent('paths', {});
   if (d.container && ref.root !== 'equip') return playerEvent('openContainer', { ...ref, title: capitalize(d.name) });
   if (d.rune || d.tool || d.key || d.kit) return playerEvent('useWith', { ref, name: d.name });
   if (d.slot && ref.root !== 'equip') return equip(ref, d.slot);
@@ -1491,6 +1493,7 @@ function removePile(pile) {
 
 // ---- skills, experience and levels ------------------------------------------------------
 function addSkillTries(skill, n = 1) {
+  if (player.trial) return; // (a trial is only practice: nothing grows)
   const s = player.skills[skill];
   s.tries += n;
   let need;
@@ -1512,7 +1515,7 @@ function totalArmor() {
   return SLOTS.reduce((sum, slot) => { const it = player.equipment[slot]; return sum + (it ? qualityStat(ITEMS[it.id].armor, it.q) : 0); }, 0);
 }
 
-const title = p => (p.vocation === 'none' ? 'no vocation' : p.promoted ? VOCATIONS[p.vocation].promoted : p.vocation);
+const title = p => (p.vocation === 'none' ? 'no vocation' : p.promoted ? VOCATIONS[p.vocation].promoted : vocName(p.vocation));
 
 function gainXp(amount, shared) {
   player.xp += amount;
@@ -1714,18 +1717,20 @@ function arriveOnMainland() {
   if (away) teleport(map.mainStart);
   for (const [id, n] of VOCATIONS[player.vocation].kit || []) giveItem(id, n);
   addSparkle(player, '#c58cff');
-  log(away ? `You are now a ${player.vocation}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`
-    : `You are now a ${player.vocation}, Oakvale's own! The ship has not come yet: until it does, the isle is yours to defend. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
+  if (map.trialRooms && !away) return log(`You are now ${aVoc(player.vocation)}! Check your bag for a gift from your teacher. The spells you tried come back as you grow: look for them on the spell buttons.`, 'quest'); // (Kestrel Isle: chosen in the Hall of Paths)
+  log(away ? `You are now ${aVoc(player.vocation)}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`
+    : `You are now ${aVoc(player.vocation)}, Oakvale's own! The ship has not come yet: until it does, the isle is yours to defend. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
 }
 
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal', 'paths'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now) };
   for (const f of SAVED_FIELDS) data[f] = p[f];
+  trialSave(p, data); // (never mid-trial: the player as they were before it, back in the hall)
   data.housePiles = piles.filter(pl => p.house && pl.house === p.house).map(pl => ({ x: pl.x, y: pl.y, z: pl.z, items: pl.items }));
   return JSON.parse(JSON.stringify(data));
 }

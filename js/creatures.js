@@ -10,11 +10,23 @@
 // spells: [{ kind: bolt|area|heal|condition, chance, element, dmg, radius, range, condition, power, missile }];
 // summon: { type, max, chance }; flee: run away below this share of health;
 // invisible: hard to see and can't be targeted from afar; plural: the name for more than one, if not name + 's';
+// still: never moves (a practice dummy; a sparring one hits whoever stands next to it); standsUp: comes back even in sight;
+// trial: knocking it down counts for a trial in the Hall of Paths (game-paths.js)
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 // voices: { aggro, low, death }: what it says, once, when it first goes for you, when it's nearly beaten, and as it falls
 // echo: the type that comes back in its place once the bell of Oakvale has been rung home (townBell.first; see spawnMonster);
 // echoOf: (on that echo) whom it echoes: it counts as that one for a quest step told again (again texts, bellAgain)
 const MONSTERS = {
+  // the practice dummies of the Hall of Paths (game-paths.js): they never move (still), stand back up a moment after
+  // they're knocked down, even in sight (standsUp), and give nothing; knocking one down counts for a trial (trial)
+  straw_dummy: {
+    name: 'straw dummy', hp: 45, xp: 0, dmg: [0, 0], defense: 0, armor: 0, speed: 0, attackSpeed: 2000, aggro: 0, corpse: 'none',
+    still: true, standsUp: true, trial: true, respawn: 3000, weak: { fire: 1.3 },
+  },
+  sparring_dummy: { // (it hits back, a little: for a shield to block, and something to heal)
+    name: 'sparring dummy', hp: 70, xp: 0, dmg: [2, 6], defense: 2, armor: 1, speed: 0, attackSpeed: 2000, aggro: 0, corpse: 'none',
+    still: true, standsUp: true, trial: true, respawn: 3000,
+  },
   rat: {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',
     loot: { gold: [0, 4], items: [['cheese', 0.3]] },
@@ -532,6 +544,7 @@ const FIELDS = {
 };
 
 // Gains per level, how fast skills train (lower rate = faster), capacity per level.
+// name: as players see it (Bastion, Hawk, Ember, Grove; the ids are the old names, kept in saves); role: in a few words;
 // regen: [hp, mana] per second while fed. promoted: title after promotion.
 // Companions (a player's pet: player.pet = { name, kind, level, xp, mode }, game-update.js updatePet). Per kind:
 //   look: the creature it's drawn as; hitEvery: ms between its blows; dmg(level): [min, max] a blow;
@@ -558,26 +571,31 @@ const VOCATIONS = {
     rates: { melee: 1.5, distance: 1.5, shielding: 1.5, magic: 3 },
   },
   knight: {
-    name: 'knight', hp: 15, mana: 5, cap: 25, regen: [4, 1], kit: [['chain_armor', 1], ['health_potion', 5]], promoted: 'champion',
+    name: 'Bastion', hp: 15, mana: 5, cap: 25, regen: [4, 1], kit: [['chain_armor', 1], ['health_potion', 5]], promoted: 'champion',
     rates: { melee: 1.1, distance: 1.4, shielding: 1.1, magic: 3 },
-    desc: 'Knights are tough melee fighters with lots of health. They train swords, axes, clubs and shielding fast.',
+    role: 'stands in front and takes the blows', desc: 'A Bastion stands in front and takes the blows, so their friends don\'t have to: lots of health, heavy blows up close, steel and a shield.',
   },
   paladin: {
-    name: 'paladin', hp: 10, mana: 15, cap: 20, regen: [2, 2], kit: [['bow', 1], ['arrow', 80]], promoted: 'warden',
+    name: 'Hawk', hp: 10, mana: 15, cap: 20, regen: [2, 2], kit: [['bow', 1], ['arrow', 80]], promoted: 'warden',
     rates: { melee: 1.2, distance: 1.1, shielding: 1.1, magic: 1.4 },
-    desc: 'Paladins fight from a distance with bows, crossbows and spears, and use some holy magic and healing.',
+    role: 'strikes from afar', desc: 'A Hawk strikes from afar and is never where the enemy is: bows and spears, Power Shot and Triple Shot, critical hits, and a little holy magic.',
   },
   sorcerer: {
-    name: 'sorcerer', hp: 5, mana: 30, cap: 10, regen: [1, 4], kit: [['wand_sparks', 1], ['mana_potion', 5], ['blank_rune', 5]], promoted: 'archmage',
+    name: 'Ember', hp: 5, mana: 30, cap: 10, regen: [1, 4], kit: [['wand_sparks', 1], ['mana_potion', 5], ['blank_rune', 5]], promoted: 'archmage',
     rates: { melee: 2, distance: 2, shielding: 1.5, magic: 1.1 },
-    desc: 'Sorcerers master fire and energy. They have little health, but deal heavy damage with wands, runes and attack spells.',
+    role: 'burns whole packs at once', desc: 'An Ember wields big, bright fire and energy that melts whole packs at once: the most damage of all, but fragile, and done when the mana runs out.',
   },
   druid: {
-    name: 'druid', hp: 5, mana: 30, cap: 10, regen: [1, 4], kit: [['rod_frost', 1], ['mana_potion', 5], ['blank_rune', 5]], promoted: 'hierophant',
+    name: 'Grove', hp: 5, mana: 30, cap: 10, regen: [1, 4], kit: [['rod_frost', 1], ['mana_potion', 5], ['blank_rune', 5]], promoted: 'hierophant',
     rates: { melee: 2, distance: 2, shielding: 1.5, magic: 1.1 },
-    desc: 'Druids master ice and nature and are the best healers. They fight with rods, runes and earth spells.',
+    role: 'keeps everyone alive', desc: 'A Grove keeps everyone alive and bends nature: ice, earth and the best healing. Strongest with friends.',
   },
 };
+
+// A vocation's name as players see it (the ids knight, paladin, sorcerer, druid stay in saves and code).
+function vocName(v) { return (VOCATIONS[v] || VOCATIONS.none).name; }
+// ...and with its article: "a Bastion", "an Ember"
+function aVoc(v) { const n = vocName(v); return `${/^[AEIOU]/.test(n) ? 'an' : 'a'} ${n}`; }
 
 // tries for the next level = base * rate ^ (level - start)
 const SKILLS = {

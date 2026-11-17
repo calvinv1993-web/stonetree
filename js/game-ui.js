@@ -419,7 +419,7 @@ function renderParty() {
   for (const m of v.members || []) {
     list.appendChild(h('div', { className: `party-row${m.dead ? ' dead' : ''}` },
       h('span', { className: 'party-icon', textContent: m.id === v.leader ? '👑' : '🛡', title: m.id === v.leader ? 'leader' : 'member' }),
-      h('span', { className: 'who', textContent: `${m.name} · ${m.level} ${m.vocation === 'none' ? '' : m.vocation}` }),
+      h('span', { className: 'who', textContent: `${m.name} · ${m.level} ${m.vocation === 'none' ? '' : vocName(m.vocation)}` }),
       h('span', { className: 'bars' }, bar(m.hp, m.maxHp), bar(m.mana, m.maxMana))));
   }
   for (const i of v.invited || []) {
@@ -480,7 +480,7 @@ function renderGuild() {
       h('td', { className: m.online ? 'online' : 'offline', textContent: m.online ? '●' : '○', title: m.online ? 'online' : 'offline' }),
       h('td', null, h('b', null, m.name), m.nick ? ` (${m.nick})` : ''),
       h('td', { className: 'muted' }, v.ranks[m.rank]),
-      h('td', { className: 'muted' }, `${m.level} ${m.vocation === 'none' ? '' : m.vocation}`),
+      h('td', { className: 'muted' }, `${m.level} ${m.vocation === 'none' ? '' : vocName(m.vocation)}`),
       acts));
   }
   body.appendChild(table);
@@ -1204,8 +1204,9 @@ function bestiaryBox() {
 // ---- spell bar ---------------------------------------------------------------------------
 // Everything the bar below the map offers: your vocation's spells, potions and food.
 function hotbarEntries() {
-  const list = spellsFor(player.vocation).filter(id => !SPELLS[id].hidden).map((id, i) => {
-    const s = SPELLS[id], locked = player.level < s.level || (s.promoted && !player.promoted);
+  // (in a trial of the Hall of Paths: just its two spells, open at any level)
+  const list = (player.trial ? PATHS[player.trial.voc].spells : spellsFor(player.vocation).filter(id => !SPELLS[id].hidden)).map((id, i) => {
+    const s = SPELLS[id], locked = !player.trial && (player.level < s.level || (s.promoted && !player.promoted));
     const sub = locked ? (s.promoted && !player.promoted ? 'promotion' : `level ${s.level}`) : `${s.mana} mana`;
     return { id, key: i < 9 ? String(i + 1) : '', name: s.name, sub, tip: `${s.desc} Words: "${s.words}"`, act: () => Actions.castSpell(id), locked };
   });
@@ -1270,6 +1271,7 @@ function handleEvents() {
     else if (kind === 'forge') openForge(data.npc);
     else if (kind === 'forged') forgeResult(data);
     else if (kind === 'petName') askPetName(data.name);
+    else if (kind === 'paths') showPaths();
   }
 }
 
@@ -1282,6 +1284,26 @@ function showWindow(heading, body) {
   $('readTitle').textContent = heading;
   $('readText').textContent = body;
   $('read').hidden = false;
+}
+
+// The Book of Paths: the four paths side by side, with the stamps of the trials you've done (game-paths.js)
+function showPaths() {
+  const stamps = player.paths || {};
+  $('pathCards').replaceChildren(...PATH_IDS.map(v => {
+    const P = PATHS[v], card = h('div', { className: `path-card${player.vocation === v ? ' mine' : ''}` },
+      h('h3', {}, vocName(v)), h('p', { className: 'role' }, `${capitalize(VOCATIONS[v].role)}.`),
+      h('p', {}, P.forYou), h('p', {}, h('b', {}, 'Fights with: '), P.weapons),
+      h('p', {}, h('b', {}, 'Strong: '), P.strong), h('p', {}, h('b', {}, 'Weak: '), P.weak),
+      h('p', {}, h('b', {}, 'Teacher: '), NPCS[P.teacher].name));
+    card.style.setProperty('--path', P.colour);
+    if (stamps[v]) card.prepend(h('span', { className: 'stamp' }, 'tried'));
+    return card;
+  }));
+  const n = PATH_IDS.filter(v => stamps[v]).length;
+  $('pathsNote').textContent = player.vocation !== 'none' ? `You walk the path of the ${vocName(player.vocation)}.`
+    : n === 4 ? 'All four tried! Tell the Pathkeeper which one made you grin, and she lets you choose it.'
+      : `Try each path with its teacher in the Hall of Paths (${n} of 4 tried). Once you've tried all four, the Pathkeeper lets you choose: it can't be undone.`;
+  $('paths').hidden = false;
 }
 
 // ---- hotkeys (F1-F12) ------------------------------------------------------------------
@@ -2103,6 +2125,7 @@ function initUI() {
   $('lootClose').addEventListener('click', () => Actions.closePile());
   $('lootAll').addEventListener('click', () => player.openPile && Actions.takeAll(player.openPile.id));
   $('readClose').addEventListener('click', () => { $('read').hidden = true; });
+  $('pathsClose').addEventListener('click', () => { $('paths').hidden = true; });
   $('hotkeysBtn').addEventListener('click', openHotkeys);
   $('guideBtn').addEventListener('click', () => Actions.restartGuide());
   $('hotkeysSave').addEventListener('click', saveHotkeys);
@@ -2171,7 +2194,7 @@ function showCharacterCreation(onDone) {
   const start = document.createElement('select');
   start.id = 'createTest';
   start.add(new Option('Normal start (level 1, with the guide)', ''));
-  for (const v of Object.keys(TEST_HERO_SKILLS)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${v}, best gear`, v));
+  for (const v of Object.keys(TEST_HERO_SKILLS)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
   input.after(start);
   input.focus();
   const done = () => {

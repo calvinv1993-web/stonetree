@@ -7,7 +7,7 @@
 // A keyword's answer is a text, or a service:
 //   { quest: [ids] }         offer / track / reward the first unfinished quest of the chain
 //   { heal: true }           heal the player
-//   { destiny: true }        the Seer's vocation talk; { vocation: 'knight' } chooses one
+//   { destiny: true }        the Seer's vocation talk; { vocation: 'knight' } chooses one (by id: knight is the Bastion)
 //   { bank: true }           deposit <amount|all>, withdraw <amount>, balance
 //   { travel: { name, to: {x, y, z}, cost } }
 //   { promote: { level, cost } }
@@ -20,6 +20,9 @@
 //   { trophy: true }         a smith turns a rare named beast's trophy into gear (trophy in items.js)
 //   { pet: true }            look after the player's companion (fetch it back, heal it)
 //   { rumours: [texts] }     tell one rumour, and the next one each time you ask again (RUMOURS)
+//   { paths: true }          the Pathkeeper: the four paths side by side (the Book of Paths; game-paths.js)
+//   { trial: 'knight' }      a teacher's trial: be that vocation for a while in their practice room
+//   { choosePath: 'knight' } the Pathkeeper about a path, and choosing it once all four trials are done
 //   { citizen: true }        become a citizen of the NPC's town (its home): you wake up in its temple when you die
 // Or { after: 'questId', text, before }: the text once that quest is done (before it: `before`, or the next
 // keyword that matches): what people say changes as the story goes on.
@@ -818,10 +821,10 @@ const NPCS = {
       job: 'I see what others cannot.',
       'dream|prophecy|seal|ember': { quest: ['seal_1'] },
       'destiny|vocation|vocations': { destiny: true },
-      knight: { vocation: 'knight' },
-      paladin: { vocation: 'paladin' },
-      sorcerer: { vocation: 'sorcerer' },
-      druid: { vocation: 'druid' },
+      'bastion|knight': { vocation: 'knight' },
+      'hawk|paladin': { vocation: 'paladin' },
+      'ember|sorcerer': { vocation: 'sorcerer' },
+      'grove|druid': { vocation: 'druid' },
       mainland: 'The mainland is wide and dangerous. Only those who have chosen a vocation may travel there - and nobody who goes ever comes back to this island.',
       'sword|captain|varrow|legend|gull|bell|whistle|wreck|secret': 'I see a blade under a stone that weeps, a bell that rings for nobody, and a whistle nobody blows. Beyond that the sea is silent... or it is laughing at me.',
     },
@@ -873,7 +876,7 @@ const NPCS = {
     name: 'Fletcher Wynn',
     look: { skin: '#f0c090', body: '#3f6a32', arms: '#3f6a32', legs: '#5a4428', belt: '#2a1a0a', hat: { style: 'hood', color: '#355a2a' } },
     greet: 'Bows, arrows, spears - want to {trade}, $name?',
-    keywords: { job: 'I make bows and arrows. Paladins are my best customers.' },
+    keywords: { job: 'I make bows and arrows. Hawks are my best customers.' },
     trade: {
       sells: [['spear', 8], ['bow', 150], ['crossbow', 500], ['arrow', 3], ['bolt', 4], ['ranger_cloak', 450], ['leather_boots', 15]],
       buys: ['distance'],
@@ -885,7 +888,7 @@ const NPCS = {
     greet: 'Ah, $name. Wands, rods, runes and robes - shall we {trade}?',
     keywords: {
       job: 'I study the arcane and sell tools to those who practice it.',
-      'wand|wands|rod|rods': 'Wands are for sorcerers, rods for druids. Each shot costs a little mana.',
+      'wand|wands|rod|rods': 'Wands are for Embers, rods for Groves. Each shot costs a little mana.',
       'rune|runes': 'Runes are spells you can carry. Use one, then click a target. Mages can make their own from blank runes - anyone can buy them from me.',
     },
     trade: {
@@ -2023,6 +2026,65 @@ Object.assign(NPCS, {
     },
     chatter: ['Shoo! Shoo, you brutes!', 'Is that someone over there? Ahoy!', 'Nothing biting but crabs today.'],
   },
+  // ---- the Hall of Paths (Kestrel Isle): the Pathkeeper, and a teacher for each path (game-paths.js) ----
+  pathkeeper: {
+    name: 'Pathkeeper Ilse',
+    look: { skin: '#e8c0a0', hair: '#c8c8c8', body: '#4a3a6a', arms: '#4a3a6a', legs: '#3a2a4a', belt: '#d8b040', robe: true, trim: '#d8b040', hat: { style: 'hood', color: '#3a2a5a' }, held: 'staff' },
+    greet: 'Welcome to the Hall of Paths, $name. Every adventurer walks one of four {paths}. I can tell you about them, and the four teachers here let you try each one.',
+    keywords: {
+      'paths|path|book|vocation|vocations|choose|destiny': { paths: true },
+      'bastion|knight': { choosePath: 'knight' },
+      'hawk|paladin': { choosePath: 'paladin' },
+      'ember|sorcerer': { choosePath: 'sorcerer' },
+      'grove|druid': { choosePath: 'druid' },
+      'teacher|teachers|trial|trials|try': 'Sergeant {Holt} teaches the Bastion, Ranger {Sill} the Hawk, Mistress {Vela} the Ember and Old {Fennick} the Grove. Each one has a practice room below this hall.',
+      holt: 'Sergeant Holt, in the corner by the violet pillar. Loud, but kind.',
+      sill: 'Ranger Sill, by the green pillar. She hardly ever speaks, and never misses.',
+      vela: 'Mistress Vela, by the orange pillar. Don\'t touch her hair. It was singed once.',
+      fennick: 'Old Fennick, by the blue pillar. He has kept this town alive through three winters of fever.',
+      job: 'I keep this hall, and the Book of Paths. Everyone who comes to Kestrel Isle chooses here, sooner or later.',
+    },
+  },
+  holt: {
+    name: 'Sergeant Holt',
+    look: { skin: '#d8a070', hair: '#5a3a1a', beard: '#5a3a1a', body: '#8a8a90', arms: '#d8a070', legs: '#4a3a2a', belt: '#6a2a1a', hat: { style: 'helmet', color: '#9a9aa0' }, held: 'sword', shield: '#8a3a2a' },
+    greet: 'Ha! Fresh blood. I teach the {Bastion}: the one who stands in front. Want a {trial}?',
+    keywords: {
+      'trial|try|practice|bastion|knight': { trial: 'knight' },
+      'circle|throw|spear': 'The Circle Throw: a war spear swung round in front of you, and everything within two tiles feels it. Say "hasta orbis".',
+      job: 'I train the town watch, and anyone with the nerve to stand in front.',
+    },
+  },
+  sill: {
+    name: 'Ranger Sill',
+    look: { skin: '#e8c098', hair: '#8a5a2a', body: '#4a6a3a', arms: '#4a6a3a', legs: '#3a4a2a', belt: '#6a4a2a', hat: { style: 'hood', color: '#3a5a2a' }, held: 'bow' },
+    greet: 'Hm. The {Hawk}. From afar. A {trial}?',
+    keywords: {
+      'trial|try|practice|hawk|paladin': { trial: 'paladin' },
+      'power|shot|triple': 'Power Shot: draw it full, loose it through a whole row. Triple Shot: three, quick. The bow I lend you sees weak spots too.',
+      job: 'Ranger. Arrows. Few words.',
+    },
+  },
+  vela: {
+    name: 'Mistress Vela',
+    look: { skin: '#f0c8a8', hair: '#b03020', body: '#8a2a1a', arms: '#8a2a1a', legs: '#5a1a10', belt: '#e09030', robe: true, trim: '#e09030', held: 'staff' },
+    greet: 'Oh, a new spark! I teach the {Ember}: fire, and lots of it. Shall we have a {trial}?',
+    keywords: {
+      'trial|try|practice|ember|sorcerer': { trial: 'sorcerer' },
+      'fire|bolt|burst|flame': 'Fire Bolt ("ignis") for one, Flame Burst ("ignis orbis") for everyone around you. Mind your mana: it goes quickly.',
+      job: 'I teach young Embers not to burn the town down. Mostly it works.',
+    },
+  },
+  fennick: {
+    name: 'Old Fennick',
+    look: { skin: '#d8b090', hair: '#e0e0d8', beard: '#e0e0d8', body: '#3a6a5a', arms: '#3a6a5a', legs: '#2a4a3a', belt: '#8a6a3a', robe: true, held: 'staff' },
+    greet: 'Ah, welcome, welcome. I teach the {Grove}: ice, earth, and keeping people alive. Would you like a {trial}?',
+    keywords: {
+      'trial|try|practice|grove|druid': { trial: 'druid' },
+      'heal|ice|frost': 'Ice Bolt ("glacies") slows nothing down but your enemy\'s hopes. Greater Heal ("vita major") is the one that matters. Let the sparring dummy hit you, then heal.',
+      job: 'Healer, teacher, and gardener when my knees allow it.',
+    },
+  },
   ama: {
     name: 'Sister Ama',
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
@@ -2069,7 +2131,7 @@ Object.assign(NPCS, {
       spells: 'You learn your first spells as you grow: Torchlight at level 2, Light Heal at level 3. Your {vocation} teaches you more.',
       tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
       'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: knight, paladin, sorcerer or druid. Choose with care: it cannot be undone. The mainland? No ship has come for anyone yet. Until one does, Oakvale needs its own.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: Bastion, Hawk, Ember or Grove. Choose with care: it cannot be undone. The mainland? No ship has come for anyone yet. Until one does, Oakvale needs its own.',
       'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate. The rats there are a good first fight.',
     },
   },
@@ -2086,7 +2148,7 @@ Object.assign(NPCS, {
       'bell|spark|bronze': { after: 'bell_4', text: 'The founders cast the spark of the burning mountain into the bronze of your bell. While it rings, what sleeps under the mountain cannot hear it. When it is silent... the mountain listens.',
         before: 'The bell is Sister Ama\'s care. But I see it in the smoke, silent, and something under a far mountain listening.' },
       galen: { after: 'bell_4', text: 'Galen came up these stairs once, long ago, and asked me what I saw for him. I saw ash. I told him so. I should have said it louder.' },
-      knight: { vocation: 'knight' }, paladin: { vocation: 'paladin' }, sorcerer: { vocation: 'sorcerer' }, druid: { vocation: 'druid' },
+      'bastion|knight': { vocation: 'knight' }, 'hawk|paladin': { vocation: 'paladin' }, 'ember|sorcerer': { vocation: 'sorcerer' }, 'grove|druid': { vocation: 'druid' },
     },
   },
   postmaster: {

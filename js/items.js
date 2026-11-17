@@ -164,7 +164,8 @@ const ITEMS = {
   book_lore:     { name: 'old book', weight: 13, value: 5,
     text: 'Long ago the sea swallowed the old kingdom of the west. Its king refused to drown and still walks the dark below the tides, waiting for someone foolish enough to wake him.' },
   book_guide:    { name: 'adventurer\'s handbook', weight: 13, value: 5,
-    text: 'Knights stand in front and take the blows. Paladins shoot from behind. Sorcerers burn everything, and druids keep everyone alive. Always carry a rope, a shovel and some potions.' },
+    text: 'Bastions stand in front and take the blows. Hawks shoot from behind. Embers burn everything, and Groves keep everyone alive. Always carry a rope, a shovel and some potions.' },
+  book_of_paths: { name: 'Book of Paths', paths: true, weight: 13, value: 0 }, // (the Pathkeeper's: the four paths side by side, and your stamps)
   kit_table:     { name: 'table kit', kit: 'table', value: 20, weight: 70 },
   kit_chair:     { name: 'chair kit', kit: 'chair', value: 10, weight: 30 },
   kit_plant:     { name: 'potted plant', kit: 'plant', value: 15, weight: 50 },

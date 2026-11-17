@@ -714,6 +714,7 @@ function updatePlayer() {
     return;
   }
   if (player.teleportAt && now >= player.teleportAt) arriveOnMainland();
+  trialTick(); // (out of a practice room: out of the trial)
   updateGuide();
   updatePet();
   tickConditions(player);
