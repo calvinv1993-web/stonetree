@@ -33,15 +33,15 @@ const KESTREL_TOWN_ART = [
   "   RRRfffffffff=....=.....===....==....=fffffffffffff.RR    ",
   "     Rfffffffff=ffffffff..===..fffffff.=fffffffffffff.RRR   ",
   "    RRfffffffff=ffffffff..===..fffffff.=fffffff===...RRR    ",
-  "    RRR.....====ffffffff..===..fffffff.=fffffff=....RRR     ",
-  "    RRRR..ffffffffffffff..===..fffffff.=========....RR      ",
-  "      RR..ffffffffffffff..===..fffffff.............RRR      ",
-  "      RRR.ffffffffffffff..===..fffffff.......t...RRR        ",
-  "      RRR.ffffff..........===...................RR          ",
-  "      RRRRffffff..........===.................RRR           ",
-  "        RRRR...........t..===..............##RRR            ",
-  "          RRRRRR..........===..........#####                ",
-  "              RR#######...===..#########                    ",
+  "    RRR..ffffff=ffffffff..===..fffffff.=fffffff=....RRR     ",
+  "    RRRR.ffffff=ffffffff..===..fffffff.=========....RR      ",
+  "      RR.ffffff=ffffffff..===..fffffff.............RRR      ",
+  "      RRRffffff.ffffffff..===..fffffff.......t...RRR        ",
+  "      RRRffffff.....=========ffffffffffffffff...RR          ",
+  "      RRRR..fffffffffffff.===ffffffffffffffff.RRR           ",
+  "        RRRRfffffffffffff.===ffffffffffffffffRRR            ",
+  "          RRfffffffffffff.===ffffffffffffffff               ",
+  "            fffffffffffff.===fffffff                        ",
   "            ==================================              ",
   "            ==================================              ",
   "~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~",
@@ -74,7 +74,7 @@ const KESTREL = {
   },
   // the town's buildings (town-art coordinates): boxes (outer walls), the door, what kind (it decides the furniture),
   // floors, and stairs up ([x, y] on each floor but the top, down again from the tile east of it)
-  buildings: [
+  buildings: [ // (the harbour's three close the town's south side: no wall needed)
     { name: 'Temple', boxes: [[20,  3,  34,  10],  [25,  1,  29,  3]], door: [27,  10], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
     { name: 'Bell tower', boxes: [[35,  4,  39,  9]], door: [37,  9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
     { name: 'Hall of Paths', boxes: [[40,  4,  49,  11]], door: [45,  11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
@@ -83,9 +83,12 @@ const KESTREL = {
     { name: 'Inn: The Cracked Bell', boxes: [[6,  19,  14,  25]], door: [14,  22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
     { name: 'Smithy', boxes: [[16,  24,  23,  29]], door: [20,  24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
     { name: 'Healer', boxes: [[31,  24,  37,  29]], door: [34,  24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
-    { name: 'House', boxes: [[10,  27,  15,  31]], door: [12,  27], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[9,  26,  14,  30]], door: [14,  28], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'House', boxes: [[40,  21,  46,  26]], door: [40,  23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'House', boxes: [[47,  19,  52,  24]], door: [49,  24], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'Warehouse', boxes: [[12,  31,  24,  34]], door: [20,  31], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Harbour master', boxes: [[29,  30,  35,  34]], door: [32,  34], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
+    { name: 'Fishmonger', boxes: [[36,  30,  44,  33]], door: [40,  33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
   ],
   // the sign beside each door (by kind), and what it says when you look at it
   signs: {
@@ -128,7 +131,7 @@ const KESTREL = {
   },
   // out in the town (town-art coordinates)
   outside: [[27, 16, 'fountain_nw'], [28, 16, 'fountain_ne'], [27, 17, 'fountain_sw'], [28, 17, 'fountain_se'], [24, 15, 'bench'], [31, 15, 'bench'],
-    [19, 15, 'stall'], [35, 19, 'stall'], [21, 20, 'stall'], [14, 35, 'barrel'], [15, 35, 'crate'], [33, 35, 'barrel'], [41, 36, 'sack'], [24, 38, 'boat'], [36, 38, 'boat']],
+    [19, 15, 'stall'], [35, 19, 'stall'], [21, 20, 'stall'], [13, 35, 'barrel'], [14, 35, 'crate'], [46, 35, 'barrel'], [45, 36, 'sack'], [24, 38, 'boat'], [36, 38, 'boat']],
 };
 
 // (in the preview, Clang can be rescued from the start: on the old island he came after The Silent Bell I)

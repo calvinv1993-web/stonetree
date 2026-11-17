@@ -191,6 +191,7 @@ const Render = {
         if (cy > cy0 - r && cy < cy1 + r && cx > cx0 - r && cx < cx1 + r) continue; // (the ring only)
         if (performance.now() >= Render.budget) return false;
         const k = keep.get(`${z}:${cx}:${cy}`);
+        if ((!k || k.made < PARTS) && Render.pictures + 1 > Render.CHUNKS_KEPT) return true; // (no room for more ahead: as far as it goes - not "not yet", or a jump's loading screen waits for it to its very end)
         if ((!k || k.made < PARTS) && !chunk(cx, cy, true)) return false;
       }
       return true; // all made
