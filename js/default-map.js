@@ -769,6 +769,8 @@ const DISCOVERY = {
 };
 
 function createDefaultMap() {
+  // (the new world, Kestrel Isle, played as a preview: index.html?world=kestrel; see js/world-kestrel.js)
+  if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeof createKestrelMap === 'function') return createKestrelMap();
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;
   const m = new GameMap(W, H, D, S);
   const d = ISLE_DESIGN;

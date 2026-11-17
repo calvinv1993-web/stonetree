@@ -97,6 +97,7 @@
       box.textContent = 'Map editor error: ' + message + (event.filename ? ' (' + event.filename.split('/').pop() + ':' + event.lineno + ')' : '');
     });
   </script>
+  <script>var WORLD_PREVIEW = new URLSearchParams(location.search).get('world'); // (the new world in the editor: ?world=kestrel)</script>
   <script src="js/defs.js?v=ui359"></script>
   <script src="js/items.js?v=ui359"></script>
   <script src="js/creatures.js?v=ui359"></script>
@@ -107,6 +108,7 @@
   <script src="sprites/baked-ground.js?v=ui359"></script>
   <script src="js/sprites.js?v=ui359"></script>
   <script src="js/map.js?v=ui359"></script>
+  <script src="js/world-kestrel.js?v=ui359"></script>
   <script src="js/default-map.js?v=ui359"></script>
   <script src="js/render.js?v=ui359"></script>
   <script src="js/editor.js?v=ui359"></script>

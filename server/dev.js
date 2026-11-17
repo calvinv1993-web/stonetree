@@ -14,7 +14,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 // The files the server runs (see server.js); the rest of js/ only matters to pages.
-const LOGIC = /^(defs|items|creatures|npcs|data|map|default-map|game-core|game-combat|game-npc|game-social|game-forge|game-guide|game-tales|game-gates|game-update)\.js$/;
+const LOGIC = /^(defs|items|creatures|npcs|data|map|world-kestrel|default-map|game-core|game-combat|game-npc|game-social|game-forge|game-guide|game-tales|game-gates|game-update)\.js$/;
 let child = null, restarting = false, timer = null;
 
 function start() {

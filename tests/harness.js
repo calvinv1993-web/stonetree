@@ -8,7 +8,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const LOGIC_FILES = [
-  'defs', 'items', 'creatures', 'npcs', 'data', 'map', 'default-map',
+  'defs', 'items', 'creatures', 'npcs', 'data', 'map', 'world-kestrel', 'default-map',
   'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-tales', 'game-gates', 'game-update',
 ];
 
@@ -89,7 +89,7 @@ function loadGame({ seed = 1 } = {}) {
     get pendingHits() { return pendingHits; },
     DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
-    physicalMax, physicalHit, blocked, FIGHT_MODES, wantsTestSpear,
+    physicalMax, physicalHit, blocked, FIGHT_MODES, wantsTestSpear, KESTREL_TOWN,
     RARE_KIN, RARE_CHANCE, BESTIARY_TIERS, COSMETICS, bestiaryTier, bestiaryBonus, withBestiary,
   })`, ctx);
 

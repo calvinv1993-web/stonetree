@@ -9,7 +9,7 @@
 
 let VIEW_W = 15, VIEW_H = 11; // visible tiles (phones change this to fit their screen)
 const SCALE = 2;                 // canvas pixels per world pixel
-const SAVE_KEY = 'tilequest.save.v3';
+const SAVE_KEY = typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW ? `tilequest.save.preview.${WORLD_PREVIEW}` : 'tilequest.save.v3'; // (a preview of another world keeps its own save)
 
 // An editor map in this browser is played instead of the built-in world, but only one made from the built-in world
 // as it is now: one made from an older version would bring the old world back (the editor offers to update it).
