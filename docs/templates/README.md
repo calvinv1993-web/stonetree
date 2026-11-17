@@ -14,6 +14,7 @@ sheet came back scaled. Every sheet carries the style card (the founder's statue
 | `front.png` | anything standing, from its front only | straight on; `tests/front-to-thing.py` stands it up and builds its top and east side from it, as a block |
 | `ground-border.png` | a ground and its ragged edge, painted as one | the square from above and its edge strip; `tests/install-ground-border.py <filled> <id>` puts in both |
 | `item.png` | items | the item alone |
+| `kerb.png` | the stone kerb along a street where it meets grass | a straight row of kerb stones from above, the street below it see-through; the game lays it along every street edge |
 
 `tests/make-templates.py` draws the sheets again (after the style card changes).
 
