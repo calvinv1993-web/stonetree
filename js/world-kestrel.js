@@ -140,6 +140,17 @@ const KESTREL = {
     { name: 'Harbour master', boxes: [[60, 63, 65, 69]], door: [62, 69], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
     { name: 'Boat shed', boxes: [[68, 63, 76, 69]], door: [72, 69], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
   ],
+  // the sign beside each door (by kind), and what it says when you look at it
+  signs: {
+    temple: ['sign_temple', 'The Temple of the Bell. You wake here when you come to Kestrel Isle, and again whenever you die. Nobody can fight inside a temple.'],
+    tower: ['sign_temple', 'The Bell Tower of Bellhaven, the highest point of the town. Climb it, and the whole isle lies below you.'],
+    hall: ['sign_school', 'The Hall of Paths. Four paths, four teachers: come and try them all before you choose.'],
+    depot: ['sign_depot', 'Depot. Put things in a locker to keep them safe: your locker is yours for good.'],
+    smithy: ['sign_weapons', 'The smithy. Weapons made and mended.'], shop: ['sign_armour', 'Arms and armour, bought and sold.'],
+    store: ['sign_tools', 'General store: rope, shovels, food, backpacks, all you need out there.'], bakery: ['sign_food', 'The bakery. Fresh bread every morning.'],
+    healer: ['sign_magic', 'The healer. Potions, and a bed when you need one.'], inn: ['sign_inn', 'The Cracked Bell: food, drink and a bed.'],
+    fish: ['sign_food', 'Fresh fish, caught this morning in the bay.'], office: ['sign_wall', 'The harbour master. Ships to the mainland - when you are ready.'],
+  },
   // what goes inside, by kind: things set along the walls (away from the door), in turn
   furnish: {
     temple: [], tower: [], hall: ['bookshelf', 'bookshelf', 'pillar_terracotta', 'pillar_emerald', 'pillar_royalblue', 'pillar_amethyst', 'plant'],
@@ -292,6 +303,11 @@ function createKestrelMap() {
     const list = K.furnish[b.kind] || [];
     byWall.sort((a, c) => (a[1] - c[1]) || (a[0] - c[0]));
     list.forEach((id, i) => { const p = byWall[Math.floor(i * byWall.length / Math.max(1, list.length))]; if (p) { const t = T(p[0], p[1], Z); if (!t.items.length) t.items.push(id); if (id === 'bed_head') { const f = T(p[0], p[1] + 1, Z); if (f && !f.items.length && inner.some(([a, c]) => a === p[0] && c === p[1] + 1)) f.items.push('bed_foot'); else t.items = ['chest']; } } });
+    // its sign on the wall beside the door; window boxes under the windows of the houses; banners either side of the temple's door
+    const beside = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [b.door[0] + dx, b.door[1] + dy]).filter(([x, y]) => rim(x, y) && T(x, y, Z).items.includes(b.wall));
+    if (K.signs[b.kind] && beside.length) { const [x, y] = beside[0], [id, text] = K.signs[b.kind], t = T(x, y, Z); t.items = [b.wall, id]; m.setMeta(OX + TX + x, OY + TY + y, Z, { text }); }
+    if (b.kind === 'temple') for (const [x, y] of beside) T(x, y, Z).items.push('banner');
+    if (b.kind === 'house') for (const [x, y] of tiles) { const t = T(x, y, Z); if (t.items.includes('window')) t.items.push('window_box'); }
     if (b.kind === 'temple') { // the temple: an altar in its apse, saints, pews either side of a carpet up the aisle; you wake here
       const [x0, y0, x1, y1] = b.boxes[0], mid = b.door[0];
       T(mid, b.boxes[1][1] + 1, Z).items.push('altar');
@@ -350,6 +366,41 @@ function createKestrelMap() {
   road([[129, 65], [118, 50], [100, 40]]); road([[129, 65], [150, 58], [160, 60]]);
   road([[62, 105], [50, 90], [45, 74]]); road([[62, 105], [45, 118], [38, 126]]); road([[62, 110], [58, 140], [55, 168]]);
   road([[136, 101], [155, 108], [166, 114]]); road([[136, 104], [150, 130], [170, 158], [180, 164]]);
+
+  // ---- the last touches, checked over the whole town (tests/unit.test.js and an audit look for these) ----
+  {
+    const town = (x, y) => x >= TX && x < TX + 100 && y >= TY && y < TY + 76;
+    const road = t => t && ['cobble', 'dirt', 'paving', 'gravel', 'bridge_ew'].includes(t.ground);
+    const walled = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([dx, dy]) => (at(x + dx, y + dy) || { items: [] }).items.some(i => /^wall_|^window|^door/.test(i)));
+    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) {
+      const t = at(x, y);
+      if (!t) continue;
+      // no tree or bush grows against a wall (its crown would grow into the wall or the roof)
+      if (t.items.some(i => ['tree', 'pine', 'bush'].includes(i)) && walled(x, y)) t.items = [];
+      // no lone tile of grass in the middle of a road: it's road too
+      const decor = t.items.every(i => ['flowers', 'grass_tuft', 'tallgrass'].includes(i));
+      if (t.ground === 'grass' && decor) { const r = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => at(x + dx, y + dy)).filter(road); if (r.length >= 3) { t.ground = (r.find(o => o.ground !== 'bridge_ew') || { ground: 'dirt' }).ground; t.items = []; } }
+    }
+    // ground in town nobody can walk to (hollows shut in by the ridge's rocks) grows over: a thicket
+    let seen;
+    const reach = () => { seen = new Set(); const todo = [[TX + 45, TY + 25]]; seen.add(todo[0].join());
+    while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`, t = at(x + dx, y + dy); if (seen.has(k) || !t || !town(x + dx, y + dy)) continue; if (!m.isWalkable(OX + x + dx, OY + y + dy, S) && !t.items.some(i => /^door|grate|steps/.test(i))) continue; seen.add(k); todo.push([x + dx, y + dy]); } }
+    };
+    reach();
+    // street lamps along every street, so no stretch of it is dark at night: on the verge, never in a doorway
+    const lamps = [];
+    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) if ((at(x, y) || { items: [] }).items.includes('lamppost')) lamps.push([x, y]);
+    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) {
+      if (!road(at(x, y)) || !seen.has(`${x},${y}`) || lamps.some(([a, b]) => Math.hypot(a - x, b - y) <= 6)) continue;
+      const spot = [[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]].map(([dx, dy]) => [x + dx, y + dy]).find(([a, b]) => {
+        const t = at(a, b); return t && t.ground === 'grass' && !t.items.length && !walled(a, b) && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => (at(a + dx, b + dy) || { items: [] }).items.some(i => /^door|grate|steps/.test(i)));
+      });
+      if (spot) { at(...spot).items = ['lamppost']; lamps.push(spot); }
+    }
+    // (and if a lamp shut a corner in, that corner grows over too)
+    reach();
+    for (let y = TY; y < TY + 76; y++) for (let x = TX + 13; x < TX + 87; x++) { const t = at(x, y); if (t && ['grass', 'dirt'].includes(t.ground) && t.items.every(i => ['flowers', 'grass_tuft', 'tallgrass'].includes(i)) && !seen.has(`${x},${y}`) && m.isWalkable(OX + x, OY + y, S)) t.items = [hash(x, y, 61) < 0.5 ? 'bush' : 'tree']; }
+  }
 
   // ---- the game: animals out in the wilds, spread over each region ----
   for (const [key, R] of Object.entries(K.regions)) for (const [type, n] of R.game) for (let i = 0, k = 0; i < n && k < n * 40; k++) {
