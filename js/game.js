@@ -700,13 +700,17 @@ function drawPowerShot(fx, ox, oy) {
       ctx.strokeStyle = g; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(t0, 0); ctx.lineTo(hx - 6, 0); ctx.stroke();
     };
     beam(5, PS_AMBER, 0.55); beam(2.8, PS_GOLD, 0.95);
-    // ribbons curving round the beam behind the head, thin, waving a little
-    for (const [side, lift, w] of [[1, 9, 1.3], [-1, 8, 1.3], [1, 14, 0.8]]) {
-      const g = ctx.createLinearGradient(hx - tail, 0, hx - 4, 0);
-      g.addColorStop(0, `rgba(${PS_GOLD},0)`); g.addColorStop(1, `rgba(${PS_GOLD},0.75)`);
+    // round the head, a crescent of light bowed out just ahead of its tip (the air it parts), and from its two horns
+    // thin ribbons sweeping back along the beam, waving a little
+    const CR = 17, cx0 = hx - 1, horn = 1.15, hxh = cx0 + Math.cos(horn) * CR, hyh = Math.sin(horn) * CR;
+    ctx.strokeStyle = `rgba(${PS_GOLD},0.85)`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx0, 0, CR, -horn, horn); ctx.stroke();
+    for (const side of [-1, 1]) for (const [lift, back, w, o] of [[22, 46, 1.6, 0.8], [30, 34, 1, 0.55], [12, 58, 1, 0.5]]) {
+      const ex2 = hx - back, wave = side * lift * (0.88 + 0.12 * Math.sin(r / 60 + lift));
+      const g = ctx.createLinearGradient(hxh, 0, ex2, 0);
+      g.addColorStop(0, `rgba(${PS_GOLD},${o})`); g.addColorStop(1, `rgba(${PS_GOLD},0)`);
       ctx.strokeStyle = g; ctx.lineWidth = w;
-      const wave = side * lift * (0.85 + 0.15 * Math.sin(r / 70 + lift));
-      ctx.beginPath(); ctx.moveTo(hx - 5, side * 1.5); ctx.quadraticCurveTo(hx - tail * 0.4, wave, hx - tail * 0.95, side * lift * 0.35); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hxh, side * hyh); ctx.quadraticCurveTo(hx - back * 0.3, wave, ex2, side * lift * 0.3); ctx.stroke();
     }
     ctx.globalCompositeOperation = 'lighter';
     beam(1.3, PS_CORE, 0.9);
