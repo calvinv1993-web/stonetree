@@ -390,21 +390,25 @@ function drawPowerGround(g, ox, oy, z) {
       // the ring itself a band of light: white on its inside edge, through the shot's gold to amber on its outside,
       // softened a hair so no pixels show: both its edges fade out over a pixel or two (a soft edge in the gradient,
       // not a blur filter: a filter on the canvas costs far too much on a phone)
-      const w = 4 + 2 * k, inner = R - w - 1.5, outer = R + 1.5, at = v => (v - inner) / (outer - inner);
+      const w = 2.5 + 1 * k, inner = R - w - 0.6, outer = R + 0.6, at = v => (v - inner) / (outer - inner); // (a narrow band, crisp)
       const band = g.createRadialGradient(0, 0, inner, 0, 0, outer);
       band.addColorStop(0, 'rgba(255,255,255,0)'); band.addColorStop(at(R - w), `rgba(255,255,255,${0.55 + 0.4 * k})`);
       band.addColorStop(at(R - w * 0.65), `rgba(${PS_CORE},${0.5 + 0.4 * k})`); band.addColorStop(at(R - w * 0.3), `rgba(${PS_GOLD},${0.45 + 0.4 * k})`);
       band.addColorStop(at(R), `rgba(${PS_AMBER},${0.35 + 0.4 * k})`); band.addColorStop(1, `rgba(${PS_AMBER},0)`);
       g.fillStyle = band; g.beginPath(); g.arc(0, 0, outer, 0, Math.PI * 2); g.arc(0, 0, inner, 0, Math.PI * 2, true); g.fill('evenodd');
-      g.save(); g.rotate(e / 380);
-      g.strokeStyle = `rgba(${PS_CORE},${0.25 + 0.6 * k})`; g.lineWidth = 2;
-      for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.moveTo(Math.cos(a) * R * 0.72, Math.sin(a) * R * 0.72); g.lineTo(Math.cos(a + 0.18) * R * 0.9, Math.sin(a + 0.18) * R * 0.9); g.stroke(); } // (runes)
-      g.restore(); g.rotate(-e / 260);
-      g.setLineDash([4, 5]); g.strokeStyle = `rgba(${PS_AMBER},${0.2 + 0.5 * k})`; g.lineWidth = 1.5;
-      g.beginPath(); g.arc(0, 0, R * 0.55, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+      g.globalCompositeOperation = 'source-over'; // (a fine amber line round its outside: a clean edge on any ground)
+      g.strokeStyle = `rgba(${PS_AMBER},${0.35 + 0.5 * k})`; g.lineWidth = 0.9;
+      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.stroke();
+      g.globalCompositeOperation = 'lighter';
+      g.save(); g.rotate(e / 380); // (eight fine marks turning just inside it)
+      g.strokeStyle = `rgba(${PS_CORE},${0.3 + 0.6 * k})`; g.lineWidth = 1.1;
+      g.beginPath();
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.moveTo(Math.cos(a) * (R - w - 2.5), Math.sin(a) * (R - w - 2.5)); g.arc(0, 0, R - w - 2.5, a, a + 0.32); }
+      g.stroke();
+      g.restore();
     } else if (e - fx.charge < 320) {
       const f = (e - fx.charge) / 320;
-      g.strokeStyle = `rgba(${PS_GOLD},${0.7 * (1 - f)})`; g.lineWidth = 3 * (1 - f) + 0.5;
+      g.strokeStyle = `rgba(${PS_GOLD},${0.8 * (1 - f)})`; g.lineWidth = 1.6 * (1 - f) + 0.5;
       g.beginPath(); g.ellipse(cx, cy, 10 + 40 * f, (10 + 40 * f) * 0.45, 0, 0, Math.PI * 2); g.stroke();
     }
     g.restore();
