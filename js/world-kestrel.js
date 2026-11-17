@@ -270,20 +270,22 @@ function createKestrelMap() {
     if (ch === 'R') { // rock: away from the town's ground, now and then a second step up (the hill rising, not a flat rim)
       set(x, y, S, 'mountain', ['cliff']);
       const byTown = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => '._=:f#tsrhux~p'.includes(artAt(ax + dx, ay + dy)) && artAt(ax + dx, ay + dy) !== ' ');
-      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'rock_top'); } else set(x, y, Z1, 'rock_top');
+      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'grass'); } else set(x, y, Z1, 'grass'); // (the town's rocks green on top)
+      const top = at(x, y, at(x, y, Z1 + 1) ? Z1 + 1 : Z1), r = hash(x, y, 79);
+      if (top) top.items = r < 0.06 ? ['bush'] : r < 0.11 ? ['flowers'] : r < 0.16 ? ['grass_tuft'] : r < 0.18 ? ['rock'] : [];
       continue;
     }
     if (ch === 'h' || ch === 'u' || onHigh(ax, ay)) { // the higher rock: cliffs two floors tall, grass on top; its steps up from the terrace
       plateau.add(`${x},${y}`);
       set(x, y, S, 'mountain', ['cliff']);
       set(x, y, Z1, 'mountain', ch === 'u' ? ['steps'] : ['cliff']);
-      set(x, y, Z1 + 1, ch === 'u' ? 'steps_top' : K.templeWalk(ax, ay, 2) ? 'paving' : 'rock_top'); // (rugged rock up there, a paved forecourt)
+      set(x, y, Z1 + 1, ch === 'u' ? 'steps_top' : K.templeWalk(ax, ay, 2) ? 'paving' : 'grass'); // (green up there, a paved forecourt)
       continue;
     }
     if (ch === 'r' || ch === 'x' || ch === 's' || onRock(ax, ay)) {
       plateau.add(`${x},${y}`);
       set(x, y, S, 'mountain', ['cliff']);
-      set(x, y, Z1, K.templeWalk(ax, ay, 1) ? 'paving' : K.graveyard(ax, ay) || ch === 'x' ? 'grass' : 'rock_top', ch === 'x' ? ['gravestone'] : []); // (a rugged hill, a paved walk over it, grass round the graves)
+      set(x, y, Z1, K.templeWalk(ax, ay, 1) ? 'paving' : 'grass', ch === 'x' ? ['gravestone'] : []); // (a green hill, only the walk down it paved)
       if (ch === 's') { set(x, y, S, 'mountain', ['steps']); set(x, y, Z1, 'steps_top'); }
       continue;
     }
