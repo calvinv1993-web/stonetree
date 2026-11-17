@@ -2026,6 +2026,47 @@ Object.assign(NPCS, {
     },
     chatter: ['Shoo! Shoo, you brutes!', 'Is that someone over there? Ahoy!', 'Nothing biting but crabs today.'],
   },
+  // ---- Bellhaven (Kestrel Isle): the gates' watch, the market, the harbour ----
+  bell_guard: {
+    name: 'Gate Warden', idle: 3000,
+    look: { skin: '#d8a878', hair: '#4a3020', body: '#2a4a7a', arms: '#a8aeb8', armor: '#a8aeb8', tabard: '#2a4a7a', legs: '#3a3a42', feet: '#2a2a2a', belt: '#5a3a1a', hat: { style: 'helmet', color: '#9aa0aa' }, held: 'sword', shield: '#2a4a7a' },
+    greet: 'Halt - ah, one of ours. Welcome back to Bellhaven, $name. You are safe inside the gates. Need {directions}, or news of the {wilds}?',
+    keywords: {
+      job: 'I keep the gate. Whatever comes down this road meets me first.',
+      'directions|town|temple|depot|shop|square': 'Straight on to the courtyard: the temple stands on its rock above it, the depot and the shops all round it. The harbour is down the main street, past the fountain.',
+      'wilds|dangers|monsters|hunt|hunting': 'Rabbits and the odd rat close to the walls - easy pickings. Wolves and spiders in the Old Wood to the west: go in pairs. And keep away from the peaks for now.',
+      'safe|safety': 'Nothing gets past us. Inside the gates you can rest easy.',
+    },
+    chatter: ['All quiet on the road.', 'Mind the wolves out there.', 'Welcome home.', 'Gate\'s open. Move along.'],
+  },
+  bell_market: {
+    name: 'Marta the Grocer', idle: 4000,
+    look: { skin: '#f0c8a0', hair: '#8a4a2a', hairStyle: 'long', female: true, body: '#b05a3a', arms: '#b05a3a', legs: '#6a4a2a', feet: '#3a2a1a', belt: '#e8d8a0', robe: true, trim: '#e8d8a0', hat: { style: 'wide', color: '#d8c890', accent: '#b05a3a' } },
+    greet: 'Fresh from the fields this morning, $name! Have a look: let\'s {trade}.',
+    keywords: { job: 'I sell what the farms grow and the boats bring in. Food for the road, mostly.', 'food|apple|bread': 'Eat before you go out. A full stomach heals you twice as fast.' },
+    trade: { sells: [['apple', 2], ['bread', 4], ['fish', 4], ['cheese', 5]], buys: ['loot'] },
+    chatter: ['Apples! Crisp apples!', 'Fresh bread, still warm!', 'Fish from the bay, caught this morning!'],
+  },
+  bell_harbour: {
+    name: 'Harbour Master Quill', idle: 6000,
+    look: { skin: '#d8a070', hair: '#c8c8c8', beard: '#c8c8c8', body: '#2a3a5a', arms: '#2a3a5a', legs: '#2a2a3a', feet: '#1a1a1a', belt: '#c8a040', hat: { style: 'tricorn', color: '#1a2030' } },
+    greet: 'Ahoy, $name. This is my harbour. Ask me about the {ship}, or the {bay}.',
+    keywords: {
+      job: 'I keep the harbour: who comes, who goes, what they carry, and what they owe.',
+      'ship|mainland|sail|boat': 'The ship to the mainland comes for those who are ready - when you have walked your path a while. Not before.',
+      'bay|fish|sea': 'The bay keeps the town fed. The fishermen go out at dawn and come back with the gulls.',
+      'tower|lookout|upstairs': 'Climb my tower if you like: from the top you see the whole bay, and the ship long before she docks.',
+    },
+    chatter: ['Ropes coiled, crates stacked. Good.', 'Wind\'s from the west today.', 'No ship yet.'],
+  },
+  bell_fisher: {
+    name: 'Old Tam', idle: 7000,
+    look: { skin: '#d8a070', hair: '#6a6a6a', beard: '#6a6a6a', body: '#3a5a7a', arms: '#3a5a7a', legs: '#4a4a3a', feet: '#2a2a2a', belt: '#5a3a1a', hat: { style: 'hood', color: '#d8c070' } },
+    greet: 'Shh, the fish are listening. Fish for sale, though. Let\'s {trade}.',
+    keywords: { job: 'Fishing. Fifty years of it.', 'sea|bay': 'The bay is kind. Out past the point it isn\'t.' },
+    trade: { sells: [['fish', 4]], buys: ['loot'] },
+    chatter: ['Biting today, they are.', 'This one was THIS big!', 'Smell that sea air.'],
+  },
   // ---- the Hall of Paths (Kestrel Isle): the Pathkeeper, and a teacher for each path (game-paths.js) ----
   pathkeeper: {
     name: 'Pathkeeper Ilse',

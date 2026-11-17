@@ -1780,6 +1780,7 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
     assert(m.isWalkable(sx + 1, sy, SZ) && m.isWalkable(sx, sy, m.surfaceZ), `${b.name}: open floor at both ends of its stairs`);
   }
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
+  for (const n of m.npcs) assert(m.isWalkable(n.x, n.y, n.z), `${n.type} stands on open ground at ${n.x},${n.y},${n.z}`);
 });
 
 test('Kestrel Isle: how far things are from the courtyard, walking at level 1 (shops under 30 s, the gates 20-45 s, the first monsters 30-60 s)', () => {
