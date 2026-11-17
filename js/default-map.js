@@ -1367,6 +1367,23 @@ function tidyWorld(m, S) {
     if (!g || g.ground !== 'grass' || !wallAt(x - 1, y) || !wallAt(x + 1, y)) continue; // (a narrow strip between two walls)
     for (let k = 1, up; (up = bare(x, y - k)) && (k === 1 || wallAt(x - 1, y - k) || wallAt(x + 1, y - k)); k++) up.ground = 'grass';
   }
+  // ...and round a building's outer corner beside such grass: a wall stands along the south and east edge of its tile, so
+  // at a corner with no roof over it (the north-east or north-west one) the rest of the tile is outside, and the wall
+  // rises over the tile north of it: paving left there shows as a notch between the wall and the grass. Both grow grass,
+  // the one to the north where the grass beside it runs on north too.
+  const thinAt = (x, y) => (m.get(x, y, S) || { items: [] }).items.some(id => THINGS[id].wall === 'thin');
+  const roofedAt = (x, y) => { const up = m.get(x, y, S + 1); return !!(up && up.ground && THINGS[up.ground].roof); };
+  for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
+    const t = m.get(x, y, S);
+    if (!t || t.ground !== 'cobble' || !thinAt(x, y) || thinAt(x, y - 1) || roofedAt(x, y)) continue;
+    const grass = (dx, dy = 0) => (m.get(x + dx, y + dy, S) || {}).ground === 'grass' && !thinAt(x + dx, y + dy);
+    for (const dx of [1, -1]) {
+      if (!grass(dx)) continue;
+      t.ground = 'grass';
+      const north = bare(x, y - 1);
+      if (north && grass(dx, -1)) north.ground = 'grass';
+    }
+  }
 }
 
 // Builds the places of Oakvale Isle's hidden quests (see DISCOVERY): Fisher's Rest with its hut and jetty, the sea cave,
