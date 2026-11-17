@@ -433,7 +433,7 @@ const THINGS = {
   // tunnels under Goblin Hill) and Old Wim's ring (under the town well).
   qchest_watchman: {
     name: 'watchman\'s chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'watchman_greaves', quest: 'watchman_greaves', xp: 600, gold: 40, items: [['watchman_greaves', 1], ['health_potion', 2]], guard: 'watchman_shade',
+    chest: { flag: 'watchman_greaves', xp: 200, gold: 40, items: [['watchman_greaves', 1], ['health_potion', 2]], guard: 'watchman_shade',
       guarded: 'A cold hand closes round your wrist. The watchman\'s shade will not let you near his chest.',
       empty: 'The watchman\'s chest is empty. Up the hill, the wind whistles through the old tower.' },
   },
@@ -442,14 +442,14 @@ const THINGS = {
   web_ash:     { name: 'burnt web', cat: 'Nature', sprite: 'nest_burnt' },
   qchest_weaver_helm: {
     name: 'a silk-wrapped bundle', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'weaver_helm', quest: 'weaver_helm', xp: 950, gold: 130, items: [['weaver_helm', 1], ['health_potion', 2]], guard: 'old_weaver',
+    chest: { flag: 'weaver_helm', quest: 'weaver_helm', xp: 475, gold: 130, items: [['weaver_helm', 1], ['health_potion', 2]], guard: 'old_weaver',
       guarded: 'Threads tighten round your hand. The Old Weaver is not done with what she caught.',
       empty: 'Only dry husks and old silk are left in the bundle.' },
   },
   // The Smugglers' Shield: the caves under Lighthouse Point (SEA_CAVES in default-map.js)
   qchest_smuggler_shield: {
     name: 'smugglers\' chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'smuggler_shield', quest: 'smuggler_shield', xp: 800, gold: 110, items: [['smuggler_shield', 1], ['health_potion', 2]], guard: 'saltjaw',
+    chest: { flag: 'smuggler_shield', quest: 'smuggler_shield', xp: 400, gold: 110, items: [['smuggler_shield', 1], ['health_potion', 2]], guard: 'saltjaw',
       guarded: 'A claw as big as a door slams down on the lid. Saltjaw is not done with his treasure.',
       empty: 'Only wet rope and a smuggler\'s boot are left in the chest.' },
   },
@@ -457,7 +457,7 @@ const THINGS = {
   tower_grille: { name: 'iron grille', cat: 'Mechanisms', block: true, sprite: 'crypt_gate', levelDoor: true, meta: 'level' },
   qchest_watch_mail: {
     name: 'the watch\'s pay chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'watch_mail', quest: 'watch_mail', xp: 1000, gold: 150, items: [['watch_mail', 1], ['health_potion', 2]], guard: 'watch_captain',
+    chest: { flag: 'watch_mail', quest: 'watch_mail', xp: 500, gold: 150, items: [['watch_mail', 1], ['health_potion', 2]], guard: 'watch_captain',
       guarded: 'A cold gauntlet slams the lid shut. Captain Harrow still keeps the watch\'s pay.',
       empty: 'The pay chest is empty. Far below, the Deer Woods sway in the wind.' },
   },
@@ -469,19 +469,19 @@ const THINGS = {
   },
   qchest_mogg_sabre: {
     name: 'King Mogg\'s chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'mogg_sabre', quest: 'mogg_sabre', xp: 900, gold: 120, items: [['mogg_sabre', 1], ['health_potion', 2]], guard: 'king_mogg',
+    chest: { flag: 'mogg_sabre', quest: 'mogg_sabre', xp: 450, gold: 120, items: [['mogg_sabre', 1], ['health_potion', 2]], guard: 'king_mogg',
       guarded: 'Bony fingers close on the lid. King Mogg will not part with his treasure while he stands.',
       empty: 'The king\'s chest is empty. Goblin crowns, gone green, roll about the bottom.' },
   },
   qchest_bronze_ward: {
     name: 'Gnash\'s hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'bronze_ward', quest: 'bronze_ward', xp: 700, gold: 80, items: [['bronze_ward', 1], ['health_potion', 2]], guard: 'goblin_hoardkeeper',
+    chest: { flag: 'bronze_ward', xp: 200, gold: 80, items: [['bronze_ward', 1], ['health_potion', 2]], guard: 'goblin_hoardkeeper',
       guarded: 'The hoardkeeper snarls and stands over the chest. Not while he breathes.',
       empty: 'Only stolen spoons and goblin junk are left in the hoard. Behind it, at the back of the cave, the earth has been dug and filled in again.' },
   },
   wim_bones: {
     name: 'Old Wim\'s bones', cat: 'Quest chests', sprite: 'bones',
-    chest: { flag: 'wim_ring', quest: 'old_wim', xp: 450, gold: 25, items: [['wim_ring', 1]],
+    chest: { flag: 'wim_ring', quest: 'old_wim', xp: 250, gold: 25, items: [['wim_ring', 1]],
       empty: 'Old Wim rests here. He won his bet, in the end: he found the bottom of the well.' },
   },
   qchest_parcel: {

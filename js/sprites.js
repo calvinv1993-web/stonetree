@@ -4630,6 +4630,15 @@ const Sprites = (() => {
     ring_life: g => ring(g, '#d0a030', '#e04a5a'),
     ring_swift: g => ring(g, '#c0c0c8', '#6ad0ff'),
     wim_ring: g => ring(g, '#a8783a', '#5ab070'),
+    tide_ring: g => ring(g, '#b8c8c8', '#3a8ab0'), // silver gone sea-grey, a blue stone
+    keeper_lantern(g) { // a brass lantern with a warm glow, its ring on top
+      ellipse(g, 'rgba(0,0,0,0.2)', 16, 27, 7, 2);
+      ellipse(g, 'rgba(255,210,110,0.35)', 16, 16, 10, 10);
+      rect(g, '#7a5a20', 10, 23, 12, 3); rect(g, '#7a5a20', 11, 8, 10, 3);
+      rect(g, '#ffe08a', 12, 11, 8, 12); rect(g, '#fff4c8', 14, 13, 4, 7);
+      for (const x of [11, 15.5, 20]) rect(g, '#a07a28', x, 11, 1.2, 12);
+      g.strokeStyle = '#a07a28'; g.lineWidth = 1.5; g.beginPath(); g.arc(16, 7, 3, Math.PI, 0); g.stroke();
+    },
     amulet_guard: g => amulet(g, '#3a6ad0'),
     amulet_keeping: g => amulet(g, '#e0c040'),
     blank_rune: g => rune(g, null),

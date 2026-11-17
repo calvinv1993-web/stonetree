@@ -13,6 +13,7 @@
 //   use:        { food: seconds } | { heal: [min, max] } | { mana: [min, max] }
 //   petHeal:    for your companion: how much of its health it heals (used from the bag, or by its card or auto-heal)
 //   ring:       worn effects that run out: { regen: [hp, mana], speed, duration (ms) }
+//   lantern:    used: you glow like Torchlight for this long (ms); it isn't used up
 //   keeping:    an amulet that saves your things when you die (used up)
 //   rune:       used on a target (see castRune): { kind, element, power, radius, field, condition, ml, range }
 //   tool:       rope | shovel | pick | fishing | torch, used on a target
@@ -219,11 +220,13 @@ const ITEMS = {
     text: 'A sea chart of the west coast, in an old fisher\'s hand. The sea cave south of Fisher\'s Rest is marked with a cross. In the margin, a rhyme: "From the hut, go south along the strand to where the beach grows thin. Three grey stones stand in the sand: the key sleeps in between. Dig."' },
   sea_key:       { name: 'barnacled key', key: 'sea_cave', quest: true, weight: 1 }, // Tidecutter: opens the gate of the sea cave
   mogg_sabre:    { name: 'King Mogg\'s sabre', slot: 'weapon', weapon: { type: 'sword', attack: 18 }, defense: 10, level: 7, value: 160, weight: 38 }, // (King Mogg's Sabre: the deepest vault on the isle)
-  tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // the best blade on the isle but King Mogg's sabre
+  tidecutter:    { name: 'Tidecutter', slot: 'weapon', weapon: { type: 'sword', attack: 17 }, defense: 11, level: 7, value: 150, weight: 40 }, // (Old Maddock keeps his sister's blade now: no longer given, old saves keep theirs)
   lamp_oil:      { name: 'jar of lamp oil', quest: true, weight: 12 }, // The Keeper's Coat, from Farmer Odo's cellar
   flint:         { name: 'piece of flint', quest: true, weight: 3 },   // The Keeper's Coat, from the cave under the North Peaks
   watch_mail:    { name: 'watch captain\'s mail', slot: 'body', armor: 8, level: 8, value: 200, weight: 95 }, // (The Captain's Mail: the best armour on the isle, below plate)
-  keeper_coat:   { name: 'keeper\'s coat', slot: 'body', armor: 7, level: 8, value: 150, weight: 70 }, // oiled wool and leather
+  keeper_lantern: { name: 'keeper\'s lantern', lantern: 10 * MIN, value: 60, weight: 20 }, // (The Keeper's Light: lights you up like Torchlight, for 10 minutes, as often as you like)
+  tide_ring:     { name: 'Wenna\'s tide ring', slot: 'ring', ring: { regen: [1, 2], duration: 60 * MIN }, value: 60, weight: 1 }, // (Tidecutter: Old Maddock's thanks)
+  keeper_coat:   { name: 'keeper\'s coat', slot: 'body', armor: 7, level: 8, value: 150, weight: 70 }, // oiled wool and leather (no longer given: old saves keep theirs)
   eagle_feather: { name: 'eagle feather', quest: true, weight: 0.5 }, // The Eagle's Eyrie, from the old nest on the North Peaks
   featherstep_boots: { name: 'featherstep boots', slot: 'feet', armor: 2, speed: 15, level: 9, value: 140, weight: 8 }, // the hermit's work
   seashell:      { name: 'seashell', stack: true, value: 2, weight: 0.5 }, // dug up on the beaches

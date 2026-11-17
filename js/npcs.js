@@ -725,15 +725,13 @@ const WEBWOOD = { x0: 196, y0: 124, x1: 246, y1: 156, z: 4 };
 // never the whole way. Townsfolk tell them when asked for {rumours} (the service { rumours: [texts] }, one at a time).
 const RUMOURS = {
   well: 'Old Wim went down the town well for a bet, years ago, and never came back up. Did he win? Nobody has been down to ask. You would need a rope, and a strong stomach for rats.',
-  tower: 'The Old Tower out in Deer Woods was a watchtower once. Its last three watchmen lie in our graveyard, side by side. They say the tower\'s cellar opens only for those who know the order of the watch... and that the watch wrote it on their graves, the old show-offs. Mind, nobody gets in at the door: it fell in years ago.',
-  ward: 'Brenna the armourer has been sour ever since Gnash\'s goblins took her grandmother\'s bronze shield. Goblins dig like moles, and they keep what they steal down in their holes under Goblin Hill. Bring her news of it and she might cheer up.',
+  tower: 'The Old Tower out in Deer Woods was a watchtower once. Its last three watchmen lie in our graveyard, side by side. They say the tower\'s cellar opens only for those who know the order of the watch... and that the watch wrote it on their graves, the old show-offs. Mind, nobody gets in at the door: it fell in years ago. And the tower\'s top storeys still stand, all crooked on the old beams: Captain Harrow went up there with the watch\'s pay the night the stair fell, and never came down. A lantern burns up there on dark nights.',
+  ward: 'Brenna the armourer has been sour ever since Gnash\'s goblins took her grandmother\'s bronze shield. Goblins dig like moles, and they keep what they steal down in their holes under Goblin Hill. Bring her news of it and she might cheer up. And they say Gnash\'s lot dug deeper still, after King Mogg, the old goblin king buried under the hill with his sabre, and then stopped all at once and filled the hole in. Goblins are not easily frightened. Bring a shovel.',
   tidecutter: 'The fishers at Fisher\'s Rest talk of a drowned blade, the Tidecutter, lost with a boat off the west shore in the founders\' day. One old fisher swears he has its sea chart still, and cannot make head or tail of it.',
-  lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s coat. Oil, a wick and a spark, she says: as if that were easy, out there.',
+  lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s lantern. Oil, a wick and a spark, she says: as if that were easy, out there.',
   chapel: 'Grave robbers in the founders\' crypt under Bone Rocks, years ago, swore they felt cold air through the east wall of the hall of coffins, and heard someone counting behind it. Counting bones, they said. They ran. A pick would tell you more than I can.',
   weaver: 'An adventurer went into the spiders\' den under the Spider Hills, years back, past the big queen and further down, and never came out. His friends say the queen is not the oldest thing down there: something pale, they say, that weaves in the deep. Bring fire. Webs burn.',
   smugglers: 'Before the great storm, smugglers landed at Lighthouse Point, right under the old keeper\'s nose. When he caught on he walled up their hole in the rocks east of the point, with them still down there, some say. Their copper shield went down with them. Crabs live there now, and big ones. Bring a pick for the old keeper\'s stones.',
-  captain: 'The night the Old Tower\'s stair fell, Captain Harrow was up top with the watch\'s pay chest, and he never came down. The tower\'s upper storeys still stand, mind, all crooked on the old beams. Folk in Deer Woods say a lantern burns up there on dark nights. Bring a rope, and be a proper officer about it: the old watch never let just anyone up.',
-  mogg: 'Goblins say their hill was a kingdom once, and King Mogg the worst of its kings, buried under it with his sabre across his knees. Gnash\'s lot started digging down after it, they say, and then stopped all at once, and filled the hole in again. Goblins are not easily frightened. Bring a shovel, and leave your courage switched on.',
   eagle: 'The eagles of the North Peaks nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
 };
 
@@ -1746,7 +1744,7 @@ Object.assign(QUESTS, {
   },
   bell_4: {
     name: 'The Silent Bell IV: The Gravewaker', story: 'The Silent Bell', giver: 'ama', level: 8, word: 'gravewaker',
-    reward: { xp: 400, gold: 150, items: [['chain_armor', 1], ['health_potion', 3]], bell: true },
+    reward: { xp: 400, gold: 150, items: [['ring_life', 1], ['health_potion', 3]], bell: true },
     summary: 'Go down to the founder\'s tomb under Bone Rocks, defeat the one who silenced the bell, and bring its clapper home.',
     steps: [
       { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
@@ -1853,12 +1851,10 @@ Object.assign(QUESTS, {
 // Boar and in the streets ({rumours}), gravestones and old books tell of them; each ends at a chest (defs.js) that marks
 // it done. The plan, with every coordinate: docs/world-plan.md, phase 7.
 Object.assign(QUESTS, {
-  watchman_greaves: { name: 'The Watchman\'s Greaves', chest: true, summary: 'You climbed the Old Tower, pulled its levers in the order the watchmen\'s graves gave, and laid the last watchman\'s shade to rest in the cellar.' },
-  bronze_ward: { name: 'The Bronze Ward', chest: true, summary: 'You pushed your way through the goblin tunnels under Goblin Hill and took back Brenna\'s bronze shield from Gnash\'s hoard.' },
   weaver_helm: { name: 'The Weaver\'s Helm', chest: true, summary: 'You burnt through the wall of web behind the Brood Queen\'s den, went down through the deep webs, heaved the old grate aside, and took a lost adventurer\'s helm from the Old Weaver\'s larder.' },
   smuggler_shield: { name: 'The Smugglers\' Shield', chest: true, summary: 'You broke into the smugglers\' walled-up crevice on Lighthouse Point, went down through their sea grotto to the drowned hall, and took their copper shield from Saltjaw, the great crab. Their way out still comes up under the lighthouse.' },
-  watch_mail: { name: 'The Captain\'s Mail', chest: true, summary: 'You climbed past the Old Tower\'s broken top into the storeys that still stand, through the officers\' grille, and took the watch captain\'s mail from Captain Harrow at the lookout.' },
-  mogg_sabre: { name: 'King Mogg\'s Sabre', chest: true, summary: 'You dug through the floor of Gnash\'s hoard into the goblins\' old diggings, dropped into the bone halls of the goblin kings, and took King Mogg\'s sabre from his throne hall, four floors under Goblin Hill.' },
+  watch_mail: { name: 'The Old Tower', chest: true, summary: 'You pulled the Old Tower\'s levers in the order of the watch, laid the last watchman\'s shade to rest in the cellar for his greaves, then climbed past the tower\'s broken top into the storeys that still stand, through the officers\' grille, and took the watch captain\'s mail from Captain Harrow at the lookout.' },
+  mogg_sabre: { name: 'Under Goblin Hill', chest: true, summary: 'You pushed through the goblins\' tunnels and took Brenna\'s bronze shield back from Gnash\'s hoard, then dug through its floor into the goblins\' old diggings, dropped into the bone halls of the goblin kings, and took King Mogg\'s sabre from his throne hall, four floors under Goblin Hill.' },
   old_wim: { name: 'Down the Well', chest: true, summary: 'You climbed down the town well and found Old Wim, and his ring, at the bottom of it.' },
 });
 
@@ -2251,7 +2247,7 @@ Object.assign(NPCS, {
       'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
-      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel, RUMOURS.mogg, RUMOURS.captain, RUMOURS.smugglers, RUMOURS.weaver] },
+      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel, RUMOURS.smugglers, RUMOURS.weaver] },
       bell: 'They say the temple bell went quiet the night the rats came up through the grates.',
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },
@@ -2269,28 +2265,28 @@ Object.assign(QUESTS, {
   // sword aboard. His chart has a rhyme for where she buried the cave's key; Old Snapper's mate keeps the wreck.
   tidecutter: {
     name: 'Tidecutter', giver: 'rest_fisher', level: 7, hidden: true, word: 'tale',
-    reward: { xp: 600, gold: 60, items: [['health_potion', 3]] },
+    reward: { xp: 300, gold: 60, items: [['tide_ring', 1], ['health_potion', 3]] },
     summary: 'Find Tidecutter, the blade that went down with the Gull, in the sea cave south of Fisher\'s Rest.',
     steps: [
       { thing: 'tide_dig', give: [['sea_key', 1]], summary: 'Take the sea chart from Old Maddock\'s sea chest in his hut, read its rhyme, and dig where it says with a shovel.',
         progress: 'The chart is in my sea chest, in the hut. Read the rhyme on it, then dig where it points. You have a shovel?',
         done: 'Your shovel strikes wood: a little box, tarred shut. Inside, wrapped in oilcloth, lies a heavy key crusted with barnacles. Maddock\'s chart marks the sea cave, south along the rocks.' },
-      { npc: 'rest_fisher', has: 'tidecutter', summary: 'Open the gate of the sea cave in the rocks south of Fisher\'s Rest with the barnacled key, take Tidecutter from the wreck of the Gull, and show it to Old Maddock.',
+      { npc: 'rest_fisher', fetch: 'tidecutter', summary: 'Open the gate of the sea cave in the rocks south of Fisher\'s Rest with the barnacled key, take Tidecutter from the wreck of the Gull, and bring it to Old Maddock.',
         progress: 'The cave opens in the rocks south of the beach, and the key opens its gate. Mind the crabs in there, and the big one: Old Snapper\'s mate, they call her Brineshell.',
-        done: 'Tidecutter... Wenna\'s blade. Look at the edge: fifty years under the sea, and not a spot of rust. She would want it used, $name, not hung on a wall. Keep it. And take these, for the cuts you got fetching it. If you have the luck of the sea, use it: the new {lighthouse} on the point has never been lit. Ask Keeper Tamsin.' },
+        done: 'Tidecutter... Wenna\'s blade. Look at the edge: fifty years under the sea, and not a spot of rust. It goes over my door, where she can see it from wherever she is. Take her ring, $name: she wore it at sea, and the sea was kind to her. And these, for the cuts you got fetching it. If you have the luck of the sea, use it: the new {lighthouse} on the point has never been lit. Ask Keeper Tamsin.' },
     ],
     text: {
       offer: 'A tale, then. My sister Wenna sailed the Gull, and she wore a sword called Tidecutter - forged from the anchor chain of the founders\' ship, they said. In the great storm she ran for the sea cave south of here, and the Gull went down inside it. Wenna swam out. The sword did not. She locked the cave behind her and buried the key, and wrote where on my chart, in a rhyme, as she always did. She never went back. Will you? ({yes}/{no})',
       accept: 'The chart is in my sea chest, in the hut: take it. Read the rhyme, take a shovel, and dig where it says. And mind: the crabs have the cave now, and the biggest of them all - Old Snapper\'s mate. Ask me about the {tale} when you have the blade.',
       tooWeak: 'That tale is not for you yet, $name. The cave would eat you. Come back at level 7.',
-      done: 'Wenna\'s blade, back in the sun. Use it well, $name.',
+      done: 'Wenna\'s blade, back over my door. Wear her ring well, $name.',
     },
   },
   // Keeper Tamsin's dark lighthouse: oil from the farm's cellar (rats), silk from the spiders (a wick), flint from the
   // cave under the North Peaks (shades, a pick); then the lamp at the top of the tower.
   keeper_coat: {
-    name: 'The Keeper\'s Coat', giver: 'oak_keeper', level: 8, hidden: true, word: 'lighthouse',
-    reward: { xp: 750, gold: 80, items: [['keeper_coat', 1]] },
+    name: 'The Keeper\'s Light', giver: 'oak_keeper', level: 8, hidden: true, word: 'lighthouse',
+    reward: { xp: 375, gold: 80, items: [['keeper_lantern', 1]] },
     summary: 'Light the lamp of the lighthouse at Lighthouse Point. It needs lamp oil, a wick and a flint.',
     steps: [
       { thing: 'lighthouse_lamp', needs: [['lamp_oil', 1], ['spider_silk', 3], ['flint', 1]],
@@ -2300,7 +2296,7 @@ Object.assign(QUESTS, {
         done: 'Oil in the bowl, a wick twisted from spider silk... the flint sparks once, twice - and the great lamp catches! Its light sweeps out over the sea, for the first time since the storm.' },
       { npc: 'oak_keeper', summary: 'Tell Keeper Tamsin that the lamp burns.',
         progress: 'I saw it from down here. Come and tell me, $name!',
-        done: 'I saw it from down here - the light, sweeping the water! The boats will find their way home. Here: the keeper\'s coat, oiled wool and leather, warmer than any mail and tougher than most. It was always meant for whoever lit that lamp. And while you were in that cave... the hermit on Hermit Rock climbed those peaks, when he was young. Ask him about the {eagles}, at night.' },
+        done: 'I saw it from down here - the light, sweeping the water! The boats will find their way home. Here: the keeper\'s lantern, the little brother of the great lamp. Light it in the dark places, and it burns as long as you need. It was always meant for whoever lit that lamp. And while you were in that cave... the hermit on Hermit Rock climbed those peaks, when he was young. Ask him about the {eagles}, at night.' },
     ],
     text: {
       offer: 'The tower behind me? The town built it again after the storm, stone by stone. But the lamp at the top has never burned: no oil, no wick, and the old keepers\' flint went into the sea with the old tower. Every winter a boat goes on the rocks for want of it. Will you light it for me? ({yes}/{no})',
@@ -2313,7 +2309,7 @@ Object.assign(QUESTS, {
   // the mountain, to the eyrie of the great eagles. A feather from it, and he makes boots that walk like the wind.
   bone_chapel: {
     name: 'The Bone Chapel', giver: 'oak_ossian', level: 6, hidden: true, word: 'crest',
-    reward: { xp: 700, gold: 60, items: [['bone_amulet', 1]] },
+    reward: { xp: 350, gold: 60, items: [['bone_amulet', 1]] },
     summary: 'Help Brother Ossian, the ghost in the chapel of bones behind the crypt, make the crest of Oakvale whole again: three carved bones were lost.',
     steps: [
       { npc: 'oak_ossian', fetch: 'crest_jaw', word: 'jaw',
@@ -2338,7 +2334,7 @@ Object.assign(QUESTS, {
   },
   eagle_eyrie: {
     name: 'The Eagle\'s Eyrie', giver: 'oak_hermit', level: 9, hidden: true, word: 'eagle', fetch: 'eagle_feather',
-    reward: { xp: 900, gold: 50, items: [['featherstep_boots', 1]] },
+    reward: { xp: 450, gold: 50, items: [['featherstep_boots', 1]] },
     summary: 'Bring Hermit Brannoc a feather from the old eagles\' eyrie, high on the North Peaks: through the cave under their south face, and up the chimney inside the mountain.',
     text: {
       offer: 'The eagles... When I was young I climbed the North Peaks, all the way to the eyrie, where the great eagles nested. They are gone now. But their feathers keep - and a feather of theirs, sewn into a boot, and you walk like the wind. Bring me one, and I will make you a pair. ({yes}/{no})',
@@ -2369,7 +2365,7 @@ Object.assign(NPCS, {
     trade: { sells: [['fishing_rod', 110], ['fish', 4]], buys: ['jewelry'] },
     chatter: ['The tide is turning.', 'Fish are biting today.', 'The sea keeps what she takes.'],
   },
-  // Farmer Odo of the Sunny Fields farm: wheat, the mill, and lamp oil, kept in a cellar the rats have taken (The Keeper's Coat)
+  // Farmer Odo of the Sunny Fields farm: wheat, the mill, and lamp oil, kept in a cellar the rats have taken (The Keeper's Light)
   fields_farmer: {
     name: 'Farmer Odo',
     look: { skin: '#e0a878', hair: '#8a6a3a', beard: '#8a6a3a', body: '#6a7a3a', arms: '#e0a878', legs: '#5a4a2a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a858' } },

@@ -841,7 +841,7 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   talk(136, 102, 9, 'bell');
   assert.strictEqual(state.questState('bell_4'), 'done');
   assert(messages.some(m => /rings again/.test(m)), 'the bell rings out');
-  assert.strictEqual(state.countItem('chain_armor'), 1, 'and Ama gives chain armour');
+  assert.strictEqual(state.countItem('ring_life'), 1, 'and Ama gives a ring of life (the armour is the Old Tower\'s to give)');
   ctx.useThing(146, 103, 13);
   assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after');
   state.now += 31000;
@@ -1761,8 +1761,7 @@ test('The Watchman\'s Greaves: a rope up the Old Tower, its levers in the order 
   ctx.useThing(chest[0], chest[1], S);
   ctx.useThing(chest[0], chest[1], S);
   assert.strictEqual(state.countItem('watchman_greaves'), 1, 'the greaves, once');
-  assert(p.xp - xp0 >= 600, 'and experience for the finding');
-  assert.strictEqual(state.questState('watchman_greaves'), 'done');
+  assert(p.xp - xp0 >= 200, 'and experience for the finding (the Old Tower\'s first part: its top is the quest)');
   assert(state.ITEMS.watchman_greaves.armor > state.ITEMS.leather_legs.armor, 'better than leather legs');
   // after a while the grate comes down again and the levers spring back, for the next one
   state.now += 3 * 60000 + 1;
@@ -1808,7 +1807,7 @@ test('The Bronze Ward: a burrow on Goblin Hill down to the goblins\' tunnels, an
   ctx.damageMonster(keeper, 99999, 'physical');
   ctx.useThing(cx, cy, Z);
   assert.strictEqual(state.countItem('bronze_ward'), 1, 'the bronze ward');
-  assert.strictEqual(state.questState('bronze_ward'), 'done');
+  assert(p.chests.bronze_ward, 'the first part of Under Goblin Hill');
   assert(state.ITEMS.bronze_ward.defense > state.ITEMS.studded_shield.defense && state.ITEMS.bronze_ward.defense < state.ITEMS.iron_shield.defense, 'better than a studded shield, below the mainland\'s');
   // Brenna tells of it, when asked
   const brenna = state.npcs.find(n => n.npcId === 'oak_armourer');
@@ -2057,7 +2056,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all eleven hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all nine hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -2068,14 +2067,14 @@ test('rumours: the innkeeper tells of all eleven hidden quests, one at a time, a
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 11);
+  talk('oak_innkeeper', 'rumours', 9);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 11);
+  assert.strictEqual(Object.keys(R).length, 9);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');
   // nobody's arrow points at them: they're no quests anyone gives
-  for (const id of ['watchman_greaves', 'bronze_ward', 'old_wim']) assert(state.QUESTS[id].chest && !state.QUESTS[id].giver, `${id} is found, not given`);
+  for (const id of ['watch_mail', 'mogg_sabre', 'old_wim']) assert(state.QUESTS[id].chest && !state.QUESTS[id].giver, `${id} is found, not given`);
 });
 
 // ---- Oakvale Isle's hidden quests (docs/world-plan.md, Phase 7) ----
@@ -2147,13 +2146,9 @@ test('Tidecutter: Old Maddock\'s tale, the chart in his chest, the key dug up wh
   tick(game, 61000); assert(map.get(48, 196, 7).items.includes('sea_gate'), 'and it shuts again a minute later');
   at(43, 202, 7); ctx.useThing(43, 202, 7);
   assert(has('tidecutter'), 'Tidecutter, from the wreck of the Gull');
-  p.equipment.weapon = p.equipment.backpack.contents.find(i => i.id === 'tidecutter'); // (worn, it counts too)
-  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i.id !== 'tidecutter');
   const xp = p.xp; meet('rest_fisher');
-  assert(/lighthouse/.test(said('tale')) && p.quests.tidecutter.status === 'done' && p.xp > xp + 500, 'shown to Maddock: the reward, and the next clue');
-  assert.strictEqual(p.equipment.weapon.id, 'tidecutter', 'and you keep the blade');
-  const it = state.ITEMS.tidecutter;
-  assert(it.weapon.attack > state.ITEMS.longsword.weapon.attack && it.weapon.attack < state.ITEMS.broadsword.weapon.attack, 'the best blade on the isle, below the mainland\'s');
+  assert(/lighthouse/.test(said('tale')) && p.quests.tidecutter.status === 'done' && p.xp > xp + 250, 'brought to Maddock: the reward, and the next clue');
+  assert(!has('tidecutter') && has('tide_ring'), 'he hangs the blade over his door, and gives you Wenna\'s ring (King Mogg\'s sabre is the isle\'s blade)');
 });
 
 test('The Keeper\'s Coat: oil from the farm\'s cellar, spider silk, flint from the North Peaks cave with a pick, the lamp lit at the top of the lighthouse', () => {
@@ -2174,9 +2169,10 @@ test('The Keeper\'s Coat: oil from the farm\'s cellar, spider silk, flint from t
   assert(p.quests.keeper_coat.step === 1 && !has('lamp_oil') && !has('flint') && !has('spider_silk'), 'lit, with all three');
   assert(map.get(124, 203, 10).items.includes('lighthouse_lamp_lit'), 'and it burns for all to see');
   const xp = p.xp; meet('oak_keeper');
-  assert(/eagles/.test(said('lighthouse')) && has('keeper_coat') && p.xp > xp + 600, 'the keeper\'s coat, and the next clue');
-  const coat = state.ITEMS.keeper_coat;
-  assert(coat.armor > state.ITEMS.chain_armor.armor && coat.armor <= state.ITEMS.ranger_cloak.armor, 'better than chain armor, not the mainland\'s');
+  assert(/eagles/.test(said('lighthouse')) && has('keeper_lantern') && p.xp > xp + 300, 'the keeper\'s lantern, and the next clue');
+  const lantern = bagRef(state, 'keeper_lantern');
+  p.lightUntil = 0; ctx.useItem(lantern);
+  assert(p.lightUntil > state.now && has('keeper_lantern'), 'it lights you up, and isn\'t used up');
 });
 
 test('The Eagle\'s Eyrie: through the North Peaks cave (a pick for the fallen rock), up the chimney to the nest; boots from the hermit at night', () => {

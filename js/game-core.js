@@ -1304,6 +1304,12 @@ function useItem(ref) {
     if (pet.hp >= petMaxHp(pet)) return log(`${pet.name} isn't hurt.`);
     return tendPet('tonic');
   }
+  if (d.lantern) { // (the keeper's lantern: light without the spell, as long as you like)
+    player.lightUntil = now + d.lantern;
+    addSparkle(player, '#ffd870');
+    log(`You light the ${d.name}. It throws a warm light round you.`);
+    return uiDirty();
+  }
   if (d.use && d.use.food) return eat(ref);
   if (d.use) return drink(ref);
   if (d.whistle) return blowWhistle();
