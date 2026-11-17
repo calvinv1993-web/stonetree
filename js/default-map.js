@@ -16,8 +16,9 @@
 const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
-const MAP_TOWNS = [['Oakvale', 137, 104, 9]];
-const MAP_SIGHTS = [
+const KESTREL_PREVIEW = typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel'; // (the new world's preview: see js/world-kestrel.js)
+const MAP_TOWNS = KESTREL_PREVIEW ? [['Bellhaven', 125, 104, 9]] : [['Oakvale', 137, 104, 9]];
+const MAP_SIGHTS = KESTREL_PREVIEW ? [] : [
   ['North Peaks', 100, 57, 9], ['Mirror Lake', 128, 57, 8], ['Willow River', 121, 76, 8], ['Wolf Woods', 60, 84, 8],
   ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
   ['Lighthouse Point', 128, 204, 8], ['Spider Hills', 178, 196, 9], ['Deer Woods', 176, 112, 8], ['Old Tower', 194, 118, 9],
@@ -770,7 +771,7 @@ const DISCOVERY = {
 
 function createDefaultMap() {
   // (the new world, Kestrel Isle, played as a preview: index.html?world=kestrel; see js/world-kestrel.js)
-  if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeof createKestrelMap === 'function') return createKestrelMap();
+  if (KESTREL_PREVIEW && typeof createKestrelMap === 'function') return createKestrelMap();
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;
   const m = new GameMap(W, H, D, S);
   const d = ISLE_DESIGN;

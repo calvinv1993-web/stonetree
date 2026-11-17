@@ -1719,29 +1719,37 @@ test('Kestrel Isle (the new world, a preview): Bellhaven builds, you wake in its
   const m = ctx.createKestrelMap(), K = game.state.KESTREL_TOWN, [TX, TY] = K.at;
   assert(m.isWalkable(m.start.x, m.start.y, m.start.z), 'you wake on open floor');
   assert(m.temples.some(t => t.home === 'bellhaven'), 'the temple is home');
+  const inB = (b, x, y) => [b.box, ...(b.wings || [])].some(([a, c, e, f]) => x >= a && x <= e && y >= c && y <= f);
   for (const b of K.buildings) {
-    const [dx, dy] = b.door, [x0, y0, x1, y1] = b.box;
-    const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => x < x0 || x > x1 || y < y0 || y > y1);
-    assert(out && m.isWalkable(TX + out[0], TY + out[1], m.surfaceZ), `${b.name}: its door opens onto open ground`);
+    const [dx, dy] = b.door, Z = m.surfaceZ + (b.level || 0);
+    const out = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([ox, oy]) => [dx + ox, dy + oy]).find(([x, y]) => !inB(b, x, y));
+    assert(out && m.isWalkable(TX + out[0], TY + out[1], Z), `${b.name}: its door opens onto open ground`);
     for (const [k, [x, y]] of (b.up || []).entries()) {
-      const z = m.surfaceZ + k;
+      const z = Z + k;
       assert(m.isWalkable(TX + x, TY + y, z + 1), `${b.name}: the stairs up from floor ${k} land on open floor`);
       assert(m.isWalkable(TX + x + 1, TY + y, z), `${b.name}: the stairs down to floor ${k} land on open floor`);
     }
   }
   for (const [x0, y0, x1, y1] of K.gates) assert(m.isWalkable(TX + Math.round((x0 + x1) / 2), TY + Math.round((y0 + y1) / 2), m.surfaceZ), 'the gates are open');
   // from the temple you can walk to every door and out of every gate (no garden, fence or stall in the way)
-  const seen = new Set([`${m.start.x},${m.start.y}`]), todo = [[m.start.x, m.start.y]], Z = m.surfaceZ;
+  // (the steps up the temple rock join the two floors: a step onto them climbs, a step onto their top goes down)
+  const Z = m.surfaceZ, seen = new Set([`${m.start.x},${m.start.y},${m.start.z}`]), todo = [[m.start.x, m.start.y, m.start.z]];
   while (todo.length) {
-    const [x, y] = todo.pop();
+    const [x, y, z] = todo.pop();
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, ny = y + dy, k = `${nx},${ny}`, t = m.get(nx, ny, Z);
-      if (seen.has(k) || !t || !(m.isWalkable(nx, ny, Z) || t.items.some(id => id.startsWith('door')))) continue;
-      seen.add(k); todo.push([nx, ny]);
+      let nx = x + dx, ny = y + dy, nz = z;
+      const t = m.get(nx, ny, nz);
+      if (!t) continue;
+      if (t.items.includes('steps')) nz++;
+      else if (t.ground === 'steps_top') nz--;
+      else if (!(m.isWalkable(nx, ny, nz) || t.items.some(id => id.startsWith('door')))) continue;
+      const k = `${nx},${ny},${nz}`;
+      if (seen.has(k)) continue;
+      seen.add(k); todo.push([nx, ny, nz]);
     }
   }
-  for (const b of K.buildings) assert(seen.has(`${TX + b.door[0]},${TY + b.door[1]}`), `${b.name}: you can walk to its door from the temple`);
-  for (const [x0, y0, x1, y1] of K.gates) assert(seen.has(`${TX + x0},${TY + y0}`) || seen.has(`${TX + x1},${TY + y1}`), 'and out of every gate');
+  for (const b of K.buildings) assert(seen.has(`${TX + b.door[0]},${TY + b.door[1]},${Z + (b.level || 0)}`), `${b.name}: you can walk to its door from the temple`);
+  for (const [x0, y0, x1, y1] of K.gates) assert(seen.has(`${TX + x0},${TY + y0},${Z}`) || seen.has(`${TX + x1},${TY + y1},${Z}`), 'and out of every gate');
 });
 
 test('the hawkeye bow: about one shot in seven a critical hit, twice as hard, shown in orange', () => {
