@@ -586,10 +586,13 @@ const Fx = (() => {
       const t = now - e.start;
       if (t < e.charge) { lights.push({ x: e.x, y: e.y, r: 1 + 2.5 * t / e.charge, color: LIGHT_COLORS.shot, flicker: true, carried: true }); continue; }
       const r = t - e.charge, fade = r > e.flight ? Math.max(0, 1 - (r - e.flight) / 200) : 1;
-      for (const [back, size] of [[0, 3.2], [0.18, 2.4], [0.36, 1.6]]) {
+      for (const [back, size] of [[0, 2.2], [0.18, 1.8], [0.36, 1.3]]) {
         const p = Math.max(0, Math.min(1, r / Math.max(1, e.flight)) - back);
         if (fade * size > 0.3) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: size * fade, color: LIGHT_COLORS.shot, flicker: false, carried: back === 0 });
       }
+      // and at its head a great arrowhead of light, pointing the way it flies
+      const p = Math.min(1, r / Math.max(1, e.flight));
+      if (fade > 0.1) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: 1.5 * fade, color: LIGHT_COLORS.shot, flicker: false, arrow: Math.atan2(e.ty - e.y, e.tx - e.x) });
     }
     for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: true });
     // fire breathes: a slow swell, a quick flutter and a sputter now and then, never in step
@@ -606,6 +609,7 @@ const Fx = (() => {
       const W = dark.width / LIGHT_RES, H = dark.height / LIGHT_RES, onView = (sx, sy, r) => sx + r > 0 && sy + r > 0 && sx - r < W && sy - r < H;
       for (const l of lights) { // pools of light: yours clear, the others leave a little of the night
         const yours = l === lights[0] || l.carried, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (yours ? 1 : l.soft ? 0.7 : 0.75);
+        if (l.arrow !== undefined) { if (onView(sx, sy, r)) arrowLight(sx, sy, rad(l), l.arrow, arrowPicture('hole')); continue; }
         if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : l.soft ? 'soft' : 'lamp'), sx - r, sy - r, r * 2, r * 2);
       }
       // warm and cold glows in the pools, stronger the darker it is: each a soft round picture made once per colour
@@ -615,6 +619,7 @@ const Fx = (() => {
         if (l === lights[0]) continue;
         const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
         if (!onView(sx, sy, r)) continue;
+        if (l.arrow !== undefined) { dctx.globalAlpha = Math.min(1, amount + 0.3); arrowLight(sx, sy, rad(l), l.arrow, arrowPicture(l.color)); continue; }
         dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
@@ -641,6 +646,27 @@ const Fx = (() => {
       holes.set(kind, c);
     }
     return c;
+  }
+  // A soft arrowhead (pointing right), made once: as a hole in the night ('hole'), or as a glow of a colour
+  const arrows = new Map();
+  function arrowPicture(kind) {
+    let c = arrows.get(kind);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = c.height = 96;
+      const g = c.getContext('2d'), fill = kind === 'hole' ? 'rgba(0,0,0,0.95)' : `rgba(${kind},0.9)`;
+      g.fillStyle = fill;
+      g.beginPath(); g.moveTo(86, 48); g.lineTo(30, 12); g.lineTo(50, 48); g.lineTo(30, 84); g.closePath(); // (a chevron: tip, wing, notch, wing)
+      g.filter = 'blur(8px)'; g.globalAlpha = 0.45; g.fill(); // (a soft halo round it)
+      g.filter = 'blur(1.5px)'; g.globalAlpha = 1; g.fill(); // (and the arrowhead itself, crisp)
+      arrows.set(kind, c);
+    }
+    return c;
+  }
+  function arrowLight(sx, sy, r, angle, pic) {
+    dctx.save(); dctx.translate(sx, sy); dctx.rotate(angle);
+    dctx.drawImage(pic, -r * 1.1, -r, r * 2, r * 2); // (the tip just ahead of the arrow)
+    dctx.restore();
   }
   const glows = new Map();
   function glowPicture(color) {
