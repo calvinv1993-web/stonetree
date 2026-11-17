@@ -92,7 +92,7 @@ const GUIDE = [
   {
     text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
     touch: 'Monsters leave a corpse with loot. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything. Gold goes straight into your purse.',
-    target: [{ corpse: true }],
+    target: [{ corpse: true }, { monster: 'rat' }, { at: [128, 150, 8] }],
     done: () => !!(player.openPile && player.openPile.corpse),
     art: 'loot',
   },
@@ -127,7 +127,7 @@ const GUIDE = [
     text: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
     touch: 'Pip, on the main street south of the square, sells food, potions and tools, and buys what you loot. Hide and Iron sells armour, the Dented Shield weapons. Talk to Pip and ask to trade.',
     target: [{ npc: 'pip' }],
-    done: () => !!player.shopNpc,
+    done: () => !!player.shopNpc || !!player.hasTraded,
   },
   {
     text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
@@ -154,7 +154,8 @@ const GUIDE = [
     touch: 'Down the grate on the square into the sewers (the arrow): tap the grate to climb down. Kill 5 rats ($progress), then open the old chest in the storeroom at the west end and put on the shield.',
     art: 'sewer',
     target: [{ at: [131, 111, 8] }, { hunt: ['cellar_shield'] }, { at: [105, 121, 7] }],
-    done: () => !!player.equipment.shield,
+    // (the rats' shield from the storeroom's chest, on your arm: not just any shield bought at the shop)
+    done: () => (!!player.chests.oak_hoard && !!player.equipment.shield) || questState('cellar_shield') === 'done',
   },
   {
     text: 'A shield! Blows glance off it now. Climb back up the ladder and tell Master Corwin.',
@@ -255,7 +256,26 @@ function updateGuide() {
     if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
     player.guideSeen = Math.max(player.guideSeen || 0, player.tutorial);
     if ((step.done && step.done()) || (step.done && guideBeen(player.tutorial))) player.tutorial++;
+    else if (guideExplains(step) && guideRead(step)) player.tutorial++; // (read: on by itself, no "Next" needed)
   }
+}
+
+// A step that only explains (no task to do): it passes by itself once it's had time to be read, or as soon as you've
+// already done the task after it (you didn't stop to read: you played on). "Next" still passes it at once.
+// The time to read it: a few seconds, and a little more for each word.
+const guideExplains = step => !step.done && !step.on && !step.client && step !== GUIDE[GUIDE.length - 1];
+function guideRead(step) {
+  const shown = player.guideShown || (player.guideShown = { step: 0, at: 0 });
+  if (shown.step !== player.tutorial) { shown.step = player.tutorial; shown.at = now; }
+  const words = (step.touch || step.text).split(/\s+/).length;
+  if (now - shown.at >= Math.min(16000, 5000 + words * 230)) return true;
+  // played on: a task among the next few steps is done already
+  for (let i = player.tutorial; i < Math.min(GUIDE.length, player.tutorial + 4); i++) {
+    const next = GUIDE[i];
+    if (next.done) return next.done();
+    if (!guideExplains(next)) return false;
+  }
+  return false;
 }
 
 // A step to do that was done before the guide was started again: it passes by itself (opening a corpse or eating

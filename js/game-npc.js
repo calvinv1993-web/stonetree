@@ -528,6 +528,7 @@ function updateConversation() {
 // ---- trade -------------------------------------------------------------------------------
 function openShop(npc) {
   player.shopNpc = npc;
+  player.hasTraded = true; // (the guide's trading step: done, even if it comes up after you've closed the shop)
   uiDirty();
 }
 

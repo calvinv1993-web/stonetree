@@ -930,6 +930,28 @@ test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood),
   assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
 });
 
+test('the guide never waits for Next: an explaining step passes once read, or at once when you play on; any shield is not the rats\' shield', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, G = state.GUIDE;
+  ctx.teleport(state.map.start); p.tutorial = 1; tick(game, 300);
+  assert.strictEqual(p.tutorial, 1, 'the welcome stays a moment');
+  tick(game, 17000);
+  assert(p.tutorial >= 2, 'then passes by itself');
+  // played on: talking to Sister Ama while the bars step is still up passes it at once
+  p.tutorial = 2; tick(game, 100);
+  const ama = state.npcs.find(n => n.npcId === 'ama');
+  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y + 1, ama.z, 2), z: ama.z }); state.Actions.say('hi'); tick(game, 300);
+  assert(p.tutorial >= 4, 'played on: past the bars, and past meeting her');
+  // the sewer step: a shield bought at the shop doesn't pass it, the rats' shield does
+  const i = G.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes('cellar_shield'))) + 1;
+  p.quests.cellar_shield = { status: 'active', step: 1, kills: {} };
+  p.equipment.shield = { id: 'wooden_shield', count: 1 }; p.tutorial = i; tick(game, 300);
+  assert.strictEqual(p.tutorial, i, 'any shield: still on the sewer step');
+  p.chests.oak_hoard = true; tick(game, 300);
+  assert.strictEqual(p.tutorial, i + 1, 'the rats\' shield: on');
+});
+
 test('a tool used on a spot further off: you walk there and use it; walking away yourself calls it off', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
