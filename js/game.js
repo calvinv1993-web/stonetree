@@ -387,13 +387,15 @@ function drawPowerGround(g, ox, oy, z) {
     if (e < fx.charge) {
       const k = e / fx.charge, R = 13 + 11 * k * k;
       g.translate(cx, cy); g.scale(1, 0.45); // (seen from above at a slant)
-      // filled with light: white at its heart, through the shot's gold to amber at its rim (the power shot's colours)
-      const fill = g.createRadialGradient(0, 0, 0, 0, 0, R);
-      fill.addColorStop(0, `rgba(255,255,255,${0.25 + 0.4 * k})`); fill.addColorStop(0.35, `rgba(${PS_CORE},${0.15 + 0.3 * k})`);
-      fill.addColorStop(0.7, `rgba(${PS_GOLD},${0.1 + 0.25 * k})`); fill.addColorStop(1, `rgba(${PS_AMBER},${0.08 + 0.22 * k})`);
-      g.fillStyle = fill; g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = `rgba(${PS_GOLD},${0.3 + 0.55 * k})`; g.lineWidth = 2.4;
-      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.stroke();
+      // the ring itself a band of light: white on its inside edge, through the shot's gold to amber on its outside,
+      // softened a hair so no pixels show: both its edges fade out over a pixel or two (a soft edge in the gradient,
+      // not a blur filter: a filter on the canvas costs far too much on a phone)
+      const w = 4 + 2 * k, inner = R - w - 1.5, outer = R + 1.5, at = v => (v - inner) / (outer - inner);
+      const band = g.createRadialGradient(0, 0, inner, 0, 0, outer);
+      band.addColorStop(0, 'rgba(255,255,255,0)'); band.addColorStop(at(R - w), `rgba(255,255,255,${0.55 + 0.4 * k})`);
+      band.addColorStop(at(R - w * 0.65), `rgba(${PS_CORE},${0.5 + 0.4 * k})`); band.addColorStop(at(R - w * 0.3), `rgba(${PS_GOLD},${0.45 + 0.4 * k})`);
+      band.addColorStop(at(R), `rgba(${PS_AMBER},${0.35 + 0.4 * k})`); band.addColorStop(1, `rgba(${PS_AMBER},0)`);
+      g.fillStyle = band; g.beginPath(); g.arc(0, 0, outer, 0, Math.PI * 2); g.arc(0, 0, inner, 0, Math.PI * 2, true); g.fill('evenodd');
       g.save(); g.rotate(e / 380);
       g.strokeStyle = `rgba(${PS_CORE},${0.25 + 0.6 * k})`; g.lineWidth = 2;
       for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.moveTo(Math.cos(a) * R * 0.72, Math.sin(a) * R * 0.72); g.lineTo(Math.cos(a + 0.18) * R * 0.9, Math.sin(a + 0.18) * R * 0.9); g.stroke(); } // (runes)
