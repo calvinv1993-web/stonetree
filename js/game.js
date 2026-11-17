@@ -605,7 +605,7 @@ const creatureById = id => players.find(p => p.id === id) || monsters.find(m => 
 // A player in the middle of a sweeping strike (the circle throw's arc): their strike's picture for now - the wind-up, the
 // middle or the follow-through, as far as the swing has come - or null (no strike going on, or no picture for it).
 // (a power shot likewise: drawing the bow, at full draw, loosed; and every plain shot from a bow: full draw, then loosed)
-const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc' || fx.kind === 'shot' || fx.kind === 'loose') && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
+const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc' || fx.kind === 'shot' || fx.kind === 'loose' || fx.kind === 'volley') && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
 function strikeOf(c) {
   const fx = swingOf(c);
   if (!fx) return null;
@@ -614,6 +614,13 @@ function strikeOf(c) {
     const e = now - fx.start;
     return fx.weapon === 'spear' ? Sprites.playerAttack(creatureKey(c), c.dir, e < 90 ? 0 : e < 200 ? 1 : 2)
       : Sprites.playerAttack(creatureKey(c), c.dir, e < 110 ? 1 : 2, 'bow');
+  }
+  if (fx.kind === 'volley') { // drawn quickly, then loosed, drawn again, loosed... (gone from the picture after its last arrow)
+    const e = now - fx.start - fx.lead;
+    if (e < 0) return Sprites.playerAttack(creatureKey(c), c.dir, e < -fx.lead / 2 ? 0 : 1, 'bow');
+    const i = Math.floor(e / fx.gap), r = e - i * fx.gap;
+    if (i >= fx.shots - 1) return e - (fx.shots - 1) * fx.gap < 260 ? Sprites.playerAttack(creatureKey(c), c.dir, 2, 'bow') : null;
+    return Sprites.playerAttack(creatureKey(c), c.dir, r < fx.gap * 0.5 ? 2 : 1, 'bow');
   }
   if (fx.kind === 'shot') {
     const e = now - fx.start;
@@ -714,14 +721,47 @@ function drawEffects(ox, oy, z) {
         if (p < 1) glowDot(x, y, 7, 'rgba(255,240,170,', 0.9); // the arrow itself, all light
       }
       ctx.restore();
+    } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow
+      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
+      const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10, nx = -Math.sin(a), ny = Math.cos(a);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+      for (let i = 0; i < fx.shots; i++) {
+        const r = e - fx.lead - i * fx.gap;
+        if (r < 0) continue;
+        if (i && !(fx.twang & (1 << i))) { fx.twang = (fx.twang || 0) | (1 << i); if (fx.z === player.z && dist(fx, player) <= 10) Sound.play('shoot'); }
+        if (r < 120) { // loosed: a quick flash and three short rays
+          const f = 1 - r / 120;
+          glowDot(bx, by, 4 + 6 * f, 'rgba(210,236,255,', 0.75 * f);
+          for (let k = -1; k <= 1; k++) {
+            const ra = a + k * 0.22, len = 14 + (1 - Math.abs(k)) * 8;
+            ctx.strokeStyle = `rgba(200,232,255,${0.5 * f})`; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(bx + Math.cos(ra) * 3, by + Math.sin(ra) * 3); ctx.lineTo(bx + Math.cos(ra) * len, by + Math.sin(ra) * len); ctx.stroke();
+          }
+        }
+        const p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 120) : 1;
+        if (fade <= 0) continue;
+        const off = (i - 1) * 2.5, x = sx + (ex - sx) * p + nx * off, y = sy + (ey - sy) * p + ny * off; // (each arrow a little beside the last)
+        const tail = Math.min(TILE * 1.3, Math.hypot(ex - sx, ey - sy) * p), tx = x - Math.cos(a) * tail, ty = y - Math.sin(a) * tail;
+        for (const [w, al] of [[5, 0.22], [1.8, 0.85]]) {
+          const grad = ctx.createLinearGradient(tx, ty, x, y);
+          grad.addColorStop(0, 'rgba(150,200,255,0)'); grad.addColorStop(1, `rgba(225,242,255,${al * fade})`);
+          ctx.strokeStyle = grad; ctx.lineWidth = w;
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+        }
+        if (p < 1) glowDot(x, y, 4, 'rgba(235,248,255,', 0.85);
+      }
+      ctx.restore();
     } else if (fx.kind === 'impact') { // where a strike lands: a flash, and rays of light shooting out every way
       const cx = ox + fx.x * TILE + 16, cy = oy + fx.y * TILE + 10, f = 1 - t, [r, g, b] = [1, 3, 5].map(k => parseInt(fx.glow.slice(k, k + 2), 16));
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      glowDot(cx, cy, 6 + 12 * t, `rgba(${r},${g},${b},`, 0.8 * f);
+      const sz = fx.small ? 0.55 : 1, n = fx.small ? 6 : 10; // (a triple shot's arrows: smaller bursts)
+      glowDot(cx, cy, (6 + 12 * t) * sz, `rgba(${r},${g},${b},`, 0.8 * f);
       ctx.lineCap = 'round';
-      for (let k = 0; k < 10; k++) {
-        const ra = k * Math.PI / 5 + (fx.x * 7 + fx.y * 3) % 5 * 0.2, len = (10 + (k % 3) * 6) * (0.4 + t);
+      for (let k = 0; k < n; k++) {
+        const ra = k * Math.PI * 2 / n + (fx.x * 7 + fx.y * 3) % 5 * 0.2, len = (10 + (k % 3) * 6) * (0.4 + t) * sz;
         ctx.strokeStyle = `rgba(${r},${g},${b},${0.7 * f})`; ctx.lineWidth = 2 * f + 0.5;
         ctx.beginPath(); ctx.moveTo(cx + Math.cos(ra) * len * 0.35, cy + Math.sin(ra) * len * 0.35); ctx.lineTo(cx + Math.cos(ra) * len, cy + Math.sin(ra) * len); ctx.stroke();
       }

@@ -133,7 +133,7 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'selfdestruct'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'selfdestruct'];
 
 function hurt(target, dmg, element) {
   if (target.type === 'player') {
@@ -579,7 +579,7 @@ function updatePendingHits() {
     const t = h.target;
     if (!t || t.dead || t.z !== h.z || h.by.dead || !players.includes(h.by)) continue;
     asPlayer(h.by, () => {
-      effects.push({ kind: 'impact', x: t.x, y: t.y, z: t.z, glow: h.glow || '#ffe27a', start: now, dur: 380 }); // (a burst of light rays where it lands)
+      effects.push({ kind: 'impact', x: t.x, y: t.y, z: t.z, glow: h.glow || '#ffe27a', small: h.small, start: now, dur: h.small ? 260 : 380 }); // (a burst of light rays where it lands)
       addSound('hit', t.x, t.y, t.z);
       hurt(t, h.dmg, h.element);
     });
@@ -617,6 +617,24 @@ function castArc(s) {
 // The power shot (kind pierce): the bow drawn for a moment, then one arrow loosed at the target (if there is one in
 // range) or the way you face, straight on for range tiles or till something blocks the way. Each monster on its line is
 // hit when the arrow gets there.
+// The triple shot: quick arrows at your target, one after the other (lead ms to draw, then one every gap ms), each one
+// arrow from your quiver and each hit on its own as it gets there.
+function castVolley(s) {
+  const w = playerWeapon(), t = player.target, z = player.z, d = Math.max(1, dist(player, t)), max = physicalMax(w);
+  player.dir = dirTo(t.x - player.x, t.y - player.y) ?? player.dir;
+  let shots = 0;
+  for (let i = 0; i < s.shots && player.equipment.ammo && player.equipment.ammo.count > 0; i++) {
+    useAmmo(w); shots++;
+    const dmg = Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
+    pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, element: 'physical', glow: '#bfe6ff', small: true });
+  }
+  addSkillTries('distance');
+  const flight = Math.round(d * s.perTile);
+  effects.push({ kind: 'volley', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, start: now, lead: s.lead, gap: s.gap, shots, flight,
+    dur: s.lead + (shots - 1) * s.gap + flight + 160 });
+  addSound('shoot', player.x, player.y, z); // (the next arrows' twangs: the picture plays them, as they're loosed)
+}
+
 function castPierce(s) {
   const w = playerWeapon(), t = player.target, z = player.z;
   let ax = DX[player.dir || 0], ay = DY[player.dir || 0];
@@ -672,7 +690,11 @@ function castSpell(id) {
   }
   if (s.kind === 'conjure' && s.blank && !countItem('blank_rune')) return log('You need a blank rune.');
   if (s.kind === 'arc' && !playerWeapon().spear) return log('You need a war spear in your hands for that.');
-  if (s.kind === 'pierce') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
+  if (s.kind === 'volley') {
+    if (!t) return log('You need a target for this spell. Click a monster first.');
+    if (t.z !== player.z || dist(player, t) > s.range || !sightClear(player, t)) return log('Your target is out of range.');
+  }
+  if (s.kind === 'pierce' || s.kind === 'volley') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
@@ -728,6 +750,8 @@ function castSpell(id) {
     castArc(s);
   } else if (s.kind === 'pierce') {
     castPierce(s);
+  } else if (s.kind === 'volley') {
+    castVolley(s);
   } else if (s.kind === 'selfdestruct') { // everything around you burns, and so do you
     for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
       const x = player.x + dx, y = player.y + dy;

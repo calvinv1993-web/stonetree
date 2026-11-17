@@ -1713,6 +1713,29 @@ test('every plain shot from a bow, and blow of a war spear, shows the hero loosi
   assert(seen > 0, 'the war spear is swung');
 });
 
+test('the triple shot: three quick arrows at your target, each hit on its own as it gets there, three arrows used', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  p.skills.distance.level = 40;
+  p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
+  A.say('sagitta trina'); tick(game, 100);
+  assert(messages.some(m => /need a target/.test(m)), 'not without a target');
+  const m = ctx.spawnMonster({ type: 'bear', x: p.x + 4, y: p.y, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m);
+  p.target = m; p.chase = false; state.now += 3000;
+  const hits = [];
+  const before = () => m.hp;
+  let last = before();
+  A.say('sagitta trina');
+  assert(state.effects.some(fx => fx.kind === 'volley' && fx.shots === 3), 'everyone near sees the volley');
+  assert.strictEqual(p.equipment.ammo.count, 7, 'three arrows');
+  for (let t = 0; t < 900; t += 20) { tick(game, 20); if (m.hp !== last) { hits.push(t); last = m.hp; } }
+  assert(hits.length >= 3, `three hits, one after the other (${hits})`);
+  assert(hits[2] - hits[0] >= 200 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
+});
+
 test('the power shot: a bow drawn to the full, one arrow loosed through every monster in its way, each hit as the arrow gets there', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

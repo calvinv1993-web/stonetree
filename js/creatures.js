@@ -629,6 +629,7 @@ const SPELLS = {
   // A bow drawn to the full and loosed: the arrow flies straight on through everything in its way, each monster hit as
   // the arrow gets there, one after the other (pendingHits, as the circle throw). Paladins: a first try of the bow's skills.
   power_shot: { name: 'Power Shot', words: 'sagitta vis', vocs: ['paladin'], level: 10, mana: 40, kind: 'pierce', range: 6, charge: 320, perTile: 45, mult: [1.4, 2.4], desc: 'With a bow and arrows: draw to the full and loose one arrow that flies through every monster in its way, at your target or straight ahead, up to 6 tiles.' },
+  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 12, mana: 35, kind: 'volley', range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
   // Said, not clicked: hidden from the spell bar, so nobody blows themselves up by accident.
   final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 
