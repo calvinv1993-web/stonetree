@@ -8102,7 +8102,7 @@ const Sprites = (() => {
       return cached(`kerb2:${mask}:${soft}:${street}:${path}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
         g.canvas.res = res;
         for (const [bit, d, i] of [[1, 'n', cell(x)], [2, 'e', cell(y)], [4, 's', cell(x)], [8, 'w', cell(y)]]) if (mask & bit) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
-        const strip = edgePixels(pics.n), D = Math.round(T * 12 / 64), R = T * 0.5;
+        const strip = edgePixels(pics.n), D = Math.round(T * 16 / 64), R = T * 0.5;
         const img = g.getImageData(0, 0, T, T), px = img.data;
         const texs = {};
         const groundPx = id => texs[id] || (texs[id] = (() => { const c = document.createElement('canvas'); c.width = c.height = T; const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(id, x, y, 0), 0, 0, T, T); return cg.getImageData(0, 0, T, T).data; })());
