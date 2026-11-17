@@ -1002,6 +1002,7 @@ function createDefaultMap() {
   buildWellTunnels(m, S);
   buildGateSites(m, S);
   buildDiscoveries(m, S);
+  dressMountains(m, S);
 
   // ---- hunting grounds: harder the further from town ----------------------------------------------------------
   // [type, count, [x0, y0, x1, y1], z?, ground?]: that many over the area in packs of up to three, as the old
@@ -1122,6 +1123,48 @@ function createDefaultMap() {
 // Last touches over the whole world, so the rules hold everywhere, not only where someone looked:
 //   - nothing hangs on a wall that a stair or ladder climbs against (it would show through the steps)
 //   - a single tile of grass left in the middle of a trail becomes trail
+// The hills' ledges and plateaus, so climbing up pays: the founders' lookout on Bone Rocks (a cairn with a find, the
+// view over the bone trail, two skeletons on watch), the spiders' hatchery on the Spider Hills (eggs and webs, an old
+// pack in them with silk, two spiders), and the hermit's heather on Hermit Rock (his beehives, a fire, bushes, flowers).
+// Each takes free, walkable tiles of its box on the floor above the land (S + 1), in a fixed order, so it never blocks
+// the way up: the ramp's top tiles and those beside them are kept clear.
+const MOUNTAIN_SIGHTS = [
+  { box: [70, 192, 86, 199], cache: 'qchest_bone_lookout', spawns: ['skeleton', 'skeleton'],
+    props: ['gravestone', 'bones', 'bones'],
+    look: 'From up here you see the whole bone trail, the crypt\'s steps at the foot of the crag, and the sea beyond. The founders stood here, the stones say, to watch for ships.' },
+  { box: [172, 190, 188, 199], cache: 'qchest_spider_cache', spawns: ['spider', 'spider'],
+    props: ['eggs', 'eggs', 'web', 'web'],
+    look: 'Nests of eggs in the heather, wrapped in grey silk. Whatever lays them is big, and not far.' },
+  { box: [192, 39, 211, 56], props: ['beehive', 'beehive', 'beehive', 'bush', 'bush', 'flowers', 'flowers', 'flowers', 'stump', 'rock', 'campfire'],
+    look: 'The heather hums with the hermit\'s bees. On a clear night, they say, you can count every star from up here.' },
+];
+function dressMountains(m, S) {
+  const Z = S + 1, hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 1000;
+  for (const site of MOUNTAIN_SIGHTS) {
+    const [x0, y0, x1, y1] = site.box, free = [], ground = [];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const t = m.get(x, y, Z);
+      if (!t || t.items.length || !m.isWalkable(x, y, Z)) continue;
+      ground.push([x, y]); // (anywhere a monster can stand)
+      // (clear of the way up: no ramp top within two tiles, and all eight neighbours walkable, so nothing is blocked)
+      let open = true;
+      for (let dy = -2; dy <= 2 && open; dy++) for (let dx = -2; dx <= 2; dx++) { const n = m.get(x + dx, y + dy, Z); if (n && n.items.includes('ramp_top')) { open = false; break; } }
+      for (let dy = -1; dy <= 1 && open; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && !m.isWalkable(x + dx, y + dy, Z)) { open = false; break; }
+      if (open) free.push([x, y]);
+    }
+    free.sort((a, b) => hash(...a) - hash(...b));
+    const take = () => { const p = free.shift(); if (p) for (let i = free.length - 1; i >= 0; i--) if (Math.max(Math.abs(free[i][0] - p[0]), Math.abs(free[i][1] - p[1])) <= 1) free.splice(i, 1); return p; };
+    if (site.cache) { const p = take(); if (p) { m.addItem(p[0], p[1], Z, site.cache); m.setMeta(p[0], p[1], Z, { look: site.look }); } }
+    else { const p = free[0]; if (p) m.setMeta(p[0], p[1], Z, { look: site.look }); }
+    for (const id of site.props) { const p = take(); if (p) m.addItem(p[0], p[1], Z, id); }
+    ground.sort((a, b) => hash(...b) - hash(...a));
+    for (const type of site.spawns || []) {
+      const p = ground.find(([x, y]) => !m.get(x, y, Z).items.length && !m.spawns.some(s => s.z === Z && s.x === x && s.y === y));
+      if (p) m.spawns.push({ type, x: p[0], y: p[1], z: Z, lurk: true });
+    }
+  }
+}
+
 function tidyWorld(m, S) {
   const CLIMB = ['stairs_up', 'ladder', 'cave_ladder', 'sewer_ladder'];
   for (let z = 0; z < m.depth; z++) for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {

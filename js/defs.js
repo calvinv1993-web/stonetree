@@ -382,6 +382,15 @@ const THINGS = {
     chest: { flag: 'crest_skull', requires: 'bone_chapel@2', items: [['crest_skull', 1]],
       locked: 'A cracked old coffin. Let the dead sleep.', empty: 'The coffin is empty now.' },
   },
+  // On the hills' ledges (dressMountains in default-map.js): a reason to climb up
+  qchest_bone_lookout: {
+    name: 'founders\' cairn', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'bone_lookout', gold: 35, items: [['health_potion', 2], ['rope', 1]] },
+  },
+  qchest_spider_cache: {
+    name: 'webbed pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
+    chest: { flag: 'spider_cache', gold: 25, items: [['spider_silk', 3], ['health_potion', 1]] },
+  },
   // a page of the founder's diary, lying out in the world (meta page: n; The Oakvale Chronicle, CHRONICLE in npcs.js)
   chronicle_page: { name: 'weathered page', cat: 'Quest chests', chronicle: true, meta: 'page' },
   crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, questDoor: true, meta: 'quest' },
