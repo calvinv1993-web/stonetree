@@ -597,10 +597,15 @@ function draw() {
 const creatureById = id => players.find(p => p.id === id) || monsters.find(m => m.id === id) || npcs.find(n => n.id === id);
 // A player in the middle of a sweeping strike (the circle throw's arc): their strike's picture for now - the wind-up, the
 // middle or the follow-through, as far as the swing has come - or null (no strike going on, or no picture for it).
-const swingOf = c => c.type === 'player' && effects.find(fx => fx.kind === 'arc' && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
+// (a power shot likewise: drawing the bow, at full draw, loosed)
+const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc' || fx.kind === 'shot') && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
 function strikeOf(c) {
   const fx = swingOf(c);
   if (!fx) return null;
+  if (fx.kind === 'shot') {
+    const e = now - fx.start;
+    return Sprites.playerAttack(creatureKey(c), c.dir, e < fx.charge * 0.55 ? 0 : e < fx.charge ? 1 : 2, 'bow');
+  }
   const t = (now - fx.start) / fx.dur;
   return Sprites.playerAttack(creatureKey(c), c.dir, t < 0.28 ? 0 : t < 0.62 ? 1 : 2);
 }
@@ -660,6 +665,30 @@ function drawEffects(ox, oy, z) {
       ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(r - 8, 0); ctx.stroke();       // the shaft, from the hands outwards
       ctx.fillStyle = '#dfe4ea'; ctx.strokeStyle = '#8a9098'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(r - 9, -3.5); ctx.lineTo(r + 3, 0); ctx.lineTo(r - 9, 3.5); ctx.closePath(); ctx.fill(); ctx.stroke(); // the blade
+      ctx.restore();
+    } else if (fx.kind === 'shot') { // the power shot: a glow gathering at the bow while it's drawn, then the arrow flying straight on, a streak behind it
+      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
+      const a = Math.atan2(ey - sy, ex - sx);
+      ctx.save();
+      if (e < fx.charge) { // (drawing: a little gold light gathers in front of you)
+        const k = e / fx.charge;
+        ctx.globalAlpha = 0.25 + 0.5 * k; ctx.fillStyle = '#ffe9a0';
+        ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 10, sy + Math.sin(a) * 10, 2 + 4 * k, 0, Math.PI * 2); ctx.fill();
+      } else {
+        const p = Math.min(1, (e - fx.charge) / Math.max(1, fx.flight)), fade = e > fx.charge + fx.flight ? 1 - (e - fx.charge - fx.flight) / 200 : 1;
+        const x = sx + (ex - sx) * p, y = sy + (ey - sy) * p, tail = Math.min(TILE * 1.6, Math.hypot(x - sx, y - sy));
+        const grad = ctx.createLinearGradient(x - Math.cos(a) * tail, y - Math.sin(a) * tail, x, y);
+        grad.addColorStop(0, 'rgba(255,240,190,0)'); grad.addColorStop(1, 'rgba(255,240,190,0.85)');
+        ctx.globalAlpha = Math.max(0, fade);
+        ctx.strokeStyle = grad; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * tail, y - Math.sin(a) * tail); ctx.lineTo(x, y); ctx.stroke(); // the streak
+        if (p < 1) {
+          ctx.translate(x, y); ctx.rotate(a);
+          ctx.strokeStyle = '#7a5226'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(4, 0); ctx.stroke();   // the shaft
+          ctx.fillStyle = '#e8ecf0'; ctx.beginPath(); ctx.moveTo(4, -2.5); ctx.lineTo(9, 0); ctx.lineTo(4, 2.5); ctx.closePath(); ctx.fill(); // the head
+          ctx.fillStyle = '#c03030'; ctx.fillRect(-13, -2.5, 3, 1.5); ctx.fillRect(-13, 1, 3, 1.5);                                 // the fletching
+        }
+      }
       ctx.restore();
     } else if (fx.kind === 'vehicle') { // a ride arriving to pick someone up (and waiting), or leaving
       const p = fx.travel ? Math.min(1, (now - fx.start) / fx.travel) : t, s = p * p * (3 - 2 * p), off = fx.from + (fx.to - fx.from) * s;

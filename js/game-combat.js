@@ -133,7 +133,7 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'selfdestruct'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'selfdestruct'];
 
 function hurt(target, dmg, element) {
   if (target.type === 'player') {
@@ -610,6 +610,38 @@ function castArc(s) {
   }
 }
 
+// The power shot (kind pierce): the bow drawn for a moment, then one arrow loosed at the target (if there is one in
+// range) or the way you face, straight on for range tiles or till something blocks the way. Each monster on its line is
+// hit when the arrow gets there.
+function castPierce(s) {
+  const w = playerWeapon(), t = player.target, z = player.z;
+  let ax = DX[player.dir || 0], ay = DY[player.dir || 0];
+  if (t && t.z === z && dist(player, t) <= s.range && (t.x !== player.x || t.y !== player.y)) { ax = t.x - player.x; ay = t.y - player.y; }
+  const len = Math.hypot(ax, ay); ax /= len; ay /= len;
+  player.dir = dirTo(Math.round(ax), Math.round(ay)) ?? player.dir;
+  // the arrow's way: the tiles under it, every half tile along the line, till a wall or tree stops it
+  const way = [];
+  for (let d = 0.5; d <= s.range + 0.01; d += 0.5) {
+    const x = Math.round(player.x + ax * d), y = Math.round(player.y + ay * d);
+    if (x === player.x && y === player.y) continue;
+    if (way.length && way[way.length - 1].x === x && way[way.length - 1].y === y) continue;
+    if (!sightClear(player, { x, y, z })) break;
+    way.push({ x, y, d });
+  }
+  const reach = way.length ? way[way.length - 1].d : 1, max = physicalMax(w);
+  const shot = () => Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
+  useAmmo(w);
+  addSkillTries('distance');
+  effects.push({ kind: 'shot', cid: player.id, weapon: 'bow', x: player.x, y: player.y, z, tx: player.x + ax * reach, ty: player.y + ay * reach,
+    start: now, charge: s.charge, flight: Math.round(reach * s.perTile), dur: s.charge + Math.round(reach * s.perTile) + 200 });
+  for (const { x, y, d } of way) {
+    const hit = [...monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z),
+      ...players.filter(p => p !== player && !p.dead && p.x === x && p.y === y && p.z === z && pvpAllowed(p) && mayHurt(p))];
+    for (const c of hit) pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg: shot(), element: 'physical' });
+  }
+  addSound('shoot', player.x, player.y, z);
+}
+
 function hitTiles(tiles, element, roll, z = player.z) {
   for (const [x, y] of tiles) {
     addBurst(x, y, z, ELEMENT_COLORS[element]);
@@ -636,6 +668,7 @@ function castSpell(id) {
   }
   if (s.kind === 'conjure' && s.blank && !countItem('blank_rune')) return log('You need a blank rune.');
   if (s.kind === 'arc' && !playerWeapon().spear) return log('You need a war spear in your hands for that.');
+  if (s.kind === 'pierce') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
@@ -689,6 +722,8 @@ function castSpell(id) {
     hitTiles(tiles, element, s.kind === 'area' ? roll : melee);
   } else if (s.kind === 'arc') {
     castArc(s);
+  } else if (s.kind === 'pierce') {
+    castPierce(s);
   } else if (s.kind === 'selfdestruct') { // everything around you burns, and so do you
     for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
       const x = player.x + dx, y = player.y + dy;

@@ -1693,6 +1693,34 @@ test('the war spear and its circle throw: held in both hands it reaches two tile
   assert(!hurt(north), 'nothing behind you');
 });
 
+test('the power shot: a bow drawn to the full, one arrow loosed through every monster in its way, each hit as the arrow gets there', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  p.skills.distance.level = 40;
+  A.say('sagitta vis'); tick(game, 100);
+  assert(messages.some(m => /bow/.test(m) && /hands/.test(m)), 'not without a bow');
+  p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
+  const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
+  const hurt = m => m.hp < 9999;
+  p.dir = 2; // (no target: straight on, the way you face)
+  const near = at(0, 2), mid = at(0, 4), far = at(0, 6), aside = at(2, 3);
+  state.now += 3000; A.say('sagitta vis');
+  assert(state.effects.some(fx => fx.kind === 'shot'), 'everyone near sees the shot');
+  assert.strictEqual(p.equipment.ammo.count, 9, 'one arrow');
+  tick(game, 300);
+  assert(!hurt(near), 'nothing while the bow is drawn');
+  tick(game, 150);
+  assert(hurt(near) && !hurt(mid) && !hurt(far), 'loosed: first the nearest');
+  tick(game, 100);
+  assert(hurt(mid) && !hurt(far), 'then the next in its way');
+  tick(game, 100);
+  assert(hurt(far), 'then the furthest');
+  assert(!hurt(aside), 'nothing beside its way');
+});
+
 test('walking: speed grows with your level, ground counts, a diagonal step takes twice as long', () => {
   const game = quietGame();
   const { ctx, state } = game;
