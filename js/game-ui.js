@@ -792,8 +792,16 @@ function itemMenu(ref, item, e, worn = false) {
 // ---- equipment and containers -----------------------------------------------------------------
 const EQUIP_LAYOUT = ['neck', 'head', 'backpack', 'weapon', 'body', 'shield', 'ring', 'legs', 'ammo', null, 'feet', null];
 
+// What an item shows in a slot (its picture, count, grade, minutes left), and of a container all it holds: the bag and
+// the equipment are only built again when this changes. (Every hit can mark the panel to be drawn again, for its skill
+// bar; building the slots again each time made their pictures flicker.)
+const slotKey = it => it && [it.id, it.count, it.q || 0, it.time ? Math.ceil(it.time / 60000) : 0, it.contents ? it.contents.map(slotKey) : 0];
+const builtKeys = {};
+function unchanged(name, key) { if (builtKeys[name] === key) return true; builtKeys[name] = key; return false; }
+
 function renderEquipment() {
   const root = $('equipment');
+  if (unchanged('equipment', JSON.stringify([SLOTS.map(sl => slotKey(player.equipment[sl])), GEAR_STATS.map(([, value]) => value()), touchScreen])) && root.childElementCount) return;
   root.replaceChildren();
   for (const slot of EQUIP_LAYOUT) {
     if (!slot) {
@@ -897,6 +905,9 @@ function containerWindow(root, path, heading, closable) {
 
 function renderContainers() {
   const root = $('containers');
+  openContainers = openContainers.filter(o => containerAt(o));
+  const key = JSON.stringify([slotKey(bag()), openContainers.map(o => [o.root, o.path, o.title, slotKey(containerAt(o))]), player.gold, player.bank || 0]);
+  if (unchanged('containers', key) && root.childElementCount) return;
   root.replaceChildren();
   const b = bag();
   if (b) root.appendChild(containerWindow('bag', [], capitalize(ITEMS[b.id].name), false));
