@@ -8055,6 +8055,7 @@ const Sprites = (() => {
     },
     dropsShadow: id => { const d = THINGS[id]; return DROPS_SHADOW.has(id) || (d.wall === 'thin' && !d.roof) || FILLS_TILE.has(id) || !!PARTS[spriteOf(id)]; },
     castsShadow: id => { const d = THINGS[id]; return d.wall === 'block' && !d.roof && !d.change; }, // (only what fills its tile to the edge, a block: the rest has a shadow of its own shape, see dropsShadow)
+    hasOwnKerb: () => ['n', 'e', 's', 'w'].every(d => customImage(`edge_kerb_${d}`)),
     hasOwnEdge: ground => ['n', 'e', 's', 'w'].every(d => customImage(`edge_${ground}_${d}`)),
     // A ground's border run straight across a tile on its diagonal (see the ground borders in render.js): the corner
     // towards `corner` (nw, ne, se, sw) filled with the ground, its own border picture laid along the diagonal pixel by
@@ -8084,27 +8085,46 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       }, T);
     },
-    // The stone kerb along a street where it meets grass (edge_kerb_n/e/s/w, from the kerb template): its straight
-    // pieces on the sides the grass is on (mask as ownEdge's: 1 n, 2 e, 4 s, 8 w; 16 ne, 32 se, 64 sw, 128 nw), and at a
-    // corner where the grass only touches diagonally, one stone's end turned round the corner. Where two sides meet the
-    // two rows simply cross. null when there's no kerb picture.
-    kerbEdge(mask, x, y) {
+    // The stone kerb, laid on the grass where it meets a street (edge_kerb_n/e/s/w, from the kerb template, its street side
+    // outward): mask, the street's sides round this grass tile (1 n, 2 e, 4 s, 8 w; 16 ne, 32 se, 64 sw, 128 nw). Straight
+    // along a side; where the street is on two sides that meet (the corner of a block of grass) the corner is rounded off,
+    // the street filling it beyond a curve of kerb; where the street only touches a corner, a small round of kerb there.
+    // null when there's no kerb picture.
+    kerbEdge(mask, x, y, street) {
       const pics = {};
       for (const d of ['n', 'e', 's', 'w']) if (!(pics[d] = customImage(`edge_kerb_${d}`))) return null;
       const res = pics.n.naturalHeight / TILE, T = TILE * res, cells = Math.max(1, Math.round(pics.n.naturalWidth / T));
-      const cell = v => ((v % cells) + cells) % cells;
+      const cell = v => ((v % cells) + cells) % cells, m4 = v => ((v % 4) + 4) % 4;
       for (const [c, a, b] of [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]]) if (mask & (a | b)) mask &= ~c;
-      return cached(`kerb:${mask}:${cell(x)}:${cell(y)}`, g => {
+      return cached(`kerb2:${mask}:${street}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
         g.canvas.res = res;
         for (const [bit, d, i] of [[1, 'n', cell(x)], [2, 'e', cell(y)], [4, 's', cell(x)], [8, 'w', cell(y)]]) if (mask & bit) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
-        // an outer corner: the corner square of the north piece (a stone's end), turned to that corner
-        const K = Math.round(T * 0.3);
-        for (const [bit, turn, cx, cy] of [[16, 1, T, 0], [32, 2, T, T], [64, 3, 0, T], [128, 0, 0, 0]]) {
-          if (!(mask & bit)) continue;
-          g.save(); g.translate(cx, cy); g.rotate((turn * Math.PI) / 2);
-          g.drawImage(pics.n, 0, 0, K, K, 0, 0, K, K);
-          g.restore();
+        const strip = edgePixels(pics.n), D = Math.round(T * 14 / 64), R = T * 0.5;
+        const img = g.getImageData(0, 0, T, T), px = img.data;
+        let tex = null;
+        const street_ = () => tex || (tex = (() => { const c = document.createElement('canvas'); c.width = c.height = T; const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(street, x, y, 0), 0, 0, T, T); return cg.getImageData(0, 0, T, T).data; })());
+        const stone = (i, row, col) => { const si = (row * strip.width + (((col % strip.width) + strip.width) % strip.width)) * 4; for (let k = 0; k < 4; k++) px[i + k] = strip.data[si + k]; };
+        // the corner of a block of grass: rounded, the street beyond the curve, the kerb along it
+        for (const [both, cx, cy] of [[1 | 8, 0, 0], [1 | 2, T, 0], [4 | 2, T, T], [4 | 8, 0, T]]) {
+          if ((mask & both) !== both) continue;
+          const ccx = cx ? T - R : R, ccy = cy ? T - R : R;
+          for (let py = 0; py < T; py++) for (let qx = 0; qx < T; qx++) {
+            if ((cx ? qx < ccx : qx >= ccx) || (cy ? py < ccy : py >= ccy)) continue; // (only the corner's quarter)
+            const i = (py * T + qx) * 4, dist = Math.hypot(qx + 0.5 - ccx, py + 0.5 - ccy);
+            if (dist > R) { const t = street_(); for (let k = 0; k < 3; k++) px[i + k] = t[i + k]; px[i + 3] = 255; }
+            else if (dist > R - D) stone(i, Math.floor(R - dist), Math.floor(Math.atan2(py + 0.5 - ccy, qx + 0.5 - ccx) * R));
+            else px[i + 3] = 0;
+          }
         }
+        // the street only across a corner: a small round of kerb joining the two rows that end there
+        for (const [bit, cx, cy] of [[16, T, 0], [32, T, T], [64, 0, T], [128, 0, 0]]) {
+          if (!(mask & bit)) continue;
+          for (let py = 0; py < T; py++) for (let qx = 0; qx < T; qx++) {
+            const dist = Math.hypot(qx + 0.5 - cx, py + 0.5 - cy);
+            if (dist < D) stone((py * T + qx) * 4, Math.floor(dist), Math.floor(Math.atan2(py + 0.5 - cy, qx + 0.5 - cx) * D * 2));
+          }
+        }
+        g.putImageData(img, 0, 0);
       }, T);
     },
     // squash: how deep the border reaches, 1 as painted; less over water, so the beach's foam still shows past it

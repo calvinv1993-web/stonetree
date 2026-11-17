@@ -13,6 +13,7 @@ const CROWN_SHADOW = new Set(['tree', 'pine', 'ancient_tree', 'jungle_tree', 'sn
 const SEE_THROUGH = new Set(['ramp_top', 'steps_top']); // grounds that draw nothing over what's below them
 // Streets with a stone kerb where they meet these grounds (the kerb picture: Sprites.kerbEdge)
 const KERBED = { cobble: new Set(['grass', 'jungle']) };
+const KERB_ON = new Set(Object.values(KERBED).flatMap(s => [...s])); // (the grounds a kerb lies on)
 const BORDER_DIRS = [['ne', 1, -1, 'n', 'e'], ['se', 1, 1, 's', 'e'], ['sw', -1, 1, 's', 'w'], ['nw', -1, -1, 'n', 'w']];
 
 const STANDING = new WeakMap(); // tile -> whether something stands on it filling it (for the grass round things' feet)
@@ -550,13 +551,25 @@ const Render = {
           }
           const variant = (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3; // which wobble, fixed per tile
           for (const [n, mask] of [...higher].sort((a, b) => Sprites.borderPriority(a[0]) - Sprites.borderPriority(b[0]))) {
-            // a street meeting the grass: the stone kerb along it, instead of the grass spilling over (Sprites.kerbEdge)
-            const kerb = KERBED[here] && KERBED[here].has(n) && Sprites.kerbEdge(mask, x, y);
-            if (kerb) { g.drawImage(kerb, ox + x * TILE, oy + y * TILE, TILE, TILE); continue; }
+            // a street meeting the grass: no grass spilling over it, the kerb lies on the grass instead (below)
+            if (KERBED[here] && KERBED[here].has(n) && Sprites.hasOwnKerb()) continue;
             const own = Sprites.hasOwnEdge(n) && Sprites.ownEdge(n, mask, x, y, WET.has(here) ? SQUASH_WET : 1); // (a ground's own border pictures, if it has any)
             if (own) g.drawImage(own, ox + x * TILE, oy + y * TILE, TILE, TILE);
             else g.drawImage(Sprites.edge(n, mask, variant, x, y, Sprites.paved(here)), ox + x * TILE, oy + y * TILE);
           }
+        }
+
+        // The stone kerb, on the grass along a street (Sprites.kerbEdge): straight along its sides, round its corners
+        if (Sprites.hasOwnKerb()) for (let y = gy0; y <= gy1; y++) for (let x = gx0; x <= gx1; x++) {
+          const here = groundAt(x, y);
+          if (!here || !KERB_ON.has(here) || (tileAt(x, y) && tileAt(x, y).items.some(id => THINGS[id].wall))) continue;
+          let mask = 0, street = null;
+          for (const [bit, dx, dy] of EDGE_NEIGHBOURS) {
+            const n = groundAt(x + dx, y + dy);
+            if (n && KERBED[n] && KERBED[n].has(here)) { mask |= bit; street = street || n; }
+          }
+          const pic = mask && Sprites.kerbEdge(mask, x, y, street);
+          if (pic) g.drawImage(pic, ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
 
         // The rounded shores: on a land tile the water where its corner is rounded off (still: the ripples move on the
