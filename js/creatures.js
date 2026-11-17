@@ -117,7 +117,7 @@ const MONSTERS = {
     loot: { gold: [3, 15], items: [['health_potion', 0.1], ['bone', 0.3], ['ring_life', 0.01]] },
   },
   thornmother: { // the spider queen of the Spider Hills, who lays the webs over the trails
-    name: 'the Thornmother', proper: true, hp: 130, xp: 120, dmg: [2, 14], defense: 4, armor: 3, speed: 200, attackSpeed: 1400, aggro: 6, corpse: 'slime',
+    name: 'the Thornmother', proper: true, hp: 110, xp: 120, dmg: [2, 13], defense: 2, armor: 1, speed: 200, attackSpeed: 1700, aggro: 6, corpse: 'slime',
     respawn: 300000, hitCondition: { kind: 'poison', chance: 0.3, power: 3 }, summon: { type: 'spider', max: 1, chance: 0.06 },
     loot: { gold: [15, 40], items: [['spider_silk', 1, 2, 4], ['health_potion', 0.5]] },
   },
