@@ -705,13 +705,13 @@ function drawPowerShot(fx, ox, oy) {
       g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},${o})`);
       ctx.strokeStyle = g; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(t0, 0); ctx.lineTo(hx - 6, 0); ctx.stroke();
     };
-    beam(5, PS_AMBER, 0.55); beam(2.8, PS_GOLD, 0.95);
+    beam(3.2, PS_AMBER, 0.5); beam(1.8, PS_GOLD, 1); // (narrow: a line, not a glow)
     // round the head, a crescent of light bowed out just ahead of its tip (the air it parts), and from its two horns
     // thin ribbons sweeping back along the beam, waving a little
-    const CR = 17, cx0 = hx - 1, horn = 1.15, hxh = cx0 + Math.cos(horn) * CR, hyh = Math.sin(horn) * CR;
-    ctx.strokeStyle = `rgba(${PS_GOLD},0.85)`; ctx.lineWidth = 2;
+    const CR = 15, cx0 = hx - 1, horn = 1.1, hxh = cx0 + Math.cos(horn) * CR, hyh = Math.sin(horn) * CR;
+    ctx.strokeStyle = `rgba(${PS_GOLD},0.9)`; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.arc(cx0, 0, CR, -horn, horn); ctx.stroke();
-    for (const side of [-1, 1]) for (const [lift, back, w, o] of [[22, 46, 1.6, 0.8], [30, 34, 1, 0.55], [12, 58, 1, 0.5]]) {
+    for (const side of [-1, 1]) for (const [lift, back, w, o] of [[20, 48, 1, 0.8], [11, 60, 0.7, 0.55]]) {
       const ex2 = hx - back, wave = side * lift * (0.88 + 0.12 * Math.sin(r / 60 + lift));
       const g = ctx.createLinearGradient(hxh, 0, ex2, 0);
       g.addColorStop(0, `rgba(${PS_GOLD},${o})`); g.addColorStop(1, `rgba(${PS_GOLD},0)`);
@@ -719,19 +719,19 @@ function drawPowerShot(fx, ox, oy) {
       ctx.beginPath(); ctx.moveTo(hxh, side * hyh); ctx.quadraticCurveTo(hx - back * 0.3, wave, ex2, side * lift * 0.3); ctx.stroke();
     }
     ctx.globalCompositeOperation = 'lighter';
-    beam(1.3, PS_CORE, 0.9);
+    beam(0.9, PS_CORE, 1);
     // the shine: white light running up the beam to the head, again and again
     for (const off of [0, 0.5]) {
-      const u = ((r / 170) + off) % 1, at = t0 + (hx - t0) * u, len = 18;
+      const u = ((r / 170) + off) % 1, at = t0 + (hx - t0) * u, len = 12;
       const g = ctx.createLinearGradient(at - len, 0, at + len, 0);
       g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(255,255,255,${0.9 * Math.sin(u * Math.PI)})`); g.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.strokeStyle = g; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(Math.max(t0, at - len), 0); ctx.lineTo(Math.min(hx - 4, at + len), 0); ctx.stroke();
+      ctx.strokeStyle = g; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(Math.max(t0, at - len), 0); ctx.lineTo(Math.min(hx - 4, at + len), 0); ctx.stroke();
     }
     // sparks coming off behind the head, drifting out and fading
-    for (let i = 0; i < 9; i++) {
-      const ph = (r / 420 + i / 9) % 1, back = ph * tail * 0.9;
+    for (let i = 0; i < 6; i++) {
+      const ph = (r / 420 + i / 6) % 1, back = ph * tail * 0.9;
       if (back > hx) continue;
-      powerSpark(hx - 6 - back, Math.sin(i * 1.9) * (2 + ph * 9), 1.8 - ph, (1 - ph) * 0.85);
+      powerSpark(hx - 6 - back, Math.sin(i * 1.9) * (2 + ph * 7), 1.3 - ph * 0.6, (1 - ph) * 0.8);
     }
     // the release: a bright flash and a half circle of light round the bow
     if (rel > 0) {
@@ -742,23 +742,23 @@ function drawPowerShot(fx, ox, oy) {
     }
     // the arrowhead: amber at its back, gold, a near-white core; a thin gold edge so it holds on any ground
     ctx.globalCompositeOperation = 'source-over';
-    const L = 24 * (1 + 0.15 * rel), H = 10; // (a little longer just after release: speed)
+    const L = 25 * (1 + 0.15 * rel), H = 8; // (long and narrow: sharp) // (a little longer just after release: speed)
     const g = ctx.createLinearGradient(hx - L * 0.4, 0, hx + L * 0.62, 0);
     g.addColorStop(0, `rgb(${PS_AMBER})`); g.addColorStop(0.55, `rgb(${PS_GOLD})`); g.addColorStop(1, `rgb(${PS_CORE})`);
     powerHead(hx, L, H); ctx.fillStyle = g; ctx.fill();
-    ctx.strokeStyle = 'rgba(150,90,0,0.55)'; ctx.lineWidth = 1; ctx.stroke(); // (a dark rim: clear on grass, water, dirt and stone)
+    ctx.strokeStyle = 'rgba(150,84,0,0.85)'; ctx.lineWidth = 0.8; ctx.stroke(); // (a dark rim: clear on grass, water, dirt and stone)
     ctx.globalCompositeOperation = 'lighter';
-    powerHead(hx + 2, L * 0.55, H * 0.45); ctx.fillStyle = `rgba(${PS_CORE},0.9)`; ctx.fill();
+    powerHead(hx + 3, L * 0.5, H * 0.35); ctx.fillStyle = `rgba(${PS_CORE},0.95)`; ctx.fill();
     { // the shine running over the arrowhead: a white band sweeping from its back to its tip, where it flares
-      const u = (r / 170) % 1, bx0 = hx - L * 0.4, sweep = bx0 + (L * 1.02) * u, w = 7;
+      const u = (r / 170) % 1, bx0 = hx - L * 0.4, sweep = bx0 + (L * 1.02) * u, w = 4;
       ctx.save(); powerHead(hx, L, H); ctx.clip();
       const g = ctx.createLinearGradient(sweep - w, 0, sweep + w, 0);
       g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = g; ctx.fillRect(sweep - w, -H, w * 2, H * 2);
       ctx.restore();
-      if (u > 0.8) powerSpark(hx + L * 0.6, 0, 4 + 8 * (u - 0.8) / 0.2, (u - 0.8) / 0.2); // (and a glint at the tip)
+      if (u > 0.8) powerSpark(hx + L * 0.6, 0, 2.5 + 4 * (u - 0.8) / 0.2, (u - 0.8) / 0.2); // (and a glint at the tip)
     }
-    powerSpark(hx + L * 0.5, 0, 6, 0.7); // (a little warm light round its tip)
+    powerSpark(hx + L * 0.6, 0, 3.5, 0.6); // (a little warm light at its tip)
   } else { // ---- impact: a short burst and sparks flying out where it ends
     const f = Math.min(1, (r - fx.flight) / 200);
     ctx.globalCompositeOperation = 'lighter';
