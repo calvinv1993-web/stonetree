@@ -358,6 +358,12 @@ function createKestrelMap() {
     m.spawns.push({ type, x: OX + x, y: OY + y, z: S }); i++;
   }
 
+  // ---- under the ground nothing is empty, as in Tibia: wherever no tunnel or cave is dug, solid rock (never black) ----
+  for (let z = S - 1; z >= S - 4; z--) {
+    if (!m.floors[z].some(Boolean)) continue; // (a layer not dug yet stays as it is)
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!m.get(x, y, z)) m.set(x, y, z, { ground: 'rock_top', items: [] });
+  }
+
   m.isle = { x0: 0, y0: 0, x1: W - 1, y1: H - 1 };
   m.labels = [{ name: 'Kestrel Isle', x: OX + 105, y: OY + 20, z: S }];
   return m;
