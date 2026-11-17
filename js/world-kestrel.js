@@ -186,7 +186,23 @@ const KESTREL = {
 };
 
 // (in the preview, Clang can be rescued from the start: on the old island he came after The Silent Bell I)
-if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeof QUESTS !== 'undefined' && QUESTS.clang_rescue) delete QUESTS.clang_rescue.after;
+// In the preview, the start as Kestrel Isle has it: Clang is the first thing Sister Ama asks of you (no bell before it,
+// no level to reach first), and she speaks of Bellhaven and the Hall of Paths, not of Oakvale and its oracle.
+if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeof QUESTS !== 'undefined' && QUESTS.clang_rescue) {
+  delete QUESTS.clang_rescue.after;
+  QUESTS.clang_rescue.level = 1;
+  QUESTS.clang_rescue.text.tooWeak = QUESTS.clang_rescue.text.accept;
+  const ama = NPCS.ama;
+  ama.greet = 'Peace be with you, $name. The sea brought you to Kestrel Isle, and you woke in our temple, in {Bellhaven}. Our cat {Clang} is lost under the town - would you help? And if you are hurt, I can {heal} you.';
+  Object.assign(ama.keywords, {
+    'bellhaven|town|kestrel|isle': 'Bellhaven is small, but it is home. The square is just below the temple steps; the Hall of Paths stands on it, and the shops line the streets round it. Beyond the walls: rabbits and rats first, then worse.',
+    'oracle|vocation|mainland|path|paths|hall': 'Every adventurer walks one of four paths. Pathkeeper Ilse in the {Hall} of Paths, on the square, will show you all four - and let you try them.',
+    'job': 'I keep the temple. Everyone who washes up on Kestrel Isle wakes here first - and again after each death.',
+  });
+  delete ama.keywords['bell|quest|mission|task|help|rope|cellar|clapper|gravewaker|farewell|goodbye'];
+  ama.keywords['quest|mission|task|cellar'] = { quest: ['clang_rescue'] };
+  delete ama.keywords.oakvale; delete ama.keywords['academy|corwin|teacher']; delete ama.keywords.depot; delete ama.keywords['mirror|lake|shrine|water|flask'];
+}
 
 function createKestrelMap() {
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;

@@ -30,7 +30,8 @@ places of its own. The picture of every layer is `kestrel-isle-layers.png` besid
 3. The Hall of Paths (done: the Pathkeeper and four teachers in the hall on the square; four practice rooms a floor
    down, reached by a teacher and left by a forcefield, with straw and sparring dummies; trials as each path, safe and
    earning nothing; choosing once all four are tried; the vocations renamed Bastion, Hawk, Ember and Grove).
-4. The guide rewritten for Kestrel Isle (the start: basics, Clang, the Hall, choosing), then the easy quests.
+4. The guide rewritten for Kestrel Isle (done: the basics with Sister Ama, Clang in the bell cellar, the Hall of Paths,
+   the four trials, choosing; Sister Ama speaks of Bellhaven); then the easy quests round the town.
 5. Layer -1 and its ways in.
 6. Layers -2 to -4.
 7. New monsters (deer, snakes, sheep, poison spiders, smugglers), once they have pictures.

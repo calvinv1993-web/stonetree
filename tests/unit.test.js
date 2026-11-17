@@ -1770,6 +1770,59 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
 });
 
+test('the guide on Kestrel Isle: Sister Ama, the sewers and Clang, the Hall of Paths, the four trials, choosing', () => {
+  const game = loadGame({ world: 'kestrel' });
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map, K = state.KESTREL;
+  const W = (ax, ay) => [K.isleAt[0] + K.townAt[0] + ax, K.isleAt[1] + K.townAt[1] + ay];
+  const step = () => p.tutorial;
+  const text = () => (ctx.GUIDE || vm.runInContext('GUIDE', ctx))[p.tutorial - 1].text;
+  const next = () => { A.guideNext(); tick(game, 60); };
+  const npc = id => state.npcs.find(n => n.npcId === id);
+  const talk = (id, ...words) => { ctx.endConversation(true); const n = npc(id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y + 1, n.z, 1), z: n.z }); A.say('hi'); for (const w of words) A.say(w); tick(game, 100); };
+  assert(/Welcome to Kestrel Isle/.test(text()), text());
+  next();
+  assert(/Sister Ama/.test(text()));
+  talk('ama'); assert(/Bellhaven/.test(messages.join(' ')), 'she speaks of Bellhaven');
+  tick(game, 100);
+  assert(/Clang/.test(text()), text());
+  A.say('clang'); A.say('yes'); tick(game, 100);
+  assert.strictEqual(state.questState('clang_rescue'), 'active', 'Clang at level 1');
+  next(); // (the quests tab)
+  assert(/grate/.test(text()), text());
+  const [gx, gy] = W(...K.sewers.grates[0]);
+  ctx.endConversation(true); ctx.teleport({ x: gx, y: gy + 1, z: 8 }); ctx.useThing(gx, gy, 8); tick(game, 300);
+  assert(p.z < 8, 'down the grate');
+  tick(game, 100);
+  assert(/rats/.test(text()), text());
+  for (let i = 0; i < 3; i++) { const r = state.monsters.find(m => !m.dead && m.type === 'rat' && m.z === 7); ctx.killMonster(r); }
+  tick(game, 100);
+  if (/corpse/.test(text())) { p.openPile = state.piles.find(x => x.corpse) || { corpse: true }; tick(game, 100); p.openPile = null; }
+  assert(/crate/.test(text()), text());
+  const crate = K.sewers.props.find(x => x[2] === 'clang_crate'), [cx, cy] = W(crate[0], crate[1]);
+  ctx.teleport({ ...ctx.findFreeTile(cx - 1, cy, 7, 1), z: 7 }); ctx.useThing(cx, cy, 7); tick(game, 200);
+  assert(p.tutorial, `guide still on: ${p.tutorial} ${state.questState('clang_rescue')} ${JSON.stringify(p.quests.clang_rescue)} ${messages.slice(-3).join(' | ')}`);
+  assert(/Eat|stomach/.test(text()), text());
+  p.fedUntil = state.now + 60000; tick(game, 100);
+  assert(/Clang follows you/.test(text()), text());
+  talk('ama', 'clang'); tick(game, 200);
+  assert.strictEqual(state.questState('clang_rescue'), 'done');
+  assert(/Hall of Paths/.test(text()), text());
+  talk('pathkeeper', 'paths'); tick(game, 100);
+  assert(/Try all four/.test(text()), text());
+  for (const v of ['knight', 'paladin', 'sorcerer', 'druid']) {
+    talk(state.PATHS[v].teacher, 'trial', 'yes');
+    for (const id of state.PATHS[v].spells) ctx.trialProgress('cast', id);
+    for (let i = 0; i < 3; i++) ctx.trialProgress('down');
+    ctx.teleport(map.hall); tick(game, 200);
+  }
+  assert(/Which one made you grin/.test(text()), text());
+  talk('pathkeeper', 'ember', 'yes'); tick(game, 3000);
+  assert.strictEqual(p.vocation, 'sorcerer');
+  assert(/You walk your path now/.test(text()), text());
+  assert.strictEqual(vm.runInContext('homeTown()', ctx), 'Bellhaven');
+});
+
 test('the Hall of Paths (Kestrel Isle): a trial makes you that path for a while, safely, then all four stamps let you choose', () => {
   const game = loadGame({ world: 'kestrel' });
   const { ctx, state, messages } = game;

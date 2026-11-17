@@ -16,7 +16,7 @@
 // handed to you when the step comes up (once: its flag), with who gives them and what they say. client: a step the
 // browser sees done (it calls Actions.guideNext; it has no Next button); touchOnly: only for a phone (passed at once
 // on a computer).
-const GUIDE = [
+const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, the first half hour: one thing at a time (a step without done or on is read and passed by itself) ----
   {
     text: 'Welcome to Oakvale Isle! In the panel on the right: red is your health (when it runs out, you die), blue your mana, for spells, and under them your experience: full, and you reach the next level. When this guide asks you to do something, do it and it moves on by itself.',
@@ -178,6 +178,98 @@ const GUIDE = [
   },
 ];
 
+// The guide on Kestrel Isle (the new world's preview): the basics in the temple, Clang under the town (your first
+// fights, your first loot), then the Hall of Paths: the four paths explained, tried, and one chosen.
+function kestrelGuide() {
+  const K = KESTREL, at = (ax, ay, z) => [K.isleAt[0] + K.townAt[0] + ax, K.isleAt[1] + K.townAt[1] + ay, z], S = 8;
+  const grate = at(...K.sewers.grates[0], S), cellar = at(49, 12, S - 1), crate = K.sewers.props.find(p => p[2] === 'clang_crate');
+  const stamped = v => !!(player.paths || {})[v];
+  return Object.assign([
+    {
+      text: 'Welcome to Kestrel Isle! In the panel on the right: red is your health (when it runs out, you die), blue your mana, for spells, and under them your experience: full, and you reach the next level. When this guide asks you to do something, do it and it moves on by itself.',
+      touch: 'Welcome to Kestrel Isle! At the top: red is your health (when it runs out, you die), blue your mana, for spells, and under them your experience: full, and you reach the next level. When this guide asks you to do something, do it and it moves on by itself.',
+      ui: ['#touch .hud'], uiDesk: ['.sec-status'], art: 'bars',
+    },
+    {
+      text: 'Sister Ama stands by the altar: the yellow arrow points at her. Walk with W A S D or the arrow keys (or click where to go), then click her to talk.',
+      touch: 'Sister Ama stands by the altar: the yellow arrow points at her. Tap where to go (or drag over the map), then tap her to talk.',
+      target: [{ npc: 'ama' }],
+      done: () => talkingTo('ama') || questState('clang_rescue') !== 'none',
+    },
+    {
+      text: 'The gold words are things you can ask about: click one, or type it. Ask Sister Ama about Clang, then say yes.',
+      touch: 'The gold words are things you can ask about: tap one. Ask Sister Ama about Clang, then tap yes.',
+      target: [{ npc: 'ama' }], ui: ['#talkWords'], art: 'words',
+      done: () => questState('clang_rescue') !== 'none',
+    },
+    {
+      text: 'You have a quest! The Quests tab, in the panel on the right, always says where to go next, and the yellow arrow points the way. The minimap shows the land round you; G opens the map of the whole island.',
+      touch: 'You have a quest! Lost? The yellow arrow points the way, and the backpack button (bottom right), then Quests, says what to do next. The map button (top left) shows the land round you.',
+      ui: ['#inventoryDrawer .drawer-tabs [data-page="quests"]', '#hudBag'], uiDesk: ['[data-tab="quests"]'], art: 'lost',
+    },
+    {
+      text: 'Down the steps to the square, and down the grate in the middle of it: click the grate (or use it) to climb down into the sewers.',
+      touch: 'Down the steps to the square, and down the grate in the middle of it: tap the grate to climb down into the sewers.',
+      target: [{ at: grate }],
+      done: () => player.z < S || questState('clang_rescue') === 'done',
+    },
+    {
+      text: 'The bell cellar lies north, under the temple, and it is full of rats. Space attacks the nearest monster (again for the next one), or click one. Kill 3 rats there ($progress).',
+      touch: 'The bell cellar lies north, under the temple, and it is full of rats. The big button does what the moment asks: red attacks the nearest monster, amber opens a corpse. Kill 3 rats there ($progress).',
+      ui: ['#tAttack'], uiDesk: ['#hotbar'], art: 'smart',
+      target: [{ monster: 'rat' }, { at: cellar }],
+      done: () => !questOnStep('clang_rescue@0'),
+    },
+    {
+      text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
+      touch: 'Monsters leave a corpse with loot. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything.',
+      target: [{ corpse: true }], art: 'loot',
+      done: () => !!(player.openPile && player.openPile.corpse) || !questOnStep('clang_rescue@1'),
+    },
+    {
+      text: 'A small mew, from behind the fallen crate at the east end of the cellar: use the crate to move it, and free Clang.',
+      touch: 'A small mew, from behind the fallen crate at the east end of the cellar: tap the crate to move it, and free Clang.',
+      target: [{ at: at(crate[0], crate[1], S - 1) }],
+      done: () => !questOnStep('clang_rescue@1'),
+    },
+    {
+      text: 'With a full stomach you heal much faster. Eat something: right-click it in your bag. The bar under the map: spells on 1 to 9, H for a health potion, M for mana, F to eat.',
+      touch: 'With a full stomach you heal much faster. Open the backpack, tap something to eat, then Use.',
+      ui: ['#hudBag'], uiDesk: ['#containers'], art: 'eat',
+      done: () => player.fedUntil > now,
+    },
+    {
+      text: 'Clang follows you now. Bring him home: up a ladder, and back to Sister Ama in the temple.',
+      touch: 'Clang follows you now. Bring him home: up a ladder, and back to Sister Ama in the temple.',
+      target: [{ quest: 'clang_rescue' }, { npc: 'ama' }],
+      done: () => questState('clang_rescue') === 'done',
+    },
+    {
+      text: 'Every adventurer walks one of four paths. Go to the Hall of Paths, on the square, and talk to Pathkeeper Ilse: ask her about the paths.',
+      touch: 'Every adventurer walks one of four paths. Go to the Hall of Paths, on the square, and talk to Pathkeeper Ilse: ask her about the paths.',
+      target: [{ npc: 'pathkeeper' }],
+      done: () => countItem('book_of_paths') > 0 || player.vocation !== 'none',
+    },
+    {
+      text: 'Try all four! Each teacher in the hall lets you be their path for a while, down in their practice room: you can\'t die there. Ask a teacher for a trial ($paths tried). The Book of Paths in your bag shows all four.',
+      touch: 'Try all four! Each teacher in the hall lets you be their path for a while, down in their practice room: you can\'t die there. Ask a teacher for a trial ($paths tried). The Book of Paths in your bag shows all four.',
+      target: [{ npc: 'holt', when: () => !stamped('knight') && !player.trial }, { npc: 'sill', when: () => !stamped('paladin') && !player.trial },
+        { npc: 'vela', when: () => !stamped('sorcerer') && !player.trial }, { npc: 'fennick', when: () => !stamped('druid') && !player.trial }],
+      done: () => pathStamps() === 4 || (player.vocation !== 'none' && !player.trial),
+    },
+    {
+      text: 'Which one made you grin? Tell Pathkeeper Ilse: ask her about that path, and say yes. It can\'t be undone.',
+      touch: 'Which one made you grin? Tell Pathkeeper Ilse: ask her about that path, and tap yes. It can\'t be undone.',
+      target: [{ npc: 'pathkeeper' }],
+      done: () => player.vocation !== 'none' && !player.trial,
+    },
+    {
+      text: 'You walk your path now! Kestrel Isle is yours to explore: the wilds beyond the walls, and the caves below. More of it is still being built. Good luck, $name.',
+      touch: 'You walk your path now! Kestrel Isle is yours to explore: the wilds beyond the walls, and the caves below. More of it is still being built.',
+    },
+  ], { kestrel: true });
+}
+
 const talkingTo = id => !!(player.conversation && player.conversation.npc.npcId === id);
 // Corwin's five rats are dead (his kill step is ready, or the bell quest has gone past it)
 const ratsDone = () => { const q = player.quests.bell_1; return !!q && (q.status === 'done' || q.step > 1 || (q.step === 1 && stepReady('bell_1'))); };
@@ -186,7 +278,8 @@ const ratsDone = () => { const q = player.quests.bell_1; return !!q && (q.status
 function updateGuide() {
   if (!player.tutorial) return;
   const step = GUIDE[player.tutorial - 1];
-  if (!step || player.vocation !== 'none') player.tutorial = 0;
+  // (a vocation ends the guide - not a trial's, and not on Kestrel Isle, whose guide goes on past choosing one)
+  if (!step || (player.vocation !== 'none' && !player.trial && !GUIDE.kestrel)) player.tutorial = 0;
   else {
     if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
     player.guideSeen = Math.max(player.guideSeen || 0, player.tutorial);

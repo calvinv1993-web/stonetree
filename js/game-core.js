@@ -344,7 +344,7 @@ function changeFloor(dz, dx = 0, dy = 0) {
 
 // Where you wake up: the starter island's temple, or the temple of the town you're a citizen of.
 const homePos = () => (player.home === 'start' ? map.start : map.temples.find(t => t.home === player.home) || map.mainStart);
-const homeTown = () => (player.home === 'start' ? 'Oakvale' : (map.temples.find(t => t.home === player.home) || { town: mainlandOpen() ? 'Valoria' : 'Oakvale' }).town);
+const homeTown = () => (player.home === 'start' ? (typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? 'Bellhaven' : 'Oakvale') : (map.temples.find(t => t.home === player.home) || { town: mainlandOpen() ? 'Valoria' : 'Oakvale' }).town);
 // Is there a mainland to sail on to? Only once the map has a mainStart of its own (the beginners' island comes
 // first: until the mainland is built, mainStart is the start, and the oracle's new vocations stay to defend Oakvale).
 const mainlandOpen = () => !!map.mainStart && (map.mainStart.x !== map.start.x || map.mainStart.y !== map.start.y || map.mainStart.z !== map.start.z);
