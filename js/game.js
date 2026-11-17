@@ -387,17 +387,22 @@ function drawPowerGround(g, ox, oy, z) {
     if (e < fx.charge) {
       const k = e / fx.charge, R = 13 + 11 * k * k;
       g.translate(cx, cy); g.scale(1, 0.45); // (seen from above at a slant)
-      g.strokeStyle = `rgba(255,205,80,${0.3 + 0.55 * k})`; g.lineWidth = 2.4;
+      // filled with light: white at its heart, through the shot's gold to amber at its rim (the power shot's colours)
+      const fill = g.createRadialGradient(0, 0, 0, 0, 0, R);
+      fill.addColorStop(0, `rgba(255,255,255,${0.25 + 0.4 * k})`); fill.addColorStop(0.35, `rgba(${PS_CORE},${0.15 + 0.3 * k})`);
+      fill.addColorStop(0.7, `rgba(${PS_GOLD},${0.1 + 0.25 * k})`); fill.addColorStop(1, `rgba(${PS_AMBER},${0.08 + 0.22 * k})`);
+      g.fillStyle = fill; g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = `rgba(${PS_GOLD},${0.3 + 0.55 * k})`; g.lineWidth = 2.4;
       g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.stroke();
       g.save(); g.rotate(e / 380);
-      g.strokeStyle = `rgba(255,236,150,${0.25 + 0.6 * k})`; g.lineWidth = 2;
+      g.strokeStyle = `rgba(${PS_CORE},${0.25 + 0.6 * k})`; g.lineWidth = 2;
       for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.moveTo(Math.cos(a) * R * 0.72, Math.sin(a) * R * 0.72); g.lineTo(Math.cos(a + 0.18) * R * 0.9, Math.sin(a + 0.18) * R * 0.9); g.stroke(); } // (runes)
       g.restore(); g.rotate(-e / 260);
-      g.setLineDash([4, 5]); g.strokeStyle = `rgba(255,190,60,${0.2 + 0.5 * k})`; g.lineWidth = 1.5;
+      g.setLineDash([4, 5]); g.strokeStyle = `rgba(${PS_AMBER},${0.2 + 0.5 * k})`; g.lineWidth = 1.5;
       g.beginPath(); g.arc(0, 0, R * 0.55, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
     } else if (e - fx.charge < 320) {
       const f = (e - fx.charge) / 320;
-      g.strokeStyle = `rgba(255,220,120,${0.7 * (1 - f)})`; g.lineWidth = 3 * (1 - f) + 0.5;
+      g.strokeStyle = `rgba(${PS_GOLD},${0.7 * (1 - f)})`; g.lineWidth = 3 * (1 - f) + 0.5;
       g.beginPath(); g.ellipse(cx, cy, 10 + 40 * f, (10 + 40 * f) * 0.45, 0, 0, Math.PI * 2); g.stroke();
     }
     g.restore();
