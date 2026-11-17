@@ -556,7 +556,7 @@ const Fx = (() => {
   // Light and dark, in canvas pixels: the night, holes of light, and coloured glows on top.
   const LIGHT_COLORS = {
     temple_lantern_se: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
-    cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
+    cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', shot: '255,214,110', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
   };
   function light(view, screen, pv, amount, underground) {
     if (amount <= 0.02) return; // (broad day)
@@ -577,6 +577,18 @@ const Fx = (() => {
           if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });
           else if ((id === 'window' || id === 'window_stained') && !underground && amount > 0.25) lights.push({ x: x - d, y: y - d, r: 1.4, color: LIGHT_COLORS.window, flicker: true, soft: true });
         }
+      }
+    }
+    // a power shot lights the dark: the bow glows brighter as it's drawn, then the arrow carries its light all the way,
+    // a fading wake of light behind it (the effect's timing as game.js draws it)
+    for (const e of effects) {
+      if (e.kind !== 'shot' || e.z !== player.z || now < e.start || now > e.start + e.dur) continue;
+      const t = now - e.start;
+      if (t < e.charge) { lights.push({ x: e.x, y: e.y, r: 1 + 2.5 * t / e.charge, color: LIGHT_COLORS.shot, flicker: true, carried: true }); continue; }
+      const r = t - e.charge, fade = r > e.flight ? Math.max(0, 1 - (r - e.flight) / 200) : 1;
+      for (const [back, size] of [[0, 3.2], [0.18, 2.4], [0.36, 1.6]]) {
+        const p = Math.max(0, Math.min(1, r / Math.max(1, e.flight)) - back);
+        if (fade * size > 0.3) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: size * fade, color: LIGHT_COLORS.shot, flicker: false, carried: back === 0 });
       }
     }
     for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: true });

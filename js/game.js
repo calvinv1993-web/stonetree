@@ -524,6 +524,20 @@ function creatureKey(c) {
   return c.rare ? `rare:${c.type}` : c.type; // (rare named kin: their own look)
 }
 
+// The highest floor you see from here: what's above you hides the floors over it (a roof, the storey above). And
+// standing at a window or a door, or in a doorway, you look in: the roof of the building beyond lifts too.
+const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
+function peekMaxZ(x, y, z) {
+  let top = map.visibleMaxZ(x, y, z);
+  const opening = (tx, ty) => { const t = map.get(tx, ty, z); return !!t && t.items.some(OPENING); };
+  const here = opening(x, y);
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    if ((!dx && !dy) || !(here || opening(x + dx, y + dy))) continue;
+    top = Math.min(top, map.visibleMaxZ(x + dx, y + dy, z), map.visibleMaxZ(x + 2 * dx, y + 2 * dy, z)); // (the opening, and the room past it)
+  }
+  return top;
+}
+
 function draw() {
   const pv = visual(player);
   const z = player.z;
@@ -531,7 +545,7 @@ function draw() {
     cx: pv.x * TILE + TILE / 2, cy: pv.y * TILE + TILE / 2, z,
     // Above ground you see down to the surface; underground only two floors deep.
     minZ: z >= map.surfaceZ ? map.surfaceZ : Math.max(0, z - 2),
-    maxZ: z < map.surfaceZ || Render.off.has('floors') ? z : map.visibleMaxZ(player.x, player.y, z), // underground there's rock above you
+    maxZ: z < map.surfaceZ || Render.off.has('floors') ? z : peekMaxZ(player.x, player.y, z), // underground there's rock above you
     w: VIEW_W * TILE, h: VIEW_H * TILE, time: now, objects: [],
     depth: 0.15, // what lies below you is darker
   };
