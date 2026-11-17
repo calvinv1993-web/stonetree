@@ -1781,6 +1781,17 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
   }
   assert(m.npcs.some(n => n.type === 'ama' && m.isWalkable(n.x, n.y, n.z)), 'Sister Ama in the temple');
   for (const n of m.npcs) assert(m.isWalkable(n.x, n.y, n.z), `${n.type} stands on open ground at ${n.x},${n.y},${n.z}`);
+  // every building stands free: at least a tile of open ground between it and the next
+  const gap = (a, b) => Math.min(...a.boxes.flatMap(p => b.boxes.map(q => Math.max(q[0] - p[2], p[0] - q[2], q[1] - p[3], p[1] - q[3]))));
+  K.buildings.forEach((a, i) => K.buildings.slice(i + 1).forEach(b => assert(gap(a, b) >= 2, `${a.name} and ${b.name} stand apart`)));
+  for (const b of K.buildings.filter(o => o.kind !== 'gatehouse')) { // (and that tile is open ground: no rock, no wall, nothing missing)
+    const z = m.surfaceZ + (b.rock === true ? 1 : b.rock || 0), inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    for (const [x0, y0, x1, y1] of b.boxes) for (let y = y0 - 1; y <= y1 + 1; y++) for (let x = x0 - 1; x <= x1 + 1; x++) {
+      if (inB(x, y)) continue;
+      const t = m.get(...W(x, y), z);
+      assert(t && !t.items.some(id => id === 'cliff' || /^wall_/.test(id)), `${b.name}: open ground round it at ${x},${y}`);
+    }
+  }
 });
 
 test('Kestrel Isle: how far things are from the courtyard, walking at level 1 (shops under 30 s, the gates 20-45 s, the first monsters 30-60 s)', () => {

@@ -103,22 +103,22 @@ const KESTREL = {
   buildings: [ // (the harbour's three close the town's south side: no wall needed)
     { name: 'Temple', boxes: [[23, 3, 31, 8], [25, 1, 29, 3]], door: [27, 8], kind: 'temple', rock: 2, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
     { name: 'Bell tower', boxes: [[35, 4, 39, 9]], door: [37, 9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
-    { name: 'Hall of Paths', boxes: [[40, 4, 49, 11]], door: [45, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
+    { name: 'Hall of Paths', boxes: [[42, 4, 50, 11]], door: [46, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
     { name: 'Depot', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
       upstairs: [['depot', 'depot', 'depot', 'depot', 'depot', 'plant']] }, // (more lockers upstairs)
     { name: 'General store', boxes: [[42, 13, 50, 18]], door: [42, 15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle',
       cellar: { stairs: [48, 14], monsters: [['rat', 3]], props: [[43, 16, 'crate'], [44, 17, 'barrel'], [47, 17, 'sack'], [43, 14, 'crate']], torch: [45, 13] } }, // (its storeroom: rats in it)
-    { name: 'Inn: The Cracked Bell', boxes: [[6, 19, 14, 25]], door: [14, 22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle', floors: 2, up: [[7, 20]],
+    { name: 'Inn: The Cracked Bell', boxes: [[6, 19, 14, 24]], door: [14, 22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle', floors: 2, up: [[7, 20]],
       upstairs: [['bed_head', 'bed_head', 'chest', 'bed_head', 'bed_head', 'plant']] }, // (rooms upstairs)
     { name: 'Smithy', boxes: [[16, 24, 23, 29]], door: [20, 24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
-    { name: 'Healer', boxes: [[31, 24, 37, 29]], door: [34, 24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[32, 25]],
+    { name: 'Healer', boxes: [[31, 24, 37, 28]], door: [34, 24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[32, 25]],
       upstairs: [['bed_head', 'plant', 'bed_head', 'chest']] }, // (the sickroom upstairs)
-    { name: 'House', boxes: [[9, 26, 14, 30]], door: [14, 28], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[8, 26, 13, 29]], door: [13, 27], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'House', boxes: [[40, 21, 46, 26]], door: [40, 23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'Warehouse', boxes: [[12, 31, 24, 34]], door: [20, 31], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
     { name: 'Harbour master', boxes: [[29, 30, 35, 34]], door: [32, 34], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[30, 31], [30, 33]],
       upstairs: [['table', 'chest', 'bookshelf'], ['chest']] }, // (his rooms, and a lookout over the bay at the top)
-    { name: 'Fishmonger', boxes: [[36, 30, 44, 33]], door: [40, 33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Fishmonger', boxes: [[37, 30, 44, 33]], door: [40, 33], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
     // the gates' watchtowers, out on the roads: two storeys and a lookout on top
     { name: 'West gate, north tower', boxes: [[-25, 12, -21, 16]], door: [-23, 16], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[-24, 13], [-24, 15]] },
     { name: 'West gate, south tower', boxes: [[-25, 19, -21, 23]], door: [-23, 19], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[-24, 21]] },
@@ -317,6 +317,19 @@ function createKestrelMap() {
     for (const [cx, cy, rx, ry] of g.rocks) for (let y = cy - ry - 1; y <= cy + ry + 1; y++) for (let x = cx - rx - 1; x <= cx + rx + 1; x++)
       if (Math.hypot((x - cx) / rx, (y - cy) / ry) + (smooth(TX + x, TY + y, 2, 81) - 0.5) * 0.5 < 1) { set(TX + x, TY + y, S, 'mountain', ['cliff']); set(TX + x, TY + y, S + 1, 'rock_top'); }
     for (const [x0, y0, x1, y1] of g.walls) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { set(TX + x, TY + y, S, 'grass', ['wall_stone']); for (let z = S + 1; z <= S + 2; z++) m.set(OX + TX + x, OY + TY + y, z, null); }
+  }
+
+  // a tile of open grass all round every building (not its gates' towers, which their walls join): no rock or cliff
+  // against its walls, and on the rock the plateau runs on round it
+  for (const b of K.buildings) {
+    if (b.kind === 'gatehouse') continue;
+    const lv = rockOf(b), inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    for (const [x0, y0, x1, y1] of b.boxes) for (let y = y0 - 1; y <= y1 + 1; y++) for (let x = x0 - 1; x <= x1 + 1; x++) {
+      if (inB(x, y)) continue;
+      const X = TX + x, Y = TY + y, t = at(X, Y, S + lv);
+      if (lv === 0 && t && t.items.includes('cliff')) { set(X, Y, S, 'grass'); for (let z = S + 1; z <= S + 3; z++) m.set(OX + X, OY + Y, z, null); }
+      else if (lv > 0 && (!t || t.items.includes('cliff'))) { for (let z = S; z < S + lv; z++) set(X, Y, z, 'mountain', ['cliff']); set(X, Y, S + lv, 'grass'); }
+    }
   }
 
   // the buildings: walls (windows on straight runs), floors, a door, upper floors and stairs, a roof, furniture
