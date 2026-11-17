@@ -376,6 +376,34 @@ const markWalk = t => { walkMark = { x: t.x, y: t.y, z: t.z, at: now, moved: now
 // Drawn on the floor itself (Render's onFloor, in world pixels), so walls, things, roofs and creatures stand over it.
 // The guide's ring: gold on the ground round the feet of what the arrow points at (or round the spot), growing and
 // fading, so the eye finds it at once; drawn with the floor, under the figures standing on it
+// On the ground under the figures: a power shot's ring of runes while the bow is drawn (turning, growing), and the
+// shock ring that bursts out round the hero as it's loosed.
+function drawPowerGround(g, ox, oy, z) {
+  for (const fx of effects) {
+    if (fx.kind !== 'shot' || fx.z !== z) continue;
+    const e = now - fx.start, cx = ox + fx.x * TILE + 16 - LIFT, cy = oy + fx.y * TILE + 29 - LIFT; // (under the hero's feet)
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    if (e < fx.charge) {
+      const k = e / fx.charge, R = 13 + 11 * k * k;
+      g.translate(cx, cy); g.scale(1, 0.45); // (seen from above at a slant)
+      g.strokeStyle = `rgba(255,205,80,${0.3 + 0.55 * k})`; g.lineWidth = 2.4;
+      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.stroke();
+      g.save(); g.rotate(e / 380);
+      g.strokeStyle = `rgba(255,236,150,${0.25 + 0.6 * k})`; g.lineWidth = 2;
+      for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.moveTo(Math.cos(a) * R * 0.72, Math.sin(a) * R * 0.72); g.lineTo(Math.cos(a + 0.18) * R * 0.9, Math.sin(a + 0.18) * R * 0.9); g.stroke(); } // (runes)
+      g.restore(); g.rotate(-e / 260);
+      g.setLineDash([4, 5]); g.strokeStyle = `rgba(255,190,60,${0.2 + 0.5 * k})`; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(0, 0, R * 0.55, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+    } else if (e - fx.charge < 320) {
+      const f = (e - fx.charge) / 320;
+      g.strokeStyle = `rgba(255,220,120,${0.7 * (1 - f)})`; g.lineWidth = 3 * (1 - f) + 0.5;
+      g.beginPath(); g.ellipse(cx, cy, 10 + 40 * f, (10 + 40 * f) * 0.45, 0, 0, Math.PI * 2); g.stroke();
+    }
+    g.restore();
+  }
+}
+
 function drawGuideRing(g, ox, oy, z) {
   const step = player.tutorial && !player.dead && GUIDE[player.tutorial - 1], t = step && guideTarget(step);
   if (!t || t.z !== z || t.z !== player.z) return;
@@ -518,7 +546,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); drawPowerGround(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.groundItem(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
@@ -698,17 +726,7 @@ function drawEffects(ox, oy, z) {
       if (e < fx.charge) { // drawing: power gathering - a ring of runes on the ground, sparks rising, light drawn into the bow, then lightning
         const k = e / fx.charge, ease = k * k, pulse = 0.78 + 0.22 * Math.sin(e / 55), fy = sy + 17; // (fy: the hero's feet)
         glowDot(sx, sy, 18 + 12 * ease, 'rgba(255,180,50,', 0.28 * k * pulse); // an aura round the hero
-        ctx.save(); ctx.translate(sx, fy); ctx.scale(1, 0.45); // the ring on the ground, seen from above at a slant
-        const R = 13 + 11 * ease;
-        ctx.strokeStyle = `rgba(255,205,80,${0.3 + 0.55 * k})`; ctx.lineWidth = 2.4;
-        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
-        ctx.save(); ctx.rotate(e / 380);
-        ctx.strokeStyle = `rgba(255,236,150,${0.25 + 0.6 * k})`; ctx.lineWidth = 2;
-        for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.72, Math.sin(a) * R * 0.72); ctx.lineTo(Math.cos(a + 0.18) * R * 0.9, Math.sin(a + 0.18) * R * 0.9); ctx.stroke(); } // (runes)
-        ctx.restore(); ctx.rotate(-e / 260);
-        ctx.setLineDash([4, 5]); ctx.strokeStyle = `rgba(255,190,60,${0.2 + 0.5 * k})`; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-        ctx.restore();
+        const R = 13 + 11 * ease; // (the ring of runes is on the ground, under the hero: drawPowerGround)
         for (let i = 0; i < 16; i++) { // sparks rising from the ring
           const ph = (e / 650 + i / 16) % 1, a = i * 2.39996;
           glowDot(sx + Math.cos(a) * R * (0.4 + 0.6 * ((i * 7) % 5) / 4), fy + Math.sin(a) * R * 0.45 - ph * (26 + 14 * k), 2.2, 'rgba(255,226,120,', (1 - ph) * (0.3 + 0.7 * k));
@@ -734,11 +752,6 @@ function drawEffects(ox, oy, z) {
         if (k > 0.9) { const f = (k - 0.9) / 0.1; ctx.strokeStyle = `rgba(255,250,210,${0.8 * (1 - f)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bx, by, 6 + 22 * f, 0, Math.PI * 2); ctx.stroke(); } // ready: a ring of light snaps out
       } else {
         const r = e - fx.charge, p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 200) : 1;
-        if (r < 320) { // loosed: a shock ring bursting out round the hero
-          const f = r / 320;
-          ctx.strokeStyle = `rgba(255,220,120,${0.7 * (1 - f)})`; ctx.lineWidth = 3 * (1 - f) + 0.5;
-          ctx.beginPath(); ctx.ellipse(sx, sy + 17, 10 + 40 * f, (10 + 40 * f) * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
-        }
         if (r < 220) { // loosed: a flash, and a fan of rays forward from the bow
           const f = 1 - r / 220;
           glowDot(bx, by, 14 * f + 4, 'rgba(255,236,150,', 0.9 * f);
