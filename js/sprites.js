@@ -6740,10 +6740,13 @@ const Sprites = (() => {
   // One cell of a player's sheet (id) at sx, sy, into cg (a canvas the cell's size), in the outfit's colours (from the
   // key: not the look's, which a vocation's clothes or a skirt change): each part's pixels as light or dark against the
   // part's own colour; without a parts map, as painted.
-  function recolourCell(cg, id, key, sx, sy) {
-    const cell = cg.canvas, img = customImage(id), px = sheetParts(id);
+  // like: another sheet (the walking one) whose painted colours a part left at the outfit's default takes, so a sheet
+  // painted in other colours (a strike's) still matches the figure walking.
+  function recolourCell(cg, id, key, sx, sy, like) {
+    const cell = cg.canvas, img = customImage(id), px = sheetParts(id), pl = like && sheetParts(like);
     const own = (key.split(':')[2] || '').split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
-    const targets = SHEET.parts.map(p => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p]) : null));
+    const targets = SHEET.parts.map((p, k) => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p])
+      : pl ? pl.base[k] : null));
     if (px && targets.some(Boolean)) {
       const out = cg.createImageData(cell.width, cell.height), o = out.data, base = px.base;
       const lum = (r, gg, b) => 0.3 * r + 0.59 * gg + 0.11 * b;
@@ -6765,11 +6768,12 @@ const Sprites = (() => {
   function playerAttack(key, dir, phase, weapon = 'spear') {
     const id = `player_attack_${weapon}_sheet`, img = customImage(id), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES);
     if (!img || playerSheetId(key) !== 'player_sheet') return null;
+    if ([id, 'player_sheet'].some(s => custom.has(maskOf(s)) && !customImage(maskOf(s)))) return null; // (a parts map still on its way: drawn walking, not kept in the wrong colours)
     const c = cached(`attack:${weapon}:${key}:${dir}:${phase}:${R}`, g => {
       g.canvas.res = R;
       const [CW, CH] = ATTACK.cell, sx = phase * CW * S, sy = SHEET.rows[dir] * CH * S;
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
-      recolourCell(cell.getContext('2d'), id, key, sx, sy);
+      recolourCell(cell.getContext('2d'), id, key, sx, sy, 'player_sheet');
       const fx = 2 * TILE + 16, fy = TILE + 29, ox = (fx - ATTACK.feet[0]) * R, oy = (fy - ATTACK.feet[1]) * R;
       groundShadow(g, fx * R, fy * R, 10 * R);
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';

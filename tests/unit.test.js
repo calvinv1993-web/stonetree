@@ -1662,7 +1662,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
 });
 
-test('the war spear and its circle throw: held in both hands it reaches two tiles; the sweep round you hits each monster as the blade gets there, one after the other', () => {
+test('the war spear and its circle throw: held in both hands it strikes the tile next to you, like a sword; the sweep round you hits each monster as the blade gets there, one after the other', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
@@ -1673,13 +1673,9 @@ test('the war spear and its circle throw: held in both hands it reaches two tile
   assert(messages.some(m => /war spear in your hands/.test(m)), 'not without a war spear');
   p.equipment.weapon = { id: 'war_spear', count: 1 };
   const w = ctx.playerWeapon();
-  assert(w.kind === 'melee' && w.reach === 2 && w.skill === 'axe' && state.ITEMS.war_spear.weapon.twoHanded, 'held, two-handed, reaching two tiles');
+  assert(w.kind === 'melee' && w.reach === 1 && w.skill === 'axe' && state.ITEMS.war_spear.weapon.twoHanded, 'held, two-handed, striking the tile next to you');
   const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
   const hurt = m => m.hp < 9999;
-  // its reach: a monster two tiles off is hit, as a sword hits one next to you
-  const far = at(0, -2); A.setTarget(far.id); state.now += 3000; tick(game, 2500);
-  assert(hurt(far), 'hit from two tiles away');
-  far.hp = far.maxHp = 9999; p.target = null; far.remove = true; state.monsters = state.monsters.filter(m => m !== far);
   p.dir = 2; // (facing south: the swing runs from your right, the west, round the south, to the east)
   const east = at(2, 0), south = at(0, 2), west = at(-2, 0), north = at(0, -2);
   state.now += 3000; A.say('hasta orbis');
@@ -1711,7 +1707,7 @@ test('every plain shot from a bow, and blow of a war spear, shows the hero loosi
   seen = 0; watch(2500);
   assert(p.equipment.ammo.count < 10 && !seen, 'a crossbow has no such picture');
   seen = 0; p.equipment.ammo = null; p.equipment.shield = null; p.equipment.weapon = { id: 'war_spear', count: 1 };
-  ctx.teleport({ x: m.x - 2, y: m.y, z: 8 }); A.setTarget(m.id);
+  ctx.teleport({ x: m.x - 1, y: m.y, z: 8 }); A.setTarget(m.id);
   const watchSpear = ms => { for (let t = 0; t < ms; t += 50) { tick(game, 50); seen += state.effects.filter(fx => fx.kind === 'loose' && fx.weapon === 'spear').length; } };
   watchSpear(2500);
   assert(seen > 0, 'the war spear is swung');
