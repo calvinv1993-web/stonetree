@@ -8,30 +8,30 @@
 // Bellhaven, one character a tile (100 x 90; the legend is below the art).
 const KESTREL_TOWN_ART = [
   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrRRRRRRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrrrrrrrrrrRRRRRRRRRRR:::RRRRRR",
-  "RRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrrrrrrrrrr...........:::RRRRRR",
-  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rrxrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rrxrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
-  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
-  "RRRRR...........rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
-  " RRRRR..........rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
+  "RRRRRRRRRRRRRRRRRRRRrhhhhhhhhhhhhhrRRRRRRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhrrrrrrRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRrrrrrhhhhhhhhhhhhhrrrrrr...........:::RRRRRR",
+  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rrxrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rrxrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rxrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::.RRRRR",
+  "RRRRR...........rrrrrhhhhhhhhhhhhhrrrrrrffffffffff.:::..RRRR",
+  " RRRRR..........rrrrrrrrrruuurrrrrrrrrrrffffffffff.:::..RRRR",
   " RRRRR.ffffffff.rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
-  "   RRR.ffffffff.......____sss.._....==========.....:::..RRR ",
-  "  RRR..ffffffff=====_._____________.=....=fffffffff.....RRR ",
-  "  RRR..ffffffff....__________________....=fffffffff.....RRR ",
-  "  RRR..ffffffff...____________________...=fffffffff.....RR  ",
-  "   RR..ffffffff.._____________________....fffffffff.....RRR ",
-  "::::====........._____________________._..fffffffff.....RRR ",
+  "   RRR.ffffffff.rrrrrrrrrrrrrrrrrrrrrrrr======.....:::..RRR ",
+  "  RRR..ffffffff=====......sss..........==.fffffffff.....RRR ",
+  "  RRR..ffffffff....=.__________._.._...=..fffffffff.....RRR ",
+  "  RRR..ffffffff....________________._..===fffffffff.....RR  ",
+  "   RR..ffffffff...____________________.=..fffffffff.....RRR ",
+  "::::====..........____________________._..fffffffff.....RRR ",
   "::::====........._________===__________...fffffffff.....RR  ",
-  "   RRRfffffffff.__________===_________._.......ffffff..RR   ",
-  "    RRfffffffff.=.________===_________.=.......ffffff..RRR  ",
-  "    RRfffffffff.=.._______===_______...=fffffffffffff..RR   ",
-  "   RRRfffffffff==...=..___===_..._.....=fffffffffffff..RR   ",
-  "   RRRfffffffff=....=.....===....==....=fffffffffffff.RR    ",
-  "     Rfffffffff=ffffffff..===..fffffff.=fffffffffffff.RRR   ",
+  "   RRRfffffffff.__________===___________.......ffffff..RR   ",
+  "    RRfffffffff.__________===___________.......ffffff..RRR  ",
+  "    RRfffffffff.._._______===_________.=fffffffffffff..RR   ",
+  "   RRRfffffffff===__._____===________..=fffffffffffff..RR   ",
+  "   RRRfffffffff=...._=____===_____=....=fffffffffffff.RR    ",
+  "     Rfffffffff=ffffffff_.===..fffffff.=fffffffffffff.RRR   ",
   "    RRfffffffff=ffffffff..===..fffffff.=fffffff===...RRR    ",
   "    RRR..ffffff=ffffffff..===..fffffff.=fffffff=....RRR     ",
   "    RRRR.ffffff=ffffffff..===..fffffff.=========....RR      ",
@@ -52,7 +52,8 @@ const KESTREL_TOWN_ART = [
 
 // What the town's art means, tile by tile:
 //   ' ' the wilds (grown by the island, below)   . town grass   ~ water   R rock (cliffs, a rugged top a floor up)
-//   r the temple rock (cliffs, its top a floor up is grass)   s the steps up it   = cobbles   : trodden earth   _ paving
+//   r the temple rock (cliffs, its top a floor up is grass: a terrace)   s the steps up it   h the higher rock the temple
+//   stands on (two floors up)   u the steps up it from the terrace   = cobbles   : trodden earth   _ paving
 //   # town wall   f a building's floor (the building itself: KESTREL.buildings)   p pier   x gravestone (on the rock)   t a tree
 // The town's art sits on the island with its corner at TOWN_AT (island tiles); the island sits in the world at ISLE_AT.
 const KESTREL = {
@@ -60,11 +61,12 @@ const KESTREL = {
   // in the town (town-art coordinates): the courtyard's middle (where the town is walked from), the ways out of it
   // (the west gate, the gorge north, the quay), and the first row of the harbour (the art's sea from there on is only
   // the harbour basin)
-  square: [27, 17], gates: [[-26, 17], [52, -24], [27, 36]], harbourRow: 37,
+  square: [27, 18], gates: [[-26, 17], [52, -24], [27, 36]], harbourRow: 37,
   // the town's gates stand out on its roads, a little way off (half a minute's walk from the courtyard): a paved road
   // from the town out to a pair of watchtowers, and between them the way on (town-art coordinates: [x0, y0, x1, y1],
   // 3 wide or tall). The towers are buildings (below), with stairs up to a lookout.
   approaches: [[-26, 17, -1, 18], [51, -24, 53, -1]],
+  terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
   regions: {
@@ -79,7 +81,7 @@ const KESTREL = {
   // the town's buildings (town-art coordinates): boxes (outer walls), the door, what kind (it decides the furniture),
   // floors, and stairs up ([x, y] on each floor but the top, down again from the tile east of it)
   buildings: [ // (the harbour's three close the town's south side: no wall needed)
-    { name: 'Temple', boxes: [[20, 3, 34, 10], [25, 1, 29, 3]], door: [27, 10], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
+    { name: 'Temple', boxes: [[22, 3, 32, 8], [25, 1, 29, 3]], door: [27, 8], kind: 'temple', rock: 2, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
     { name: 'Bell tower', boxes: [[35, 4, 39, 9]], door: [37, 9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
     { name: 'Hall of Paths', boxes: [[40, 4, 49, 11]], door: [45, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
     { name: 'Depot', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
@@ -145,7 +147,7 @@ const KESTREL = {
     props: [[34, 6, 'clang_crate'], [32, 6, 'crate'], [20, 3, 'web'], [30, 3, 'web'], [27, 8, 'rubble'], [22, 5, 'bones'], [45, 31, 'bones'], [41, 29, 'rubble'], [27, 33, 'bars']],
   },
   // out in the town (town-art coordinates)
-  outside: [[27, 16, 'fountain_nw'], [28, 16, 'fountain_ne'], [27, 17, 'fountain_sw'], [28, 17, 'fountain_se'], [24, 15, 'bench'], [31, 15, 'bench'],
+  outside: [[27, 17, 'fountain_nw'], [28, 17, 'fountain_ne'], [27, 18, 'fountain_sw'], [28, 18, 'fountain_se'], [24, 16, 'bench'], [31, 16, 'bench'],
     [19, 15, 'stall'], [35, 19, 'stall'], [21, 20, 'stall'], [13, 35, 'barrel'], [14, 35, 'crate'], [46, 35, 'barrel'], [45, 36, 'sack'], [24, 38, 'boat'], [36, 38, 'boat']],
 };
 
@@ -235,7 +237,9 @@ function createKestrelMap() {
 
   // ---- Bellhaven: the town's art, tile by tile ----
   const Z1 = S + 1, plateau = new Set();
+  const rockOf = b => (b.rock === true ? 1 : b.rock || 0); // (how many floors up a building on the rock stands)
   const onRock = (ax, ay) => K.buildings.some(b => b.rock && b.boxes.some(([x0, y0, x1, y1]) => ax >= x0 && ax <= x1 && ay >= y0 && ay <= y1)); // (the temple and its tower stand on the rock)
+  const onHigh = (ax, ay) => K.buildings.some(b => rockOf(b) === 2 && b.boxes.some(([x0, y0, x1, y1]) => ax >= x0 && ax <= x1 && ay >= y0 && ay <= y1));
   // (a tile of the temple rock that sticks out alone, joined to the rest by a side at most, is just grass)
   const artAt = (ax, ay) => (KESTREL_TOWN_ART[ay] || '')[ax] || ' ';
   const stub = (ax, ay) => artAt(ax, ay) === 'r' && !onRock(ax, ay) && [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => 'rsxWf+'.includes(artAt(ax + dx, ay + dy))).length < 2;
@@ -245,7 +249,19 @@ function createKestrelMap() {
     // (the art's sea below the quay: only the harbour, a rounded basin opening into the bay; the rest is the island's)
     if (ch === '~' && ay >= K.harbourRow && Math.hypot((x - TX - TW / 2) / 31, (y - TY - K.harbourRow - 3) / 8) + (smooth(x, y, 4, 27) - 0.5) * 0.25 > 1) continue;
     const g = { '.': 'grass', '~': 'water', '=': 'cobble', ':': 'dirt', '_': 'paving', '#': 'grass', p: 'pier', f: 'wood', t: 'grass' }[ch];
-    if (ch === 'R') { set(x, y, S, 'mountain', ['cliff']); set(x, y, Z1, 'rock_top'); continue; }
+    if (ch === 'R') { // rock: away from the town's ground, now and then a second step up (the hill rising, not a flat rim)
+      set(x, y, S, 'mountain', ['cliff']);
+      const byTown = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => '._=:f#tsrhux~p'.includes(artAt(ax + dx, ay + dy)) && artAt(ax + dx, ay + dy) !== ' ');
+      if (!byTown && smooth(x, y, 3, 77) > 0.45) { set(x, y, Z1, 'mountain', ['cliff']); set(x, y, Z1 + 1, 'rock_top'); } else set(x, y, Z1, 'rock_top');
+      continue;
+    }
+    if (ch === 'h' || ch === 'u' || onHigh(ax, ay)) { // the higher rock: cliffs two floors tall, grass on top; its steps up from the terrace
+      plateau.add(`${x},${y}`);
+      set(x, y, S, 'mountain', ['cliff']);
+      set(x, y, Z1, 'mountain', ch === 'u' ? ['steps'] : ['cliff']);
+      set(x, y, Z1 + 1, ch === 'u' ? 'steps_top' : 'grass');
+      continue;
+    }
     if (ch === 'r' || ch === 'x' || ch === 's' || onRock(ax, ay)) {
       plateau.add(`${x},${y}`);
       set(x, y, S, 'mountain', ['cliff']);
@@ -268,7 +284,7 @@ function createKestrelMap() {
   // the buildings: walls (windows on straight runs), floors, a door, upper floors and stairs, a roof, furniture
   const homes = [];
   for (const b of K.buildings) {
-    const level = b.rock ? 1 : 0, Z = S + level, floors = b.floors || 1;
+    const level = rockOf(b), Z = S + level, floors = b.floors || 1;
     const inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
     const rim = (x, y) => inB(x, y) && [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([dx, dy]) => !inB(x + dx, y + dy));
     const tiles = [];
@@ -342,6 +358,9 @@ function createKestrelMap() {
   }
   for (const [x, y, id] of K.outside) { const t = at(TX + x, TY + y); if (t && !THINGS[t.ground]?.block) t.items = [id]; }
 
+  // the temple's terrace: statues either side of the steps up to it, flower boxes along its edge
+  for (const [x, y, id] of K.terrace || []) { const t = at(TX + x, TY + y, S + 1); if (t && !t.items.length) t.items.push(id); }
+
   // ---- the sewers under the town ----
   {
     const Q = K.sewers, SZ = S - 1, key = (x, y) => `${x},${y}`, ways = new Set();
@@ -404,7 +423,7 @@ function createKestrelMap() {
     });
   }
   // Sister Ama in the temple, by the altar (she sends you after Clang)
-  { const t = K.buildings[0]; m.npcs.push({ type: 'ama', x: OX + TX + t.door[0] + 1, y: OY + TY + t.boxes[0][1] + 1, z: S + 1 }); }
+  { const t = K.buildings[0]; m.npcs.push({ type: 'ama', x: OX + TX + t.door[0] + 1, y: OY + TY + t.boxes[0][1] + 1, z: S + rockOf(t) }); }
 
   // ---- roads from the town's gates out to every part of the island, wandering a little ----
   const road = (pts) => { for (let i = 1; i < pts.length; i++) { let [x, y] = pts[i - 1]; const [bx, by] = pts[i]; let n = 0; while ((Math.abs(x - bx) + Math.abs(y - by) > 0) && n++ < 400) {
@@ -469,11 +488,13 @@ function createKestrelMap() {
   for (const z of [S + 1, S + 2]) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const t = m.get(x, y, z);
     if (!t || t.ground !== 'rock_top' || t.items.length) continue;
-    const r = hash(x, y, 70 + z), patch = smooth(x, y, 3, 71 + z);
-    if (r < 0.1) t.items.push('crag');
-    else if (r < 0.16) t.items.push('rock');
-    else if (patch > 0.62 && r < 0.6) t.items.push(r < 0.45 ? 'bush' : 'grass_tuft');
-    else if (r < 0.36) t.items.push('pebbles');
+    // most of a top grown over (grass in its hollows, a bush, flowers), bare rock between; few loose stones
+    const r = hash(x, y, 70 + z), patch = smooth(x, y, 3, 71 + z), green = smooth(x, y, 4, 72 + z);
+    if (green > 0.42) { if (r < 0.14) t.items.push('bush'); else if (r < 0.34) t.items.push('fern'); else if (r < 0.6) t.items.push('grass_tuft'); continue; } // (green patches: not grass ground, whose edges would draw a maze of outlines)
+    if (r < 0.03) t.items.push('crag');
+    else if (r < 0.05) t.items.push('rock');
+    else if (patch > 0.55 && r < 0.35) t.items.push(r < 0.2 ? 'fern' : 'grass_tuft');
+    else if (r < 0.12) t.items.push('pebbles');
   }
 
   // ---- no rock top hangs in the air: a top a floor up stands only on a cliff (a river, a road or the town's touches

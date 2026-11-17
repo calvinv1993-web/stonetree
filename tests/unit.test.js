@@ -1743,7 +1743,7 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
     }
   }
   for (const b of K.buildings) {
-    const [x, y] = W(...b.door), z = m.surfaceZ + (b.rock ? 1 : 0);
+    const [x, y] = W(...b.door), z = m.surfaceZ + (b.rock === true ? 1 : b.rock || 0);
     assert(seen.has(`${x},${y},${z}`), `${b.name}: you can walk to its door from the temple`);
     for (const [k, [sx, sy]] of (b.up || []).entries()) {
       const [ux, uy] = W(sx, sy);
