@@ -7,105 +7,60 @@
 //
 // Bellhaven, one character a tile (100 x 90; the legend is below the art).
 const KESTREL_TOWN_ART = [
-  "    ~~~~      ...............RRRRRRRRRRR..............................RRRRRRR.:::.....   ~~~        ",
-  "    ~~~~    RRRRRRRR.......RRRRRRRRRRRRRRRR......RRRRRRRRR..........RRRRRRRRR.:::.RRRR   ~~~        ",
-  "    ~~~~  RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR......RRRRRRRRRRR.:::.RRRR  ~~~~        ",
-  "    ~~~~  RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR##.:::.##RR  ~~~~        ",
-  "   ~~~~~  RRRRRRRRRRRRRRRRRRRRRRRRRR..RRRRRRrrrRRRRRRRRRRRRRRRRRRRRRRRRRRRR##.:::.##RR  ~~~         ",
-  "   ~~~~~  RRRRRRRRRRRRRRRRRRRRRRR.......RrrrrrrrrrRRRRRRRRRRRRRRRRRRRRRRRRR##=====##RR ~~~~         ",
-  "   ~~~~~  RRRRRRRRRRRRRRRRRRRRR....RR..rrrrrWWWWWrrrrrrrrrRRRRRRRRRRRRRR.RR##.:::.##RR ~~~~         ",
-  "   ~~~~   RR RRRRRRRRRRRRRRRRRR.RRRRRRRrrrrrWfffWrrrrrrrrrRRRRRRRRRR.R.....##::::.##RR ~~~          ",
-  "   ~~~~   R  #....RRRRRRRRRRR..RRRRRRRRRWWWWWfffWWWWWWWWWrRRRRRRRRRR.........::::.RRRR#~~~          ",
-  "   ~~~~      #......RRRRRRRR....RRRRRRRRWfffffffffffffffWWWWWRRRRRR..........:::..RR..#~~~~         ",
-  "   ~~~~      #........RRRRR......RRRRRrrWfffffffffffffffWfffWRRRR...........::::......#~~~~         ",
-  "   ~~~~      #..................rRRRRRrrWfffffffffffffffWfffW.RR............:::WWWWWWWW ~~~~        ",
-  "   ~~~~~     #..................rrrrxrrrWfffffffffffffffWfffW..............::::WffffffW ~~~~        ",
-  "   ~~~~~     #..........WWWWWWWWWWrrrrxrWfffffffffffffffWfffW.............:::::WffffffW  ~~~        ",
-  "   ~~~~~     #..........WffffffffWrrxrrrWfffffffffffffffWW+WW............:::::.WffffffW  ~~~~       ",
-  "    ~~~~     #..........WffffffffWrrrrrrWfffffffffffffffWrr.r...........:::::..+ffffffW  ~~~~       ",
-  "    ~~~~     #..........WffffffffWrxrxrrWWWWWWW+WWWWWWWWWrrrr...........::::...WffffffW   ~~~       ",
-  "    ~~~~~   RRR.........Wffffffff+rrrrrrrrrrrrrrrrrrrrrrrrrr............:::....WffffffW  ~~~~       ",
-  "    ~~~~~   RRRRRR......WffffffffW..rr.rrrrrrrrrrrrrrrrrr.rr............::.....WffffffW  ~~~~       ",
-  "    ~~~~~   RRRRRR......WffffffffW....rrrrrrrrrrrrrrrrrrrrr............:::.....WWWWWWWW  ~~~        ",
-  "     ~~~~   RRRRRR......WffffffffW.......rrrrrrrrrrrrrrr.............::::.............#  ~~~        ",
-  "     ~~~~  RRRRRRR......WWWffffWWW.........rrrrrrr..................::::..............#  ~~~        ",
-  "    ~~~~~  RRRRRRRR.......WffffW..........___rsssr______.........:::::................# ~~~~        ",
-  "    ~~~~~  RRRRRR.....RR..WWWWWW....._____________________....:::::::.................# ~~~~        ",
-  "    ~~~~~    RRRR..RRRRR............:::__________________:::::::::....................# ~~~         ",
-  "    ~~~~      RRR..RRRRRR........::::::__________________:::::::::::..................# ~~~~        ",
-  "    ~~~~     #.R....RRRRR.......:::::::_______===________:::::::::::::................# ~~~~        ",
-  "   ~~~~~     #......RRRR......::::::::.....___===_____.......::::::::::...............#  ~~~        ",
-  "   ~~~~~     #...............::::::...........===.................:::::::.............#  ~~~        ",
-  "   ~~~~~     #..............::::::...........====...HHHHHHH.......HHHHHH:::...........#  ~~~~       ",
-  "   ~~~~      #.............:WWWWWWWWW........====...HfffffH.......HffffH::::..........#  ~~~~       ",
-  "   ~~~~      #............::WfffffffW........===....HfffffH.......+ffffH:::::::.......#   ~~~       ",
-  "   ~~~~      #...........:::WfffffffW.RR.....====...+fffffH.......HffffH.:::::::......#   ~~~~      ",
-  "   ~~~~      #.........:::::Wfffffff+RRRR....====...HfffffH.......HffffH..::::::::::..#   ~~~~      ",
-  "   ~~~~      #........::::::WfffffffWRRRRRRR..====..HfffffH.......HHHHHH.....::::::::::::  ~~~      ",
-  "   ~~~~~     #......::::::::WfffffffWRRRRRRR..====..HHHHHHH.......FFFFFF......::::::::::BBBBBB::::::",
-  "   ~~~~~     #.....::::::.::WfffWWWWWRRRRRR....====...............RRRRRF..........::::::BBBBBB::::::",
-  "   ~~~~~     #..::::::::..::WfffW..RRRRRRRR....====...............RRRRRF.............:::BBBBBB::::::",
-  "    ~~~~    ::::::::::....::WfffW....RRRR.R.....===.HHHHHHHHHH....RRRRRR.............:::  ~~~       ",
-  " BBBBBBBB::::::::::::.....::WWWWW~~....R........===.HffffffffH....RRRRR.........HHHHHHH   ~~~       ",
-  " BBBBBBBB:::::::::........::...~~~~~............===.HffffffffH..................HfffffH   ~~~       ",
-  " BBBBBBBB::::::::.........::...~~~~.............===.+ffffffffH..................HfffffH  ~~~~       ",
-  "   ~~~~~    :::...........::....~~~..HHHHHH.....===.HffffffffH..................HfffffH  ~~~~       ",
-  "   ~~~~~     HHHHHHH......::.........HffffH.....===.HffffffffH..................+fffffH  ~~~        ",
-  "   ~~~~~     HfffffH......::.........HffffH....==:::HHHHHHHffH..................HfffffH  ~~~        ",
-  "   ~~~~      HfffffH.....:::.........Hffff+....==:::::::..HffH..................HfffffH  ~~~        ",
-  "   ~~~~      Hfffff+.....::..........HffffH....===..::::::HffH:::::.............HHHHHHH  ~~~~       ",
-  "  ~~~~~      HfffffH.....::..........HHHHHH...====.....:::HHHH:::::::....HHHH.........#  ~~~~       ",
-  "  ~~~~~      HfffffH....:::..................=====................::::::.HffH.........#   ~~~       ",
-  "  ~~~~~      HHHHHHH....::....:::::..........====...................:::::HffH.........#   ~~~~      ",
-  "  ~~~~       #..........::....::::::::::::::::::....WWWWWW............HHHHffH.....R...#   ~~~~      ",
-  "  ~~~~       #..........::........::::::::::::::....WffffW............HfffffH....RRRR.#    ~~~      ",
-  "  ~~~~~      #..........::....HHHHHHHHHHHH...===....+ffffW...RR.......HfffffH...RRRRR.     ~~~      ",
-  "  ~~~~~      #..........:::...HffffffffffH...===....WffffW..RRRR......+fffffH...RRRRR.     ~~~      ",
-  "  ~~~~~      #...........::...HffffffffffH...====...WffffWRRRRRRRR....HfffffH:RRRRRRRR     ~~~~     ",
-  "   ~~~~      #...........::...Hffffffffff+...====...WWWWWWRRRRRRRR....HfffffH::RRRRRRRR    ~~~~     ",
-  "   ~~~~       RR.........:::..HffffffffffH....===.........RRRRRRR.....HfffffH:::RRRRRRR     ~~~     ",
-  "   ~~~~~     RRRR..HHHHHH.::..HffffffffffH....===..........RRRRRR.....HHHHHHH.::RRRRRRR     ~~~     ",
-  "   ~~~~~    RRRRRRRHffffH.::..HffffffffffH....===...........RR................::RRRRRR     ~~~~     ",
-  "   ~~~~~   RRRRRRRRHffff+.:::.HfffHHHHHHHH....====......................FFFFFF::RRRRRR     ~~~~     ",
-  "    ~~~~   RRRRRRRRHffffH..:::HfffH...........====......................F....F::RRRRRRR    ~~~      ",
-  "    ~~~~~  RRRRRRRRHffffH...::HfffH............===......................FFFFFF::RRRR..     ~~~      ",
-  "    ~~~~~   RRRRRRRHHHHHH...::HHHHH............====...........................::RR....     ~~~      ",
-  "    ~~~~~    RRRRRR..........:::...............====.........WWWWWW..HHHHHHHHH.::.#        ~~~~      ",
-  "     ~~~~    RR..#............::..HHHHHHHHHH....===HHHHHHH..WffffW..HfffffffH.::.#        ~~~~      ",
-  "     ~~~~~    ....#...............HffffffffH....===HfffffH..WffffW..HfffffffH.::. #       ~~~       ",
-  "     ~~~~~    .....#..............HffffffffH...====HfffffH..WffffW..HfffffffH.... #       ~~~       ",
-  "     ~~~~~    ......#.............HffffffffH...====HfffffH..WffffW..HfffffffH....  #      ~~~~      ",
-  "      ~~~~~   .......#............HffffffffH...===.HfffffH..WffffW..HfffffffH....  #      ~~~~      ",
-  "      ~~~~~   ........#...........HHHHH+HHHH...===.HHH+HHH..WW+WWW..HHHH+HHHH....   #      ~~~      ",
-  "      ~~~~~   .................................===...............................   #      ~~~      ",
-  "       ~~~~~  ..........=============================================================      ~~~      ",
-  "       ~~~~~~ ..........=============================================================      ~~~~     ",
-  "       ~~~~~~ ..........=============================================================      ~~~~     ",
-  "        ~~~~~          ~~~        pp          pp          pp    ~~~~~ pp                    ~~~     ",
-  "         ~~~~~       ~~~~~~~      pp~~        pp          pp   ~~~~~~~pp                    ~~~~~~~ ",
-  "         ~~~~~~     ~~~~~~~~~~  ~~pp~~~~      pp          pp  ~~~~~~~~pp                    ~~~~~~~~",
-  "        ~~~~~~~    ~~~~~~~~~~~~~~~pp~~~~~     pp   ~~~~~  pp~~~~~~~~~~pp~     ~~~~~         ~~~~~~~~",
-  "~    ~~~~~~~~~~   ~~~~~~~~~~~~~~~~pp~~~~~~    pp ~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~       ~~~~~~~~~",
-  "~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~pp~~~~~~~   pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~    ~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrRRRRRRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrrrrrrrrrrRRRRRRRRRRR:::RRRRRR",
+  "RRRRRRRRRRRRRRRRrrrrrrrrrrrrrrrrrrrrrrrr...........:::RRRRRR",
+  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rrxrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rrxrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
+  "RRRRRRRRRRRRRR..rxrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::.RRRRR",
+  "RRRRR...........rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
+  " RRRRR..........rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
+  " RRRRR.ffffffff.rrrrrrrrrrrrrrrrrrrrrrrrffffffffff.:::..RRRR",
+  "   RRR.ffffffff.......____sss.._....==========.....:::..RRR ",
+  "  RRR..ffffffff=====_._____________.=....=fffffffff.....RRR ",
+  "  RRR..ffffffff....__________________....=fffffffff.....RRR ",
+  "  RRR..ffffffff...____________________...=fffffffff.....RR  ",
+  "   RR..ffffffff.._____________________....fffffffff.....RRR ",
+  "::::====........._____________________._..fffffffff.....RRR ",
+  "::::====........._________===__________...fffffffff.....RR  ",
+  "   RRRfffffffff.__________===_________._.......ffffff..RR   ",
+  "    RRfffffffff.=.________===_________.=.......ffffff..RRR  ",
+  "    RRfffffffff.=.._______===_______...=fffffffffffff..RR   ",
+  "   RRRfffffffff==...=..___===_..._.....=fffffffffffff..RR   ",
+  "   RRRfffffffff=....=.....===....==....=fffffffffffff.RR    ",
+  "     Rfffffffff=ffffffff..===..fffffff.=fffffffffffff.RRR   ",
+  "    RRfffffffff=ffffffff..===..fffffff.=fffffff===...RRR    ",
+  "    RRR.....====ffffffff..===..fffffff.=fffffff=....RRR     ",
+  "    RRRR..ffffffffffffff..===..fffffff.=========....RR      ",
+  "      RR..ffffffffffffff..===..fffffff.............RRR      ",
+  "      RRR.ffffffffffffff..===..fffffff.......t...RRR        ",
+  "      RRR.ffffff..........===...................RR          ",
+  "      RRRRffffff..........===.................RRR           ",
+  "        RRRR...........t..===..............##RRR            ",
+  "          RRRRRR..........===..........#####                ",
+  "              RR#######...===..#########                    ",
+  "            ==================================              ",
+  "            ==================================              ",
+  "~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~~pp~~~~~~~~~~pp~~~~~~~~~~~~~~~~~~~~~~~~~",
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
 ];
 
 // What the town's art means, tile by tile:
 //   ' ' the wilds (grown by the island, below)   . town grass   ~ water   R rock (cliffs, a rugged top a floor up)
 //   r the temple rock (cliffs, its top a floor up is grass)   s the steps up it   = cobbles   : trodden earth   _ paving
-//   # town wall   W stone wall   H timber wall   f floor   + door   B bridge   p pier   F fence   x gravestone (on the rock)
+//   # town wall   f a building's floor (the building itself: KESTREL.buildings)   p pier   x gravestone (on the rock)   t a tree
 // The town's art sits on the island with its corner at TOWN_AT (island tiles); the island sits in the world at ISLE_AT.
 const KESTREL = {
-  isle: 210, isleAt: [23, 23], townAt: [50, 65],
+  isle: 210, isleAt: [23, 23], townAt: [72, 109],
+  // in the town (town-art coordinates): the courtyard's middle (where the town is walked from), the ways out of it
+  // (the west gate, the gorge north, the quay), and the first row of the harbour (the art's sea from there on is only
+  // the harbour basin)
+  square: [27, 17], gates: [[0, 17], [52, 0], [27, 36]], harbourRow: 37,
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
   regions: {
@@ -120,25 +75,17 @@ const KESTREL = {
   // the town's buildings (town-art coordinates): boxes (outer walls), the door, what kind (it decides the furniture),
   // floors, and stairs up ([x, y] on each floor but the top, down again from the tile east of it)
   buildings: [
-    { name: 'Temple', boxes: [[40, 8, 56, 16], [44, 6, 48, 8]], door: [47, 16], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
-    { name: 'Bell tower', boxes: [[56, 9, 60, 14]], door: [58, 14], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[57, 10], [57, 12], [57, 10]] },
-    { name: 'Hall of Paths', boxes: [[24, 13, 33, 21], [26, 21, 31, 23]], door: [29, 23], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
-    { name: 'Depot', boxes: [[79, 11, 86, 19]], door: [79, 15], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate' },
-    { name: 'Smithy', boxes: [[28, 30, 36, 36], [28, 36, 32, 39]], door: [32, 30], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
-    { name: 'Arms & armour', boxes: [[52, 29, 58, 35]], door: [52, 32], kind: 'shop', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'General store', boxes: [[52, 38, 61, 44], [58, 44, 61, 47]], door: [52, 41], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Bakery', boxes: [[37, 42, 42, 47]], door: [42, 45], kind: 'bakery', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Healer', boxes: [[52, 50, 57, 55]], door: [52, 52], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
-    { name: 'Inn: The Cracked Bell', boxes: [[30, 52, 41, 59], [30, 59, 34, 62]], door: [41, 55], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'House', boxes: [[13, 43, 19, 49]], door: [19, 46], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[66, 29, 71, 34]], door: [66, 31], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[80, 39, 86, 46]], door: [80, 43], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'House', boxes: [[19, 57, 24, 62]], door: [24, 59], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
-    { name: 'Tannery', boxes: [[70, 50, 76, 57], [73, 47, 76, 50]], door: [70, 53], kind: 'workshop', wall: 'wall_wood', floor: 'dirt', roof: 'roof_thatch' },
-    { name: 'Warehouse', boxes: [[34, 64, 43, 69]], door: [39, 69], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Fishmonger', boxes: [[51, 64, 57, 69]], door: [54, 69], kind: 'fish', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
-    { name: 'Harbour master', boxes: [[60, 63, 65, 69]], door: [62, 69], kind: 'office', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
-    { name: 'Boat shed', boxes: [[68, 63, 76, 69]], door: [72, 69], kind: 'warehouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Temple', boxes: [[20,  3,  34,  10],  [25,  1,  29,  3]], door: [27,  10], kind: 'temple', rock: true, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
+    { name: 'Bell tower', boxes: [[35,  4,  39,  9]], door: [37,  9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
+    { name: 'Hall of Paths', boxes: [[40,  4,  49,  11]], door: [45,  11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
+    { name: 'Depot', boxes: [[7,  11,  14,  16]], door: [14,  13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate' },
+    { name: 'General store', boxes: [[42,  13,  50,  18]], door: [42,  15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Inn: The Cracked Bell', boxes: [[6,  19,  14,  25]], door: [14,  22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle' },
+    { name: 'Smithy', boxes: [[16,  24,  23,  29]], door: [20,  24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
+    { name: 'Healer', boxes: [[31,  24,  37,  29]], door: [34,  24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate' },
+    { name: 'House', boxes: [[10,  27,  15,  31]], door: [12,  27], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[40,  21,  46,  26]], door: [40,  23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'House', boxes: [[47,  19,  52,  24]], door: [49,  24], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
   ],
   // the sign beside each door (by kind), and what it says when you look at it
   signs: {
@@ -163,26 +110,25 @@ const KESTREL = {
   },
   // the Hall of Paths' four practice rooms, one floor down (town-art coordinates of the first room's corner, walls
   // included; the others follow it eastward): reached only through a teacher (game-paths.js), left by a forcefield
-  trials: { at: [4, -11], size: 9, order: ['knight', 'paladin', 'sorcerer', 'druid'],
+  trials: { at: [62, 2], size: 9, order: ['knight', 'paladin', 'sorcerer', 'druid'],
     pillar: { knight: 'pillar_amethyst', paladin: 'pillar_emerald', sorcerer: 'pillar_terracotta', druid: 'pillar_royalblue' },
     teacher: { knight: 'holt', paladin: 'sill', sorcerer: 'vela', druid: 'fennick' } }, // (as in PATHS, game-paths.js)
   // the sewers under Bellhaven (one floor down, town-art coordinates): the first hunt, as under every town worth the
   // name. Grates in the streets with ladders under them; brick walkways round a channel; the bell cellar under the
   // temple, where Clang is stuck behind a fallen crate (The Silent Bell's 'Clang'); the rats' nest east of Main Street.
   sewers: {
-    rooms: [[41, 9, 57, 15, 'paving'], [39, 23, 47, 28, 'sewer']],                   // the bell cellar; the chamber under the square
-    nest: [61, 43, 6, 4],                                                           // the rats' nest, a cave they dug: centre, radii
+    rooms: [[19, 2, 35, 9, 'paving'], [23, 14, 31, 19, 'sewer']],                   // the bell cellar; the chamber under the courtyard
+    nest: [43, 30, 5, 3],                                                           // the rats' nest, a cave they dug: centre, radii
     tunnels: [ // [points], width, a channel down the middle
-      [[[43, 16], [43, 23]], 2], [[[46, 28], [46, 38], [48, 46], [48, 58], [48, 68]], 3, true],
-      [[[40, 27], [32, 31], [24, 35]], 2], [[[47, 27], [58, 29], [70, 28]], 2], [[[49, 41], [56, 43]], 2]],
-    grates: [[42, 25], [47, 48], [48, 66], [24, 36], [70, 28]],
-    rats: 16, cellarRats: 3, bigRats: 2,
-    props: [[56, 13, 'clang_crate'], [54, 13, 'crate'], [42, 10, 'web'], [51, 10, 'web'], [47, 14, 'rubble'], [44, 12, 'bones'], [64, 45, 'bones'], [58, 41, 'rubble'], [48, 70, 'bars']],
+      [[[27, 9], [27, 14]], 2], [[[27, 19], [27, 33]], 3, true],
+      [[[23, 17], [10, 17]], 2], [[[31, 16], [40, 13]], 2], [[[28, 26], [39, 29]], 2]],
+    grates: [[25, 19], [27, 30], [10, 17], [40, 13]],
+    rats: 12, cellarRats: 3, bigRats: 2,
+    props: [[34, 6, 'clang_crate'], [32, 6, 'crate'], [20, 3, 'web'], [30, 3, 'web'], [27, 8, 'rubble'], [22, 5, 'bones'], [45, 31, 'bones'], [41, 29, 'rubble'], [27, 33, 'bars']],
   },
   // out in the town (town-art coordinates)
-  outside: [[45, 26, 'fountain_nw'], [46, 26, 'fountain_ne'], [45, 27, 'fountain_sw'], [46, 27, 'fountain_se'], [40, 24, 'bench'], [52, 24, 'bench'],
-    [38, 23, 'lamppost'], [55, 23, 'lamppost'], [44, 30, 'lamppost'], [48, 40, 'lamppost'], [45, 49, 'lamppost'], [48, 62, 'lamppost'], [30, 70, 'lamppost'], [66, 70, 'lamppost'],
-    [36, 72, 'barrel'], [37, 72, 'crate'], [50, 72, 'fish_rack'], [62, 72, 'barrel'], [63, 72, 'sack'], [34, 86, 'boat'], [58, 86, 'boat'], [55, 47, 'stall'], [24, 50, 'woodpile']],
+  outside: [[27, 16, 'fountain_nw'], [28, 16, 'fountain_ne'], [27, 17, 'fountain_sw'], [28, 17, 'fountain_se'], [24, 15, 'bench'], [31, 15, 'bench'],
+    [19, 15, 'stall'], [35, 19, 'stall'], [21, 20, 'stall'], [14, 35, 'barrel'], [15, 35, 'crate'], [33, 35, 'barrel'], [41, 36, 'sack'], [24, 38, 'boat'], [36, 38, 'boat']],
 };
 
 // (in the preview, Clang can be rescued from the start: on the old island he came after The Silent Bell I)
@@ -207,7 +153,7 @@ if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeo
 function createKestrelMap() {
   const { width: W, height: H, depth: D, surfaceZ: S } = WORLD_SIZE;
   const m = new GameMap(W, H, D, S);
-  const K = KESTREL, N = K.isle, [OX, OY] = K.isleAt, [TX, TY] = K.townAt;
+  const K = KESTREL, N = K.isle, [OX, OY] = K.isleAt, [TX, TY] = K.townAt, TW = KESTREL_TOWN_ART[0].length, TH = KESTREL_TOWN_ART.length;
   const hash = (x, y, s) => { let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(s | 0, 1274126177); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
   const smooth = (x, y, sc, s) => {
     const fx = x / sc, fy = y / sc, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0, a = hash(x0, y0, s), b = hash(x0 + 1, y0, s), c = hash(x0, y0 + 1, s), d = hash(x0 + 1, y0 + 1, s);
@@ -230,7 +176,7 @@ function createKestrelMap() {
   const rocky = new Set(); // rock outcrops (cliffs, their rugged tops a floor up), more in the hills and below the peaks
   for (let i = 0, k = 0; i < 70 && k < 4000; k++) {
     const x = 10 + Math.floor(hash(k, 1, 61) * (N - 20)), y = 10 + Math.floor(hash(k, 2, 61) * (N - 20));
-    if (!land(x, y) || Math.hypot((x - 100) / 32, (y - 112) / 34) < 1.15) continue;
+    if (!land(x, y) || Math.hypot((x - TX - TW / 2) / 38, (y - TY - TH / 2) / 28) < 1.1) continue; // (none in or right round the town)
     i++;
     const big = inReg(K.regions.goblin, x, y) || y < 45, rx = 2.5 + hash(k, 3, 61) * (big ? 3.5 : 1.5), ry = 2 + hash(k, 4, 61) * (big ? 2.5 : 1.5);
     for (let yy = Math.floor(y - ry - 1); yy <= y + ry + 1; yy++) for (let xx = Math.floor(x - rx - 1); xx <= x + rx + 1; xx++)
@@ -244,9 +190,9 @@ function createKestrelMap() {
     if (rocky.has(k)) { set(x, y, S, 'mountain', ['cliff']); set(x, y, S + 1, 'rock_top'); continue; }
     if (inReg(R.mire, x, y)) { const w = smooth(x, y, 3, 4); ground = w < 0.35 ? 'water' : 'swamp'; item = ground === 'swamp' && tree < 0.15 ? 'reeds' : null; }
     else if (inReg(R.fields, x, y) && smooth(x, y, 4, 3) > 0.45) { ground = 'farmland'; item = (y % 2) && tree < 0.7 ? 'crops' : null; }
-    else if (inReg(R.oldwood, x, y) && smooth(x, y, 2, 6) > 0.35) item = tree < 0.55 ? (tree < 0.12 ? 'pine' : 'tree') : tree < 0.7 ? 'bush' : null;
+    else if (inReg(R.oldwood, x, y) && smooth(x, y, 2, 6) > 0.35) item = tree < 0.32 ? (tree < 0.08 ? 'pine' : 'tree') : tree < 0.5 ? 'bush' : null; // (a wood, not a wall of trees: every tree costs drawing)
     else if (inReg(R.cape, x, y)) { ground = smooth(x, y, 3, 14) > 0.5 ? 'sand' : 'grass'; item = tree < 0.04 ? 'bush' : null; }
-    else item = tree < 0.1 ? 'tree' : tree < 0.17 ? 'bush' : tree < 0.2 ? 'tallgrass' : tree < 0.23 ? 'flowers' : tree < 0.25 ? 'grass_tuft' : null;
+    else item = tree < 0.04 ? 'tree' : tree < 0.1 ? 'bush' : tree < 0.14 ? 'tallgrass' : tree < 0.18 ? 'flowers' : tree < 0.21 ? 'grass_tuft' : null;
     set(x, y, S, ground, item ? [item] : []);
   }
   // sand along the shore
@@ -279,8 +225,8 @@ function createKestrelMap() {
     const ch = stub(ax, ay) ? '.' : KESTREL_TOWN_ART[ay][ax], x = TX + ax, y = TY + ay;
     if (ch === ' ') continue;
     // (the art's sea below the quay: only the harbour, a rounded basin opening into the bay; the rest is the island's)
-    if (ch === '~' && ay >= 74 && Math.hypot((x - 102) / 31, (y - 149) / 12) + (smooth(x, y, 4, 27) - 0.5) * 0.25 > 1) continue;
-    const g = { '.': 'grass', '~': 'water', '=': 'cobble', ':': 'dirt', '_': 'paving', '#': 'grass', B: 'bridge_ew', p: 'pier', F: 'grass', W: 'wood', H: 'wood', f: 'wood', '+': 'wood' }[ch];
+    if (ch === '~' && ay >= K.harbourRow && Math.hypot((x - TX - TW / 2) / 31, (y - TY - K.harbourRow - 3) / 8) + (smooth(x, y, 4, 27) - 0.5) * 0.25 > 1) continue;
+    const g = { '.': 'grass', '~': 'water', '=': 'cobble', ':': 'dirt', '_': 'paving', '#': 'grass', p: 'pier', f: 'wood', t: 'grass' }[ch];
     if (ch === 'R') { set(x, y, S, 'mountain', ['cliff']); set(x, y, Z1, 'rock_top'); continue; }
     if (ch === 'r' || ch === 'x' || ch === 's' || onRock(ax, ay)) {
       plateau.add(`${x},${y}`);
@@ -289,16 +235,10 @@ function createKestrelMap() {
       if (ch === 's') { set(x, y, S, 'mountain', ['steps']); set(x, y, Z1, 'steps_top'); }
       continue;
     }
-    set(x, y, S, g || 'grass', ch === '#' ? ['wall_stone'] : ch === 'F' ? ['fence'] : []);
+    set(x, y, S, g || 'grass', ch === '#' ? ['wall_stone'] : ch === 't' ? ['tree'] : []);
     if (ch === '.' && hash(x, y, 31) < 0.06) at(x, y).items.push(hash(x, y, 32) < 0.5 ? 'flowers' : 'grass_tuft');
   }
-  // trees and bushes in the town's grass where nobody walks (as thick as Rookgaard's), never by a road or a door
-  for (let ay = 0; ay < KESTREL_TOWN_ART.length; ay++) for (let ax = 0; ax < KESTREL_TOWN_ART[ay].length; ax++) {
-    if (KESTREL_TOWN_ART[ay][ax] !== '.') continue;
-    const x = TX + ax, y = TY + ay, near = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([dx, dy]) => '=:_+B#WHf'.includes(art(x + dx, y + dy)));
-    const r = hash(x, y, 33);
-    if (!near && r < 0.3) at(x, y).items = [r < 0.16 ? 'tree' : 'bush'];
-  }
+  // (no trees scattered in the town: the few it has are in its art, t)
 
   // the buildings: walls (windows on straight runs), floors, a door, upper floors and stairs, a roof, furniture
   const homes = [];
@@ -426,16 +366,17 @@ function createKestrelMap() {
   const road = (pts) => { for (let i = 1; i < pts.length; i++) { let [x, y] = pts[i - 1]; const [bx, by] = pts[i]; let n = 0; while ((Math.abs(x - bx) + Math.abs(y - by) > 0) && n++ < 400) {
     for (const [dx, dy] of [[0, 0], [1, 0], [0, 1]]) { const t = at(x + dx, y + dy); if (t && ['grass', 'sand', 'farmland', 'swamp'].includes(t.ground)) { t.ground = 'dirt'; t.items = []; } }
     if (hash(x, y, 41) < 0.6) x += Math.sign(bx - x); else y += Math.sign(by - y); if (hash(x, y, 42) < 0.15) x += hash(x, y, 43) < 0.5 ? -1 : 1; } } };
-  road([[129, 65], [118, 50], [100, 40]]); road([[129, 65], [150, 58], [160, 60]]);
-  road([[62, 105], [50, 90], [45, 74]]); road([[62, 105], [45, 118], [38, 126]]); road([[62, 110], [58, 140], [55, 168]]);
-  road([[136, 101], [155, 108], [166, 114]]); road([[136, 104], [150, 130], [170, 158], [180, 164]]);
+  { const G = ([ax, ay]) => [TX + ax, TY + ay], [wx, wy] = G(K.gates[0]), [nx, ny] = G(K.gates[1]), [qx, qy] = G([45, 35]);
+    road([[wx - 1, wy], [52, 108], [45, 74]]); road([[wx - 1, wy], [45, wy + 2], [38, 128]]); road([[wx - 1, wy + 1], [62, 148], [55, 168]]);
+    road([[nx, ny - 1], [116, 80], [100, 40]]); road([[nx, ny - 1], [132, 100], [158, 74], [160, 60]]);
+    road([[qx + 1, qy], [150, 128], [166, 114]]); road([[qx + 1, qy + 1], [152, 140], [170, 158], [180, 164]]); }
 
   // ---- the last touches, checked over the whole town (tests/unit.test.js and an audit look for these) ----
   {
-    const town = (x, y) => x >= TX && x < TX + 100 && y >= TY && y < TY + 76;
+    const town = (x, y) => x >= TX && x < TX + TW && y >= TY && y < TY + TH;
     const road = t => t && ['cobble', 'dirt', 'paving', 'gravel', 'bridge_ew'].includes(t.ground);
     const walled = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([dx, dy]) => (at(x + dx, y + dy) || { items: [] }).items.some(i => /^wall_|^window|^door/.test(i)));
-    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) {
+    for (let y = TY; y < TY + TH; y++) for (let x = TX; x < TX + TW; x++) {
       const t = at(x, y);
       if (!t) continue;
       // no tree or bush grows against a wall (its crown would grow into the wall or the roof)
@@ -446,14 +387,14 @@ function createKestrelMap() {
     }
     // ground in town nobody can walk to (hollows shut in by the ridge's rocks) grows over: a thicket
     let seen;
-    const reach = () => { seen = new Set(); const todo = [[TX + 45, TY + 25]]; seen.add(todo[0].join());
+    const reach = () => { seen = new Set(); const todo = [[TX + K.square[0], TY + K.square[1] + 2]]; seen.add(todo[0].join());
     while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`, t = at(x + dx, y + dy); if (seen.has(k) || !t || !town(x + dx, y + dy)) continue; if (!m.isWalkable(OX + x + dx, OY + y + dy, S) && !t.items.some(i => /^door|grate|steps/.test(i))) continue; seen.add(k); todo.push([x + dx, y + dy]); } }
     };
     reach();
     // street lamps along every street, so no stretch of it is dark at night: on the verge, never in a doorway
     const lamps = [];
-    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) if ((at(x, y) || { items: [] }).items.includes('lamppost')) lamps.push([x, y]);
-    for (let y = TY; y < TY + 76; y++) for (let x = TX; x < TX + 100; x++) {
+    for (let y = TY; y < TY + TH; y++) for (let x = TX; x < TX + TW; x++) if ((at(x, y) || { items: [] }).items.includes('lamppost')) lamps.push([x, y]);
+    for (let y = TY; y < TY + TH; y++) for (let x = TX; x < TX + TW; x++) {
       if (!road(at(x, y)) || !seen.has(`${x},${y}`) || lamps.some(([a, b]) => Math.hypot(a - x, b - y) <= 6)) continue;
       const spot = [[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]].map(([dx, dy]) => [x + dx, y + dy]).find(([a, b]) => {
         const t = at(a, b); return t && t.ground === 'grass' && !t.items.length && !walled(a, b) && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => (at(a + dx, b + dy) || { items: [] }).items.some(i => /^door|grate|steps/.test(i)));
@@ -462,7 +403,7 @@ function createKestrelMap() {
     }
     // (and if a lamp shut a corner in, that corner grows over too)
     reach();
-    for (let y = TY; y < TY + 76; y++) for (let x = TX + 13; x < TX + 87; x++) { const t = at(x, y); if (t && ['grass', 'dirt'].includes(t.ground) && t.items.every(i => ['flowers', 'grass_tuft', 'tallgrass'].includes(i)) && !seen.has(`${x},${y}`) && m.isWalkable(OX + x, OY + y, S)) t.items = [hash(x, y, 61) < 0.5 ? 'bush' : 'tree']; }
+    for (let y = TY; y < TY + TH; y++) for (let x = TX; x < TX + TW; x++) { const t = at(x, y); if (t && art(x, y) !== ' ' && ['grass', 'dirt'].includes(t.ground) && t.items.every(i => ['flowers', 'grass_tuft', 'tallgrass'].includes(i)) && !seen.has(`${x},${y}`) && m.isWalkable(OX + x, OY + y, S)) t.items = ['bush']; }
   }
 
   // ---- the game: animals out in the wilds, spread over each region ----

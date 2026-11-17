@@ -1750,7 +1750,7 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
       assert(m.isWalkable(ux, uy, z + k + 1) && m.isWalkable(ux + 1, uy, z + k), `${b.name}: its stairs land on open floor`);
     }
   }
-  for (const [x, y] of [[12, 40], [86, 36], [79, 1]]) assert(seen.has(`${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `out of the gate at ${x},${y}`);
+  for (const [x, y] of K.gates) assert(seen.has(`${W(x, y)[0]},${W(x, y)[1]},${m.surfaceZ}`), `out of the gate at ${x},${y}`);
   // the sewers: a grate in the street over a ladder at every way down; from the ladder under the square you can walk to
   // every other ladder, to the rats and to Clang's crate in the bell cellar
   const SZ = m.surfaceZ - 1, Q = K.sewers;

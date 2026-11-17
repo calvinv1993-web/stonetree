@@ -182,7 +182,7 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
 // fights, your first loot), then the Hall of Paths: the four paths explained, tried, and one chosen.
 function kestrelGuide() {
   const K = KESTREL, at = (ax, ay, z) => [K.isleAt[0] + K.townAt[0] + ax, K.isleAt[1] + K.townAt[1] + ay, z], S = 8;
-  const grate = at(...K.sewers.grates[0], S), cellar = at(49, 12, S - 1), crate = K.sewers.props.find(p => p[2] === 'clang_crate');
+  const grate = at(...K.sewers.grates[0], S), cellar = at((K.sewers.rooms[0][0] + K.sewers.rooms[0][2]) >> 1, (K.sewers.rooms[0][1] + K.sewers.rooms[0][3]) >> 1, S - 1), crate = K.sewers.props.find(p => p[2] === 'clang_crate');
   const stamped = v => !!(player.paths || {})[v];
   return Object.assign([
     {

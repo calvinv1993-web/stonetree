@@ -24,7 +24,9 @@ places of its own. The picture of every layer is `kestrel-isle-layers.png` besid
 
 ## Building it, step by step
 
-1. The isle and Bellhaven (done: the surface).
+1. The isle and Bellhaven (done: the surface; rebuilt small round a courtyard - the temple on its rock at the head of
+   it, the depot, store, Hall of Paths, inn, smithy and healer round it, rock arms of the hill as the town's sides, a short
+   harbour wall and quay to the south; few trees).
 2. The sewers under the town, with the rats and Clang (done: five grates, the bell cellar under the temple with
    Clang's crate, a channel down Main Street to the harbour, the rats' nest; Sister Ama in the temple).
 3. The Hall of Paths (done: the Pathkeeper and four teachers in the hall on the square; four practice rooms a floor
