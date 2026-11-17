@@ -2134,6 +2134,8 @@ function initUI() {
   $('testClang').addEventListener('click', () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); });
   setInterval(() => { if (player) $('testClang').hidden = !(!Net.online && isTestHero() && !(player.pet && player.pet.level >= player.level)); }, 1000);
   $('testSpear').addEventListener('click', () => giveTestSpear());
+  { const b = $('worldPreview'), on = typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW; // (the new world's preview, and back)
+    if (b) { if (on) b.textContent = 'Back to the current world'; b.addEventListener('click', () => { location.href = on ? 'index.html' : 'index.html?world=kestrel'; }); } }
   setInterval(() => { if (player) $('testSpear').hidden = !(!Net.online && wantsTestSpear()); }, 1000);
   $('newChar').addEventListener('click', () => {
     if (online()) { // online: log out of this browser, so you can log in as someone else

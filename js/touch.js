@@ -433,6 +433,10 @@ function renderMenu() {
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); $('guildBtn').click(); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),
     h('div', { className: 'menu-head' }, 'Make'),
+    // the new world, Kestrel Isle, as a preview (its own save: your character here stays as it is)
+    typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW
+      ? row(['Back to the current world', h('small', {}, 'Your own character, as you left it')], h('span', {}, '›'), () => { location.href = 'index.html'; })
+      : row(['Preview: the new world', h('small', {}, 'Walk round Bellhaven, still being built (a character of its own)')], h('span', {}, '›'), () => { location.href = 'index.html?world=kestrel'; }),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),
     row(['Data editor', h('small', {}, 'Items, monsters and NPCs, in this browser')], h('span', {}, '›'), () => { location.href = 'data.html'; }),
     // (a test character playing alone: Clang at its level, if it was made before test characters got him)
