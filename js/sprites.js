@@ -6737,6 +6737,48 @@ const Sprites = (() => {
   const LOW_SHEETS = ['rat', 'giant_rat', 'spider', 'slime', 'cat', 'bear', 'wolf', 'greyfang', 'crab', 'old_snapper', 'thornmother', 'brood_queen', 'brineshell', 'saltjaw', 'old_weaver', 'cistern_slime', 'clang_1', 'clang_2', 'clang_3'];
   // the sheet of a player's body: a woman's, when there is one
   const playerSheetId = key => (lookFor(key) || {}).female && customImage('player_sheet_female') ? 'player_sheet_female' : 'player_sheet';
+  // One cell of a player's sheet (id) at sx, sy, into cg (a canvas the cell's size), in the outfit's colours (from the
+  // key: not the look's, which a vocation's clothes or a skirt change): each part's pixels as light or dark against the
+  // part's own colour; without a parts map, as painted.
+  function recolourCell(cg, id, key, sx, sy) {
+    const cell = cg.canvas, img = customImage(id), px = sheetParts(id);
+    const own = (key.split(':')[2] || '').split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
+    const targets = SHEET.parts.map(p => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p]) : null));
+    if (px && targets.some(Boolean)) {
+      const out = cg.createImageData(cell.width, cell.height), o = out.data, base = px.base;
+      const lum = (r, gg, b) => 0.3 * r + 0.59 * gg + 0.11 * b;
+      for (let y = 0; y < cell.height; y++) for (let x = 0; x < cell.width; x++) {
+        const i = (sy + y) * px.width + sx + x, j = (y * cell.width + x) * 4, p = px.part[i], t = p && targets[p - 1];
+        let r = px.data[i * 4], gg = px.data[i * 4 + 1], b = px.data[i * 4 + 2];
+        if (t) { const f = lum(r, gg, b) / Math.max(1, lum(...base[p - 1])); r = Math.min(255, t[0] * f); gg = Math.min(255, t[1] * f); b = Math.min(255, t[2] * f); }
+        o[j] = r; o[j + 1] = gg; o[j + 2] = b; o[j + 3] = px.data[i * 4 + 3];
+      }
+      cg.putImageData(out, 0, 0);
+    } else cg.drawImage(img, sx, sy, cell.width, cell.height, 0, 0, cell.width, cell.height);
+  }
+  // A player's strike with a weapon (sprites/custom.js player_attack_<weapon>_sheet, made by install-attack-sheet.py):
+  // rows front, side (east), back, as the walking sheet; columns the wind-up, the middle and the follow-through (phase);
+  // its cells twice as wide (the weapon reaches out). A picture four tiles wide and two high, its tile the third from the
+  // left (rx: one tile of it right of its tile), so the weapon has room on both sides. A woman's body has no strikes yet:
+  // null, and she is drawn walking.
+  const ATTACK = { cell: [64, 48], feet: [32, 46] };
+  function playerAttack(key, dir, phase, weapon = 'spear') {
+    const id = `player_attack_${weapon}_sheet`, img = customImage(id), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES);
+    if (!img || playerSheetId(key) !== 'player_sheet') return null;
+    const c = cached(`attack:${weapon}:${key}:${dir}:${phase}:${R}`, g => {
+      g.canvas.res = R;
+      const [CW, CH] = ATTACK.cell, sx = phase * CW * S, sy = SHEET.rows[dir] * CH * S;
+      const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
+      recolourCell(cell.getContext('2d'), id, key, sx, sy);
+      const fx = 2 * TILE + 16, fy = TILE + 29, ox = (fx - ATTACK.feet[0]) * R, oy = (fy - ATTACK.feet[1]) * R;
+      groundShadow(g, fx * R, fy * R, 10 * R);
+      g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      if (dir === 3) { g.translate(2 * fx * R, 0); g.scale(-1, 1); } // (facing west: the side row turned round its feet)
+      g.drawImage(cell, ox, oy, CW * R, CH * R);
+    }, 4 * TILE * R, 2 * TILE * R);
+    c.rx = TILE;
+    return c;
+  }
   function playerFromSheet(key, dir, frame) {
     const id = playerSheetId(key), img = customImage(id), S = SHEET.res, R = Math.min(S, Sprites.CREATURE_RES), look = lookFor(key) || {}; // (see npcFromSheet)
     return cached(`sheet:${key}:${dir}:${frame}:${R}`, g => {
@@ -6744,21 +6786,7 @@ const Sprites = (() => {
       const [CW, CH] = SHEET.cell, row = SHEET.rows[dir], col = frame || 0, sx = col * CW * S, sy = row * CH * S;
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       const cg = cell.getContext('2d');
-      const px = sheetParts(id);
-      // (the outfit's own colours, from the key: not the look's, which a vocation's clothes or a skirt change)
-      const own = (key.split(':')[2] || '').split('|'), outfit = { hair: own[0], body: own[1], legs: own[2], feet: own[3] };
-      const targets = SHEET.parts.map(p => (/^#[0-9a-f]{6}$/i.test(outfit[p] || '') && outfit[p] !== DEFAULT_OUTFIT[p] ? hexRgb(outfit[p]) : null));
-      if (px && targets.some(Boolean)) { // recolour: each part's pixels, as light or dark against the part's own colour
-        const out = cg.createImageData(cell.width, cell.height), o = out.data, base = px.base;
-        const lum = (r, gg, b) => 0.3 * r + 0.59 * gg + 0.11 * b;
-        for (let y = 0; y < cell.height; y++) for (let x = 0; x < cell.width; x++) {
-          const i = (sy + y) * px.width + sx + x, j = (y * cell.width + x) * 4, p = px.part[i], t = p && targets[p - 1];
-          let r = px.data[i * 4], gg = px.data[i * 4 + 1], b = px.data[i * 4 + 2];
-          if (t) { const f = lum(r, gg, b) / Math.max(1, lum(...base[p - 1])); r = Math.min(255, t[0] * f); gg = Math.min(255, t[1] * f); b = Math.min(255, t[2] * f); }
-          o[j] = r; o[j + 1] = gg; o[j + 2] = b; o[j + 3] = px.data[i * 4 + 3];
-        }
-        cg.putImageData(out, 0, 0);
-      } else cg.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * S, CH * S);
+      recolourCell(cg, id, key, sx, sy);
       if (look.feather || look.cloak) sheetCosmetics(cell, look, dir, S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
@@ -7709,6 +7737,7 @@ const Sprites = (() => {
       for (let k = 0; k < n; k++) for (let py = 0; py < 16; py++) for (let px = 0; px < 16; px++) jobs.push(() => waterTile(px, py, ((k * 80) / n) * 80, TILE));
       return jobs;
     },
+    playerAttack, // (a player's strike: see playerAttack)
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins

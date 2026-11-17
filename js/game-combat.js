@@ -582,20 +582,21 @@ function updatePendingHits() {
   }
 }
 
-// The circle throw (kind arc): the war spear swings round the player from one side to the other, across the way they
-// face, its blade radius tiles out. Each monster in that half circle is hit when the swing passes its direction.
+// The circle throw (kind arc): the war spear swings round the player from their right-hand side to their left (as the
+// strike's pictures have it: from the viewer's left to right, seen from the front), across the way they face, its blade
+// radius tiles out. Each monster in that half circle is hit when the swing passes its direction.
 function castArc(s) {
   const w = playerWeapon(), face = Math.atan2(DY[player.dir || 0], DX[player.dir || 0]);
   const max = physicalMax(w);
   const blow = () => Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
-  const z = player.z, from = face - Math.PI / 2;
-  effects.push({ kind: 'arc', cid: player.id, x: player.x, y: player.y, z, a0: from, sweep: Math.PI, radius: s.radius, start: now, dur: s.sweep, style: 'swing' });
+  const z = player.z, from = face + Math.PI / 2;
+  effects.push({ kind: 'arc', cid: player.id, x: player.x, y: player.y, z, a0: from, sweep: -Math.PI, radius: s.radius, start: now, dur: s.sweep, style: 'swing' });
   addSound('hit', player.x, player.y, z);
   addSkillTries(w.skill);
   const inArc = c => {
     const dx = c.x - player.x, dy = c.y - player.y, d = Math.hypot(dx, dy);
     if (!d || d > s.radius + 0.5 || c.z !== z || !sightClear(player, c)) return null;
-    let rel = Math.atan2(dy, dx) - from; // (how far round the sweep it lies: 0 at its start, PI at its end)
+    let rel = from - Math.atan2(dy, dx); // (how far round the sweep it lies: 0 at its start, PI at its end)
     while (rel < -0.01) rel += Math.PI * 2;
     while (rel > Math.PI * 2) rel -= Math.PI * 2;
     return rel <= Math.PI + 0.01 ? rel : null;

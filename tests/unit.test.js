@@ -1680,16 +1680,16 @@ test('the war spear and its circle throw: held in both hands it reaches two tile
   const far = at(0, -2); A.setTarget(far.id); state.now += 3000; tick(game, 2500);
   assert(hurt(far), 'hit from two tiles away');
   far.hp = far.maxHp = 9999; p.target = null; far.remove = true; state.monsters = state.monsters.filter(m => m !== far);
-  p.dir = 2; // (facing south: the swing runs from east, round the south, to west)
+  p.dir = 2; // (facing south: the swing runs from your right, the west, round the south, to the east)
   const east = at(2, 0), south = at(0, 2), west = at(-2, 0), north = at(0, -2);
   state.now += 3000; A.say('hasta orbis');
   assert(state.effects.some(fx => fx.kind === 'arc'), 'everyone near sees the swing');
   tick(game, 60);
-  assert(hurt(east) && !hurt(south) && !hurt(west), 'first the one where the swing starts');
+  assert(hurt(west) && !hurt(south) && !hurt(east), 'first the one where the swing starts');
   tick(game, 180);
-  assert(hurt(south) && !hurt(west), 'then the one in front of you');
+  assert(hurt(south) && !hurt(east), 'then the one in front of you');
   tick(game, 300);
-  assert(hurt(west), 'then the one where it ends');
+  assert(hurt(east), 'then the one where it ends');
   assert(!hurt(north), 'nothing behind you');
 });
 

@@ -231,6 +231,8 @@ const CUSTOM_SPRITES = {
   player_mask: 'player-mask.png',
   player_mask_female: 'player-mask-female.png',
   player_sheet_female: 'player-sheet-female.png', // a woman's body (the outfit's Female), laid out as player_sheet
+  player_attack_spear_sheet: 'player-attack-spear.png', // the hero's sweeping strike with a war spear: wind-up, middle, follow-through (see playerAttack)
+  player_attack_spear_mask: 'player-attack-spear-mask.png', // its parts map (tests/attack-mask.py)
   player_sheet: 'player-sheet.png', // the players: front, side (east) and back rows, standing and two steps, at 4 pixels a world pixel (see playerFromSheet)
   sheet_ama: 'npc-ama.png', // an NPC's own sheet: sheet_<npc id>, laid out as the player sheet (drawn as it is, no recolouring)
   sheet_oak_armourer: 'npc-oak_armourer.png', // Armourer Brenna

@@ -533,7 +533,7 @@ function draw() {
   for (const c of shown) {
     const v = visual(c);
     const alpha = c.def && c.def.invisible ? (canSee(c) ? 0.6 : 0.15) : undefined;
-    const img = Sprites.creature(creatureKey(c), c.dir, v.frame), hit = Fx.creature(c, img); // a hit flashes and knocks it back
+    const img = strikeOf(c) || Sprites.creature(creatureKey(c), c.dir, v.frame), hit = Fx.creature(c, img); // a hit flashes and knocks it back
     view.objects.push({ x: c.x, y: c.y, z: c.z, vx: v.x + hit.dx, vy: v.y + hit.dy, lift: LIFT, alpha, flash: hit.flash, img, slant: true });
   }
   Fx.settle(new Set(creatures.map(c => c.id)));
@@ -555,8 +555,8 @@ function draw() {
   if (!player.dead && !riding(player)) {
     // Walls can hide you; a faint silhouette on top keeps you visible behind them.
     ctx.globalAlpha = 0.35;
-    const img = Sprites.creature(creatureKey(player), player.dir, pv.frame); // (a big picture has its tile in its bottom right)
-    const px = Math.round(ox + pv.x * TILE - LIFT - (Sprites.w(img) - TILE)), py = Math.round(oy + pv.y * TILE - LIFT - (Sprites.h(img) - TILE));
+    const img = strikeOf(player) || Sprites.creature(creatureKey(player), player.dir, pv.frame); // (a big picture has its tile in its bottom right)
+    const px = Math.round(ox + pv.x * TILE - LIFT - (Sprites.w(img) - TILE - (img.rx || 0))), py = Math.round(oy + pv.y * TILE - LIFT - (Sprites.h(img) - TILE));
     Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py, Sprites.w(img), Sprites.h(img)));
     ctx.globalAlpha = 1;
   }
@@ -595,6 +595,15 @@ function draw() {
 }
 
 const creatureById = id => players.find(p => p.id === id) || monsters.find(m => m.id === id) || npcs.find(n => n.id === id);
+// A player in the middle of a sweeping strike (the circle throw's arc): their strike's picture for now - the wind-up, the
+// middle or the follow-through, as far as the swing has come - or null (no strike going on, or no picture for it).
+const swingOf = c => c.type === 'player' && effects.find(fx => fx.kind === 'arc' && fx.cid === c.id && now >= fx.start && now < fx.start + fx.dur);
+function strikeOf(c) {
+  const fx = swingOf(c);
+  if (!fx) return null;
+  const t = (now - fx.start) / fx.dur;
+  return Sprites.playerAttack(creatureKey(c), c.dir, t < 0.28 ? 0 : t < 0.62 ? 1 : 2);
+}
 
 // Missiles, hit bursts and sparkles, in world pixels; sounds are played once.
 function drawEffects(ox, oy, z) {
@@ -637,14 +646,15 @@ function drawEffects(ox, oy, z) {
       const who = fx.cid && creatureById(fx.cid), v = who && who.x === fx.x && who.y === fx.y ? visual(who) : fx; // (following the swinger's step)
       const cx = ox + v.x * TILE + 16, cy = oy + v.y * TILE + 10, r = fx.radius * TILE + 6, ease = 1 - (1 - t) * (1 - t), a = fx.a0 + fx.sweep * ease;
       ctx.save();
-      const trail = Math.min(1.2, fx.sweep * ease); // (the crescent: the blade's last part of the way, fading towards its start)
+      const sg = Math.sign(fx.sweep) || 1, trail = Math.min(1.2, Math.abs(fx.sweep) * ease); // (the crescent: the blade's last part of the way, fading towards its start)
       for (let k = 0; k < 6; k++) {
-        const a1 = a - trail * (k / 6), a2 = a - trail * ((k + 1) / 6);
+        const a1 = a - sg * trail * (k / 6), a2 = a - sg * trail * ((k + 1) / 6), lo = Math.min(a1, a2), hi = Math.max(a1, a2);
         ctx.globalAlpha = (0.42 - k * 0.065) * (1 - t * 0.4);
         ctx.fillStyle = '#fbf6e6';
-        ctx.beginPath(); ctx.arc(cx, cy, r, a2, a1); ctx.arc(cx, cy, r * 0.55, a1, a2, true); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy, r, lo, hi); ctx.arc(cx, cy, r * 0.55, hi, lo, true); ctx.closePath(); ctx.fill();
       }
       ctx.globalAlpha = 1;
+      if (who && strikeOf(who)) { ctx.restore(); continue; } // (the spear is in the strike's picture: only the crescent here)
       ctx.translate(cx, cy); ctx.rotate(a);
       ctx.strokeStyle = '#6e4a22'; ctx.lineWidth = 3; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(r - 8, 0); ctx.stroke();       // the shaft, from the hands outwards

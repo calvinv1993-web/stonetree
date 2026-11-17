@@ -1034,9 +1034,10 @@ const Render = {
         if (waiting) for (const draw of waiting) draw();
         const here = objects && objects.get(y * map.width + x);
         if (here) for (const o of here) {
-          const iw = Sprites.w(o.img), ih = Sprites.h(o.img), lift = iw - TILE + (o.lift || 0);
+          // (a picture has its tile in its bottom right; one with rx has that much of it right of its tile: a strike's weapon)
+          const iw = Sprites.w(o.img), ih = Sprites.h(o.img), liftX = iw - TILE - (o.img.rx || 0) + (o.lift || 0), liftY = ih - TILE + (o.lift || 0);
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
-          const px = Math.round(ox + (o.vx ?? o.x) * TILE - lift), py = Math.round(oy + (o.vy ?? o.y) * TILE - lift);
+          const px = Math.round(ox + (o.vx ?? o.x) * TILE - liftX), py = Math.round(oy + (o.vy ?? o.y) * TILE - liftY);
           if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant
             g.drawImage(Render.CREATURE_DEPTH ? Render.roundOf(o.img) : o.img, px, py, iw, ih);
             if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py, iw, ih); }
