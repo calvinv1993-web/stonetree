@@ -8099,14 +8099,29 @@ const Sprites = (() => {
       const cell = v => ((v % cells) + cells) % cells, m4 = v => ((v % 4) + 4) % 4;
       for (const [c, a, b] of [[16, 1, 2], [32, 4, 2], [64, 4, 8], [128, 1, 8]]) if (mask & (a | b)) mask &= ~c;
       soft &= 15;
-      return cached(`kerb2:${mask}:${soft}:${street}:${path}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
+      return cached(`kerb3:${mask}:${soft}:${street}:${path}:${cell(x)}:${cell(y)}:${m4(x)}${m4(y)}`, g => {
         g.canvas.res = res;
         for (const [bit, d, i] of [[1, 'n', cell(x)], [2, 'e', cell(y)], [4, 's', cell(x)], [8, 'w', cell(y)]]) if (mask & bit) g.drawImage(pics[d], i * T, 0, T, T, 0, 0, T, T);
         const strip = edgePixels(pics.n), D = Math.round(T * 16 / 64), R = T * 0.5;
         const img = g.getImageData(0, 0, T, T), px = img.data;
         const texs = {};
         const groundPx = id => texs[id] || (texs[id] = (() => { const c = document.createElement('canvas'); c.width = c.height = T; const cg = c.getContext('2d'); cg.imageSmoothingEnabled = true; cg.drawImage(Sprites.thing(id, x, y, 0), 0, 0, T, T); return cg.getImageData(0, 0, T, T).data; })());
-        const stone = (i, row, col) => { const si = (row * strip.width + (((col % strip.width) + strip.width) % strip.width)) * 4; for (let k = 0; k < 4; k++) px[i + k] = strip.data[si + k]; };
+        // (the kerb's outer rows are its soft shadow, see-through: laid over the street, not the grass under this tile)
+        const B = Math.round(T * 3 / 64);
+        const overStreet = (i, ground = street) => {
+          const a = px[i + 3] / 255, t = groundPx(ground);
+          for (let k = 0; k < 3; k++) px[i + k] = px[i + k] * a + t[i + k] * (1 - a);
+          px[i + 3] = 255;
+        };
+        for (let py = 0; py < T; py++) for (let qx = 0; qx < T; qx++) {
+          if (!((mask & 1 && py < B) || (mask & 2 && qx >= T - B) || (mask & 4 && py >= T - B) || (mask & 8 && qx < B))) continue;
+          overStreet((py * T + qx) * 4);
+        }
+        const stone = (i, row, col, ground) => {
+          const si = (row * strip.width + (((col % strip.width) + strip.width) % strip.width)) * 4;
+          for (let k = 0; k < 4; k++) px[i + k] = strip.data[si + k];
+          if (row < B) overStreet(i, ground);
+        };
         // the corner of a block of grass: rounded, the street beyond the curve, the kerb along it
         for (const [both, cx, cy] of [[1 | 8, 0, 0], [1 | 2, T, 0], [4 | 2, T, T], [4 | 8, 0, T]]) {
           if (((mask | soft) & both) !== both || !(mask & both)) continue;
@@ -8116,7 +8131,7 @@ const Sprites = (() => {
             if ((cx ? qx < ccx : qx >= ccx) || (cy ? py < ccy : py >= ccy)) continue; // (only the corner's quarter)
             const i = (py * T + qx) * 4, dist = Math.hypot(qx + 0.5 - ccx, py + 0.5 - ccy);
             if (dist > R) { const t = groundPx(fill); for (let k = 0; k < 3; k++) px[i + k] = t[i + k]; px[i + 3] = 255; }
-            else if (dist > R - D) stone(i, Math.floor(R - dist), Math.floor(Math.atan2(py + 0.5 - ccy, qx + 0.5 - ccx) * R));
+            else if (dist > R - D) stone(i, Math.floor(R - dist), Math.floor(Math.atan2(py + 0.5 - ccy, qx + 0.5 - ccx) * R), fill);
             else px[i + 3] = 0;
           }
         }
