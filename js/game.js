@@ -645,16 +645,19 @@ function drawPowerArrow(bx, by, d, a, t, al) {
   ctx.save();
   ctx.translate(bx, by); ctx.rotate(a);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const gold = (o) => `rgba(255,196,64,${o})`, pale = (o) => `rgba(255,240,180,${o})`;
+  const gold = (o) => `rgba(255,128,16,${o})`, pale = (o) => `rgba(255,236,170,${o})`; // (orange, and a light inside)
+  const solid = on => { ctx.globalCompositeOperation = on ? 'source-over' : 'lighter'; }; // (the shapes in true orange; the glows add light)
   // the shaft: a wide soft glow, a brighter band, a white-gold core; faint at the bow, full at the head
-  for (const [w, o] of [[14, 0.18], [7, 0.4], [3, 1]]) {
+  for (const [w, o, col] of [[14, 0.16, '255,110,10'], [7, 0.5, '255,128,16'], [2.6, 0.95, '255,224,150']]) {
+    solid(w < 10);
     const g = ctx.createLinearGradient(0, 0, d, 0);
-    g.addColorStop(0, `rgba(255,190,60,${0.15 * o * al})`); g.addColorStop(0.6, `rgba(255,210,90,${0.7 * o * al})`); g.addColorStop(1, `rgba(255,244,200,${o * al})`);
+    g.addColorStop(0, `rgba(${col},${0.15 * o * al})`); g.addColorStop(0.6, `rgba(${col},${0.7 * o * al})`); g.addColorStop(1, `rgba(${col},${o * al})`);
     ctx.strokeStyle = g; ctx.lineWidth = w;
     ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(d - 6, 0); ctx.stroke();
   }
+  solid(true);
   // the crescent before the bow, fading as the arrow flies on, and wisps sweeping from its horns along the shaft
-  const c = al * Math.max(0.35, 1 - t / 900), R = 28, O = -8, reach = Math.max(36, d * 0.75);
+  const c = al * Math.max(0.35, 1 - t / 900), R = 28, O = 6, reach = Math.max(36, d * 0.75);
   ctx.shadowColor = gold(0.9); ctx.shadowBlur = 8;
   ctx.strokeStyle = gold(0.9 * c); ctx.lineWidth = 3.5;
   ctx.beginPath(); ctx.arc(O, 0, R, -1.15, 1.15); ctx.stroke();
@@ -664,29 +667,31 @@ function drawPowerArrow(bx, by, d, a, t, al) {
   for (const side of [-1, 1]) for (const [lift, w, o] of [[34, 2.2, 0.9], [52, 1.4, 0.6]]) {
     const hx = O + Math.cos(1.1) * R, hy = side * Math.sin(1.1) * R;
     const g = ctx.createLinearGradient(hx, 0, reach, 0);
-    g.addColorStop(0, gold(o * c)); g.addColorStop(1, 'rgba(255,196,64,0)');
+    g.addColorStop(0, gold(o * c)); g.addColorStop(1, 'rgba(255,150,24,0)');
     ctx.strokeStyle = g; ctx.lineWidth = w;
     ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(reach * 0.3, side * lift * (0.9 + 0.1 * Math.sin(t / 120)), reach, side * 2.5); ctx.stroke();
   }
   // sparks drifting along the shaft
+  solid(false);
   for (let i = 0; i < 14; i++) {
     const u = ((i * 0.618 + t / 1400) % 1), sxp = u * d, syp = Math.sin(i * 2.7 + t / 160) * (3 + 7 * (1 - u));
-    glowDot(sxp, syp, 1.6 + (i % 3) * 0.5, 'rgba(255,224,120,', (0.4 + 0.5 * Math.abs(Math.sin(i + t / 70))) * al);
+    glowDot(sxp, syp, 1.6 + (i % 3) * 0.5, 'rgba(255,170,50,', (0.4 + 0.5 * Math.abs(Math.sin(i + t / 70))) * al);
   }
-  if (t < 220) glowDot(0, 0, 18 * (1 - t / 220) + 4, 'rgba(255,236,150,', 0.9 * (1 - t / 220)); // (the flash as it's loosed)
+  if (t < 220) glowDot(0, 0, 18 * (1 - t / 220) + 4, 'rgba(255,180,70,', 0.9 * (1 - t / 220)); // (the flash as it's loosed)
   // the head: a fainter arrowhead just behind, then the sharp one, its tip burning white
   const head = (hx, size) => {
     ctx.beginPath(); ctx.moveTo(hx + size, 0); ctx.lineTo(hx - size * 0.55, -size * 0.75); ctx.lineTo(hx - size * 0.25, -size * 0.22);
     ctx.lineTo(hx - size * 0.25, size * 0.22); ctx.lineTo(hx - size * 0.55, size * 0.75); ctx.closePath();
   };
-  ctx.strokeStyle = gold(0.55 * al); ctx.lineWidth = 1.4;
+  solid(true);
+  ctx.strokeStyle = gold(0.6 * al); ctx.lineWidth = 1.6;
   head(d - 17, 13); ctx.stroke();
   ctx.shadowColor = gold(1); ctx.shadowBlur = 10;
-  head(d, 18); ctx.fillStyle = `rgba(255,214,96,${0.95 * al})`; ctx.fill();
+  head(d, 18); ctx.fillStyle = `rgba(255,120,14,${0.95 * al})`; ctx.fill();
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = pale(al); ctx.lineWidth = 1.3; ctx.stroke();
-  head(d + 1, 9); ctx.fillStyle = pale(0.85 * al); ctx.fill();
-  glowDot(d + 16, 0, 6, 'rgba(255,252,230,', 0.9 * al);
+  ctx.strokeStyle = `rgba(255,190,80,${al})`; ctx.lineWidth = 1.3; ctx.stroke();
+  head(d + 1, 9); ctx.fillStyle = pale(0.7 * al); ctx.fill(); // (the light inside it)
+  solid(false); glowDot(d + 8, 0, 9, 'rgba(255,200,110,', 0.6 * al);
   ctx.restore();
 }
 

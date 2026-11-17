@@ -556,7 +556,7 @@ const Fx = (() => {
   // Light and dark, in canvas pixels: the night, holes of light, and coloured glows on top.
   const LIGHT_COLORS = {
     temple_lantern_se: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
-    cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', shot: '255,214,110', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
+    cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', shot: '255,160,50', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
   };
   function light(view, screen, pv, amount, underground) {
     if (amount <= 0.02) return; // (broad day)
