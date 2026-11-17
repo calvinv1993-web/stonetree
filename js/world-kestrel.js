@@ -82,7 +82,7 @@ const KESTREL = {
   // the temple's hill is rock, not lawn: a paved walk over it (town-art coordinates, by floor: 1 the terrace, 2 the
   // temple's own rock) and grass only round the graves
   templeWalk: (x, y, k) => (k === 2 ? y === 9 && x >= 25 && x <= 29
-    : (y === 11 && x >= 19 && x <= 37) || (y === 12 && x >= 25 && x <= 29) || (y === 10 && (x === 25 || x === 29 || x === 36 || x === 37))),
+    : (y === 11 && x >= 19 && x <= 37) || (y === 12 && x >= 25 && x <= 37) || (y === 10 && (x === 25 || x === 29 || x >= 35 && x <= 38))), // (two wide from the steps over to the bell tower)
   graveyard: (x, y) => x >= 15 && x <= 20 && y >= 3 && y <= 10,
   // the fountain: the courtyard's heart, in a square of light paving framed by cobbles, a lamp at each corner
   fountainRing: [27, 17, 2],
@@ -102,6 +102,8 @@ const KESTREL = {
     [40, 12, 53, 12], [52, 12, 53, 16],                // from the north gate's road round to the east lane and down to the cross street
     [51, 0, 53, 11],                                   // the road up the gorge to the north gate
     [14, 27, 14, 27], [40, 34, 40, 34],                // the last steps to the house's and the fishmonger's doors
+    [38, 19, 38, 29],                                  // the east lane two wide below the cross street
+    [2, 35, 11, 36],                                   // the quay on west along the shore
   ],
   // ground cut out of the rock for a way through it (town-art coordinates): the east way out
   cuts: [[52, 17, 60, 18]],

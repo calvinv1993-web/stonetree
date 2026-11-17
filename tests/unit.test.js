@@ -1842,6 +1842,35 @@ test('Kestrel Isle: how far things are from the courtyard, walking at level 1 (s
   assert(first >= 30 && first <= 60, `the first monsters out in the open: ${first} s`);
 });
 
+test('Kestrel Isle: from the temple, every door, upper floor, cellar, grate and way out of Bellhaven can be walked to', () => {
+  const game = loadGame({ world: 'kestrel' });
+  const { ctx, state } = game;
+  const m = state.map, K = state.KESTREL, T = state.THINGS, [OX, OY] = K.isleAt, [TX, TY] = K.townAt, W = (x, y) => [OX + TX + x, OY + TY + y];
+  const near = (x, y) => x >= OX + TX - 30 && x <= OX + TX + 70 && y >= OY + TY - 30 && y <= OY + TY + 45;
+  const key = (x, y, z) => `${x},${y},${z}`, seen = new Set([key(m.start.x, m.start.y, m.start.z)]), visited = new Set(seen), todo = [[m.start.x, m.start.y, m.start.z]];
+  const change = t => t.items.map(i => T[i].change).find(Boolean) || (T[t.ground] && T[t.ground].change) || 0;
+  while (todo.length) { // (as the game walks: through doors, and a floor change takes you a floor up or down, to the nearest free tile)
+    const [x, y, z] = todo.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, t = near(nx, ny) && m.get(nx, ny, z), c = t && change(t);
+      if (!t || !(m.isWalkable(nx, ny, z) || c || t.items.some(i => i.startsWith('door')))) continue;
+      const to = c ? { ...(ctx.findFreeTile(nx, ny, z + c, 1) || { x: nx, y: ny }), z: z + c } : { x: nx, y: ny, z };
+      seen.add(key(nx, ny, z));
+      if (c ? !seen.has(key(to.x, to.y, to.z)) : !visited.has(key(nx, ny, z))) { seen.add(key(to.x, to.y, to.z)); visited.add(key(to.x, to.y, to.z)); todo.push([to.x, to.y, to.z]); }
+    }
+  }
+  const missing = [];
+  for (const b of K.buildings) {
+    const z = m.surfaceZ + (b.rock === true ? 1 : b.rock || 0);
+    if (!seen.has(key(...W(...b.door), z))) missing.push(`${b.name}'s door`);
+    (b.up || []).forEach(([x, y], k) => { const [ux, uy] = W(x, y); if (!seen.has(key(ux, uy, z + k + 1)) && !seen.has(key(ux + 1, uy, z + k + 1))) missing.push(`${b.name}, floor ${k + 2}`); });
+    if (b.cellar) { const [sx, sy] = W(...b.cellar.stairs); if (!seen.has(key(sx, sy, z - 1)) && !seen.has(key(sx + 1, sy, z - 1))) missing.push(`${b.name}'s cellar`); }
+  }
+  for (const [x, y] of K.gates) if (!seen.has(key(...W(x, y), m.surfaceZ))) missing.push(`the way out at ${x},${y}`);
+  for (const [x, y] of K.sewers.grates) if (!seen.has(key(...W(x, y), m.surfaceZ - 1))) missing.push(`the sewers under the grate at ${x},${y}`);
+  assert(!missing.length, `can't be walked to: ${missing.join(', ')}`);
+});
+
 test('the guide on Kestrel Isle: Sister Ama, the sewers and Clang, the Hall of Paths, the four trials, choosing', () => {
   const game = loadGame({ world: 'kestrel' });
   const { ctx, state, messages } = game;

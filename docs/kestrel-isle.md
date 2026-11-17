@@ -60,3 +60,9 @@ from the courtyard" checks the first three rows on the real map.
 - Harbour master: three storeys, a lookout over the bay at the top. Warehouse: a trapdoor down into the sewers.
 - Hall of Paths: the Pathkeeper and the four teachers (their practice rooms are reached through them).
 - The gates: a pair of watchtowers on each road, with stairs up to a lookout.
+
+## The town is fixed now
+
+Bellhaven's layout (its buildings, streets and gates) is settled: changes from here on are to the island round it, its
+hunting grounds and caves. Two unit tests guard the town: every door opens onto a street that leads to the courtyard,
+and from the temple every door, upper floor, cellar, grate and way out can be walked to the way the game walks.
