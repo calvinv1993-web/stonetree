@@ -1270,6 +1270,7 @@ const Sprites = (() => {
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open']) RAISED.add(id); // (the hidden quests' things)
+  for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest']) RAISED.add(id); // (the Bone Chapel's)
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   // (inside upright(): above height z0 things rise straight up the screen, k times as tall, from where they stand at z0)
@@ -3258,6 +3259,41 @@ const Sprites = (() => {
       rect(g, '#3a3a3a', 22, 11, 2, 2);
       line(g, '#d8d2be', 2, 6, 27, 14, 25);
     },
+    // A pyramid of skulls, stacked in rows that get shorter to the top, as Brother Ossian laid them (the Bone Chapel)
+    skull_pile(g) {
+      floorShadow(g, 14, 4);
+      prism(g, 4, 10, 28, 26, 0, 2, { top: '#8a826e', south: '#6e6656', east: '#5a5244', edge: '#a89e86' }); // its plinth
+      for (let row = 0; row < 4; row++) for (let k = 0; k < 4 - row; k++) {
+        const u = 8 + row * 2.6 + k * 5.2, [x, y] = P(u, 20, 2 + row * 5.4);
+        ellipse(g, '#3a3226', x + 0.6, y + 0.6, 2.8, 2.6);           // the shade between them
+        ellipse(g, row % 2 ? '#ddd6c0' : '#e8e2ce', x, y, 2.6, 2.4); // the skull
+        rect(g, '#2a2420', x - 1.6, y - 0.4, 1.1, 1.1); rect(g, '#2a2420', x + 0.5, y - 0.4, 1.1, 1.1); // its eyes
+        rect(g, '#f6f2e4', x - 1.4, y - 1.8, 1.6, 0.8);              // the light on its crown
+      }
+    },
+    // A chandelier of bones hung over the middle of the chapel: a ring of skulls with candles on it, on chains
+    bone_chandelier(g) {
+      ellipse(g, 'rgba(0,0,0,0.18)', 16, 20, 9, 3); // (its shadow far below, faint)
+      const ring = [], z = 34;
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; ring.push(P(16 + Math.cos(a) * 9, 16 + Math.sin(a) * 9, z)); }
+      for (const k of [1, 3, 5, 7]) line(g, '#5a5650', 0.7, ...ring[k], ...P(16, 16, z + 14)); // the chains
+      g.strokeStyle = '#d8d0b8'; g.lineWidth = 1.6; g.beginPath(); ring.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke(); // the ring of long bones
+      for (const [x, y] of ring) {
+        ellipse(g, '#e6e0cc', x, y, 2, 1.8); rect(g, '#2a2420', x - 1.1, y - 0.3, 0.8, 0.8); rect(g, '#2a2420', x + 0.3, y - 0.3, 0.8, 0.8);
+        rect(g, '#f0ead8', x - 0.4, y - 4, 0.8, 2.6); ellipse(g, '#ffb030', x, y - 4.8, 0.8, 1.3); ellipse(g, 'rgba(255,200,90,0.25)', x, y - 5, 2.4, 2.4); // a candle
+      }
+    },
+    // The crest of Oakvale laid out in bones on a low slab against the wall: a ring of skulls round a bell of long bones
+    bone_crest(g) {
+      floorShadow(g, 14, 4);
+      prism(g, 3, 18, 29, 22, 0, 30, { top: '#7a7268', south: '#5e5850', east: '#4a4440', edge: '#9a9288' }); // an upright slab
+      onSouth(g, 22, f => { // (face coordinates: u across, z up)
+        rect(f, '#4a4440', 5, 4, 22, 25);
+        for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2, x = 16 + Math.cos(a) * 8, y = 18 + Math.sin(a) * 8; ellipse(f, '#e6e0cc', x, y, 1.8, 1.6); rect(f, '#2a2420', x - 1, y - 0.2, 0.7, 0.7); rect(f, '#2a2420', x + 0.3, y - 0.2, 0.7, 0.7); }
+        poly(f, '#d8d0b8', [13, 22, 19, 22, 21, 14, 11, 14]); rect(f, '#d8d0b8', 15, 22, 2, 3); ellipse(f, '#c8c0a8', 16, 13, 1.4, 1.4); // the bell
+        line(f, '#d8d0b8', 1.2, 8, 27, 24, 27); line(f, '#d8d0b8', 1.2, 8, 9, 24, 9);
+      });
+    },
     // An altar: a stone block under a white cloth with a gold hem, a golden sun on it, two candles.
     altar(g) {
       floorShadow(g, 15, 3);
@@ -3718,7 +3754,7 @@ const Sprites = (() => {
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
   const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'noticeboard', 'gravestone', 'apple_crate', 'planter', 'woodpile', 'haystack', 'chest', 'anvil', 'bookshelf', 'sack', 'dummy', 'rock', 'fern', 'mushrooms', 'cannonballs', 'sarcophagus', 'dead_tree', 'rubble', 'driftwood', 'chair_east', 'chair_west', 'depot', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
-  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb']);
+  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb', 'skull_pile', 'bone_crest']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
       const image = customImage('temple_paving');
@@ -4184,6 +4220,10 @@ const Sprites = (() => {
     health_potion: g => potion(g, '#d02a2a'),
     mana_potion: g => potion(g, '#3a5ad0'),
     pet_tonic: g => potion(g, '#5fbf6a'),
+    crest_jaw: g => { line(g, '#e6e0cc', 3, 8, 12, 14, 24); line(g, '#e6e0cc', 3, 14, 24, 24, 22); line(g, '#a8a08a', 1, 10, 14, 15, 22); for (const x of [16, 19, 22]) rect(g, '#f4f0e0', x, 19, 2, 3); },
+    crest_knuckle: g => { ellipse(g, '#e6e0cc', 16, 16, 6, 5); ellipse(g, '#c8c0a8', 18, 18, 3, 2); line(g, '#8a8270', 1, 12, 14, 19, 13); },
+    crest_skull: g => { ellipse(g, '#e6e0cc', 16, 14, 9, 8); rect(g, '#e6e0cc', 11, 18, 10, 6); ellipse(g, '#2a2420', 12, 15, 2.5, 2.5); ellipse(g, '#2a2420', 20, 15, 2.5, 2.5); rect(g, '#2a2420', 15, 19, 2, 2); for (const x of [12, 15, 18]) rect(g, '#a8a08a', x, 23, 1, 2); line(g, '#c8a030', 1, 9, 9, 23, 9); },
+    bone_amulet: g => { line(g, '#8a7a5a', 1.5, 7, 3, 16, 17, 25, 3); ellipse(g, '#e6e0cc', 16, 22, 6, 6); ellipse(g, '#2a2420', 14, 21, 1.4, 1.4); ellipse(g, '#2a2420', 18, 21, 1.4, 1.4); rect(g, '#2a2420', 15.5, 24, 1, 1.5); },
     bag(g) {
       ellipse(g, '#8a6a3a', 16, 21, 10, 9);
       rect(g, '#8a6a3a', 12, 8, 8, 6);

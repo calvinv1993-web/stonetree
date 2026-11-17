@@ -466,6 +466,19 @@ const CRYPT = {
       monsters: [['skeleton', 67, 184], ['skeleton', 72, 182], ['skeleton', 70, 186], ['gravewaker', 69, 180]],
     },
   ],
+  // The Bone Chapel (The Bone Chapel, QUESTS.bone_chapel): behind a crack in the hall of coffins' east wall (a pick
+  // breaks it), a short passage and a chapel where Brother Ossian laid the island's old bones out in patterns: skull
+  // pyramids in the corners, a chandelier of bones, the crest of Oakvale in bones on the north wall. A carved skull for
+  // the crest lies in a cracked coffin in the hall (skull), his jawbone in the rats' nest under the graveyard (jaw, in
+  // the sewers), and his knucklebone in the grave with no stone in the graveyard (grave: dug with a shovel).
+  chapel: {
+    z: 7, crack: [89, 181], passage: [[90, 181]], room: [91, 177, 98, 184],
+    props: [[94, 177, 'bone_crest'], [91, 177, 'skull_pile'], [97, 177, 'skull_pile'], [91, 183, 'skull_pile'], [97, 183, 'skull_pile'],
+      [94, 180, 'bone_chandelier'], [92, 181, 'bones'], [96, 182, 'bones']],
+    torches: [[92, 176], [96, 176]],
+    ossian: [95, 179],
+    skull: [73, 181], jaw: [149, 142], grave: [146, 141],
+  },
 };
 
 // ---- the hidden quests (phase 7 of docs/world-plan.md): places nobody sends you to ---------------------------------
@@ -1438,6 +1451,23 @@ function buildCrypt(m, S) {
     for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { quest: 'bell_4', look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb.' });
     for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z });
   }
+  // the Bone Chapel: the crack in the hall's east wall, the passage and the chapel behind it, carved walls round them
+  const B = C.chapel, Z = B.z, carved = [];
+  const [rx0, ry0, rx1, ry1] = B.room;
+  for (let y = ry0; y <= ry1; y++) for (let x = rx0; x <= rx1; x++) { m.set(x, y, Z, { ground: 'crypt', items: [] }); carved.push([x, y]); }
+  for (const [x, y] of B.passage) { m.set(x, y, Z, { ground: 'crypt', items: [] }); carved.push([x, y]); }
+  for (const [x, y] of carved) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+    if (!m.get(x + ox, y + oy, Z)) m.set(x + ox, y + oy, Z, { ground: 'crypt', items: ['wall_crypt'] });
+  }
+  m.set(B.crack[0], B.crack[1], Z, { ground: 'crypt', items: ['cracked_rock'] });
+  m.setMeta(B.crack[0], B.crack[1], Z, { look: 'A crack runs down the wall here, and cold air breathes through it. Somewhere behind it, faintly, someone is counting.' });
+  for (const [x, y] of B.torches) m.addItem(x, y, Z, 'wall_torch');
+  for (const [x, y, id] of B.props) m.addItem(x, y, Z, id);
+  m.npcs.push({ type: 'oak_ossian', x: B.ossian[0], y: B.ossian[1], z: Z });
+  m.addItem(B.skull[0], B.skull[1], Z, 'qchest_crest_skull');
+  m.addItem(B.jaw[0], B.jaw[1], SEWERS.z, 'qchest_crest_jaw'); // (in the rats' nest under the graveyard)
+  const [gx, gy] = B.grave; // (the grave with no stone, up in the graveyard: dug with a shovel)
+  m.setMeta(gx, gy, S, { dig: 'bone_chapel', thing: 'ossian_grave', look: 'A low mound of earth between the stones, sunken a little, with no stone of its own. Somebody tends it: the grass is cut.' });
 }
 
 // Builds the ruined watchtower on the Old Tower hill (see OLD_TOWER): the tower on the hilltop (floor 9), its broken

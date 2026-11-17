@@ -352,3 +352,18 @@ The editor test checks:
 - painting, erasing, and a reload
 - export and import
 - one-finger pan, pinch-zoom and Draw mode on a phone
+
+
+## The Bone Chapel (hidden quest, level 6)
+
+Inspired by the bone chapels of old Europe, all our own. Behind a crack in the east wall of the crypt's hall of coffins
+(89,181,7; a pick breaks it) a passage (90,181,7) leads to the Bone Chapel (91-98, 177-184, z 7): skull pyramids in the
+corners, a chandelier of bones over the middle (94,180), and the crest of Oakvale laid out in bones on the north wall
+(94,177; the thing `bone_crest`). Brother Ossian, the ghost of the gravedigger who brought the old bones down when the
+graveyard grew full, stands at (95,179) and counts them. Three bones of the crest are missing:
+1. the carved jawbone, in the rats' nest under the graveyard (a heap of bones at 149,142,7), brought to Ossian;
+2. the carved knucklebone, in the grave with no stone between Bertha Oakhart's and Sir Galen's (146,141,8), dug with a shovel;
+3. the carved skull, in the cracked coffin in the hall of coffins (73,181,7), guarded by the skeletons; set into the
+   crest with the knucklebone. Ossian gives a bone amulet (armour 3), 700 xp and 60 gold.
+He also knows Sir Galen's coffin came down empty (a hint at the Gravewaker). The innkeeper's and townsfolk's rumours tell of
+counting behind the crypt's east wall (RUMOURS.chapel).

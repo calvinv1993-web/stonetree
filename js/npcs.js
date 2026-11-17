@@ -728,6 +728,7 @@ const RUMOURS = {
   ward: 'Brenna the armourer has been sour ever since Gnash\'s goblins took her grandmother\'s bronze shield. Goblins dig like moles, and they keep what they steal down in their holes under Goblin Hill. Bring her news of it and she might cheer up.',
   tidecutter: 'The fishers at Fisher\'s Rest talk of a drowned blade, the Tidecutter, lost with a boat off the west shore in the founders\' day. One old fisher swears he has its sea chart still, and cannot make head or tail of it.',
   lighthouse: 'The lighthouse on the point has been dark since the great storm. Keeper Tamsin says that whoever lights the old lamp again shall have the last keeper\'s coat. Oil, a wick and a spark, she says: as if that were easy, out there.',
+  chapel: 'Grave robbers in the founders\' crypt under Bone Rocks, years ago, swore they felt cold air through the east wall of the hall of coffins, and heard someone counting behind it. Counting bones, they said. They ran. A pick would tell you more than I can.',
   eagle: 'The eagles of Eagle Peak nest where nobody can climb. The night hermit on Hermit Rock would give a lot for one of their feathers, they say, and there is a cave in the North Peaks that climbs right up inside the mountain. I would not go in. Ghosts.',
 };
 
@@ -1401,7 +1402,7 @@ const NPCS = {
       job: 'Oh, a bit of this, a bit of that. Mostly that.',
       'adventure|news|rumours|rumors': { rumours: [
         'My cousin swears the hermit out on Hermit Rock talks to the bears. And that the bears talk back. He has stopped drinking since.',
-        RUMOURS.eagle, RUMOURS.tower,
+        RUMOURS.eagle, RUMOURS.tower, RUMOURS.chapel,
       ] },
     },
     chatter: ['Morning!', 'Have you seen the prices at the market?', 'My back is killing me.', 'Fine day, fine day.', 'I could have been an adventurer, you know.', 'Where did I leave my keys?'],
@@ -2164,6 +2165,21 @@ Object.assign(NPCS, {
     },
     chatter: ['The stars are clear tonight.', 'Shh. Bears sleeping.', 'Another boat with no lamp...'],
   },
+  // Brother Ossian, the ghost of the half-blind gravedigger who laid the island's dead to rest in patterns of bone in a
+  // chapel behind the crypt (The Bone Chapel): he wants the crest of Oakvale made whole again
+  oak_ossian: {
+    name: 'Brother Ossian',
+    look: { skin: '#c8d0d8', hair: '#e0e4ea', beard: '#e0e4ea', body: '#8a8e96', arms: '#8a8e96', legs: '#6a6e76', feet: '#4a4e56', belt: '#5a5e66', robe: true, hat: { style: 'hood', color: '#7a7e86' } },
+    greet: 'Ah... footsteps. Real ones. Mind the {bones}, friend: every one of them was somebody. I am Ossian. I {counted} them all.',
+    keywords: {
+      job: 'I was the gravedigger, when the graveyard grew full. I brought the old bones down here, and laid them out so that none would be forgotten. I am still at it, it seems.',
+      'bones|chapel|counted|count': 'Four thousand, two hundred and eleven. I counted them twice. The skulls in the corners, the long bones in the ring above you, and the {crest} on the wall: the crest of Oakvale, the bell in its ring.',
+      'crest|jaw|jawbone|knuckle|knucklebone|skull|missing': { quest: ['bone_chapel'] },
+      'galen|knight|coffin': 'Sir Galen? I counted every bone that came down to me, friend. His coffin came down light as a basket. Empty. I told no one. Who listens to the dead?',
+      'founder|founders': 'The founders sleep next door, in their hall. I never moved them. Some things you leave be.',
+    },
+    chatter: ['...four thousand, two hundred and nine... ten... eleven.', 'Mind the bones.', 'Every one was somebody.'],
+  },
   // Keeper Tamsin, by her fire at Lighthouse Point, where the lighthouse stood: she sees the Choir's boats at night
   oak_keeper: {
     name: 'Keeper Tamsin',
@@ -2200,7 +2216,7 @@ Object.assign(NPCS, {
       'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
-      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle] },
+      'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel] },
       bell: 'They say the temple bell went quiet the night the rats came up through the grates.',
       'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
     },
@@ -2260,6 +2276,31 @@ Object.assign(QUESTS, {
   },
   // Hermit Brannoc climbed the North Peaks when he was young: up through the cave and the old climbers' chimney inside
   // the mountain, to the eyrie of the great eagles. A feather from it, and he makes boots that walk like the wind.
+  bone_chapel: {
+    name: 'The Bone Chapel', giver: 'oak_ossian', level: 6, hidden: true, word: 'crest',
+    reward: { xp: 700, gold: 60, items: [['bone_amulet', 1]] },
+    summary: 'Help Brother Ossian, the ghost in the chapel of bones behind the crypt, make the crest of Oakvale whole again: three carved bones were lost.',
+    steps: [
+      { npc: 'oak_ossian', fetch: 'crest_jaw', word: 'jaw',
+        summary: 'Find the carved jawbone of the crest: the rats dragged it off to their nest under the graveyard (the sewers, at the east end of the tunnel under the main street).',
+        progress: 'The jawbone, friend. The rats took it to their nest, under the graveyard. Look in their heap of bones.',
+        done: 'My jawbone! Gnawed, but whole. (He sets it into the crest with fingers you can see through.) Now the {knucklebone}: it was buried with the one who carved it, in the graveyard above. No stone on her grave: between Bertha Oakhart\'s and Sir Galen\'s. A {shovel} will find her.' },
+      { thing: 'ossian_grave', give: [['crest_knuckle', 1]],
+        summary: 'Dig with a shovel at the grave with no stone in the old graveyard, between Bertha Oakhart\'s stone and Sir Galen\'s.',
+        done: 'Under the turf, in a little box of oak: a knucklebone, carved with a bell. Somebody loved this work.' },
+      { thing: 'bone_crest', needs: [['crest_knuckle', 1], ['crest_skull', 1]], missing: 'The crest still has two holes in it.',
+        summary: 'Take the carved skull from the cracked coffin in the hall of coffins (the skeletons will not like it), and set it and the knucklebone into the crest in the Bone Chapel.',
+        done: 'The last pieces click into place. For a moment every candle in the chapel burns taller, and somewhere above you, faint as a memory, a bell rings once.' },
+      { npc: 'oak_ossian', word: 'crest', summary: 'Tell Brother Ossian the crest is whole.' },
+    ],
+    text: {
+      offer: 'You see the crest? Three of its bones are gone: the {jaw}, a knuckle and the skull at its heart. The rats, the grave, and the founders\' hall. My hands go through things now, friend. Would you find them for me? ({yes}/{no})',
+      accept: 'Bless you. The jawbone first: the rats took it to their nest, under the graveyard. Come back to me with it.',
+      reward: 'Whole. Whole again, after all these years. (Ossian bows his head, and the candles bow with him.) Take this: I carved it the night the bell first rang, from a bone nobody claimed. It keeps the cold out. And friend... remember them.',
+      tooWeak: 'The way here is guarded by the restless dead, friend. Grow a little stronger first: level 6, I would say.',
+      done: 'Four thousand, two hundred and eleven... and a crest, whole. Go well, friend.',
+    },
+  },
   eagle_eyrie: {
     name: 'The Eagle\'s Eyrie', giver: 'oak_hermit', level: 9, hidden: true, word: 'eagle', fetch: 'eagle_feather',
     reward: { xp: 900, gold: 50, items: [['featherstep_boots', 1]] },

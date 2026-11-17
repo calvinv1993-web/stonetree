@@ -203,6 +203,10 @@ const ITEMS = {
   carved_stone:  { name: 'strange carved stone', quest: true, weight: 8,
     text: 'A flat grey stone, cold to the touch. Spirals are carved round a grinning skull, and under it, in old letters: SEALED. LET THEM SLEEP.' },
   sea_chart:     { name: 'sea chart', quest: true, weight: 1 },
+  crest_jaw:     { name: 'carved jawbone', quest: true, weight: 2 },      // the Bone Chapel's crest (The Bone Chapel)
+  crest_knuckle: { name: 'carved knucklebone', quest: true, weight: 1 },
+  crest_skull:   { name: 'carved skull', quest: true, weight: 4 },
+  bone_amulet:   { name: 'bone amulet', slot: 'neck', armor: 3, value: 120, weight: 3 }, // Brother Ossian's thanks
   ember_seal:    { name: 'Ember Seal', slot: 'neck', armor: 4, quest: true, weight: 3 }, // reforged in the Ember Seal story
   // Oakvale Isle's hidden quests (docs/world-plan.md, Phase 7): what you find on the way, and what you get for it
   tide_chart:    { name: 'Maddock\'s sea chart', quest: true, weight: 1, // Tidecutter: the riddle of where the key lies

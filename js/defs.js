@@ -366,6 +366,22 @@ const THINGS = {
   },
   // The crypt under Bone Rocks: the gate to the founder's tomb opens on The Silent Bell IV (meta quest: 'bell_4'),
   // and the torn note by it can be picked up once the hall of coffins is cleared (The Silent Bell II).
+  // The Bone Chapel, behind the crypt's cracked east wall (The Bone Chapel, QUESTS.bone_chapel): Brother Ossian laid the
+  // island's dead to rest here in patterns, so none would be forgotten
+  skull_pile:  { name: 'pyramid of skulls', cat: 'Furniture', block: true, low: true },
+  bone_chandelier: { name: 'chandelier of bones', cat: 'Furniture' },
+  bone_crest:  { name: 'crest of bones', cat: 'Quest chests', block: true, low: true, deed: 'bone_chapel',
+    idle: 'The crest of Oakvale, laid out in bones: a bell inside a ring of skulls. Pieces of it are missing.' },
+  qchest_crest_jaw: {
+    name: 'heap of bones', cat: 'Quest chests', block: true, low: true, sprite: 'bones',
+    chest: { flag: 'crest_jaw', requires: 'bone_chapel@0', items: [['crest_jaw', 1]],
+      locked: 'Old bones the rats have dragged together. Nothing you need.', empty: 'Old bones, picked clean.' },
+  },
+  qchest_crest_skull: {
+    name: 'cracked coffin', cat: 'Quest chests', block: true, low: true, sprite: 'sarcophagus',
+    chest: { flag: 'crest_skull', requires: 'bone_chapel@2', items: [['crest_skull', 1]],
+      locked: 'A cracked old coffin. Let the dead sleep.', empty: 'The coffin is empty now.' },
+  },
   // a page of the founder's diary, lying out in the world (meta page: n; The Oakvale Chronicle, CHRONICLE in npcs.js)
   chronicle_page: { name: 'weathered page', cat: 'Quest chests', chronicle: true, meta: 'page' },
   crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, questDoor: true, meta: 'quest' },

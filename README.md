@@ -92,6 +92,7 @@ The bell of Oakvale has stopped ringing. The story climbs in danger as you grow,
   - **The Watchman's Greaves** (about level 5): the Old Tower's door fell in long ago, and its last watch lies in Oakvale's graveyard. Bring a rope.
   - **The Bronze Ward** (about level 6): Armourer Brenna misses her grandmother's shield, and goblins dig like moles.
   - **Down the Well** (about level 6): Old Wim went down the town well for a bet and never came back up.
+  - **The Bone Chapel** (about level 6): grave robbers once heard someone counting behind the east wall of the founders' crypt. Bring a pick, and a shovel.
   - Rumours also speak of a drowned blade near Fisher's Rest, of the dark lighthouse, and of an eagle's feather on Eagle Peak.
 - **Levers and boulders:** some levers only work pulled in the right order (a wrong one makes them all spring back with a clank). Walk straight into a boulder to push it a tile on; pushed boulders roll back after a while.
 - **V: The Choir's Shadow** (level 8, Master Corwin, after IV): his old books speak of the Ashen Choir, who sing to something under a burning mountain across the sea. At **Lighthouse Point**, Keeper Tamsin keeps a fire at the foot of the new tower, which has never been lit; at the tip of the point the Choir comes ashore: four grey-robed singers who throw fire, and their **Choir Cantor**. In his satchel, Galen's ring of swiftness and the last page of the founder's diary. Corwin reads it to you, and gives you the ring.

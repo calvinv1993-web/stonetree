@@ -1838,7 +1838,7 @@ test('Down the Well: a rope down the town well, rats in the dark, a pick through
   assert.strictEqual(state.questState('old_wim'), 'done');
 });
 
-test('rumours: the innkeeper tells of all six hidden quests, one at a time, and townsfolk know some of them', () => {
+test('rumours: the innkeeper tells of all seven hidden quests, one at a time, and townsfolk know some of them', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, R = inCtx(game, 'RUMOURS');
@@ -1849,9 +1849,9 @@ test('rumours: the innkeeper tells of all six hidden quests, one at a time, and 
     for (let i = 0; i < times; i++) ctx.say(word);
     ctx.endConversation(true);
   };
-  talk('oak_innkeeper', 'rumours', 6);
+  talk('oak_innkeeper', 'rumours', 7);
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
-  assert.strictEqual(Object.keys(R).length, 6);
+  assert.strictEqual(Object.keys(R).length, 7);
   messages.length = 0;
   talk('old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');
@@ -1984,6 +1984,27 @@ test('The Eagle\'s Eyrie: through the North Peaks cave (a pick for the fallen ro
   assert(/Featherstep/.test(said('eagle')) && has('featherstep_boots') && !has('eagle_feather'), 'boots for the feather');
   p.equipment.feet = { id: 'featherstep_boots', count: 1 };
   assert.strictEqual(vm.runInContext('speedOf(player)', ctx), before + state.ITEMS.featherstep_boots.speed, 'and you walk quicker in them');
+});
+
+test('The Bone Chapel: a pick through the crypt\'s cracked wall, Ossian\'s three bones (rats\' nest, a dug grave, the hall\'s coffin), the crest whole, a bone amulet', () => {
+  const { game, ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(!map.isWalkable(89, 181, 7), 'a cracked wall in the hall of coffins');
+  give('pick'); at(88, 181, 7); ctx.useItemOn(bagRef(state, 'pick'), 89, 181, 7);
+  assert(map.isWalkable(89, 181, 7), 'a pick breaks through');
+  ctx.useThing(73, 181, 7); assert(!has('crest_skull'), 'the coffin holds nothing for you before you know');
+  p.level = 6; meet('oak_ossian');
+  assert(/jaw/.test(said('crest')) && /nest/.test(said('yes')), 'Ossian asks for his bones');
+  at(149, 141, 7); ctx.useThing(149, 142, 7); assert(has('crest_jaw'), 'the jawbone in the rats\' nest');
+  meet('oak_ossian'); assert(/knucklebone/.test(said('jaw')), 'he sets it in, and tells of the grave');
+  give('shovel'); at(146, 140, 8); ctx.useItemOn(bagRef(state, 'shovel'), 146, 141, 8);
+  assert(has('crest_knuckle'), 'the knucklebone from the grave with no stone');
+  at(73, 180, 7); ctx.useThing(73, 181, 7); assert(has('crest_skull'), 'the carved skull from the cracked coffin');
+  at(94, 178, 7); ctx.useThing(94, 177, 7);
+  assert(!has('crest_skull') && !has('crest_knuckle'), 'both set into the crest');
+  meet('oak_ossian'); said('crest');
+  assert(has('bone_amulet') && state.questState('bone_chapel') === 'done', 'a bone amulet, and the chapel at peace');
+  assert(state.QUESTS.bone_chapel.hidden && !state.GUIDE.some(st => (st.target || []).some(t => t.quest === 'bone_chapel')), 'hidden: no guide arrow');
 });
 
 test('hidden quests: no mark over the giver\'s head and no guide arrow, but the greeting hints, and the words are there', () => {
