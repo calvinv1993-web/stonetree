@@ -133,7 +133,7 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'selfdestruct'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'chain', 'selfdestruct'];
 
 // A critical hit, now and then, from a weapon that has them (crit: { chance, mult }): [the damage, whether it was one]
 function critical(w, dmg) {
@@ -644,6 +644,24 @@ function castVolley(s) {
   addSound('shoot', player.x, player.y, z); // (the next arrows' twangs: the picture plays them, as they're loosed)
 }
 
+// Lightning that leaps (kind chain): it strikes your target, then jumps to the nearest monster within s.jump tiles of
+// the last one struck (in sight of it, never back to one it already struck), and on, up to s.chain of them. Each is
+// struck a moment after the one before (pendingHits), as the lightning gets there; the picture is the effect 'chain'.
+function castChain(s, roll) {
+  const z = player.z, struck = [player.target];
+  while (struck.length < s.chain) {
+    const from = struck[struck.length - 1];
+    const next = monsters.filter(m => !m.dead && m.z === z && !struck.includes(m) && dist(from, m) <= s.jump && sightClear(from, m))
+      .sort((a, b) => dist(from, a) - dist(from, b) || Math.hypot(a.x - from.x, a.y - from.y) - Math.hypot(b.x - from.x, b.y - from.y) || a.id - b.id)[0];
+    if (!next) break;
+    struck.push(next);
+  }
+  player.dir = dirTo(Math.sign(struck[0].x - player.x), Math.sign(struck[0].y - player.y)) ?? player.dir;
+  struck.forEach((c, i) => pendingHits.push({ at: now + 40 + i * s.step, by: player, target: c, z, dmg: roll(), element: s.element, glow: '#bfe4ff', small: true }));
+  effects.push({ kind: 'chain', cid: player.id, x: player.x, y: player.y, z, start: now, step: s.step, points: [{ x: player.x, y: player.y }, ...struck.map(c => ({ x: c.x, y: c.y }))], ids: [player.id, ...struck.map(c => c.id)],
+    dur: 40 + (struck.length - 1) * s.step + 260 });
+}
+
 function castPierce(s) {
   const w = playerWeapon(), t = player.target, z = player.z;
   let ax = DX[player.dir || 0], ay = DY[player.dir || 0];
@@ -697,10 +715,10 @@ function castSpell(id) {
   if (now < ownReady) return log(`${s.name} is not ready yet: ${Math.ceil((ownReady - now) / 1000)} s.`);
 
   const t = player.target;
-  if (s.kind === 'bolt' || s.kind === 'strike') {
+  if (s.kind === 'bolt' || s.kind === 'strike' || s.kind === 'chain') {
     if (!t) return log('You need a target for this spell. Click a monster first.');
-    const ok = s.kind === 'bolt' ? dist(player, t) <= s.range && sightClear(player, t) : inMelee(player, t);
-    if (!ok) return log(s.kind === 'bolt' ? 'Your target is out of range.' : 'You need to stand next to your target.');
+    const ok = s.kind !== 'strike' ? dist(player, t) <= s.range && sightClear(player, t) : inMelee(player, t);
+    if (!ok) return log(s.kind !== 'strike' ? 'Your target is out of range.' : 'You need to stand next to your target.');
   }
   if (s.kind === 'conjure' && s.blank && !countItem('blank_rune')) return log('You need a blank rune.');
   if (s.kind === 'arc' && !playerWeapon().spear) return log('You need a war spear in your hands for that.');
@@ -768,6 +786,8 @@ function castSpell(id) {
     castPierce(s);
   } else if (s.kind === 'volley') {
     castVolley(s);
+  } else if (s.kind === 'chain') {
+    castChain(s, roll);
   } else if (s.kind === 'selfdestruct') { // everything around you burns, and so do you
     for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
       const x = player.x + dx, y = player.y + dy;

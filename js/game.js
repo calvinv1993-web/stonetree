@@ -771,6 +771,41 @@ function drawPowerShot(fx, ox, oy) {
   ctx.restore();
 }
 
+// The lightning bolt (the effect 'chain', castChain in game-combat.js): each leap shows as its strike lands (fx.step ms
+// apart), a jagged bolt - a wide violet glow, a pale blue body, a white core - that crackles (its zigzag changes every
+// few hundredths of a second) and fades in a quarter of a second, with a flash where it strikes.
+function drawLightningChain(fx, ox, oy) {
+  const e = now - fx.start, pts = fx.points;
+  const P = (p, i) => { // (where it is now, if still about: the bolt follows what it struck as it moves)
+    const c = fx.ids && creatureById(fx.ids[i]), v = c && c.z === fx.z ? visual(c) : p;
+    return [ox + v.x * TILE + 16, oy + v.y * TILE + 12];
+  };
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const t = e - i * fx.step; // (this leap's own time: it shows from its start)
+    if (t < 0 || t > 260) continue;
+    const fade = t < 40 ? 1 : 1 - (t - 40) / 220, [x0, y0] = P(pts[i], i), [x1, y1] = P(pts[i + 1], i + 1);
+    const len = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / len, ny = (x1 - x0) / len, n = Math.max(3, Math.round(len / 9));
+    const seed = Math.floor(now / 45) * 31 + i * 7; // (a new zigzag every 45 ms: it crackles)
+    const zig = [[x0, y0]];
+    for (let k = 1; k < n; k++) { const f = k / n, off = (Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453 % 1) * 9 * Math.sin(Math.PI * f); zig.push([x0 + (x1 - x0) * f + nx * off, y0 + (y1 - y0) * f + ny * off]); }
+    zig.push([x1, y1]);
+    const path = () => { ctx.beginPath(); ctx.moveTo(zig[0][0], zig[0][1]); for (let k = 1; k < zig.length; k++) ctx.lineTo(zig[k][0], zig[k][1]); };
+    for (const [w, col] of [[7, `rgba(150,110,255,${0.35 * fade})`], [3.2, `rgba(150,215,255,${0.8 * fade})`], [1.3, `rgba(255,255,255,${fade})`]]) {
+      path(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
+    }
+    if (t < 160) { // a thin fork off the middle of it, now and then
+      const m = zig[Math.floor(zig.length / 2)], fa = Math.atan2(y1 - y0, x1 - x0) + (seed % 2 ? 0.9 : -0.9);
+      ctx.strokeStyle = `rgba(170,220,255,${0.6 * fade})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(m[0], m[1]); ctx.lineTo(m[0] + Math.cos(fa) * 8, m[1] + Math.sin(fa) * 8); ctx.lineTo(m[0] + Math.cos(fa + 0.5) * 14, m[1] + Math.sin(fa + 0.5) * 14); ctx.stroke();
+    }
+    glowDot(x1, y1, 10 * fade + 4, 'rgba(190,225,255,', 0.8 * fade); // (the flash where it strikes)
+  }
+  ctx.restore();
+}
+
 function glowDot(x, y, r, rgba, a) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
   g.addColorStop(0, `${rgba}${a})`); g.addColorStop(0.4, `${rgba}${a * 0.5})`); g.addColorStop(1, `${rgba}0)`);
@@ -868,6 +903,8 @@ function drawEffects(ox, oy, z) {
       ctx.restore();
     } else if (fx.kind === 'shot') { // the power shot: charged at the bow, loosed with a flash, a golden arrow in flight, a burst where it ends
       drawPowerShot(fx, ox, oy);
+    } else if (fx.kind === 'chain') { // lightning bolt: a jagged bolt from the caster to the target, then leaping on from one to the next
+      drawLightningChain(fx, ox, oy);
     } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow
       const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
       const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10, nx = -Math.sin(a), ny = Math.cos(a);
@@ -1341,7 +1378,7 @@ window.addEventListener('error', e => reportError(e.error || e.message));
 // little less smooth): half the work, a cooler phone and a longer battery. Anything happening brings 60 back at once,
 // a shot or a swing on its way too (a power shot is drawn for 1.5 s with no key touched: it flew at 30, and stuttered).
 let lastInputAt = 0, calmCheckedAt = 0, calmNow = false;
-const FAST_EFFECTS = new Set(['shot', 'volley', 'arc', 'loose']); // (quick movements that need every frame)
+const FAST_EFFECTS = new Set(['shot', 'volley', 'arc', 'loose', 'chain']); // (quick movements that need every frame)
 for (const kind of ['pointerdown', 'pointermove', 'keydown', 'wheel']) window.addEventListener(kind, () => { lastInputAt = performance.now(); calmNow = false; }, { passive: true, capture: true });
 function calm(t) {
   if (t - calmCheckedAt < 250 && t >= calmCheckedAt) return calmNow;

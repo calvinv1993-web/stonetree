@@ -595,6 +595,11 @@ const Fx = (() => {
       const p = Math.min(1, r / Math.max(1, e.flight));
       if (fade > 0.1) lights.push({ x: e.x + (e.tx - e.x) * p, y: e.y + (e.ty - e.y) * p, r: 1.3 * fade, color: LIGHT_COLORS.shot, flicker: false, arrow: Math.atan2(e.ty - e.y, e.tx - e.x) });
     }
+    // a lightning bolt lights up each monster it strikes, for a moment
+    for (const e of effects) {
+      if (e.kind !== 'chain' || e.z !== player.z) continue;
+      for (let i = 0; i + 1 < e.points.length; i++) { const t = now - e.start - i * e.step; if (t >= 0 && t < 220) lights.push({ x: e.points[i + 1].x, y: e.points[i + 1].y, r: 2.2 * (1 - t / 220), color: LIGHT_COLORS.energy, flicker: true }); }
+    }
     for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: true });
     // fire breathes: a slow swell, a quick flutter and a sputter now and then, never in step
     const flick = l => 1 + 0.05 * Math.sin(now / 160 + l.x * 7 + l.y * 3) + 0.035 * Math.sin(now / 47 + l.x * 13) + 0.025 * Math.sin(now / 19 + l.y * 5);

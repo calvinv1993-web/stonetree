@@ -1879,6 +1879,40 @@ test('a level 100 test paladin holds the hawkeye bow; one made before gets it fr
   assert(!state.wantsTestSpear(), 'and not offered again');
 });
 
+test('lightning bolt (an Ember\'s): it strikes the target, then leaps to the next monster within 3 tiles, up to 6, never back', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'sorcerer', home: 'main', level: 30, mana: 900, maxMana: 900 });
+  p.skills.magic.level = 30;
+  const put = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); Object.assign(m, { x: p.x + dx, y: p.y + dy, hp: 9999, maxHp: 9999, aggro: 0 }); state.monsters.push(m); return m; };
+  // a line of monsters 2 tiles apart, eight of them, from 3 tiles away; and one 5 tiles off the line (too far to leap to)
+  const line = [0, 1, 2, 3, 4, 5, 6, 7].map(i => put(3 + 2 * i, 0)), far = put(3, 5);
+  for (const m of state.monsters) m.def = { ...m.def, speed: 0 }; // (they stay put)
+  A.say('fulmen saltus');
+  assert(messages.some(m => /need a target/.test(m)), 'not without a target');
+  p.target = line[0]; p.chase = false; state.now += 3000;
+  A.say('fulmen saltus');
+  const fx = state.effects.find(e => e.kind === 'chain');
+  assert(fx, 'everyone near sees the lightning');
+  assert.strictEqual(fx.points.length, 7, 'from you, through six monsters');
+  tick(game, 1000);
+  const hit = line.map(m => m.hp < 9999);
+  assert.strictEqual(JSON.stringify(hit), JSON.stringify([true, true, true, true, true, true, false, false]), 'the first six along the line, in turn');
+  assert.strictEqual(far.hp, 9999, 'nothing more than 3 tiles from the last one struck');
+  // a pair: it leaps from one to the other and stops (never back)
+  for (const m of state.monsters) m.dead = true;
+  const a1 = put(2, 0), a2 = put(4, 0);
+  p.target = a1; state.now += 3000; p.mana = 900;
+  A.say('fulmen saltus');
+  const fx2 = state.effects.filter(e => e.kind === 'chain').pop();
+  assert.strictEqual(fx2.points.length, 3, 'two struck, and no leap back to the first');
+  tick(game, 600);
+  assert(a1.hp < 9999 && a2.hp < 9999);
+  assert(!state.SPELLS.lightning_bolt.vocs.includes('druid'), 'an Ember\'s alone');
+});
+
 test('the triple shot: three quick arrows at your target, each hit on its own as it gets there, three arrows used', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

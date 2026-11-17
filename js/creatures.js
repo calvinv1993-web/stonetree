@@ -666,6 +666,10 @@ const SPELLS = {
   conjure_fireball: { name: 'Conjure Fireball', words: 'forma ignis orbis', vocs: ['sorcerer'], level: 13, mana: 70, kind: 'conjure', item: 'rune_fireball', count: 3, blank: true, desc: 'Turns a blank rune into 3 fireball runes.' },
   flame_burst:  { name: 'Flame Burst', words: 'ignis orbis', vocs: ['sorcerer'], level: 14, mana: 50, kind: 'area', radius: 2, element: 'fire', power: { min: [0.5, 2, 0, 12], max: [0.8, 3.5, 0, 25] }, desc: 'Fire damage to every monster within 2 tiles.' },
   magic_shield: { name: 'Magic Shield', words: 'aegis arcana', vocs: ['sorcerer', 'druid'], level: 14, mana: 50, kind: 'shield', desc: 'For 3 minutes, damage takes your mana before your health.' },
+  // Lightning that leaps from your target to the monsters near it, one after the other (castChain in game-combat.js):
+  // jump: tiles it leaps at most, chain: how many it strikes at most, step: ms between one strike and the next
+  lightning_bolt: { name: 'Lightning Bolt', words: 'fulmen saltus', vocs: ['sorcerer'], level: 13, mana: 55, kind: 'chain', cooldown: 2000, element: 'energy', range: 5, jump: 3, chain: 6, step: 70,
+    power: { min: [0.45, 2.5, 0, 10], max: [0.75, 4, 0, 22] }, desc: 'Lightning strikes your target and leaps to the next monster within 3 tiles, and on, up to 6 of them; never back to one it struck.' },
   conjure_energy_field: { name: 'Conjure Energy Field', words: 'forma fulmen', vocs: ['sorcerer'], level: 15, mana: 80, kind: 'conjure', item: 'rune_energy_field', count: 3, blank: true, desc: 'Turns a blank rune into 3 energy field runes.' },
   conjure_magic_wall: { name: 'Conjure Magic Wall', words: 'forma murus', vocs: ['sorcerer'], level: 16, mana: 120, kind: 'conjure', item: 'rune_magic_wall', count: 3, blank: true, desc: 'Turns a blank rune into 3 magic wall runes.' },
   energy_beam:  { name: 'Energy Beam', words: 'fulmen linea', vocs: ['sorcerer'], level: 18, mana: 70, kind: 'beam', length: 5, element: 'energy', power: { min: [0.6, 3, 0, 20], max: [1, 5, 0, 40] }, desc: 'A beam of energy straight ahead.' },
