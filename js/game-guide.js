@@ -50,10 +50,10 @@ const GUIDE = [
     art: 'lost',
   },
   {
-    text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
-    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. Grey: nothing to do here. You will use it a lot.',
-    ui: ['#tAttack'], uiDesk: ['#hotbar'],
-    art: 'smart',
+    text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
+    touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
+    ui: ['#hudMap'], uiDesk: ['.minimap-box'],
+    art: 'map',
   },
   {
     text: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Talk to him, and ask him about the bell.',
@@ -81,6 +81,12 @@ const GUIDE = [
     target: [{ at: [110, 141, 8] }],
     done: () => player.trainHits >= 5,
     art: 'train',
+  },
+  {
+    text: 'Space attacks the nearest monster (press it again for the next one). A monster you click is attacked too, someone you click is talked to.',
+    touch: 'The big button in the middle does what the moment asks, and its colour says what: red attacks the nearest monster, blue talks to someone near, amber opens a corpse, green uses a door or chest. Grey: nothing to do here. You will use it a lot.',
+    ui: ['#tAttack'], uiDesk: ['#hotbar'],
+    art: 'smart',
   },
   {
     text: 'Rats run in Sunny Fields, out of the south gate. Click a rat, or press Space. Rats are easy; grey wolves come in packs and are not: keep away from them for now. Kill 5 rats ($progress).',
@@ -129,18 +135,12 @@ const GUIDE = [
     target: [{ npc: 'pip' }],
     done: () => !!player.shopNpc || !!player.hasTraded,
   },
-  {
-    text: 'The minimap in the panel shows the land round you: click a spot to walk there. G opens the map of the whole island.',
-    touch: 'The map button (top left) shows the land round you: tap a spot to walk there. Full map shows the whole island.',
-    ui: ['#hudMap'], uiDesk: ['.minimap-box'],
-    art: 'map',
-  },
   // ---- level 2: a light, and the first way under the town ----
   {
     text: 'Level 2 brings your first spell: Torchlight. Press 1 (or say "lumen") to glow like a torch for three minutes. The sewers are dark: try it now.',
     touch: 'Level 2 brings your first spell: Torchlight! Tap its button on the left (still an empty +? Tap it and choose Torchlight first): you glow like a torch for three minutes. The sewers are dark: try it now.',
     art: 'torch', ui: ['#favPicker:not([hidden]) [data-action="light"]', '#favs .fav:nth-child(1)'], uiDesk: ['#hotbar'],
-    target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
+    target: [{ at: [131, 111, 8] }], // (the grate on the square: where the light is for)
     done: () => player.level >= 2 && player.lightUntil > now,
   },
   {
@@ -184,14 +184,29 @@ const GUIDE = [
     target: [{ at: [131, 111, 7] }, { quest: 'clang_rescue' }, { npc: 'ama' }],
     done: () => questState('clang_rescue') === 'done',
   },
+  // ---- the gate watch: one gate at a time, each with its task and its gear (game-gates.js) ----
   {
-    text: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
-    touch: 'Grow stronger before the dark places. The guards at the four town gates each have a task and gear for you: start with Sergeant Bram at the west gate (level 2), and he will send you on. Brenna at Hide and Iron sells armour; Pip sells health potions.',
-    // (each gate's task: Greyfang's pack, then his paw prints from the trailhead on, and him once he's near; the fisher's
-    // rock; the nearest nest you haven't burnt; Gnash's war chest)
-    target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] }, { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
-      { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' }, { at: [101, 220, 8], active: 'gate_south@0' },
-      { nest: true, active: 'gate_east@0' }, { at: [198, 70, 8], active: 'gate_north@0' }, { npc: 'gate_west', level: 2 }],
+    text: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you. Start with Sergeant Bram at the west gate: Greyfang, the grey wolf.',
+    touch: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you. Start with Sergeant Bram at the west gate: Greyfang, the grey wolf.',
+    target: [{ news: ['gate_west'] }, { hunt: ['gate_west'] }, { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' }, { npc: 'gate_west', level: 2 }],
+    done: () => questState('gate_west') === 'done' || questState('bell_2') !== 'none',
+  },
+  {
+    text: 'Guard Tilda at the south gate: a fisher is stranded on a rock off Lighthouse Point, with crabs all round him. Rescue him.',
+    touch: 'Guard Tilda at the south gate: a fisher is stranded on a rock off Lighthouse Point, with crabs all round him. Rescue him.',
+    target: [{ news: ['gate_south'] }, { hunt: ['gate_south'] }, { at: [101, 220, 8], active: 'gate_south@0' }, { npc: 'gate_south', level: 3 }],
+    done: () => questState('gate_south') === 'done' || questState('bell_2') !== 'none',
+  },
+  {
+    text: 'Guard Hilde at the east gate: spiders are spinning nests over the trails of the Spider Hills. Burn them, with a torch or Torchlight.',
+    touch: 'Guard Hilde at the east gate: spiders are spinning nests over the trails of the Spider Hills. Burn them, with a torch or Torchlight.',
+    target: [{ news: ['gate_east'] }, { hunt: ['gate_east'] }, { nest: true, active: 'gate_east@0' }, { npc: 'gate_east', level: 4 }],
+    done: () => questState('gate_east') === 'done' || questState('bell_2') !== 'none',
+  },
+  {
+    text: 'Captain Osric at the north gate: the goblins of Goblin Hill are planning something. Sneak into their camp at night, when they sleep, and steal Chief Gnash\'s war plans.',
+    touch: 'Captain Osric at the north gate: the goblins of Goblin Hill are planning something. Sneak into their camp at night, when they sleep, and steal Chief Gnash\'s war plans.',
+    target: [{ news: ['gate_north'] }, { hunt: ['gate_north'] }, { at: [198, 70, 8], active: 'gate_north@0' }, { npc: 'gate_north', level: 5 }],
     done: () => questState('gate_north') === 'done' || questState('bell_2') !== 'none',
   },
   {
@@ -201,22 +216,22 @@ const GUIDE = [
     done: () => questState('bell_2') !== 'none',
   },
   {
-    text: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
-    touch: 'Take the bone trail from the south road to Bone Rocks, south-west of town; steps at the foot of the crag lead down into the crypt. Clear the hall of coffins, take a weapon from the stone chests and the note by the iron gate, and bring the note to Corwin. Take potions!',
+    text: 'Take the bone trail to Bone Rocks, south-west of town, and go down into the crypt. Take a founder\'s weapon from the stone chests, clear the hall of coffins, and bring the torn note to Corwin.',
+    touch: 'Take the bone trail to Bone Rocks, south-west of town, and go down into the crypt. Take a founder\'s weapon from the stone chests, clear the hall of coffins, and bring the torn note to Corwin.',
     target: [{ quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_2') === 'done',
     minLevel: 5, // (till then: hunt at the gates)
   },
   {
-    text: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
-    touch: 'Sister Ama must hear about the note. Then, at level 6: down a sewer grate, east to the rats\' nest under the graveyard, and down its trapdoors to the old drains and the deep cistern. The rope lies past the great slime. Take many potions, and say "lumen" for light.',
+    text: 'Show Sister Ama the note. At level 6: down a sewer grate to the rats\' nest under the graveyard, and deeper, to the cistern and its great slime, for the rope. Bring potions and light.',
+    touch: 'Show Sister Ama the note. At level 6: down a sewer grate to the rats\' nest under the graveyard, and deeper, to the cistern and its great slime, for the rope. Bring potions and light.',
     target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [147, 102, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
     done: () => questState('bell_3') === 'done',
     minLevel: 6, // (till then: hunt at the gates)
   },
   {
-    text: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Fill a flask at the founders\' shrine by Mirror Lake first, and bring potions and your best armour.',
-    touch: 'Last of all, at level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him; the iron gate in the crypt will open then. Fill a flask at the founders\' shrine by Mirror Lake first, and bring potions and your best armour.',
+    text: 'At level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him first, and fill a flask at the shrine by Mirror Lake.',
+    touch: 'At level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him first, and fill a flask at the shrine by Mirror Lake.',
     target: [{ quest: 'bell_4' }, { news: ['ama'] }, { hunt: ['bell_4'] }, { at: [69, 176, 6] }, { at: [66, 181, 7] }, { at: [81, 198, 8] }],
     done: () => questState('bell_4') === 'done',
     minLevel: 8, // (till then: hunt at the gates)

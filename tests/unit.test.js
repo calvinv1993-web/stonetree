@@ -1540,7 +1540,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(p.tutorial, 3, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   talk('ama'); talk('ama', 'bell', 'yes');
-  next('where to look when lost'); next('the big button');
+  next('where to look when lost'); next('the map');
   assert.strictEqual(arrow(), 'corwin', 'first to Corwin at the academy'); assert.strictEqual(mark('corwin'), 'report');
   talk('corwin'); tick(game, 100);
   assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rats only count once he has heard about the bell');
@@ -1559,6 +1559,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(arrow(), '110,141,8', 'then the training yard, on the way to the rats');
   on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
   assert(p.trainHits >= 5, 'hitting the dummy');
+  next('the big button');
   kill('rat', 5);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
   p.fedUntil = state.now + 99999; tick(game, 100); next('the action buttons'); next('putting Eat on an action button (the browser sees it)');
@@ -1568,7 +1569,6 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   talk('pip', 'letter'); assert.strictEqual(arrow(), 'ama');
   talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
   p.shopNpc = 'pip'; tick(game, 100); p.shopNpc = null;
-  next('the map');
   // level 2: a light, then the first way under the town, for a shield
   levelTo(2); tick(game, 100);
   assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => s.art === "torch")') + 1, 'the guide waits for Torchlight');
