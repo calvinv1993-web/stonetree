@@ -1693,7 +1693,7 @@ test('the war spear and its circle throw: held in both hands it reaches two tile
   assert(!hurt(north), 'nothing behind you');
 });
 
-test('every plain shot from a bow shows the hero loosing it (a crossbow or a wand does not)', () => {
+test('every plain shot from a bow, and blow of a war spear, shows the hero loosing or swinging it (a crossbow does not)', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
@@ -1710,6 +1710,11 @@ test('every plain shot from a bow shows the hero loosing it (a crossbow or a wan
   p.equipment.weapon = { id: 'crossbow', count: 1 }; p.equipment.ammo = { id: 'bolt', count: 10 };
   seen = 0; watch(2500);
   assert(p.equipment.ammo.count < 10 && !seen, 'a crossbow has no such picture');
+  seen = 0; p.equipment.ammo = null; p.equipment.shield = null; p.equipment.weapon = { id: 'war_spear', count: 1 };
+  ctx.teleport({ x: m.x - 2, y: m.y, z: 8 }); A.setTarget(m.id);
+  const watchSpear = ms => { for (let t = 0; t < ms; t += 50) { tick(game, 50); seen += state.effects.filter(fx => fx.kind === 'loose' && fx.weapon === 'spear').length; } };
+  watchSpear(2500);
+  assert(seen > 0, 'the war spear is swung');
 });
 
 test('the power shot: a bow drawn to the full, one arrow loosed through every monster in its way, each hit as the arrow gets there', () => {

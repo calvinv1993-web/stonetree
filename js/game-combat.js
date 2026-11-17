@@ -164,6 +164,8 @@ function playerCombat() {
   if (!player.walk) player.dir = dirTo(t.x - player.x, t.y - player.y);
 
   if (w.kind === 'melee') {
+    // a war spear: the hero is seen swinging it, wind-up to follow-through (only a picture: game.js strikeOf)
+    if (w.spear) effects.push({ kind: 'loose', weapon: 'spear', cid: player.id, x: player.x, y: player.y, z: player.z, start: now, dur: 380 });
     addSkillTries(w.skill);
     addSound('hit', t.x, t.y, t.z);
     hurt(t, physicalHit(w) - blocked(t), 'physical');
@@ -171,7 +173,7 @@ function playerCombat() {
     useAmmo(w);
     addMissile(player, t, w.missile);
     // an arrow from a bow: the hero is seen holding the full draw a moment, then loosing (only a picture: game.js strikeOf)
-    if (w.missile === 'arrow') effects.push({ kind: 'loose', cid: player.id, x: player.x, y: player.y, z: player.z, start: now, dur: 360 });
+    if (w.missile === 'arrow') effects.push({ kind: 'loose', weapon: 'bow', cid: player.id, x: player.x, y: player.y, z: player.z, start: now, dur: 360 });
     addSkillTries('distance');
     const hitChance = Math.min(0.95, 0.6 + player.skills.distance.level / 150);
     if (Math.random() < hitChance) hurt(t, physicalHit(w) - blocked(t), 'physical');

@@ -609,7 +609,12 @@ const swingOf = c => c.type === 'player' && effects.find(fx => (fx.kind === 'arc
 function strikeOf(c) {
   const fx = swingOf(c);
   if (!fx) return null;
-  if (fx.kind === 'loose') return c.walk ? null : Sprites.playerAttack(creatureKey(c), c.dir, now - fx.start < 110 ? 1 : 2, 'bow');
+  if (fx.kind === 'loose') { // a plain blow or shot: a bow at full draw, then loosed; a spear wound up, swung, followed through
+    if (c.walk) return null;
+    const e = now - fx.start;
+    return fx.weapon === 'spear' ? Sprites.playerAttack(creatureKey(c), c.dir, e < 90 ? 0 : e < 200 ? 1 : 2)
+      : Sprites.playerAttack(creatureKey(c), c.dir, e < 110 ? 1 : 2, 'bow');
+  }
   if (fx.kind === 'shot') {
     const e = now - fx.start;
     return Sprites.playerAttack(creatureKey(c), c.dir, e < fx.charge * 0.55 ? 0 : e < fx.charge ? 1 : 2, 'bow');
