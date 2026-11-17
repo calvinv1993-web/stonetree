@@ -1,6 +1,6 @@
 /* Your companion's card on a phone (js/companion-card.js): on the drawer's Gear page, across both columns under the
    equipment and the backpack, in the drawer's look; and a small bar for his health at the end of yours in the status bar. */
-body.touch-ui .inventory-drawer .drawer-pet { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+body.touch-ui .inventory-drawer .drawer-pet { padding-top: 4px; }
 body.touch-ui .inventory-drawer .drawer-pet:not(:has(#petBox:not([hidden]))) { display: none; }
 body.touch-ui .companion-card { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .companion-card h2 { margin: 0 0 8px; color: #b8b5ad !important; font: 600 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 1px; }

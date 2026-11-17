@@ -3,12 +3,12 @@
 //   closed    only the tab above the smart button shows
 //   compact   swipe the tab up (or tap it): the drawer over the bottom ~42% of the map, equipment left, backpack right;
 //             the tab rides up on its top edge, pointing up: there's more
-//   expanded  swipe up again (or tap the tab): up to the status bar, with your other open containers, your gear's
-//             numbers, and your skills across the whole width under both; the tab points down
+//   expanded  swipe up again (or tap the tab): up to the status bar, with your other open containers; the tab points down
 // Swipe down on the tab or the top edge to go back a step; the backpack button or a touch on the map closes it. The smart
 // button goes on acting while it's open (smart-button.js), and the map slides up so you stay in sight above it.
 // The action bar stays where it is and works; the chat line steps aside.
-// Along its bottom, in reach of the thumb, four tabs say what it shows: Gear (the above), Map (the minimap, as big as
+// Along its bottom, in reach of the thumb, five tabs say what it shows: Gear (the above: only what you wear and carry),
+// Hero (your companion's card, if you have one, and your skills), Map (the minimap, as big as
 // the drawer, with its floors and zoom; it opens half way, and Full map opens the drawer all the way on the whole world), Quests and Settings (what the Menu held, and the help). So the
 // phone needs no menu or map up top, and everything is a thumb's reach from the action bar.
 // The drawer holds the page's own equipment and container windows (game-ui.js draws them, with their dragging and
@@ -19,7 +19,7 @@ const InventoryDrawer = (() => {
   const SWIPE = 28; // px up or down before a drag counts as a swipe
   let drawer = null, tab = null, dock = null, stage = 0, page = 'gear', seg = null, zoomed = false;
   const homes = new Map(); // what was moved in: where to put it back
-  const PAGES = [['gear', 'Gear', 'character'], ['map', 'Map', 'map'], ['quests', 'Quests', 'quests'], ['settings', 'Settings', 'menu']];
+  const PAGES = [['gear', 'Gear', 'character'], ['hero', 'Hero', 'hero'], ['map', 'Map', 'map'], ['quests', 'Quests', 'quests'], ['settings', 'Settings', 'menu']];
 
   function borrow(el) {
     if (!el || homes.has(el)) return;
@@ -43,8 +43,9 @@ const InventoryDrawer = (() => {
       put('.drawer-gear', byId('equipment'));
       const stats = byId('gearStats'); if (stats) { borrow(stats); drawer.querySelector('.drawer-stats').prepend(stats); } // (attack, defense and armor: one line across the top)
       put('.drawer-bags', byId('containers'));
-      put('.drawer-pet', byId('petBox')); // (your companion's card, across both, under them: companion-card.js)
-      put('.drawer-skills', byId('tab-skills')); // (your skills, under both columns: shown only expanded)
+    } else if (page === 'hero') {
+      put('.drawer-pet', byId('petBox')); // (your companion's card first, if you have one: companion-card.js)
+      put('.drawer-skills', byId('tab-skills'));
     } else if (page === 'map') {
       put('.drawer-map', document.querySelector('.minimap-box'));
       document.getElementById('mmWorld').textContent = 'Full map'; // ("Map" again in the side panel)
@@ -144,11 +145,10 @@ const InventoryDrawer = (() => {
     drawer = document.createElement('section');
     drawer.id = 'inventoryDrawer'; drawer.className = 'inventory-drawer'; drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML = '<div class="drawer-handle" title="Swipe up for more, down to close"><i></i></div>'
-      + '<div class="drawer-body"><div class="drawer-stats"><button class="drawer-skills-link" type="button">Skills ›</button></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div><div class="drawer-pet"></div>'
-      + '<div class="drawer-col drawer-skills"><h3>Skills</h3></div></div>'
+      + '<div class="drawer-body"><div class="drawer-stats"></div><div class="drawer-col drawer-gear"><h3>Equipment</h3></div><div class="drawer-col drawer-bags"><h3>Backpack</h3></div></div>'
+      + '<div class="drawer-page drawer-hero"><div class="drawer-pet"></div><div class="drawer-skills"><h3>Skills</h3></div></div>'
       + '<div class="drawer-page drawer-map"></div><div class="drawer-page drawer-quests"></div><div class="drawer-page drawer-settings"></div>';
     drawer.dataset.page = page;
-    drawer.querySelector('.drawer-skills-link').addEventListener('click', skills);
     const tabs = document.createElement('nav');
     tabs.className = 'drawer-tabs';
     for (const [id, label, icon] of PAGES) {
@@ -181,7 +181,7 @@ const InventoryDrawer = (() => {
   function show(id, s, to) {
     if (!PAGES.some(([p]) => p === id)) return;
     page = id;
-    set(s || (id === 'gear' || id === 'map' ? stage || 1 : 2)); // (quests and settings need the room: the whole drawer; the map
+    set(s || (id === 'gear' || id === 'map' ? stage || 1 : 2)); // (your hero, quests and settings need the room: the whole drawer; the map
     // opens half way, and its Full map button opens it all the way: game-ui.js)
     const el = to && document.getElementById(to);
     if (el && drawer.contains(el)) {
@@ -189,8 +189,8 @@ const InventoryDrawer = (() => {
       box.scrollTop = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 8;
     }
   }
-  // your skills: the gear page all the way open, scrolled down to them
-  const skills = () => show('gear', 2, 'tab-skills');
+  // your skills: the Hero page, all the way open, scrolled to them
+  const skills = () => show('hero', 2, 'tab-skills');
 
   return { attach, open: s => set(s || 1), close: () => set(0), stage: () => stage, show, skills, page: () => page };
 })();

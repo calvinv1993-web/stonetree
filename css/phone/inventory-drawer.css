@@ -34,9 +34,6 @@ body.touch-ui .drawer-gear { padding-right: 10px; border-right: 1px solid rgba(2
 body.touch-ui .inventory-drawer .equipment { grid-template-columns: repeat(3, var(--slot, 44px)); gap: 4px; margin: 0; transform: none; }
 /* what you wear adds up to: one line across the top, half open and all the way */
 body.touch-ui .drawer-stats { grid-column: 1 / -1; min-height: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-/* to your skills (the gear all the way open, scrolled to them): a small gold link at the line's end */
-body.touch-ui .drawer-skills-link { flex: none; min-height: 28px; margin: -4px -4px -4px 0; padding: 0 8px; border: 0 !important; background: none !important; box-shadow: none !important;
-  color: #d5aa60 !important; font: 600 12px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer #gearStats { margin: 0; color: #b8b5ad; font: 500 11.5px/20px system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body.touch-ui .inventory-drawer .gear-stats { display: flex; gap: 14px; padding: 0; border: 0; background: none; }
 body.touch-ui .inventory-drawer .gear-stat { display: flex; gap: 5px; padding: 0; border: 0; white-space: nowrap; }
@@ -53,9 +50,9 @@ body.touch-ui .inventory-drawer .slot { width: var(--slot, 44px); height: var(--
 body.touch-ui .inventory-drawer .bag-close { display: none; }
 /* while it's open the chat line steps aside; the action bar stays */
 body.touch-ui.drawer-open .chat-line { visibility: hidden; }
-/* expanded: your skills across the whole width, under the equipment and the backpack */
-body.touch-ui .inventory-drawer .drawer-skills { display: none; grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
-body.touch-ui.drawer-full .inventory-drawer .drawer-skills { display: block; }
+/* the Hero page: your companion's card (if you have one), then your skills */
+body.touch-ui .inventory-drawer .drawer-skills h3 { margin: 4px 0 6px; color: #b8b5ad; font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+body.touch-ui .inventory-drawer .drawer-pet:has(#petBox:not([hidden])) + .drawer-skills { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
 body.touch-ui .inventory-drawer #tab-skills { display: block !important; font-size: 12px; }
 /* another bag you opened: its heading with a round close button, and its "carry my things in it" as a slim gold line */
 body.touch-ui .inventory-drawer #containers > .container > h2 { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
@@ -68,11 +65,11 @@ body.touch-ui .inventory-drawer .bag-swap { width: auto !important; min-height: 
 /* its pages: one shows at a time (inventory-drawer.js sets data-page), the tabs along the bottom, in reach of the thumb */
 body.touch-ui .inventory-drawer .drawer-page { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 0 10px 8px; }
 body.touch-ui .inventory-drawer:not([data-page="gear"]) .drawer-body { display: none; }
-body.touch-ui .inventory-drawer[data-page="map"] .drawer-map, body.touch-ui .inventory-drawer[data-page="quests"] .drawer-quests,
+body.touch-ui .inventory-drawer[data-page="hero"] .drawer-hero, body.touch-ui .inventory-drawer[data-page="map"] .drawer-map, body.touch-ui .inventory-drawer[data-page="quests"] .drawer-quests,
 body.touch-ui .inventory-drawer[data-page="settings"] .drawer-settings { display: block; }
-body.touch-ui .drawer-tabs { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px 8px 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #151617; }
-body.touch-ui .drawer-tabs button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0; border: 1px solid transparent !important;
-  border-radius: 10px; background: none !important; color: #b8b5ad !important; font: 600 12px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 0.3px; }
+body.touch-ui .drawer-tabs { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px 8px 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #151617; }
+body.touch-ui .drawer-tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; padding: 0; border: 1px solid transparent !important;
+  border-radius: 10px; background: none !important; color: #b8b5ad !important; font: 600 11px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 0.3px; }
 body.touch-ui .drawer-tabs button.active { border-color: rgba(255, 255, 255, 0.16) !important; background: #302a23 !important; color: #d5aa60 !important; }
 /* the map: as wide and tall as the page; its buttons under it, big enough for a thumb */
 body.touch-ui .inventory-drawer .drawer-map { overflow: hidden; }

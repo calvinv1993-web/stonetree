@@ -3,7 +3,7 @@
 //   his portrait (his own sprite, enlarged), his name and level; Health and XP ("to level N") as bars; his damage a
 //   blow; a line on how he is (hurt, resting, ready to grow...); how he fights (Follow, Assist, Stay close); and
 //   Feed (saying what he'd eat), Potion, Call, Rename and Send home.
-// On a computer it sits in the side panel under the equipment (#petBox in index.html); on a phone the drawer's Gear page
+// On a computer it sits in the side panel under the equipment (#petBox in index.html); on a phone the drawer's Hero page
 // borrows it (inventory-drawer.js), and holding him on the map opens it there (game.js). On a phone a small bar at
 // the end of your health bar shows his health too.
 // It only shows and asks: every change goes through Actions (petFeed, petPotion, petCall, petHome, petMode, petName).
@@ -115,11 +115,11 @@ const CompanionCard = (() => {
     // a few times a second is plenty: he heals and gets hurt between your own changes
     setInterval(() => { try { render(); renderPip(); } catch (e) { /* (not logged in yet) */ } }, 250);
   }
-  // Show the card: on a phone the drawer's Gear page all the way open, scrolled to it; on a computer the side panel
+  // Show the card: on a phone the drawer's Hero page all the way open, scrolled to it; on a computer the side panel
   function open() {
     shown = ''; render();
     if (!box || box.hidden) return;
-    if (typeof InventoryDrawer !== 'undefined' && document.getElementById('inventoryDrawer') && touchScreen) return InventoryDrawer.show('gear', 2, 'petBox');
+    if (typeof InventoryDrawer !== 'undefined' && document.getElementById('inventoryDrawer') && touchScreen) return InventoryDrawer.show('hero', 2, 'petBox');
     if (typeof touchScreen !== 'undefined' && touchScreen) document.body.classList.add('panel-open');
     box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');

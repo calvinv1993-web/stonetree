@@ -63,8 +63,8 @@ const MIN_TARGET = 40; // css px: Apple asks 44 pt for a finger; the action butt
     const tabs = await page.evaluate(() => { InventoryDrawer.show('map'); return new Promise(res => setTimeout(() => res([...document.querySelectorAll('.drawer-tabs button')].map(el => {
       const r = el.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return { n: el.dataset.page, h: Math.round(r.height), w: Math.round(r.width), hit: !!hit && (hit === el || el.contains(hit)), top: Math.round(r.top / innerHeight * 100) }; })), 400)); });
-    check(`the drawer's four tabs, low and big enough: ${tabs.map(t => `${t.n} ${t.w}x${t.h} at ${t.top}%`).join(', ')}`,
-      tabs.length === 4 && tabs.every(t => t.hit && t.h >= MIN_TARGET && t.top >= 60), JSON.stringify(tabs));
+    check(`the drawer's five tabs, low and big enough: ${tabs.map(t => `${t.n} ${t.w}x${t.h} at ${t.top}%`).join(', ')}`,
+      tabs.length === 5 && tabs.every(t => t.hit && t.h >= MIN_TARGET && t.top >= 60), JSON.stringify(tabs));
     await page.evaluate(() => InventoryDrawer.close()); await page.waitForTimeout(300);
     const view = await page.evaluate(() => { const v = innerHeight, b = $('actionDock').getBoundingClientRect(); return { dockBottom: Math.round(b.bottom), v }; });
     check('the action bar reaches the bottom, its buttons clear of the home indicator', view.dockBottom === view.v && controls.every(c => c.bottom <= view.v - home), JSON.stringify(view));
