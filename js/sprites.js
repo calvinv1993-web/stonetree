@@ -4040,6 +4040,14 @@ const Sprites = (() => {
       poly(g, '#b8b8c0', [-3, -10, 3, -10, 0, -16]);
     });
   }
+  function warSpear(g) { // a long dark shaft, a leaf blade with a guard, a red tassel
+    diagonal(g, () => {
+      rect(g, '#5a3a1a', -1.2, -9, 2.4, 26);
+      rect(g, '#c8a040', -3, -9, 6, 2);
+      poly(g, '#dfe4ea', [-3, -9, 3, -9, 0, -19]); line(g, '#8a9098', 1, 0, -9, 0, -18);
+      rect(g, '#b02828', -2, -7, 1.5, 4);
+    });
+  }
   function bow(g) {
     g.strokeStyle = '#8a5a2a';
     g.lineWidth = 2.5;
@@ -4300,6 +4308,7 @@ const Sprites = (() => {
     war_axe: g => axe(g, '#b0b0b8', 8, false),
     battle_axe: g => axe(g, '#c0c0c8', 7, true),
     spear,
+    war_spear: warSpear,
     bow,
     crossbow,
     arrow: g => missiles(g, 14, '#b8b8c0', '#c03030'),

@@ -633,21 +633,23 @@ function drawEffects(ox, oy, z) {
         ctx.fillStyle = '#fff';
         ctx.fillRect(x - 1, y - 1, 2, 2);
       }
-    } else if (fx.kind === 'arc') { // the circle throw: a spear sweeping round in a half circle, spinning, a pale trail behind it
-      const cx = ox + fx.x * TILE + 16, cy = oy + fx.y * TILE + 16, r = fx.radius * TILE, a = fx.a0 + fx.sweep * t;
+    } else if (fx.kind === 'arc') { // the circle throw: a war spear swung round from the player's middle, a pale crescent behind its blade
+      const who = fx.cid && creatureById(fx.cid), v = who && who.x === fx.x && who.y === fx.y ? visual(who) : fx; // (following the swinger's step)
+      const cx = ox + v.x * TILE + 16, cy = oy + v.y * TILE + 10, r = fx.radius * TILE + 6, ease = 1 - (1 - t) * (1 - t), a = fx.a0 + fx.sweep * ease;
       ctx.save();
-      ctx.globalAlpha = 0.45 * (1 - t * 0.5);
-      ctx.strokeStyle = '#f2ead2';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.arc(cx, cy, r, Math.max(fx.a0, a - 1.1), a); ctx.stroke(); // (the trail: the last part of the way)
+      const trail = Math.min(1.2, fx.sweep * ease); // (the crescent: the blade's last part of the way, fading towards its start)
+      for (let k = 0; k < 6; k++) {
+        const a1 = a - trail * (k / 6), a2 = a - trail * ((k + 1) / 6);
+        ctx.globalAlpha = (0.42 - k * 0.065) * (1 - t * 0.4);
+        ctx.fillStyle = '#fbf6e6';
+        ctx.beginPath(); ctx.arc(cx, cy, r, a2, a1); ctx.arc(cx, cy, r * 0.55, a1, a2, true); ctx.closePath(); ctx.fill();
+      }
       ctx.globalAlpha = 1;
-      const sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r, spin = t * Math.PI * 6;
-      ctx.translate(sx, sy); ctx.rotate(spin);
-      ctx.strokeStyle = '#7a5226'; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(8, 0); ctx.stroke();      // the shaft
-      ctx.fillStyle = '#d8dde4';
-      ctx.beginPath(); ctx.moveTo(8, -3); ctx.lineTo(15, 0); ctx.lineTo(8, 3); ctx.closePath(); ctx.fill(); // the head
+      ctx.translate(cx, cy); ctx.rotate(a);
+      ctx.strokeStyle = '#6e4a22'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(r - 8, 0); ctx.stroke();       // the shaft, from the hands outwards
+      ctx.fillStyle = '#dfe4ea'; ctx.strokeStyle = '#8a9098'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(r - 9, -3.5); ctx.lineTo(r + 3, 0); ctx.lineTo(r - 9, 3.5); ctx.closePath(); ctx.fill(); ctx.stroke(); // the blade
       ctx.restore();
     } else if (fx.kind === 'vehicle') { // a ride arriving to pick someone up (and waiting), or leaving
       const p = fx.travel ? Math.min(1, (now - fx.start) / fx.travel) : t, s = p * p * (3 - 2 * p), off = fx.from + (fx.to - fx.from) * s;

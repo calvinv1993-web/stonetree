@@ -1662,27 +1662,33 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
 });
 
-test('the circle throw: a spear in hand sweeps a half circle in front of you, and each monster is hit as it gets there, one after the other', () => {
+test('the war spear and its circle throw: held in both hands it reaches two tiles; the sweep round you hits each monster as the blade gets there, one after the other', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
   Object.assign(p, { vocation: 'knight', home: 'main', level: 20, mana: 500, maxMana: 500 });
-  p.skills.sword.level = 40;
+  p.skills.axe.level = 40;
   A.say('hasta orbis'); tick(game, 100);
-  assert(messages.some(m => /spear in your hand/.test(m)), 'not without a spear in your hand');
-  p.equipment.weapon = { id: 'spear', count: 3 };
-  p.dir = 2; // (facing south: the sweep runs from east, round the south, to west)
+  assert(messages.some(m => /war spear in your hands/.test(m)), 'not without a war spear');
+  p.equipment.weapon = { id: 'war_spear', count: 1 };
+  const w = ctx.playerWeapon();
+  assert(w.kind === 'melee' && w.reach === 2 && w.skill === 'axe' && state.ITEMS.war_spear.weapon.twoHanded, 'held, two-handed, reaching two tiles');
   const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
-  const east = at(2, 0), south = at(0, 2), west = at(-2, 0), north = at(0, -2);
   const hurt = m => m.hp < 9999;
+  // its reach: a monster two tiles off is hit, as a sword hits one next to you
+  const far = at(0, -2); A.setTarget(far.id); state.now += 3000; tick(game, 2500);
+  assert(hurt(far), 'hit from two tiles away');
+  far.hp = far.maxHp = 9999; p.target = null; far.remove = true; state.monsters = state.monsters.filter(m => m !== far);
+  p.dir = 2; // (facing south: the swing runs from east, round the south, to west)
+  const east = at(2, 0), south = at(0, 2), west = at(-2, 0), north = at(0, -2);
   state.now += 3000; A.say('hasta orbis');
-  assert(state.effects.some(fx => fx.kind === 'arc'), 'everyone near sees the spear go round');
-  tick(game, 120);
-  assert(hurt(east) && !hurt(south) && !hurt(west), 'first the one where the sweep starts');
-  tick(game, 300);
+  assert(state.effects.some(fx => fx.kind === 'arc'), 'everyone near sees the swing');
+  tick(game, 60);
+  assert(hurt(east) && !hurt(south) && !hurt(west), 'first the one where the swing starts');
+  tick(game, 180);
   assert(hurt(south) && !hurt(west), 'then the one in front of you');
-  tick(game, 400);
+  tick(game, 300);
   assert(hurt(west), 'then the one where it ends');
   assert(!hurt(north), 'nothing behind you');
 });

@@ -1,7 +1,8 @@
 'use strict';
 // Items that can be carried, worn and used.
 //   slot:       where it is worn (see SLOTS)
-//   weapon:     { type: sword|axe|club|distance|wand, attack, range, twoHanded, ammo, thrown,
+//   weapon:     { type: sword|axe|club|spear|distance|wand, attack, range, twoHanded, ammo, thrown, reach (a held
+//                 weapon that hits this many tiles away: a spear, 2), skill (the skill it trains, if not its type),
 //                 breakChance, dmg: [min, max] and mana per shot for wands/rods, element }
 //   ammo:       { type: arrow|bolt, attack }
 //   armor:      damage absorbed while worn
@@ -77,6 +78,7 @@ const ITEMS = {
   mace:          { name: 'mace', slot: 'weapon', weapon: { type: 'club', attack: 15 }, defense: 8, value: 30, weight: 38 },
   longsword:     { name: 'longsword', slot: 'weapon', weapon: { type: 'sword', attack: 15 }, defense: 10, value: 35, weight: 42 },
   war_axe:       { name: 'war axe', slot: 'weapon', weapon: { type: 'axe', attack: 17 }, defense: 6, value: 35, weight: 50 },
+  war_spear:     { name: 'war spear', slot: 'weapon', weapon: { type: 'spear', skill: 'axe', attack: 24, reach: 2, twoHanded: true }, defense: 6, level: 15, value: 160, weight: 60 }, // (held, not thrown: reaches two tiles; a first try of the spear)
   broadsword:    { name: 'broadsword', slot: 'weapon', weapon: { type: 'sword', attack: 22 }, defense: 13, level: 12, value: 120, weight: 52 },
   battle_axe:    { name: 'battle axe', slot: 'weapon', weapon: { type: 'axe', attack: 25 }, defense: 10, level: 14, value: 140, weight: 65 },
   war_hammer:    { name: 'war hammer', slot: 'weapon', weapon: { type: 'club', attack: 25 }, defense: 11, level: 14, value: 140, weight: 85 },

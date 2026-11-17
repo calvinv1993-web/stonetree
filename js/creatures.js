@@ -608,8 +608,8 @@ function powerRange(p, power) {
 // target) | area (around you, radius) | wave (cone in front of you) | beam (line in
 // front of you, length) | strike (melee, needs a target, mult of your weapon damage) |
 // whirl (all adjacent, mult) | conjure (makes items: { item, count, blank: needs a blank rune }) |
-// arc (a spear in hand swept round you in a half circle in front of you, radius tiles, in sweep ms: each monster hit as
-// it passes, mult of a spear's blow)
+// arc (a war spear swung round you in a half circle in front of you, radius tiles, in sweep ms: each monster hit as
+// the blade passes, mult of the spear's blow)
 // promoted: only after promotion.
 const SPELLS = {
   light:        { name: 'Torchlight', words: 'lumen', level: 2, mana: 15, kind: 'light', desc: 'Lights up dark places for 3 minutes.' },
@@ -621,10 +621,10 @@ const SPELLS = {
   whirlwind:    { name: 'Whirlwind', words: 'vis turbo', vocs: ['knight'], level: 15, mana: 45, kind: 'whirl', mult: [0.7, 1.3], desc: 'Hits every monster next to you.' },
   shield_bash:  { name: 'Shield Bash', words: 'scutum ictus', vocs: ['knight'], level: 18, mana: 35, kind: 'strike', mult: [0.6, 1.2], condition: 'paralyze', desc: 'Stuns your target for a moment.' },
   earthshaker:  { name: 'Earthshaker', words: 'terra quassa', vocs: ['knight'], level: 20, promoted: true, mana: 80, kind: 'whirl', radius: 2, mult: [1, 1.8], desc: 'Shakes the ground: hits everything within 2 tiles.' },
-  // A spear swung round you in a half circle in front of you: you see it go round, and each monster it passes is hit as
-  // it gets there, one after the other (the arc's hits wait: pendingHits in game-combat.js). A first try of the spear's
-  // skills (docs: the masteries plan).
-  circle_throw: { name: 'Circle Throw', words: 'hasta orbis', vocs: ['knight', 'paladin'], level: 10, mana: 30, kind: 'arc', radius: 2, sweep: 650, mult: [0.9, 1.6], desc: 'With a spear in hand: it sweeps round you in a half circle, and every monster in front of you within 2 tiles is hit as it passes.' },
+  // A war spear swung round you in a half circle in front of you: you see the swing, and each monster within its reach is
+  // hit as the blade gets there, one after the other (the swing's hits wait: pendingHits in game-combat.js). A first try
+  // of the spear's skills (docs: the masteries plan).
+  circle_throw: { name: 'Circle Throw', words: 'hasta orbis', vocs: ['knight', 'paladin'], level: 10, mana: 30, kind: 'arc', radius: 2, sweep: 420, mult: [0.9, 1.6], desc: 'With a war spear in your hands: a sweeping blow round you in a half circle, and every monster in front of you within its reach is hit as the blade gets there.' },
   // Said, not clicked: hidden from the spell bar, so nobody blows themselves up by accident.
   final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 

@@ -60,7 +60,7 @@ function playerWeapon() {
     if (!ammo || ammo.type !== w.ammo) return { kind: 'distance', range: w.range, noAmmo: w.ammo };
     return { kind: 'distance', skill: 'distance', attack: qualityStat(w.attack, q) + ammo.attack, range: w.range, missile: w.ammo };
   }
-  return { kind: 'melee', skill: w.type, attack: qualityStat(w.attack, q) };
+  return { kind: 'melee', skill: w.skill || w.type, attack: qualityStat(w.attack, q), reach: w.reach || 1, spear: w.type === 'spear' };
 }
 
 const fightMode = () => FIGHT_MODES[player.fightMode] || FIGHT_MODES.balanced;
@@ -74,7 +74,8 @@ const physicalHit = w => {
 // What a monster's defense blocks of a weapon hit (half its defense to all of it), as in Tibia: with its armor
 // (in damageMonster) this can block a hit completely, and a weak hit often is.
 const blocked = t => (t.def && t.def.defense ? randInt(Math.floor(t.def.defense / 2), t.def.defense) : 0);
-const inAttackRange = (w, t) => (w.kind === 'melee' ? inMelee(player, t) : t.z === player.z && dist(player, t) <= w.range && sightClear(player, t));
+const inAttackRange = (w, t) => (w.kind === 'melee' ? (w.reach > 1 ? t.z === player.z && dist(player, t) <= w.reach && sightClear(player, t) : inMelee(player, t))
+  : t.z === player.z && dist(player, t) <= w.range && sightClear(player, t));
 const canSee = c => !(c.def && c.def.invisible) || dist(c, player) <= 1;
 
 function warn(text) {
@@ -581,16 +582,16 @@ function updatePendingHits() {
   }
 }
 
-// The circle throw (kind arc): the spear sweeps round the player from their left to their right, across the way they
-// face, radius tiles out. Each monster in that half circle is hit when the spear's sweep passes its direction.
+// The circle throw (kind arc): the war spear swings round the player from one side to the other, across the way they
+// face, its blade radius tiles out. Each monster in that half circle is hit when the swing passes its direction.
 function castArc(s) {
   const w = playerWeapon(), face = Math.atan2(DY[player.dir || 0], DX[player.dir || 0]);
-  const skill = ['distance', 'sword', 'axe', 'club'].reduce((a, k) => (player.skills[k].level > player.skills[a].level ? k : a), 'distance');
-  const max = physicalMax({ skill, attack: w.attack || 14 });
+  const max = physicalMax(w);
   const blow = () => Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0])));
   const z = player.z, from = face - Math.PI / 2;
-  effects.push({ kind: 'arc', x: player.x, y: player.y, z, a0: from, sweep: Math.PI, radius: s.radius, start: now, dur: s.sweep, style: 'spear' });
-  addSound('shoot', player.x, player.y, z);
+  effects.push({ kind: 'arc', cid: player.id, x: player.x, y: player.y, z, a0: from, sweep: Math.PI, radius: s.radius, start: now, dur: s.sweep, style: 'swing' });
+  addSound('hit', player.x, player.y, z);
+  addSkillTries(w.skill);
   const inArc = c => {
     const dx = c.x - player.x, dy = c.y - player.y, d = Math.hypot(dx, dy);
     if (!d || d > s.radius + 0.5 || c.z !== z || !sightClear(player, c)) return null;
@@ -603,7 +604,8 @@ function castArc(s) {
   for (const c of targets) {
     const rel = inArc(c);
     if (rel === null) continue;
-    pendingHits.push({ at: now + Math.round(s.sweep * rel / Math.PI), by: player, target: c, z, dmg: blow(), element: 'physical' });
+    // (the swing starts fast and slows to its end, as it's drawn: a hit lands when the blade is there)
+    pendingHits.push({ at: now + Math.round(s.sweep * (1 - Math.sqrt(Math.max(0, 1 - rel / Math.PI)))), by: player, target: c, z, dmg: blow(), element: 'physical' });
   }
 }
 
@@ -632,7 +634,7 @@ function castSpell(id) {
     if (!ok) return log(s.kind === 'bolt' ? 'Your target is out of range.' : 'You need to stand next to your target.');
   }
   if (s.kind === 'conjure' && s.blank && !countItem('blank_rune')) return log('You need a blank rune.');
-  if (s.kind === 'arc' && playerWeapon().missile !== 'spear') return log('You need a spear in your hand for that.');
+  if (s.kind === 'arc' && !playerWeapon().spear) return log('You need a war spear in your hands for that.');
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
