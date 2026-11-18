@@ -1,8 +1,8 @@
 'use strict';
 // How long the Oakvale route takes, from level 1 to 10: one character plays it with the game's own combat code.
-// It follows the route of the guide and the quests as they are now: The Silent Bell I, the Rats' Hoard and Clang at
-// level 2 (Clang then fights at its side, with the game's own pet code), the gate watch from level 2 to 5, the watch's
-// hunts from level 3 whenever one is free, The Silent Bell II to V, and the Chronicle pages it passes on the way.
+// It follows the route of the guide and the quests as they are now: The Last Town (Clang then fights at its side, with
+// the game's own pet code) and The Recruit, the gate watch from level 2 to 5, the watch's hunts from level 3 whenever
+// one is free, the crypt, the drains and the Gravewaker, and the Chronicle pages it passes on the way.
 // It hunts packs of the monsters where someone of its level would hunt, walks between them, rests when hurt (buying
 // a bread for it), drinks a potion when low - only potions it has: from quests, chests and loot, from Captain
 // Osric for watch marks, or bought at Pip's price with the gold and loot it earned - and goes to town for more
@@ -205,27 +205,23 @@ section('to level 5', () => grind(5));
 section('gate_north', () => {                     // Osric: 8 goblins and Gnash (and the Chronicle's page on Goblin Hill)
   take(3); hunt(['goblin', 'goblin', 'goblin'], 3); boss(['gnash', 'goblin']); page(4); finish('gate_north', 4); equip('shield', 'studded_shield');
 });
-section('bell_2', () => {                         // II: the hall of coffins, a club from the founders' chests, the note, a page
-  take(6); hunt(AREA[6], 2); equip('weapon', 'mace'); page(3); finish('bell_2', 6);
+section('the crypt', () => {                       // the hall of coffins, a club from the founders' chests, a page
+  take(6); hunt(AREA[6], 2); equip('weapon', 'mace'); page(3);
 });
 section('to level 6', () => grind(6));
-section('bell_3', () => {                         // III: the drains, the cistern slime, the rope (the rats' nest chest and the
-  take(6); hunt(['giant_rat', 'giant_rat', 'giant_rat'], 3); boss(['cistern_slime']); // rotting pack on the way)
-  ctx.addItem('gold', 60); ctx.addItem('health_potion', 3); equip('feet', 'leather_boots'); finish('bell_3', 8);
+section('the drains', () => {                      // the drains, the cistern slime (the rats' nest chest and the rotting pack on the way)
+  take(6); hunt(['giant_rat', 'giant_rat', 'giant_rat'], 3); boss(['cistern_slime']);
+  ctx.addItem('gold', 60); ctx.addItem('health_potion', 3); equip('feet', 'leather_boots');
 });
 section('to level 8', () => grind(8));
-section('bell_4', () => {                         // IV: the Gravewaker
-  take(6); boss(['gravewaker', 'skeleton']); finish('bell_4', 8); equip('body', 'chain_armor');
-});
-section('bell_5', () => {                         // V: Keeper Tamsin, the Choir at Lighthouse Point
-  take(6); fight(['choir_cultist']); fight(['choir_cultist']); boss(['choir_cantor', 'choir_cultist', 'choir_cultist', 'choir_cultist']); // (the trail's two watch singers, then the band as one)
-  finish('bell_5', 6); p.equipment.ring = { id: 'ring_swift', count: 1 };
+section('the Gravewaker', () => {                  // in the founder's tomb, behind the crypt's gate (level 7)
+  take(6); boss(['gravewaker', 'skeleton']);
 });
 section('to level 10', () => grind(10));
 const at10 = levels[9];
-section('bell_6', () => finish('bell_6', 10));    // VI: the bell, the farewells (and then the oracle)
+section('bell_6', () => finish('bell_6', 10));    // Farewell: the bell, the farewells (and then the oracle)
 
-console.log(`Oakvale route, seed ${seed}: level 10 after ${at10} minutes (The Silent Bell VI done at ${minutes()})`);
+console.log(`Oakvale route, seed ${seed}: level 10 after ${at10} minutes (the farewell done at ${minutes()})`);
 console.log(`  level reached at minute: ${levels.map((m, i) => `${i + 1}: ${m}`).join(', ')}`);
 console.log(`  kills: ${Object.entries(kills).map(([k, n]) => `${n} ${k}`).join(', ')}`);
 console.log(`  deaths ${deaths}${died.length ? `: ${died.join('; ')}` : ''}`);

@@ -349,9 +349,9 @@ function killMonster(m) {
   Object.assign(m, { dead: true, respawnAt: now + respawnDelay(m), due: 0, walk: null, conditions: {} });
   if (m.def.voices && m.def.voices.death) addSpeech(m, m.def.voices.death, true); // (its last words)
   // the first to slay the Brood Queen: told to everyone, and remembered (with the bell, in town.json)
-  if (m.type === 'brood_queen' && typeof townBell !== 'undefined' && !townBell.queenSlayer) {
-    townBell.queenSlayer = player.name;
-    for (const p of players) asPlayer(p, () => { log(`${townBell.queenSlayer} is the first to slay the Brood Queen under the Spider Hills!`, 'level'); playerEvent('banner', { message: `${townBell.queenSlayer} slew the Brood Queen!` }); });
+  if (m.type === 'brood_queen' && !townRecord.queenSlayer) {
+    townRecord.queenSlayer = player.name;
+    for (const p of players) asPlayer(p, () => { log(`${townRecord.queenSlayer} is the first to slay the Brood Queen under the Spider Hills!`, 'level'); playerEvent('banner', { message: `${townRecord.queenSlayer} slew the Brood Queen!` }); });
   }
   if (m.def.comesBack) {
     effects.push({ kind: 'speech', x: m.x, y: m.y, z: m.z, name: 'Someone', text: 'Not Lucky Tobb again! Somebody fetch the priest... no, wait, he always gets up.', start: now, dur: 3500 });
@@ -471,7 +471,7 @@ const DEATH_TIPS = {
 };
 function deathTip(killer) {
   if (!killer || killer.type === 'player') return null;
-  const tip = DEATH_TIPS[killer.type] || (killer.def && DEATH_TIPS[killer.def.echoOf]) || 'Rest here until your health is full, $name, and when you go out again, take a potion along.';
+  const tip = DEATH_TIPS[killer.type] || 'Rest here until your health is full, $name, and when you go out again, take a potion along.';
   return `The dawn brought you back. ${tip.replace(/\$name/g, player.name)}`;
 }
 
@@ -853,10 +853,8 @@ function castRune(ref, x, y, z) {
 }
 
 // ---- monsters -------------------------------------------------------------------------------
-// (one with an echo in creatures.js comes back as that echo once the bell of Oakvale has been rung home by anyone:
-// the same for everybody in the world, as the spawn is shared; the Gravewaker himself is gone then)
 function spawnMonster(spawn, extra = {}) {
-  const echo = MONSTERS[spawn.type] && MONSTERS[spawn.type].echo, type = echo && townBell.first ? echo : spawn.type;
+  const type = spawn.type;
   const def = MONSTERS[type];
   const pos = def && findFreeTile(spawn.x, spawn.y, spawn.z, 4, true);
   if (!pos) return null;
@@ -942,21 +940,10 @@ function monsterTarget(m) {
 // Whether player p has position o on their screen (or close to its edge).
 const inView = (p, o) => o.z === p.z && Math.abs(o.x - p.x) <= 10 && Math.abs(o.y - p.y) <= 8;
 
-// A spawn that comes ashore (spawn.night: a quest id) is only about at night once the bell of Oakvale rings again, or
-// while a player near it is on that quest: the Ashen Choir lands at Lighthouse Point after dark, and for whoever
-// is sent to look (The Silent Bell V). In daylight, with nobody on the quest, they row away once nobody watches.
-const NIGHT_NEAR = 40;
-function ashore(s) {
-  if (daylight() < 0.5 && townBell.ringers.length > 0) return true;
-  return players.some(p => !p.dead && p.z === s.z && dist(p, s) <= NIGHT_NEAR && p.quests[s.night] && p.quests[s.night].status === 'active');
-}
-
 function updateMonster(m, i) {
   if (m.dead) {
     if (!m.spawn || m.raid) {
       m.remove = true; // summons and raiders don't come back
-    } else if (m.spawn.night && !ashore(m.spawn)) {
-      // (not ashore now: they come back when they land again)
     } else if (now >= m.respawnAt && m.def.comesBack && m.diedAt) {
       comeBack(m, i);
     } else if (now >= m.respawnAt) {
@@ -973,9 +960,6 @@ function updateMonster(m, i) {
   tickConditions(m);
   if (m.dead) return;
   const unseen = () => !players.some(p => inView(p, m));
-  if (m.spawn && m.spawn.night && m.angryUntil <= now && unseen() && !ashore(m.spawn)) {
-    return void Object.assign(m, { dead: true, respawnAt: now, due: 0, walk: null, goal: null, conditions: {} }); // (rowed away: no corpse)
-  }
   if ((m.until && now >= m.until && unseen()) || (m.summoner && !monsters.some(o => o.id === m.summoner && !o.dead))) {
     if (m.summoner) addSparkle(m, '#a060ff');
     m.remove = true; // a raider goes home once nobody is watching; a summon goes with its summoner

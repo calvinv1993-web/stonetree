@@ -321,7 +321,7 @@ const SEWERS = {
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
-// Deeper under Oakvale, below the sewers: the way down to the bottom of the bell shaft (The Silent Bell II).
+// Deeper under Oakvale, below the sewers: the way down to the bottom of the bell shaft.
 // Floor 6, the old drains: crumbling brick tunnels and fallen-in caves, where the giant rats breed. Floor 5,
 // the deep cistern: a flooded cave full of giant rats, and a narrow passage that a slime keeps; past it, the
 // bottom of the bell shaft under the temple, where the bell's rope lies.
@@ -343,7 +343,7 @@ const DEEP_SEWERS = [
     pools: [{ cx: 123, cy: 113, rx: 2.6, ry: 1.8 }, { cx: 130, cy: 107, rx: 2, ry: 1.5 }, { cx: 118, cy: 106, rx: 1.6, ry: 1.2 }],
     drains: [[135, 108, 138, 109]], // the narrow way on, where the slime keeps (two rows: a south wall hides the row along it)
     rooms: [[139, 103, 144, 109, 'paving'], [145, 101, 150, 105, 'paving']], // the bottom of the bell shaft, under the tower
-    props: [[147, 102, 'bell_rope'], [142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
+    props: [[142, 103, 'qchest_oak_armor'], [139, 103, 'web'], [144, 109, 'bones'], [143, 104, 'rubble'], [121, 116, 'bones'], [133, 119, 'bones'], [116, 105, 'bones']],
     monsters: [
       // they lurk in the dark: each notices you only when you come near it (its aggro), not from across the cave,
       // so you can fight your way through a pair at a time - none of them by the ladder
@@ -407,7 +407,7 @@ function buildGateSites(m, S) {
   for (let x = dx0; x <= dx1 + 1; x++) for (const y of [dy0 - 2, dy0 - 1]) thicket(x, y);
   for (let x = dx0 - 2; x < dx0 + 2; x++) thicket(x, dy1 + 1);
   for (const [x, y, id] of [[66, 71, 'bones'], [69, 73, 'bones'], [70, 71, 'pebbles'], [67, 73, 'leaves']]) put(x, y, id);
-  m.setMeta(66, 71, S, { look: 'Among the bones lies a grey hood, singed at the edges. It stinks of smoke. No hunter wore this.' });
+  m.setMeta(66, 71, S, { look: 'Old bones, gnawed white: what is left of Greyfang\'s last meals.' });
   G.prints.forEach(([x, y, look], i) => {
     const next = G.prints[i + 1] || [68, 74];
     const n = Math.max(Math.abs(next[0] - x), Math.abs(next[1] - y));
@@ -462,7 +462,7 @@ const CRYPT = {
         [74, 179, 'sarcophagus'], [77, 179, 'sarcophagus'], [83, 179, 'sarcophagus'], [86, 179, 'sarcophagus'],
         [74, 182, 'sarcophagus'], [77, 182, 'sarcophagus'], [83, 182, 'sarcophagus'], [86, 182, 'sarcophagus'],
         [79, 178, 'qchest_crypt_sword'], [80, 178, 'qchest_crypt_axe'], [81, 178, 'qchest_crypt_club'],
-        [69, 181, 'crypt_gate'], [69, 182, 'wall_crypt'], [71, 181, 'torn_note'], // the gate to the tomb stairs (the way narrows to it), and the note by it
+        [69, 181, 'crypt_gate'], [69, 182, 'wall_crypt'], // the gate to the tomb stairs (the way narrows to it)
         [78, 192, 'web'], [83, 192, 'rubble'], [79, 195, 'bones'], [72, 178, 'web'], [80, 180, 'bones'], [67, 181, 'bones'],
       ],
       monsters: [['skeleton', 75, 180], ['skeleton', 85, 181], ['skeleton', 80, 183], ['skeleton', 82, 194]],
@@ -474,7 +474,7 @@ const CRYPT = {
       dais: [67, 175, 71, 177],
       torches: [[65, 174], [73, 174]],
       props: [
-        [69, 176, 'founder_tomb'],
+        [69, 176, 'sarcophagus'],
         [64, 177, 'sarcophagus'], [64, 184, 'sarcophagus'], [74, 177, 'sarcophagus'], [74, 180, 'sarcophagus'], [74, 184, 'sarcophagus'],
         [62, 175, 'web'], [70, 183, 'bones'], [63, 180, 'rubble'], [72, 186, 'bones'],
       ],
@@ -1310,16 +1310,6 @@ function createDefaultMap() {
   for (let i = m.spawns.length - 1; i >= 0; i--) { const s = m.spawns[i]; if (s.type === 'wolf' && s.z === S && Math.max(Math.abs(s.x - 67), Math.abs(s.y - 72)) <= 6) m.spawns.splice(i, 1); }
   // the goblins of Goblin Hill sleep at night (game-gates.js)
   { const [x0, y0, x1, y1] = GATE_SITES.sleepers; for (const s of m.spawns) if (s.z === S && ['goblin', 'gnash'].includes(s.type) && s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1) s.sleeps = true; }
-  // The Ashen Choir's landing at the tip of Lighthouse Point (The Silent Bell V): three singers round their cantor
-  // (placed by hand: the point is too small for the packs' spacing). They come ashore only at night once the bell rings
-  // again, or for whoever is on The Silent Bell V (night: see ashore in game-combat.js), notice you only up close (lurk)
-  // and keep to the tip (leash: 3 tiles), so the keeper's fire and the beaches stay safe.
-  for (const [type, x, y] of [['choir_cantor', 128, 221], ['choir_cultist', 125, 220], ['choir_cultist', 131, 220], ['choir_cultist', 128, 223]]) {
-    const p = spot(x, y, S, null, 3);
-    // (band: they fight as one: hit one and they all come, a real last fight, not five easy ones one at a time)
-    if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, night: 'bell_5', lurk: true, leash: 3, band: 'choir' }); }
-  }
-
   { const g = OAKVALE.graveyard; m.spawns = m.spawns.filter(p => p.z !== S || p.x < g.x0 || p.x > g.x1 || p.y < g.y0 || p.y > g.y1); } // (nothing spawns in the graveyard)
   tidyWorld(m, S);
 
@@ -1334,16 +1324,11 @@ function createDefaultMap() {
 // Last touches over the whole world, so the rules hold everywhere, not only where someone looked:
 //   - nothing hangs on a wall that a stair or ladder climbs against (it would show through the steps)
 //   - a single tile of grass left in the middle of a trail becomes trail
-// The Silent Bell's longer roads, through the places the story never went (all on the surface):
-//   shrine: the founders' shrine by Mirror Lake (blessed water for the Gravewaker, The Silent Bell IV)
-//   hood:   the singed grey hood in Greyfang's den, Wolf Woods (the start of the Choir's ash trail, The Silent Bell V)
-//   altar:  the Choir's altar of ash at the end of the causeway into Frog Marsh, a singer on watch at night
-//   cairn:  their unlit signal fire on Stony Field, facing Lighthouse Point, a singer on watch at night
-const STORY_SITES = { shrine: [127, 58], hood: [66, 71], altar: [60, 125], altarSinger: [62, 126], cairn: [89, 77], cairnSinger: [90, 79] };
+// The founders' shrine by Mirror Lake (all on the surface): blessed water, once, for whoever finds it
+const STORY_SITES = { shrine: [127, 58] };
 function buildStorySites(m, S) {
   const T = STORY_SITES, place = ([x, y], id) => { const t = m.get(x, y, S); t.items = t.items.filter(i => !THINGS[i].block && i !== 'bones'); t.items.push(id); };
-  place(T.shrine, 'lake_shrine'); place(T.hood, 'singed_hood'); place(T.altar, 'ash_altar'); place(T.cairn, 'signal_cairn');
-  for (const at of [T.altarSinger, T.cairnSinger]) m.spawns.push({ type: 'choir_cultist', x: at[0], y: at[1], z: S, night: 'bell_5', lurk: true, leash: 3 });
+  place(T.shrine, 'lake_shrine');
 }
 
 // The hills' ledges and plateaus, so climbing up pays: the founders' lookout on Bone Rocks (a cairn with a find, the
@@ -1733,7 +1718,7 @@ function buildCrypt(m, S) {
     for (const [x, y, id] of f.stairs) m.get(x, y, Z).items = [id];
     for (const [x, y] of f.torches) m.addItem(x, y, Z, 'wall_torch');
     for (const [x, y, id] of f.props) m.addItem(x, y, Z, id);
-    for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { quest: 'bell_4', look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb.' });
+    for (const [x, y, id] of f.props) if (id === 'crypt_gate') m.setMeta(x, y, Z, { level: 7, look: 'An iron gate, its lock new and heavy. Stairs lead down behind it, into the founder\'s tomb, where something hooded wakes the dead. Not before level 7.' });
     for (const [type, x, y] of f.monsters) m.spawns.push({ type, x, y, z: Z, ...(f.lurk ? { lurk: true } : {}) });
   }
   // the Bone Chapel: the crack in the hall's east wall, the passage and the chapel behind it, carved walls round them
@@ -2211,8 +2196,8 @@ function buildTown(m, S, runs, river) {
   // It stands on the east end of the temple mount. The ringers' room at the bottom, three floors of stairs above it,
   // and at the top (floor 13) the bell, open to
   // the sky between pillars under copper eaves. Its rope runs down a shaft of open hatches, one column through
-  // every floor (see T.belltower.shaft): from a wheel beside the bell, whole down the stairwell, cut off in the
-  // ringers' room - the rest fell down into the sewers and on to the bottom (see SEWERS, DEEP_SEWERS).
+  // every floor (see T.belltower.shaft): from a wheel beside the bell down to the ringers' room, and on down the
+  // mount as a shaft (see SEWERS, DEEP_SEWERS).
   {
     const bt = T.buildings.find(b => b.id === 'belltower'), BT = T.belltower, base = S + (bt.level || 0), top = base + bt.floors, [hx, hy] = BT.shaft;
     BT.stairs.forEach(([x, y], k) => { put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
@@ -2229,14 +2214,13 @@ function buildTown(m, S, runs, river) {
     m.get(sx, sy, top).items = ['stairs_down'];
     const ropes = [[top, 'shaft_rope_top', 'The bell rope runs from a wheel beside the bell down through an open hatch in the floor.']];
     for (let z = top - 1; z > base; z--) ropes.push([z, 'shaft_rope', 'The bell rope runs down the tower through an open hatch in every floor.']);
-    ropes.push([base, 'shaft_rope_cut', 'The bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through. The rest of it fell down the shaft, into the dark below.',
-      'The new bell rope comes down through the ceiling and ends here, over an open hatch, cut clean through again. The rest of it fell down the shaft, like the old one.']); // (lookAgain: see bellAgain)
-    for (const [z, id, look, lookAgain] of ropes) { m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, lookAgain ? { look, lookAgain } : { look }); } // an open hatch: no floor
+    ropes.push([base, 'shaft_rope', 'The bell rope comes down through the ceiling to its woollen grip, over an open hatch. The bell is rung from the top of the tower.']);
+    for (const [z, id, look] of ropes) { m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, { look }); } // an open hatch: no floor
     for (let z = S; z < base; z++) m.set(hx, hy, z, { ground: 'pit', items: [] }); // the shaft on down through the rock of the mount
     const [bx, by] = BT.bell;
     for (const [id, ox, oy] of [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]]) { put(bx + ox, by + oy, top, id); m.setMeta(bx + ox, by + oy, top, { look: BT.look }); }
     const [rx, ry, rules] = BT.rules;
-    m.get(rx, ry, base).items.push('sign_wall'); m.setMeta(rx, ry, base, { text: rules, plaque: true }); // (and the plaque of who rang it home)
+    m.get(rx, ry, base).items.push('sign_wall'); m.setMeta(rx, ry, base, { text: rules });
   }
   // Shelves or racks along the inside of the north wall; flower boxes under the windows of homes and the inn.
   for (const b of T.buildings) {

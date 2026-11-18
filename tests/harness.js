@@ -84,7 +84,7 @@ function loadGame({ seed = 1, world = '' } = {}) {
     get map() { return map; },
     get monsters() { return monsters; }, set monsters(v) { monsters = v; },
     get npcs() { return npcs; }, set npcs(v) { npcs = v; },
-    get parties() { return parties; }, get guilds() { return guilds; }, get townBell() { return townBell; }, set townBell(v) { townBell = v; },
+    get parties() { return parties; }, get guilds() { return guilds; }, get townRecord() { return townRecord; }, set townRecord(v) { townRecord = v; },
     players, piles, fields, effects,
     get now() { return now; }, set now(v) { now = v; },
     get pendingHits() { return pendingHits; },

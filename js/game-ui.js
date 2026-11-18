@@ -1111,7 +1111,7 @@ function renderQuests() {
     if (s.auto) return '';
     return `${stepReady(id) ? 'Then go' : 'When it is done, go'} to ${NPCS[who].name}${word ? ` and say "${word}"` : ''}.`;
   };
-  // The stories first (The Silent Bell on Oakvale Isle, The Ember Seal on the mainland): the chapters
+  // The stories first (The Last Town on Oakvale Isle, The Ember Seal on the mainland): the chapters
   // behind you, the one you're on, and where the next begins.
   const stories = {};
   for (const id of Object.keys(QUESTS)) {

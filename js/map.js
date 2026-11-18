@@ -14,7 +14,7 @@ class GameMap {
     this.mainStart = { ...this.start };                                // ...and arrive here after choosing a vocation
     this.spawns = []; // monsters: { x, y, z, type }
     this.npcs = [];   // { x, y, z, type }
-    this.meta = {};   // per-tile settings, "x,y,z" -> { to, target, lock, quest, level, text, look, lookAgain }
+    this.meta = {};   // per-tile settings, "x,y,z" -> { to, target, lock, quest, level, text, look }
     this.houses = []; // rentable houses: { id, name, rent, x0, y0, x1, y1, z }
     this.zones = [];  // protection zones besides temples and depots (marble floors): { x0, y0, x1, y1, z },
                       // and shelters, where monsters keep out: { ..., shelter: true }, and towns, where

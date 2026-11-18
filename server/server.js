@@ -26,7 +26,7 @@ const TEST = process.argv.includes('--test');
 const SAVE_FILE = path.join(__dirname, 'players.json');
 const WORLD_FILE = path.join(__dirname, 'world.json'); // monsters and things on the ground, kept over a restart
 const GUILD_FILE = path.join(__dirname, 'guilds.json');
-const TOWN_FILE = path.join(__dirname, 'town.json'); // the shared bell of Oakvale: who rang it home
+const TOWN_FILE = path.join(__dirname, 'town.json'); // what the whole world remembers (the first to slay the Brood Queen)
 const MAP_FILE = path.join(__dirname, 'map.json');
 const TICK_MS = 50;
 const VIEW = { x: 12, y: 10 }; // how far around a player the server sends things
@@ -107,7 +107,7 @@ const G = vm.runInContext(`({
   get monsters() { return monsters; }, set monsters(v) { monsters = v; },
   get npcs() { return npcs; }, set npcs(v) { npcs = v; },
   get guilds() { return guilds; }, set guilds(v) { guilds = v; },
-  get townBell() { return townBell; }, set townBell(v) { townBell = v; },
+  get townRecord() { return townRecord; }, set townRecord(v) { townRecord = v; },
   players, piles, fields, effects, mapChanges, map, Actions, newId,
 })`, sandbox);
 const W = sandbox; // the game's functions
@@ -151,8 +151,8 @@ const savedWorld = loadWorld();
 const savedMonsters = new Map(((savedWorld && savedWorld.monsters) || []).map(m => [m.spawn, m]));
 // A monster comes back only if its spawn is still the same (the world may have been rebuilt since).
 const sameSpawn = (old, s) => old && old.type === s.type && old.at && old.at.join() === `${s.x},${s.y},${s.z}`;
-// (the bell first: once it has been rung home, the Gravewaker's spawn brings his echo, from the start)
-{ const t = readSave(TOWN_FILE); if (t && Array.isArray(t.ringers)) G.townBell = t; }
+// (the world's records; a town.json from the bell's days keeps its Brood Queen slayer)
+{ const t = readSave(TOWN_FILE); if (t && typeof t === 'object') G.townRecord = { ...G.townRecord, queenSlayer: t.queenSlayer || null }; }
 W.spawnAll(G.map.spawns, (m, i) => {
   const old = savedMonsters.get(i), s = G.map.spawns[i];
   if (sameSpawn(old, s)) {
@@ -254,7 +254,7 @@ function persist() {
     saveWorld();
     writeSave(SAVE_FILE, JSON.stringify(accounts));
     writeSave(GUILD_FILE, JSON.stringify(G.guilds));
-    writeSave(TOWN_FILE, JSON.stringify(G.townBell));
+    writeSave(TOWN_FILE, JSON.stringify(G.townRecord));
   } catch (e) {
     console.error('Saving failed (trying again in 10 seconds):', e.message);
   }

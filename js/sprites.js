@@ -1265,12 +1265,12 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'bell_rope', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
-    'sarcophagus', 'founder_tomb', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_rope_cut', 'shaft_hole',
+    'sarcophagus', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
   for (const id of ['eagle_nest', 'lighthouse_lamp', 'lighthouse_lamp_lit', 'sea_gate_open', 'crane']) RAISED.add(id); // (the hidden quests' things)
-  for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest', 'lake_shrine', 'ash_altar', 'signal_cairn']) RAISED.add(id); // (the Bone Chapel's, the story's roads)
+  for (const id of ['skull_pile', 'bone_chandelier', 'bone_crest', 'lake_shrine']) RAISED.add(id); // (the Bone Chapel's, the story's roads)
   const LEAN = 1; // how far left things lean per pixel of height: exactly as walls and roofs do
   const HEIGHT = 0.6; // a floor is 32 pixels high: things are drawn in proportion to that (a pillar reaches the ceiling)
   // (inside upright(): above height z0 things rise straight up the screen, k times as tall, from where they stand at z0)
@@ -2659,19 +2659,6 @@ const Sprites = (() => {
       const a = P(16, 6, 16), b = P(16, 25, 16), c = P(11, 11, 16), d = P(21, 11, 16);
       line(g, '#5a5a62', 2, ...a, ...b); line(g, '#5a5a62', 2, ...c, ...d); // the sword on the lid
     },
-    // The founder's tomb: a bigger coffin on a step, its lid pushed half off, a glint of bronze inside.
-    founder_tomb(g) {
-      floorShadow(g, 14, 4);
-      prism(g, 3, 1, 29, 31, 0, 4, { top: '#5a5a62', south: '#46464e', east: '#36363c', edge: '#7a7a82' }); // the step
-      prism(g, 6, 3, 24, 29, 4, 17, { top: '#7a7a82', south: '#5e5e66', east: '#46464e', edge: '#9a9aa2' });
-      poly(g, '#0c0c10', [...P(8, 5, 17), ...P(22, 5, 17), ...P(22, 27, 17), ...P(8, 27, 17)]); // open: dark inside
-      const bone = (u0, v0, u1, v1) => line(g, '#b8b4a4', 2, ...P(u0, v0, 17), ...P(u1, v1, 17));
-      bone(11, 9, 11, 22); bone(14, 12, 18, 12); bone(14, 16, 18, 16); // old bones
-      const [sx, sy] = P(15, 8, 17); ellipse(g, '#c8c4b4', sx, sy, 3, 2.5); rect(g, '#0c0c10', sx - 2, sy - 1, 1, 1); rect(g, '#0c0c10', sx + 1, sy - 1, 1, 1);
-      const [gx, gy] = P(17, 22, 17); ellipse(g, '#d8a840', gx, gy, 3, 2); rect(g, '#fff0b0', gx - 1, gy - 1, 1, 1); // a glint of bronze
-      prism(g, 20, 6, 31, 31, 4, 7, { top: '#8e8e96', south: '#6e6e76', east: '#56565e', edge: '#b0b0b8' }); // the lid, pushed off, leaning on the step
-      onSouth(g, 29, f => { rect(f, '#3a3a40', 12, 7, 4, 4); rect(f, '#9a9aa2', 13, 8, 1, 1); rect(f, '#9a9aa2', 14, 8, 1, 1); }); // a carved skull
-    },
     // The bell shaft: on every floor under the bell the rope's tile is open (no floor), framed as a hatch with its
     // lid thrown back against the north edge; the rope runs up through it as a thin column, exactly one floor high
     // in the tiles' slant, so the pieces on the floors above and below join into one rope.
@@ -2688,28 +2675,8 @@ const Sprites = (() => {
     },
     // The ringers' room: the rope runs up through the floor and on up through the ceiling, with its striped grip.
     shaft_rope(g) { hatch(g, () => bellRope(g, 0, FLOOR_Z, true)); },
-    // The temple hall: the rope comes down from the room above and ends, cut, halfway down.
-    shaft_rope_cut(g) {
-      hatch(g, () => {
-        bellRope(g, 30, FLOOR_Z);
-        const [ex, ey] = P(16, 16, 30);
-        for (const d of [-2, -1, 0, 1, 2]) line(g, '#e0c898', 1, ex, ey, ex + d, ey + 2 + Math.abs(d)); // frayed
-      });
-    },
     // Further down: only the open hatch over the dark shaft.
     shaft_hole(g) { hatch(g, () => {}); },
-    // The temple bell's rope, hanging down through a hole in the cellar ceiling; its end lies gnawed on the floor.
-    bell_rope(g) {
-      // the rope, fallen in a heap on the floor and chewed to threads
-      ellipse(g, 'rgba(0,0,0,0.25)', 64 + 17, 64 + 19, 13, 6);
-      for (const [rx, ry, dy, c] of [[12, 5.5, 2, '#8a6a42'], [10, 4.5, 0, '#a8865a'], [7, 3.5, -2, '#b8966a'], [4, 2.2, -4, '#c8a67a']]) {
-        g.strokeStyle = c; g.lineWidth = 2.5;
-        g.beginPath(); g.ellipse(64 + 16, 64 + 17 + dy, rx, ry, 0, 0, Math.PI * 2); g.stroke();
-      }
-      g.strokeStyle = '#e0c898'; g.lineWidth = 1;
-      g.beginPath(); g.ellipse(64 + 16, 64 + 16.5, 10, 4.5, 0, 0.4, Math.PI * 1.1); g.stroke();
-      for (const [dx, dy] of [[0, 0], [3, 1], [5, -1], [2, 3]]) line(g, '#e0c898', 1, 64 + 26, 64 + 19, 64 + 28 + dx, 64 + 20 + dy); // gnawed
-    },
     // Tall grass: blades standing up through the air, leaning this way and that.
     tallgrass(g, r) {
       for (let i = 0; i < 9; i++) {
@@ -3330,30 +3297,6 @@ const Sprites = (() => {
       const [cx, cy] = P(16, 17, 12); ellipse(g, '#5a7a8a', cx, cy, 7, 4); ellipse(g, '#9ad0e8', cx - 1, cy - 0.5, 5.5, 3); ellipse(g, '#e8f6ff', cx - 3, cy - 1.2, 1.5, 0.7);
       onSouth(g, 25, f => { poly(f, '#b08a3a', [13, 9, 19, 9, 21, 3, 11, 3]); rect(f, '#b08a3a', 15, 9, 2, 2); });
     },
-    // A grey hood, singed, lying among the bones: a flame inside a ring burnt into it
-    singed_hood(g) {
-      poly(g, '#6e6c68', [8, 22, 12, 13, 20, 12, 25, 21, 21, 25, 11, 25]);
-      poly(g, '#86847e', [11, 20, 13, 14, 19, 14, 21, 20]);
-      for (const [x, y] of [[9, 23], [24, 22], [12, 25]]) ellipse(g, '#2a2420', x, y, 1.5, 1); // singed edges
-      g.strokeStyle = '#a04a20'; g.lineWidth = 0.8; g.beginPath(); g.arc(16, 18, 2.6, 0, Math.PI * 2); g.stroke();
-      poly(g, '#c8602a', [16, 15.6, 17.1, 18.4, 16, 19.6, 14.9, 18.4]);
-    },
-    // The Choir's altar in the marsh: a flat slab heaped with grey ash, a flame inside a ring drawn in it
-    ash_altar(g) {
-      floorShadow(g, 14, 4);
-      prism(g, 5, 9, 27, 24, 0, 8, { top: '#4a4644', south: '#363230', east: '#2a2624', edge: '#6a6662' });
-      const [cx, cy] = P(16, 16, 8);
-      ellipse(g, '#8a8680', cx, cy, 8, 4.5); ellipse(g, '#a8a49e', cx - 1, cy - 0.6, 5, 2.6);
-      g.strokeStyle = '#b04a20'; g.lineWidth = 0.9; g.beginPath(); g.ellipse(cx, cy, 3.4, 1.9, 0, 0, Math.PI * 2); g.stroke();
-      poly(g, '#d0602a', [cx, cy - 1.6, cx + 1, cy, cx, cy + 0.9, cx - 1, cy]);
-    },
-    // An unlit signal fire on Stony Field: driftwood and pitch stacked in a cone on a ring of stones
-    signal_cairn(g) {
-      floorShadow(g, 13, 4);
-      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, [x, y] = P(16 + Math.cos(a) * 10, 16 + Math.sin(a) * 10, 0); ellipse(g, '#8a8680', x, y, 2.4, 1.6); }
-      for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2; line(g, k % 2 ? '#7a5a34' : '#5e4428', 2.2, ...P(16 + Math.cos(a) * 8, 16 + Math.sin(a) * 8, 0), ...P(16, 16, 26)); }
-      const [tx, ty] = P(16, 16, 22); ellipse(g, '#2a2420', tx, ty + 2, 3, 2); // the pitch
-    },
     // A pyramid of skulls, stacked in rows that get shorter to the top, as Brother Ossian laid them (the Bone Chapel)
     skull_pile(g) {
       floorShadow(g, 14, 4);
@@ -3849,7 +3792,7 @@ const Sprites = (() => {
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
   const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'noticeboard', 'gravestone', 'apple_crate', 'planter', 'woodpile', 'haystack', 'chest', 'anvil', 'bookshelf', 'sack', 'dummy', 'rock', 'fern', 'mushrooms', 'cannonballs', 'sarcophagus', 'dead_tree', 'rubble', 'driftwood', 'chair_east', 'chair_west', 'depot', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
-  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'founder_tomb', 'skull_pile', 'bone_crest']);
+  const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'skull_pile', 'bone_crest']);
   const SEAMLESS = {
     temple_paving: { tiles: 4, res: () => ownRes('temple_paving', 4), draw: g => {
       const image = customImage('temple_paving');
@@ -4475,27 +4418,6 @@ const Sprites = (() => {
       poly(g, '#7a7a7a', [5, 10, 12, 6, 20, 7, 27, 11, 28, 20, 24, 27, 16, 25, 8, 27, 4, 20]);
       poly(g, '#9a9a9a', [9, 11, 16, 9, 23, 12, 22, 20, 12, 21]);
     },
-    torn_note(g) {
-      poly(g, '#e8dcc0', [7, 9, 24, 7, 26, 23, 18, 26, 9, 25]);
-      for (const y of [12, 15, 18, 21]) line(g, '#6a5a3a', 1, 10, y, 23, y - 1);
-      line(g, '#a08a5a', 1, 24, 7, 26, 23);
-    },
-    bell_clapper(g) {
-      shadow(g, 16, 27, 11, 3);
-      line(g, '#6a4410', 3, 8, 8, 19, 19);
-      line(g, '#d8a840', 1, 8, 7, 19, 18);
-      ellipse(g, '#a87020', 21, 21, 6, 6);
-      ellipse(g, '#e8c060', 19.5, 19.5, 3, 3);
-      rect(g, '#5a3a0c', 5, 5, 5, 3); // the ring it hung by
-    },
-    chewed_rope(g) {
-      g.strokeStyle = '#a8865a';
-      g.lineWidth = 3;
-      for (let i = 0; i < 2; i++) { g.beginPath(); g.ellipse(15, 18, 10 - i * 4, 7 - i * 3, 0, 0, Math.PI * 2); g.stroke(); }
-      line(g, '#a8865a', 3, 24, 18, 27, 10);
-      for (const [x, y] of [[25, 6], [28, 6], [30, 9], [26, 8]]) line(g, '#e0c898', 1, 27, 10, x, y); // gnawed threads
-      line(g, '#6a4a2a', 1, 21, 14, 27, 12); // and a clean cut
-    },
     carved_stone(g) {
       shadow(g, 16, 26, 11, 3);
       ellipse(g, '#6e6e6a', 16, 18, 12, 9);
@@ -4933,8 +4855,6 @@ const Sprites = (() => {
     orc_archer: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e04040', body: '#5a6a3a', belt: '#2a1a0a', legs: '#4a3a2a', arms: '#7a9a5a', hat: { style: 'hood', color: '#4a5a2a' }, held: 'bow' },
     bandit: { skin: '#e0b088', hair: '#2a1a0a', body: '#4a3a3a', belt: '#6a4a2a', legs: '#2a2a2a', arms: '#4a3a3a', hat: { style: 'hood', color: '#2a2a2a' }, held: 'sword' },
     ogre: { scale: 1.35, skin: '#c09a6a', hair: '#5a3a1a', body: '#7a5a3a', belt: '#3a2a1a', legs: '#5a4a3a', arms: '#c09a6a', held: 'club' },
-    choir_cultist: { skin: '#c8b8a8', eye: '#ff8030', body: '#5a5652', belt: '#c06020', legs: '#4a4642', arms: '#5a5652', robe: true, hat: { style: 'hood', color: '#3a3632' }, held: 'staff' }, // ash-grey singers of the Ashen Choir
-    choir_cantor: { scale: 1.15, skin: '#c0b0a0', eye: '#ffa040', body: '#2e2c2a', belt: '#e08030', legs: '#2a2826', arms: '#2e2c2a', robe: true, trim: '#e08030', hat: { style: 'hood', color: '#1e1c1a' }, held: 'staff' },
     dark_mage: { skin: '#c8b8a8', eye: '#e03030', body: '#2a1a3a', belt: '#8a2a2a', legs: '#2a1a3a', arms: '#2a1a3a', robe: true, hat: { style: 'hood', color: '#1a0f26' }, held: 'staff' },
     pirate: { skin: '#d8a070', hair: '#2a1a0a', beard: '#2a1a0a', body: '#e8e0d0', belt: '#8a2a2a', legs: '#2a2a3a', feet: '#1a1a1a', arms: '#d8a070', hat: { style: 'bandana', color: '#b02a2a' }, held: 'sword' },
     orc_shaman: { skin: '#7a9a5a', hair: '#2a2a1a', eye: '#e0d020', body: '#5a3a5a', belt: '#c0a040', legs: '#5a3a5a', arms: '#7a9a5a', robe: true, hat: { style: 'hood', color: '#3a2a3a' }, held: 'staff' },
@@ -4960,7 +4880,6 @@ const Sprites = (() => {
     serpent_lord: { scale: 1.5, skin: '#2a6a5a', hair: '#1a4a3a', eye: '#ff3030', body: '#1a3a3a', belt: '#d0a030', legs: '#1a3a3a', arms: '#2a6a5a', tail: '#2a6a5a', robe: true, hat: { style: 'crown', color: '#d0a030' }, held: 'staff' },
     ashen_lord: { scale: 1.9, skin: '#3a302c', hair: '#140c0a', eye: '#ff7a10', body: '#241816', belt: '#ff5a10', legs: '#1c1210', arms: '#3a302c', horns: '#d06020', wings: '#2a0806', held: 'axe' },
     gravewaker: { skin: '#c8d0c0', hair: '#2a2a2a', eye: '#60ff80', body: '#2a3a2e', belt: '#6a5a3a', legs: '#2a3a2e', arms: '#2a3a2e', robe: true, hat: { style: 'hood', color: '#1e2a22' }, held: 'staff' },
-    get gravewaker_echo() { return this.gravewaker; }, // (his echo wears his shape)
     demon: { scale: 1.6, skin: '#a82020', hair: '#5a0a0a', eye: '#ffd020', body: '#8a1818', belt: '#3a0a0a', legs: '#6a1010', arms: '#a82020', horns: '#2a1a1a', wings: '#4a0a0a', held: 'axe' },
     drowned_king: { scale: 1.4, skin: '#5a8a8a', hair: '#2a4a4a', eye: '#a0ffff', beard: '#3a6a6a', body: '#2a4a5a', belt: '#c0a040', legs: '#1a3a4a', arms: '#5a8a8a', hat: { style: 'crown', color: '#d0b030' }, held: 'staff' },
   };
@@ -6776,7 +6695,7 @@ const Sprites = (() => {
     greyfang: [1.5, 8, null, 0, 28], old_snapper: [1.5, 8, null, 0, 17], brineshell: [1.5, 8, null, 0, 17],
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
-    choir_cantor: [1.47, 8, null, 0, 40], gravewaker: [1.44, 8, null, 0, 41],
+    gravewaker: [1.44, 8, null, 0, 41],
     king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17], one_eye_patch: [1.35, 8, null, 0, 35], old_weaver: [1.6, 8, null, 0, 31],
   };
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet

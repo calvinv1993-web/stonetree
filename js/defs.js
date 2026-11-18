@@ -340,23 +340,8 @@ const THINGS = {
   // The bell shaft: one column of holes through every floor under the bell, where its rope runs down.
   shaft_rope_top: { name: 'bell rope', cat: 'Town', block: true, low: true },   // beside the bell: the rope over its wheel, down a hole
   shaft_rope:  { name: 'bell rope', cat: 'Town', block: true, low: true },        // the ringers' room: the rope and its woollen grip
-  shaft_rope_cut: { name: 'cut bell rope', cat: 'Town', block: true, low: true }, // the temple hall: its end hangs cut, over the hole
   shaft_hole:  { name: 'bell shaft', cat: 'Town', block: true, low: true },       // a floor further down: holes in ceiling and floor
-  // The Silent Bell: what fell down the bell shaft, at the bottom of it, cut and gnawed.
-  bell_rope: {
-    name: 'bell rope', cat: 'Quest chests',
-    chest: { flag: 'bell_rope', requires: 'bell_3@2', items: [['chewed_rope', 1]],
-      locked: 'A rope hangs down through a hole in the ceiling. Its end is gnawed to shreds. Rats, probably.',
-      empty: 'The rest of the bell rope hangs from the hole in the ceiling, out of reach.' },
-  },
   sarcophagus: { name: 'stone coffin', cat: 'Furniture', block: true, low: true },
-  // The Silent Bell: the founder's tomb in the crypt under Bone Rocks, its lid pushed aside; the bell's clapper inside.
-  founder_tomb: {
-    name: 'tomb of the founder', cat: 'Quest chests', block: true, low: true,
-    chest: { flag: 'bell_clapper', requires: 'bell_4@1', items: [['bell_clapper', 1]],
-      locked: 'The lid of the great tomb has been pushed aside. Something glints inside, but a cold dread holds you back. Not yet.',
-      empty: 'Only the founder\'s old bones lie in the tomb now. Let them sleep.' },
-  },
   // Oakvale Isle: gear for those who dare go deep, once per character. Further down, better gear.
   qchest_oak_cap: {
     name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
@@ -371,8 +356,7 @@ const THINGS = {
     name: 'rotting pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'oak_boots', gold: 40, items: [['leather_boots', 1]] },
   },
-  // The crypt under Bone Rocks: the gate to the founder's tomb opens on The Silent Bell IV (meta quest: 'bell_4'),
-  // and the torn note by it can be picked up once the hall of coffins is cleared (The Silent Bell II).
+  // The crypt under Bone Rocks: the gate to the founder's tomb, where the Gravewaker wakes the dead, opens at level 7.
   // The Bone Chapel, behind the crypt's cracked east wall (The Bone Chapel, QUESTS.bone_chapel): Brother Ossian laid the
   // island's dead to rest here in patterns, so none would be forgotten
   skull_pile:  { name: 'pyramid of skulls', cat: 'Furniture', block: true, low: true },
@@ -395,19 +379,11 @@ const THINGS = {
     chest: { flag: 'bone_lookout', gold: 35, items: [['health_potion', 2], ['rope', 1]] },
   },
   // the Brood Queen's hoard, behind her eggs: what the spiders took from those who came before you
-  // The Silent Bell's longer roads (STORY_SITES in default-map.js): the founders' shrine at Mirror Lake (blessed water,
-  // The Silent Bell IV), and the Choir's ash trail (The Silent Bell V): a singed hood in Greyfang's den, their altar of
-  // ash in Frog Marsh, their signal fire built on Stony Field
+  // the founders' shrine at Mirror Lake (STORY_SITES in default-map.js): blessed water, once
   lake_shrine: { name: 'founders\' shrine', cat: 'Quest chests', block: true, low: true,
-    chest: { flag: 'lake_water', requires: 'bell_4@0', items: [['blessed_water', 3]],
+    chest: { flag: 'lake_water', items: [['blessed_water', 3]],
       locked: 'A little stone shrine by the water, a basin of lake water in it, clear as glass. Carved on it: a bell, and "Edda".',
       empty: 'The basin fills again, slowly. You have taken your share.' } },
-  singed_hood: { name: 'singed grey hood', cat: 'Quest chests', deed: 'bell_5',
-    idle: 'A grey hood, singed at the edges, among the bones. It stinks of smoke and of marsh mud.' },
-  ash_altar:   { name: 'altar of ash', cat: 'Quest chests', block: true, low: true, deed: 'bell_5',
-    idle: 'A flat stone heaped with grey ash, a flame inside a ring drawn in it. Cold now.' },
-  signal_cairn:{ name: 'unlit signal fire', cat: 'Quest chests', block: true, low: true, deed: 'bell_5',
-    idle: 'Driftwood and pitch, stacked tall, never lit. From here you can see the tip of Lighthouse Point.' },
   qchest_brood_hoard: {
     name: 'silk-wrapped hoard', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
     chest: { flag: 'brood_hoard', gold: 150, items: [['health_potion', 4], ['ring_swift', 1], ['spider_silk', 3]] },
@@ -418,10 +394,7 @@ const THINGS = {
   },
   // a page of the founder's diary, lying out in the world (meta page: n; The Oakvale Chronicle, CHRONICLE in npcs.js)
   chronicle_page: { name: 'weathered page', cat: 'Quest chests', chronicle: true, meta: 'page' },
-  crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, questDoor: true, meta: 'quest' },
-  torn_note:   { name: 'torn note', cat: 'Quest chests',
-    chest: { flag: 'crypt_note', requires: 'bell_2@1', items: [['torn_note', 1]],
-      locked: 'A scrap of paper lies by the gate. Skeletons are still walking the hall: clear it first.' } },
+  crypt_gate:  { name: 'iron gate', cat: 'Mechanisms', block: true, levelDoor: true, meta: 'level' },
   // The crypt under Bone Rocks: three weapon chests, and you may take from only one: the founders' arms, the best on the isle.
   qchest_crypt_sword: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',

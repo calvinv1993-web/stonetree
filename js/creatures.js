@@ -14,8 +14,6 @@
 // trial: knocking it down counts for a trial in the Hall of Paths (game-paths.js)
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 // voices: { aggro, low, death }: what it says, once, when it first goes for you, when it's nearly beaten, and as it falls
-// echo: the type that comes back in its place once the bell of Oakvale has been rung home (townBell.first; see spawnMonster);
-// echoOf: (on that echo) whom it echoes: it counts as that one for a quest step told again (again texts, bellAgain)
 const MONSTERS = {
   // the practice dummies of the Hall of Paths (game-paths.js): they never move (still), stand back up a moment after
   // they're knocked down, even in sight (standsUp), and give nothing; knocking one down counts for a trial (trial)
@@ -46,19 +44,17 @@ const MONSTERS = {
     name: 'giant rat', hp: 34, xp: 18, dmg: [0, 11], defense: 2, armor: 2, speed: 190, attackSpeed: 1400, aggro: 6, corpse: 'blood',
     loot: { gold: [0, 8], items: [['cheese', 0.4], ['meat', 0.15]] },
   },
-  gravewaker: { // the hooded figure who silenced the bell of Oakvale, to wake the dead of the crypt under Bone Rocks:
-    // Sir Galen, buried in the graveyard (killed by "only rats"), who never died at all and joined the Ashen Choir
+  gravewaker: { // the hooded figure in the founder's tomb under Bone Rocks, who wakes the dead of the crypt for the Host
     name: 'Gravewaker', proper: true, hp: 380, xp: 250, dmg: [6, 16], defense: 4, armor: 4, speed: 220, attackSpeed: 1800, aggro: 7, corpse: 'blood',
-    respawn: 300000, weak: { holy: 1.3 }, echo: 'gravewaker_echo',
+    respawn: 300000, weak: { holy: 1.3 },
     ranged: { range: 4, dmg: [8, 18], missile: 'poison', element: 'earth', chance: 0.5, keepDistance: true },
     hitCondition: { kind: 'poison', chance: 0.3, power: 5 },
     summon: { type: 'skeleton', max: 1, chance: 0.1 },
     loot: { gold: [20, 60], items: [['health_potion', 0.6], ['mana_potion', 0.3], ['blank_rune', 0.2]] },
-    // (Sir Galen of Oakvale, under the Ashen Choir's hood: The Silent Bell IV)
     voices: {
-      aggro: 'So the bell sends its little ringer. Come closer. The dead are waking, and I sing for the Ashen Choir.',
-      low: 'The founders\' spark... was never theirs to keep!',
-      death: 'The Choir... will send the ship... for the spark...',
+      aggro: 'Another one from the last town? Come closer. The dead are waking, and they march for the Host.',
+      low: 'Your wall... will fall... like all the others!',
+      death: 'The Host... does not forget...',
     },
   },
   spider: {
@@ -218,27 +214,6 @@ const MONSTERS = {
     name: 'ogre', hp: 240, xp: 120, dmg: [12, 50], armor: 8, speed: 84, attackSpeed: 1700, aggro: 6, corpse: 'big',
     spells: [{ kind: 'area', chance: 0.15, radius: 1, element: 'physical', dmg: [15, 40] }],
     loot: { gold: [20, 70], items: [['ogre_tusk', 0.3], ['meat', 0.5, 1, 3], ['war_hammer', 0.04], ['plate_legs', 0.02], ['steel_helmet', 0.03]] },
-  },
-  // The Ashen Choir on Oakvale Isle (The Silent Bell V): grey-robed singers come ashore at night at Lighthouse Point,
-  // and their cantor with them. Level 8 to 10.
-  choir_cultist: {
-    name: 'Choir singer', hp: 110, xp: 70, dmg: [2, 12], armor: 2, speed: 120, attackSpeed: 2000, aggro: 6, corpse: 'blood',
-    ranged: { range: 4, dmg: [6, 16], missile: 'fire', element: 'fire', chance: 0.5, keepDistance: true },
-    loot: { gold: [5, 25], items: [['mana_potion', 0.2], ['health_potion', 0.15], ['blank_rune', 0.08]] },
-  },
-  choir_cantor: {
-    name: 'Choir Cantor', proper: true, hp: 360, xp: 320, dmg: [6, 16], defense: 4, armor: 4, speed: 130, attackSpeed: 1900, aggro: 7, corpse: 'blood',
-    respawn: 300000,
-    // (he stands and sings: no running off to keep his distance, so a fight with him doesn't drag on)
-    ranged: { range: 5, dmg: [8, 20], missile: 'fire', element: 'fire', chance: 0.6 },
-    summon: { type: 'choir_cultist', max: 1, chance: 0.06 },
-    spells: [{ kind: 'heal', chance: 0.06, dmg: [30, 50] }],
-    loot: { gold: [40, 110], items: [['health_potion', 0.6], ['mana_potion', 0.4], ['ring_swift', 0.05]] },
-    voices: {
-      aggro: 'The bell rings, but the spark will be ours! Sing, brothers: the ship is coming!',
-      low: 'Galen was weak. We are many.',
-      death: 'Wait... for the ship...',
-    },
   },
   dark_mage: {
     name: 'dark mage', hp: 160, xp: 100, dmg: [2, 10], armor: 2, speed: 105, attackSpeed: 2000, aggro: 7, corpse: 'blood',
@@ -481,14 +456,6 @@ const MONSTERS = {
     summon: { type: 'crab', max: 3, chance: 0.1 },
     loot: { gold: [300, 600], items: [['pearl', 1, 2, 5], ['plate_armor', 0.2], ['wand_flames', 0.15], ['rod_thorns', 0.15], ['crossbow', 0.15]] },
   },
-};
-
-// The Gravewaker's echo: once someone has rung the bell home, Sir Galen is gone, and what the Choir sends back to the
-// founder's tomb only wears his shape: the same fight, without his words. It counts for The Silent Bell IV only as told
-// again (the echo's texts there); nothing else on the isle asks for the Gravewaker.
-MONSTERS.gravewaker_echo = {
-  ...MONSTERS.gravewaker, name: 'the Gravewaker\'s echo', echo: undefined, echoOf: 'gravewaker',
-  voices: { aggro: '(The grey hood turns toward you without a word. Ash drifts from its sleeves.)' },
 };
 
 // Rare named kin: now and then (RARE_CHANCE of the times one comes back) a common beast of the isle returns as one with

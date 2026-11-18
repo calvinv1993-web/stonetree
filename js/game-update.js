@@ -305,10 +305,10 @@ const Actions = {
   },
 };
 
-// What a look says can change with the story: lookAgain, once someone else rang the bell home and its clapper was
-// stolen again for you (bellAgain); $founder, the founder's name on her statue, worn away till the Chronicle is whole.
+// What a look says can change with the story: $founder, the founder's name on her statue, worn away till the Chronicle
+// is whole.
 function lookText(meta) {
-  const text = (bellAgain() && meta.lookAgain) || meta.look;
+  const text = meta.look;
   return text.replace('$founder', player.chests.chronicle_done ? 'Now that you know it, you can make it out: EDDA MARROWIND.' : 'Below it, a name, worn away by a hundred winters.');
 }
 
@@ -818,7 +818,6 @@ function updateWorld() {
   updatePendingHits();
   updateReverts();
   updateRaids();
-  updateTownBell();
   updateFlyby();
   for (let i = piles.length - 1; i >= 0; i--) if (!piles[i].house && now >= piles[i].until) removePile(piles[i]);
   for (let i = effects.length - 1; i >= 0; i--) if (now > effects[i].start + effects[i].dur) effects.splice(i, 1);

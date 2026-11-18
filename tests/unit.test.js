@@ -909,23 +909,6 @@ test('a newcomer who doesn\'t know the words is understood: "what do I do", "tha
   assert(/long winter|ship/i.test(said('founders')), 'and she tells of the founders');
 });
 
-test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood), and what people say changes once the bell rings', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player, A = state.Actions;
-  const g = ctx.spawnMonster({ type: 'gravewaker', x: 69, y: 180, z: 6 });
-  state.monsters.push(g); ctx.teleport({ ...ctx.findFreeTile(g.x + 2, g.y, 6, 3), z: 6 });
-  p.level = 20; tick(game, 600);
-  const spoke = state.effects.filter(fx => fx.kind === 'speech' && /Ashen Choir/.test(fx.text));
-  assert(spoke.length && !spoke.some(fx => /Galen/.test(fx.text)), 'he speaks of the Choir, not of who he was');
-  const corwin = state.npcs.find(n => n.npcId === 'corwin');
-  const talk = w => { ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); A.say('hi'); tick(game, 100); const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
-  assert(/rats got him/.test(talk('galen')), 'before: a knight the rats killed');
-  p.quests.bell_4 = { status: 'done', step: 0, kills: {} };
-  assert(/closed coffin/.test(talk('galen')), 'after: the coffin was light');
-  assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
-});
-
 test('the guide never waits for Next: an explaining step passes once read, or at once when you play on', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -1180,46 +1163,6 @@ test('Clang never fights players, nor from or into a protection zone; Follow kee
   assert(wolf.hp < 999, 'Assist: he joins in');
 });
 
-test('the Ashen Choir is ashore at Lighthouse Point only at night once the bell rings again, or for whoever is on The Silent Bell V', () => {
-  const game = loadGame();
-  const { ctx, state } = game;
-  const p = state.player;
-  const ashore = () => state.monsters.filter(m => /^choir_/.test(m.type) && !m.dead && m.spawn && m.spawn.band === 'choir').length; // (the landing at the point)
-  const at = hour => { state.now = Math.ceil(state.now / 1440000) * 1440000 + ((hour - 9 + 24) % 24) * 60000; tick(game, 2000); }; // (the next such hour)
-  assert.strictEqual(state.map.spawns.filter(s => /^choir_/.test(s.type) && s.night === 'bell_5' && s.band === 'choir').length, 4, 'three singers and their cantor');
-  at(12); assert.strictEqual(ashore(), 0, 'not by day');
-  at(23); assert.strictEqual(ashore(), 0, 'nor at night while the bell is silent');
-  state.townBell.ringers.push('Someone');
-  at(23); assert.strictEqual(ashore(), 4, 'at night once the bell rings again');
-  at(12); assert.strictEqual(ashore(), 0, 'and they row away by day');
-  p.quests.bell_5 = { status: 'active', step: 1, kills: {} };
-  ctx.teleport({ x: 134, y: 210, z: 8 }); tick(game, 2000);
-  assert.strictEqual(ashore(), 4, 'by day too, for whoever is sent to look');
-  assert(!p.dead && p.hp === p.maxHp, 'and they leave the keeper\'s fire alone');
-  ctx.teleport(state.map.start); tick(game, 2000);
-  assert.strictEqual(ashore(), 0, 'gone again once they have left');
-});
-
-test('a save from before the shared bell: whoever brought the clapper home goes on the plaque when they come back', () => {
-  const { ctx, state } = quietGame();
-  const p = state.player;
-  p.quests.bell_4 = { status: 'done', step: 2, kills: {} };
-  const save = JSON.parse(JSON.stringify(ctx.serializePlayer(p)));
-  state.townBell = { ringers: [], first: null, dawn: -1 };
-  ctx.applySave(save);
-  assert.strictEqual(state.townBell.first, p.name, 'nobody was first yet: they are the Bellringer');
-  assert(JSON.stringify(state.townBell.ringers) === JSON.stringify([p.name]) && p.chests.bell_ringer, 'and on the plaque');
-  // someone else got there first meanwhile: on the plaque, not first, and only once
-  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
-  ctx.applySave(save); ctx.applySave(save);
-  assert.strictEqual(state.townBell.first, 'Ana');
-  assert.strictEqual(JSON.stringify(state.townBell.ringers), JSON.stringify([p.name, 'Ana']), 'on the plaque once, before those who came after');
-  // and nobody who hasn't brought it home
-  delete p.quests.bell_4; state.townBell = { ringers: [], first: null, dawn: -1 };
-  ctx.applySave(JSON.parse(JSON.stringify(ctx.serializePlayer(p))));
-  assert.strictEqual(state.townBell.ringers.length, 0);
-});
-
 test('the oracle: no mainland yet, so you stay as Oakvale\'s own; once there is one, she sends you across', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
@@ -1304,38 +1247,6 @@ test('the first watch hunt of each real day pays three marks more, once a day, a
   assert.strictEqual(state.countItem('watch_mark'), 12, 'the next day: the bonus again');
   const old = ctx.serializePlayer(p); delete old.huntDay; ctx.applySave(old);
   assert.strictEqual(p.huntDay, '', 'an old save without it: today\'s bonus is still to have');
-});
-
-test('once the bell is rung home, the Gravewaker comes back as his echo: his shape, his strength, not his words', () => {
-  const game = quietGame();
-  const { ctx, state } = game;
-  const { MONSTERS } = state, p = state.player;
-  const real = MONSTERS.gravewaker, echo = MONSTERS.gravewaker_echo;
-  for (const k of ['hp', 'xp', 'dmg', 'defense', 'armor', 'speed', 'attackSpeed', 'respawn', 'ranged', 'summon', 'loot']) {
-    assert.strictEqual(JSON.stringify(echo[k]), JSON.stringify(real[k]), `the echo's ${k} is his`);
-  }
-  assert(!/Choir|ringer/.test(JSON.stringify(echo.voices)), 'the echo says nothing of the Choir');
-  const spot = { type: 'gravewaker', x: 69, y: 180, z: 6 };
-  assert.strictEqual(ctx.spawnMonster(spot).type, 'gravewaker', 'before the bell is home: the Gravewaker himself');
-  // the first player kills him for The Silent Bell IV
-  p.level = 8; p.quests.bell_4 = { status: 'active', step: 0, kills: {} };
-  ctx.onMonsterKilled('gravewaker_echo');
-  assert.strictEqual(p.quests.bell_4.step, 0, 'the first telling wants the real one');
-  ctx.onMonsterKilled('gravewaker');
-  assert.strictEqual(p.quests.bell_4.step, 1, 'the real one counts');
-  // someone has rung it home: what comes back is the echo, for everyone
-  state.townBell.first = 'Someone';
-  const m = ctx.spawnMonster(spot);
-  assert.strictEqual(m.type, 'gravewaker_echo', 'it respawns as the echo');
-  assert.strictEqual(m.name, 'the Gravewaker\'s echo');
-  // a later player, on the echo's telling of The Silent Bell IV: the echo counts
-  p.quests.bell_4 = { status: 'active', step: 0, kills: {} };
-  ctx.onMonsterKilled('gravewaker_echo');
-  assert.strictEqual(p.quests.bell_4.step, 1, 'the echo counts for the telling that sends you to face it');
-  // he says nothing of the Choir when he sees you
-  state.monsters.push(m); ctx.teleport({ ...ctx.findFreeTile(m.x + 2, m.y, 6, 3), z: 6 }); p.level = 20; tick(game, 600);
-  assert(!state.effects.some(fx => fx.kind === 'speech' && /Ashen Choir/.test(fx.text)), 'no reveal speech');
-  assert(/Gravewaker wakes the dead/.test(ctx.deathTip(m)), 'his death tip is the Gravewaker\'s');
 });
 
 test('rare named kin: now and then a beast comes back with a name, tougher, told to those near, and its trophy becomes gear at the smith', () => {
@@ -1474,6 +1385,18 @@ test('the map shows roughly where each quest you\'re on is done: Osric, the nort
   assert.strictEqual(area('old_wim'), null, 'a hidden quest is found, not shown');
   const all = run('questAreas()');
   assert(all.every(a => a.key && Number.isInteger(a.x) && a.r > 0), 'every circle has a place, a size and a key');
+});
+
+test('the crypt\'s iron gate to the founder\'s tomb (the Gravewaker) opens at level 7; Mirror Lake\'s shrine gives blessed water once, to anyone', () => {
+  const game = quietGame(), { ctx, state } = game, p = state.player;
+  assert(!ctx.doorOpenable('crypt_gate', 69, 181, 7), 'shut below level 7');
+  ctx.gainXp(state.xpForLevel(7)); assert(ctx.doorOpenable('crypt_gate', 69, 181, 7), 'open at level 7');
+  assert(state.map.spawns.some(s => s.type === 'gravewaker'), 'the Gravewaker keeps the tomb');
+  assert(!state.map.spawns.some(s => /choir/.test(s.type)) && !Object.keys(state.MONSTERS).some(t => /choir|_echo$/.test(t)), 'no Choir, no echoes');
+  ctx.teleport({ x: 127, y: 59, z: 8 }); ctx.useThing(127, 58, 8); tick(game, 100);
+  assert.strictEqual(state.countItem('blessed_water'), 3, 'the shrine\'s water'); ctx.useThing(127, 58, 8);
+  assert.strictEqual(state.countItem('blessed_water'), 3, 'once');
+  assert.strictEqual(p.quests.bell_4, undefined);
 });
 
 test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (the last town, walking, talking, the tower stairs, the cannons, Clang, skills at the dummy, gear, a grate and a torch, a fight, healing, the loot, dying, trading, the locker, the gate watch, the farewell)', () => {

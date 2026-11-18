@@ -117,7 +117,7 @@ Some details of the online client:
   - `players.json`: accounts and characters
   - `world.json`: monsters, corpses and dropped things, kept over a restart of under 10 minutes
   - `guilds.json`
-  - `town.json`: the shared bell of Oakvale (who rang it home, the Bellringer)
+  - `town.json`: what the whole world remembers (`townRecord`: the first to slay the Brood Queen)
   - `map.json`: a map published from the editor, played instead of the built-in world
 
 ### The world
@@ -134,7 +134,7 @@ Some details of the online client:
 - **Check the world** with `node tests/world.test.js`. It runs every floor change through the game's own code, from every side, and checks that everything can be reached and walked back from. Run `node tests/editor.test.js` for the editor.
 - **A tile**: `null`, or `{ ground, items: [ids] }`.
   - The ids come from `THINGS` in `defs.js`, whose flags are documented at its top.
-  - Per-tile settings live in `map.meta["x,y,z"]`: `to, target, lock, quest, level, text, look, ore`, and `lookAgain` (what a look says once someone else has rung the bell of Oakvale home: `bellAgain` in `game-core.js`).
+  - Per-tile settings live in `map.meta["x,y,z"]`: `to, target, lock, quest, level, text, look, ore`.
 - **Map lists**:
   - `map.spawns`, `map.npcs`
   - `map.temples` (home towns)

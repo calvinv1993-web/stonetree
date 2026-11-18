@@ -504,7 +504,6 @@ function useThing(x, y, z) {
   for (let i = t.items.length - 1; i >= 0; i--) {
     const id = t.items[i], def = THINGS[id];
     if (def.chronicle) return chronicleRead(+meta.page || 1), true;
-    if (def.readable && meta.plaque) return showText(capitalize(def.name), bellPlaque(meta.text || '')), true;
     if (def.readable) return showText(capitalize(def.name), meta.text || 'It is blank.'), true;
     if (def.lever && meta.puzzle) return puzzleLever(x, y, z, i, meta), true;
     if (def.lever) return pullLever(x, y, z, i, meta), true;
@@ -558,61 +557,11 @@ function useThing(x, y, z) {
 
 // The bell of Oakvale rings out: everyone in the world hears it, wherever they are. It hums for a while after.
 let bellRungAt = -Infinity;
-// The bell of Oakvale is the whole world's, not each player's: once anyone brings its clapper home it rings for all.
-// ringers: who brought it home (newest last); first: the first of all, the Bellringer; dawn: the last day it rang in
-// the dawn by itself. Online it's kept in server/town.json; playing alone, in your save.
-let townBell = { ringers: [], first: null, dawn: -1 };
-const rangHome = () => questState('clang_rescue') === 'done' || questState('bell_4') === 'done'; // (bell_4: an old save's story)
-const bellHung = () => townBell.ringers.length > 0 || rangHome();
-// The bell was rung home by someone else, and you haven't yet: for you its clapper was stolen again, and the story
-// starts over. A quest's texts (or a step's) may have such a variant in again: { key: text }; $ringer is the first
-// Bellringer.
-const bellAgain = () => !!townBell.first && !rangHome();
-const storyText = (o, key) => {
-  const s = (bellAgain() && o.again && o.again[key]) || o[key];
-  return typeof s === 'string' ? s.replace(/\$ringer/g, townBell.first || '') : s;
-};
+// What the whole world remembers, not each player: the first to slay the Brood Queen. Online it's kept in
+// server/town.json; playing alone, in your save.
+let townRecord = { queenSlayer: null };
+const storyText = (o, key) => o[key]; // (a quest's or a step's text)
 
-// The clapper is home (The Silent Bell IV): your name on the plaque, and the first of all is the Bellringer
-function bellRestored() {
-  const first = !townBell.first;
-  if (first) townBell.first = player.name;
-  townBell.ringers = [...townBell.ringers.filter(n => n !== player.name), player.name].slice(-40);
-  player.chests.bell_ringer = true;
-  if (first) {
-    player.chests.bellringer = true; // (the title: the first to ring it)
-    for (const p of players) asPlayer(p, () => {
-      log(`${townBell.first} has brought the bell of Oakvale back to life: the first Bellringer of the isle!`, 'level');
-      playerEvent('banner', { message: `${townBell.first} is the first Bellringer of Oakvale!` });
-    });
-  }
-}
-
-// A save from before the shared bell: who brought the clapper home goes on the plaque all the same (and is the
-// Bellringer, if nobody is yet), so the bell rings at dawn for them too
-function rememberBellRinger() {
-  if (!rangHome() || !player.name || townBell.ringers.includes(player.name)) return;
-  if (!townBell.first) { townBell.first = player.name; player.chests.bellringer = true; }
-  townBell.ringers = [player.name, ...townBell.ringers].slice(-40); // (they rang it before those on the plaque now)
-  player.chests.bell_ringer = true;
-}
-
-// The plaque in the bell tower: who rang the bell home
-function bellPlaque(text) {
-  if (!townBell.ringers.length) return `${text}\n\n(Below it, a bronze plaque, still blank.)`;
-  const names = townBell.ringers.filter(n => n !== townBell.first);
-  return `${text}\n\nThe bell was rung home by ${townBell.first}, the first Bellringer${names.length ? `, and after: ${names.slice(-12).reverse().join(', ')}` : ''}.`;
-}
-
-// Every dawn (six in the morning, the world's clock) the bell rings by itself, once it hangs again
-function updateTownBell() {
-  if (!townBell.ringers.length) return;
-  const day = Math.floor(((now / 1000) + 9 * 60) / 1440), hour = worldMinutes() / 60;
-  if (hour >= 6 && hour < 7 && townBell.dawn !== day) {
-    townBell.dawn = day;
-    ringTownBell('Dong... dong... dong... The bell of Oakvale rings in the dawn, as it did in the founders\' day.');
-  }
-}
 function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings out over the isle.') {
   bellRungAt = now;
   for (const p of players) asPlayer(p, () => { addSound('bell', p.x, p.y, p.z); log(text, 'quest'); });
@@ -625,7 +574,7 @@ const vocationLevel = () => 10;
 function ringBell(x, y, z) {
   if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
   ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
-  // the farewell (The Silent Bell VI): ringing it yourself, the town looks up and waves
+  // the farewell (Farewell, bell_6): ringing it yourself, the town looks up and waves
   const st = questState('bell_6') === 'active' && questStep('bell_6');
   if (st && st.thing === 'bell') {
     for (const n of npcs) if (n.z === map.surfaceZ && map.isTown(n.x, n.y, n.z) && FAREWELLS[n.npcId]) addSpeech(n, FAREWELLS[n.npcId], true);
@@ -1629,7 +1578,6 @@ function advanceQuest(id) {
   }
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
-  if (r.bell) { const first = !townBell.first; bellRestored(); ringTownBell(first ? 'Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!' : `Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`); }
   if (r.pet) givePet(r.pet);
   uiDirty();
 }
@@ -1642,18 +1590,11 @@ function givePet(pet) {
   log(`${pet.name} is your companion now: he follows you, fights at your side, and grows stronger as he fights and trains with you.`, 'level');
 }
 
-// A monster's echo (echoOf in creatures.js) counts as the one it echoes only for a step told again (its again texts,
-// bellAgain): the echo is what that telling sends you to face. The first telling wants the real one.
-const killCountsAs = (st, type) => {
-  const of = MONSTERS[type] && MONSTERS[type].echoOf;
-  return st.kill[type] ? type : of && st.kill[of] && st.again && bellAgain() ? of : null;
-};
-
 function onMonsterKilled(type) {
   questTrophies(type); // (what a quest has you take from it: game-gates.js)
   for (const [id, s] of Object.entries(player.quests)) {
     if (s.status !== 'active' || !QUESTS[id]) continue;
-    const st = questStep(id), as = st.kill && killCountsAs(st, type);
+    const st = questStep(id), as = st.kill && st.kill[type] ? type : null;
     if (!as) continue;
     const before = stepReady(id);
     s.kills[as] = Math.min(st.kill[as], (s.kills[as] || 0) + 1);
@@ -1792,7 +1733,6 @@ function applySave(data) {
     player.furniture = [];
   }
   if (player.vocation !== 'none' && mainlandOpen() && onIsle(player)) player.teleportAt = now + 1000; // the oracle was about to send you
-  rememberBellRinger();
   if (!map.inBounds(player.x, player.y, player.z) || !map.isWalkable(player.x, player.y, player.z)) teleport(homePos());
 }
 
@@ -1802,7 +1742,7 @@ function saveGame() {
     data.worldId = 'rookgaard-74-v1';
     data.explored = typeof exportExplored === 'function' ? exportExplored() : null;
     data.guilds = guilds; // playing alone, your guild lives in your save
-    data.townBell = townBell; // (and the bell's plaque)
+    data.townRecord = townRecord; // (and the world's records)
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch (e) {
     console.warn('Could not save the game:', e);
@@ -1825,7 +1765,8 @@ function loadGame() {
     data.explored = null;
   }
   if (data.guilds) guilds = data.guilds;
-  if (data.townBell && Array.isArray(data.townBell.ringers)) { townBell = data.townBell; rememberBellRinger(); }
+  if (data.townRecord && typeof data.townRecord === 'object') townRecord = { ...townRecord, ...data.townRecord };
+  else if (data.townBell && data.townBell.queenSlayer) townRecord.queenSlayer = data.townBell.queenSlayer; // (a save from the bell's days)
   if (typeof importExplored === 'function') importExplored(data.explored);
   return true;
 }

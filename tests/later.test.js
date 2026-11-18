@@ -869,75 +869,6 @@ function discoveryKit() {
   p.equipment.backpack = { id: 'backpack', count: 1, contents: [] };
   return { game, ctx, state, messages, p, A, at, said, meet, give, has, night };
 }
-test('The Silent Bell in order of danger: the crypt hall, then the rope deep under town, then the Gravewaker', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player, A = state.Actions, map = state.map;
-  p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
-  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
-  const kill = (type, n) => { for (let i = 0; i < n; i++) ctx.onMonsterKilled(type); };
-  // II: the crypt hall, from Master Corwin at level 5
-  p.level = 4;
-  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
-  assert.strictEqual(state.questState('bell_2'), 'none', 'not before level 5');
-  p.level = 5;
-  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
-  assert.strictEqual(state.questState('bell_2'), 'active');
-  assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
-  ctx.useThing(71, 181, 7);
-  assert(state.countItem('torn_note') === 0, 'no note while the dead still walk');
-  ctx.useThing(80, 178, 7);
-  assert(state.countItem('war_axe') === 1, 'a founder\'s weapon at once: for the fight in the hall');
-  kill('skeleton', 4);
-  assert.strictEqual(p.quests.bell_2.step, 1, 'four skeletons: the hall is cleared, without going back');
-  ctx.useThing(71, 181, 7);
-  assert(state.countItem('war_axe') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
-  assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
-  talk(...besideNpc(game, 'corwin'), 'crypt');
-  assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the note');
-  // III: the rope, from Ama at level 6, past the giant rats and the cistern slime
-  talk(136, 102, 9, 'bell', 'yes');
-  assert.strictEqual(state.questState('bell_3'), 'none', 'not before level 6');
-  p.level = 6;
-  talk(136, 102, 9, 'bell', 'yes');
-  assert.strictEqual(state.questState('bell_3'), 'active');
-  ctx.useThing(147, 102, 5);
-  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope waits until the way is cleared');
-  kill('giant_rat', 8);
-  kill('cistern_slime', 1);
-  assert.strictEqual(p.quests.bell_3.step, 2, 'the drains and the cistern slime');
-  ctx.useThing(147, 102, 5);
-  ctx.useThing(142, 103, 5);
-  assert(state.countItem('chewed_rope') === 1 && state.countItem('leather_boots') === 1, 'the rope, and boots in the rotting pack');
-  talk(136, 102, 9, 'bell');
-  assert.strictEqual(state.questState('bell_3'), 'done');
-  // IV: the Gravewaker, at level 8: the gate opens, the tomb gives the clapper, the bell rings
-  ctx.useThing(146, 103, 13);
-  assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell is still silent');
-  p.level = 8;
-  talk(136, 102, 9, 'bell', 'yes');
-  assert.strictEqual(state.questState('bell_4'), 'active');
-  assert(ctx.playerCanEnter(69, 181, 7), 'the iron gate opens now');
-  ctx.useThing(69, 176, 6);
-  assert.strictEqual(state.countItem('bell_clapper'), 0, 'the clapper waits for the Gravewaker');
-  kill('gravewaker', 1);
-  ctx.useThing(69, 176, 6);
-  assert.strictEqual(state.countItem('bell_clapper'), 1);
-  talk(136, 102, 9, 'bell');
-  assert.strictEqual(state.questState('bell_4'), 'done');
-  assert(messages.some(m => /rings again/.test(m)), 'the bell rings out');
-  assert.strictEqual(state.countItem('ring_life'), 1, 'and Ama gives a ring of life (the armour is the Old Tower\'s to give)');
-  ctx.useThing(146, 103, 13);
-  assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after');
-  state.now += 31000;
-  ctx.useThing(146, 103, 13);
-  assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it');
-  p.level = 9;
-  talk(110, 102, 9, 'knight', 'yes');
-  assert.strictEqual(p.vocation, 'none', 'the oracle wants level 10, bell or no bell');
-});
-
-
 test('the Oakvale Chronicle: pages in the world, one from the hermit at night, and Corwin pieces them together', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
@@ -1064,61 +995,6 @@ test('The Bone Chapel: a pick through the crypt\'s cracked wall, Ossian\'s three
   meet('oak_ossian'); said('crest');
   assert(has('bone_amulet') && state.questState('bone_chapel') === 'done', 'a bone amulet, and the chapel at peace');
   assert(state.QUESTS.bone_chapel.hidden && !state.GUIDE.some(st => (st.target || []).some(t => t.quest === 'bone_chapel')), 'hidden: no guide arrow');
-});
-
-
-// ---- Oakvale's old story, The Silent Bell (replaced by The Last Town): the Rats' Hoard and the shared bell ----
-test('under the town: The Rats\' Hoard opens the storeroom chest (a shield) once its rats are dead; the nest has gold and potions', () => {
-  const game = quietGame();
-  const { ctx, state } = game;
-  const p = state.player;
-  ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 0, 'the hoard stays shut without the quest');
-  p.quests.cellar_shield = { status: 'active', step: 0, kills: {} };
-  ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 0, 'and while the rats live');
-  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
-  assert.strictEqual(p.quests.cellar_shield.step, 1, 'five rats: on to the chest');
-  ctx.useThing(105, 121, 7); ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 1, 'the shield, once');
-  const gold0 = p.gold, pots0 = state.countItem('health_potion');
-  ctx.useThing(144, 140, 7); ctx.useThing(144, 140, 7);
-  assert.strictEqual(p.gold - gold0, 20, 'the nest: 20 gold');
-  assert.strictEqual(state.countItem('health_potion') - pots0, 3, 'and 3 health potions, once');
-});
-
-test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bellringer, the plaque names them, it rings every dawn', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player;
-  ctx.ringBell(); assert(/hangs silent/.test(messages.at(-1)), 'silent before anyone brings the clapper home');
-  p.quests.bell_4 = { status: 'active', step: 1, kills: {} }; p.equipment.backpack.contents.push({ id: 'bell_clapper', count: 1 });
-  ctx.advanceQuest('bell_4');
-  assert.strictEqual(state.townBell.first, p.name, 'the first: the Bellringer');
-  assert(p.chests.bellringer && messages.some(m => /first Bellringer/.test(m)), 'told to everyone');
-  // someone who never did the quest may ring it now
-  delete p.quests.bell_4; state.now += 60000; ctx.ringBell();
-  assert(/rings the bell of Oakvale/.test(messages.at(-1)), 'it rings for everyone');
-  assert(new RegExp(p.name).test(ctx.bellPlaque('THE BELL')), 'the plaque names who rang it home');
-  const n = messages.filter(m => /rings in the dawn/.test(m)).length;
-  for (let i = 0; i < 30; i++) tick(game, 60000);
-  assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
-});
-
-test('the bell rung home by someone else: for a newcomer its clapper was stolen again, and the plaque says who rang it', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const A = state.Actions;
-  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
-  const ama = state.npcs.find(n => n.npcId === 'ama');
-  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
-  const n = messages.length; A.say('hi'); A.say('bell');
-  const said = messages.slice(n).join(' | ');
-  assert(/rung home by Ana/.test(said) && /stolen again/.test(said), `a newcomer hears the story starts over: ${said}`);
-  assert(!/three days/.test(said));
-  state.townBell = { ringers: [], first: null, dawn: -1 };
-  A.say('bye'); const m = messages.length; A.say('hi'); A.say('bell');
-  assert(/three days/.test(messages.slice(m).join(' | ')), 'and the first to come hears it as it was');
 });
 
 

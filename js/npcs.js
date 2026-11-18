@@ -53,8 +53,6 @@ const BUYS = {
 // word: the word to ask about it (or a step's own word), when the NPC's keyword has several.
 // where: [x, y, z, r] (or a function giving one, or null): roughly where a step (or a quest without steps) is done, for
 // the circle on the map; without it the map works it out (questArea in game-guide.js).
-// again: { key: text } (in text, or on a step): what is said instead once someone else has rung the bell of Oakvale
-// home and its clapper was stolen again for you (bellAgain in game-core.js); $ringer is the first Bellringer.
 const QUESTS = {
   // ---- The Ember Seal: the main story, from the Seer's dream to the bottom of the demon pit ----
   // Long ago the first Grandmaster of the Order of the Seal bound Vharzul the Ashen beneath the
@@ -1639,7 +1637,6 @@ function gateGuard(quest, name, hair, word, gate, captain) {
 //                            trading with Pip, a locker with Hobb, and a shield
 //   (the gate watch, level 2-5, sends you out beyond the wall: see below)
 //   Farewell (level 10)      ring the bell, say farewell, and the oracle names your path to the front
-// (The old chapters of The Silent Bell, bell_2 to bell_5, are kept for tests/later.test.js; nobody offers them.)
 Object.assign(QUESTS, {
   last_town: {
     name: 'The Last Town', story: 'The Last Town', giver: 'ama', level: 1, word: 'fight',
@@ -1707,8 +1704,8 @@ Object.assign(QUESTS, {
   // (Kestrel Isle's preview: world-kestrel.js) Clang, the temple's cat, chased the rats down into the bell cellar and got stuck: get him back, and he's yours
   // (a companion that fights at your side and grows: PETS in creatures.js, updatePet in game-update.js)
   clang_rescue: {
-    name: 'The Silent Bell II: Clang and the Clapper', story: 'The Silent Bell', giver: 'ama', level: 2, word: 'clang', after: 'bell_1',
-    reward: { xp: 150, gold: 60, items: [['health_potion', 3]], pet: { name: 'Clang', kind: 'cat' }, bell: true },
+    name: 'Clang and the Clapper', giver: 'ama', level: 2, word: 'clang',
+    reward: { xp: 150, gold: 60, items: [['health_potion', 3]], pet: { name: 'Clang', kind: 'cat' } },
     summary: 'Find Clang, the temple cat, in the bell cellar under the temple, and bring him home - and the bell\'s clapper with him.',
     steps: [
       { auto: true, kill: { rat: 3 }, where: [140, 104, 7, 6], summary: 'Down the grate on the square and north under it to the bell cellar, below the temple: kill 3 rats there.',
@@ -1727,106 +1724,6 @@ Object.assign(QUESTS, {
       tooWeak: 'The cellar is dark and full of rats, $name. Come back at level 2, with a light.',
       elsewhere: 'Sister Ama in the temple is waiting for her cat.',
       done: 'Clang looks well, and the bell rings every dawn. You are good for each other.',
-    },
-  },
-  bell_2: {
-    name: 'The Silent Bell II: Under Bone Rocks', story: 'The Silent Bell', giver: 'corwin', level: 5, word: 'crypt',
-    reward: { xp: 300, gold: 60, items: [['health_potion', 3]] },
-    summary: 'Go down into the founders\' crypt under Bone Rocks and find out who broke in.',
-    steps: [
-      { auto: true, kill: { skeleton: 4 }, summary: 'Go down into the founders\' crypt under Bone Rocks (south-west, at the end of the bone trail) and clear the hall of coffins: kill 4 skeletons.',
-        progress: 'The crypt lies under Bone Rocks, south-west of town: steps lead down at the foot of the crag. So far: $progress.',
-        done: 'The hall of coffins falls quiet. By its north wall stand three stone chests - the founders\' arms, one for each who dares - and by the iron gate to the tomb stairs lies a torn scrap of paper.' },
-      { npc: 'corwin', fetch: 'torn_note', word: 'note', summary: 'Take one weapon from the stone chests in the hall of coffins, pick up the torn note by the iron gate, and bring the note to Master Corwin.',
-        progress: 'A note, by the gate to the tomb? Bring it to me. And take a weapon from the founders\' chests while you are down there: they would want it used.',
-        done: '"...the rope is cut, and down the shaft it went, to the rats. The clapper stays with me, below. When the bell is silent, the dead wake. - G." So it was no accident, $name. Someone silenced our bell to wake the dead of the crypt. Sister Ama must hear this: tell her about the {rope}.' },
-    ],
-    text: {
-      offer: 'You have grown strong at the gates, $name. Now listen: lights have been seen at Bone Rocks at night, and the seal of the founders\' crypt beneath it is broken. Someone went down there - and our bell fell silent the same night. Will you go and see? ({yes}/{no})',
-      accept: 'Follow the bone trail from the south road, south-west to Bone Rocks; steps at the foot of the crag lead down. Skeletons walk the hall of coffins. Before you go: Armourer Brenna at Hide and Iron sells armour, Pip sells health potions - take five at least - and Sister Ama heals anyone who comes back hurt. When you have something to show me, tell me about the {crypt}.',
-      tooWeak: 'The crypt is no place for you yet, $name. Grow stronger at the town gates - the guards have work for you - and come back at level 5.',
-      elsewhere: 'Master Corwin at the academy wants to see you about the crypt under Bone Rocks.',
-      done: 'The note named the rope and the clapper. Sister Ama will know what to do.',
-    },
-  },
-  bell_3: {
-    name: 'The Silent Bell III: Teeth in the Dark', story: 'The Silent Bell', giver: 'ama', level: 6, word: 'rope',
-    reward: { xp: 300, gold: 80, items: [['health_potion', 3]] },
-    summary: 'Find the bell\'s rope, at the bottom of the bell shaft deep under the town.',
-    steps: [
-      { auto: true, kill: { giant_rat: 8 }, summary: 'Climb down a sewer grate, find the rats\' nest under the training yard and its trapdoor down, and clear the old drains below: kill 8 giant rats.',
-        progress: 'The rats\' nest is under the training yard, at the east end of the sewers; a trapdoor in it leads down to the old drains. So far: $progress.',
-        done: 'The old drains fall quiet. A trapdoor leads on down, and from the dark below comes the sound of something big moving in water.' },
-      { auto: true, kill: { cistern_slime: 1 }, summary: 'Go down the trapdoor in the old drains to the deep cistern, and kill the great slime that keeps the narrow way east.',
-        progress: 'The cistern slime keeps the narrow way east, at the bottom of the sewers. It poisons: take potions.',
-        done: 'The great slime bursts and seeps away into the cracks. The narrow way east is open: beyond it lies the bottom of the bell shaft.' },
-      { npc: 'ama', fetch: 'chewed_rope', summary: 'At the bottom of the bell shaft, east of the cistern, find the bell\'s rope and bring it to Sister Ama.',
-        progress: 'The rope lies at the bottom of the bell shaft, east of the deep cistern.',
-        done: 'Our rope... cut clean with a blade, then gnawed by the rats. So the note spoke true. And the clapper "stays with me, below": below the crypt, $name, in the founder\'s tomb itself. Whoever this G is, he waits down there for the dead to wake. He will be stronger than anything you have faced. When you are level 8, ask me about the {gravewaker}.',
-        again: { done: 'Our rope... cut clean with a blade, then gnawed by the rats, just like the last time. And the clapper "stays with me, below": in the founder\'s tomb again. $ringer struck the Gravewaker down there once, $name, but something wears his shape again, and waits for the dead to wake. When you are level 8, ask me about the {gravewaker}.' } },
-    ],
-    text: {
-      offer: 'Master Corwin told me about the note. So our rope lies at the bottom of the bell shaft, under the town... The rats have dug their way down there, $name, and worse lives in the deep cistern. Will you bring our rope home? ({yes}/{no})',
-      accept: 'Go down a grate into the sewers and east to the rats\' nest under the training yard: a trapdoor there leads down to the old drains, and another to the cistern. This is the most dangerous place on the isle for one of your strength. Eat well, carry health potions from Pip, get the best armour Brenna has, and come back to me if you are hurt: I will {heal} you. Bring me the {rope}.',
-      tooWeak: 'Under the town is no place for you yet, $name. Come back at level 6.',
-      elsewhere: 'Sister Ama in the temple wants to know what you found in the crypt.',
-      done: 'We have our rope again. But without its clapper, the bell is dumb.',
-    },
-  },
-  bell_4: {
-    name: 'The Silent Bell IV: The Gravewaker', story: 'The Silent Bell', giver: 'ama', level: 8, word: 'gravewaker',
-    reward: { xp: 400, gold: 150, items: [['ring_life', 1], ['health_potion', 3]], bell: true },
-    summary: 'Go down to the founder\'s tomb under Bone Rocks, defeat the one who silenced the bell, and bring its clapper home.',
-    steps: [
-      { auto: true, kill: { gravewaker: 1 }, summary: 'Go back down into the crypt under Bone Rocks: the iron gate to the tomb stairs will open for you now. In the founder\'s tomb below, defeat the Gravewaker.',
-        progress: 'The tomb lies below the hall of coffins, past the iron gate. The Gravewaker waits there with the dead he woke.',
-        done: 'The Gravewaker falls, and his grey hood slips back: an old knight\'s face, weathered and burnt. Sir Galen, whose gravestone says the rats killed him. Burnt into the hood is a sign: a flame inside a ring, like the one in the Thornmother\'s web. In his fist, a letter written in ash: "The isle\'s spark is ready. Send the ship. - G." In the open coffin of the founder, something of bronze glints.',
-        again: { done: 'The Gravewaker\'s echo falls, and crumbles under its hood into ash and grey rags. Burnt into the cloth: a flame inside a ring. Whatever the Choir sends now only wears Galen\'s shape. In the open coffin of the founder, something of bronze glints.' } },
-      { npc: 'ama', fetch: 'bell_clapper', word: 'clapper', summary: 'Take the bell\'s clapper from the founder\'s tomb and bring it to Sister Ama.',
-        progress: 'The clapper lies in the founder\'s open tomb.',
-        done: 'The clapper of our bell... it is warm, $name. Bronze from a tomb, and warm as a hearthstone. And this grey dust in its seams is not grave dust: it is ash. Sir Galen? We buried him twenty years ago... we buried a coffin. So the Ashen Choir has found us, and what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will show you your path.',
-        again: { done: 'Our clapper, home again, and as warm as ever, with ash in its seams. $ringer brought it home once, and now you have, $name. So the Ashen Choir has not given up on what the founders hid in this bell. Help me hang it again... There. Listen! The bell of Oakvale rings again, and the dead under Bone Rocks will sleep. Take this armour: you have earned it. And ask Master Corwin about the {choir}: he knows the old books. At level 10, the {oracle} upstairs in the academy will show you your path.' } },
-    ],
-    text: {
-      offer: 'The rope is home, $name, but the bell is dumb without its clapper - and the one who took it waits in the founder\'s tomb. The Gravewaker, the old stories call such a one. Will you face him? ({yes}/{no})',
-      again: { offer: 'The rope is home, $name, but the clapper is still below, in the founder\'s tomb - and whatever took it wears the Gravewaker\'s shape again. $ringer struck him down once. Will you face his echo? ({yes}/{no})' },
-      accept: 'Armourer Brenna has lent me the key to the iron gate her great-grandmother forged: the gate to the tomb stairs, in the crypt, will open for you now. He throws poison and raises the dead around him: fight the dead first, keep your health high, and bring many potions - ten would not be too many. Brenna\'s best armour, and food. Then bring me the {clapper}. Before you go down, fill a flask at the founders\' shrine by {Mirror Lake}, north of town: Edda blessed it, and the dead fear its water.',
-      tooWeak: 'The Gravewaker would kill you, $name. Grow stronger - come back at level 8.',
-      elsewhere: 'Sister Ama in the temple wants to see you about the bell.',
-      done: 'The bell rings again, thanks to you. At level 10, go and see the oracle upstairs, $name.',
-    },
-  },
-  // V: after the bell, the Choir comes for the spark: their landing at Lighthouse Point, and the founder's own words
-  bell_5: {
-    name: 'The Silent Bell V: The Choir\'s Shadow', story: 'The Silent Bell', giver: 'corwin', level: 8, word: 'choir', after: 'bell_4',
-    reward: { xp: 900, gold: 150, items: [['ring_swift', 1], ['health_potion', 5]], chronicle: 6 },
-    summary: 'Find out who comes ashore at Lighthouse Point at night, and what the Ashen Choir wants with Oakvale.',
-    steps: [
-      { npc: 'oak_keeper', word: 'lights', summary: 'Go to Lighthouse Point, south of Sunny Fields, and ask Keeper Tamsin about the lights.',
-        progress: 'Keeper Tamsin keeps her fire at Lighthouse Point, where the lighthouse stood, south of Sunny Fields.',
-        done: 'Lights? A boat without a lamp. Now and then for years, far out; but every night now, since the clapper came home. They come ashore at the tip of the point, grey robes, and they sing. Not sea shanties. If you mean to chase them off, $name, mind the one who leads the singing.' },
-      { thing: 'singed_hood', summary: 'Tamsin says the grey robes come and go inland too. Follow the ash trail: start where Sergeant Bram\'s hunters found a singed grey hood, in Greyfang\'s den in Wolf Woods.',
-        progress: 'Greyfang\'s old den is in the pines of Wolf Woods, north of the lumber trail.',
-        done: 'The hood stinks of smoke, and its hem is caked with black marsh mud. The Choir came this way from Frog Marsh, south-west.' },
-      { thing: 'ash_altar', summary: 'Find where the Choir goes in Frog Marsh: at the end of the old causeway into the reeds.',
-        progress: 'Frog Marsh lies south-west of town; an old causeway runs out into it.',
-        done: 'An altar of ash, still faintly warm. You scatter it into the water. Under it, a strip of hide with a map scratched on it: a cross on Stony Field, and a line from there to the tip of Lighthouse Point. And a name you have seen before, on Gnash\'s war plans: "G."' },
-      { thing: 'signal_cairn', summary: 'Find the cross on Stony Field, north-west of town.',
-        progress: 'Stony Field is north-west of Oakvale, beyond the river.',
-        done: 'A signal fire, stacked and ready, facing Lighthouse Point. Lit, it would call the ship. You kick it apart. Whoever waits at the point will be waiting in vain: unless they land to see why.' },
-      { auto: true, kill: { choir_cultist: 3, choir_cantor: 1 }, summary: 'At the tip of Lighthouse Point, defeat the Choir: 3 singers and their cantor, who fight as one.',
-        progress: 'The Choir lands at the very tip of Lighthouse Point. So far: $progress.',
-        done: 'The cantor falls, and the singing stops. In his satchel: orders in ash ("Wait for the ship"), sealed with a flame inside a ring; a ring of swiftness with a name scratched inside it; and a page torn from an old diary, in a careful, old-fashioned hand.' },
-      { npc: 'corwin', word: 'choir', summary: 'Bring the diary page and the cantor\'s orders to Master Corwin.',
-        progress: 'Master Corwin at the academy will want to read the diary page.',
-        done: 'The founder\'s own hand... "The bell is cast, and its bronze holds the spark. Let no one ever silence it. If the singers of ash come, they will come for the bell." The spark she carried across the sea, that sang like the burning mountain they fled. So that is what Galen wanted, and what the Choir waits for. They will send their ship, $name. Grow strong, and be here when it comes. And this ring from the satchel: GALEN, it says inside. Keep it: it should go to someone better.' },
-    ],
-    text: {
-      offer: 'The Ashen Choir... The old {books} in my study speak of them: a cult that sings to something sleeping under a burning mountain, far across the sea. And now Keeper Tamsin sends word from Lighthouse Point: lights on the water at night, and singing. The Choir did not give up with Galen, $name. Will you go and see who comes ashore? ({yes}/{no})',
-      accept: 'Lighthouse Point is south of Sunny Fields, past the beaches. Talk to Tamsin by her fire first. And go prepared: if they are the Choir, they throw fire.',
-      tooWeak: 'The Choir would burn you, $name. Come back at level 8, and after the bell rings again.',
-      elsewhere: 'Master Corwin wants to hear what you found at Lighthouse Point.',
-      done: 'The founder\'s page lies on my desk. I read it every night. Grow strong, $name.',
     },
   },
   // Farewell: level 10, the end of your newcomer days: ring the bell yourself, and the town cheers, before the oracle
@@ -2242,7 +2139,6 @@ Object.assign(NPCS, {
     keywords: {
       'clang|cat|kitten': 'Clang! The temple cat. He ran off when the horns blew, the poor thing. If you find him, keep him close: he will be braver with you than he ever was with me.',
       'pet|companion': { pet: true },
-      'galen|knight|ash|spark': { after: 'bell_4', text: 'Galen... I lit candles for him for twenty years. And all that time he was waiting for the bell to fall silent. Whatever the founders hid in that bronze, $name, the Choir wants it. As long as the bell rings, the spark is ours.' },
       job: 'I keep the Temple of the Dawn. Everyone who comes to Oakvale wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
       'winter|long': 'The long winter, the year the founders came. The sea froze at the shore, and they lived in the hull of their ship until spring. Many are buried under Bone Rocks from that winter.',
@@ -2266,8 +2162,6 @@ Object.assign(NPCS, {
     keywords: {
       'farewell|goodbye': { quest: ['bell_6'] },
       'fighter|train|training|recruit|quest|mission|task': { quest: ['recruit'] },
-      'books|lore': { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
-      'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
       job: 'I train the recruits of the last town. Fewer every year, and younger.',
       'host|hollow|war|front': 'The Hollow Host does not tire and does not fear. What it lacks is cunning: hold a line, use the walls, and it breaks on them. That is what I teach.',
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
@@ -2292,12 +2186,6 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I see the paths that lie before those who come here.',
       'destiny|vocation': { destiny: true },
-      // (the spark in the bell, and the burning mountain it came from: The Silent Bell IV and V)
-      'choir|ash|ashen|mountain': { after: 'bell_4', text: 'I have seen them in the smoke: grey robes, singing to a mountain that burns far across the sea. Something sleeps under it, and it lost a spark once. The founders carried that spark here. The Choir wants it home.',
-        before: 'Ash, and singing, and a mountain on fire... It comes to me in the smoke, $name, but not clearly yet. Help Sister Ama with her bell, and you may learn more than I can see.' },
-      'bell|spark|bronze': { after: 'bell_4', text: 'The founders cast the spark of the burning mountain into the bronze of your bell. While it rings, what sleeps under the mountain cannot hear it. When it is silent... the mountain listens.',
-        before: 'The bell is Sister Ama\'s care. But I see it in the smoke, silent, and something under a far mountain listening.' },
-      galen: { after: 'bell_4', text: 'Galen came up these stairs once, long ago, and asked me what I saw for him. I saw ash. I told him so. I should have said it louder.' },
       'bastion|knight': { vocation: 'knight' }, 'hawk|paladin': { vocation: 'paladin' }, 'ember|sorcerer': { vocation: 'sorcerer' }, 'grove|druid': { vocation: 'druid' },
     },
   },
@@ -2450,7 +2338,6 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I was the gravedigger, when the graveyard grew full. I brought the old bones down here, and laid them out so that none would be forgotten. I am still at it, it seems.',
       'bones|chapel|counted|count': 'Four thousand, two hundred and eleven. I counted them twice. The skulls in the corners, the long bones in the ring above you, and the {crest} on the wall: the crest of Oakvale, the bell in its ring.',
-      'galen|knight|coffin': 'Sir Galen? I counted every bone that came down to me, friend. His coffin came down light as a basket. Empty. I told no one. Who listens to the dead?',
       'founder|founders': 'The founders sleep next door, in their hall. I never moved them. Some things you leave be.',
     },
     chatter: ['...four thousand, two hundred and nine... ten... eleven.', 'Mind the bones.', 'Every one was somebody.'],
@@ -2486,7 +2373,6 @@ Object.assign(NPCS, {
     look: { skin: '#e0a878', hair: '#6a4a2a', beard: '#6a4a2a', body: '#8a5a2a', arms: '#e0a878', legs: '#4a3a2a', belt: '#2a1a0a' },
     greet: 'Welcome to the Sleepy Boar, $name! A meal, a drink, and the best {rumours} on the isle. Want to {trade}?',
     keywords: {
-      'hero|bell': { after: 'bell_4', text: 'The bell rings again, and they say it was you! Your next meal is on the house, $name. Well, half of it.' },
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
       'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel, RUMOURS.smugglers, RUMOURS.weaver] },

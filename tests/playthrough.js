@@ -5,9 +5,9 @@
 // own money (and at Captain Osric's for watch marks), buys armour at Brenna's when it can, rests to full before a
 // fight, only takes on a monster with at most one other close by (and looks for a quieter spot otherwise), goes back
 // to town for potions when it runs out or after dying, and follows the guide's route as a careful player would: The
-// Silent Bell I, the Rats' Hoard and Clang at level 2 (Clang then fights along), the gate watch from level 2 to 5,
-// the watch's hunts from level 3 whenever one is free, The Silent Bell II to VI, the Chronicle pages on the way, and
-// the oracle. It reports when things happen, how long each part took, deaths, money, and anything it got stuck on.
+// Last Town (the cannons and Clang, who then fights along) and The Recruit, the gate watch from level 2 to 5, the
+// watch's hunts from level 3 whenever one is free, the crypt, the drains and the Gravewaker, the Chronicle pages on the
+// way, the farewell and the oracle. It reports when things happen, how long each part took, deaths, money, and anything it got stuck on.
 //   node tests/playthrough.js [seed=1] [hours=5] [lazy]
 
 const { loadGame } = require('./harness');
@@ -53,7 +53,7 @@ const key = (x, y, z) => `${x},${y},${z}`;
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block) return false;
-  return !t.items.some(id => THINGS[id].block && !THINGS[id].toggle && !THINGS[id].houseDoor && !(THINGS[id].questDoor && run(`doorOpenable(${JSON.stringify(id)}, ${x}, ${y}, ${z})`)));
+  return !t.items.some(id => THINGS[id].block && !THINGS[id].toggle && !THINGS[id].houseDoor && !((THINGS[id].questDoor || THINGS[id].levelDoor) && run(`doorOpenable(${JSON.stringify(id)}, ${x}, ${y}, ${z})`)));
 };
 const N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 // Where a floor change at (x, y, z) takes you: the same x, y one floor up or down, or the first free tile beside it.
@@ -259,12 +259,14 @@ function talkFor(quest, want, id, ...words) {
   }
   if (state.questState(quest) !== want && !(want === 'active' && state.questState(quest) === 'done')) problem(`${quest} is ${state.questState(quest)} after talking to ${id}, not ${want}`);
 }
-function use(x, y, z, what) {
+// (ok: what it should say instead of "You found", for a use that isn't a chest)
+function use(x, y, z, what, ok = /You found/) {
   goTo(x, y, z, 1, `to ${what}`);
   const seen = messages.length;
   A.interact('use', x, y, z); wait(1500);
   const said = messages.slice(seen).join(' ');
-  if (!/You found/.test(said)) problem(`${what} at ${x},${y},${z}: "${said.slice(0, 120)}"`);
+  if (!ok.test(said)) problem(`${what} at ${x},${y},${z}: "${said.slice(0, 120)}"`);
+  else if (!/You found/.test(said)) note(said.slice(0, 80));
   else note(said.match(/You found[^.]*\./)[0]);
 }
 // A thing a quest step waits for (Clang's crate, the bell): used, and the quest moves on.
@@ -350,13 +352,12 @@ function equipBest() { // put on whatever good gear is in the bag
 // ---- the road: the guide's order (game-guide.js), the quests as they are now (npcs.js) ------------------------------
 const SUNNY = [128, 165, 8], WOLVES = [62, 88, 8], CRABS = [132, 210, 8], SPIDERS = [178, 192, 8], GOBLINS = [182, 80, 8]; // (Goblin Hill's south slope, below Gnash's camp)
 const CRYPT = [80, 181, 7], DRAINS = [126, 125, 6], CISTERN = [125, 110, 5], TOMB = [69, 181, 6], SEWERS = [126, 130, 7];
-const CELLAR = [140, 104, 7], POINT = [128, 219, 8];
 try {
   const step = (name, fn) => { const t0 = state.now; note(`== ${name}`); fn(); note(`   (${((state.now - t0) / 60000).toFixed(1)} min)`); };
   step('The Last Town', () => {
     talkFor('last_town', 'active', 'ama', 'fight', 'yes'); talk('gate_north', 'fight');
-    for (const [x, y, z] of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(x, y, z, 'a cannon on the north wall');
-    useFor('last_town', 115, 94, 9, 'the powder kegs'); use(116, 94, 9, 'the fuse');
+    for (const [x, y, z] of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(x, y, z, 'a cannon on the north wall', /cannons loaded/);
+    useFor('last_town', 115, 94, 9, 'the powder kegs'); use(116, 94, 9, 'the fuse', /FIRE!/);
     talkFor('last_town', 'done', 'gate_north', 'fight');
     note(p.pet ? `${p.pet.name} follows, and fights along` : 'no Clang!');
   });
@@ -384,30 +385,21 @@ try {
     talkFor('gate_east', 'done', 'gate_east', 'spiders'); equipBest(); });
   step('Osric: goblins', () => { levelUp(5, 'spider', SPIDERS); shop(5); talkFor('gate_north', 'active', 'gate_north', 'goblins', 'yes');
     goTo(190, 80, 8, 2, 'to the foot of Goblin Hill'); while (run('daylight()') >= 0.5) wait(10000); // (in at night, while they sleep)
-    use(198, 70, 8, 'Gnash\'s war chest'); page(4, 197, 71, 8); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest(); });
-  step('The Silent Bell II: the crypt', () => {
-    shop(6); talkFor('bell_2', 'active', 'corwin', 'crypt', 'yes'); huntFor('bell_2', 'skeleton', CRYPT);
-    use(81, 178, 7, 'a weapon chest'); page(3, 82, 181, 7); use(71, 181, 7, 'the torn note'); equipBest(); talkFor('bell_2', 'done', 'corwin', 'note');
+    use(198, 70, 8, 'Gnash\'s war chest'); talkFor('gate_north', 'done', 'gate_north', 'goblins'); equipBest(); });
+  step('the crypt: the founders\' arms', () => {
+    shop(6); hunt('skeleton', 6, CRYPT, 'the crypt\'s hall of coffins'); use(81, 178, 7, 'a weapon chest'); equipBest();
   });
   step('to level 6', () => levelUp(6, 'goblin', GOBLINS));
-  step('The Silent Bell III: the rope', () => {
-    shop(8); talkFor('bell_3', 'active', 'ama', 'rope', 'yes'); use(144, 140, 7, 'the chest in the rats\' nest'); huntFor('bell_3', 'giant_rat', DRAINS); huntFor('bell_3', 'cistern_slime', CISTERN);
-    use(147, 102, 5, 'the bell rope'); use(142, 103, 5, 'the rotting pack'); equipBest(); talkFor('bell_3', 'done', 'ama', 'rope');
+  step('the drains', () => {
+    shop(8); hunt('giant_rat', 6, DRAINS, 'the drains'); hunt('cistern_slime', 1, CISTERN, 'the cistern');
+    use(142, 103, 5, 'the rotting pack'); equipBest();
   });
   step('to level 8', () => levelUp(8, 'skeleton', CRYPT));
-  step('The Silent Bell IV: the Gravewaker', () => {
-    shop(10); talkFor('bell_4', 'active', 'ama', 'gravewaker', 'yes'); huntFor('bell_4', 'gravewaker', TOMB);
-    use(69, 176, 6, 'the founder\'s tomb'); talkFor('bell_4', 'done', 'ama', 'clapper'); equipBest();
-  });
-  step('The Silent Bell V: the Choir', () => {
-    shop(10); talkFor('bell_5', 'active', 'corwin', 'choir', 'yes'); talk('oak_keeper', 'lights');
-    for (const [x, y] of [[66, 71], [60, 125], [89, 77]]) useFor('bell_5', x, y, 8, 'the Choir\'s ash trail'); // (the hood, the altar, the signal fire)
-    huntFor('bell_5', 'choir_cultist', POINT); talkFor('bell_5', 'done', 'corwin', 'choir'); equipBest();
-  });
+  step('the Gravewaker, in the founder\'s tomb', () => { shop(10); hunt('gravewaker', 1, TOMB, 'the founder\'s tomb'); equipBest(); });
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));
-  step('The Silent Bell VI: farewell', () => {
+  step('Farewell', () => {
     talkFor('bell_6', 'active', 'ama', 'farewell', 'yes'); useFor('bell_6', 145, 102, 13, 'the bell');
-    talk('corwin', 'farewell'); talk('pip', 'farewell'); talk('gate_west', 'farewell'); talkFor('bell_6', 'done', 'ama', 'farewell');
+    talk('corwin', 'farewell'); talk('pip', 'farewell'); talk('gate_north', 'farewell'); talkFor('bell_6', 'done', 'ama', 'farewell');
   });
   step('the oracle', () => { const o = npc('oak_oracle'); talk('oak_oracle', 'destiny'); if (Math.max(Math.abs(p.x - o.x), Math.abs(p.y - o.y)) > 2 || p.z !== o.z) problem('did not reach the oracle'); });
 } catch (e) {

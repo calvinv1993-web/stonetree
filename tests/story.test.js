@@ -154,9 +154,9 @@ const SCENARIOS = {
     let d = driver(newGame(3));
     for (const [n, f] of STEPS) {
       f(d); check(d, n);
-      const save = d.ctx.serializePlayer(d.p()), bell = JSON.stringify(d.state.townBell);
+      const save = d.ctx.serializePlayer(d.p()), record = JSON.stringify(d.state.townRecord);
       const fresh = driver(newGame(3)); fresh.state.now = d.state.now; fresh.ctx.applySave(JSON.parse(JSON.stringify(save)));
-      fresh.state.townBell = JSON.parse(bell); fresh.tick(200); d = fresh;
+      fresh.state.townRecord = JSON.parse(record); fresh.tick(200); d = fresh;
       check(d, `${n} (after loading)`);
     }
     finished(d, 'save-load');

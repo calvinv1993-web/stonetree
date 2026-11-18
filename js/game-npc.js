@@ -183,7 +183,7 @@ const mentions = (text, keys) => keys.split('|').some(k => new RegExp(`\\b${k}\\
 function answer(text) {
   const conv = player.conversation, npc = conv.npc, def = npc.def;
   const reply = r => r && player.conversation && npcSay(npc, r);
-  if (mentions(text, 'bye')) return endConversation(); // ("farewell" is a word of The Silent Bell VI)
+  if (mentions(text, 'bye')) return endConversation(); // ("farewell" is a word of the Farewell quest)
   if (conv.pending) {
     const p = conv.pending;
     conv.pending = null;
