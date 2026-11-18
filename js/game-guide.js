@@ -45,8 +45,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     art: 'lost',
   },
   {
-    text: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Talk to him, and ask him about the bell.',
-    touch: 'Master Corwin teaches at the academy, west of the temple over the bridge: follow the arrow. Tap him, then tap Bell.',
+    text: 'Master Corwin teaches at the academy, south of the square (the yellow roof): follow the arrow. Talk to him, and ask him about the bell.',
+    touch: 'Master Corwin teaches at the academy, south of the square (the yellow roof): follow the arrow. Tap him, then tap Bell.',
     target: [{ npc: 'corwin' }],
     // (done once he has heard about the bell: then the rats he asks for count)
     done: () => !!player.quests.bell_1 && (player.quests.bell_1.step > 0 || player.quests.bell_1.status === 'done'),
@@ -97,8 +97,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     ui: ['#favPicker:not([hidden]) [data-action="f"]', '#favs .fav:nth-child(6)'],
   },
   {
-    text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, south of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
-    touch: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, south of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
+    text: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, east of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
+    touch: 'Now finish the bell quest: Master Corwin, then the depot, then Pip. Pip, east of the square, sells food, potions and tools, and buys your loot. From here on the story leads: the arrow points the way.',
     target: [{ quest: 'bell_1' }, { monster: 'rat' }],
     done: () => questState('bell_1') === 'done',
   },

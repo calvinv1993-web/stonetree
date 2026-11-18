@@ -25,6 +25,8 @@ function quietGame() {
   return game;
 }
 const bagRef = (state, id) => state.findInBag(it => it.id === id);
+// A free tile next to an NPC, wherever the town puts them: [x, y, z]
+const besideNpc = (game, id) => { const n = game.state.npcs.find(o => o.npcId === id), t = game.ctx.findFreeTile(n.x, n.y, n.z, 2); return [t.x, t.y, n.z]; };
 
 // A typo'd id in the data only blows up when the game first touches it, which
 // can be minutes into play (a monster wandering onto a tile with an unknown
@@ -436,20 +438,20 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   assert(messages.some(m => /Ask me about the \{bell\}/.test(m)), 'Ama names the word in blue');
   A.say('bell'); A.say('yes'); A.say('bye');
   assert.strictEqual(ctx.questNews('corwin').mark, 'report', 'Corwin is next: ?');
-  ctx.teleport({ x: 112, y: 103, z: 8 });
+  { const [x, y, z] = besideNpc(game, 'corwin'); ctx.teleport({ x, y, z }); }
   A.say('hi');
   assert(messages.some(m => /Tell me about the \{bell\}/.test(m)), 'Corwin names the word too');
   A.say('bell');
   assert.strictEqual(ctx.questNews('corwin').mark, 'busy', 'then waits for the rats');
   A.say('bye');
   for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
-  ctx.teleport({ x: 112, y: 103, z: 8 }); A.say('hi'); A.say('bell'); A.say('bye');
+  { const [x, y, z] = besideNpc(game, 'corwin'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('bell'); A.say('bye');
   assert.strictEqual(ctx.questNews('postmaster').mark, 'report');
-  ctx.teleport({ x: 147, y: 108, z: 8 }); A.say('hi');
+  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi');
   assert(messages.some(m => /\{locker\}/.test(m)), 'the postmaster asks about the locker');
   A.say('locker'); A.say('bye');
   assert.strictEqual(p.quests.bell_1.step, 3, 'and the locker finishes his step');
-  ctx.teleport({ x: 147, y: 108, z: 8 }); A.say('hi'); A.say('locker');
+  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('locker');
   assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
 });
 
@@ -793,10 +795,10 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   const kill = (type, n) => { for (let i = 0; i < n; i++) ctx.onMonsterKilled(type); };
   // II: the crypt hall, from Master Corwin at level 5
   p.level = 4;
-  talk(112, 103, 8, 'crypt', 'yes');
+  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
   assert.strictEqual(state.questState('bell_2'), 'none', 'not before level 5');
   p.level = 5;
-  talk(112, 103, 8, 'crypt', 'yes');
+  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
   assert.strictEqual(state.questState('bell_2'), 'active');
   assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
   ctx.useThing(71, 181, 7);
@@ -808,7 +810,7 @@ test('The Silent Bell in order of danger: the crypt hall, then the rope deep und
   ctx.useThing(71, 181, 7);
   assert(state.countItem('war_axe') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
   assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
-  talk(112, 103, 8, 'crypt');
+  talk(...besideNpc(game, 'corwin'), 'crypt');
   assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the note');
   // III: the rope, from Ama at level 6, past the giant rats and the cistern slime
   talk(136, 102, 9, 'bell', 'yes');
@@ -1172,12 +1174,12 @@ test('Clang never fights players, nor from or into a protection zone; Follow kee
   // from a protection zone
   const M = state.map;
   let spot = null;
-  for (let y = 60; y < 220 && !spot; y++) for (let x = 60; x < 220 && !spot; x++) {
-    if (M.isProtected(x, y, 8) && state.isFree(x, y, 8) && state.isFree(x, y + 1, 8) && !M.isProtected(x, y + 2, 8) && state.isFree(x, y + 2, 8)) spot = { x, y, z: 8 };
+  for (let y = 60; y < 220 && !spot; y++) for (let x = 60; x < 220 && !spot; x++) for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+    if (!spot && M.isProtected(x, y, 8) && state.isFree(x, y, 8) && state.isFree(x + dx, y + dy, 8) && !M.isProtected(x + 2 * dx, y + 2 * dy, 8) && state.isFree(x + 2 * dx, y + 2 * dy, 8)) spot = { x, y, z: 8, dx, dy };
   }
   assert(spot, 'a protection zone with open ground by it');
-  ctx.teleport(spot); tick(game, 1000);
-  const wolf = ctx.spawnMonster({ type: 'rat', x: spot.x, y: spot.y + 2, z: 8 }); wolf.def = { ...wolf.def, aggro: 0, speed: 0 }; wolf.hp = wolf.maxHp = 999;
+  ctx.teleport({ x: spot.x, y: spot.y, z: 8 }); tick(game, 1000);
+  const wolf = ctx.spawnMonster({ type: 'rat', x: spot.x + 2 * spot.dx, y: spot.y + 2 * spot.dy, z: 8 }); wolf.def = { ...wolf.def, aggro: 0, speed: 0 }; wolf.hp = wolf.maxHp = 999;
   state.monsters.push(wolf); p.chase = false; p.target = wolf;
   tick(game, 8000);
   assert.strictEqual(wolf.hp, 999, 'not from where you are safe');
