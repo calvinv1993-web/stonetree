@@ -205,7 +205,7 @@ const OAKVALE = {
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
-    { x0: 104, y0: 133, x1: 110, y1: 143, kind: 'crops', gate: [107, 133] },   // the town's grain field, in the south-west corner
+    { x0: 104, y0: 133, x1: 111, y1: 143, kind: 'crops', gate: [107, 133] },   // the town's grain field, in the south-west corner, up to the farm's barn
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
   graveyard: { x0: 107, y0: 75, x1: 114, y1: 79, gate: [114, 77], stones: [ // (outside the walls, north-west of the north gate, a path from it down to the north road)
@@ -2428,6 +2428,8 @@ function buildTown(m, S, runs, river) {
       if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
     } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
+  // the farm's barn opens on to the grain field: no fence and no wall between them, the field runs in under its roof
+  { const f = B.farm; for (let y = f.y0 + 1; y < f.y1; y++) { m.get(f.x0 - 1, y, S).items = []; m.get(f.x0, y, S).items = []; m.setGround(f.x0 - 1, y, S, 'farmland'); } }
   // a scarecrow in the middle of every big field
   for (const gd of T.gardens) if (gd.kind === 'crops' && gd.x1 - gd.x0 >= 6 && gd.y1 - gd.y0 >= 6) m.get((gd.x0 + gd.x1) >> 1, (gd.y0 + gd.y1) >> 1, S).items = ['scarecrow'];
 
