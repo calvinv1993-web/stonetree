@@ -645,12 +645,12 @@ const RAID_INTERVAL = [15 * 60000, 25 * 60000];
 // default-map.js, meta page: n; page 5 from the hermit, page 6 from the Choir Cantor). Each one read is kept
 // (player.chests chronicle_n); Master Corwin pieces them together.
 const CHRONICLE = [
-  'Day one ashore. The sea froze behind the Dawn, as if to tell us: stay. We carried the spark up the beach wrapped in sailcloth. It is warm still. - E.M.',
+  'Day one ashore. The sea froze behind the Dawn, as if to tell us: stay. Whatever we fled across it cannot follow over the ice. Not this winter. - E.M.',
   'On the hill east of our camp stands a tower, older than any of us, roofless, empty. Someone kept watch here before we came. Watch for what, I wonder. - E.M.',
-  'The long winter takes the old and the small. We bury them under the crag and pray they sleep. The spark keeps the hold warm. Perhaps it can keep them asleep as well. - E.M.',
+  'The long winter takes the old and the small. We bury them under the crag and pray they sleep. - E.M.',
   'The green folk of the hill came at night for our grain. We left them sacks by the river, and they left us in peace. Better a fed neighbour than a hungry foe. - E.M.',
-  'At night I hear it: the spark sings, low, the way the mountain did. It wants to go home, and something there wants it back. We will cast it into bronze, and ring it every dawn, so that it never sleeps and never calls. - E.M.',
-  'The bell is cast, and its bronze holds the spark. Let no one ever silence it. If the singers of ash come, they will come for the bell. - Edda Marrowind, first of Oakvale',
+  'At night the ice sings, out on the strait. Something walks on it that is not a man, and then another, and another. We have begun the wall. - E.M.',
+  'The wall is closed and the bell is hung. While it rings at dawn, Oakvale is awake. What came for the old towns will come for us too, one day. Let it find us ready. - Edda Marrowind, first of Oakvale',
 ];
 
 // What you read on the bookshelves of the world.
@@ -673,7 +673,7 @@ const OAKVALE_LORE = [
   'An almanac of the long winter, in a shaky hand: "Day forty. The sea is ice as far as the eye can see. We burn the Dawn\'s chairs to keep warm, and sing to keep awake."',
   'The lighthouse log of Lighthouse Point: "The great storm. Waves over the point all night. At dawn the lamp was gone, and the tower with it. The boats came home by the light of our bonfire." The last pages are in Keeper Tamsin\'s hand.',
   'A founder\'s notes on bell-founding: "Copper and tin, four parts to one. Pour it hot and all at once, and never let the mould crack. A bell cast in anger rings sour."',
-  'A hymnal, its pages grey with ash: "Sing the spark home, sing it under the mountain, sing till the bronze breaks." Someone has scratched out the last page.',
+  'A watch ledger, its last pages: "Ferndeep: no word. Harrowmere: no word. Stonebridge: fires seen, then none." The list runs on for three pages, in a hand that gets smaller and smaller.',
   'A herbal: "Marsh-mint for a sore belly, willow bark for an aching head, and for a wolf bite: run faster next time."',
   'A ledger of the Sleepy Boar, the year the bridge was built: "Forty pints for the bridge-builders. Paid in planks."',
   'A primer of the academy: "The four paths - steel, arrow, flame and leaf - begin at the oracle\'s word, upstairs. Choose with care: there is no unchoosing."',
@@ -1804,7 +1804,7 @@ Object.assign(QUESTS, {
       offer: 'You look like you can swing that thing, $name. The wolves of Wolf Woods have grown bold, and it is Greyfang who makes them so: a big grey brute who leads the pack right up to the west road at night. Nobody knows where he lairs. Will you track him down, and bring me his pelt? ({yes}/{no})',
       accept: 'Good. Out of the west gate, over the bridge, and up the lumber trail into Wolf Woods. The woodcutters have seen his paw prints by the trail, where it bends west: twice the size of any other wolf\'s. Look at them closely, and follow where they lead. His pack runs round him: thin it out on the way, and never fight three at once if you can help it. Then come back and tell me about the {wolves}.',
       progress: 'So far: $progress. Look for the big paw prints by the lumber trail, north-west of the west gate, and follow them.',
-      reward: 'Greyfang\'s pelt! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: you say there was a grey hood in his den, singed, that stank of smoke? Not a hunter\'s. Someone has been walking the woods at night. And take three potions from the watch\'s stores. Once the woods are yours, I will have hunts for you again and again, paid in watch marks: two buy five more potions at Captain Osric\'s, at the north gate. Now, Guard Tilda at the south gate has been grumbling about {crabs}. Ask her about them.',
+      reward: 'Greyfang\'s pelt! The road will be quieter tonight. Here - a leather jerkin; it has kept better men than me alive. One more thing: you say there was a rag of grey cloth in his den, with a ring burnt into it, hollow in the middle? That is the Host\'s mark. Greyfang was not leading his pack for himself. Guard Tilda at the south gate could use a hand with the {crabs}.',
       tooWeak: 'Greyfang\'s pack would tear you apart, friend. Come back at level 2.',
       done: 'The road is quieter since you came. Guard Tilda at the south gate could use a hand with the {crabs}.',
     },
@@ -1821,7 +1821,7 @@ Object.assign(QUESTS, {
         progress: 'Crabs! They are still all round me, $name! Get rid of them, or I will never get off this rock!',
         done: 'They are gone! Bless you, $name. With them gone I can lash a raft together from what is left of my boat, and paddle home to Fisher\'s Rest. Tell Guard Tilda that Wendel is safe - and that I owe her a fish supper. Oh, and take this to her: I found it in the wreck. It is no use to me.' },
       { summary: 'Tell Guard Tilda at the south gate that Wendel is safe.', progress: 'Well? Did you find Wendel?',
-        done: 'Wendel is safe? Ha! That old fool will be out on that rock again by tomorrow. These leggings will keep the pincers off you, $name. And what is this he sent... a page, soaked through. "...the year of the long winter we came ashore, the spark wrapped in sailcloth, and the sea froze behind us..." The rest has washed away. Sister Ama would want to see the words, if not the page. Guard Hilde at the east gate keeps talking about {spiders} - see her next.' },
+        done: 'Wendel is safe? Ha! That old fool will be out on that rock again by tomorrow. These leggings will keep the pincers off you, $name. And what is this he sent... a watch badge, green with salt. Ferndeep\'s watch. Ferndeep went dark two winters ago. If its badges wash up on our beaches, the sea is no wall either. Guard Hilde at the east gate keeps talking about {spiders}: see her next.' },
     ],
     text: {
       offer: 'Crabs, $name. Big ones. Wendel went out fishing off Lighthouse Point, a wave threw his boat on a rock, and now the crabs have him penned in on it. I can\'t leave my gate. Will you get him off? ({yes}/{no})',
@@ -1841,7 +1841,7 @@ Object.assign(QUESTS, {
     steps: [
       { burn: 4, summary: 'Burn four spider nests round the foot of the Spider Hills, south-east of town: use the torch on one, or cast Torchlight ("lumen") next to it. Then report to Guard Hilde at the east gate.',
         progress: 'So far: $progress. The nests are round the foot of the Spider Hills, south-east of town. Use the torch on them, or say "lumen" next to one.',
-        done: 'Four nests, burnt to ash! That will keep the trails clear for a season. Take this helmet - it was mine, when I was younger. One thing troubles me: you say there was a sign burnt into the biggest nest, a flame inside a ring? Spiders do not burn signs. I do not like it. Captain Osric at the north gate has a harder task, about {goblins}. He only asks the best.' },
+        done: 'Four nests, burnt to ash! That will keep the trails clear for a season. Take this helmet - it was mine, when I was younger. One thing troubles me: you say there was a ring burnt into the biggest nest, hollow in the middle? The Host\'s mark. Spiders do not brand their nests. Something marks the ground it means to take. Captain Osric at the north gate wants to talk to you about {goblins}.' },
     ],
     text: {
       offer: 'Spiders, $name. They spin their nests over the trails round the Spider Hills, and every nest is a hundred more spiders by summer. Killing them is no use: burn the nests. Four of them, and you shall have a proper helmet. ({yes}/{no})',
@@ -1860,14 +1860,14 @@ Object.assign(QUESTS, {
     steps: [
       { fetch: 'gnash_plans', where: [198, 70, 8, 6], summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate. Go at night, when the goblins sleep, and never step right next to one.',
         progress: 'No plans yet? Goblin Hill is north-east, past Mirror Lake; the camp is at the top of the goblin trail. Go at night, and tread softly.',
-        done: 'Gnash\'s war plans! Three arrows on my gate, and a moon... they meant to come at night. And this, in a neat human hand: "When the bell is silent, they may take what they like. - G." So the hooded man the goblins trade with is behind this too. You have earned this shield, $name, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.' },
+        done: 'Gnash\'s war plans! Three arrows on my gate, and a moon... they meant to come at night. And at the bottom, pressed into the wax: a hollow ring. So the goblins march for the Host now. You have earned this shield, $name, and my respect. Take your marks to the stores, keep hunting for the watch, and go to Sister Ama when you are ready to leave the recruits behind.' },
     ],
     text: {
       offer: 'So you are the one the gate watch keeps talking about. Goblins, $name: their chief, Gnash, has a whole camp on Goblin Hill, and he is planning something. Fight your way in and you will be fighting all night. But goblins sleep like the dead after dark... Will you sneak into his camp and steal his war plans? ({yes}/{no})',
       accept: 'Goblin Hill lies north-east, past Mirror Lake: follow the goblin trail to the top, and the camp is right there, round its fire. His war chest stands by his tent. Go at night: they sleep then, and a careful thief walks past them. Step right next to one, or hit one, and the whole camp wakes - and they hit hard. Then come back and tell me about the {goblins}.',
       tooWeak: 'Goblins are no rats, friend. Come back at level 5.',
       notYet: 'One thing at a time, friend. Guard Hilde at the east gate has work for you first.',
-      done: 'Master Corwin at the academy needs someone brave enough for the crypt under Bone Rocks.',
+      done: 'The goblins are quiet since you took their plans. Keep hunting for the watch, $name: there is always a {hunt}.',
     },
   },
   // ---- the gate watch's hunts: once a gate's own task is done, its guard has a hunt for you again and again (repeat:
@@ -2139,7 +2139,8 @@ Object.assign(NPCS, {
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
     greet: 'Peace be with you, $name. You are safe here, in the last town under the Dawn. Ask me what has {happened}, or if you are hurt I can {heal} you.',
     keywords: {
-      'clang|cat|kitten': 'Clang! The temple cat. He ran off when the horns blew, the poor thing. If you find him, keep him close: he will be braver with you than he ever was with me.',
+      'clang|cat|kitten': { after: 'last_town', text: 'He chose you on the wall, $name, and he will not come back to my altar cloth now. Keep him close, and bring him to me if he is hurt.',
+        before: 'Clang? Our kitten, the little grey one with the bell on his collar. He is never here: he follows the gunners up onto the north wall and sleeps behind their powder kegs, the silly thing. The warmest place in town, he thinks.' },
       'pet|companion': { pet: true },
       job: 'I keep the Temple of the Dawn. Everyone who comes to Oakvale wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
@@ -2148,10 +2149,9 @@ Object.assign(NPCS, {
       'happened|fight|quest|mission|task|help|farewell|goodbye': { quest: ['last_town', 'bell_6'] },
       'host|hollow|monsters|war|world': 'The Hollow Host. Nobody knows where it came from: one winter the monsters stopped fighting each other and started marching together. Town after town went dark. Oakvale is the last. Our wall still stands, and as long as it does, there is hope.',
       bell: 'The bell in the tower east of the temple. We ring it when someone leaves for the front.',
-      'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
       'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10, and names the path you will fight on at the front.',
       sewers: 'Under the grates in the streets. Rats, mostly. Farmer Ned curses them every day.',
-      'mirror|lake|shrine|water|flask': 'Mirror Lake, north of town, past the river. On its south shore the founders built a little shrine, and Edda blessed its water. The dead fear it. Drink it when you are hurt: it heals better than a potion.',
+      'mirror|lake|shrine|water|flask': 'Mirror Lake, north of town, up the north road. On its south shore the founders built a little shrine, and the founder blessed its water. The dead fear it. Drink it when you are hurt: it heals better than a potion.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, south of the square: the big house with the yellow roof.',
       depot: 'The depot is south-west of the square, by the lane of shops, across the high street from the academy. The postmaster will explain your locker.',
       heal: { heal: true },
@@ -2169,7 +2169,7 @@ Object.assign(NPCS, {
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
       'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came, and Oakvale kept a watch in it until its floors fell in. The dead walk its top now. I would not go there before level 6.',
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
-      'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
+      'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, and the dead in it no longer stay down. Not before level 5, and take potions.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the training yard.',
       'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
       'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
@@ -2177,7 +2177,8 @@ Object.assign(NPCS, {
       spells: 'You learn your first spells as you grow: Torchlight at level 2, Light Heal at level 3. Your {vocation} teaches you more.',
       tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
       'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: Bastion, Hawk, Ember or Grove. Choose with care: it cannot be undone. The mainland? No ship has come for anyone yet. Until one does, Oakvale needs its own.',
+      'oracle|vocation|front': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: Bastion, Hawk, Ember or Grove. Choose with care: it cannot be undone. And then the front, when the watch can open the road to it. Until then, the wall needs everyone who can hold a weapon.',
+      'chronicle|page|pages|diary': { chronicle: true },
       'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate: rats, close to the wall. The sewers under town have plenty too.',
     },
   },
@@ -2378,8 +2379,8 @@ Object.assign(NPCS, {
       job: 'I keep the Sleepy Boar.',
       'history|founder|founders|winter': 'Ask Sister Ama about the founders: she knows the old stories. All I know is that the Boar was the second building in Oakvale, after the temple. Priorities!',
       'rumours|rumors|news': { rumours: [RUMOURS.well, RUMOURS.tower, RUMOURS.ward, RUMOURS.tidecutter, RUMOURS.lighthouse, RUMOURS.eagle, RUMOURS.chapel, RUMOURS.smugglers, RUMOURS.weaver] },
-      bell: 'They say the temple bell went quiet the night the rats came up through the grates.',
-      'graveyard|gravestone|grave': 'The old graveyard is behind my inn. Read the stones - some say more than they seem to.',
+      bell: 'That bell has rung every dawn since the Boar was built. The morning it doesn\'t, pack your things.',
+      'graveyard|gravestone|grave': 'The old graveyard is outside the north gate, west of the road. Read the stones - some say more than they seem to.',
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['meat', 7], ['fish', 5], ['health_potion', 45]], buys: ['loot'] },
   },
@@ -2445,9 +2446,9 @@ Object.assign(QUESTS, {
       { npc: 'oak_ossian', fetch: 'crest_jaw', word: 'jaw',
         summary: 'Find the carved jawbone of the crest: the rats dragged it off to their nest under the training yard (the sewers, at the east end of the tunnel under the main street).',
         progress: 'The jawbone, friend. The rats took it to their nest, under the training yard. Look in their heap of bones.',
-        done: 'My jawbone! Gnawed, but whole. (He sets it into the crest with fingers you can see through.) Now the {knucklebone}: it was buried with the one who carved it, in the graveyard above. No stone on her grave: between Bertha Oakhart\'s and Sir Galen\'s. A {shovel} will find her.' },
+        done: 'My jawbone! Gnawed, but whole. (He sets it into the crest with fingers you can see through.) Now the {knucklebone}: it was buried with the one who carved it, in the graveyard above. No stone on her grave: between Bertha Oakhart\'s and Gunner Aldous\'s. A {shovel} will find her.' },
       { thing: 'ossian_grave', give: [['crest_knuckle', 1]],
-        summary: 'Dig with a shovel at the grave with no stone in the old graveyard, between Bertha Oakhart\'s stone and Sir Galen\'s.',
+        summary: 'Dig with a shovel at the grave with no stone in the old graveyard, between Bertha Oakhart\'s stone and Gunner Aldous\'s.',
         done: 'Under the turf, in a little box of oak: a knucklebone, carved with a bell. Somebody loved this work.' },
       { thing: 'bone_crest', needs: [['crest_knuckle', 1], ['crest_skull', 1]], missing: 'The crest still has two holes in it.',
         summary: 'Take the carved skull from the cracked coffin in the hall of coffins (the skeletons will not like it), and set it and the knucklebone into the crest in the Bone Chapel.',
@@ -2514,3 +2515,64 @@ Object.assign(NPCS, {
 // The quartermaster in Oakvale's Watch House keeps the same stores as the captain at the north gate (watch marks)
 NPCS.oak_quartermaster.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping|feather|gull|jay|cloak|ember|moss'] =
   NPCS.gate_north.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping|feather|gull|jay|cloak|ember|moss'];
+
+// ---- Oakvale's own townsfolk, the last town under siege (Kestrel Isle keeps the plain ones above): the same faces,
+// their own words; a gunner of the north wall hurt in the temple, and a refugee from a fallen town ----
+Object.assign(NPCS, {
+  oak_townsman: { ...NPCS.townsman, creature: 'npc:townsman',
+    greet: 'Still standing, $name? Good. Every face counts these days. Heard any {news}?',
+    keywords: { ...NPCS.townsman.keywords, job: 'I used to sell cloth. Now I carry cannonballs up to the wall, and hope.' },
+    chatter: ['Count the torches out there tonight.', 'Morning. We\'re still here, then.', 'My boy is on the east wall this week.', 'Two loaves a house. Two!', 'I used to sell cloth. Now I carry cannonballs.'] },
+  oak_townswoman: { ...NPCS.townswoman, creature: 'npc:townswoman',
+    greet: 'Oh - a new face. Are you new in {town}? We don\'t get many any more. Any.',
+    chatter: ['Children! Inside before the second bell!', 'Willa says the bread will last.', 'They rang for the Fennick boy yesterday.', 'Mind the gutters: the watch dumps the sand there.'] },
+  oak_child: { ...NPCS.child, creature: 'npc:child',
+    greet: 'Are you a soldier? Have you seen the {Host}?',
+    keywords: { ...NPCS.child.keywords, 'host|hollow|monsters': 'Mum says the Host is just a story to make me go to bed. Then why is there a wall? I\'m going to fight them when I\'m big. Or bake for the people who do.' },
+    chatter: ['I\'m the north wall! You can\'t get past!', 'BOOM! I\'m a cannon!', 'Bang the bell, bang the bell!', 'Can I hold your sword?'] },
+  oak_old_man: { ...NPCS.old_man, creature: 'npc:old_man',
+    keywords: { ...NPCS.old_man.keywords, story: 'In my day the gates stood open all night, youngster! We walked out to the lake for a swim. Rats the size of sheep in the sewers, mind. Some things don\'t change.' },
+    chatter: ['In my day the gates stood open...', 'Kids these days.', 'My knee says the Host is coming. Or rain.', 'Zzz... eh? I was not sleeping!'] },
+  oak_cat: { ...NPCS.cat, name: 'Crumb', greet: 'Mrrrow? (A fat orange cat with flour on her whiskers: Willa the baker\'s. She is not Clang, and she would like you to know it.)' },
+  // a gunner of the north wall, hurt the night before you came: he knows where Clang sleeps
+  oak_gunner: {
+    name: 'Gunner Hale', idle: 9000,
+    look: { skin: '#e0b088', hair: '#6a4a2a', beard: '#6a4a2a', body: '#8a2a2a', arms: '#e8e0c8', armor: '#a8aeb8', legs: '#4a4a52', feet: '#2a2a2a', belt: '#3a2a1a' },
+    greet: 'Mind the leg, $name. Ama says I\'ll walk by spring. Ask me about the {wall}, if you like.',
+    keywords: {
+      'wall|gunner|cannons|kegs': { after: 'last_town', text: 'You loaded my guns? Four of them, alone? Ha! Then I can rest easy. And you got Clang down. He always liked the kegs better than me.',
+        before: 'Three of us left on the north wall, and me on my back. If the horns go tonight... And that kitten of Ama\'s will be up there again, asleep behind the powder kegs. Warm as toast, he thinks.' },
+      job: 'I keep the north wall\'s guns. Kept. Will again.',
+    },
+    chatter: ['Ow.', 'Is that the horn? No. Just the wind.', 'Somebody oil my cannon, at least.'],
+  },
+  // a refugee from Ferndeep, one of the towns the Host took
+  oak_refugee: {
+    name: 'Mara of Ferndeep', idle: 7000, wander: 2,
+    look: { skin: '#e8c0a0', hair: '#4a3a2a', hairStyle: 'long', female: true, body: '#6a6a5a', arms: '#6a6a5a', legs: '#4a4a3a', feet: '#3a2a1a', belt: '#3a2a1a', robe: true, hat: { style: 'hood', color: '#5a5a4a' } },
+    greet: 'Nine days we walked, $name. Behind us the lights went out, one town at a time. This one is still lit. Is it... is it safe here? I came from {Ferndeep}.',
+    keywords: {
+      'ferndeep|home|town': 'Ferndeep had a wall too. Taller than this one. Everything we could carry is on that wagon.',
+      'host|hollow|monsters': 'They don\'t shout. They don\'t burn things for fun. They just come, and keep coming, until there\'s nobody left to stand on the wall.',
+      job: 'I was a weaver. Now I mend sacks for the watch. It\'s something.',
+    },
+    chatter: ['Nine days...', 'Is that the bell? Good. Good.', 'Ferndeep had a wall too.'],
+  },
+});
+// the townsfolk's own words for life in the last town
+Object.assign(NPCS.postmaster.keywords, {
+  'letters|letter|post': 'Every fighter who goes out leaves a letter with me, for if they do not come back. That shelf there. It is fuller than it was.',
+});
+NPCS.postmaster.greet = 'Good day, $name! The post? Nothing has come in by road since the Host. I keep the {lockers} now - and the {letters}.';
+NPCS.postmaster.keywords['locker|lockers|quest|mission|task'] = NPCS.postmaster.keywords['locker|quest|mission|task']; delete NPCS.postmaster.keywords['locker|quest|mission|task'];
+NPCS.oak_baker.keywords.job = 'I bake for the whole town, from the last grain field there is. Two loaves a house, by the captain\'s order, and the wall eats first.';
+NPCS.oak_baker.chatter = ['Bread for the wall!', 'Mind, it\'s half barley now.', 'Eat, friend. You can\'t fight hungry.'];
+NPCS.oak_smith.keywords.job = 'Weapons, and cannonballs, and arrowheads, and hinges for the gates. Every nail in Oakvale has been all four by now.';
+NPCS.oak_smith.chatter = ['*clang* *clang*', 'More shot for the north wall.', 'Iron\'s running low.'];
+NPCS.oak_armourer.keywords.job = 'I patch up what comes back from the wall. Some days there isn\'t much to patch.';
+NPCS.oak_fisher.keywords.job = 'I fish the canal and the moat: the only water the watch lets me near now. Fish is food, and food is the wall.';
+NPCS.oak_quartermaster.chatter = [...NPCS.oak_quartermaster.chatter, 'Forty names on the roll in spring. Thirty-one now.'];
+NPCS.ama.keywords.oakvale = 'The last town under the Dawn. Small, cold, and ours. The {academy} is south of the square, with the yellow roof, the {depot} across the high street from it, and the shops east of the square.';
+NPCS.oak_oracle.greet = 'Sit, $name. Every fighter who leaves this town for the front has sat where you sit now. Shall I name your {destiny}?';
+NPCS.oak_landlady.greet = 'A roof of your own, $name? Bell Cottage, just by the inn. It has stood empty since its gunner fell on the north wall: it wants someone in it again. Ask me about the {houses}.';
+NPCS.oak_landlady.chatter = (NPCS.oak_landlady.chatter || []).filter(c => !/rent is due/i.test(c)).concat(['Somebody should live there. Somebody should.']);

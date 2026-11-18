@@ -1,6 +1,6 @@
 'use strict';
-// The guide for new adventurers on Oakvale Isle: one thing at a time (renderGuide in game-ui.js), through The Silent
-// Bell and the gate watch, to the oracle; through the basics an arrow points the way (drawGuideArrow in game.js), after
+// The guide for new adventurers on Oakvale Isle: one thing at a time (renderGuide in game-ui.js), through The Last
+// Town (the north wall, the recruit's training) and the gate watch, to the oracle; through the basics an arrow points the way (drawGuideArrow in game.js), after
 // them the map's circles (questAreas). You can put it away whenever you like.
 // player.tutorial is the step you're on (1 is the first), 0 when the guide is done.
 
@@ -521,6 +521,6 @@ function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
   if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
-  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a vocation. The oracle, upstairs in the academy, sends you to the mainland once you are level 10.';
+  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a path. The oracle, upstairs in the academy, names yours at level 10.';
   return null;
 }

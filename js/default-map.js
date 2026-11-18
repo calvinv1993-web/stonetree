@@ -161,8 +161,8 @@ const OAKVALE = {
   // open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2) at the top; rules: a sign
   // on the ringers' wall [x, y, text].
   belltower: { stairs: [[145, 101], [147, 101], [145, 101], [147, 101]], shaft: [147, 102], bell: [145, 102],
-    rules: [146, 100, 'THE BELL OF OAKVALE. Rung at dawn, for weddings, for the dead - and when danger comes from the sea. Since the founders\' day it has never been silent for longer than a night.'],
-    look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle - when it has its clapper.' },
+    rules: [146, 100, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
+    look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle, and past the wall, to wherever the Host is listening.' },
   // The temple mount: a knoll of rock north of the square, its top one floor up, with the temple on it, a terrace
   // in front and the bell tower on its east shoulder; a broad flight of stone steps runs down from the terrace to the
   // square. outline: its foot, roughened a little (see the mount below); keep: what must stand on it (the temple with
@@ -188,7 +188,7 @@ const OAKVALE = {
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 134, y0: 124, x1: 140, y1: 129, door: [137, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
@@ -213,7 +213,7 @@ const OAKVALE = {
     [108, 76, 'Here lies Old Wim, who went down the well for a bet.'],
     [110, 76, 'An adventurer who never bought a rope.'],
     [112, 76, 'Bertha Oakhart. She fed the town through the long winter.'],
-    [109, 78, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [109, 78, 'Gunner Aldous of the north wall. He said the Host would never come this far.'],
     [111, 78, 'Taken by the spiders of the hills. Go well armed, friend.'],
     [113, 78, 'No name. Only the words: "the hills remember".'],
     // the three of the Old Tower's last watch, side by side: the order they came to the wall is the order of its levers
@@ -270,9 +270,10 @@ const OAKVALE = {
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
-    ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
+    ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
+    ['oak_gunner', 134, 102, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
-  notice: [139, 118, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  notice: [139, 118, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
   firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
@@ -2038,6 +2039,9 @@ function buildTown(m, S, runs, river) {
     { const x = R.gates[0][2] + 5, y = R.y0;
       put(x, y, S + 1, 'cannon_n'); m.setMeta(x, y, S + 1, { look: CANNON_LOOK });
       put(x + 1, y, S + 1, 'cannonballs'); put(x - 1, y, S + 1, 'powder_kegs'); }
+    // the names of those who held the wall, scratched into its stones either side of the steps up
+    { const [sx, sy] = R.stairs[0], names = 'Scratched into the stones beside the steps, row on row: the names of those who held this wall. The newest are still sharp-edged. There is room for more.';
+      for (const dx of [-2, 2]) if ((m.get(sx + dx, sy, S) || { items: [] }).items.includes('rampart')) m.setMeta(sx + dx, sy, S, { look: names }); }
     // banners down the faces of the wall you see from outside (south and east), between the cannons
     for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }
     for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }
@@ -2279,7 +2283,7 @@ function buildTown(m, S, runs, river) {
     for (let x = a.x0 + 1; x < a.x1; x += 2) put(x, a.y0 + 1, S, 'bookshelf');
     for (const y of [a.y0 + 3, a.y0 + 5]) { put(cx - 1, y, S, 'table'); inside(a, cx, y, 'chair_west'); }
     longBed(a.x1 - 1, a.y1 - 2, S); put(a.x1 - 1, a.y1 - 3, S, 'chest');
-    put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Lessons every morning: fighting, magic, and how not to get eaten by rats.' });
+    put(a.x0 + 1, a.y0 + 4, S, 'noticeboard'); m.setMeta(a.x0 + 1, a.y0 + 4, S, { text: 'Recruits wanted. Any age. Any experience. Any at all. - Corwin' });
     put(a.x0 + 1, a.y1 - 1, S, 'stairs_up');
     put(a.x0 + 1, a.y1 - 1, S + 1, 'stairs_down');
     for (let y = a.y0 + 2; y < a.y1; y++) put(cx, y, S + 1, 'carpet_rug');

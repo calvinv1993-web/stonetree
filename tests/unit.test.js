@@ -602,7 +602,7 @@ test('the gate watch: a task beyond each gate, two potions to set out with, gear
     gate_north: () => { ctx.useThing(198, 70, 8); assert.strictEqual(state.countItem('gnash_plans'), 1, 'the war plans'); },
   };
   for (const [id, word, item, next] of [['gate_west', 'wolves', 'leather_armor', /Tilda/], ['gate_south', 'crabs', 'leather_legs', /Hilde/],
-    ['gate_east', 'spiders', 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'studded_shield', /crypt/]]) {
+    ['gate_east', 'spiders', 'chain_helmet', /Osric/], ['gate_north', 'goblins', 'studded_shield', /Sister Ama/]]) {
     assert.strictEqual(ctx.questNews(id).mark, 'offer', `${id} has a task: !`);
     const potions = state.countItem('health_potion');
     talk(id, word, 'yes');
@@ -1195,7 +1195,7 @@ test('the oracle: no mainland yet, so you stay as Oakvale\'s own; once there is 
   p.level = 10; p.xp = state.xpForLevel(10);
   const said = ask('destiny', 'knight', 'yes'), at = { x: p.x, y: p.y, z: p.z };
   assert.strictEqual(p.vocation, 'knight');
-  assert(/has not come yet/.test(said) && /Oakvale's first Bastion/.test(said), 'the farewell is honest: the ship has not come yet');
+  assert(/road to the front is closed/.test(said) && /one of Oakvale's own/.test(said), 'the farewell is honest: the road to the front is closed');
   assert(!/mainland|Orin|Valoria|dream|never come back/i.test(said), `nothing of a mainland that isn't there: ${said}`);
   assert.strictEqual(oracle.z, p.z, 'and nobody is sent anywhere');
   assert(state.dist(oracle, p) <= 3, 'you are still beside her');
@@ -2449,7 +2449,7 @@ test('rumours: the innkeeper tells of all nine hidden quests, one at a time, and
   for (const [k, text] of Object.entries(R)) assert(messages.some(m => m.includes(text)), `Rolf tells the rumour of the ${k}`);
   assert.strictEqual(Object.keys(R).length, 9);
   messages.length = 0;
-  talk('old_man', 'rumours', 1);
+  talk('oak_old_man', 'rumours', 1);
   assert(messages.some(m => /Oswin, Marrow and Tobin/.test(m)), 'the old man knew the last watch');
   // nobody's arrow points at them: they're no quests anyone gives
   for (const id of ['watch_mail', 'mogg_sabre', 'old_wim']) assert(state.QUESTS[id].chest && !state.QUESTS[id].giver, `${id} is found, not given`);

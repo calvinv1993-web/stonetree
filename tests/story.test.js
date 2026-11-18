@@ -106,7 +106,7 @@ const STEPS = [
     if (d.p().tutorial && !d.p().guideSkipped) assert.strictEqual(d.p().tutorial, d.run('GUIDE.length'), `the guide got stuck on step ${d.p().tutorial}: ${d.run('GUIDE[player.tutorial - 1].text').slice(0, 60)}`);
     const said = d.talk('oak_oracle', 'destiny', 'knight', 'yes'); d.tick(3500);
     // (no mainland yet: an honest farewell, and you stay on the isle as Oakvale's own)
-    assert(/has not come yet/.test(said) && !/mainland|Orin|Valoria|dream/.test(said), `the oracle's farewell: ${said}`);
+    assert(/road to the front is closed/.test(said) && !/mainland|Orin|Valoria|dream/.test(said), `the oracle's farewell: ${said}`);
     assert(d.p().home === 'start' && d.p().z >= 8 && d.run('homeTown()') === 'Oakvale', 'still on Oakvale Isle, waking in its temple');
   }],
 ];

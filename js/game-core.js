@@ -1677,7 +1677,7 @@ function arriveOnMainland() {
   addSparkle(player, '#c58cff');
   if (map.trialRooms && !away) return log(`You are now ${aVoc(player.vocation)}! Check your bag for a gift from your teacher. The spells you tried come back as you grow: look for them on the spell buttons.`, 'quest'); // (Kestrel Isle: chosen in the Hall of Paths)
   log(away ? `You are now ${aVoc(player.vocation)}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`
-    : `You are now ${aVoc(player.vocation)}, Oakvale's own! The ship has not come yet: until it does, the isle is yours to defend. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
+    : `You are now ${aVoc(player.vocation)}, one of Oakvale's defenders! The road to the front is not open yet: until it is, the isle is yours to hold. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
 }
 
 // ---- saving ------------------------------------------------------------------------

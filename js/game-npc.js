@@ -249,7 +249,7 @@ function chronicleTalk() {
   gainXp(500); addItem('gold', 120);
   log('You received 500 experience and 120 gold for the Oakvale Chronicle.', 'quest');
   addSparkle(player, '#ffe080');
-  return 'All six pages... Edda Marrowind. The founder had a name, and now we know it. She carried the spark across the sea and sealed it in our bell. I will copy this for the academy, $name, and your name goes beside hers on the first page. Take this, with my thanks.';
+  return 'All six pages... Edda Marrowind. The founder had a name, and now we know it. She saw the Host coming a hundred years ago, and built our wall against it. I will copy this for the academy, $name, and your name goes beside hers.';
 }
 
 // The watch's stores (Captain Osric): say what you want, pay in watch marks
@@ -420,6 +420,7 @@ function destinyTalk() {
 
 function vocationTalk(v) {
   if (player.vocation !== 'none') return `You already walk the path of the ${vocName(player.vocation)}.`;
+  if (player.level < vocationLevel()) return `${VOCATIONS[v].desc} Come back at level ${vocationLevel()} to choose it (you are level ${player.level}).`;
   // (once there is a mainland, the oracle sends you across the sea; till then you stay, as Oakvale's own)
   const away = mainlandOpen(), name = vocName(v);
   return ask(`${VOCATIONS[v].desc} Do you want to become ${aVoc(v)}? This cannot be undone${away ? ', and you will leave the starter island for good' : ''}. ({yes}/{no})`, () => {
@@ -429,7 +430,7 @@ function vocationTalk(v) {
     ringTownBell(away ? `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${name}, who leaves the isle today.`
       : `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, Oakvale's new ${name}.`);
     return away ? `So be it, ${name}! I will now send you across the sea to the mainland. Farewell, $name, and may the Dawn light your way.`
-      : `So be it, ${name}! The ship that will take you across the sea has not come yet, $name. Until it does, you are Oakvale's first ${name}: its defender. Guard the bell well - the Choir has not forgotten it.`;
+      : `So be it, ${name}! The road to the front is closed for now: the Host holds the passes. Until the watch opens it, you are one of Oakvale's own, and the wall is yours to hold. May the Dawn keep you, $name.`;
   }, () => 'Take your time.');
 }
 
