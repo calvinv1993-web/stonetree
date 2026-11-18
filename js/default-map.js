@@ -2337,6 +2337,8 @@ function buildTown(m, S, runs, river) {
     for (const [x, y, id] of [[f.x1 - 1, f.y0 + 1, 'sack'], [f.x1 - 1, f.y0 + 2, 'sack'], [f.x1 - 1, f.y0 + 3, 'barrel']]) inside(f, x, y, id);
     put(sx, sy, S, 'stairs_up'); put(sx, sy, S + 1, 'stairs_down');
     for (const [x, y, id] of [[f.x0 + 1, f.y0 + 1, 'haystack'], [f.x1 - 1, f.y0 + 1, 'haystack'], [f.x0 + 1, f.y0 + 2, 'haystack'], [f.x1 - 1, f.y0 + 3, 'sack'], [f.x0 + 1, f.y0 + 4, 'haystack'], [f.x0 + 1, f.y1 - 1, 'sack']]) put(x, y, S + 1, id);
+    // the loft's south side is open, as a hay barn's is: no wall between the corner posts, the hay stacked in the opening
+    for (let x = f.x0 + 1; x < f.x1; x++) m.get(x, f.y1, S + 1).items = ['haystack'];
   }
 
   // ---- the smithy: a forge and an anvil, and racks of goods ------------------------------------------------
