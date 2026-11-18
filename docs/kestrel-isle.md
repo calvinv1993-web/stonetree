@@ -47,10 +47,20 @@ from the courtyard" checks the first three rows on the real map.
 |---|---|---|
 | Shops and temple | 10-30 s | 5-12 s (the town is kept small) |
 | The town's gates (watchtowers out on the roads) | 20-45 s | west 23 s, north 28 s |
-| First monsters out in the open | 30-60 s | rabbits 34 s, crabs 42 s (rats in the store's cellar, in town) |
+| First monsters out in the open | 30-60 s | rats in Old Farrow's barn 30 s, rabbits in his fields 34 s, crabs 44 s (rats in the store's cellar, in town) |
 | Beginner hunting ground | 1-2 min | wolves and spiders of the Old Wood, about 70 s |
 | Middling caves | 2-4 min | still to build: their mouths that far out |
 | Dangerous wilds | 4-6 min | still to build: the island is 210 tiles across, so its far corners are about 2 min away; 4-6 min needs the mainland, long winding ways (mountain paths, swamps) or a slower walk |
+
+## Out of the west gate
+
+- The road's cobbles fade into earth past the gate, onto a trodden crossroads with a signpost. From it three tracks,
+  wide by the crossroads and narrowing as they go: north into the Old Wood (wolves and spiders; bears only in its
+  heart), west to Old Farrow's farm, south along the shore.
+- Old Farrow's farm: a fenced yard with a gate where the track comes in, the farmhouse, a path to its door, the barn
+  fallen in (rats), a well, a wagon and haystacks; west of the yard, the fields in their own fence (rats, rabbits).
+- The land: dense woods in the north, open meadow round the gate, scattered trees thinning to meadow round the farm.
+  Rock formations are fewer and bigger: lobes grown together, a floor higher at their hearts, partly grown over.
 
 ## The town's buildings, and what each is for
 

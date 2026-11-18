@@ -1795,7 +1795,7 @@ test('Kestrel Isle (the new world, a preview): the isle and Bellhaven build, you
     }
   }
   const bad = [];
-  for (const b of K.buildings) {
+  for (const b of K.buildings.filter(o => o.kind !== 'farmhouse')) { // (in town: the farmhouse out in the wilds has its track)
     const z = m.surfaceZ + (b.rock === true ? 1 : b.rock || 0), inB = (x, y) => b.boxes.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
     const [dx, dy] = [[0, 1], [1, 0], [-1, 0], [0, -1]].find(([a2, c]) => !inB(b.door[0] + a2, b.door[1] + c));
     const [fx, fy] = W(b.door[0] + dx, b.door[1] + dy);
@@ -1836,7 +1836,7 @@ test('Kestrel Isle: how far things are from the courtyard, walking at level 1 (s
     }
   }
   const secs = (x, y) => (best.get(`${x},${y}`) ?? Infinity) / 1000;
-  for (const b of K.buildings.filter(o => !o.rock && o.kind !== 'gatehouse')) assert(secs(...W(...b.door)) <= 30, `${b.name}: ${secs(...W(...b.door))} s`);
+  for (const b of K.buildings.filter(o => !o.rock && o.kind !== 'gatehouse' && o.kind !== 'farmhouse')) assert(secs(...W(...b.door)) <= 30, `${b.name}: ${secs(...W(...b.door))} s`);
   for (const g of K.gates.slice(0, 2)) { const t = secs(...W(...g)); assert(t >= 20 && t <= 45, `the gate at ${g}: ${t} s`); }
   const first = Math.min(...m.spawns.filter(sp => sp.z === S).map(sp => secs(sp.x, sp.y)));
   assert(first >= 30 && first <= 60, `the first monsters out in the open: ${first} s`);
@@ -1846,7 +1846,7 @@ test('Kestrel Isle: from the temple, every door, upper floor, cellar, grate and 
   const game = loadGame({ world: 'kestrel' });
   const { ctx, state } = game;
   const m = state.map, K = state.KESTREL, T = state.THINGS, [OX, OY] = K.isleAt, [TX, TY] = K.townAt, W = (x, y) => [OX + TX + x, OY + TY + y];
-  const near = (x, y) => x >= OX + TX - 30 && x <= OX + TX + 70 && y >= OY + TY - 30 && y <= OY + TY + 45;
+  const near = (x, y) => x >= OX + TX - 55 && x <= OX + TX + 70 && y >= OY + TY - 30 && y <= OY + TY + 45;
   const key = (x, y, z) => `${x},${y},${z}`, seen = new Set([key(m.start.x, m.start.y, m.start.z)]), visited = new Set(seen), todo = [[m.start.x, m.start.y, m.start.z]];
   const change = t => t.items.map(i => T[i].change).find(Boolean) || (T[t.ground] && T[t.ground].change) || 0;
   while (todo.length) { // (as the game walks: through doors, and a floor change takes you a floor up or down, to the nearest free tile)
