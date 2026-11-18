@@ -859,5 +859,7 @@ const Fx = (() => {
   }
   let lastAmbienceAt = 0;
 
-  return { frame, creature, settle, offset, ground, world, light, overlay, ambience, wind: () => wind(), roofSnow };
+  // a shake of the screen from something else (a cannon on the wall: The Last Town)
+  const quake = a => { shake = Math.max(a, (now - shakeAt) / 280 < 1 ? shake : 0); shakeAt = now; };
+  return { frame, creature, settle, offset, ground, world, light, overlay, ambience, wind: () => wind(), roofSnow, quake };
 })();

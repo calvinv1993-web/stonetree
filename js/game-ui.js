@@ -1273,6 +1273,8 @@ function handleEvents() {
     else if (kind === 'forge') openForge(data.npc);
     else if (kind === 'forged') forgeResult(data);
     else if (kind === 'petName') askPetName(data.name);
+    else if (kind === 'siege') { raidBanner = { text: 'The Hollow Host is at the walls!', until: now + 7000, color: '#ff6040' }; Sound.play('horn'); setTimeout(() => Sound.play('horn'), 1900); }
+    else if (kind === 'cannons') (data.cannons || []).forEach((c, k) => setTimeout(() => { Sound.play('cannon'); Fx.quake(5); }, k * SIEGE_VOLLEY_MS)); // (the volley: drawSiege in game.js)
     else if (kind === 'paths') showPaths();
   }
 }

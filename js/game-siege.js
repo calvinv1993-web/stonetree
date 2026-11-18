@@ -5,6 +5,7 @@
 // and firedAt (when the cannons fired); the browser draws the Host from that (siegeScene; drawn in game.js).
 
 const SIEGE_RETREAT_MS = 20000; // after the cannons fire, the Host is seen running for this long
+const SIEGE_VOLLEY_MS = 380; // between one cannon's roar and the next, along the wall
 
 // Where the siege stands for you: null, or { at: the horns, fired: the cannons (0 before) }
 function siegeScene() {

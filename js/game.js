@@ -218,7 +218,7 @@ function eventToWorld(e) {
   const w = VIEW_W * TILE, h = VIEW_H * TILE;
   return {
     wx: ((e.clientX - r.left) / r.width) * w - Math.round(w / 2 - (pv.x * TILE + TILE / 2)),
-    wy: ((e.clientY - r.top) / r.height) * h - Math.round(h / 2 - (pv.y * TILE + TILE / 2)),
+    wy: ((e.clientY - r.top) / r.height) * h - Math.round(h / 2 - (pv.y * TILE + TILE / 2 - siegeLook * siegeLookTiles() * TILE)), // (the view slid north on the wall: draw)
   };
 }
 function tileUnderPointer(e) {
@@ -552,8 +552,10 @@ function peekMaxZ(x, y, z) {
 function draw() {
   const pv = visual(player);
   const z = player.z;
+  // on the north wall while the Host attacks, you look out over the battlements: the view slides a few tiles north
+  siegeLook += ((siegeScene() && z > map.surfaceZ && player.y <= 97 ? 1 : 0) - siegeLook) * 0.05;
   const view = {
-    cx: pv.x * TILE + TILE / 2, cy: pv.y * TILE + TILE / 2, z,
+    cx: pv.x * TILE + TILE / 2, cy: pv.y * TILE + TILE / 2 - siegeLook * siegeLookTiles() * TILE, z,
     // Above ground you see down to the surface; underground only two floors deep.
     minZ: z >= map.surfaceZ ? map.surfaceZ : Math.max(0, z - 2),
     maxZ: z < map.surfaceZ || Render.off.has('floors') ? z : peekMaxZ(player.x, player.y, z), // underground there's rock above you
@@ -590,6 +592,7 @@ function draw() {
     view.objects.push({ x: c.x, y: c.y, z: c.z, vx: v.x + hit.dx, vy: v.y + hit.dy, lift: LIFT, alpha, flash: hit.flash, img, slant: true });
   }
   Fx.settle(new Set(creatures.map(c => c.id)));
+  siegeObjects(view.objects); // (the Host at the north wall, for you alone: The Last Town)
 
   ctx.setTransform(SCALE * ZOOM, 0, 0, SCALE * ZOOM, 0, 0);
   ctx.imageSmoothingEnabled = false;
@@ -618,12 +621,13 @@ function draw() {
     drawVehicle(p.ride.kind, ox + v.x * TILE, oy + v.y * TILE, true, p.dir === 3, p.ride.start);
   }
   drawEffects(ox, oy, z);
+  drawSiege(ox, oy, z);
   if (!Render.skip('fx')) Fx.world(ctx, ox, oy, z);
 
   // Overlays are drawn in canvas pixels so text stays crisp.
   ctx.setTransform(ZOOM, 0, 0, ZOOM, 0, 0);
   const screen = (tx, ty) => [(ox + tx * TILE) * SCALE, (oy + ty * TILE) * SCALE];
-  const darkness = z < map.surfaceZ ? 0.92 : (1 - daylight()) * 0.8;
+  const darkness = z < map.surfaceZ ? 0.92 : Math.max((1 - daylight()) * 0.8, 0.35 * siegeLook); // (the Host brings a darkness with it)
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
   if (!Render.skip('sky')) Fx.overlay(screen);
   // Who just hit you: 1 right after the hit, fading to 0.
@@ -846,6 +850,81 @@ function strikeOf(c) {
 }
 
 // Missiles, hit bursts and sparkles, in world pixels; sounds are played once.
+// ---- The Last Town's siege (game-siege.js): the Hollow Host comes out of the dark north of the moat, mills there,
+// and when the cannons fire, those struck vanish in fire and the rest run. Only you see it: drawn from your quest,
+// never part of the world. The figures are the monsters' own pictures. ----
+const SIEGE_KINDS = ['goblin', 'wolf', 'skeleton', 'goblin', 'spider', 'skeleton', 'wolf'];
+// how far north the view slides on the wall: enough to see the Host's front rows (row 84 on), whatever the view's size
+const siegeLookTiles = () => Math.max(0, Math.min(4, player.y - 84 - VIEW_H / 2));
+let siegeLook = 0; // (0 to 1, eased)
+let siegeFigures = null;
+function siegeHost() { // where each figure ends up at the moat (worked out once): land north of it, between the towers
+  if (siegeFigures) return siegeFigures;
+  siegeFigures = [];
+  for (let i = 0; i < 260 && siegeFigures.length < 70; i++) {
+    const x = 100 + ((i * 37) % 53), y = 85 + (i % 5);
+    if (map.isWalkable(x, y, map.surfaceZ)) siegeFigures.push({ i, x, y, type: SIEGE_KINDS[i % SIEGE_KINDS.length], struck: i % 3 === 0 });
+  }
+  return siegeFigures;
+}
+// A figure now: where it is, which way it faces, whether it walks, how much of it is left (null: gone)
+function siegeFigure(f, sc) {
+  const t = now - sc.at - f.i * 140;
+  if (t < 0) return null;
+  const march = Math.min(1, t / 9000), sway = 0.4 * Math.sin((now + f.i * 410) / 1100);
+  let x = f.x + sway, y = f.y - 14 * (1 - march), dir = 2, walk = march < 1 || Math.sin((now + f.i * 300) / 600) > 0.4, alpha = Math.min(1, t / 800);
+  if (sc.fired) {
+    const r = now - sc.fired - (f.i % 4) * SIEGE_VOLLEY_MS - 300;
+    if (r > 0 && f.struck) { if (r > 700) return null; alpha = 1 - r / 700; walk = false; }
+    else if (r > 0) { y -= r / 700; dir = 0; walk = true; alpha = Math.max(0, 1 - r / (SIEGE_RETREAT_MS - 3000)); if (!alpha) return null; }
+  }
+  return { x, y, dir, walk, alpha };
+}
+function siegeObjects(objects) {
+  const sc = siegeScene();
+  if (!sc) return;
+  for (const f of siegeHost()) {
+    const o = siegeFigure(f, sc);
+    if (!o || Math.abs(o.x - player.x) > VIEW_W / 2 + 3 || Math.abs(o.y - player.y) > VIEW_H / 2 + 3) continue;
+    const img = Sprites.creature(f.type, o.dir, o.walk ? 1 + (Math.floor((now + f.i * 170) / 200) % 2) : 0);
+    objects.push({ x: Math.round(o.x), y: Math.round(o.y), z: map.surfaceZ, vx: o.x, vy: o.y, lift: LIFT, alpha: o.alpha, img, slant: true });
+  }
+}
+// Its fire and smoke, in world pixels: torches among the Host; when the cannons fire, each in turn along the wall a
+// flash and a cloud at its muzzle, and fire where its ball lands among them
+function drawSiege(ox, oy, z) {
+  const sc = siegeScene();
+  if (!sc) return;
+  const at = (x, y, fz) => [ox + (x - (fz - z) + 0.5) * TILE, oy + (y - (fz - z) + 0.5) * TILE];
+  const blob = (x, y, r, color, a) => { if (a <= 0) return; ctx.globalAlpha = a; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); };
+  ctx.save();
+  for (const f of siegeHost()) { // (every fourth carries a torch)
+    if (f.i % 4) continue;
+    const o = siegeFigure(f, sc);
+    if (!o) continue;
+    const [x, y] = at(o.x, o.y, map.surfaceZ), fl = 0.8 + 0.2 * Math.sin(now / 70 + f.i);
+    blob(x + 6, y - 22, 9 * fl, '#ff8a2a', 0.18 * o.alpha); blob(x + 6, y - 22, 3.5 * fl, '#ffd27a', 0.9 * o.alpha);
+  }
+  if (sc.fired) {
+    const loaded = ((player.quests.last_town || {}).loaded || []).map(k => k.split(',').map(Number));
+    loaded.forEach(([cx, cy, cz], k) => {
+      const t = now - sc.fired - k * SIEGE_VOLLEY_MS;
+      if (t < 0 || t > 2600) return;
+      const [mx, my] = at(cx, cy - 0.6, cz);
+      if (t < 160) blob(mx, my, 12, '#fff2b0', 1 - t / 160);
+      for (let p = 0; p < 4; p++) blob(mx + (p - 1.5) * 5 + t / 120, my - t / 60 - p * 3, 6 + t / 110 + p * 2, '#9a968e', 0.55 * (1 - t / 2600));
+      const land = t - 260; // (the ball lands among them)
+      if (land > 0 && land < 1300) {
+        const [bx, by] = at(cx + ((k * 3) % 5) - 2, 86 + (k % 3), map.surfaceZ);
+        blob(bx, by, 6 + land / 40, '#ff7a1a', 0.85 * (1 - land / 1300));
+        blob(bx, by, 3 + land / 90, '#ffe08a', 1 - land / 700);
+        blob(bx + 4, by - 6 - land / 50, 8 + land / 60, '#3a3632', 0.5 * (1 - land / 1300));
+      }
+    });
+  }
+  ctx.restore();
+}
+
 function drawEffects(ox, oy, z) {
   for (const fx of effects) {
     if (fx.kind === 'sound') {
