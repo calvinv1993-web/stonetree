@@ -3180,11 +3180,9 @@ const Sprites = (() => {
       UP = null;
       void bx; void by;
     },
-    // A scarecrow, standing upright as a figure does (as the dummy): a post and a crossbar, an old patched coat, straw
-    // hands, a sack head and a hat.
+    // A scarecrow in the tiles' slant: a post and a crossbar, an old patched coat, straw hands, a sack head and a hat.
     scarecrow(g) {
       floorShadow(g, 9, 3);
-      upright(0, () => {
       const wood = { top: '#7a4e28', south: '#5a3618', east: '#3e2410', edge: '#8a5a2e' };
       prism(g, 15, 16, 17, 18, 0, 44, wood);                   // the post
       prism(g, 3, 16, 29, 18, 36, 39, wood);                   // the crossbar
@@ -3193,9 +3191,8 @@ const Sprites = (() => {
       for (const u of [2, 27]) prism(g, u, 15.5, u + 3, 18.5, 33, 38, { top: '#f4dc80', south: '#e0c050', east: '#b89a30', edge: '#fff0a0' }); // straw hands
       const [hx, hy] = drum(g, 16, 17, 38, 47, t => 4.6 * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)) + 1, { edge: '#a89060', light: '#e0c890', mid: '#c8b080', dark: '#8a7448' }); // the sack head
       rect(g, '#2a2a2a', hx - 3, hy + 5, 2, 2); rect(g, '#2a2a2a', hx + 1.5, hy + 5, 2, 2); rect(g, '#2a2a2a', hx - 2, hy + 8.5, 5, 1);
-      drum(g, 16, 17, 47, 48, () => 6, { edge: '#2a2010', light: '#5a4a2a', mid: '#3a2e1a', dark: '#2a2010' });    // the hat's brim
-      drum(g, 16, 17, 48, 53, t => 3.6 - t, { edge: '#3a2e1a', light: '#7a6a44', mid: '#5a4a2a', dark: '#3a2e1a' }); // its crown
-      }, 1);
+      drum(g, 16, 17, 47, 48, () => 8, { edge: '#2a2010', light: '#5a4a2a', mid: '#3a2e1a', dark: '#2a2010' });    // the hat's brim
+      drum(g, 16, 17, 48, 55, t => 4.2 - t, { edge: '#3a2e1a', light: '#7a6a44', mid: '#5a4a2a', dark: '#3a2e1a' }); // its crown
     },
     // A marble pillar: a square plinth, a round fluted shaft, a square capital.
     pillar(g) {
