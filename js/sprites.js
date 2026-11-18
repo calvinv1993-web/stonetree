@@ -1260,7 +1260,7 @@ const Sprites = (() => {
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
   // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
   // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
-  const RAISED = new Set(['eggs', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
+  const RAISED = new Set(['eggs', 'smith_hearth', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
@@ -3211,6 +3211,17 @@ const Sprites = (() => {
       prism(g, 6, 11, 26, 21, 14, 19, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
       prism(g, 26, 13, 31, 19, 15, 18, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
     },
+    // the smith's hearth: a waist-high block of stone, its bed of coals glowing on top, a flame licking up from it
+    smith_hearth(g, r, frame) {
+      floorShadow(g, 13, 4);
+      prism(g, 5, 8, 27, 26, 0, 13, { top: '#6a625a', south: '#4a443e', east: '#36312c', edge: '#8a8278' });
+      for (const [u, v] of [[8, 11], [19, 21], [9, 20], [20, 11]]) prism(g, u, v, u + 3, v + 3, 13, 15, { top: '#5a524a', south: '#423c36', east: '#302b26' }); // (rough stones round the rim)
+      const [x, y] = P(16, 17, 13);
+      ellipse(g, '#2a1a12', x, y, 8.5, 4.5);                                     // the coal bed, sunk in the top
+      ellipse(g, ['#e0601a', '#f07a20', '#d85418', '#f08a2a'][frame % 4], x, y, 6.5, 3.2);
+      ellipse(g, 'rgba(255,225,130,0.75)', x - 1, y - 0.5, 2.8, 1.3);             // its white-hot heart
+      flame(g, x, y + 1, 5, 9, frame);
+    },
     web(g) {
       g.globalAlpha = 0.75;
       for (let i = 0; i < 8; i++) {
@@ -3779,7 +3790,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded

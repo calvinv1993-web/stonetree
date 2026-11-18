@@ -419,17 +419,47 @@ function createKestrelMap() {
     const inner = tiles.filter(([x, y]) => !rim(x, y));
     const byWall = inner.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => rim(x + dx, y + dy)) && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 2 && !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 1 && Math.abs(sy - y) <= 1)
       && !(b.cellar && Math.abs(b.cellar.stairs[0] + 1 - x) <= 1 && Math.abs(b.cellar.stairs[1] - y) <= 1));
+    // who keeps it (b.keeper): against the back wall, across from the door, behind a counter of three - the customer
+    // stays on the door's side and talks over it (the smith has no counter: his hearth stands beside him; a farmer
+    // at home has neither); the
+    // tiles either side of the keeper stay free, and none of it in the way of the stairs
+    if (b.keeper) {
+      const [x0, y0, x1, y1] = b.boxes[0], [dx, dy] = b.door, ns = dy === y0 || dy === y1;
+      const back = ns ? (dy === y0 ? y1 - 1 : y0 + 1) : (dx === x0 ? x1 - 1 : x0 + 1), front = back + (ns ? (dy === y0 ? -1 : 1) : (dx === x0 ? -1 : 1));
+      const [a0, a1] = ns ? [x0 + 1, x1 - 1] : [y0 + 1, y1 - 1], mid = Math.round((a0 + a1) / 2), at2 = (k, a) => (ns ? [a, k] : [k, a]);
+      const stairs = [...(b.up || []).slice(0, 1), ...(b.cellar ? [[b.cellar.stairs[0] + 1, b.cellar.stairs[1]]] : [])]; // (on this floor)
+      const near = ([x, y], d) => stairs.some(([sx, sy]) => Math.abs(sx - x) + Math.abs(sy - y) <= d);
+      const along = [0, 1, -1, 2, -2].map(o => mid + o).find(a => a - 1 >= a0 && a + 1 <= a1 && !near(at2(back, a), 1) && ![-1, 1].some(o => near(at2(back, a + o), 0)) && ![-1, 0, 1].some(o => near(at2(front, a + o), 1)));
+      if (along !== undefined) {
+        const smith = b.kind === 'smithy', shop = b.kind !== 'farmhouse', spot = at2(back, along), keep = [spot, at2(back, along - 1), at2(back, along + 1)];
+        const counters = smith || !shop ? [] : [-1, 0, 1].map(o => at2(front, along + o));
+        for (const [x, y] of counters) T(x, y, Z).items = ['counter'];
+        if (smith) T(...at2(back, along + 1), Z).items = ['smith_hearth'];
+        m.npcs.push({ type: b.keeper, x: OX + TX + spot[0], y: OY + TY + spot[1], z: Z });
+        const taken = [...keep, ...counters, ...(smith ? [at2(front, along), at2(front, along + 1)] : [])];
+        for (let i = byWall.length - 1; i >= 0; i--) if (taken.some(([x, y]) => x === byWall[i][0] && y === byWall[i][1])) byWall.splice(i, 1);
+      }
+    }
     const list = K.furnish[b.kind] || [];
     byWall.sort((a, c) => (a[1] - c[1]) || (a[0] - c[0]));
     const furnish = (list, z, spots) => list.forEach((id, i) => { const p = spots[Math.floor(i * spots.length / Math.max(1, list.length))]; if (p) { const t = T(p[0], p[1], z); if (!t.items.length) t.items.push(id); if (id === 'bed_head') { const f = T(p[0], p[1] + 1, z); if (f && !f.items.length && inner.some(([a, c]) => a === p[0] && c === p[1] + 1)) f.items.push('bed_foot'); else t.items = ['chest']; } } });
     furnish(list, Z, byWall);
-    // who keeps it (b.keeper): on a free tile inside, away from the door and the stairs, as near the middle as can be
-    if (b.keeper) {
-      const [mx, my] = [inner.reduce((v, [x]) => v + x, 0) / inner.length, inner.reduce((v, [, y]) => v + y, 0) / inner.length];
-      const spot = inner.filter(([x, y]) => !T(x, y, Z).items.length && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 2
-        && !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 2 && Math.abs(sy - y) <= 1) && !(b.cellar && Math.abs(b.cellar.stairs[0] - x) <= 2 && Math.abs(b.cellar.stairs[1] - y) <= 1))
-        .sort((p, q) => Math.hypot(p[0] - mx, p[1] - my) - Math.hypot(q[0] - mx, q[1] - my))[0];
-      if (spot) m.npcs.push({ type: b.keeper, x: OX + TX + spot[0], y: OY + TY + spot[1], z: Z });
+    // and the stairs on this floor can still be walked to from the door: whatever stands in the way (furniture first,
+    // the end of a counter if it must) makes room
+    {
+      const stairs = [...(b.up || []).slice(0, 1), ...(b.cellar ? [[b.cellar.stairs[0] + 1, b.cellar.stairs[1]]] : [])], keeper = m.npcs.find(n => n.type === b.keeper && n.z === Z);
+      const isK = (x, y) => keeper && keeper.x === OX + TX + x && keeper.y === OY + TY + y, inside = new Set(inner.map(p => p.join()));
+      const blocked = (x, y) => isK(x, y) || T(x, y, Z).items.some(i => THINGS[i].block);
+      for (let round = 0; round < 12; round++) {
+        const seen = new Set([b.door.join()]), todo = [b.door];
+        while (todo.length) { const [x, y] = todo.pop(); for (const [ex, ey] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + ex},${y + ey}`; if (seen.has(k) || !inside.has(k) || blocked(x + ex, y + ey)) continue; seen.add(k); todo.push([x + ex, y + ey]); } }
+        const lost = stairs.find(([x, y]) => ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ex, ey]) => seen.has(`${x + ex},${y + ey}`)));
+        if (!lost) break;
+        const way = inner.filter(([x, y]) => blocked(x, y) && !isK(x, y) && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ex, ey]) => seen.has(`${x + ex},${y + ey}`)))
+          .sort((p, q) => (T(...p, Z).items.includes('counter') - T(...q, Z).items.includes('counter')) || (Math.hypot(p[0] - lost[0], p[1] - lost[1]) - Math.hypot(q[0] - lost[0], q[1] - lost[1])))[0];
+        if (!way) break;
+        T(...way, Z).items = [];
+      }
     }
     // the floors above: what they hold (b.upstairs, by floor), along the walls, away from the stairs
     (b.upstairs || []).forEach((ids, k) => {

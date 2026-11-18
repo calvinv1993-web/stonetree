@@ -65,7 +65,8 @@ from the courtyard" checks the first three rows on the real map.
 ## The town's buildings, and what each is for
 
 - Temple and bell tower (on the rock): you wake there; the tower has four storeys up to the bell.
-- Depot: lockers on both floors, Banker Pell (deposit, withdraw). General store: Wenna (tools, potions, food, a
+- Each shopkeeper stands against the back wall behind a counter of three; you talk to them over it (the smith
+  beside his hearth instead). Depot: lockers on both floors, Banker Pell (deposit, withdraw). General store: Wenna (tools, potions, food, a
   backpack); its storeroom cellar, down the stairs, has rats.
 - Inn: Innkeeper Doss in the tavern below (food, the town's news), rooms with beds upstairs. Healer: Healer Orla in
   the shop below (heals, sells potions), a sickroom upstairs. Smithy: Brask the Smith (first weapons and armour).
