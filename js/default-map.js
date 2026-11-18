@@ -205,7 +205,6 @@ const OAKVALE = {
   gardens: [
     { x0: 104, y0: 124, x1: 108, y1: 128, kind: 'crops', gate: [108, 126] },
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
-    { x0: 144, y0: 107, x1: 148, y1: 111, kind: 'crops', gate: [144, 109] },   // under the bell tower
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
@@ -248,11 +247,10 @@ const OAKVALE = {
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
-    // behind the inn: its woodpile and empty barrels; by Bell Cottage: firewood
-    [115, 100, 'woodpile'], [115, 102, 'barrel'], [116, 102, 'barrel'], [115, 104, 'crate'], [105, 117, 'woodpile'], [106, 117, 'barrel'],
     // the orchard east of the smithy: apple trees in rows, a crate of apples
     [144, 124, 'tree'], [146, 124, 'tree'], [148, 124, 'tree'], [145, 126, 'tree'], [147, 126, 'tree'], [144, 128, 'tree'], [146, 128, 'tree'],
-    [148, 127, 'apple_crate'], [104, 139, 'haystack'], [105, 140, 'haystack'], [123, 143, 'bench'],
+    [148, 127, 'apple_crate'], [145, 108, 'tree'], [147, 110, 'tree'], [145, 111, 'bush'], // (under the bell tower: a few trees)
+    [104, 139, 'haystack'], [105, 140, 'haystack'], [123, 143, 'bench'],
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
     [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],

@@ -323,6 +323,22 @@ test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, 
   assert.deepStrictEqual(clash, []);
 });
 
+test('in Oakvale every gravel path leads somewhere: from a door or a gate in a fence, onto a street', () => {
+  const T = require('vm').runInContext('OAKVALE', ctx), B = T.bounds, S = map.surfaceZ, N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]], seen = new Set(), bad = [];
+  const at = (x, y) => map.get(x, y, S) || { ground: '', items: [] };
+  const fenced = (x, y) => N4.filter(([dx, dy]) => at(x + dx, y + dy).items.includes('fence')).length >= 2; // (a gap in a fence: a gate)
+  for (let y = B.y0; y <= B.y1; y++) for (let x = B.x0; x <= B.x1; x++) {
+    if (at(x, y).ground !== 'gravel' || seen.has(`${x},${y}`)) continue;
+    const patch = [], todo = [[x, y]]; seen.add(`${x},${y}`);
+    while (todo.length) { const [a, b] = todo.pop(); patch.push([a, b]); for (const [dx, dy] of N4) { const k = `${a + dx},${b + dy}`; if (!seen.has(k) && at(a + dx, b + dy).ground === 'gravel') { seen.add(k); todo.push([a + dx, b + dy]); } } }
+    const by = test => patch.some(([a, b]) => test(a, b) || N4.some(([dx, dy]) => test(a + dx, b + dy)));
+    const street = by((a, b) => ['cobble', 'dirt', 'paving', 'bridge_ns', 'bridge_ew'].includes(at(a, b).ground));
+    const from = by((a, b) => at(a, b).items.some(id => /^door|^arch/.test(id)) || (at(a, b).ground !== 'gravel' ? false : fenced(a, b)) || (!at(a, b).items.includes('fence') && fenced(a, b) && at(a, b).ground !== 'grass'));
+    if (!street || !from) bad.push(`${patch[0]} (${patch.length} tiles${street ? '' : ', onto no street'}${from ? '' : ', from no door or gate'})`);
+  }
+  assert.deepStrictEqual(bad, []);
+});
+
 test('nothing stands in a doorway or straight in front of a door, inside or out, and no street lamp beside one', () => {
   const blocked = [];
   for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
