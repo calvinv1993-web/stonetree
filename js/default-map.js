@@ -137,7 +137,7 @@ const ISLE_DESIGN = {
 //              above) all the way round, battlements on its outer edge; gates: where streets go through it (the walkway
 //              goes on over them, as it does over water); stairs: stone stairs in its inner face, up
 //              inside [[x, y], ...]; a tower stands on each corner, with a door into town, stairs up to the walkway
-//              and the lookout on top, and a door out over a footbridge (exits: its side, NW NE SW SE)
+//              and the lookout on top, and (where it has an exit) a door out over a footbridge (exits: its side, NW NE SW SE)
 //   hills:     rocky hills { outline, tiers }: rock walls with a rugged top
 //   wall:      stone wall pieces [x0, y0, x1, y1]; gaps: where the gates are
 //   streets:   { line, width, ground }, drawn like the roads outside; bridges where they cross water
@@ -271,7 +271,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 112, 116, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 124, 100, 8], ['gate_east', 148, 119, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 119, 8],
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
