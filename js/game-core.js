@@ -1359,6 +1359,7 @@ function drink(ref) {
   if (now < player.potionReady) return;
   player.potionReady = now + POTION_COOLDOWN;
   if (use.heal) {
+    player.chests.guide_healed = true; // (the guide's lesson in healing: see game-guide.js)
     player.hp = Math.min(player.maxHp, player.hp + randInt(...use.heal));
     addSparkle(player, '#ff8080');
   }

@@ -467,15 +467,17 @@ test('NPCs say which word to ask with, and show ! or ? when they have something 
   A.say('bell');
   assert.strictEqual(ctx.questNews('corwin').mark, 'busy', 'then waits for the rats');
   A.say('bye');
-  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
+  ctx.onMonsterKilled('rat');
   { const [x, y, z] = besideNpc(game, 'corwin'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('bell'); A.say('bye');
-  assert.strictEqual(ctx.questNews('postmaster').mark, 'report');
-  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi');
-  assert(messages.some(m => /\{locker\}/.test(m)), 'the postmaster asks about the locker');
-  A.say('locker'); A.say('bye');
-  assert.strictEqual(p.quests.bell_1.step, 3, 'and the locker finishes his step');
+  assert.strictEqual(ctx.questNews('pip').mark, 'report', 'then Pip, with Corwin\'s note: ?');
   { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('locker');
-  assert(/Pip is waiting for you: ask about the letter/.test(messages.slice(-2).join(' ')), 'he points on to Pip, with the word');
+  assert(/Pip is waiting for you: ask about the note/.test(messages.slice(-2).join(' ')), 'the postmaster points on to Pip first, with the word');
+  { const [x, y, z] = besideNpc(game, 'pip'); ctx.teleport({ x, y, z }); } A.say('hi');
+  assert(messages.some(m => /\{note\}/.test(m)), 'Pip asks about the note');
+  A.say('note'); A.say('bye');
+  assert.strictEqual(ctx.questNews('postmaster').mark, 'report', 'then the postmaster');
+  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('locker'); A.say('bye');
+  assert.strictEqual(p.quests.bell_1.step, 4, 'and the locker finishes his step');
 });
 
 
@@ -1452,7 +1454,7 @@ test('training: hit a dummy as long as you like and your weapon skill grows; wal
   assert(!p.training && p.trainHits === hits, 'walking away stops it');
 });
 
-test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (bell I, the shield, Clang and the clapper, Farmer Ned, the gate watch, the farewell)', () => {
+test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (the world, walking, talking, a fight, healing, the loot, dying, gear, trading, the locker, Farmer Ned\'s grate and torch, the shield, Clang and the clapper, the gate watch, the farewell)', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
@@ -1467,22 +1469,32 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   const mark = id => (ctx.questNews(id) || {}).mark;
   const on = (id, where) => { ctx.teleport(where); tick(game, 100); };
   const [gx, gy] = state.OAKVALE.grates[0], grate = z => `${gx},${gy},${z}`; // (the grate on the square, and the ladder under it)
-  on(null, { x: 137, y: 103, z: 9 });
+  on(null, { ...state.map.start });
   // a step that only explains waits for Next (and Next does nothing on a step with something to do)
   const next = what => { const at = p.tutorial; A.guideNext(); assert.strictEqual(p.tutorial, at + 1, `Next past ${what}`); };
-  assert.strictEqual(arrow(), null, 'the welcome points at nothing'); next('the welcome and the bars');
-  assert.strictEqual(arrow(), 'ama'); assert.strictEqual(mark('ama'), 'offer');
+  assert.strictEqual(arrow(), null, 'the world points at nothing'); next('the world we woke in');
+  const st = state.map.start;
+  assert.strictEqual(arrow(), `${st.x},${st.y + 3},${st.z}`, 'walking: to the temple\'s door'); assert.strictEqual(mark('ama'), 'offer');
   A.guideNext(); assert.strictEqual(p.tutorial, 2, 'Next doesn\'t skip a step with something to do');
   A.endGuide();
   assert.strictEqual(p.tutorial, 2, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
+  on(null, { x: st.x, y: st.y + 3, z: st.z });
+  assert.strictEqual(arrow(), 'ama', 'then back to Sister Ama, to talk');
   talk('ama'); talk('ama', 'bell', 'yes');
-  next('where to look when lost, and the map');
   assert.strictEqual(arrow(), 'corwin', 'first to Corwin at the academy'); assert.strictEqual(mark('corwin'), 'report');
   talk('corwin'); tick(game, 100);
-  assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rats only count once he has heard about the bell');
+  assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rat only counts once he has heard about the bell');
   talk('corwin', 'bell'); tick(game, 100);
-  // Corwin's present: a cap (the shield is to be earned), and the guide waits until it's worn
+  // a fight, healing after it, the loot, what dying costs
+  assert.strictEqual(arrow(), '126,153,8', 'a fight: out of the south gate, to the rats');
+  kill('rat', 1);
+  p.fedUntil = state.now + 99999; tick(game, 100); // (healing: eaten)
+  next('putting Eat on an action button (the browser sees it)');
+  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; // (the loot)
+  next('what dying costs');
+  // back to Corwin: his present, a cap (the shield is to be earned), and the guide waits until it's worn
+  assert.strictEqual(arrow(), 'corwin', 'back to Corwin'); talk('corwin', 'bell');
   const worn = () => ['wooden_shield', 'leather_cap'].map(id => p.equipment.backpack.contents.findIndex(i => i.id === id));
   assert(worn()[1] >= 0 && worn()[0] < 0, 'Master Corwin gives a leather cap (the shield is to be earned)');
   const step = p.tutorial;
@@ -1492,21 +1504,27 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   while (p.tutorial <= step) { A.guideNext(); tick(game, 100); }
   assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'leather_cap').length, 0, 'no second present when the guide starts again');
   p.tutorial = step + 1;
-  assert.strictEqual(arrow(), '144,141,8', 'then the training yard, on the way to the rats');
-  on(null, { x: 144, y: 140, z: 8 }); ctx.useThing(144, 141, 8); tick(game, 5600);
-  assert(p.trainHits >= 5, 'hitting the dummy');
-  kill('rat', 5);
-  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;
-  p.fedUntil = state.now + 99999; tick(game, 100); next('putting Eat on an action button (the browser sees it)');
-  assert.strictEqual(arrow(), 'corwin');
-  talk('corwin', 'bell'); assert.strictEqual(arrow(), 'postmaster');
-  talk('postmaster', 'locker'); assert.strictEqual(arrow(), 'pip');
-  talk('pip', 'letter'); assert.strictEqual(arrow(), 'ama');
-  talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
-  p.shopNpc = 'pip'; tick(game, 100); p.shopNpc = null;
+  // trading with Pip, the locker with Hobb, back to Ama
+  assert.strictEqual(arrow(), 'pip', 'to Pip, with Corwin\'s note'); talk('pip', 'note');
+  assert.strictEqual(arrow(), 'pip', 'the note alone is not enough: buy and sell');
+  p.chests.guide_bought = true; tick(game, 100); // (bought something; nothing to sell: the bag is empty)
+  assert.strictEqual(arrow(), 'postmaster', 'then the depot'); talk('postmaster', 'locker');
+  assert.strictEqual(arrow(), 'postmaster', 'asking is not enough: something in the locker');
+  p.depot.contents.push({ id: 'apple', count: 1 }); tick(game, 100);
+  assert.strictEqual(arrow(), 'ama'); talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
+  // Farmer Ned: down a grate, his torch for the dark, five rats, back up the ladder
+  assert.strictEqual(arrow(), 'oak_farmer', 'to Farmer Ned at the hay barn'); assert.strictEqual(mark('oak_farmer'), 'offer');
+  talk('oak_farmer', 'rats', 'yes'); assert.strictEqual(state.countItem('farm_torch'), 1, 'his torch to take along');
+  assert.strictEqual(arrow(), grate(8), 'to the grate on the square');
+  on(null, { x: gx, y: gy, z: 7 });
+  A.useItem({ root: 'bag', path: [p.equipment.backpack.contents.findIndex(i => i.id === 'farm_torch')] }); tick(game, 100);
+  assert(p.lightUntil > state.now, 'the torch lit');
+  kill('rat', 5); assert.strictEqual(arrow(), grate(7), 'back up the ladder');
+  on(null, { x: 128, y: 120, z: 8 });
+  assert.strictEqual(arrow(), 'oak_farmer', 'back to him'); talk('oak_farmer', 'rats'); assert.strictEqual(state.questState('farm_rats'), 'done');
   // level 2: a light, then the first way under the town, for a shield
   levelTo(2); tick(game, 100);
-  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => s.art === "sewer")') + 1, 'from here on the story leads: the shield chapter');
+  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes("cellar_shield")))') + 1, 'from here on the story leads: the shield chapter');
   A.say('lumen'); tick(game, 300); assert(p.lightUntil > state.now, 'lit');
   assert.strictEqual(arrow(), 'corwin', 'then to Corwin, for the shield'); assert.strictEqual(mark('corwin'), 'offer');
   talk('corwin', 'shield', 'yes'); on(null, { x: 128, y: 120, z: 8 });
@@ -1526,9 +1544,6 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   talk('ama', 'clang'); assert.strictEqual(state.questState('clang_rescue'), 'done');
   assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
   assert(run('bellHung()'), 'and the clapper he guarded is home: the bell hangs again');
-  assert.strictEqual(arrow(), 'oak_farmer', 'to Farmer Ned at the hay barn'); assert.strictEqual(mark('oak_farmer'), 'offer');
-  talk('oak_farmer', 'rats', 'yes'); kill('rat', 5);
-  assert.strictEqual(arrow(), 'oak_farmer', 'back to him'); talk('oak_farmer', 'rats'); assert.strictEqual(state.questState('farm_rats'), 'done');
   assert.strictEqual(arrow(), 'gate_west', 'on to the gate watch');
   for (const [id, word, type, n, level, next] of [['gate_west', 'wolves', 'wolf', 8, 2, 'gate_south'], ['gate_south', 'crabs', 'crab', 6, 3, 'gate_east'],
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {

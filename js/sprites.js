@@ -4518,6 +4518,7 @@ const Sprites = (() => {
       for (const [x, y] of [[8, 14], [10, 21], [13, 25]]) { line(g, '#b02818', 1.5, x, y, x + 7, y - 4); poly(g, '#b02818', [x + 9, y - 5, x + 5, y - 6, x + 7, y - 2]); }
       ellipse(g, '#e8e0c8', 22, 22, 2, 2); ellipse(g, '#b89a6a', 23, 21.5, 1.6, 1.6); // a moon
     },
+    farm_torch(g) { ITEM_DRAW.hand_torch(g); },
     hand_torch(g) {
       shadow(g, 16, 27, 9, 2);
       line(g, '#6a4422', 3, 9, 26, 20, 11);

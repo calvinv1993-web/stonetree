@@ -250,6 +250,7 @@ Object.assign(ITEMS, {
   greyfang_pelt: { name: 'Greyfang\'s pelt', quest: true, weight: 14 }, // from Greyfang, in his den (The Gate Watch: west)
   gnash_plans:   { name: 'goblin war plans', quest: true, weight: 1, // from the war chest in Gnash's camp (north)
     text: 'A goblin map, drawn in soot on a scrap of hide: the north gate of Oakvale, with three fat arrows pointing at it, and a moon. Under it, in another hand, neat and human: "When the bell is silent, they may take what they like. - G."' },
+  farm_torch:    { name: 'torch', lantern: 5 * MIN, weight: 8 }, // (Farmer Ned's: lights you up like Torchlight, as often as you like)
   hand_torch:    { name: 'torch', tool: 'torch', weight: 8 }, // use it on a spider nest to burn it (east; worth nothing to a trader)
 });
 

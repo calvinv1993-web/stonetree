@@ -562,6 +562,7 @@ function buy(id, amount) {
   const bought = amount - addItem(id, amount);
   if (!bought) return log(freeCapacity() < (ITEMS[id].weight || 0) ? 'You cannot carry that much.' : 'Your bag is full.');
   player.gold -= price * bought;
+  player.chests.guide_bought = true; // (the guide's lesson in trading: see game-guide.js)
   log(`You bought ${itemName(id, bought)} for ${price * bought} gold.`);
   addSound('coin', player.x, player.y, player.z);
   uiDirty();
@@ -575,6 +576,7 @@ function sell(id, amount) {
   amount = Math.max(1, Math.min(amount | 0, offer[2]));
   if (!removeItem(id, amount)) return;
   player.gold += offer[1] * amount;
+  player.chests.guide_sold = true;
   log(`You sold ${itemName(id, amount)} for ${offer[1] * amount} gold.`);
   addSound('coin', player.x, player.y, player.z);
   uiDirty();

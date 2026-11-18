@@ -50,24 +50,19 @@ function driver(game) {
 
 // The story's steps, each a function of a driver; between them a scenario may do something (save, die...)
 const STEPS = [
-  ['the guide\'s first words', d => { for (let i = 0; i < 3; i++) d.next(); }],
-  ['bell I: Ama, the bell', d => { d.talk('ama'); d.talk('ama', 'bell', 'yes'); d.next(); }],
-  ['bell I: Corwin', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
-  ['bell I: the dummy', d => { // (a dummy with a free tile north of it: a friend may be training at the first)
-    for (let x = 140; x <= 150; x++) {
-      const t = d.state.map.get(x, 141, 8);
-      if (!t || !t.items.includes('dummy') || !d.state.isFree(x, 140, 8)) continue;
-      d.go({ x, y: 140, z: 8 }); if (d.p().x !== x) continue;
-      d.ctx.useThing(x, 141, 8); d.tick(5600); break;
-    }
-    d.next();
-  }],
-  ['bell I: five rats', d => { d.kill('rat', 5); for (let i = 0; i < 4; i++) d.next(); d.p().openPile = { corpse: 'blood' }; d.tick(100); d.p().openPile = null; d.p().fedUntil = d.state.now + 99999; for (let i = 0; i < 4; i++) d.next(); }],
-  ['bell I: depot, Pip, Ama', d => { d.talk('corwin', 'bell'); d.talk('postmaster', 'locker'); d.talk('pip', 'letter'); d.talk('ama', 'bell'); d.p().shopNpc = 'pip'; d.tick(100); d.p().shopNpc = null; d.next(); }],
+  ['the world, walking', d => { d.next(); const st = d.state.map.start; d.go({ x: st.x, y: st.y + 3, z: st.z }); }],
+  ['bell I: Ama, the bell', d => { d.talk('ama'); d.talk('ama', 'bell', 'yes'); }],
+  ['bell I: Corwin', d => { d.talk('corwin', 'bell'); }],
+  ['bell I: a rat, healing, the loot', d => { d.kill('rat', 1); d.p().fedUntil = d.state.now + 99999; d.tick(100); d.next();
+    d.p().openPile = { corpse: 'blood' }; d.tick(100); d.p().openPile = null; d.next(); }],
+  ['bell I: Corwin\'s cap', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
+  ['bell I: Pip, trading', d => { d.talk('pip', 'note'); d.p().chests.guide_bought = d.p().chests.guide_sold = true; d.tick(100); }],
+  ['bell I: the locker, Ama', d => { d.talk('postmaster', 'locker'); d.p().depot.contents.push({ id: 'apple', count: 1 }); d.tick(100); d.talk('ama', 'bell'); }],
+  ['Farmer Ned: the grate, his torch, five rats', d => { d.talk('oak_farmer', 'rats', 'yes'); const [x, y] = d.run('OAKVALE.grates[0]'); d.go({ x, y, z: 7 });
+    d.wear('farm_torch'); d.kill('rat', 5); d.go({ x: x + 2, y, z: 8 }); d.talk('oak_farmer', 'rats'); }],
   ['level 2, Torchlight', d => { d.levelTo(2); d.A.say('lumen'); d.tick(300); }],
   ['the Rats\' Hoard', d => { d.talk('corwin', 'shield', 'yes'); d.go({ x: 131, y: 112, z: 7 }); d.kill('rat', 5); d.use(105, 121, 7); d.wear('wooden_shield'); d.talk('corwin', 'shield'); }],
   ['Clang', d => { d.talk('ama', 'clang', 'yes'); d.go({ x: 140, y: 104, z: 7 }); d.kill('rat', 3); d.use(148, 105, 7); d.talk('ama', 'clang'); }],
-  ['Farmer Ned', d => { d.talk('oak_farmer', 'rats', 'yes'); d.kill('rat', 5); d.talk('oak_farmer', 'rats'); }],
   ['the gate watch', d => {
     // west: Greyfang's pack and Greyfang (his pelt); south: Wendel off his rock (wherever he is: a friend may have sent
     // him home already); east: four nests (one a friend burnt is spun again after a while); north: Gnash's war plans
