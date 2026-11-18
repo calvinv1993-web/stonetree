@@ -191,8 +191,8 @@ const OAKVALE = {
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 123, y1: 139, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
-    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 133, y0: 124, x1: 139, y1: 129, door: [136, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
-    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 141, y0: 124, x1: 148, y1: 129, door: [144, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
+    { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 134, y0: 124, x1: 140, y1: 129, door: [137, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
+    { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
     { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
     { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
@@ -235,7 +235,7 @@ const OAKVALE = {
     [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
     [[112, 111], [112, 111]], [[114, 123], [114, 123]],                          // the houses on the lane
-    [[136, 130], [136, 130]], [[144, 130], [144, 130]],                          // the smithy and the armourer
+    [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]], [[145, 132], [145, 132]], // the academy, Ivy Cottage
     [[141, 132], [141, 142]],                   // to the graveyard
     [[111, 132], [111, 133]],                   // the training yard
@@ -266,7 +266,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 135, 126, 8], ['oak_armourer', 143, 125, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
