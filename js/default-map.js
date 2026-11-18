@@ -1973,9 +1973,13 @@ function buildTown(m, S, runs, river) {
   // The ground: grass, cleared of the wilds, with the river through it in a tidy bed.
   const bed = new Set();
   runs(river.line, river.width, (x, y) => bed.add(`${x},${y}`));
+  const moatWidth = (x, y) => T.moat.min + (T.moat.max - T.moat.min) * Math.min(1, Math.max(0, smooth(x, y, 11, 61) * 1.3 - 0.15));
   const inMoat = (x, y) => { // (how far out from the wall's foot, round at the corners; the far bank's distance wanders)
     const R = T.ramparts, dx = Math.max(R.x0 - x, 0, x - R.x1), dy = Math.max(R.y0 - y, 0, y - R.y1), d = Math.hypot(dx, dy);
-    const w = T.moat.min + (T.moat.max - T.moat.min) * Math.min(1, Math.max(0, smooth(x, y, 11, 61) * 1.3 - 0.15));
+    // (before a gate, and a tile either side of it, the far bank runs straight: one width, the gate's middle one, so
+    // the bridge over it is a clean rectangle and doesn't start narrower on one side)
+    const gate = R.gates.find(([gx0, gy0, gx1, gy1]) => (gy0 === R.y0 || gy1 === R.y1) ? x >= gx0 - 1 && x <= gx1 + 1 : y >= gy0 - 1 && y <= gy1 + 1);
+    const w = gate ? moatWidth((gate[0] + gate[2]) >> 1, (gate[1] + gate[3]) >> 1) : moatWidth(x, y);
     return d > 0 && d <= w;
   };
   for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
