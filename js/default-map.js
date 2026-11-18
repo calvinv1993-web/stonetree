@@ -277,7 +277,7 @@ const OAKVALE = {
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
-    ['oak_gunner', 134, 102, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
+    ['oak_gunner', 134, 105, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
   notice: [133, 113, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
