@@ -109,6 +109,11 @@ const KESTREL = {
   cuts: [[52, 17, 60, 18]],
   // the piers: what each is for, on a signpost at its foot (town-art coordinates)
   piers: [[20, 36, 'Fishing pier. Old Tam knows where the fish are.'], [35, 36, 'Ferry pier. The ship to the mainland ties up here, when it comes.']],
+  // out of the west gate: the cobbles give way to earth as the road leaves the town, the wilds grow thicker the further
+  // you go, and a short walk down the road lies the first hunting ground, the abandoned Farrow farm (island coordinates)
+  westWild: { fade: 9, grow: 40 },
+  farrow: { at: [21, 125], r: [9, 6], sign: [33, 123, 'Old Farrow\'s farm. Abandoned since the rats moved in. Rabbits in the field, rats in the barn - good practice, the wardens say.'],
+    monsters: [['rat', 7], ['rabbit', 5]] },
   terrace: [[24, 10, 'statue'], [30, 10, 'statue'], [23, 12, 'planter'], [31, 12, 'planter'], [20, 12, 'planter'], [34, 12, 'planter']],
   // the island's regions: centre, radii, what grows there and what lives there (spawns are the game's own monsters;
   // deer, snakes and sheep come once they have pictures)
@@ -569,9 +574,52 @@ function createKestrelMap() {
     for (const [dx, dy] of [[0, 0], [1, 0], [0, 1]]) { const t = at(x + dx, y + dy); if (t && ['grass', 'sand', 'farmland', 'swamp'].includes(t.ground)) { t.ground = 'dirt'; t.items = []; } }
     if (hash(x, y, 41) < 0.6) x += Math.sign(bx - x); else y += Math.sign(by - y); if (hash(x, y, 42) < 0.15) x += hash(x, y, 43) < 0.5 ? -1 : 1; } } };
   { const G = ([ax, ay]) => [TX + ax, TY + ay], [wx, wy] = G(K.gates[0]), [nx, ny] = G(K.gates[1]), [qx, qy] = G([45, 35]);
-    road([[wx - 1, wy], [52, 108], [45, 74]]); road([[wx - 1, wy], [45, wy + 2], [38, 128]]); road([[wx - 1, wy + 1], [62, 148], [55, 168]]);
+    // (the west gate's tracks are laid with the farm, below: one unbroken track each)
     road([[nx, ny - 1], [116, 80], [100, 40]]); road([[nx, ny - 1], [132, 100], [158, 74], [160, 60]]);
     road([[qx + 1, qy], [150, 128], [166, 114]]); road([[qx + 1, qy + 1], [152, 140], [170, 158], [180, 164]]); }
+
+  // ---- out of the west gate: from town to the wilds ----
+  {
+    const [gx, gy] = [TX + K.gates[0][0], TY + K.gates[0][1]], WW = K.westWild;
+    // the road: cobbles fading out into earth over its first stretch past the gate
+    for (let d = 1; d <= WW.fade; d++) for (const dy of [0, 1]) { const t = at(gx - d, gy + dy); if (t && ['dirt', 'grass', 'cobble'].includes(t.ground) && !t.items.some(i => THINGS[i].block)) { t.ground = hash(gx - d, gy + dy, 91) < 1 - d / WW.fade ? 'cobble' : 'dirt'; t.items = []; } }
+    // the wilds grow in: west of the gate, thicker the further from it (never on the road)
+    for (let y = gy - 30; y <= gy + 30; y++) for (let x = gx - WW.grow; x < gx - 3; x++) {
+      const t = at(x, y); if (!t || t.ground !== 'grass' || t.items.length || art(x, y) !== ' ') continue;
+      const d = Math.hypot(gx - x, (gy - y) * 1.3), r = hash(x, y, 92), k = Math.min(1, Math.max(0, (d - 6) / WW.grow));
+      if (r < 0.1 * k) t.items.push(r < 0.05 * k ? 'tree' : 'pine'); else if (r < 0.2 * k) t.items.push('bush'); else if (r < 0.28 * k) t.items.push(r < 0.24 * k ? 'tallgrass' : 'fern');
+    }
+    // the Farrow farm: a field gone to weeds inside a broken fence, a collapsed barn, a dry well, a scarecrow, haystacks
+    const F = K.farrow, [fx, fy] = F.at, inF = (x, y) => Math.hypot((x - fx) / F.r[0], (y - fy) / F.r[1]) < 1;
+    for (let y = fy - F.r[1] - 1; y <= fy + F.r[1] + 1; y++) for (let x = fx - F.r[0] - 1; x <= fx + F.r[0] + 1; x++) {
+      const t = at(x, y); if (!t || t.ground === 'water' || t.items.includes('cliff')) continue;
+      if (inF(x, y)) { t.ground = hash(x, y, 93) < 0.7 ? 'farmland' : 'grass'; t.items = (y % 2 && hash(x, y, 94) < 0.35) ? ['crops'] : hash(x, y, 95) < 0.08 ? ['tallgrass'] : []; }
+      else if (inF(x + 1, y) || inF(x - 1, y) || inF(x, y + 1) || inF(x, y - 1)) t.items = hash(x, y, 96) < 0.65 ? ['fence'] : []; // (broken: gaps to walk through)
+    }
+    for (let y = fy - 3; y <= fy - 1; y++) for (let x = fx + 2; x <= fx + 6; x++) { const t = at(x, y); if (t) { t.ground = 'wood'; t.items = (x === fx + 2 || x === fx + 6 || y === fy - 3) && hash(x, y, 97) < 0.6 ? ['wall_wood'] : hash(x, y, 98) < 0.25 ? ['rubble'] : []; } } // (the barn, fallen in)
+    for (const [dx, dy, id] of [[-3, -1, 'well'], [0, 1, 'scarecrow'], [-5, 2, 'haystack'], [-6, 1, 'haystack'], [4, 2, 'wagon'], [-2, 3, 'log']]) { const t = at(fx + dx, fy + dy); if (t) t.items = [id]; }
+    const [sx, sy, text] = F.sign, st = at(sx, sy); if (st) { st.items = ['signpost']; m.setMeta(OX + sx, OY + sy, S, { text }); }
+    // the paths on from the gate: one unbroken earth track, two wide, winding a little - west to the farm's gate in its
+    // fence, and north-west up into the Old Wood (through a rock, it goes round its foot; trees and bushes step aside)
+    const track = pts => { for (let i = 1; i < pts.length; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], n = Math.max(Math.abs(bx - ax), Math.abs(by - ay));
+      for (let t = 0; t <= n; t++) {
+        const x = Math.round(ax + (bx - ax) * t / n + (smooth(ax + t, ay, 5, 101) - 0.5) * 2), y = Math.round(ay + (by - ay) * t / n + (smooth(ax, ay + t, 5, 102) - 0.5) * 2);
+        for (const [dx, dy] of [[0, 0], [0, 1], [1, 0]]) {
+          const c = at(x + dx, y + dy); if (!c || c.ground === 'water' || c.ground === 'wood' || c.items.some(i2 => /^wall_|fence/.test(i2))) continue;
+          if (c.items.includes('cliff')) for (let z = S + 1; z <= S + 3; z++) m.set(OX + x + dx, OY + y + dy, z, null);
+          if (c.ground !== 'cobble') c.ground = c.ground === 'farmland' ? 'farmland' : 'dirt'; c.items = [];
+        }
+      } } };
+    track([[gx - WW.fade, gy], [fx + F.r[0] + 6, gy], [fx + F.r[0] + 1, fy]]);
+    track([[gx - WW.fade, gy], [gx - 16, gy - 10], [K.regions.oldwood.c[0] + 8, K.regions.oldwood.c[1] + 10]]);
+    track([[gx - WW.fade, gy + 1], [gx - 12, gy + 18], [K.regions.fields.c[0] + 4, K.regions.fields.c[1] - 12]]); // (and south to the fields)
+    { const t = at(fx + F.r[0] + 1, fy); if (t) t.items = []; } // (a gap in the fence where the track comes in)
+    let k = 0; for (const [type, n] of F.monsters) for (let i = 0; i < n; i++) {
+      for (let tries = 0; tries < 40; tries++) { const a = hash(k, tries, 99) * 6.283, rr = Math.sqrt(hash(tries, k, 100)) * 0.9, x = Math.round(fx + Math.cos(a) * F.r[0] * rr), y = Math.round(fy + Math.sin(a) * F.r[1] * rr); if (m.isWalkable(OX + x, OY + y, S)) { m.spawns.push({ type, x: OX + x, y: OY + y, z: S }); break; } }
+      k++;
+    }
+  }
 
   // ---- the last touches, checked over the whole town (tests/unit.test.js and an audit look for these) ----
   {
