@@ -2750,18 +2750,7 @@ const Sprites = (() => {
       }
       if (r() < 0.5) { ellipse(g, '#f0a0c0', 16, 16, 2.5, 2); ellipse(g, '#fff0f4', 16, 15.5, 1, 1); }
     },
-    // A weir across a canal: a low step of dressed stone from bank to bank, the water slipping over its lip and
-    // foaming white below it (the foam moves: frames)
-    weir(g, r, frame) {
-      rect(g, 'rgba(10,30,60,0.25)', 0, 4, 32, 9);                       // the deeper water held back above it
-      for (let x = 0; x < 32; x += 8) { rect(g, '#8a8478', x, 12, 8, 4); rect(g, '#a8a294', x, 12, 7, 1.5); rect(g, '#5e5a52', x + 7, 12, 1, 4); }
-      rect(g, 'rgba(220,240,255,0.55)', 0, 16, 32, 2);                   // the sheet of water over the lip
-      for (let i = 0; i < 9; i++) {
-        const x = (i * 4 + frame * 2 + (i % 2) * 2) % 34 - 1, y = 19 + ((i + frame) % 3) * 2;
-        ellipse(g, 'rgba(255,255,255,0.8)', x, y, 2.2, 1.3);
-      }
-      for (let i = 0; i < 4; i++) ellipse(g, 'rgba(235,248,255,0.5)', (i * 9 + frame * 3) % 32, 26, 1.5, 0.8);
-    },
+
     // Stalagmites: rock spikes growing up from the floor, tapering to a point, lit on their west.
     stalagmite(g, r) {
       floorShadow(g, 11, 3);
@@ -3830,7 +3819,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, waterwheel: { frames: [0, 1, 2, 3, 4, 5], ms: 150 }, weir: { frames: [0, 1, 2, 3], ms: 160 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, waterwheel: { frames: [0, 1, 2, 3, 4, 5], ms: 150 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded

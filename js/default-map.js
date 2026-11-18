@@ -179,9 +179,9 @@ const OAKVALE = {
   ],
   // The canal: water let in from the moat under the north wall, down the west side of the square and out under the
   // south wall again; line: its middle, point to point (any angle), width 2; a bank that bulges a tile here and there;
-  // weir: a low stone step across it, the water foaming over (the little waterfall); lilies and reeds: [x, y]
+  // lilies and reeds: [x, y]
   canal: { width: 2, line: [[118, 91], [118, 101], [119, 101], [119, 110], [118, 110], [118, 126], [117, 126], [117, 129], [116, 129], [116, 151]],
-    weir: [[118, 103], [116, 135]], lilies: [[119, 98], [119, 115], [117, 140], [116, 145]], reeds: [[117, 99], [120, 110], [115, 138], [118, 144]] },
+    lilies: [[119, 98], [119, 115], [117, 140], [116, 145]], reeds: [[117, 99], [120, 110], [115, 138], [118, 144]] },
   // the square: an octagon round the compass in the middle of town, and the way down from the temple's steps to it
   square: [[122, 115, 130, 127], [120, 117, 132, 125], [121, 116, 131, 126], [136, 110, 138, 119]], // (the last: the temple walk, straight down from its steps to the cross street)
   buildings: [
@@ -1977,7 +1977,7 @@ function buildTown(m, S, runs, river) {
   }
   const water = (x, y) => (m.get(x, y, S) || {}).ground === 'water';
   // The canal (T.canal): two tiles wide along its line, its banks bulging out a tile here and there (smooth noise), so
-  // it doesn't run like a ruler; the weirs, lilies and reeds on it
+  // it doesn't run like a ruler; the lilies and reeds on it
   if (T.canal) {
     const C = T.canal, wet = new Set();
     for (let i = 0; i + 1 < C.line.length; i++) {
@@ -1991,7 +1991,7 @@ function buildTown(m, S, runs, river) {
     }
     for (const k of wet) { const [x, y] = k.split(',').map(Number); if (inTown(x, y)) m.set(x, y, S, { ground: 'water', items: [] }); }
     for (const [x, y] of C.lilies) if (water(x, y)) put(x, y, S, 'lilypad');
-    T.canalWeirs = C.weir; T.canalReeds = C.reeds;
+    T.canalReeds = C.reeds;
   }
 
   // Fences.
@@ -2110,7 +2110,6 @@ function buildTown(m, S, runs, river) {
     m.setGround(x, y, S, water(x, y) ? (alongX ? 'bridge_ew' : 'bridge_ns') : st.ground);
   });
   for (const [x0, y0, x1, y1] of T.square) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.setGround(x, y, S, 'cobble');
-  for (const [x, y] of T.canalWeirs || []) for (let dx = -1; dx <= 2; dx++) if (water(x + dx, y)) m.get(x + dx, y, S).items = ['weir'];
 
   const inPoly = (p, x, y) => { let hit = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
     const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit; } return hit; };
