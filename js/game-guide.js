@@ -19,113 +19,123 @@
 // The steps up the inner face of the wall beside the north gate (OAKVALE.ramparts.stairs), and whether you're up on
 // the north wall's walkway (not the temple's terrace, also a floor up)
 const WALL_STEPS = typeof OAKVALE !== 'undefined' ? OAKVALE.ramparts.stairs[0] : [0, 0];
+// Farmer Ned's grate, outside his barn door (the sewers' rats are right under it)
+const NED_GRATE = typeof OAKVALE !== 'undefined' ? OAKVALE.grates[2] : [0, 0];
 function onWall() { return player.z > map.surfaceZ && player.z <= map.surfaceZ + 2 && player.y <= OAKVALE.ramparts.y0 + 3; } // (or a corner tower's lookout)
 const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, as the story needs them (The Last Town, then The Recruit): the world; walking, talking; stairs and
   // using things (the cannons on the wall); skills and gear; then a real fight down a grate (a torch for the dark),
   // healing after it, the loot, what dying means, trading, the locker. After them, no arrow: the map's circles. ----
   {
-    text: 'The Hollow Host, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing. Most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. You have nothing: no gear, no training. But you are not alone: others have come here too, and together you are stronger.',
-    touch: 'The Hollow Host, an army of monsters, has swallowed the world. Oakvale is the last town standing, and most of its fighters are dead. You have no gear and no training. But you are not alone: others came here too.',
+    text: 'The Hollow Host, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing. Most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. The watch carried you in at dawn with almost nothing. But you are not alone: others have come here too, and together you are stronger.',
+    touch: 'The Hollow Host, an army of monsters, has swallowed the world. Oakvale is the last town standing, and most of its fighters are dead. The watch carried you in at dawn with nothing. But others came here too.',
   },
   {
     text: 'First, walking: go to the temple\'s door, where the yellow arrow points. Click where you want to go, or walk with W A S D or the arrow keys.',
-    touch: 'First, walking: go to the temple\'s door, where the yellow arrow points. Tap where you want to go, or drag your thumb over the screen like a joystick.',
+    touch: 'Walking: tap where to go, or drag your thumb like a joystick. Go to the temple door, where the arrow points.',
     target: [{ at: [map.start.x, map.start.y + 3, map.start.z] }], // (the temple's doorway, just south of where you wake)
     done: () => dist(player, map.start) >= 3 || player.z !== map.start.z || talkingTo('ama') || questState('last_town') !== 'none', // (or found Ama already, or the guide started again)
   },
   {
-    text: 'Now walk back to Sister Ama by the altar, and talk to her: click her (or type hi and press Enter). The gold words in what she says are things you can ask about: click one. Ask her what has happened, and tell her you want to fight.',
-    touch: 'Now walk back to Sister Ama by the altar, and talk to her: tap her. The gold words in what she says are things you can ask about: tap Happened, then Yes.',
+    // (the browser sees you look: game.js lookHere; it has no Next button)
+    text: 'Looking: Shift+click anything to see what it is (or right-click someone, then Look). Look at the signpost below the temple steps. Many things in Oakvale have a story.',
+    touch: 'Looking: hold your finger on anything to see what it is. Hold the signpost below the temple steps.',
+    target: [{ thing: 'signpost' }],
+    client: 'look',
+  },
+  {
+    text: 'Now walk back to Sister Ama by the altar, and talk to her: click her (or type hi and press Enter). The gold words in what she says are things you can ask about: click What has happened, then Yes.',
+    touch: 'Tap Sister Ama by the altar to talk. Gold words are things to ask about: tap Happened, then Yes.',
     target: [{ npc: 'ama' }],
     ui: ['#talkWords'],
     done: () => questState('last_town') !== 'none',
     art: 'words',
   },
   {
-    text: 'Captain Osric keeps the north gate: up the high street, north of the square. Lost? The Quests tab, in the panel on the right, always says what to do next. Talk to him, and ask to fight.',
-    touch: 'Captain Osric keeps the north gate: up the high street, north of the square. Lost? The backpack button, then Quests, says what to do next. Tap him, then Fight.',
+    text: 'Captain Osric keeps the north gate: up the high street, north of the square. Talk to him, and ask to fight. Lost? The Quests tab, in the panel on the right, always says what to do next.',
+    touch: 'Tap Captain Osric at the north gate (up the high street), then Fight. Lost? The Quests tab says what\'s next.',
     target: [{ quest: 'last_town' }],
+    ui: ['#inventoryDrawer .drawer-tabs [data-page="quests"]', '#hudBag'], uiDesk: ['[data-tab="quests"]'],
     done: () => questPast('last_town', 0),
   },
   {
     text: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down. Walk onto the stone steps beside the gate to climb onto the wall.',
-    touch: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down. Walk onto the stone steps beside the gate to climb onto the wall.',
+    touch: 'The Host attacks! Walk onto the stone steps beside the gate: stairs take you a floor up or down.',
     target: [{ at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => onWall() || questPast('last_town', 1),
   },
   {
     text: 'Load the cannons along the north wall! Click a cannon: you walk to it and use it. Four of them: $loaded.',
-    touch: 'Load the cannons along the north wall! Tap a cannon: you walk to it and use it. Four of them: $loaded.',
+    touch: 'Tap a cannon on the wall: you walk to it and load it. Four of them: $loaded.',
     target: [{ cannon: 'empty', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 1),
   },
   {
     text: 'Listen: a tiny mew, from behind the powder kegs by the steps! Click the kegs to look behind them.',
-    touch: 'Listen: a tiny mew, from behind the powder kegs by the steps! Tap the kegs to look behind them.',
+    touch: 'A tiny mew, from behind the powder kegs by the steps! Tap the kegs.',
     target: [{ thing: 'powder_kegs', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 2),
   },
   {
     text: 'Clang is safe with you. Now click a loaded cannon to light its fuse, and FIRE!',
-    touch: 'Clang is safe with you. Now tap a loaded cannon to light its fuse, and FIRE!',
+    touch: 'Clang is safe. Tap a loaded cannon to light its fuse: FIRE!',
     target: [{ cannon: 'loaded', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 3),
   },
   {
     text: 'The Host is running! Down the steps to Captain Osric. Clang follows you now and fights at your side. Quests and fights give experience (the thin bar under health and mana): fill it to reach the next level.',
-    touch: 'The Host is running! Down the steps to Osric. Clang follows you now and fights at your side. Quests and fights give experience (the thin bar at the top): fill it for a level.',
+    touch: 'The Host runs! Down the steps to Osric. Clang fights by your side now. Fill the thin EXP bar for a level.',
     target: [{ at: [WALL_STEPS[0], WALL_STEPS[1], map.surfaceZ + 1], when: onWall }, { quest: 'last_town' }],
     done: () => questState('last_town') === 'done',
     ui: ['.hud-exp-row'], uiDesk: ['.sec-status'],
   },
   {
     text: 'Master Corwin trains the recruits at the academy, south of the square (the yellow roof). Talk to him, and ask him to make a fighter of you.',
-    touch: 'Master Corwin trains the recruits at the academy, south of the square (the yellow roof). Tap him, then Fighter, then Yes.',
+    touch: 'Tap Master Corwin at the academy, south of the square (yellow roof), then Fighter, then Yes.',
     target: [{ npc: 'corwin' }],
     done: () => questState('recruit') !== 'none',
   },
   {
     text: 'Skills: in the training yard, east of the academy, click a dummy and you keep hitting it until you walk away. Every hit trains your weapon\'s skill, and a higher skill hits harder. Ten hits: $hits.',
-    touch: 'Skills: in the training yard, east of the academy, tap a dummy and you keep hitting it until you walk away. Every hit trains your weapon\'s skill, and a higher skill hits harder. Ten hits: $hits.',
-    target: [{ thing: 'dummy' }],
+    touch: 'Tap a dummy in the yard east of the academy: every hit trains your skill. Ten hits: $hits.',
+    target: [{ dummy: true }],
     done: () => questPast('recruit', 0) || (questOnStep('recruit@0') && stepReady('recruit')),
     art: 'train',
   },
   {
     text: 'Back to Master Corwin at the academy: tell him you trained.',
-    touch: 'Back to Master Corwin at the academy: tap him, then Fighter.',
+    touch: 'Back to Master Corwin: tap him, then Fighter.',
     target: [{ quest: 'recruit' }],
     done: () => questPast('recruit', 0),
   },
   {
     text: 'Master Corwin gave you a leather cap! Put it on: drag it from your bag onto your head in the equipment (or right-click it). Your armour goes up.',
-    touch: 'Master Corwin gave you a leather cap! Put it on: open the backpack, tap the cap, then Wear. Your armour goes up.',
-    art: 'gear', ui: ['#inventoryDrawer .slot[data-item="leather_cap"]', '#hudBag'], uiDesk: ['#containers', '.sec-equip'],
+    touch: 'A cap from Corwin! Open the backpack, tap the cap, then Wear. Your armour goes up.',
+    art: 'gear', ui: ['#inventoryDrawer .slot[data-item="leather_cap"]', '#hudBag'], uiDesk: ['#containers .slot[data-item="leather_cap"]', '#containers'],
     done: () => !!player.equipment.head,
   },
   {
-    text: 'Farmer Ned, at the hay barn at the end of the academy lane (south-west of town), has rats in his grain. Ask him about the rats.',
-    touch: 'Farmer Ned, at the hay barn at the end of the academy lane (south-west of town), has rats in his grain. Tap him, then Rats.',
+    text: 'Farmer Ned has rats in his grain: his hay barn is in the south-west corner of town, past the bakery. Ask him about the rats.',
+    touch: 'Tap Farmer Ned at the hay barn, south-west of town past the bakery, then Rats.',
     target: [{ quest: 'recruit' }],
     done: () => questPast('recruit', 1),
   },
   {
-    text: 'The rats come up out of the sewers. Use the grate on the square (right-click it, or click it when you stand by it; walking over it does nothing) to climb down.',
-    touch: 'The rats come up out of the sewers. Tap the grate on the square when you stand by it (walking over it does nothing) to climb down.',
-    target: [{ at: [...OAKVALE.grates[0], 8] }],
+    text: 'The rats come up out of the sewers. Use the grate outside Ned\'s barn door (click it when you stand by it; walking over it does nothing) to climb down.',
+    touch: 'Tap the grate outside Ned\'s barn door to climb down. Walking over it does nothing.',
+    target: [{ at: [...NED_GRATE, map.surfaceZ] }],
     done: () => player.z < map.surfaceZ || questPast('recruit', 2),
     art: 'sewer',
   },
   {
     text: 'It\'s dark down here. Light Farmer Ned\'s torch: right-click it in your bag. Later you learn a spell for this.',
-    touch: 'It\'s dark down here. Light Farmer Ned\'s torch: open the backpack, tap the torch, then Use. Later you learn a spell for this.',
-    ui: ['#inventoryDrawer .slot[data-item="farm_torch"]', '#hudBag'], uiDesk: ['#containers'],
+    touch: 'It\'s dark! Open the backpack, tap Ned\'s torch, then Use.',
+    ui: ['#inventoryDrawer .slot[data-item="farm_torch"]', '#hudBag'], uiDesk: ['#containers .slot[data-item="farm_torch"]', '#containers'],
     done: () => player.lightUntil > now || questPast('recruit', 2),
   },
   {
     text: 'A fight! Watch your health, the red bar: when it runs out, you die. Click a rat to attack it, or press Space to attack the nearest monster. Clang fights at your side. Kill one.',
-    touch: 'A fight! Watch your health, the red bar: when it runs out, you die. The big button does what the moment asks: red attacks the nearest monster. Tap it, or tap a rat. Clang fights at your side. Kill one.',
+    touch: 'A fight! The red bar is your health. Tap the big red button (or a rat) to attack. Clang helps. Kill one.',
     ui: ['#tAttack'], uiDesk: ['.sec-status'],
     target: [{ hunt: ['recruit'] }],
     done: () => questPast('recruit', 2) || ((player.quests.recruit || {}).kills || {}).rat >= 1,
@@ -133,8 +143,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
   },
   {
     text: 'After a fight, heal first: the loot can wait. Eat an apple (right-click it in your bag, or press F): with a full stomach you heal much faster. Badly hurt? Drink a health potion (H).',
-    touch: 'After a fight, heal first: the loot can wait. Open the backpack, tap an apple, then Use: with a full stomach you heal much faster. Badly hurt? Tap the red potion.',
-    ui: ['#inventoryDrawer .slot[data-item="apple"]', '#hudBag'], uiDesk: ['#containers'],
+    touch: 'Heal before you loot: open the backpack, tap an apple, then Use. Fed, you heal much faster.',
+    ui: ['#inventoryDrawer .slot[data-item="apple"]', '#hudBag'], uiDesk: ['#containers .slot[data-item="apple"]', '#containers'],
     done: () => player.fedUntil > now || !!player.chests.guide_healed,
     art: 'eat',
   },
@@ -142,55 +152,62 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     // (a phone's action buttons live in the browser, not in the game: touch.js sees Eat put on one and moves the guide on;
     // a computer has F for eating and passes this step at once)
     text: 'Press F to eat whenever you like.',
-    touch: 'The buttons beside the big one: spells on the left, potions and food on the right (low on health? tap the red potion). Put Eat on your last one: tap the empty + on the far right, then choose Eat.',
+    touch: 'By the big button: spells left, potions and food right. Put Eat on the last one: tap the empty + far right, then Eat.',
     client: 'eatSlot', touchOnly: true, art: 'eatslot',
     ui: ['#favPicker:not([hidden]) [data-action="f"]', '#favs .fav:nth-child(6)'],
   },
   {
     text: 'Now the loot: the rat left a corpse. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
-    touch: 'Now the loot: the rat left a corpse. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything. Gold goes straight into your purse.',
+    touch: 'Loot: press the big button when it turns amber (or hold the corpse), then Take all. Gold goes to your purse.',
     target: [{ corpse: true }, { hunt: ['recruit'] }],
     done: () => !!(player.openPile && player.openPile.corpse),
     art: 'loot',
   },
   {
-    text: 'And if your health runs out? Here in Oakvale it costs little: you wake up in the temple with everything you carry, a bit of experience gone but never a level. Once you have chosen a vocation and gone to the front, it costs more: a tenth of your experience (levels too), and some of what you carry can be lost. That is what the depot is for.',
-    touch: 'And if your health runs out? Here in Oakvale it costs little: you wake up in the temple with everything you carry, a bit of experience gone but never a level. Once you have chosen a vocation and gone to the front, it costs more: a tenth of your experience (levels too), and some of what you carry can be lost. That is what the depot is for.',
-    art: 'death',
-  },
-  {
     text: 'Kill the rest ($progress), climb back up the ladder under the grate, and tell Farmer Ned.',
-    touch: 'Kill the rest ($progress), climb back up the ladder under the grate, and tell Farmer Ned.',
-    target: [{ hunt: ['recruit'] }, { at: [...OAKVALE.grates[0], 7], when: () => player.z < map.surfaceZ && stepReady('recruit') }, { quest: 'recruit' }],
+    touch: 'Kill the rest ($progress), climb the ladder back up, and tap Farmer Ned.',
+    target: [{ hunt: ['recruit'] }, { at: [...NED_GRATE, map.surfaceZ - 1], when: () => player.z < map.surfaceZ && stepReady('recruit') }, { quest: 'recruit' }],
     done: () => questPast('recruit', 2),
   },
   {
-    text: 'Trading: Pip\'s Provisions, east of the square. Ask Pip to trade: sell him what you found, and buy something - a potion is never wasted. Then tell him.',
-    touch: 'Trading: Pip\'s Provisions, east of the square. Tap Pip, then Trade: sell him what you found, and buy something - a potion is never wasted. Then tap Supplies.',
+    text: 'And if your health runs out? Here in Oakvale it costs little: you wake up in the temple with everything you carry, a bit of experience gone but never a level, and Sister Ama heals you for free. Once you have chosen a vocation, it costs more: a tenth of your experience (levels too), and some of what you carry. That is what the depot is for.',
+    touch: 'If your health runs out here, it costs little: you wake in the temple with all you carry, a bit of experience gone, never a level, and Ama heals you for free. After the oracle it costs more: keep spares in the depot.',
+    art: 'death',
+  },
+  {
+    text: 'Trading: Pip\'s Provisions, east of the square. Ask Pip to trade: sell him something, and buy something - a potion is never wasted. Then tell him about the supplies.',
+    touch: 'Tap Pip (east of the square), then Trade: sell something, buy something. Then tap Pip and Supplies.',
     target: [{ quest: 'recruit' }, { npc: 'pip', active: 'recruit@3' }],
     done: () => questPast('recruit', 3),
   },
   {
-    text: 'The depot, by the canal south of the square: open a locker and put something in it, then tell Postmaster Hobb. What lies there is safe, whatever happens to you.',
-    touch: 'The depot, by the canal south of the square: tap a locker and put something in it, then tap Postmaster Hobb and Locker. What lies there is safe, whatever happens to you.',
-    target: [{ quest: 'recruit' }, { npc: 'postmaster', active: 'recruit@4' }],
+    text: 'The depot, by the canal south of the square: click a locker, and drag something from your bag into it. Then tell Postmaster Hobb. What lies there is safe, whatever happens to you.',
+    touch: 'At the depot, tap a locker and drag something from your bag into it. Then tap Hobb, then Locker.',
+    target: [{ thing: 'depot', when: () => questOnStep('recruit@4') && !(player.depot && player.depot.contents.length) }, { quest: 'recruit' }, { npc: 'postmaster', active: 'recruit@4' }],
+    ui: ['#inventoryDrawer #containers .slot[data-item]'], uiDesk: ['#containers .slot[data-item]'],
     done: () => questPast('recruit', 4),
   },
   {
     text: 'Back to Master Corwin at the academy: you are ready.',
-    touch: 'Back to Master Corwin at the academy: tap him, then Fighter.',
+    touch: 'Back to Master Corwin: tap him, then Fighter.',
     target: [{ quest: 'recruit' }],
     done: () => questState('recruit') === 'done',
   },
   {
+    text: 'A shield from Master Corwin! Put it on, as you did the cap (drag it onto your equipment, or right-click it). A backpack too: open it in your bag, and it carries far more.',
+    touch: 'A shield from Corwin! Open the backpack, tap the shield, then Wear.',
+    art: 'gear', ui: ['#inventoryDrawer .slot[data-item="wooden_shield"]', '#hudBag'], uiDesk: ['#containers .slot[data-item="wooden_shield"]', '#containers'],
+    done: () => !!player.equipment.shield,
+  },
+  {
     text: 'That was the basics! From here on there is no arrow: you find your own way. When you take on a task, the map marks roughly where it is with a gold circle, and its button gets a dot. The Quests tab always says what to do next.',
-    touch: 'That was the basics! From here on there is no arrow: you find your own way. When you take on a task, the map marks roughly where it is with a gold circle, and the map button gets a dot. The Quests tab always says what to do next.',
+    touch: 'That was the basics! No more arrow now: a task\'s area shows as a gold circle on the map, and the map button gets a dot. The Quests tab always says what\'s next.',
     ui: ['#hudMap'], uiDesk: ['#mmWorld'], art: 'questmap', basicsEnd: true,
   },
   // ---- the story, a chapter at a time, to the oracle ----
   {
-    text: 'Out beyond the wall: the four gate guards each have a task and gear for you, one after the other. At level 2 you learn your first spell, Torchlight (press 1, or say "lumen"): light for the dark. West (Greyfang, the grey wolf), south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans).',
-    touch: 'Out beyond the wall: the four gate guards each have a task and gear for you, one after the other. At level 2 you learn your first spell, Torchlight (its button on the left): light for the dark. West (Greyfang, the grey wolf), south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans).',
+    text: 'Out beyond the wall: the four gate guards each have a task and gear for you, one after the other. Start with Sergeant Bram at the west gate (Greyfang, the grey wolf); then south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans). Your spells come with your levels: they appear on your action bar.',
+    touch: 'Beyond the wall, the gate guards have a task each: start with Sergeant Bram at the west gate. Your spells come with your levels.',
     target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
       { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
       { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' },
@@ -201,8 +218,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
-    text: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
-    touch: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    text: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: climb the bell tower east of the temple and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the tower east of the temple, then say farewell.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
     done: () => questState('bell_6') === 'done',
@@ -320,7 +337,7 @@ function updateGuide() {
   else {
     if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
     player.guideSeen = Math.max(player.guideSeen || 0, player.tutorial);
-    if ((step.done && step.done()) || (step.done && guideBeen(player.tutorial))) player.tutorial++;
+    if ((step.done && step.done()) || ((step.done || step.client) && guideBeen(player.tutorial))) player.tutorial++;
     else if (guideExplains(step) && guideRead(step)) player.tutorial++; // (read: on by itself, no "Next" needed)
   }
 }
@@ -461,6 +478,7 @@ function guideTarget(step) {
       if (c) return c;
     }
     if (t.thing) { const c = thingSpot(t.thing, player); if (c) return c; } // (the nearest of these things)
+    if (t.dummy) { const c = thingSpot('dummy', player, p => p.z === map.surfaceZ && p.y >= OAKVALE.yard.y0); if (c) return c; } // (the training yard's: not the armourer's)
     if (t.monster) {
       const m = near(monsters.filter(c => !c.dead && c.type === t.monster));
       if (m) return m;

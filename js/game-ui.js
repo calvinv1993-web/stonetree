@@ -158,8 +158,10 @@ try { guideFolded = localStorage.getItem('tilequest.guideFolded') === '1'; } cat
 // The guide's step as it reads now: { step, text, now } (also shown at the top of the Quests tab)
 function guideState() {
   const step = player.tutorial ? GUIDE[player.tutorial - 1] : null;
-  // $progress: how far the task you're on has come (the first active quest still asking you to kill something)
-  const hunting = Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
+  // $progress: how far the task you're on has come: the step's own hunt (done too: 5/5), else the first active quest still
+  // asking you to kill something
+  const own = ((step && step.target) || []).flatMap(t => t.hunt || []).find(id => QUESTS[id] && questState(id) === 'active' && questStep(id).kill);
+  const hunting = own || Object.keys(player.quests).find(id => QUESTS[id] && player.quests[id].status === 'active' && questStep(id).kill && !stepReady(id));
   // (no hunt on: none counted yet, or none asked for yet: never "done" before it is)
   const progress = hunting ? questProgress(hunting) : (step && step.done && step.done()) ? 'done' : 'not started yet: talk to whoever asked first';
   let text = step ? ((touchScreen && step.touch) || step.text).replace('$progress', progress).replace('$trained', `${Math.min(5, player.trainHits || 0)}/5`).replace('$paths', `${typeof pathStamps === 'function' ? pathStamps() : 0}/4`).replace('$loaded', `${((player.quests.last_town || {}).loaded || []).length}/4`).replace('$hits', `${Math.min(10, (player.quests.recruit || {}).hits || 0)}/10`).replace('$name', player.name) : ''; // ($trained: hits on a dummy; $loaded: cannons; $hits: The Recruit's)
@@ -236,7 +238,7 @@ const GUIDE_ART = (() => {
   return {
     welcome: () => [row(cap(h('span', { className: 'ga-step do' }, '✓'), 'do it: on by itself'), cap(h('span', { className: 'ga-step' }, 'Next'), 'read it: tap Next'))],
     bars: () => [bar('hp', 'health: 0 = you die'), bar('mp', 'mana: for spells'), bar('xp', 'experience: full = level up')],
-    words: () => [row(h('span', { className: 'ga-word' }, 'bell'), h('span', { className: 'ga-arrow' }, '→'), h('span', { className: 'ga-word' }, 'yes'),
+    words: () => [row(h('span', { className: 'ga-word' }, 'happened'), h('span', { className: 'ga-arrow' }, '→'), h('span', { className: 'ga-word' }, 'yes'),
       h('small', { className: 'ga-note' }, touchScreen ? 'tap the gold words' : 'click or type the gold words'))],
     lost: () => [row(cap(h('span', { className: 'ga-yellow' }, '➤'), 'the arrow: where to go'), cap(icon('quests', 22), 'Quests: what to do'))],
     train: () => [row(cap(pic('wooden_club'), 'hit the dummy'), h('span', { className: 'ga-arrow' }, '→'), cap(h('b', { className: 'ga-big' }, '+skill'), 'harder hits'))],
@@ -291,12 +293,13 @@ const GuideSpot = (() => {
     const x = Math.max(3, r.left - pad), y = Math.max(3, r.top - pad), w = Math.min(innerWidth - 3, r.right + pad) - x, hh = Math.min(innerHeight - 3, r.bottom + pad) - y;
     const k = Math.max(0, Math.min(rad, w / 2, hh / 2));
     return `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + hh - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + hh}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + hh - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`; };
-  let passed = 0; // (the step this browser last moved the guide on from: once, not every frame while the server answers)
+  let passed = 0, looked = 0, scrolled = 0; // (the step this browser last moved the guide on from: once, not every frame while the server answers)
   function frame() {
     requestAnimationFrame(frame);
     // steps only the browser can see done: on a computer a phone's step passes at once; Eat put on an action button
     const cur = player && player.tutorial ? GUIDE[player.tutorial - 1] : null;
-    if (cur && passed !== player.tutorial && ((cur.touchOnly && !touchScreen) || (cur.client === 'eatSlot' && typeof favourites === 'function' && favourites().includes('f')))) {
+    if (cur && passed !== player.tutorial && cur.client === 'look' && looked !== player.tutorial) { looked = player.tutorial; guideLooked = false; } // (a look before the step doesn't count)
+    if (cur && passed !== player.tutorial && ((cur.touchOnly && !touchScreen) || (cur.client === 'eatSlot' && typeof favourites === 'function' && favourites().includes('f')) || (cur.client === 'look' && guideLooked))) {
       passed = player.tutorial;
       Actions.guideNext();
     }
@@ -315,6 +318,12 @@ const GuideSpot = (() => {
         for (const el of [$('viewport'), document.scrollingElement]) if (el) el.scrollTop = 0;
       }
       target = [...document.querySelectorAll(sel)].find(visible); if (target) break;
+    }
+    // on a computer what it's about may be down the side panel, below the window's edge: brought into sight, once a step
+    if (target && !touchScreen && scrolled !== player.tutorial) {
+      scrolled = player.tutorial;
+      const r = target.getBoundingClientRect();
+      if (r.bottom > innerHeight || r.top < 0) target.scrollIntoView({ block: 'center' });
     }
     // (the guide's box steps aside while a window is open, e.g. the chooser of an action button: then the light
     // follows into that window on its own. With the backpack all the way open it stays, short, over the backpack:
@@ -789,6 +798,7 @@ function itemMenu(ref, item, e, worn = false) {
       ? h('div', { className: 'item-menu-buttons' }, act('Take off', () => Actions.unequip(ref.slot), 'primary'))
       : h('div', { className: 'item-menu-buttons' },
         act(slot && slot !== 'backpack' ? 'Wear' : 'Use', () => Actions.useItem(ref), 'primary'), // (gear: put it on)
+        ref.root !== 'depot' && openContainers.some(o => o.root === 'depot') ? act('Put in locker', () => Actions.moveItem(ref, { root: 'depot', path: [] })) : null, // (at the depot)
         act(item.count > 1 ? 'Drop all' : 'Drop', () => Actions.moveItem(ref, ground)),
         item.count > 1 ? act('Drop one', () => Actions.moveItem(ref, ground, 1)) : null),
   ].filter(Boolean));

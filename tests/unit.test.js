@@ -548,6 +548,7 @@ test('The Recruit: the dummy (skills), a cap, Farmer Ned\'s rats down a grate wi
   talk('oak_farmer', 'rats'); assert.strictEqual(p.quests.recruit.step, 3, 'five rats for Ned');
   talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 3, 'Pip: trade first');
   assert(/trade/.test(messages.slice(-3).join(' ')), 'he says so');
+  ctx.giveItem('cheese', 1); // (something the rats left: Pip doesn't sell cheese)
   p.chests.guide_bought = true; talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 3, 'bought, but sold nothing yet');
   p.chests.guide_sold = true; talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 4, 'bought and sold: on');
   talk('postmaster', 'locker'); assert.strictEqual(p.quests.recruit.step, 4, 'Hobb: a locker first');
@@ -1434,7 +1435,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   const arrow = () => { tick(game, 200); const t = run('GUIDE[player.tutorial - 1] && guideTarget(GUIDE[player.tutorial - 1])'); return t ? t.npcId || `${t.x},${t.y},${t.z}` : null; };
   const mark = id => (ctx.questNews(id) || {}).mark;
   const on = (id, where) => { ctx.teleport(where); tick(game, 100); };
-  const [gx, gy] = state.OAKVALE.grates[0], grate = z => `${gx},${gy},${z}`; // (the grate on the square, and the ladder under it)
+  const [gx, gy] = state.OAKVALE.grates[2], grate = z => `${gx},${gy},${z}`; // (the grate outside Ned's barn, and the ladder under it)
   on(null, { ...state.map.start });
   // a step that only explains waits for Next (and Next does nothing on a step with something to do)
   const next = what => { const at = p.tutorial; A.guideNext(); assert.strictEqual(p.tutorial, at + 1, `Next past ${what}`); };
@@ -1447,6 +1448,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(p.tutorial, 2, 'the guide can\'t be put away before its end (only folded)');
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   on(null, { x: st.x, y: st.y + 3, z: st.z });
+  assert(run(`map.get(${arrow()}).items.includes('signpost')`), 'looking: at the signpost below the temple steps');
+  A.guideNext(); // (the browser sees the look: game.js lookHere)
   assert.strictEqual(arrow(), 'ama', 'then back to Sister Ama, to talk');
   talk('ama'); talk('ama', 'fight', 'yes');
   // The Last Town: turned away by Osric, then the Host at the wall
@@ -1479,7 +1482,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert(p.equipment.head && p.tutorial === step + 1, 'worn: on to the next step');
   assert.strictEqual(arrow(), 'oak_farmer', 'to Farmer Ned at the hay barn'); assert.strictEqual(mark('oak_farmer'), 'report');
   talk('oak_farmer', 'rats'); assert.strictEqual(state.countItem('farm_torch'), 1, 'his torch to take along');
-  assert.strictEqual(arrow(), grate(8), 'to the grate on the square');
+  assert.strictEqual(arrow(), grate(8), 'to the grate outside Ned\'s barn');
   on(null, { x: gx, y: gy, z: 7 });
   A.useItem({ root: 'bag', path: [p.equipment.backpack.contents.findIndex(i => i.id === 'farm_torch')] }); tick(game, 100);
   assert(p.lightUntil > state.now, 'the torch lit');
@@ -1488,19 +1491,21 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   p.fedUntil = state.now + 99999; tick(game, 100); // (healing: eaten)
   next('putting Eat on an action button (the browser sees it)');
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; // (the loot)
-  next('what dying costs');
   kill('rat', 4); assert.strictEqual(arrow(), grate(7), 'back up the ladder');
   on(null, { x: 128, y: 120, z: 8 });
   assert.strictEqual(arrow(), 'oak_farmer', 'back to Ned'); talk('oak_farmer', 'rats');
+  next('what dying costs (told in town, not in a fight)');
   // trading with Pip, the locker with Hobb, back to Corwin
   assert.strictEqual(arrow(), 'pip', 'to Pip, to trade'); talk('pip', 'supplies');
   assert.strictEqual(arrow(), 'pip', 'asking is not enough: buy and sell');
   p.chests.guide_bought = p.chests.guide_sold = true; tick(game, 100); talk('pip', 'supplies');
-  assert.strictEqual(arrow(), 'postmaster', 'then the depot'); talk('postmaster', 'locker');
-  assert.strictEqual(arrow(), 'postmaster', 'asking is not enough: something in the locker');
-  p.depot.contents.push({ id: 'apple', count: 1 }); tick(game, 100); talk('postmaster', 'locker');
+  assert(run(`map.get(${arrow()}).items.includes('depot')`), 'then a locker at the depot');
+  talk('postmaster', 'locker'); assert(run(`map.get(${arrow()}).items.includes('depot')`), 'asking Hobb is not enough: something in the locker');
+  p.depot.contents.push({ id: 'apple', count: 1 }); tick(game, 100);
+  assert.strictEqual(arrow(), 'postmaster', 'then tell Hobb'); talk('postmaster', 'locker');
   assert.strictEqual(arrow(), 'corwin'); talk('corwin', 'fighter'); assert.strictEqual(state.questState('recruit'), 'done');
   assert(worn()[0] >= 0, 'the shield, earned');
+  A.useItem({ root: 'bag', path: [worn()[0]] }); tick(game, 100); assert(p.equipment.shield, 'and worn');
   // the end of the basics: from here on no arrow, but a circle on the map for each quest you're on
   assert(run('guideArrowOn()'), 'the arrow leads through the basics');
   next('the end of the basics: the map from here on');

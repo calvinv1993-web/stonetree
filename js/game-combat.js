@@ -23,6 +23,7 @@ function addText(c, text, color, crit) {
 // Text above a creature's head. With `says` it reads "Name says:" in yellow, like
 // talk; without, it's orange, like spell words. `viewer`: only that player sees it.
 function addSpeech(c, text, says, viewer) {
+  for (const e of effects) if (e.kind === 'speech' && e.cid === c.id && e.viewer === viewer) e.dur = Math.min(e.dur, now - e.start); // (one at a time each)
   effects.push({ kind: 'speech', cid: c.id, x: c.x, y: c.y, z: c.z, text, name: says ? c.name : undefined, viewer, start: now, dur: 2500 + text.length * 50 });
 }
 // A flash around whoever just attacked the current player, so they see where a hit came from.

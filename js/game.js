@@ -319,7 +319,7 @@ function openCreatureMenu(e, c, t) {
     else if (!companion) item(c.type === 'player' ? `Attack ${name}` : 'Attack', () => Actions.setTarget(c.id));
   }
   if (c.type === 'player') socialItems(c, item);
-  item('Look', () => look(t.x, t.y, c));
+  item('Look', () => lookHere(t.x, t.y, c));
   // a corpse (or anything dropped) under them: open it from here too
   const pile = piles.find(p => p.x === t.x && p.y === t.y && p.z === t.z && p.items.length);
   if (pile) item(`Open ${pile.name || 'what lies here'}`, () => Actions.lootNearest(pile.id));
@@ -357,18 +357,28 @@ function clickTile(e, t, wx, wy) {
   if (creature && creature !== player && e.button === 2 && !e.ctrlKey && rightClickAttacks) return Actions.setTarget(creature.id); // classic controls
   if (someone && someone !== player && (e.button === 2 || e.ctrlKey)) return openCreatureMenu(e, someone, t);
   if ((e.button === 2 || e.ctrlKey) && petUnder(wx, wy)) return openPetMenu(e); // (your companion: a click walks there)
-  if (e.shiftKey) return look(t.x, t.y, creature);
+  if (e.shiftKey) return lookHere(t.x, t.y, creature);
   if (creature) return Actions.setTarget(creature.id);
   if (npc) return Actions.interact('talk', t.x, t.y, t.z);
   // Left click walks, unless there's something to open there; right click always uses.
-  const tile = map.get(t.x, t.y, t.z);
-  const usable = pileAt(t.x, t.y, t.z) || (tile && tile.items.some(id => {
-    const d = THINGS[id];
-    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb || d.trainer || d.cannon || d.rescue;
-  }));
+  const usable = tileUsable(t);
   if (e.button === 2 || usable) markWalk(t), Actions.interact('use', t.x, t.y, t.z);
   else if (e.button === 0) markWalk(t), Actions.walkTo(t.x, t.y);
 }
+
+// Something to open or use on this tile (a click uses it rather than walking there; holding it on a phone uses it
+// rather than looking at it)
+function tileUsable(t, hold = false) {
+  const tile = map.get(t.x, t.y, t.z);
+  return !!pileAt(t.x, t.y, t.z) || !!(tile && tile.items.some(id => {
+    const d = THINGS[id];
+    if (d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb || d.trainer || d.cannon || d.rescue) return true;
+    return hold && !!(d.toggle || d.change || d.lockDoor || d.questDoor || d.levelDoor || d.houseDoor || d.cache || d.deed || d.bell); // (held: doors, ways down)
+  }));
+}
+// Looking at a tile (Shift+click, the menu's Look, or holding it on a phone): what's there, and the guide's look step
+let guideLooked = false;
+function lookHere(x, y, c) { look(x, y, c); guideLooked = true; }
 
 // Where you tapped (or clicked) to go: a gold mark on that tile until you're there, or stop walking, or go elsewhere.
 let walkMark = null;
@@ -468,7 +478,8 @@ function touchGesture(down, t, wx, wy) {
     const someone = creatureUnder(wx, wy) || npcs.find(n => n.x === t.x && n.y === t.y && n.z === t.z);
     if (someone && someone !== player) openCreatureMenu(down, someone, t); // hold someone: what to do with them
     else if (petUnder(wx, wy)) CompanionCard.open(); // hold your companion: his card (monsters first: he may be in front of one)
-    else Actions.interact('use', t.x, t.y, t.z);
+    else if (tileUsable(t, true)) Actions.interact('use', t.x, t.y, t.z); // hold something to use: use it
+    else lookHere(t.x, t.y); // anything else: what is it?
   }, LONG_PRESS);
   const move = e => {
     if (e.pointerId !== down.pointerId) return;
@@ -513,7 +524,7 @@ canvas.addEventListener('pointerdown', e => {
     const mode = touchMode;
     if (mode) {
       setTouchMode(null);
-      return mode === 'use' ? Actions.interact('use', t.x, t.y, t.z) : look(t.x, t.y, creatureUnder(wx, wy));
+      return mode === 'use' ? Actions.interact('use', t.x, t.y, t.z) : lookHere(t.x, t.y, creatureUnder(wx, wy));
     }
     const source = dragSourceAt(t);
     if (source) {

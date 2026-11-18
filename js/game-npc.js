@@ -55,7 +55,9 @@ function updateNpcs() {
 function npcSay(npc, text) {
   text = text.replace(/\$name/g, player.name);
   logDialog(npc.name, text);
-  addSpeech(npc, text.replace(/[{}]/g, ''), true, player.id); // what an NPC tells you is for you only
+  // what an NPC tells you is for you only; over their head only its first words (the rest is in the conversation)
+  const plain = text.replace(/[{}]/g, ''), first = plain.length > 90 ? (/^.{20,90}?[.!?](\s|$)/.exec(plain) || [plain.slice(0, 87) + '...'])[0].trim() : plain;
+  addSpeech(npc, first, true, player.id);
 }
 
 // Everything the player says goes through here: NPC talk, spell words, or chat to players nearby.
@@ -163,8 +165,11 @@ const questWaits = q => !!q.after && questState(q.after) !== 'done';
 function questHint(npcId) {
   const n = questNews(npcId);
   if (!n) return null;
+  // (a step that only asks you to come and talk: no "news" to bring)
+  const st = n.mark === 'report' && QUESTS[n.id] && questState(n.id) === 'active' && questStep(n.id);
+  const talkOnly = st && !(st.kill || st.fetch || st.thing || st.load || st.fire || st.train || st.ready || st.burn || st.clear || st.has);
   return {
-    report: `Have you brought me news? Tell me about the {${n.word}}.`,
+    report: talkOnly ? `What brings you here, $name? Ask me about the {${n.word}}.` : `Have you brought me news? Tell me about the {${n.word}}.`,
     offer: `I could use your help, $name. Ask me about the {${n.word}}.`,
     busy: `Ask me about the {${n.word}} if you need a reminder of what to do.`,
     later: `Come back when you are level ${n.level}: I may need your help then.`,
@@ -394,6 +399,7 @@ function questTalk(ids, npc, otherwise) {
     const daily = single && dailyDue(q) && storyText(t, 'daily'); // (the first of the watch's hunts today: more marks)
     const said = single ? `${storyText(t, 'reward')}${daily ? ` ${daily}` : ''}` : storyText(s, 'done');
     advanceQuest(id);
+    if (!single && s.xp) gainXp(s.xp); // (a step's own experience: Ned's rats)
     if (!single && (s.give || []).length) { // (what a step hands you as it's done: Corwin's cap, Ned's torch)
       log(`You received ${s.give.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest');
       for (const [item, n] of s.give) giveItem(item, n);
