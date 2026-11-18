@@ -174,7 +174,8 @@ const OAKVALE = {
   streets: [
     { line: [[126, 89], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
     { line: [[94, 121], [158, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
-    { line: [[103, 130], [150, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square (narrower)
+    { line: [[103, 130], [124, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square (narrower):
+    { line: [[128, 131], [146, 131]], width: 2, ground: 'cobble' },             //   past the high street it jogs a tile south
     { line: [[110, 107], [110, 130]], width: 3, ground: 'cobble' },             // the academy lane
   ],
   // The canal: water let in from the moat under the north wall, down the west side of the square and out under the
@@ -187,14 +188,14 @@ const OAKVALE = {
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 123, y1: 139, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 123, y1: 139, wings: [[119, 140, 121, 142]], door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, wings: [[131, 141, 134, 143]], door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 133, y0: 124, x1: 137, y1: 128, door: [135, 128], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 124, x1: 143, y1: 128, door: [141, 128], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
     { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, wings: [[113, 114, 115, 116]], door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
     { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
     { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 143, y0: 133, x1: 148, y1: 137, door: [145, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
     { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 110, x1: 108, y1: 115, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
@@ -204,6 +205,8 @@ const OAKVALE = {
   gardens: [
     { x0: 104, y0: 124, x1: 108, y1: 128, kind: 'crops', gate: [108, 126] },
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
+    { x0: 144, y0: 107, x1: 148, y1: 111, kind: 'crops', gate: [144, 109] },   // under the bell tower
+    { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
   graveyard: { x0: 142, y0: 139, x1: 149, y1: 143, gate: [142, 141], stones: [
@@ -219,7 +222,7 @@ const OAKVALE = {
     [147, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
-  grates: [[130, 117], [140, 130], [110, 128], [127, 141]],
+  grates: [[130, 117], [140, 131], [110, 128], [127, 141]],
   grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Use it to climb down.',
   // Things with something to say when you look at them: [x, y, text]
   looks: [ // (the well's: see WELL_TUNNELS)
@@ -234,7 +237,7 @@ const OAKVALE = {
     [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
     [[112, 111], [112, 111]], [[114, 123], [114, 123]],                          // the houses on the lane
-    [[135, 129], [135, 129]], [[141, 129], [141, 129]],                          // the smithy and the armourer
+    [[135, 129], [135, 130]], [[141, 129], [141, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]], [[145, 132], [145, 132]], // the academy, Ivy Cottage
     [[141, 132], [141, 142]],                   // to the graveyard
     [[111, 132], [111, 133]],                   // the training yard
@@ -245,6 +248,11 @@ const OAKVALE = {
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
+    // behind the inn: its woodpile and empty barrels; by Bell Cottage: firewood
+    [115, 100, 'woodpile'], [115, 102, 'barrel'], [116, 102, 'barrel'], [115, 104, 'crate'], [105, 117, 'woodpile'], [106, 117, 'barrel'],
+    // the orchard east of the smithy: apple trees in rows, a crate of apples
+    [144, 124, 'tree'], [146, 124, 'tree'], [148, 124, 'tree'], [145, 126, 'tree'], [147, 126, 'tree'], [144, 128, 'tree'], [146, 128, 'tree'],
+    [148, 127, 'apple_crate'], [104, 139, 'haystack'], [105, 140, 'haystack'], [123, 143, 'bench'],
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
     [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
