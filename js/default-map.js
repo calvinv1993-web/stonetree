@@ -203,7 +203,6 @@ const OAKVALE = {
   houses: { house1: 350, house2: 400, house3: 450, house4: 350 },
   // Fenced gardens: vegetable rows (crops on farmland) or flower beds; gate: the gap in the fence.
   gardens: [
-    { x0: 104, y0: 124, x1: 108, y1: 128, kind: 'crops', gate: [108, 126] },
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
   ],
@@ -1168,14 +1167,17 @@ function createDefaultMap() {
   // ring of open land round the moat, clumps of bushes with a tree in them, a few loose boulders and patches of
   // wildflowers (never on a road or right beside one)
   {
-    const B = OAKVALE.bounds, F = { x0: 87, y0: 100, x1: 93, y1: 107, gate: [90, 107] };
+    // (one big field rather than small plots: rows of grain, now and then a bare furrow or a tuft of weeds)
+    const B = OAKVALE.bounds, F = { x0: 76, y0: 99, x1: 93, y1: 106, gate: [90, 106] };
     for (let y = F.y0; y <= F.y1; y++) for (let x = F.x0; x <= F.x1; x++) {
       const t = m.get(x, y, S); if (!t || t.ground === 'water') continue;
-      const edge = x === F.x0 || x === F.x1 || y === F.y0 || y === F.y1;
+      for (let z = S + 1; z < m.depth; z++) m.set(x, y, z, null);
+      const edge = x === F.x0 || x === F.x1 || y === F.y0 || y === F.y1, v = hash(x, y, 141);
       if (edge) m.set(x, y, S, { ground: 'grass', items: x === F.gate[0] && y === F.gate[1] ? [] : ['fence'] });
-      else m.set(x, y, S, { ground: 'farmland', items: y % 2 ? ['crops'] : [] });
+      else m.set(x, y, S, { ground: 'farmland', items: v < 0.06 ? ['tallgrass'] : v < 0.12 ? [] : ['crops'] });
     }
-    put(F.x0 + 2, F.y0 + 2, S, 'scarecrow');
+    put(F.x0 + 5, F.y0 + 3, S, 'scarecrow');
+    for (const [x, y] of [[F.gate[0] - 2, F.y1 + 1], [F.gate[0] - 3, F.y1 + 1]]) { const t = m.get(x, y, S); if (t && t.ground === 'grass') m.set(x, y, S, { ground: 'grass', items: ['haystack'] }); }
     for (let y = F.y1; y <= 116; y++) { const t = m.get(F.gate[0], y, S); if (t && t.ground === 'grass') m.set(F.gate[0], y, S, { ground: 'dirt', items: [] }); }
     const road = g => ['dirt', 'cobble', 'gravel', 'bridge_ns', 'bridge_ew', 'farmland'].includes(g);
     const nearRoad = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = m.get(x + dx, y + dy, S); if (t && (road(t.ground) || t.items.includes('fence'))) return true; } return false; };
