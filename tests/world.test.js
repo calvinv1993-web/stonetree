@@ -274,7 +274,7 @@ test('in Oakvale, everything inside the walls (buildings, the temple mount, gard
   assert.deepStrictEqual(close, []);
 });
 
-test('in Oakvale, the town wall\'s walkway goes all the way round, over the gates and the water, into every corner tower and up to its top, and each tower has a door into town and one out', () => {
+test('in Oakvale, the town wall\'s walkway goes all the way round, over the gates and the water, into every corner tower and up to its top, and each tower has a door into town (and one out, where it has an exit)', () => {
   const R = require('vm').runInContext('OAKVALE.ramparts', ctx), k = R.thick, z = S + 1;
   const inRing = (x, y) => x >= R.x0 && x <= R.x1 && y >= R.y0 && y <= R.y1 && !(x >= R.x0 + k && x <= R.x1 - k && y >= R.y0 + k && y <= R.y1 - k);
   // walk the walkway (and the towers' rooms) from a tile of it, without going down any stairs
@@ -298,9 +298,10 @@ test('in Oakvale, the town wall\'s walkway goes all the way round, over the gate
   const doors = [];
   const inTower = (x, y) => (x <= R.x0 + 4 || x >= R.x1 - 4) && (y <= R.y0 + 4 || y >= R.y1 - 4);
   for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) if (inTower(x, y) && map.get(x, y, S).items.includes('door')) doors.push([x, y]);
-  assert.strictEqual(doors.length, 8, 'two doors on the ground in each tower');
+  const exits = R.exits.filter(Boolean).length; // (a tower may have no way out: then only the gates lead out of town)
+  assert.strictEqual(doors.length, 4 + exits, 'a door into town on the ground in each tower, and one out where it has an exit');
   const outside = doors.filter(([x, y]) => [[0, 1], [1, 0], [0, -1], [-1, 0]].some(([dx, dy]) => /^bridge/.test(map.get(x + dx, y + dy, S).ground)));
-  assert.strictEqual(outside.length, 4, 'each tower has a door out on to a footbridge over the moat');
+  assert.strictEqual(outside.length, exits, 'each way out of a tower is a door on to a footbridge over the moat');
 });
 
 test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, and none touch (what stands on the mount aside)', () => {
