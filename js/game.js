@@ -630,7 +630,11 @@ function draw() {
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);
   if (!Render.off.has('names')) {
-    for (const c of shown) if (c.z === z && (!c.def || !c.def.invisible || canSee(c))) drawCreatureInfo(c, screen, struck.get(c.id));
+    // (everyone you can see, on any floor in view: a floor d up is drawn d tiles up-left, so their name goes with them)
+    for (const c of shown) if (c.z >= view.minZ && c.z <= view.maxZ && (c === player || !coveredFrom(c, view.maxZ)) && (!c.def || !c.def.invisible || canSee(c))) {
+      const d = c.z - z;
+      drawCreatureInfo(c, d ? (tx, ty) => screen(tx - d, ty - d) : screen, struck.get(c.id));
+    }
     drawTexts(screen, z);
   }
   drawGuideArrow(screen);
@@ -1067,7 +1071,12 @@ function outlinedText(text, x, y, color, font) {
   ctx.fillText(text, x, y);
 }
 
-const underRoof = o => { const t = map.get(o.x, o.y, o.z + 1); return !!(t && t.ground && THINGS[t.ground] && THINGS[t.ground].roof); };
+// Something drawn over a creature, so you can't see it (a roof, the floor of a storey above, up to the highest floor in
+// view): a floor k up is drawn k tiles up-left, so what lies over it is at (x + k, y + k), or right over it
+const coveredFrom = (o, maxZ) => {
+  for (let k = 1; o.z + k <= maxZ; k++) for (const j of [k, k - 1]) { const t = map.get(o.x + j, o.y + j, o.z + k); if (t && t.ground) return true; }
+  return false;
+};
 
 // Name, health bar and frames: red around your target, green around whoever you
 // follow, white around the one hovered in the battle list, and a widening orange
@@ -1097,8 +1106,6 @@ function drawCreatureInfo(c, screen, struck) {
     return;
   }
   if (c.type === 'npc') {
-    // (indoors, under a roof you see from outside: no name floating over the roof)
-    if (underRoof(c) && !underRoof(player)) return;
     outlinedText(c.name, sx + size / 2, ty - 4, '#8fd0ff', 'bold 12px sans-serif');
     // Above anyone who has something for you: ! a new quest (grey until you're strong enough), ? news to hand in.
     const news = questNews(c.npcId, true), mark = news && { offer: ['!', '#ffd84a'], report: ['?', '#ffd84a'], later: ['!', '#a0a0a0'] }[news.mark];
