@@ -287,6 +287,18 @@ const QUESTS = {
       done: 'The village is grateful for your help with the rats.',
     },
   },
+  farrow_rats: {
+    name: 'Rats in the Barn', giver: 'farrow', kill: { rat: 6 },
+    reward: { xp: 60, gold: 25, items: [['health_potion', 2]] },
+    summary: 'Kill 6 rats for Old Farrow. They live in his fallen barn and in his fields, west of Bellhaven\'s west gate.',
+    text: {
+      offer: 'The rats in my barn eat everything I sow. Would you kill 6 of them for an old man? ({yes}/{no})',
+      accept: 'Bless you. The barn is right there in the yard, and they run about the fields too.',
+      progress: 'So far you have killed $progress. Keep at it!',
+      reward: 'Ha! That will teach them. Here, some coin and two potions for your trouble.',
+      done: 'My seed is safe, thanks to you. Come by any time.',
+    },
+  },
   lost_parcel: {
     name: 'The Lost Parcel', giver: 'hilda', fetch: 'parcel',
     reward: { xp: 80, gold: 20, items: [['health_potion', 3]] },
@@ -2066,6 +2078,85 @@ Object.assign(NPCS, {
     keywords: { job: 'Fishing. Fifty years of it.', 'sea|bay': 'The bay is kind. Out past the point it isn\'t.' },
     trade: { sells: [['fish', 4]], buys: ['loot'] },
     chatter: ['Biting today, they are.', 'This one was THIS big!', 'Smell that sea air.'],
+  },
+  // ---- Bellhaven's shopkeepers (Kestrel Isle): one in each shop, one job each ----
+  bell_store: {
+    name: 'Wenna', idle: 5000,
+    look: { skin: '#f0c090', hair: '#6a3a1a', hairStyle: 'long', female: true, body: '#4a7a5a', arms: '#4a7a5a', legs: '#4a7a5a', feet: '#3a2a1a', belt: '#e8d8a0', robe: true, trim: '#e8d8a0' },
+    greet: 'Welcome to the general store, $name! Rope, shovels, potions, a backpack - everything for the road. Let\'s {trade}.',
+    keywords: {
+      job: 'I sell what you need out there, and buy what you bring back from it.',
+      'tools|rope|shovel|pick': 'A rope gets you up out of holes, a shovel digs up loose earth, a pick breaks cracked rock. Use the tool, then click where.',
+      'potion|potions': 'Health potions keep you standing. Take a few before you leave the gate.',
+      'farm|farrow|rats': 'Old Farrow\'s farm is out past the west gate. His barn is crawling with rats, poor man.',
+    },
+    trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['bread', 5], ['meat', 8], ['backpack', 60], ['rope', 50], ['shovel', 50], ['pick', 50], ['fishing_rod', 120]], buys: ['loot', 'tools'] },
+    chatter: ['Rope! Good strong rope!', 'Potions, fresh today.', 'Don\'t go out without a potion.'],
+  },
+  bell_smith: {
+    name: 'Brask the Smith', idle: 4000,
+    look: { skin: '#d89868', hair: '#2a1a0a', beard: '#2a1a0a', body: '#5a3a2a', arms: '#d89868', legs: '#3a3a40', feet: '#2a2a2a', belt: '#2a1a0a' },
+    greet: 'Mind the sparks, $name. Weapons and armour, made here. Want to {trade}? I buy what you find out there, too.',
+    keywords: {
+      job: 'I forge weapons and armour, and buy the old ones back.',
+      'weapon|weapons': 'Swords, axes and clubs each train their own skill. Pick one and stick with it.',
+      'armor|armour|shield': 'A shield and a leather jerkin will keep a wolf\'s teeth off you. Mostly.',
+      'wolf|wolves|wood': 'Wolves in the Old Wood, north-west of the gate. Bring a shield, and a friend.',
+    },
+    trade: {
+      sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8], ['wooden_shield', 15],
+        ['leather_cap', 12], ['leather_armor', 35], ['leather_legs', 15], ['leather_boots', 15]],
+      buys: ['gear', 'distance'],
+    },
+    chatter: ['*clang* *clang*', 'Good steel takes time.', 'Hot work, this.'],
+  },
+  bell_healer: {
+    name: 'Healer Orla', idle: 6000,
+    look: { skin: '#f0d0b0', hair: '#c8b890', hairStyle: 'long', female: true, body: '#e8e4d8', arms: '#e8e4d8', legs: '#e8e4d8', belt: '#5a8a5a', robe: true, trim: '#5a8a5a' },
+    greet: 'Come in, $name, sit down. Hurt? I can {heal} you. I also sell {potions}: let\'s {trade}.',
+    keywords: {
+      job: 'I mend what the wilds break. Bites, scratches, the odd broken pride.',
+      heal: { heal: true },
+      'potion|potions': 'Health for the body, mana for the mind. Drink one before it gets bad, not after.',
+      'spider|spiders|poison': 'Spiders in the Old Wood bite, and the bite burns. Rest it off, or come to me.',
+    },
+    trade: { sells: [['health_potion', 25], ['mana_potion', 50]], buys: ['loot'] },
+    chatter: ['Rest is the best medicine.', 'Drink plenty of water.', 'Next, please.'],
+  },
+  bell_inn: {
+    name: 'Innkeeper Doss', idle: 4000,
+    look: { skin: '#e0a878', hair: '#8a5a2a', beard: '#8a5a2a', body: '#7a3a2a', arms: '#e0a878', legs: '#4a3a2a', feet: '#2a1a0a', belt: '#2a1a0a' },
+    greet: 'Welcome to the Cracked Bell, $name! A hot meal and the town\'s {news}. Let\'s {trade}.',
+    keywords: {
+      job: 'I keep the Cracked Bell: food, drink, a bed upstairs, and all the talk in town.',
+      'bell|cracked|name': 'The bell in the temple tower cracked the winter my father built this place. He named it after the noise.',
+      'news|rumours|rumors|adventure': { rumours: [
+        'Old Farrow at the farm west of the gate wants help with the rats in his barn. Pays in coin, too.',
+        'The gate wardens say wolves come out of the Old Wood at dusk. Go in pairs.',
+        'A fisherman swears there\'s a cave down the south-west shore. Nobody he knows has been in.',
+      ] },
+    },
+    trade: { sells: [['bread', 5], ['meat', 8], ['cheese', 6], ['fish', 5]], buys: ['loot'] },
+    chatter: ['Hot stew! Hot stew!', 'Another round?', 'Wipe your boots.'],
+  },
+  bell_bank: {
+    name: 'Banker Pell', idle: 8000,
+    look: { skin: '#f0c8a0', hair: '#3a3a3a', body: '#2a3a5a', arms: '#2a3a5a', legs: '#2a2a3a', feet: '#1a1a1a', belt: '#d0a030' },
+    greet: 'Good day, $name. Your gold is safe with me: you can {deposit}, {withdraw} or check your {balance}.',
+    keywords: { 'deposit|withdraw|balance': { bank: true }, job: 'I keep the town\'s gold. Yours too, if you like.', 'depot|locker': 'Your locker is right here: whatever you put in it waits for you.' },
+    chatter: ['Counting, counting.', 'Every coin in its place.'],
+  },
+  farrow: {
+    name: 'Old Farrow', idle: 5000,
+    look: { skin: '#d8a070', hair: '#b8b8b0', beard: '#b8b8b0', body: '#6a5a3a', arms: '#6a5a3a', legs: '#4a4a3a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a860' } },
+    greet: 'Eh? A visitor! Welcome to my farm, $name. Mind the {rats}.',
+    keywords: {
+      job: 'Farmer. Was, anyway. The fields have gone to weeds since my back gave out.',
+      'rats|quest|mission|task|help': { quest: ['farrow_rats'] },
+      'barn': 'Fell in two winters ago. Now the rats live there, and they eat my seed.',
+      'wood|wolves': 'North of the crossroads is the Old Wood. I don\'t go there any more.',
+    },
+    chatter: ['Blasted rats.', 'Oh, my back.', 'The crops won\'t plant themselves.'],
   },
   // ---- the Hall of Paths (Kestrel Isle): the Pathkeeper, and a teacher for each path (game-paths.js) ----
   pathkeeper: {

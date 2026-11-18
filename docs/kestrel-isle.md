@@ -58,15 +58,17 @@ from the courtyard" checks the first three rows on the real map.
   wide by the crossroads and narrowing as they go: north into the Old Wood (wolves and spiders; bears only in its
   heart), west to Old Farrow's farm, south along the shore.
 - Old Farrow's farm: a fenced yard with a gate where the track comes in, the farmhouse, a path to its door, the barn
-  fallen in (rats), a well, a wagon and haystacks; west of the yard, the fields in their own fence (rats, rabbits).
+  fallen in (rats), a well, a wagon and haystacks; Old Farrow at home, with his first quest (Rats in the Barn: 6 rats); west of the yard, the fields in their own fence (rats, rabbits).
 - The land: dense woods in the north, open meadow round the gate, scattered trees thinning to meadow round the farm.
   Rock formations are fewer and bigger: lobes grown together, a floor higher at their hearts, partly grown over.
 
 ## The town's buildings, and what each is for
 
 - Temple and bell tower (on the rock): you wake there; the tower has four storeys up to the bell.
-- Depot: lockers on both floors. General store: its storeroom cellar, down the stairs, has rats.
-- Inn: the tavern below, rooms with beds upstairs. Healer: the shop below, a sickroom upstairs.
+- Depot: lockers on both floors, Banker Pell (deposit, withdraw). General store: Wenna (tools, potions, food, a
+  backpack); its storeroom cellar, down the stairs, has rats.
+- Inn: Innkeeper Doss in the tavern below (food, the town's news), rooms with beds upstairs. Healer: Healer Orla in
+  the shop below (heals, sells potions), a sickroom upstairs. Smithy: Brask the Smith (first weapons and armour).
 - Harbour master: three storeys, a lookout over the bay at the top. Warehouse: a trapdoor down into the sewers.
 - Hall of Paths: the Pathkeeper and the four teachers (their practice rooms are reached through them).
 - The gates: a pair of watchtowers on each road, with stairs up to a lookout.

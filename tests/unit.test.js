@@ -1871,6 +1871,22 @@ test('Kestrel Isle: from the temple, every door, upper floor, cellar, grate and 
   assert(!missing.length, `can't be walked to: ${missing.join(', ')}`);
 });
 
+test('Kestrel Isle: every shop has its keeper inside, reachable to talk to; Old Farrow gives his rat quest', () => {
+  const game = loadGame({ world: 'kestrel' });
+  const { ctx, state } = game, p = state.player, K = state.KESTREL, [OX, OY] = K.isleAt, [TX, TY] = K.townAt;
+  for (const b of K.buildings.filter(o => o.keeper)) {
+    const n = state.npcs.find(o => o.npcId === b.keeper);
+    assert(n, `${b.name}: ${b.keeper} is there`);
+    const [ax, ay] = [n.x - OX - TX, n.y - OY - TY];
+    assert(b.boxes.some(([x0, y0, x1, y1]) => ax > x0 && ax < x1 && ay > y0 && ay < y1), `${b.name}: ${b.keeper} stands inside`);
+    assert([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => state.map.isWalkable(n.x + dx, n.y + dy, n.z)), `${b.name}: ${b.keeper} can be walked up to`);
+  }
+  const f = state.npcs.find(o => o.npcId === 'farrow');
+  ctx.teleport({ ...ctx.findFreeTile(f.x, f.y + 1, f.z, 2), z: f.z });
+  state.Actions.say('hi'); state.Actions.say('rats'); state.Actions.say('yes'); tick(game, 100);
+  assert.strictEqual(p.quests.farrow_rats && p.quests.farrow_rats.status, 'active', 'the quest is taken');
+});
+
 test('the guide on Kestrel Isle: Sister Ama, the sewers and Clang, the Hall of Paths, the four trials, choosing', () => {
   const game = loadGame({ world: 'kestrel' });
   const { ctx, state, messages } = game;

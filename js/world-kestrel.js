@@ -136,14 +136,14 @@ const KESTREL = {
     { name: 'Temple', boxes: [[23, 3, 31, 8], [25, 1, 29, 3]], door: [27, 8], kind: 'temple', rock: 2, wall: 'wall_stone', floor: 'temple_paving', roof: 'roof_slate' },
     { name: 'Bell tower', boxes: [[35, 4, 39, 9]], door: [37, 9], kind: 'tower', rock: true, wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 4, up: [[36, 5], [36, 7], [36, 5]] },
     { name: 'Hall of Paths', boxes: [[42, 4, 50, 11]], door: [46, 11], kind: 'hall', wall: 'wall_stone', floor: 'tiles', roof: 'roof_slate' },
-    { name: 'Depot', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
+    { name: 'Depot', keeper: 'bell_bank', boxes: [[7, 11, 14, 16]], door: [14, 13], kind: 'depot', wall: 'wall_stone', floor: 'marble', roof: 'roof_slate', floors: 2, up: [[8, 12]],
       upstairs: [['depot', 'depot', 'depot', 'depot', 'depot', 'plant']] }, // (more lockers upstairs)
-    { name: 'General store', boxes: [[42, 13, 50, 18]], door: [42, 15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle',
+    { name: 'General store', keeper: 'bell_store', boxes: [[42, 13, 50, 18]], door: [42, 15], kind: 'store', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle',
       cellar: { stairs: [48, 14], monsters: [['rat', 3]], props: [[43, 16, 'crate'], [44, 17, 'barrel'], [47, 17, 'sack'], [43, 14, 'crate']], torch: [45, 13] } }, // (its storeroom: rats in it)
-    { name: 'Inn: The Cracked Bell', boxes: [[6, 19, 14, 24]], door: [14, 22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle', floors: 2, up: [[7, 20]],
+    { name: 'Inn: The Cracked Bell', keeper: 'bell_inn', boxes: [[6, 19, 14, 24]], door: [14, 22], kind: 'inn', wall: 'wall_wood', floor: 'wood', roof: 'roof_shingle', floors: 2, up: [[7, 20]],
       upstairs: [['bed_head', 'bed_head', 'chest', 'bed_head', 'bed_head', 'plant']] }, // (rooms upstairs)
-    { name: 'Smithy', boxes: [[16, 24, 23, 29]], door: [20, 24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
-    { name: 'Healer', boxes: [[31, 24, 37, 28]], door: [34, 24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[32, 25]],
+    { name: 'Smithy', keeper: 'bell_smith', boxes: [[16, 24, 23, 29]], door: [20, 24], kind: 'smithy', wall: 'wall_stone', floor: 'brick', roof: 'roof_slate' },
+    { name: 'Healer', keeper: 'bell_healer', boxes: [[31, 24, 37, 28]], door: [34, 24], kind: 'healer', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[32, 25]],
       upstairs: [['bed_head', 'plant', 'bed_head', 'chest']] }, // (the sickroom upstairs)
     { name: 'House', boxes: [[8, 26, 13, 29]], door: [13, 27], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
     { name: 'House', boxes: [[40, 21, 46, 26]], door: [40, 23], kind: 'house', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
@@ -157,7 +157,7 @@ const KESTREL = {
     { name: 'North gate, west tower', boxes: [[46, -10, 50, -6]], door: [50, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 3, up: [[47, -9], [47, -7]] },
     { name: 'North gate, east tower', boxes: [[54, -10, 58, -6]], door: [54, -8], kind: 'gatehouse', wall: 'wall_stone', floor: 'wood', roof: 'roof_slate', floors: 2, up: [[55, -9]] },
     // out in the wilds: Old Farrow's farmhouse, west of the west gate (its yard, fields and barn: farrow, below)
-    { name: 'Farrow farmhouse', boxes: [[-47, 9, -42, 14]], door: [-45, 14], kind: 'farmhouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
+    { name: 'Farrow farmhouse', keeper: 'farrow', boxes: [[-47, 9, -42, 14]], door: [-45, 14], kind: 'farmhouse', wall: 'wall_wood', floor: 'wood', roof: 'roof_thatch' },
   ],
   // the sign beside each door (by kind), and what it says when you look at it
   signs: {
@@ -423,6 +423,14 @@ function createKestrelMap() {
     byWall.sort((a, c) => (a[1] - c[1]) || (a[0] - c[0]));
     const furnish = (list, z, spots) => list.forEach((id, i) => { const p = spots[Math.floor(i * spots.length / Math.max(1, list.length))]; if (p) { const t = T(p[0], p[1], z); if (!t.items.length) t.items.push(id); if (id === 'bed_head') { const f = T(p[0], p[1] + 1, z); if (f && !f.items.length && inner.some(([a, c]) => a === p[0] && c === p[1] + 1)) f.items.push('bed_foot'); else t.items = ['chest']; } } });
     furnish(list, Z, byWall);
+    // who keeps it (b.keeper): on a free tile inside, away from the door and the stairs, as near the middle as can be
+    if (b.keeper) {
+      const [mx, my] = [inner.reduce((v, [x]) => v + x, 0) / inner.length, inner.reduce((v, [, y]) => v + y, 0) / inner.length];
+      const spot = inner.filter(([x, y]) => !T(x, y, Z).items.length && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 2
+        && !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 2 && Math.abs(sy - y) <= 1) && !(b.cellar && Math.abs(b.cellar.stairs[0] - x) <= 2 && Math.abs(b.cellar.stairs[1] - y) <= 1))
+        .sort((p, q) => Math.hypot(p[0] - mx, p[1] - my) - Math.hypot(q[0] - mx, q[1] - my))[0];
+      if (spot) m.npcs.push({ type: b.keeper, x: OX + TX + spot[0], y: OY + TY + spot[1], z: Z });
+    }
     // the floors above: what they hold (b.upstairs, by floor), along the walls, away from the stairs
     (b.upstairs || []).forEach((ids, k) => {
       const z = Z + k + 1, clear = ([x, y]) => !(b.up || []).some(([sx, sy]) => Math.abs(sx - x) <= 1 && Math.abs(sy - y) <= 1) && !T(x, y, z).items.length;
