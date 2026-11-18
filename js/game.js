@@ -548,12 +548,38 @@ function creatureKey(c) {
 
 // The highest floor you see from here: what's above you hides the floors over it (a roof, the storey above). And
 // standing at a window or a door, or in a doorway, you look in: the roof of the building beyond lifts too.
+// Open ground of a floor above that only falls over you as it's drawn (it lies a tile down-right: the top of a wall
+// you stand just north of, a mountain's top behind you) hides nothing: the floors stay, and you (and who's beside
+// you) show through as a silhouette (coveredBy). Only a roof drawn over you lifts, to see behind the house.
 const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
+let coveredBy = false; // (this frame: open ground of a floor above drawn over you; see draw)
+// A short covered way through (under a gatehouse, a wall, a bridge): open sky a few steps on two opposite sides,
+// along walkable ground. Not a house: under a passage the floors above stay, as under the open ground beside one.
+const sky = (x, y, z) => !map.get(x, y, z + 1);
+function passage(x, y, z) {
+  for (const [dx, dy] of [[0, 1], [1, 0]]) {
+    const out = s => { for (let k = 1; k <= 3; k++) { const tx = x + dx * k * s, ty = y + dy * k * s; if (!map.isWalkable(tx, ty, z)) return false; if (sky(tx, ty, z)) return true; } return false; };
+    if (out(1) && out(-1)) return true;
+  }
+  return false;
+}
+function seenTop(x, y, z) {
+  const through = !sky(x, y, z) && passage(x, y, z);
+  for (let up = z + 1; up < map.depth; up++) {
+    const d = up - z, right = map.get(x, y, up), drawn = map.get(x + d, y + d, up);
+    // (on the foot of steps or a mountain path its own top is right over you: no roof, look past it)
+    if (right && through) { coveredBy = true; continue; }
+    if (right && !(d === 1 && THINGS[right.ground] && THINGS[right.ground].change === -1)) return up - 1;
+    if (drawn) {
+      if ((THINGS[drawn.ground] && THINGS[drawn.ground].roof) || drawn.items.some(id => THINGS[id].roof)) return up - 1;
+      coveredBy = true;
+    }
+  }
+  return map.depth - 1;
+}
 function peekMaxZ(x, y, z) {
-  // (on the foot of steps or a mountain path its own top is right over you: no roof, so look past it, or the floors
-  // above blink out for a step: the plateau gone, the rock under it a grey slab)
-  const over = map.get(x, y, z + 1), foot = over && THINGS[over.ground] && THINGS[over.ground].change === -1;
-  let top = foot ? Math.max(z + 1, map.visibleMaxZ(x, y, z + 1)) : map.visibleMaxZ(x, y, z);
+  coveredBy = false;
+  let top = seenTop(x, y, z);
   const opening = (tx, ty) => { const t = map.get(tx, ty, z); return !!t && t.items.some(OPENING); };
   const here = opening(x, y);
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
@@ -622,14 +648,17 @@ function draw() {
   if (!waterWarmed && Sprites.WATER_MOVES) { waterWarmed = true; Render.chores.push(...Sprites.warmWater()); }
   Render.idle(); // (the ground ahead, and those pictures, made between frames)
   const ox = Math.round(view.w / 2 - view.cx), oy = Math.round(view.h / 2 - view.cy);
-  if (!player.dead && !riding(player)) {
-    // Walls can hide you; a faint silhouette on top keeps you visible behind them.
-    ctx.globalAlpha = 0.35;
-    const img = strikeOf(player) || Sprites.creature(creatureKey(player), player.dir, pv.frame); // (a big picture has its tile in its bottom right)
-    const px = Math.round(ox + pv.x * TILE - LIFT - (Sprites.w(img) - TILE - (img.rx || 0))), py = Math.round(oy + pv.y * TILE - LIFT - (Sprites.h(img) - TILE));
+  // Walls can hide you; a faint silhouette on top keeps you visible behind them (and, under open ground of a floor
+  // above drawn over you, who's right beside you too: coveredBy in peekMaxZ)
+  const ghost = (c, v) => {
+    const img = strikeOf(c) || Sprites.creature(creatureKey(c), c.dir, v.frame); // (a big picture has its tile in its bottom right)
+    const px = Math.round(ox + v.x * TILE - LIFT - (Sprites.w(img) - TILE - (img.rx || 0))), py = Math.round(oy + v.y * TILE - LIFT - (Sprites.h(img) - TILE));
     Render.slanted(ctx, img, px, py, () => ctx.drawImage(img, px, py, Sprites.w(img), Sprites.h(img)));
-    ctx.globalAlpha = 1;
-  }
+  };
+  ctx.globalAlpha = 0.35;
+  if (coveredBy) for (const c of shown) if (c !== player && c.z === z && Math.max(Math.abs(c.x - player.x), Math.abs(c.y - player.y)) <= 2) ghost(c, visual(c));
+  if (!player.dead && !riding(player)) ghost(player, pv);
+  ctx.globalAlpha = 1;
   for (const p of players) if (riding(p) && p.z === z) {
     const v = visual(p);
     drawVehicle(p.ride.kind, ox + v.x * TILE, oy + v.y * TILE, true, p.dir === 3, p.ride.start);
