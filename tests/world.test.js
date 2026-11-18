@@ -408,6 +408,20 @@ test('every room on an upper floor is closed by walls (no floor running on outsi
   assert.deepStrictEqual(bad, [], `open to the outside at ${bad.join(' ')}`);
 });
 
+test('in town, street lamps and signposts stand free: never in a wall, and nothing in the way of their leaning pole and head', () => {
+  const bad = [], R = require('vm').runInContext('OAKVALE.ramparts', ctx); // (the island outside comes later)
+  for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
+    const t = map.get(x, y, S);
+    if (!t) continue;
+    for (const id of ['lamppost', 'lamppost_off', 'signpost']) if (t.items.includes(id)) {
+      const keep = t.items; t.items = []; // (judged as if its spot were bare: a lamp may not share it either)
+      if (keep.length > 1 || !ctx.lampFits(map, x, y, S)) bad.push(`${id} at ${x},${y}: ${keep.join('+')}`);
+      t.items = keep;
+    }
+  }
+  assert.deepStrictEqual(bad, [], `in the way of something:\n  ${bad.join('\n  ')}`);
+});
+
 test('the world saves compactly and loads back tile for tile', () => {
   const json = JSON.stringify(map), copy = GameMap.fromJSON(JSON.parse(json));
   assert.ok(json.length < 1.5e6, `the saved world is ${json.length} bytes`);

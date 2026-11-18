@@ -252,9 +252,11 @@ const OAKVALE = {
     [123, 144, 'bench'],
     [124, 99, 'sandbags'], [128, 99, 'sandbags'], // (the watch's, either side of the north gate's mouth)
   ],
-  lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
-    [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
-    [120, 126], [132, 126], [112, 107], [112, 127], [135, 110], [139, 110], [135, 115], [139, 115]],
+  // (each with room round it for its leaning pole and head: none against a wall, beside the well or a bench; along the
+  // lane past the academy only on its east side, the building's wall is on the west)
+  lamps: [[124, 98], [128, 98], [124, 104], [124, 112], [128, 133], [128, 139], [128, 145],
+    [103, 119], [103, 123], [150, 119], [149, 123], [116, 123], [143, 123], [120, 116], [132, 116],
+    [120, 126], [132, 126], [135, 112], [139, 112], [135, 115], [139, 115]],
   benches: [[122, 116], [130, 116], [122, 126], [130, 126]],
   planters: [],
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
@@ -277,9 +279,9 @@ const OAKVALE = {
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
     ['oak_gunner', 134, 102, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
-  notice: [142, 119, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
+  notice: [133, 113, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
-  firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
+  firstSteps: [141, 112, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
 // The sewers under Oakvale, one floor down: brick tunnels under the main streets, each with a channel of
@@ -1789,6 +1791,22 @@ function buildTowerTop(m, S) {
 
 // Builds the ruined watchtower on the Old Tower hill (see OLD_TOWER): the tower on the hilltop (floor 9), its broken
 // top (floor 10), and the cellar cut into the hill under it (floor 8).
+// Whether a street lamp (or another tall thing that leans up-left: a lamp post, a signpost) may stand at x, y, z: on
+// bare walkable ground, with nothing it would lean into (a wall, rock, a roof or another tall thing up-left of it,
+// or above it) and no other tall thing right beside it.
+const TALL_STANDING = new Set(['lamppost', 'lamppost_off', 'signpost', 'well', 'statue', 'noticeboard', 'bench', 'planter', 'stall', 'tree', 'pine',
+  'brazier', 'torch', 'flagpole', 'wagon', 'dummy', 'scarecrow', 'haystack', 'woodpile']);
+const LOOSE_GROUND = new Set(['flowers', 'grass_tuft', 'leaves', 'pebbles']); // (what a lamp may stand in: it's cleared)
+function lampFits(m, x, y, z) {
+  const t = m.get(x, y, z);
+  if (!t || t.items.some(id => !LOOSE_GROUND.has(id)) || !THINGS[t.ground] || THINGS[t.ground].block || THINGS[t.ground].change || ['water', 'canal'].includes(t.ground)) return false;
+  const solid = n => !!n && n.items.some(id => THINGS[id].wall || id === 'cliff' || id.startsWith('door') || TALL_STANDING.has(id) || (THINGS[id].block && !THINGS[id].low));
+  for (const [dx, dy] of [[-1, -1], [0, -1], [-1, 0]]) if (solid(m.get(x + dx, y + dy, z)) || m.get(x + dx, y + dy, z + 1)) return false;
+  if (m.get(x, y, z + 1)) return false;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const n = m.get(x + dx, y + dy, z); if ((dx || dy) && n && n.items.some(id => TALL_STANDING.has(id))) return false; }
+  return true;
+}
+
 function buildOldTower(m, S) {
   const T = OLD_TOWER, top = S + 1, up = S + 2;
   const ring = (x, y) => x === T.x0 || x === T.x1 || y === T.y0 || y === T.y1;
@@ -2450,10 +2468,12 @@ function buildTown(m, S, runs, river) {
     }
   }
   put(...T.mosaic, S, 'sun_mosaic');
-  for (const [x, y] of T.lamps) put(x, y, S, 'lamppost');
   for (const [x, y] of T.benches) put(x, y, S, 'bench');
   for (const [x, y] of T.planters) put(x, y, S, 'planter');
   for (const [x, y, id] of T.props) put(x, y, S, id);
+  // The street lamps last, only where they fit (lampFits: never in a wall, the well or a bench; world.test.js says
+  // which listed spot doesn't)
+  for (const [x, y] of T.lamps) if (lampFits(m, x, y, S)) { const t = m.get(x, y, S); t.items = []; put(x, y, S, 'lamppost'); } // (its flowers go)
   for (const [x, y] of T.canalReeds || []) { const t = m.get(x, y, S); if (t && t.ground === 'grass' && !t.items.length) put(x, y, S, 'reeds'); }
   if (T.statue) put(...T.statue, S, 'statue');
   for (const [x, y, text] of T.signs) { m.ensure(x, y, S).items = []; sign(x, y, S, 'signpost', text); }
@@ -2473,7 +2493,10 @@ function buildTown(m, S, runs, river) {
       const t = m.get(x, y, S);
       if (!t || t.ground !== 'grass' || t.items.length || inSq(x, y)) continue;
       if (![[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([dx, dy]) => inSq(x + dx, y + dy))) continue;
-      t.items = [k % 4 === 0 ? 'planter' : k % 7 === 3 ? 'bush' : 'flowers']; k++;
+      // (no flower box or bush right beside a lamp, a bench or another planter: flowers there, low under them)
+      const crowded = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([dx, dy]) => (m.get(x + dx, y + dy, S) || { items: [] }).items.some(id => TALL_STANDING.has(id) || id === 'bush'));
+      const pick = k % 4 === 0 ? 'planter' : k % 7 === 3 ? 'bush' : 'flowers';
+      t.items = [crowded ? 'flowers' : pick]; k++;
     }
   }
   // ---- the graveyard ---------------------------------------------------------------------------------------------
