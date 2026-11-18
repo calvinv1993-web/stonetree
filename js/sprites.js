@@ -7791,8 +7791,15 @@ const Sprites = (() => {
         const k = Sprites.CREATURE_RES, w = Math.round(own.naturalWidth / own.res * k), h = Math.round(own.naturalHeight / own.res * k);
         // (the owner's chimney: its smoke still curls up from its mouth, a picture for each frame)
         const smoke = id === 'chimney' ? ANIMATED.chimney.frames[Math.floor(time / ANIMATED.chimney.ms) % ANIMATED.chimney.frames.length] : -1;
-        return cached(`ownfine:${id}:${own.naturalWidth}:${own.src.length}:${hashStr(own.src)}:${k}:${smoke}`, g => {
+        // (the owner's fire basket: a live flame licks up over the painted one, a picture for each frame)
+        const fire = id === 'brazier' ? ANIMATED.brazier.frames[Math.floor(time / ANIMATED.brazier.ms) % ANIMATED.brazier.frames.length] : -1;
+        return cached(`ownfine:${id}:${own.naturalWidth}:${own.src.length}:${hashStr(own.src)}:${k}:${smoke}:${fire}`, g => {
           g.canvas.res = k; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(own, 0, 0, w, h);
+          if (fire >= 0) { // (at the painted flame's foot, in the picture's world pixels; see-through, so the paint shows)
+            g.save(); g.scale(k, k); g.globalAlpha = 0.7;
+            flame(g, 80.3, 66.5, 3.6, 9, fire); flame(g, 77.8, 67, 1.8, 5, (fire + 2) % 4);
+            g.restore();
+          }
           if (smoke >= 0) {
             g.scale(k, k);
             const mx = 42.8, my = 41; // its mouth, in the picture's world pixels

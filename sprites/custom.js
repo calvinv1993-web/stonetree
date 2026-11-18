@@ -392,6 +392,7 @@ const CUSTOM_SPRITES = {
   bell: 'bell@4x.png', // the owner's bell in its oak frame, both by two tiles as one picture (see BIG.bell)
   bed: 'bed@4x.png', // the owner's bed (both its tiles, as one picture: see BIG.bed) and anvil
   anvil: 'anvil@4x.png',
+  brazier: 'brazier@4x.png', // the owner's fire basket, standing upright on its tile (a live flame drawn over its painted one)
   statue: 'statue@4x.png', // the owner's statue, woodpile, haystack, table, chair (facing south) and chest
   woodpile: 'woodpile@4x.png',
   haystack: 'haystack@4x.png',
