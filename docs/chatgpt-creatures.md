@@ -36,6 +36,12 @@ The character:
 11. **Keeper Tamsin** (`oak_keeper`): `an old lighthouse keeper woman: grey hair, a dark blue oilskin coat, sturdy boots, a lantern in one hand, weathered face`
 12. **Hermit Brannoc** (`oak_hermit`): `an old hermit: long white hair and a long white beard, a patched brown robe tied with rope, a gnarled walking staff, barefoot`
 
+13. **Quartermaster Wynn** (`oak_quartermaster`): `the quartermaster of the town watch, a man in his forties: short brown hair, clean-shaven, a steel-grey mail shirt under a dark blue tabard, grey trousers, black boots, a brown leather belt with a ring of keys and a small ledger book tucked in it, a stern but fair face`
+14. **Old Maren the Fisher** (`oak_fisher`): `an old fisherman: short grey hair and a short grey beard, a weathered tanned face, a pale yellow oilskin hood, a dark blue fisherman's jumper, worn grey-brown trousers, black boots, a brown belt, a coil of rope over one shoulder and a small fishing rod in one hand`
+15. **Farmer Ned** (`oak_farmer`): `a farmer in his thirties: messy light-brown hair under a wide straw hat, a tanned face, a brown-olive work shirt with rolled sleeves, patched brown trousers, muddy brown boots, a brown belt, a pitchfork in one hand`
+16. **Gunner Hale** (`oak_gunner`): `a wounded cannon gunner of the town wall: short brown hair and a brown beard, a dark red gunner's coat over a steel breastplate, cream shirt sleeves, a white bandage round one thigh and a wooden crutch under one arm, soot on his face and hands, grey trousers, black boots`
+17. **Mara of Ferndeep** (`oak_refugee`): `a refugee woman who walked nine days to reach the town: long dark-brown hair under a dusty grey-green hood, a long travel-worn grey-brown robe with a frayed hem, a rope belt, worn brown boots, a bundle of belongings on her back, a tired, worried face`
+
 (More people come with the new quests: their descriptions are added here when they're in the game.)
 
 ## Sheet 8 of items: the new quests' finds

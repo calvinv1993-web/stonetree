@@ -399,9 +399,8 @@ const CUSTOM_SPRITES = {
   barrel: 'barrel@4x.png',
   noticeboard: 'noticeboard@4x.png',
   gravestone: 'gravestone@4x.png',
-  well: 'well@4x.png', // the owner's well, bench and signpost, in the world's camera
+  well: 'well@4x.png', // the owner's well and bench, in the world's camera (the signpost is drawn in code: a tall post)
   bench: 'bench@4x.png',
-  signpost: 'signpost@4x.png',
   pine: 'pine@4x.png', // the owner's pine, bush, street lamp and market stall, in the world's camera
   bush: 'bush@4x.png',
   lamppost: 'lamppost@4x.png',

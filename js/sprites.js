@@ -3668,11 +3668,23 @@ const Sprites = (() => {
       line(g, 'rgba(255,255,255,0.3)', 1, ...P(6, 16, 10), ...P(26, 16, 10));
     },
     // A signpost: a post with a board on it.
+    // A signpost: a tall post with a cap, and two arrow boards on it pointing opposite ways, with lines of writing.
     signpost(g) {
       floorShadow(g, 7, 2);
-      prism(g, 14, 15, 17, 18, 0, 26, { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' });
-      prism(g, 4, 15, 28, 17, 16, 27, { top: '#a8743e', south: '#7a4e26', east: '#5e3a1a', edge: '#c8925a' });
-      onSouth(g, 17, f => { for (const z of [19, 22]) rect(f, '#4a2a10', 8, z, 15, 1); });
+      const post = { top: '#7a4e26', south: '#5e3a1a', east: '#462a12', edge: '#9a6a38' };
+      const board = { top: '#b8844a', south: '#8a5a2c', east: '#64401e', edge: '#d8a468' };
+      prism(g, 15, 15, 18, 18, 0, 48, post);                                   // the post
+      prism(g, 14, 14, 19, 19, 48, 50, { top: '#5e3a1a', south: '#462a12', east: '#33200c', edge: '#7a4e26' }); // its cap
+      // the boards: one pointing east, up high, one pointing west below it, each a plank with a pointed end
+      for (const [u0, u1, z0, z1, tip] of [[9, 28, 36, 47, 34], [4, 23, 21, 32, -2]]) {
+        prism(g, u0, 18, u1, 20, z0, z1, board);
+        onSouth(g, 20, f => {
+          const end = tip > u1 ? u1 : u0, mid = (z0 + z1) / 2;
+          poly(f, board.south, [end, z0, tip, mid, end, z1]);                   // the point
+          poly(f, 'rgba(255,230,180,0.35)', [end, z1, tip, mid, end, z1 - 1]);  // its lit upper edge
+          for (const z of [z0 + 3, z0 + 6.5]) rect(f, '#3a200a', u0 + 3, z, u1 - u0 - 6, 1.4); // the writing
+        });
+      }
     },
     // A depot locker: an iron-bound wooden cabinet with two doors, a handle and a brass plate.
     depot(g) {
