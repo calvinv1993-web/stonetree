@@ -22,7 +22,7 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
   // healing after it, the loot, what dying means, trading, the locker. After them, no arrow: the map's circles. ----
   {
     text: 'The Hollow Host, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing. Most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. You have nothing: no gear, no training. But you are not alone: others have come here too, and together you are stronger.',
-    touch: 'The Hollow Host, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing. Most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. You have nothing: no gear, no training. But you are not alone: others have come here too, and together you are stronger.',
+    touch: 'The Hollow Host, an army of monsters, has swallowed the world. Oakvale is the last town standing, and most of its fighters are dead. You have no gear and no training. But you are not alone: others came here too.',
   },
   {
     text: 'First, walking: go to the temple\'s door, where the yellow arrow points. Click where you want to go, or walk with W A S D or the arrow keys.',
