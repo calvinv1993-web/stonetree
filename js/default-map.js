@@ -1165,6 +1165,31 @@ function createDefaultMap() {
   }
 
   buildTown(m, S, runs, d.rivers[0]);
+  // ---- round the town, outside its moat: not one empty lawn ------------------------------------------------------
+  // A field by the west road, fenced, with crops in rows, a scarecrow and a path from its gate to the road; and in the
+  // ring of open land round the moat, clumps of bushes with a tree in them, a few loose boulders and patches of
+  // wildflowers (never on a road or right beside one)
+  {
+    const B = OAKVALE.bounds, F = { x0: 87, y0: 100, x1: 93, y1: 107, gate: [90, 107] };
+    for (let y = F.y0; y <= F.y1; y++) for (let x = F.x0; x <= F.x1; x++) {
+      const t = m.get(x, y, S); if (!t || t.ground === 'water') continue;
+      const edge = x === F.x0 || x === F.x1 || y === F.y0 || y === F.y1;
+      if (edge) m.set(x, y, S, { ground: 'grass', items: x === F.gate[0] && y === F.gate[1] ? [] : ['fence'] });
+      else m.set(x, y, S, { ground: 'farmland', items: y % 2 ? ['crops'] : [] });
+    }
+    put(F.x0 + 2, F.y0 + 2, S, 'scarecrow');
+    for (let y = F.y1; y <= 116; y++) { const t = m.get(F.gate[0], y, S); if (t && t.ground === 'grass') m.set(F.gate[0], y, S, { ground: 'dirt', items: [] }); }
+    const road = g => ['dirt', 'cobble', 'gravel', 'bridge_ns', 'bridge_ew', 'farmland'].includes(g);
+    const nearRoad = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = m.get(x + dx, y + dy, S); if (t && (road(t.ground) || t.items.includes('fence'))) return true; } return false; };
+    for (let y = B.y0 - 14; y <= B.y1 + 14; y++) for (let x = B.x0 - 14; x <= B.x1 + 14; x++) {
+      if (x >= B.x0 && x <= B.x1 && y >= B.y0 && y <= B.y1) continue;
+      const t = m.get(x, y, S); if (!t || t.ground !== 'grass' || t.items.length || nearRoad(x, y)) continue;
+      const clump = noise(x, y, 5, 131), v = hash(x, y, 132);
+      if (clump > 0.74 && v < 0.55) put(x, y, S, v < 0.12 ? 'tree' : 'bush');
+      else if (clump < 0.2 && v < 0.05) put(x, y, S, 'rock');
+      else if (noise(x, y, 7, 133) > 0.7 && v < 0.3) put(x, y, S, 'flowers');
+    }
+  }
   buildSewers(m, S);
   buildCrypt(m, S);
   buildSpiderDen(m, S);
