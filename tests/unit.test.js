@@ -430,7 +430,7 @@ test('the sewers: a street grate takes you down to the rats, the ladder under it
 test('Oakvale: every shopkeeper, teacher and keeper stands inside their own building', () => {
   const { state } = quietGame(), B = state.OAKVALE.buildings;
   const home = { ama: 'temple', corwin: 'academy', oak_oracle: 'academy', postmaster: 'depot', pip: 'general', oak_smith: 'smith', oak_armourer: 'armour',
-    oak_mage: 'magic', oak_innkeeper: 'inn', oak_landlady: 'inn' };
+    oak_mage: 'magic', oak_baker: 'bakery', oak_innkeeper: 'inn', oak_landlady: 'inn' };
   for (const [id, where] of Object.entries(home)) {
     const n = state.npcs.find(o => o.npcId === id), b = B.find(o => o.id === where);
     assert(n && b, `${id} and ${where}`);
