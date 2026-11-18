@@ -178,6 +178,7 @@ const THINGS = {
   log:         { name: 'fallen log', cat: 'Nature', block: true, low: true },
   dry_bush:    { name: 'dry bush', cat: 'Nature' },
   lilypad:     { name: 'water lilies', cat: 'Nature' },
+  weir:        { name: 'weir', cat: 'Nature' }, // a low stone step across a canal, the water foaming over it
   stalagmite:  { name: 'stalagmite', cat: 'Nature', block: true, low: true },
   rubble:      { name: 'rubble', cat: 'Nature' },
   crystal:     { name: 'glowing crystal', cat: 'Nature', block: true, low: true, light: 3 },

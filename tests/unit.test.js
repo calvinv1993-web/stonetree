@@ -402,20 +402,20 @@ test('save and load keep the character', () => {
 test('the sewers: a street grate takes you down to the rats, the ladder under it back up', () => {
   const game = quietGame();
   const { ctx, state } = game;
-  const p = state.player, A = state.Actions, map = state.map;
-  ctx.teleport({ x: 131, y: 113, z: 8 });
-  A.walkTo(131, 111);
+  const p = state.player, A = state.Actions, map = state.map, [gx, gy] = state.OAKVALE.grates[0]; // (the grate by the square)
+  ctx.teleport({ x: gx + 2, y: gy, z: 8 });
+  A.walkTo(gx, gy);
   tick(game, 1500);
   assert.strictEqual(p.z, 8, 'walking over a grate doesn\'t drop you into the sewers');
-  assert.strictEqual(p.x * 1000 + p.y, 131111, 'you can stand on it');
-  A.walkTo(131, 113);
+  assert.strictEqual(p.x * 1000 + p.y, gx * 1000 + gy, 'you can stand on it');
+  A.walkTo(gx + 2, gy);
   tick(game, 1500);
-  A.interact('use', 131, 111, 8);
+  A.interact('use', gx, gy, 8);
   tick(game, 1500);
   assert.strictEqual(p.z, 7, 'using it climbs down through the grate on the square');
-  assert(Math.abs(p.x - 131) <= 1 && Math.abs(p.y - 111) <= 1, 'landed beside the ladder under it');
-  assert(map.get(131, 111, 7).items.includes('sewer_ladder'), 'a ladder stands under the grate');
-  A.walkTo(131, 111);
+  assert(Math.abs(p.x - gx) <= 1 && Math.abs(p.y - gy) <= 1, 'landed beside the ladder under it');
+  assert(map.get(gx, gy, 7).items.includes('sewer_ladder'), 'a ladder stands under the grate');
+  A.walkTo(gx, gy);
   tick(game, 1500);
   assert.strictEqual(p.z, 8, 'climbed back up the ladder');
   const below = map.spawns.filter(s => s.z === 7);
