@@ -416,7 +416,7 @@ function drawPowerGround(g, ox, oy, z) {
 }
 
 function drawGuideRing(g, ox, oy, z) {
-  const step = player.tutorial && !player.dead && GUIDE[player.tutorial - 1], t = step && guideTarget(step);
+  const step = player.tutorial && !player.dead && guideArrowOn() && GUIDE[player.tutorial - 1], t = step && guideTarget(step);
   if (!t || t.z !== z || t.z !== player.z) return;
   const v = visual(t), k = (now % 1200) / 1200, rx = TILE * (0.3 + 0.3 * k);
   const fx = ox + v.x * TILE + 16 - (t.type ? LIFT : 0), fy = oy + v.y * TILE + (t.type ? 29 - LIFT : 16);
@@ -1205,10 +1205,10 @@ function drawSocialIcons(c, x, y) {
   }
 }
 
-// The guide's arrow: bobbing over what it points at, or at the edge of the screen
+// The guide's arrow (through the basics: guideArrowOn): bobbing over what it points at, or at the edge of the screen
 // pointing its way when that is out of sight (or on another floor).
 function drawGuideArrow(screen) {
-  const step = player.tutorial && !player.dead && GUIDE[player.tutorial - 1], t = step && guideTarget(step);
+  const step = player.tutorial && !player.dead && guideArrowOn() && GUIDE[player.tutorial - 1], t = step && guideTarget(step); // (only through the basics)
   if (!t) return;
   const v = visual(t), [sx, sy] = screen(v.x + 0.5, v.y), bob = Math.sin(now / 180) * 5, m = 40;
   ctx.save();

@@ -1454,6 +1454,32 @@ test('training: hit a dummy as long as you like and your weapon skill grows; wal
   assert(!p.training && p.trainHits === hits, 'walking away stops it');
 });
 
+test('the map shows roughly where each quest you\'re on is done: the rats under Ned\'s barn, Sunny Fields, the nests, the bell, and the one to tell once it\'s done; never a hidden quest', () => {
+  const { ctx, state } = quietGame(), vm = require('vm'), run = code => vm.runInContext(code, ctx), p = state.player;
+  const area = id => run(`questArea('${id}')`), near = (a, x, y, z, d) => a && a.z === z && Math.hypot(a.x - x, a.y - y) <= d;
+  for (const id of ['bell_1', 'farm_rats', 'cellar_shield', 'clang_rescue', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6']) ctx.startQuest(id);
+  const ned = state.map.npcs.find(n => n.type === 'oak_farmer');
+  assert(near(area('farm_rats'), ned.x, ned.y, 7, 6), `Ned's rats: in the sewers under his barn (${JSON.stringify(area('farm_rats'))})`);
+  const corwin = state.map.npcs.find(n => n.type === 'corwin');
+  assert(near(area('bell_1'), corwin.x, corwin.y, 8, 4), 'bell I begins at Corwin');
+  p.quests.bell_1.step = 1; const rats = area('bell_1');
+  assert(rats.z === 8 && rats.y > 150, `then a rat in Sunny Fields, out of the south gate (${JSON.stringify(rats)})`);
+  p.quests.bell_1.kills = { rat: 1 }; assert(near(area('bell_1'), corwin.x, corwin.y, 8, 4), 'the rat dead: back to Corwin');
+  const nests = area('gate_east'), [nx, ny] = run('GATE_SITES.nests')[0];
+  assert(nests.z === 8 && Math.hypot(nests.x - nx, nests.y - ny) <= nests.r, 'the nests lie in the circle');
+  assert(near(area('gate_south'), 101, 220, 8, 1), 'the stranded fisher');
+  assert(near(area('gate_north'), 198, 70, 8, 1), 'Gnash\'s war chest');
+  const bell = area('bell_6'); assert(bell && run(`map.get(${bell.x}, ${bell.y}, ${bell.z}).items.some(i => i.startsWith('bell_'))`), 'bell III: the bell itself');
+  p.quests.clang_rescue.step = 1; assert(near(area('clang_rescue'), 148, 105, 7, 1), 'Clang: the fallen crate');
+  assert(near(area('cellar_shield'), 128, 125, 7, 1), 'the shield: the sewers');
+  p.quests.cellar_shield.step = 1; assert(near(area('cellar_shield'), 105, 121, 7, 1), 'then the storeroom\'s chest');
+  p.chests.oak_hoard = true; assert(near(area('cellar_shield'), corwin.x, corwin.y, 8, 4), 'opened: back to Corwin');
+  p.quests.old_wim = { status: 'active', step: 0, kills: {} };
+  assert.strictEqual(area('old_wim'), null, 'a hidden quest is found, not shown');
+  const all = run('questAreas()');
+  assert(all.every(a => a.key && Number.isInteger(a.x) && a.r > 0), 'every circle has a place, a size and a key');
+});
+
 test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (the world, walking, talking, a fight, healing, the loot, dying, gear, trading, the locker, Farmer Ned\'s grate and torch, the shield, Clang and the clapper, the gate watch, the farewell)', () => {
   const game = quietGame();
   const { ctx, state } = game;
@@ -1522,6 +1548,10 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   kill('rat', 5); assert.strictEqual(arrow(), grate(7), 'back up the ladder');
   on(null, { x: 128, y: 120, z: 8 });
   assert.strictEqual(arrow(), 'oak_farmer', 'back to him'); talk('oak_farmer', 'rats'); assert.strictEqual(state.questState('farm_rats'), 'done');
+  // the end of the basics: from here on no arrow, but a circle on the map for each quest you're on
+  assert(run('guideArrowOn()'), 'the arrow leads through the basics');
+  next('the end of the basics: the map from here on');
+  assert(!run('guideArrowOn()'), 'after the basics the guide shows no arrow');
   // level 2: a light, then the first way under the town, for a shield
   levelTo(2); tick(game, 100);
   assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes("cellar_shield")))') + 1, 'from here on the story leads: the shield chapter');

@@ -1,7 +1,7 @@
 'use strict';
-// The guide for new adventurers on Oakvale Isle: one thing at a time, with an arrow
-// pointing the way (drawGuideArrow in game.js, renderGuide in game-ui.js), through The Silent Bell
-// and the gate watch, to the oracle. You can put it away whenever you like.
+// The guide for new adventurers on Oakvale Isle: one thing at a time (renderGuide in game-ui.js), through The Silent
+// Bell and the gate watch, to the oracle; through the basics an arrow points the way (drawGuideArrow in game.js), after
+// them the map's circles (questAreas). You can put it away whenever you like.
 // player.tutorial is the step you're on (1 is the first), 0 when the guide is done.
 
 // text: what to do (touch: the same for a phone); target: what the arrow points at, the
@@ -15,7 +15,7 @@
 // at it (game-ui.js GuideSpot). art: a little picture in the guide's box (GUIDE_ART in game-ui.js). gift: things
 // handed to you when the step comes up (once: its flag), with who gives them and what they say. client: a step the
 // browser sees done (it calls Actions.guideNext; it has no Next button); touchOnly: only for a phone (passed at once
-// on a computer).
+// on a computer). basicsEnd: the last step with an arrow (guideArrowOn): after it, the map's circles show the way.
 const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, the first half hour: one thing at a time, each as it's needed (a step without done or on is read
   // and passed by itself): the world, walking, talking, a fight, healing after it, the loot, what dying means, gear,
@@ -134,6 +134,11 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     touch: 'Kill 5 rats ($progress), climb back up the ladder under the grate, and tell Farmer Ned.',
     target: [{ hunt: ['farm_rats'] }, { at: [...OAKVALE.grates[0], 7], when: () => player.z < map.surfaceZ && stepReady('farm_rats') }, { quest: 'farm_rats', npc: 'oak_farmer' }],
     done: () => questState('farm_rats') === 'done',
+  },
+  {
+    text: 'That was the basics! From here on there is no arrow: you find your own way. When you take on a task, the map marks roughly where it is with a gold circle, and its button gets a dot. The Quests tab always says what to do next.',
+    touch: 'That was the basics! From here on there is no arrow: you find your own way. When you take on a task, the map marks roughly where it is with a gold circle, and the map button gets a dot. The Quests tab always says what to do next.',
+    ui: ['#hudMap'], uiDesk: ['#mmWorld'], art: 'questmap', basicsEnd: true,
   },
   // ---- the story, a chapter at a time: the arrow follows it to the oracle ----
   {
@@ -331,6 +336,66 @@ function guideDid(deed) {
 }
 
 // What the arrow points at now: { x, y, z }, or null.
+// ---- the guide's arrow: only through the basics (up to the step marked basicsEnd); after that you find your own way,
+// with the map's circles (questAreas) ----
+function guideArrowOn() {
+  const end = GUIDE.findIndex(s => s.basicsEnd);
+  return end < 0 || player.tutorial <= end + 1;
+}
+
+// ---- roughly where a quest's current step is done: a circle on the map, { x, y, z, r } ----
+// Once what a step asks for is done, the one to tell; else the step's own where (npcs.js); a spot to clear; the nests
+// to burn; the thing to use; the monsters to kill (their home nearest the one you report to, on their floor if they live
+// there); or the one to talk to. Not for hidden quests: those are found.
+const thingSpots = {}; // (where each thing a quest uses stands, found once)
+function questArea(id) {
+  const q = player.quests[id], def = QUESTS[id];
+  if (!q || q.status !== 'active' || !def || def.hidden || def.chest) return null;
+  const st = questStep(id), ready = stepReady(id);
+  if (!st) return null;
+  const npcAt = nid => { const n = map.npcs.find(c => c.type === nid); return n ? { x: n.x, y: n.y, z: n.z, r: 3 } : null; };
+  const spread = list => {
+    if (!list.length) return null;
+    const x = Math.round(list.reduce((a, o) => a + o.x, 0) / list.length), y = Math.round(list.reduce((a, o) => a + o.y, 0) / list.length);
+    return { x, y, z: list[0].z, r: Math.min(14, Math.max(4, Math.ceil(Math.max(...list.map(o => dist(o, { x, y })))) + 2)) };
+  };
+  if (ready && (st.kill || st.fetch || st.burn || st.clear || st.has)) return npcAt(st.npc || def.giver);
+  const own = st.where !== undefined ? st.where : !def.steps ? def.where : undefined;
+  const w = typeof own === 'function' ? own() : own;
+  if (w) return { x: w[0], y: w[1], z: w[2], r: w[3] || 5 };
+  if (st.clear) return { x: st.clear.at[0], y: st.clear.at[1], z: st.clear.at[2], r: st.clear.range + 3 };
+  if (st.burn && typeof GATE_SITES !== 'undefined') return spread(GATE_SITES.nests.map(([x, y]) => ({ x, y, z: map.surfaceZ })));
+  const giver = npcAt(st.npc || def.giver) || player; // (who sent you there: things and monsters nearest them)
+  if (st.thing) {
+    if (!thingSpots[st.thing]) {
+      thingSpots[st.thing] = [];
+      for (let z = 0; z < map.depth; z++) for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
+        const t = map.get(x, y, z);
+        if (t && t.items.some(i => i === st.thing || (THINGS[i] && THINGS[i][st.thing] === true))) thingSpots[st.thing].push({ x, y, z }); // (the bell: each of its parts)
+      }
+      for (const [key, m] of Object.entries(map.meta || {})) if (m && m.thing === st.thing) { const [x, y, z] = key.split(',').map(Number); thingSpots[st.thing].push({ x, y, z }); }
+    }
+    const t = thingSpots[st.thing].slice().sort((a, b) => dist(a, giver) - dist(b, giver))[0];
+    if (t) return { ...t, r: 3 };
+  }
+  if (st.kill) {
+    const types = Object.keys(st.kill), homes = map.spawns.filter(s => types.includes(s.type));
+    const here = homes.filter(s => s.z === giver.z), pool = here.length ? here : homes;
+    const first = pool.slice().sort((a, b) => dist(a, giver) - dist(b, giver))[0];
+    if (first) return spread(pool.filter(s => s.z === first.z && dist(s, first) <= 10));
+  }
+  return npcAt(st.npc || def.giver);
+}
+// Every quest you're on that the map can show, with a key that changes when its step does (for the map's new-dot)
+function questAreas() {
+  const out = [];
+  for (const id of Object.keys(player.quests)) {
+    const a = questArea(id);
+    if (a) out.push({ ...a, id, key: `${id}@${player.quests[id].step || 0}:${a.x},${a.y},${a.z}` });
+  }
+  return out;
+}
+
 function guideTarget(step) {
   // a step for a higher level than yours: the arrow to the nearest gate guard (a hunt there grows you)
   if (step.minLevel && player.level < step.minLevel) {

@@ -262,6 +262,8 @@ const GUIDE_ART = (() => {
       cap(h('span', { className: 'ga-step' }, touchScreen ? '⇆' : '1-9'), touchScreen ? 'swipe: more' : 'spells'))],
     eatslot: () => [row(cap(h('span', { className: 'ga-slot-empty' }, icon('plus', 18)), 'tap the empty +'), h('span', { className: 'ga-arrow' }, '→'),
       cap(pic('meat'), 'choose Eat'), h('span', { className: 'ga-arrow' }, '→'), cap(icon('food', 20), 'one tap: eat'))],
+    questmap: () => [row(cap(h('span', { className: 'ga-map-dot' }, icon('map', 22)), 'a dot: new'),
+      h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '◯'), 'roughly where'))],
     map: () => [row(cap(icon('map', 22), touchScreen ? 'the map button' : 'the minimap'), h('span', { className: 'ga-arrow' }, '→'), cap(h('span', { className: 'ga-yellow' }, '◎'), 'tap a spot: walk there'))],
   };
 })();
@@ -1629,6 +1631,67 @@ function exploreAround() {
   }
 }
 
+// The quests you're on: a gold circle roughly where each is done (questAreas in game-guide.js). On another floor
+// it's dashed, with ▼ (below) or ▲ (above); off the edge of the map, a small gold point at the edge shows its way.
+function drawQuestAreas(g, c, z, scale, ox, oy) {
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+  g.save();
+  for (const a of MapNews.areas()) {
+    const px = ox + (a.x + 0.5) * scale, py = oy + (a.y + 0.5) * scale, r = Math.max(7, (a.r + 0.5) * scale), here = a.z === z;
+    if (px + r < 0 || py + r < 0 || px - r > c.width || py - r > c.height) { // (off the map: a point at its edge)
+      const cx = c.width / 2, cy = c.height / 2, ang = Math.atan2(py - cy, px - cx), m = 9;
+      const k = Math.min((cx - m) / Math.max(1e-6, Math.abs(Math.cos(ang))), (cy - m) / Math.max(1e-6, Math.abs(Math.sin(ang))));
+      g.save();
+      g.translate(cx + Math.cos(ang) * k, cy + Math.sin(ang) * k);
+      g.rotate(ang);
+      g.beginPath(); g.moveTo(7, 0); g.lineTo(-4, -6); g.lineTo(-4, 6); g.closePath();
+      g.lineWidth = 2; g.strokeStyle = '#000'; g.stroke();
+      g.fillStyle = '#ffd84a'; g.fill();
+      g.restore();
+      continue;
+    }
+    g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2);
+    if (here) { g.fillStyle = `rgba(255, 216, 74, ${0.14 + 0.08 * pulse})`; g.fill(); }
+    g.setLineDash(here ? [] : [4, 3]);
+    g.lineWidth = 3; g.strokeStyle = 'rgba(0, 0, 0, 0.7)'; g.stroke();
+    g.lineWidth = 1.5; g.strokeStyle = here ? '#ffd84a' : 'rgba(255, 216, 74, 0.8)'; g.stroke();
+    g.setLineDash([]);
+    if (!here) {
+      g.font = 'bold 11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 3; g.strokeStyle = '#000'; g.strokeText(a.z < z ? '▼' : '▲', px, py);
+      g.fillStyle = '#ffd84a'; g.fillText(a.z < z ? '▼' : '▲', px, py);
+    }
+  }
+  g.restore();
+}
+
+// ---- new on the map: a dot on the map's buttons (the phone's map button, the drawer's Map tab, Map under the
+// minimap) when a quest's circle is new or has moved on, till you look at the map. Not while the guide's arrow shows
+// the way (the basics). What you've seen is kept per character in this browser. ----
+const MapNews = (() => {
+  let seen = null, who = '', list = [], at = -1e9;
+  const storeKey = () => `tilequest.mapSeen.${who}`;
+  const save = () => { try { localStorage.setItem(storeKey(), JSON.stringify([...seen].slice(-200))); } catch (e) { /* (private window: kept till the page goes) */ } };
+  function areas() {
+    if (performance.now() - at > 500) { at = performance.now(); list = player && player.quests ? questAreas() : []; }
+    return list;
+  }
+  function update() {
+    if (!player || !player.name) return;
+    if (who !== player.name) { who = player.name; seen = new Set(); try { for (const k of JSON.parse(localStorage.getItem(storeKey()) || '[]')) seen.add(k); } catch (e) { /* (none kept) */ } }
+    const now = areas();
+    if (player.tutorial && guideArrowOn()) { if (now.some(a => !seen.has(a.key))) { for (const a of now) seen.add(a.key); save(); } } // (the arrow leads)
+    document.body.classList.toggle('map-news', now.some(a => !seen.has(a.key)));
+  }
+  function look() {
+    if (!seen) return;
+    let changed = false;
+    for (const a of areas()) if (!seen.has(a.key)) { seen.add(a.key); changed = true; }
+    if (changed) { save(); document.body.classList.remove('map-news'); }
+  }
+  return { areas, update, look };
+})();
+
 function drawMap(c, z, scale, cx, cy) {
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
@@ -1685,6 +1748,7 @@ function drawMap(c, z, scale, cx, cy) {
       g.fillText(k.label, kx + size / 2 + 3, ky + 4);
     }
   }
+  drawQuestAreas(g, c, z, scale, ox, oy);
   if (z === player.z && Math.floor(now / 400) % 2 === 0) {
     g.fillStyle = '#fff';
     if (minimap.whole && c.id === 'minimap') { // (the whole world: a bigger mark, ringed, to find yourself on it)
@@ -1845,8 +1909,10 @@ function minimapShown() {
 }
 
 function drawMinimap() {
-  if (!$('worldmap').hidden) drawWorldMap();
+  MapNews.update();
+  if (!$('worldmap').hidden) { drawWorldMap(); MapNews.look(); }
   if (!minimapShown()) return; // (drawn the moment it comes in sight: the drawer's Map tab draws it at once)
+  if (touchScreen || minimap.whole) MapNews.look(); // (on a phone the map is only in sight when you open it; on a computer, the world map)
   const z = minimap.viewZ ?? player.z, c = $('minimap');
   if (minimap.whole) { // the whole world, as big as fits, in the middle
     const scale = Math.min(c.width / map.width, c.height / map.height);

@@ -51,6 +51,8 @@ const BUYS = {
 // reward.daily: [[itemId, n]] more for the first quest with one that you finish each real day (the watch's hunts), and
 // text.daily what the giver adds then.
 // word: the word to ask about it (or a step's own word), when the NPC's keyword has several.
+// where: [x, y, z, r] (or a function giving one, or null): roughly where a step (or a quest without steps) is done, for
+// the circle on the map; without it the map works it out (questArea in game-guide.js).
 // again: { key: text } (in text, or on a step): what is said instead once someone else has rung the bell of Oakvale
 // home and its clapper was stolen again for you (bellAgain in game-core.js); $ringer is the first Bellringer.
 const QUESTS = {
@@ -301,6 +303,7 @@ const QUESTS = {
   },
   farm_rats: {
     name: 'Rats in the Grain', giver: 'oak_farmer', kill: { rat: 5 },
+    where: [110, 130, 7, 7], // (the sewers under his barn)
     startGift: { items: [['farm_torch', 1]], say: 'Take my torch: it is dark down there. Use it, and it lights your way.' },
     reward: { xp: 50, gold: 20, items: [['bread', 3]] },
     summary: 'Kill 5 rats for Farmer Ned: they come up out of the sewers into his grain. Any grate in town leads down to them.',
@@ -1688,7 +1691,7 @@ Object.assign(QUESTS, {
     reward: { xp: 150, gold: 60, items: [['health_potion', 3]], pet: { name: 'Clang', kind: 'cat' }, bell: true },
     summary: 'Find Clang, the temple cat, in the bell cellar under the temple, and bring him home - and the bell\'s clapper with him.',
     steps: [
-      { auto: true, kill: { rat: 3 }, summary: 'Down the grate on the square and north under it to the bell cellar, below the temple: kill 3 rats there.',
+      { auto: true, kill: { rat: 3 }, where: [140, 104, 7, 6], summary: 'Down the grate on the square and north under it to the bell cellar, below the temple: kill 3 rats there.',
         progress: 'The bell cellar lies at the north end of the sewers, under the temple. Rats killed: $progress.',
         done: 'The rats scatter. From behind a fallen crate at the far end of the cellar comes a small, offended mew.' },
       { thing: 'clang_crate', summary: 'Move the fallen crate at the east end of the bell cellar and free Clang.',
@@ -1713,10 +1716,10 @@ Object.assign(QUESTS, {
     reward: { xp: 60, gold: 20, items: [['health_potion', 2]] },
     summary: 'Go down into the sewers under the town, clear out some rats, and take back the shield they dragged into the old storeroom.',
     steps: [
-      { auto: true, kill: { rat: 5 }, summary: 'Climb down the grate on the square into the sewers, and kill 5 rats in the tunnels.',
+      { auto: true, kill: { rat: 5 }, where: [128, 125, 7, 12], summary: 'Climb down the grate on the square into the sewers, and kill 5 rats in the tunnels.',
         progress: 'The grate is on the square, south of the temple steps. Light your way with Torchlight. Rats killed: $progress.',
         done: 'The tunnels fall quiet. Somewhere to the west, in the old storeroom, the rats have been hoarding what they steal.' },
-      { npc: 'corwin', word: 'shield', summary: 'Open the old chest in the storeroom at the west end of the sewers, put on the wooden shield inside, and tell Master Corwin.',
+      { npc: 'corwin', word: 'shield', where: () => (player.chests.oak_hoard ? null : [105, 121, 7, 3]), summary: 'Open the old chest in the storeroom at the west end of the sewers, put on the wooden shield inside, and tell Master Corwin.',
         progress: 'The old storeroom is at the west end of the sewers, past the barrels. Take the shield from the chest and put it on.',
         done: 'A shield on your arm, and the rats know your name! Good. Keep it up: blows that would hurt you now glance off. The guards at the town gates have work for someone like you.' },
     ],
@@ -1895,6 +1898,7 @@ Object.assign(QUESTS, {
   // is taken from him there (trophy: game-gates.js), and a few of his wolves stand in the way
   gate_west: {
     name: 'The Gate Watch: Greyfang\'s Den', giver: 'gate_west', level: 2, kill: { wolf: 4 }, fetch: 'greyfang_pelt',
+    where: [68, 85, 8, 14], // (the paw prints by the lumber trail, up to his den)
     trophy: { type: 'greyfang', item: 'greyfang_pelt', text: 'Greyfang lies still at last. You cut his great grey pelt from him: Sergeant Bram will want to see it.' },
     reward: { xp: 250, gold: 30, items: [['leather_armor', 1], ['health_potion', 3]] },
     summary: 'Find Greyfang\'s paw prints by the lumber trail in Wolf Woods (out of the west gate and north-west), follow them to his den, and bring his pelt to Sergeant Bram at the west gate. His wolves will be in the way: 4 of them, at least.',
@@ -1956,7 +1960,7 @@ Object.assign(QUESTS, {
     reward: { xp: 700, gold: 60, items: [['studded_shield', 1], ['health_potion', 2]] },
     summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate.',
     steps: [
-      { fetch: 'gnash_plans', summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate. Go at night, when the goblins sleep, and never step right next to one.',
+      { fetch: 'gnash_plans', where: [198, 70, 8, 6], summary: 'Steal Gnash\'s war plans from the war chest in his camp on Goblin Hill (north-east, past Mirror Lake), and bring them to Captain Osric at the north gate. Go at night, when the goblins sleep, and never step right next to one.',
         progress: 'No plans yet? Goblin Hill is north-east, past Mirror Lake; the camp is at the top of the goblin trail. Go at night, and tread softly.',
         done: 'Gnash\'s war plans! Three arrows on my gate, and a moon... they meant to come at night. And this, in a neat human hand: "When the bell is silent, they may take what they like. - G." So the hooded man the goblins trade with is behind this too. You have earned this shield, $name, and my respect. You are ready for worse things now: Master Corwin at the academy has been asking for someone who dares go down into the {crypt} under Bone Rocks.' },
     ],
