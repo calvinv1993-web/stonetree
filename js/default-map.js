@@ -174,8 +174,7 @@ const OAKVALE = {
   streets: [
     { line: [[126, 89], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
     { line: [[94, 121], [158, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
-    { line: [[103, 130], [124, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square (narrower):
-    { line: [[128, 131], [146, 131]], width: 2, ground: 'cobble' },             //   past the high street it jogs a tile south
+    { line: [[103, 130], [146, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square: narrower, one line across
     { line: [[110, 107], [110, 130]], width: 3, ground: 'cobble' },             // the academy lane
   ],
   // The canal: water let in from the moat under the north wall, down the west side of the square and out under the
