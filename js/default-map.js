@@ -248,7 +248,7 @@ const OAKVALE = {
     [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
     [120, 126], [132, 126], [109, 107], [112, 127], [135, 110], [139, 110], [135, 115], [139, 115]],
   benches: [[122, 116], [130, 116], [122, 126], [130, 126]],
-  planters: [[129, 111], [141, 111]],
+  planters: [],
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
   signs: [
@@ -265,7 +265,7 @@ const OAKVALE = {
     ['gate_north', 124, 100, 8], ['gate_east', 148, 119, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 119, 8],
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
-  notice: [129, 113, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
+  notice: [139, 118, 'NOTICE: Rats in the cellars again! Brave helpers, ask in town.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
   firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
@@ -2404,7 +2404,7 @@ function buildTown(m, S, runs, river) {
   // fourth tile and a bush now and then, so it is a place of its own rather than a widening of the street (lamps and
   // benches keep their spots)
   {
-    const inSq = (x, y) => T.square.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    const inSq = (x, y) => T.square.slice(0, 3).some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
     let k = 0;
     for (let y = 109; y <= 130; y++) for (let x = 116; x <= 143; x++) {
       const t = m.get(x, y, S);
