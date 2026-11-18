@@ -299,6 +299,18 @@ const QUESTS = {
       done: 'My seed is safe, thanks to you. Come by any time.',
     },
   },
+  farm_rats: {
+    name: 'Rats in the Grain', giver: 'oak_farmer', kill: { rat: 5 },
+    reward: { xp: 50, gold: 20, items: [['bread', 3]] },
+    summary: 'Kill 5 rats for Farmer Ned: they come up out of the sewers into his grain. Any grate in town leads down to them.',
+    text: {
+      offer: 'Rats, up out of the sewers and into my grain, every night. Would you kill 5 of them for me? ({yes}/{no})',
+      accept: 'Bless you. Down any grate in the streets: the sewers are full of them. Come back when it\'s done.',
+      progress: 'So far you have killed $progress. Keep at it!',
+      reward: 'Five fewer rats! Here, some coin and three loaves of Willa\'s bread, baked from this very grain.',
+      done: 'The grain is safe, thanks to you.',
+    },
+  },
   lost_parcel: {
     name: 'The Lost Parcel', giver: 'hilda', fetch: 'parcel',
     reward: { xp: 80, gold: 20, items: [['health_potion', 3]] },
@@ -1963,7 +1975,7 @@ Object.assign(QUESTS, {
       offer: 'The wolves are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Wolf woods or the copses near town.',
       progress: 'So far: $progress.',
-      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      reward: 'Well hunted! Two watch marks: take them to the quartermaster in the Watch House, east of the square, or to Captain Osric at the north gate. Come back in a while, there will be more.',
       daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
@@ -1976,7 +1988,7 @@ Object.assign(QUESTS, {
       offer: 'The crabs are back, $name. They always come back. Hunt 8 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. The beaches.',
       progress: 'So far: $progress.',
-      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      reward: 'Well hunted! Two watch marks: take them to the quartermaster in the Watch House, east of the square, or to Captain Osric at the north gate. Come back in a while, there will be more.',
       daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
@@ -1989,7 +2001,7 @@ Object.assign(QUESTS, {
       offer: 'The spiders are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Round the spider hills.',
       progress: 'So far: $progress.',
-      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      reward: 'Well hunted! Two watch marks: take them to the quartermaster in the Watch House, east of the square, or to Captain Osric at the north gate. Come back in a while, there will be more.',
       daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
@@ -2002,7 +2014,7 @@ Object.assign(QUESTS, {
       offer: 'The goblins are back, $name. They always come back. Hunt 10 for the watch, and you will have two watch marks for it: Captain Osric at the north gate trades them for things from our stores. ({yes}/{no})',
       accept: 'Good hunting. Stony field or goblin hill.',
       progress: 'So far: $progress.',
-      reward: 'Well hunted! Two watch marks: take them to Captain Osric at the north gate. Come back in a while, there will be more.',
+      reward: 'Well hunted! Two watch marks: take them to the quartermaster in the Watch House, east of the square, or to Captain Osric at the north gate. Come back in a while, there will be more.',
       daily: 'And your first hunt for the watch today: three more marks on top, from the captain\'s own purse.',
       later: 'Nothing for now, $name. Come back in a while: there is always more work at the gate.',
     },
@@ -2373,6 +2385,37 @@ Object.assign(NPCS, {
     },
     trade: { sells: [['bread', 4], ['cheese', 3], ['apple', 2], ['meat', 7]], buys: ['loot'] },
   },
+  // ---- Oakvale's fisher by the canal, the quartermaster of the watch, the farmer ----
+  oak_fisher: {
+    name: 'Old Maren the Fisher', idle: 6000,
+    look: { skin: '#d8a070', hair: '#8a8a8a', beard: '#8a8a8a', body: '#3a5a7a', arms: '#3a5a7a', legs: '#4a4a3a', feet: '#2a2a2a', belt: '#5a3a1a', hat: { style: 'hood', color: '#d8c070' } },
+    greet: 'Ahoy, $name. Want to learn to {fish}? I sell rods, and I buy what you catch. Let\'s {trade}.',
+    keywords: {
+      job: 'I fish the canal and the moat, and teach the young ones.',
+      'fish|fishing|rod|jetty': 'Use the rod, then click the water. The jetty out back is the best spot in town. Fish heal you well when you eat them.',
+    },
+    trade: { sells: [['fishing_rod', 120], ['fish', 5]], buys: ['loot'] },
+    chatter: ['Biting today, they are.', 'Quiet water, fat fish.', 'This one was THIS big!'],
+  },
+  oak_quartermaster: {
+    name: 'Quartermaster Wynn', idle: 6000,
+    look: { skin: '#e0a878', hair: '#5a3a1a', body: '#2a4a7a', arms: '#a8aeb8', armor: '#a8aeb8', tabard: '#2a4a7a', legs: '#3a3a42', feet: '#2a2a2a', belt: '#5a3a1a' },
+    greet: 'The Watch House, $name. Hunted for the gate guards? Then you have watch {marks}: I keep the watch\'s stores.',
+    keywords: { job: 'I keep the watch\'s stores, and pay out for the hunts.', 'hunt|hunts|task|tasks': 'The four gate guards give the hunts. Two marks for each, and the stores are here.' },
+    chatter: ['Marks for stores, stores for marks.', 'Every potion counted.', 'The watch thanks you.'],
+  },
+  oak_farmer: {
+    name: 'Farmer Ned', idle: 5000,
+    look: { skin: '#d8a070', hair: '#a07040', body: '#6a5a3a', arms: '#6a5a3a', legs: '#4a4a3a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a860' } },
+    greet: 'Morning, $name! This is the town farm. The {rats} are at my grain again. Fancy some {trade}?',
+    keywords: {
+      job: 'I grow the town\'s grain. Willa bakes it, the town eats it, and the rats try to.',
+      'rats|quest|mission|task|help|grain': { quest: ['farm_rats'] },
+      'hay|loft|upstairs': 'The loft is full of hay for the winter. Mind the stairs.',
+    },
+    trade: { sells: [['carrot', 2], ['apple', 2]], buys: ['loot'] },
+    chatter: ['Good weather for the grain.', 'Blasted rats.', 'Hay\'s in, thank the Dawn.'],
+  },
   // The hermit of Hermit Rock: he sleeps by day and talks only at night (nightOnly), and keeps a page of the founder's
   // diary he found in a gull's nest
   oak_hermit: {
@@ -2421,17 +2464,17 @@ Object.assign(NPCS, {
     },
     chatter: ['The wind is turning.', 'A boat out there, without a lamp. Again.', 'Who sings out at sea at night?'],
   },
-  // Oakvale's landlady, at a table in the Sleepy Boar: the town's four houses are hers to let
+  // Oakvale's landlady, at a table in the Sleepy Boar: the town's one house to let is hers
   oak_landlady: {
     name: 'Landlady Hettie',
     look: { skin: '#f0c8a0', hair: '#b8b0a8', hairStyle: 'long', female: true, body: '#4a6a5a', arms: '#4a6a5a', legs: '#3a3a4a', feet: '#2a2a2a', belt: '#c8a060', robe: true, trim: '#c8a060' },
-    greet: 'A roof of your own, $name? I let the four houses of Oakvale. Ask me about the {houses}.',
+    greet: 'A roof of your own, $name? I let Bell Cottage, the house just by the inn. Ask me about the {houses}.',
     keywords: {
       'houses|house|rent|leave|home': { houses: true },
       job: 'I let houses, and I collect the rent, and I remember who paid it late.',
       'friends|share': 'Rent a house, and your friends may visit you there. A home is a fine place to keep what you find.',
     },
-    chatter: ['Rent is due at the end of the week!', 'Bell Cottage has the best view of the tower.', 'Ivy Cottage? Lovely in spring.'],
+    chatter: ['Rent is due at the end of the week!', 'Bell Cottage is lovely in spring.', 'One house, and a long list of people who want it.'],
   },
   oak_innkeeper: {
     name: 'Innkeeper Rolf',
@@ -2576,3 +2619,6 @@ Object.assign(NPCS, {
     chatter: ['Shoo, rats!', 'Good weather for the wheat.', 'The mill wants wind.'],
   },
 });
+// The quartermaster in Oakvale's Watch House keeps the same stores as the captain at the north gate (watch marks)
+NPCS.oak_quartermaster.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping|feather|gull|jay|cloak|ember|moss'] =
+  NPCS.gate_north.keywords['marks|mark|stores|shop|reward|potions|mana|life|keeping|feather|gull|jay|cloak|ember|moss'];

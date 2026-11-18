@@ -194,14 +194,13 @@ const OAKVALE = {
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
     { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 112, y0: 108, x1: 116, y1: 118, door: [112, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'fisher', name: 'The Fisher\'s Hut', kind: 'shop', x0: 112, y0: 108, x1: 116, y1: 118, door: [112, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', shelves: 'shelf', sign: 'The Fisher\'s Hut: fishing rods, and fish bought and sold. The jetty out back is the place to learn.' },
     { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread from the grain of Oakvale\'s own field, cheese, apples and meat. Eat to get your health and mana back faster.' },
-    { id: 'farm', name: 'The Farmhouse', kind: 'farm', x0: 112, y0: 134, x1: 115, y1: 140, door: [113, 134], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', sign: 'The town farm. Its grain feeds the Warm Loaf\'s ovens.' },
-    { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 145, y0: 108, x1: 148, y1: 111, door: [146, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'farm', name: 'The Farmhouse', kind: 'farm', x0: 112, y0: 134, x1: 115, y1: 140, door: [113, 134], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', sign: 'The town farm. Its grain feeds the Warm Loaf\'s ovens; the hay is kept in the loft.' },
     { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 109, x1: 108, y1: 118, door: [108, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
-    { id: 'house5', name: 'Corner House', kind: 'house', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate' },
+    { id: 'watch', name: 'The Watch House', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_wall', shelves: 'weapon_rack', sign: 'The Watch House. Bring your watch marks: the quartermaster keeps the watch\'s stores.' },
   ],
-  houses: { house1: 450, house3: 350, house4: 450, house5: 400 },
+  houses: { house4: 450 }, // (one house to let, by the inn: Bell Cottage)
   // Fenced gardens: vegetable rows (crops on farmland) or flower beds; gate: the gap in the fence.
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
@@ -234,18 +233,19 @@ const OAKVALE = {
   yard: { x0: 142, y0: 133, x1: 148, y1: 143, gate: [145, 133] }, // (in the south-east corner)
   paths: [
     [[121, 132], [121, 132]],                   // the depot, onto the lane
-    [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Corner House, onto the cross street
+    [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and the Watch House, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
     [[114, 123], [114, 123]],                          // the houses on the lane
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]],                   // the academy
     [[113, 132], [113, 133]],                   // the farmhouse
-    [[139, 112], [146, 112]],                   // Ivy Cottage, onto the temple walk
     [[115, 77], [115, 83]],                     // from the graveyard's gate down to the north road
     [[145, 132], [145, 132]],                   // the training yard
   ],
+  pier: [118, 113, 118, 114], // the fisher's jetty out over the canal
   // Things standing about: [x, y, id]
   props: [
+    [145, 109, 'bench'], [147, 109, 'bench'], [146, 108, 'flowers'], [144, 110, 'flowers'], [148, 110, 'flowers'], [146, 111, 'tree'], // (a garden below the bell tower)
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
     [123, 128, 'wagon'], [115, 134, 'haystack'],
@@ -268,7 +268,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 113, 137, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
@@ -2332,7 +2332,12 @@ function buildTown(m, S, runs, river) {
   shop(B.armour, ['dummy', 'table', 'dummy']); // (armour on stands and laid out on tables)
   shop(B.general, ['barrel', 'crate', 'sack']);
   shop(B.bakery, ['basket', 'sack', 'barrel']);
-  { const f = B.farm; for (const [x, y, id] of [[f.x0 + 1, f.y1 - 1, 'haystack'], [f.x0 + 2, f.y1 - 1, 'haystack'], [f.x0 + 1, f.y1 - 3, 'sack'], [f.x0 + 2, f.y1 - 3, 'sack'], [f.x1 - 1, f.y0 + 2, 'barrel']]) inside(f, x, y, id); }
+  { // the farm: sacks of grain and a barrel below, stairs up to the hay loft (haystacks and sacks)
+    const f = B.farm, [sx, sy] = [f.x1 - 1, f.y1 - 1];
+    for (const [x, y, id] of [[f.x1 - 1, f.y0 + 1, 'sack'], [f.x1 - 1, f.y0 + 2, 'sack'], [f.x1 - 1, f.y0 + 3, 'barrel']]) inside(f, x, y, id);
+    put(sx, sy, S, 'stairs_up'); put(sx, sy, S + 1, 'stairs_down');
+    for (const [x, y, id] of [[f.x0 + 1, f.y0 + 1, 'haystack'], [f.x1 - 1, f.y0 + 1, 'haystack'], [f.x0 + 1, f.y0 + 2, 'haystack'], [f.x1 - 1, f.y0 + 3, 'sack'], [f.x0 + 1, f.y0 + 4, 'haystack'], [f.x0 + 1, f.y1 - 1, 'sack']]) put(x, y, S + 1, id);
+  }
 
   // ---- the smithy: a forge and an anvil, and racks of goods ------------------------------------------------
   {
