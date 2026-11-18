@@ -2417,6 +2417,8 @@ function buildTown(m, S, runs, river) {
       if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
     } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
+  // a scarecrow in the middle of every big field
+  for (const gd of T.gardens) if (gd.kind === 'crops' && gd.x1 - gd.x0 >= 6 && gd.y1 - gd.y0 >= 6) m.get((gd.x0 + gd.x1) >> 1, (gd.y0 + gd.y1) >> 1, S).items = ['scarecrow'];
 
   // Gates of gardens and the yard: a step of gravel through them and either side, so nothing grows there.
   for (const g of [...T.gardens.filter(gd => gd.gate).map(gd => gd.gate), T.yard.gate]) for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
