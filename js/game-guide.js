@@ -70,14 +70,14 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     text: 'Rats run in Sunny Fields, out of the south gate. Space attacks the nearest monster (again for the next one), or click one. Rats are easy; grey wolves come in packs: keep away from them for now. Kill 5 rats ($progress).',
     touch: 'Rats run in Sunny Fields, out of the south gate. The big button does what the moment asks: red attacks the nearest monster, blue talks, amber opens a corpse, green opens a door. Rats are easy; grey wolves come in packs: keep away from them for now. Kill 5 rats ($progress).',
     ui: ['#tAttack'], uiDesk: ['#hotbar'],
-    target: [{ monster: 'rat' }, { at: [128, 150, 8] }],
+    target: [{ monster: 'rat' }, { at: [126, 153, 8] }],
     done: () => ratsDone(), // (the five for Corwin: also if they fell while an earlier step was still being read)
     art: 'smart',
   },
   {
     text: 'Monsters leave a corpse with loot. Right-click it to open it, then take what you want (Take all takes everything). Gold goes straight into your purse.',
     touch: 'Monsters leave a corpse with loot. Press the big button when it turns amber (or hold the corpse) to open it, then take what you want: Take all takes everything. Gold goes straight into your purse.',
-    target: [{ corpse: true }, { monster: 'rat' }, { at: [128, 150, 8] }],
+    target: [{ corpse: true }, { monster: 'rat' }, { at: [126, 153, 8] }],
     done: () => !!(player.openPile && player.openPile.corpse),
     art: 'loot',
   },
@@ -108,18 +108,24 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     touch: 'Level 2: your first spell, Torchlight (its button on the left). Master Corwin has a task under the town: a shield the rats stole. Down the grate on the square, kill 5 rats ($progress), take the shield from the old chest in the storeroom, and tell him.',
     art: 'sewer',
     // (the grate on the square; the rats; the storeroom's chest till it's open; the ladder back up; Corwin)
-    target: [{ news: ['corwin'], when: () => questState('cellar_shield') === 'none' }, { at: [131, 111, 8], active: 'cellar_shield@0' }, { hunt: ['cellar_shield'] },
-      { at: [105, 121, 7], when: () => !player.chests.oak_hoard }, { at: [131, 111, 7], active: 'cellar_shield@1' }, { quest: 'cellar_shield' }],
+    target: [{ news: ['corwin'], when: () => questState('cellar_shield') === 'none' }, { at: [...OAKVALE.grates[0], 8], active: 'cellar_shield@0' }, { hunt: ['cellar_shield'] },
+      { at: [105, 121, 7], when: () => !player.chests.oak_hoard }, { at: [...OAKVALE.grates[0], 7], active: 'cellar_shield@1' }, { quest: 'cellar_shield' }],
     done: () => questState('cellar_shield') === 'done',
   },
   {
-    text: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north). Kill the rats there ($progress), move the fallen crate, and bring him home: he fights at your side from then on.',
-    touch: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north). Kill the rats there ($progress), tap the fallen crate, and bring him home: he fights at your side from then on.',
+    text: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north): she thinks he knows where the bell\'s clapper went. Kill the rats there ($progress), move the fallen crate, and bring him home: he fights at your side from then on.',
+    touch: 'Sister Ama has lost her cat, Clang, in the bell cellar under the temple (down the grate on the square, then north): she thinks he knows where the bell\'s clapper went. Kill the rats there ($progress), tap the fallen crate, and bring him home: he fights at your side from then on.',
     art: 'clang',
     // (the grate; the rats in the bell cellar; the fallen crate; the ladder back up; Ama)
-    target: [{ news: ['ama'], when: () => questState('clang_rescue') === 'none' }, { at: [131, 111, 8], when: () => questOnStep('clang_rescue@0') || questOnStep('clang_rescue@1') }, { hunt: ['clang_rescue'] },
-      { at: [148, 105, 7], active: 'clang_rescue@1' }, { at: [131, 111, 7], active: 'clang_rescue@2' }, { quest: 'clang_rescue' }],
+    target: [{ news: ['ama'], when: () => questState('clang_rescue') === 'none' }, { at: [...OAKVALE.grates[0], 8], when: () => questOnStep('clang_rescue@0') || questOnStep('clang_rescue@1') }, { hunt: ['clang_rescue'] },
+      { at: [148, 105, 7], active: 'clang_rescue@1' }, { at: [...OAKVALE.grates[0], 7], active: 'clang_rescue@2' }, { quest: 'clang_rescue' }],
     done: () => questState('clang_rescue') === 'done',
+  },
+  {
+    text: 'Farmer Ned, at the hay barn in the south-west of town (at the end of the academy lane), has rats in his grain. Ask him about the rats, kill 5 of them in the sewers ($progress), and tell him.',
+    touch: 'Farmer Ned, at the hay barn in the south-west of town (at the end of the academy lane), has rats in his grain. Tap him, then Rats; kill 5 of them in the sewers ($progress), and tell him.',
+    target: [{ news: ['oak_farmer'] }, { quest: 'farm_rats' }, { hunt: ['farm_rats'] }, { at: [...OAKVALE.grates[0], 8] }, { npc: 'oak_farmer' }],
+    done: () => questState('farm_rats') === 'done',
   },
   {
     text: 'Grow stronger before the dark places: the four gate guards each have a task and gear for you, one after the other. West (Greyfang, the grey wolf), south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans).',
@@ -131,37 +137,7 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
       { quest: 'gate_west' }, { quest: 'gate_south' }, { quest: 'gate_east' }, { quest: 'gate_north' },
       // (the next guard who will have a task, once you're strong enough)
       ...[['gate_south', 3], ['gate_east', 4], ['gate_north', 5]].map(([id, level]) => ({ npc: id, level, when: () => questState(id) === 'none' }))],
-    done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_2') !== 'none',
-  },
-  {
-    text: 'At level 5, Master Corwin has a task about the crypt under Bone Rocks, south-west of town. Take a founder\'s weapon from its stone chests, clear the hall of coffins, and bring him the torn note.',
-    touch: 'At level 5, Master Corwin has a task about the crypt under Bone Rocks, south-west of town. Take a founder\'s weapon from its stone chests, clear the hall of coffins, and bring him the torn note.',
-    target: [{ news: ['corwin'] }, { quest: 'bell_2' }, { hunt: ['bell_2'] }, { at: [71, 181, 7] }, { at: [81, 198, 8] }],
-    done: () => questState('bell_2') === 'done',
-    minLevel: 5, // (till then: hunt at the gates)
-  },
-  {
-    text: 'Show Sister Ama the note. At level 6: down a sewer grate to the rats\' nest under the graveyard, and deeper, to the cistern and its great slime, for the rope. Bring potions and light.',
-    touch: 'Show Sister Ama the note. At level 6: down a sewer grate to the rats\' nest under the graveyard, and deeper, to the cistern and its great slime, for the rope. Bring potions and light.',
-    target: [{ quest: 'bell_3' }, { news: ['ama'] }, { hunt: ['bell_3'] }, { at: [147, 102, 5] }, { at: [128, 111, 6] }, { at: [147, 139, 7] }, { at: [131, 111, 8] }],
-    done: () => questState('bell_3') === 'done',
-    minLevel: 6, // (till then: hunt at the gates)
-  },
-  {
-    text: 'At level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him first, and fill a flask at the shrine by Mirror Lake.',
-    touch: 'At level 8: the Gravewaker, in the founder\'s tomb below the crypt. Ask Sister Ama about him first, and fill a flask at the shrine by Mirror Lake.',
-    target: [{ quest: 'bell_4' }, { news: ['ama'] }, { hunt: ['bell_4'] }, { at: [69, 176, 6] }, { at: [66, 181, 7] }, { at: [81, 198, 8] }],
-    done: () => questState('bell_4') === 'done',
-    minLevel: 8, // (till then: hunt at the gates)
-  },
-  {
-    text: 'The bell rings, but the Choir is not done: Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
-    touch: 'The bell rings, but the Choir is not done: Master Corwin has news of lights at Lighthouse Point. Ask him about the choir, see Keeper Tamsin, and follow the Choir\'s ash trail across the island.',
-    // (the ash trail: the hood in Greyfang's den, the altar in Frog Marsh, the signal fire on Stony Field: STORY_SITES)
-    target: [{ quest: 'bell_5' }, { news: ['corwin', 'oak_keeper'] }, { at: [66, 71, 8], active: 'bell_5@1' }, { at: [60, 125, 8], active: 'bell_5@2' },
-      { at: [89, 77, 8], active: 'bell_5@3' }, { hunt: ['bell_5'] }, { npc: 'oak_keeper' }],
-    done: () => questState('bell_5') === 'done',
-    minLevel: 8, // (till then: hunt at the gates)
+    done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
     text: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: ring the bell yourself, then say farewell to Corwin, Pip and Sergeant Bram, and come back to her.',

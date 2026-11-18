@@ -561,11 +561,12 @@ let bellRungAt = -Infinity;
 // ringers: who brought it home (newest last); first: the first of all, the Bellringer; dawn: the last day it rang in
 // the dawn by itself. Online it's kept in server/town.json; playing alone, in your save.
 let townBell = { ringers: [], first: null, dawn: -1 };
-const bellHung = () => townBell.ringers.length > 0 || questState('bell_4') === 'done';
+const rangHome = () => questState('clang_rescue') === 'done' || questState('bell_4') === 'done'; // (bell_4: an old save's story)
+const bellHung = () => townBell.ringers.length > 0 || rangHome();
 // The bell was rung home by someone else, and you haven't yet: for you its clapper was stolen again, and the story
 // starts over. A quest's texts (or a step's) may have such a variant in again: { key: text }; $ringer is the first
 // Bellringer.
-const bellAgain = () => !!townBell.first && questState('bell_4') !== 'done';
+const bellAgain = () => !!townBell.first && !rangHome();
 const storyText = (o, key) => {
   const s = (bellAgain() && o.again && o.again[key]) || o[key];
   return typeof s === 'string' ? s.replace(/\$ringer/g, townBell.first || '') : s;
@@ -589,7 +590,7 @@ function bellRestored() {
 // A save from before the shared bell: who brought the clapper home goes on the plaque all the same (and is the
 // Bellringer, if nobody is yet), so the bell rings at dawn for them too
 function rememberBellRinger() {
-  if (questState('bell_4') !== 'done' || !player.name || townBell.ringers.includes(player.name)) return;
+  if (!rangHome() || !player.name || townBell.ringers.includes(player.name)) return;
   if (!townBell.first) { townBell.first = player.name; player.chests.bellringer = true; }
   townBell.ringers = [player.name, ...townBell.ringers].slice(-40); // (they rang it before those on the plaque now)
   player.chests.bell_ringer = true;
@@ -1538,7 +1539,7 @@ function gainXp(amount, shared) {
       }
     });
     if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: The Silent Bell VI)
-      log(questState('bell_5') === 'done' && questState('bell_6') !== 'done'
+      log(questState('clang_rescue') === 'done' && questState('bell_6') !== 'done'
         ? 'You are ready to choose a vocation! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
         : 'You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
     }

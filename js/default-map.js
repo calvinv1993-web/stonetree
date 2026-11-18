@@ -1248,11 +1248,7 @@ function createDefaultMap() {
   for (const [x, y] of [[127, 215], [129, 215]]) if (m.isWalkable(x, y, S)) put(x, y, S, 'pillar');
   if (m.isWalkable(133, 211, S)) put(133, 211, S, 'campfire');
   if (m.isWalkable(195, 47, S + 1)) put(195, 47, S + 1, 'campfire_out'); // the hermit's fire on Hermit Rock (lit at night: a story)
-  // the founder's diary, page by page (The Oakvale Chronicle): out in the world, where she wrote them
-  for (const [page, x, y, z] of [[1, 48, 175, S], [2, ...OLD_TOWER.page, S + 1], [3, 82, 181, S - 1], [4, 197, 71, S]]) {
-    const p = (m.isWalkable(x, y, z) ? { x, y } : null) || [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => m.isWalkable(q.x, q.y, z));
-    if (p) { put(p.x, p.y, z, 'chronicle_page'); m.setMeta(p.x, p.y, z, { page }); }
-  }
+  // (the founder's diary, The Oakvale Chronicle, isn't on the island any more: its pages wait for the mainland)
   const taken = new Set();
   // Open ground: not a little pocket shut in between trees or rocks (at least 40 tiles to walk about in).
   const open = (x, y, z) => {

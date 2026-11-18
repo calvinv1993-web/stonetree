@@ -366,8 +366,7 @@ const THINGS = {
   },
   qchest_oak_armor: {
     name: 'rotting pack', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_boots', requires: 'bell_3@2', gold: 40, items: [['leather_boots', 1]],
-      locked: 'Something big moves in the dark. This is no time to rummage through old packs.' },
+    chest: { flag: 'oak_boots', gold: 40, items: [['leather_boots', 1]] },
   },
   // The crypt under Bone Rocks: the gate to the founder's tomb opens on The Silent Bell IV (meta quest: 'bell_4'),
   // and the torn note by it can be picked up once the hall of coffins is cleared (The Silent Bell II).
@@ -423,15 +422,15 @@ const THINGS = {
   // The crypt under Bone Rocks: three weapon chests, and you may take from only one: the founders' arms, the best on the isle.
   qchest_crypt_sword: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@0', locked: 'A founder\'s chest. You have no business with it - yet.', items: [['longsword', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['longsword', 1]] },
   },
   qchest_crypt_axe: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@0', locked: 'A founder\'s chest. You have no business with it - yet.', items: [['war_axe', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['war_axe', 1]] },
   },
   qchest_crypt_club: {
     name: 'stone chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_crypt_arms', choice: true, requires: 'bell_2@0', locked: 'A founder\'s chest. You have no business with it - yet.', items: [['mace', 1]] },
+    chest: { flag: 'oak_crypt_arms', choice: true, items: [['mace', 1]] },
   },
   // Oakvale Isle's hidden quests (nobody sends you; rumours, gravestones and books tell of them): once per character, with
   // experience for the finding. The Watchman's Greaves (the cellar of the Old Tower), The Bronze Ward (Gnash's hoard in the

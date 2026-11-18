@@ -1,6 +1,6 @@
 'use strict';
 // The whole starter-island story, from a new character to the oracle, played through in several ways, on the real
-// game logic: every quest, the guide, the gate watch and its hunts, Clang, the chronicle, the farewell and the
+// game logic: every quest, the guide, Clang and the bell's clapper, Farmer Ned, the gate watch and its hunts, the farewell and the
 // vocation. Each scenario must end with everything done and the guide gone, and may never throw, lose a quest item,
 // skip a step or leave the guide pointing nowhere.
 //   node tests/story.test.js            (all scenarios)
@@ -67,6 +67,7 @@ const STEPS = [
   ['level 2, Torchlight', d => { d.levelTo(2); d.A.say('lumen'); d.tick(300); }],
   ['the Rats\' Hoard', d => { d.talk('corwin', 'shield', 'yes'); d.go({ x: 131, y: 112, z: 7 }); d.kill('rat', 5); d.use(105, 121, 7); d.wear('wooden_shield'); d.talk('corwin', 'shield'); }],
   ['Clang', d => { d.talk('ama', 'clang', 'yes'); d.go({ x: 140, y: 104, z: 7 }); d.kill('rat', 3); d.use(148, 105, 7); d.talk('ama', 'clang'); }],
+  ['Farmer Ned', d => { d.talk('oak_farmer', 'rats', 'yes'); d.kill('rat', 5); d.talk('oak_farmer', 'rats'); }],
   ['the gate watch', d => {
     // west: Greyfang's pack and Greyfang (his pelt); south: Wendel off his rock (wherever he is: a friend may have sent
     // him home already); east: four nests (one a friend burnt is spun again after a while); north: Gnash's war plans
@@ -87,12 +88,7 @@ const STEPS = [
     }
   }],
   ['a watch hunt and the stores', d => { d.talk('gate_west', 'hunt', 'yes'); d.kill('wolf', 10); d.talk('gate_west', 'hunt'); d.talk('gate_north', 'potions'); }],
-  ['bell II: the crypt', d => { d.talk('corwin', 'crypt', 'yes'); d.kill('skeleton', 6); d.use(80, 178, 7); d.use(71, 181, 7); d.talk('corwin', 'note'); }],
-  ['bell III: the rope', d => { d.levelTo(6); d.talk('ama', 'rope', 'yes'); d.kill('giant_rat', 8); d.kill('cistern_slime', 1); d.ctx.useThing(147, 102, 5); d.tick(150); d.talk('ama', 'rope'); }],
-  ['bell IV: the Gravewaker', d => { d.levelTo(8); d.talk('ama', 'gravewaker', 'yes'); d.kill('gravewaker', 1); d.ctx.useThing(69, 176, 6); d.tick(150); d.talk('ama', 'clapper'); }],
-  ['bell V: the Choir', d => { d.talk('corwin', 'choir', 'yes'); d.talk('oak_keeper', 'lights'); d.use(66, 71, 8); d.use(60, 125, 8); d.use(89, 77, 8); d.kill('choir_cultist', 3); d.kill('choir_cantor', 1); d.talk('corwin', 'choir'); }],
-  ['the chronicle', d => { for (const [x, y, z] of [[48, 175, 8], [198, 118, 9], [82, 181, 7], [197, 71, 8]]) { d.ctx.useThing(x, y, z); d.tick(100); } d.talk('oak_hermit', 'page'); d.talk('corwin', 'chronicle'); }],
-  ['bell VI: farewell', d => { d.levelTo(10); d.talk('ama', 'farewell', 'yes'); d.go({ x: 145, y: 103, z: 13 }); d.state.now += 60000; d.ctx.ringBell(); d.tick(100);
+  ['bell III: farewell', d => { d.levelTo(10); d.talk('ama', 'farewell', 'yes'); d.go({ x: 145, y: 103, z: 13 }); d.state.now += 60000; d.ctx.ringBell(); d.tick(100);
     for (const id of ['corwin', 'pip', 'gate_west']) d.talk(id, 'farewell'); d.talk('ama', 'farewell'); }],
   ['the oracle', d => {
     // (a guide still on has followed the whole story: it's on its last step, the oracle)
@@ -104,7 +100,7 @@ const STEPS = [
   }],
 ];
 
-const DONE = ['bell_1', 'cellar_shield', 'clang_rescue', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_2', 'bell_3', 'bell_4', 'bell_5', 'bell_6'];
+const DONE = ['bell_1', 'cellar_shield', 'clang_rescue', 'farm_rats', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6'];
 
 // What must hold after each step, whatever the scenario
 function check(d, name) {
@@ -120,8 +116,7 @@ function finished(d, name) {
   const p = d.p();
   for (const id of DONE) assert.strictEqual(d.state_(id), 'done', `${name}: ${id} not done`);
   assert(p.pet && p.pet.kind === 'cat', `${name}: no Clang`);
-  assert.strictEqual(d.run('chronicleCount()'), 6, `${name}: chronicle not complete`);
-  assert(p.chests.chronicle_done, `${name}: Corwin never pieced the chronicle together`);
+  assert(d.run('bellHung()'), `${name}: the bell doesn't hang again`);
   assert.strictEqual(p.vocation, 'knight', `${name}: no vocation`);
   assert.strictEqual(p.tutorial, 0, `${name}: the guide is still on`);
   assert(p.equipment.shield && p.equipment.head, `${name}: lost the starter gear (${JSON.stringify([p.equipment.shield, p.equipment.head, p.tutorial, p.chests.guide_kit, p.equipment.backpack.contents.map(i => i.id)])})`);
@@ -173,12 +168,13 @@ const SCENARIOS = {
   // trying everything too early: nothing opens, nothing is skipped, nothing breaks
   'out-of-order': () => {
     const d = driver(newGame(5));
-    for (const [x, y, z] of [[105, 121, 7], [148, 105, 7], [80, 178, 7], [71, 181, 7], [147, 102, 5], [69, 176, 6]]) { d.ctx.useThing(x, y, z); d.tick(50); }
-    for (const [id, word] of [['corwin', 'crypt'], ['ama', 'rope'], ['ama', 'gravewaker'], ['corwin', 'choir'], ['ama', 'farewell'], ['oak_keeper', 'lights'], ['gate_north', 'goblins'], ['oak_oracle', 'knight']]) d.talk(id, word, 'yes');
-    d.ctx.ringBell(); d.kill('gravewaker', 1); d.kill('choir_cantor', 1);
+    for (const [x, y, z] of [[105, 121, 7], [148, 105, 7]]) { d.ctx.useThing(x, y, z); d.tick(50); }
+    for (const [id, word] of [['ama', 'clang'], ['ama', 'farewell'], ['oak_farmer', 'rats'], ['gate_north', 'goblins'], ['oak_oracle', 'knight']]) d.talk(id, word, 'yes');
+    d.ctx.ringBell();
     assert.strictEqual(d.p().vocation, 'none', 'no vocation at level 1');
     for (const id of DONE) if (id !== 'bell_1') assert.notStrictEqual(d.state_(id), 'done', `out-of-order: ${id} done too early`);
-    for (const it of ['wooden_shield', 'torn_note', 'chewed_rope', 'bell_clapper']) assert.strictEqual(d.state.countItem(it), 0, `out-of-order: ${it} taken too early`);
+    for (const it of ['wooden_shield']) assert.strictEqual(d.state.countItem(it), 0, `out-of-order: ${it} taken too early`);
+    assert(!d.run('bellHung()'), 'out-of-order: the bell hangs too early');
     for (const [n, f] of STEPS) { f(d); check(d, n); } finished(d, 'out-of-order');
   },
   // the guide started again half way: what's done passes, the rest goes on

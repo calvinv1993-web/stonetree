@@ -850,6 +850,223 @@ test('raids bring monsters and announce themselves', () => {
   assert(state.player.events.some(e => e.kind === 'raid'));
 });
 
+// Oakvale Isle's quests that wait for the mainland (taken off the island when its story was made shorter): The Silent
+// Bell's old middle chapters (the crypt, the rope, the Gravewaker, the Choir), the Oakvale Chronicle, Tidecutter, the
+// Keeper's Coat, the Eagle's Eyrie and the Bone Chapel
+const vm = require('vm');
+const inCtx = (game, src) => vm.runInContext(src, game.ctx);
+const vmLevelXp = (ctx, l) => vm.runInContext(`xpForLevel(${l})`, ctx);
+function discoveryKit() {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const at = (x, y, z) => { const f = ctx.findFreeTile(x, y, z, 2); ctx.teleport({ x: f.x, y: f.y, z }); tick(game, 50); };
+  const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  const meet = id => { const n = state.npcs.find(c => c.npcId === id); if (p.conversation) said('bye'); at(n.x, n.y, n.z); return said('hi'); };
+  const give = (id, n = 1) => p.equipment.backpack.contents.push(state.ITEMS[id].stack ? { id, count: n } : { id, count: 1 });
+  const has = id => state.countItem(id) > 0;
+  const night = () => { while (ctx.daylight() >= 1) tick(game, 60000); };
+  p.equipment.backpack = { id: 'backpack', count: 1, contents: [] };
+  return { game, ctx, state, messages, p, A, at, said, meet, give, has, night };
+}
+test('The Silent Bell in order of danger: the crypt hall, then the rope deep under town, then the Gravewaker', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions, map = state.map;
+  p.quests.bell_1 = { status: 'done', step: 5, kills: {} };
+  const talk = (x, y, z, ...words) => { ctx.teleport({ x, y, z }); A.say('hi'); for (const w of words) A.say(w); A.say('bye'); };
+  const kill = (type, n) => { for (let i = 0; i < n; i++) ctx.onMonsterKilled(type); };
+  // II: the crypt hall, from Master Corwin at level 5
+  p.level = 4;
+  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
+  assert.strictEqual(state.questState('bell_2'), 'none', 'not before level 5');
+  p.level = 5;
+  talk(...besideNpc(game, 'corwin'), 'crypt', 'yes');
+  assert.strictEqual(state.questState('bell_2'), 'active');
+  assert(messages.some(m => /Brenna/.test(m) && /potions/.test(m)), 'with advice: armour from Brenna, potions from Pip');
+  ctx.useThing(71, 181, 7);
+  assert(state.countItem('torn_note') === 0, 'no note while the dead still walk');
+  ctx.useThing(80, 178, 7);
+  assert(state.countItem('war_axe') === 1, 'a founder\'s weapon at once: for the fight in the hall');
+  kill('skeleton', 4);
+  assert.strictEqual(p.quests.bell_2.step, 1, 'four skeletons: the hall is cleared, without going back');
+  ctx.useThing(71, 181, 7);
+  assert(state.countItem('war_axe') === 1 && state.countItem('torn_note') === 1, 'one of the founders\' weapons, and the note');
+  assert(!ctx.playerCanEnter(69, 181, 7), 'the iron gate to the tomb stays shut');
+  talk(...besideNpc(game, 'corwin'), 'crypt');
+  assert.strictEqual(state.questState('bell_2'), 'done', 'Corwin reads the note');
+  // III: the rope, from Ama at level 6, past the giant rats and the cistern slime
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_3'), 'none', 'not before level 6');
+  p.level = 6;
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_3'), 'active');
+  ctx.useThing(147, 102, 5);
+  assert.strictEqual(state.countItem('chewed_rope'), 0, 'the rope waits until the way is cleared');
+  kill('giant_rat', 8);
+  kill('cistern_slime', 1);
+  assert.strictEqual(p.quests.bell_3.step, 2, 'the drains and the cistern slime');
+  ctx.useThing(147, 102, 5);
+  ctx.useThing(142, 103, 5);
+  assert(state.countItem('chewed_rope') === 1 && state.countItem('leather_boots') === 1, 'the rope, and boots in the rotting pack');
+  talk(136, 102, 9, 'bell');
+  assert.strictEqual(state.questState('bell_3'), 'done');
+  // IV: the Gravewaker, at level 8: the gate opens, the tomb gives the clapper, the bell rings
+  ctx.useThing(146, 103, 13);
+  assert(/hangs silent/.test(messages[messages.length - 1]), 'the bell is still silent');
+  p.level = 8;
+  talk(136, 102, 9, 'bell', 'yes');
+  assert.strictEqual(state.questState('bell_4'), 'active');
+  assert(ctx.playerCanEnter(69, 181, 7), 'the iron gate opens now');
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 0, 'the clapper waits for the Gravewaker');
+  kill('gravewaker', 1);
+  ctx.useThing(69, 176, 6);
+  assert.strictEqual(state.countItem('bell_clapper'), 1);
+  talk(136, 102, 9, 'bell');
+  assert.strictEqual(state.questState('bell_4'), 'done');
+  assert(messages.some(m => /rings again/.test(m)), 'the bell rings out');
+  assert.strictEqual(state.countItem('ring_life'), 1, 'and Ama gives a ring of life (the armour is the Old Tower\'s to give)');
+  ctx.useThing(146, 103, 13);
+  assert(/still humming/.test(messages[messages.length - 1]), 'it hums a while after');
+  state.now += 31000;
+  ctx.useThing(146, 103, 13);
+  assert(/rings the bell of Oakvale/.test(messages[messages.length - 1]), 'then anyone may ring it');
+  p.level = 9;
+  talk(110, 102, 9, 'knight', 'yes');
+  assert.strictEqual(p.vocation, 'none', 'the oracle wants level 10, bell or no bell');
+});
+
+
+test('the Oakvale Chronicle: pages in the world, one from the hermit at night, and Corwin pieces them together', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  for (const [x, y, z] of [[48, 175, 8], [198, 118, 9], [82, 181, 7], [197, 71, 8]]) ctx.useThing(x, y, z); // (page 2: on the Old Tower's hilltop)
+  assert.strictEqual(ctx.chronicleCount(), 4, 'four pages read where they lie');
+  const hermit = state.npcs.find(n => n.npcId === 'oak_hermit');
+  ctx.teleport({ ...ctx.findFreeTile(hermit.x, hermit.y, hermit.z, 2), z: hermit.z });
+  const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
+  const night = () => { while (ctx.daylight() >= 1) tick(game, 60000); };
+  while (ctx.daylight() < 1) tick(game, 60000);
+  assert(/asleep/.test(said('hi')), 'the hermit sleeps by day');
+  night(); said('hi'); said('page');
+  assert.strictEqual(ctx.chronicleCount(), 5, 'and gives his page at night');
+  p.chests.chronicle_6 = true;
+  const corwin = state.npcs.find(n => n.npcId === 'corwin');
+  said('bye'); ctx.teleport({ ...ctx.findFreeTile(corwin.x, corwin.y, corwin.z, 2), z: corwin.z }); tick(game, 200);
+  const xp = p.xp; said('hi');
+  assert(/Edda Marrowind/.test(said('chronicle')) && p.xp > xp, 'all six: the founder has a name, and a reward');
+});
+
+
+test('Tidecutter: Old Maddock\'s tale, the chart in his chest, the key dug up where its rhyme says, the sea cave\'s gate, the blade from the wreck', () => {
+  const { game, ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.some(s => s.type === 'brineshell' && s.z === 7), 'Old Snapper\'s mate keeps the sea cave');
+  assert(map.spawns.filter(s => s.type === 'crab' && s.z === 7).length >= 3, 'and crabs');
+  meet('rest_fisher'); assert(/not for you yet/.test(said('tale')), 'level 7 first');
+  p.level = 7; meet('rest_fisher');
+  assert(/sea cave/.test(said('tale')) && /chart/.test(said('yes')), 'the tale, and where the chart is');
+  give('shovel');
+  ctx.useTool('shovel', 50, 188, 8); assert(!has('sea_key'), 'from afar: nothing');
+  at(52, 177, 8); ctx.useThing(52, 177, 8);
+  assert(has('tide_chart') && /three grey stones/i.test(state.ITEMS.tide_chart.text), 'the chart, with its rhyme');
+  at(50, 188, 8); ctx.useItemOn(bagRef(state, 'shovel'), 50, 188, 8);
+  assert(has('sea_key') && p.quests.tidecutter.step === 1, 'the key, where the three stones stand');
+  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i.id !== 'sea_key');
+  ctx.useItemOn(bagRef(state, 'shovel'), 50, 188, 8);
+  assert(has('sea_key'), 'lost it? it is there again while the quest needs it');
+  // the gate of the sea cave
+  ctx.teleport({ x: 49, y: 196, z: 7 }); tick(game, 50);
+  const key = p.equipment.backpack.contents.find(i => i.id === 'sea_key');
+  p.equipment.backpack.contents = p.equipment.backpack.contents.filter(i => i !== key);
+  ctx.bumpDoor(48, 196, 7); assert(map.get(48, 196, 7).items.includes('sea_gate'), 'locked without the key');
+  p.equipment.backpack.contents.push(key);
+  ctx.bumpDoor(48, 196, 7); assert(map.get(48, 196, 7).items.includes('sea_gate_open'), 'the key opens it');
+  tick(game, 61000); assert(map.get(48, 196, 7).items.includes('sea_gate'), 'and it shuts again a minute later');
+  at(43, 202, 7); ctx.useThing(43, 202, 7);
+  assert(has('tidecutter'), 'Tidecutter, from the wreck of the Gull');
+  const xp = p.xp; meet('rest_fisher');
+  assert(/lighthouse/.test(said('tale')) && p.quests.tidecutter.status === 'done' && p.xp > xp + 250, 'brought to Maddock: the reward, and the next clue');
+  assert(!has('tidecutter') && has('tide_ring'), 'he hangs the blade over his door, and gives you Wenna\'s ring (King Mogg\'s sabre is the isle\'s blade)');
+});
+
+
+test('The Keeper\'s Coat: oil from the farm\'s cellar, spider silk, flint from the North Peaks cave with a pick, the lamp lit at the top of the lighthouse', () => {
+  const { ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.filter(s => s.type === 'giant_rat' && s.x >= 115 && s.x <= 124 && s.y >= 151 && s.y <= 158 && s.z === 7).length === 4, 'giant rats in Odo\'s cellar');
+  p.level = 8; meet('oak_keeper');
+  assert(/never burned/.test(said('lighthouse')) && /Odo/.test(said('yes')), 'Tamsin asks, and says where to look');
+  meet('fields_farmer'); assert(/cellar/.test(said('oil')), 'Odo keeps the oil in his cellar');
+  at(117, 153, 7); ctx.useThing(117, 153, 7); assert(has('lamp_oil'), 'a jar of lamp oil');
+  give('pick'); at(78, 54, 7);
+  ctx.useThing(78, 54, 7); assert(!has('flint'), 'by hand: no');
+  ctx.useItemOn(bagRef(state, 'pick'), 78, 54, 7); assert(has('flint'), 'a pick breaks a piece of flint off');
+  at(124, 203, 10);
+  ctx.useThing(124, 203, 10); assert(p.quests.keeper_coat.step === 0, 'no silk for a wick yet');
+  give('spider_silk', 3);
+  ctx.useThing(124, 203, 10);
+  assert(p.quests.keeper_coat.step === 1 && !has('lamp_oil') && !has('flint') && !has('spider_silk'), 'lit, with all three');
+  assert(map.get(124, 203, 10).items.includes('lighthouse_lamp_lit'), 'and it burns for all to see');
+  const xp = p.xp; meet('oak_keeper');
+  assert(/eagles/.test(said('lighthouse')) && has('keeper_lantern') && p.xp > xp + 300, 'the keeper\'s lantern, and the next clue');
+  const lantern = bagRef(state, 'keeper_lantern');
+  p.lightUntil = 0; ctx.useItem(lantern);
+  assert(p.lightUntil > state.now && has('keeper_lantern'), 'it lights you up, and isn\'t used up');
+});
+
+
+test('The Eagle\'s Eyrie: through the North Peaks cave (a pick for the fallen rock), up the chimney to the nest; boots from the hermit at night', () => {
+  const { game, ctx, state, p, at, said, meet, give, has, night } = discoveryKit();
+  const { map } = state;
+  assert(map.spawns.filter(s => s.type === 'shade').length >= 5, 'shades in the cave and on the peak');
+  assert(map.get(91, 54, 7).items.includes('cracked_rock') && !map.isWalkable(91, 54, 7), 'fallen rock across the way on');
+  give('pick'); at(91, 55, 7); ctx.useItemOn(bagRef(state, 'pick'), 91, 54, 7);
+  assert(map.isWalkable(91, 54, 7), 'a pick breaks through');
+  // up the chimney: the ladder in the cave, then two more inside the mountain
+  ctx.teleport({ x: 94, y: 51, z: 7 }); tick(game, 50);
+  for (const [x, y, z] of [[95, 51, 7], [95, 49, 8], [94, 49, 9]]) {
+    assert.strictEqual(p.z, z, `on floor ${z}`);
+    ctx.useThing(x, y, z); tick(game, 50);
+  }
+  assert.strictEqual(p.z, 10, 'out on the eyrie');
+  at(98, 50, 10); ctx.useThing(98, 50, 10);
+  assert(!has('eagle_feather'), 'not on the quest: only an old nest');
+  p.level = 9; night(); meet('oak_hermit');
+  assert(/eyrie/.test(said('eagle')) && /chimney/.test(said('yes')), 'the hermit tells the way');
+  at(98, 50, 10); ctx.useThing(98, 50, 10); assert(has('eagle_feather'), 'a feather of the great eagles');
+  night(); meet('oak_hermit');
+  const vm = require('vm'), before = vm.runInContext('speedOf(player)', ctx);
+  assert(/Featherstep/.test(said('eagle')) && has('featherstep_boots') && !has('eagle_feather'), 'boots for the feather');
+  p.equipment.feet = { id: 'featherstep_boots', count: 1 };
+  assert.strictEqual(vm.runInContext('speedOf(player)', ctx), before + state.ITEMS.featherstep_boots.speed, 'and you walk quicker in them');
+});
+
+
+test('The Bone Chapel: a pick through the crypt\'s cracked wall, Ossian\'s three bones (rats\' nest, a dug grave, the hall\'s coffin), the crest whole, a bone amulet', () => {
+  const { game, ctx, state, p, at, said, meet, give, has } = discoveryKit();
+  const { map } = state;
+  assert(!map.isWalkable(89, 181, 7), 'a cracked wall in the hall of coffins');
+  give('pick'); at(88, 181, 7); ctx.useItemOn(bagRef(state, 'pick'), 89, 181, 7);
+  assert(map.isWalkable(89, 181, 7), 'a pick breaks through');
+  ctx.useThing(73, 181, 7); assert(!has('crest_skull'), 'the coffin holds nothing for you before you know');
+  p.level = 6; meet('oak_ossian');
+  assert(/jaw/.test(said('crest')) && /nest/.test(said('yes')), 'Ossian asks for his bones');
+  at(149, 141, 7); ctx.useThing(149, 142, 7); assert(has('crest_jaw'), 'the jawbone in the rats\' nest');
+  meet('oak_ossian'); assert(/knucklebone/.test(said('jaw')), 'he sets it in, and tells of the grave');
+  give('shovel'); at(146, 140, 8); ctx.useItemOn(bagRef(state, 'shovel'), 146, 141, 8);
+  assert(has('crest_knuckle'), 'the knucklebone from the grave with no stone');
+  at(73, 180, 7); ctx.useThing(73, 181, 7); assert(has('crest_skull'), 'the carved skull from the cracked coffin');
+  at(94, 178, 7); ctx.useThing(94, 177, 7);
+  assert(!has('crest_skull') && !has('crest_knuckle'), 'both set into the crest');
+  meet('oak_ossian'); said('crest');
+  assert(has('bone_amulet') && state.questState('bone_chapel') === 'done', 'a bone amulet, and the chapel at peace');
+  assert(state.QUESTS.bone_chapel.hidden && !state.GUIDE.some(st => (st.target || []).some(t => t.quest === 'bone_chapel')), 'hidden: no guide arrow');
+});
+
+
 let failed = 0;
 for (const t of tests) {
   try {
