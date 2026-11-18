@@ -204,20 +204,20 @@ const OAKVALE = {
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
-    { x0: 104, y0: 133, x1: 111, y1: 137, kind: 'crops', gate: [108, 133] },   // a field of grain in the south-west
+    { x0: 104, y0: 133, x1: 114, y1: 143, kind: 'crops', gate: [109, 133] },   // a field of grain filling the south-west corner
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
-  graveyard: { x0: 104, y0: 139, x1: 111, y1: 143, gate: [111, 141], stones: [ // (in the south-west corner)
-    [105, 140, 'Here lies Old Wim, who went down the well for a bet.'],
-    [107, 140, 'An adventurer who never bought a rope.'],
-    [109, 140, 'Bertha Oakhart. She fed the town through the long winter.'],
-    [106, 142, 'Sir Galen. He said the rats in the cellar were "only rats".'],
-    [108, 142, 'Taken by the spiders of the hills. Go well armed, friend.'],
-    [110, 142, 'No name. Only the words: "the hills remember".'],
+  graveyard: { x0: 107, y0: 75, x1: 114, y1: 79, gate: [114, 77], stones: [ // (outside the walls, north-west of the north gate, a path from it down to the north road)
+    [108, 76, 'Here lies Old Wim, who went down the well for a bet.'],
+    [110, 76, 'An adventurer who never bought a rope.'],
+    [112, 76, 'Bertha Oakhart. She fed the town through the long winter.'],
+    [109, 78, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [111, 78, 'Taken by the spiders of the hills. Go well armed, friend.'],
+    [113, 78, 'No name. Only the words: "the hills remember".'],
     // the three of the Old Tower's last watch, side by side: the order they came to the wall is the order of its levers
-    [105, 142, 'Watchman Oswin of the Old Tower. When the horn blew he was always FIRST up the stair, and he held the EAST wall.'],
-    [107, 142, 'Watchwoman Marrow of the Old Tower. SECOND to the wall, every time, and she kept the WEST side of it.'],
-    [109, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
+    [108, 78, 'Watchman Oswin of the Old Tower. When the horn blew he was always FIRST up the stair, and he held the EAST wall.'],
+    [110, 78, 'Watchwoman Marrow of the Old Tower. SECOND to the wall, every time, and she kept the WEST side of it.'],
+    [112, 78, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[130, 117], [140, 131], [110, 128], [127, 141]],
@@ -238,7 +238,7 @@ const OAKVALE = {
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]],                   // the academy
     [[139, 112], [146, 112]],                   // Ivy Cottage, onto the temple walk
-    [[113, 132], [113, 141]], [[112, 141], [112, 141]], // to the graveyard
+    [[115, 77], [115, 83]],                     // from the graveyard's gate down to the north road
     [[145, 132], [145, 132]],                   // the training yard
     [[109, 112], [109, 112]],                   // Bell Cottage
   ],
@@ -1181,6 +1181,7 @@ function createDefaultMap() {
     const nearRoad = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = m.get(x + dx, y + dy, S); if (t && (road(t.ground) || t.items.includes('fence'))) return true; } return false; };
     for (let y = B.y0 - 14; y <= B.y1 + 14; y++) for (let x = B.x0 - 14; x <= B.x1 + 14; x++) {
       if (x >= B.x0 && x <= B.x1 && y >= B.y0 && y <= B.y1) continue;
+      { const g = OAKVALE.graveyard; if (x >= g.x0 - 1 && x <= g.x1 + 1 && y >= g.y0 - 1 && y <= g.y1 + 1) continue; } // (the graveyard keeps its own)
       const t = m.get(x, y, S); if (!t || t.ground !== 'grass' || t.items.length || nearRoad(x, y)) continue;
       const clump = noise(x, y, 5, 131), v = hash(x, y, 132);
       if (clump > 0.74 && v < 0.55) put(x, y, S, v < 0.12 ? 'tree' : 'bush');
@@ -1321,6 +1322,7 @@ function createDefaultMap() {
     if (p) { taken.add(`${p[0]},${p[1]},${S}`); m.spawns.push({ type, x: p[0], y: p[1], z: S, night: 'bell_5', lurk: true, leash: 3, band: 'choir' }); }
   }
 
+  { const g = OAKVALE.graveyard; m.spawns = m.spawns.filter(p => p.z !== S || p.x < g.x0 || p.x > g.x1 || p.y < g.y0 || p.y > g.y1); } // (nothing spawns in the graveyard)
   tidyWorld(m, S);
 
   // ---- where you start: in the temple ------------------------------------------------------------

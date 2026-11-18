@@ -268,6 +268,7 @@ test('in Oakvale, everything inside the walls (buildings, the temple mount, gard
   const close = [];
   for (const b of [...T.buildings, { id: 'temple mount', ...T.mount }, ...T.gardens.map((g, i) => ({ id: `garden ${i}`, ...g })), { id: 'yard', ...T.yard }, { id: 'graveyard', ...T.graveyard }]) {
     for (const [x0, y0, x1, y1] of [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])]) {
+      if (x1 < wx0 - 3 || x0 > wx1 + 3 || y1 < wy0 - 3 || y0 > wy1 + 3) continue; // (outside the walls altogether: the graveyard)
       if (x0 - wx0 - 1 < 2 || y0 - wy0 - 1 < 2 || wx1 - x1 - 1 < 2 || wy1 - y1 - 1 < 2) close.push(b.id);
     }
   }
