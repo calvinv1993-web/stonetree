@@ -2509,6 +2509,20 @@ test('hidden quests: no mark over the giver\'s head and no guide arrow, but the 
   said('bye');
 });
 
+test('greetings follow you: Osric mentions watch marks only once you have some, Corwin greets his fighters as such', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const A = state.Actions;
+  const greet = id => { const n = state.npcs.find(c => c.npcId === id); ctx.teleport({ ...ctx.findFreeTile(n.x, n.y, n.z, 2), z: n.z }); tick(game, 100);
+    const at = messages.length; A.say('hi'); tick(game, 100); const out = messages.slice(at).join(' | '); A.say('bye'); tick(game, 200); return out; };
+  assert(!/\{marks\}/.test(greet('gate_north')), 'no marks yet: not mentioned');
+  ctx.addItem('watch_mark', 2);
+  assert(/\{marks\}/.test(greet('gate_north')), 'with marks: they are');
+  assert(/new face/.test(greet('corwin')), 'a new face before the training');
+  state.player.quests.recruit = { status: 'done', step: 1, kills: {} };
+  assert(/Back again/.test(greet('corwin')) && !/new face/.test(greet('corwin')), 'one of his fighters after it');
+});
+
 test('every picture is listed with its own version (else run: node tests/sprite-versions.js)', () => {
   const { versions, OUT } = require('./sprite-versions');
   const listed = vm.runInNewContext(`${fs.readFileSync(OUT, 'utf8')}; SPRITE_HASHES`);

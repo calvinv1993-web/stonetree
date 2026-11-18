@@ -235,15 +235,20 @@ function toast(text, kind) {
   if (kind === 'damage') return; // (the numbers over your head say it already)
   if (document.getElementById('chatLine') && !TOAST_KINDS.has(kind)) return;
   const box = $('toasts'), line = document.createElement('div');
-  // just under the status bar, or under the guide or a corpse's window when they show: clear of you in the middle of the map
-  const shown = id => { const el = $(id); return el && !el.hidden && el.offsetParent && getComputedStyle(el).display !== 'none' ? el.getBoundingClientRect().bottom : 0; };
-  const under = Math.max($('touch').querySelector('.hud').getBoundingClientRect().bottom, shown('guide'), shown('lootBox')) - $('touch').getBoundingClientRect().top;
-  box.style.top = `${Math.round(under + 6)}px`;
+  placeToasts();
   line.className = `toast ${kind || ''}`;
   line.textContent = text;
   box.appendChild(line);
   while (box.children.length > 2) box.firstChild.remove(); // the two newest
   setTimeout(() => line.remove(), 3500);
+}
+
+// The messages that pop up: just under the status bar, or under the guide or a corpse's window when they show, clear
+// of you in the middle of the map (again each frame while there are some: the guide may open under one; game-ui.js)
+function placeToasts() {
+  const box = $('toasts'), shown = id => { const el = $(id); return el && !el.hidden && el.offsetParent && getComputedStyle(el).display !== 'none' ? el.getBoundingClientRect().bottom : 0; };
+  const top = `${Math.round(Math.max($('touch').querySelector('.hud').getBoundingClientRect().bottom, shown('guide'), shown('lootBox')) - $('touch').getBoundingClientRect().top + 6)}px`;
+  if (box.style.top !== top) box.style.top = top;
 }
 
 function initTouch() {
@@ -455,10 +460,12 @@ function renderMenu() {
 
 // ---- the talk card: what an NPC says to you, its keywords as buttons -------------------------------------------
 let talkShownAt = 0, hudFaceKey = '';
-let talkSpeaker = '', talkLines = [];
+let talkSpeaker = '', talkLines = [], talkTopics = [];
 function showTalk(speaker, text) {
   // lines that come together (a greeting, then what they have for you) show together
-  talkLines = speaker === talkSpeaker && !$('talk').hidden && now - talkShownAt < 800 ? [...talkLines, text] : [text];
+  const same = speaker === talkSpeaker && !$('talk').hidden; // (the same conversation, going on)
+  talkLines = same && now - talkShownAt < 800 ? [...talkLines, text] : [text];
+  if (!same) talkTopics = []; // (a new conversation: its greeting's words are its topics)
   talkSpeaker = speaker;
   text = talkLines.join(' ');
   const npc = npcs.find(n => n.name === speaker);
@@ -486,6 +493,9 @@ function showTalk(speaker, text) {
       if (w) questWords.add(w.toLowerCase());
     }
   }
+  // the greeting's words stay to ask about after an answer (an answer may offer only "Good bye")
+  if (!talkTopics.length) talkTopics = seen.slice();
+  else if (!seen.includes('yes')) for (const w of talkTopics) if (!seen.includes(w)) seen.push(w);
   // (once they've asked you something about it, the answer they wait for is the one that shines: yes)
   if (seen.includes('yes') && (questWords.size || reportWords.size)) { questWords.clear(); reportWords.clear(); questWords.add('yes'); }
   // (a quest's word first: what they have for you, or what you've come to tell them)

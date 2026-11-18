@@ -18,7 +18,9 @@ assert.equal(S.state('h').short, false, 'potions left');
 assert.equal(S.state('m').short, true, 'none left: dimmed');
 ctx.player.potionReady = 5250;
 assert.equal(S.state('m').wait, 250, 'potions have their own');
-assert.equal(json(S.state('f')), '{}', 'food has neither');
+assert.equal(json(S.state('f')), '{"short":true}', 'food has no cooldown, and nothing to eat dims it');
+ctx.petFood = () => 'bread';
+assert.equal(json(S.state('f')), '{"short":false}', 'with food in the bag it is ready');
 assert.equal(S.art('power_strike'), 'sprites/ui/actions/power_strike.png');
 assert.equal(S.art('final_blaze'), null, 'no picture: initials');
 for (const id of ['light', 'light_heal', 'cure_poison', 'power_strike', 'haste', 'whirlwind', 'shield_bash', 'earthshaker', 'h', 'm', 'f',

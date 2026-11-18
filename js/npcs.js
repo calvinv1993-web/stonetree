@@ -2,7 +2,8 @@
 // NPCs (dialog, trade, services), quests, raids and lore. All plain data, so it
 // can be changed in the data editor (data.html).
 //
-// Dialog: an NPC answers keywords ('quest|mission' matches either word).
+// Dialog: an NPC answers keywords ('quest|mission' matches either word). Its greet is a text, or
+// { after: questId | has: itemId, text, before }: text once that quest is done or while you carry that item.
 // {word} in a reply is a clickable keyword and $name is the player's name.
 // A keyword's answer is a text, or a service:
 //   { quest: [ids] }         offer / track / reward the first unfinished quest of the chain
@@ -2160,7 +2161,9 @@ Object.assign(NPCS, {
   corwin: {
     name: 'Master Corwin',
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
-    greet: 'Ah, a new face. I am Master Corwin: I make a {fighter} of anyone who wants to stand on the wall. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
+    greet: { after: 'recruit', // (a new face before the training; one of his fighters after it)
+      text: 'Back again, $name? Good: a fighter keeps learning. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
+      before: 'Ah, a new face. I am Master Corwin: I make a {fighter} of anyone who wants to stand on the wall. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.' },
     keywords: {
       'farewell|goodbye': { quest: ['bell_6'] },
       'fighter|train|training|recruit|quest|mission|task': { quest: ['recruit'] },
@@ -2269,7 +2272,7 @@ Object.assign(NPCS, {
       ['ember', 5, { cosmetic: 'ember_cloak' }, 'an ember-red cloak'], ['moss', 5, { cosmetic: 'moss_cloak' }, 'a moss-green cloak'],
       ['cloak', 5, { cosmetic: 'watch_cloak' }, 'a watch-blue cloak'],
     ] };
-    g.greet = g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?');
+    g.greet = { has: 'watch_mark', text: g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?'), before: g.greet }; // (once you have some)
     g.keywords['fight|volunteer|cannons|wall'] = { quest: ['last_town'] };
     g.keywords['farewell|goodbye'] = { quest: ['bell_6'] };
     return g;

@@ -34,7 +34,8 @@ check('no monster, a corpse with loot near: loot', () => {
   clear(); at(open); state.piles.push({ id: 991, x: open.x + 1, y: open.y, z: 8, items: [{ id: 'gold', count: 3 }], corpse: 'rat', until: 1e12 });
   assert.equal(kind(), 'loot');
 });
-check('a monster near outranks the loot', () => { monster(open, 2); assert.equal(kind(), 'attack'); });
+check('a corpse right beside you outranks a monster further off (the button does not turn red under your thumb)', () => { monster(open, 2); assert.equal(kind(), 'loot'); });
+check('a monster right beside you outranks the loot', () => { monster(open, 1); assert.equal(kind(), 'attack'); });
 check('someone to talk to in reach: talk', () => {
   clear(); at(safe); const npc = { npcId: 'test', name: 'Tester NPC', x: safe.x + 1, y: safe.y, z: 8 }; state.npcs = [npc];
   const c = S.context(); assert.equal(c.kind, 'talk'); assert.equal(c.x, npc.x);

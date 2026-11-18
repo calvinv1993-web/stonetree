@@ -100,6 +100,11 @@ function otherToAsk(text, npcId) {
   return { name: NPCS[id].name, where: label ? `You'll find them near ${label.text}.` : '' };
 }
 
+// An NPC's greeting: a text, or { after: questId | has: itemId, text, before }: text once that quest is done (or
+// while you carry that item), before until then
+const greeting = g => (typeof g === 'string' ? g
+  : (g.after ? questState(g.after) === 'done' : countItem(g.has) > 0) ? g.text : g.before);
+
 function startConversation(npc) {
   if (player.conversation && player.conversation.npc !== npc) endConversation();
   player.conversation = { npc, pending: null };
@@ -109,7 +114,7 @@ function startConversation(npc) {
     player.conversation = null;
     return;
   }
-  npcSay(npc, npc.def.greet);
+  npcSay(npc, greeting(npc.def.greet));
   const hint = questHint(npc.npcId);
   if (hint) npcSay(npc, hint);
 }

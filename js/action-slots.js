@@ -15,6 +15,9 @@ const ActionSlots = (() => {
     // paladin (Greater Heal for the druid too)
     'holy_bolt', 'conjure_arrows', 'greater_heal', 'conjure_bolts', 'holy_wave', 'holy_storm']);
   const art = id => (ART.has(id) ? `sprites/ui/actions/${id}.png${typeof Sprites !== 'undefined' && Sprites.versionOf ? Sprites.versionOf(`ui/actions/${id}.png`) : ''}` : null);
+  // Eat shows the food a press would eat (the first in the bag), and its own picture when there's none
+  const food = () => (typeof petFood === 'function' && player ? petFood() : null);
+  const picture = id => (id === 'f' && food() && typeof Sprites !== 'undefined' ? Sprites.itemURL(food()) : art(id));
 
   // What stands in the way of an action right now: wait (ms of cooldown left, out of total), short (too little mana)
   function state(id) {
@@ -26,6 +29,7 @@ const ActionSlots = (() => {
     }
     if (id === 'h' || id === 'm') // (none left: dimmed as a spell without the mana for it)
       return { wait: Math.max(0, (player.potionReady || 0) - now), total: POTION_COOLDOWN, short: countItem(id === 'h' ? 'health_potion' : 'mana_potion') === 0 };
+    if (id === 'f') return { short: !food() }; // (nothing to eat: dimmed)
     return {};
   }
 
@@ -43,7 +47,7 @@ const ActionSlots = (() => {
     const face = document.createElement('span'), badge = document.createElement('small');
     face.className = 'slot-face';
     badge.className = 'slot-badge';
-    const src = entry && art(entry.id);
+    const src = entry && picture(entry.id);
     if (src) {
       const img = new Image();
       img.className = 'slot-art'; img.src = src; img.alt = ''; img.draggable = false;
@@ -79,6 +83,10 @@ const ActionSlots = (() => {
   function refresh(button) {
     const id = button.dataset.action;
     if (!id) return;
+    if (id === 'f') { // (the food changed: a new picture, set only when it differs)
+      const img = button.querySelector('.slot-art'), src = picture(id);
+      if (img && src && img.getAttribute('src') !== src) img.src = src;
+    }
     const s = state(id), p = s.wait && s.total ? Math.min(1, s.wait / s.total) : 0;
     button.classList.toggle('short', !!s.short);
     button.classList.toggle('cooling', p > 0);

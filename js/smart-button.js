@@ -22,9 +22,13 @@ const SmartButton = (() => {
     if (picker && !picker.hidden) return { kind: 'close', label: 'Close the choice' };
     if (!player || player.dead) return { kind: 'idle', label: 'Nothing to do' };
     const safe = inPZ();
-    if (!safe && monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m))) return { kind: 'attack', label: 'Attack' };
     const pile = piles.filter(p => p.z === player.z && p.items && p.items.length && dist(p, player) <= 7)
       .sort((a, b) => dist(a, player) - dist(b, player))[0];
+    // a corpse right beside you, with nothing hitting you yet: loot it (a rat coming up the tunnel doesn't turn the
+    // button red under your thumb as you press it)
+    const beside = !safe && monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 1 && canSee(m));
+    if (pile && dist(pile, player) <= 1 && !beside) return { kind: 'loot', label: 'Loot', pile };
+    if (!safe && monsters.some(m => !m.dead && m.z === player.z && dist(m, player) <= 7 && canSee(m))) return { kind: 'attack', label: 'Attack' };
     if (pile) return { kind: 'loot', label: 'Loot', pile };
     const npc = npcs.filter(n => n.z === player.z && dist(n, player) <= TALK_RANGE).sort((a, b) => dist(a, player) - dist(b, player))[0];
     if (npc) return { kind: 'talk', label: `Talk to ${npc.name}`, x: npc.x, y: npc.y, z: npc.z };

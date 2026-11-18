@@ -202,7 +202,7 @@ body.touch-ui .toggle { position: relative; flex-shrink: 0; }
 body.touch-ui .toggle::after { content: ''; position: absolute; border-radius: 50%; transition: left 0.15s; }
 /* the talk card */
 .talk-card { display: none; }
-body.touch-ui .talk-card:not([hidden]) { display: block; position: absolute; left: 8px; right: 8px; bottom: calc(var(--tabbar) + 10px); z-index: 54; }
+body.touch-ui .talk-card:not([hidden]) { display: block; position: absolute; left: 8px; right: 8px; bottom: calc(var(--tabbar) + 10px); z-index: 54; pointer-events: auto; } /* (a tap on its words is not a tap on the map) */
 body.touch-ui .talk-who { display: flex; align-items: center; }
 body.touch-ui .talk-who canvas { image-rendering: pixelated; }
 body.touch-ui .talk-who div { flex: 1; min-width: 0; }
@@ -388,7 +388,7 @@ body.touch-ui #view { border: 0; }
 /* the map may be a little wider than its space (whole tiles at the screen's own pixels): its edges are cut */
 body.touch-ui .viewport { overflow: hidden; }
 /* ---- messages low on the map, the loot window under the status bar, labels in the quick buttons ------------------ */
-body.touch-ui .toasts { bottom: auto; width: min(calc(100% - 104px), 420px); gap: 4px; } /* (clear of the map button in the top left corner) */
+body.touch-ui .toasts { bottom: auto; width: min(calc(100% - 104px), 420px); gap: 4px; z-index: 60; } /* (clear of the map button in the top left corner; over the map's windows) */
 body.touch-ui .toast { padding: 4px 10px; font: 500 12.5px/1.35 var(--ui); border-radius: 8px; }
 @media (orientation: landscape) {
   body.touch-ui .toasts { width: min(46%, 380px); }

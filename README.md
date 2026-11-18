@@ -343,7 +343,7 @@ node tests/screenshot.js shot.png 112 57 4 --view   # a picture of the game ther
 
 - Mobile HUD preview: swipe either group of three action slots to switch its page; hold a slot to edit or clear it. Tap the map to walk, or drag to show a temporary joystick. The map and menu are in the top bar.
 
-Phone: up top, over the map, only what happens to you shows with its time (poisoned, burning, electrified, paralyzed, a skull, a fight with a player). What you gave yourself shows on its own action button instead: Haste, Magic Shield and Torchlight show their time left at the top of their button (with a thin gold line), food how long you stay fed.
+Phone: up top, over the map, only what happens to you shows with its time (poisoned, burning, electrified, paralyzed, a skull, a fight with a player). What you gave yourself shows on its own action button instead: Haste, Magic Shield and Torchlight show their time left at the top of their button (with a thin gold line), food how long you stay fed. The Eat button shows the food it would eat (the first in your backpack), dimmed when you have none.
 
 Phone: nothing to tap up top. The status bar shows your health and mana, and under them EXP with its percent, a thin experience bar and your level. A map button sits in the top left corner of the view, the guide's card beside it; while you fight, what you're fighting shows at the top with its health; the middle button lights up warm, a spell cooling down shows its seconds and tenths (2.4s), and a message about mana shows a drop; the drawer has five tabs along its bottom: Gear (what you wear and carry), Hero (your companion and skills), Map, Quests and Settings.
 

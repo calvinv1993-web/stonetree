@@ -174,6 +174,12 @@ function guideState() {
   const now = GUIDE.indexOf(step) + 1 < GUIDE_BASICS ? '' : guideNow(step);
   return { step, text, now };
 }
+// "step / steps" for the guide, counting only the steps this device shows (a computer skips the phone's own)
+function guideCount() {
+  const shown = GUIDE.map((st, i) => i).filter(i => touchScreen || !GUIDE[i].touchOnly);
+  return { at: shown.filter(i => i < player.tutorial).length || 1, of: shown.length };
+}
+
 function renderGuide() {
   const { step, text, now } = guideState();
   const key = `${player.tutorial}|${text}|${now}|${guideFolded}`;
@@ -193,7 +199,7 @@ function renderGuide() {
   // top left over the game; on a phone just under the health bars, in the margin if there is one
   box.style.left = `${touchScreen ? 4 : view.offsetLeft + 8}px`;
   box.style.top = `${touchScreen ? 44 : Math.max(view.getBoundingClientRect().top, 0) + 8}px`; // (never above the window)
-  $('guideStep').textContent = `${player.tutorial} / ${GUIDE.length}`;
+  { const n = guideCount(); $('guideStep').textContent = `${n.at} / ${n.of}`; }
   // (a short card on a phone: how far you are stays in sight on a line of its own, not cut off at the end of the text)
   const prog = touchScreen && (step.done || step.on) ? /\s*\(([^()]*\d[^()]*)\)\.?\s*$/.exec(text) : null;
   $('guideText').textContent = prog ? text.slice(0, prog.index) + '.' : text;
@@ -204,7 +210,7 @@ function renderGuide() {
   $('guideDone').hidden = !!(step.done || step.on || step.client);
   $('guideDone').textContent = player.tutorial === GUIDE.length ? 'Got it' : 'Next'; // (a step that only explains: on to the next)
   // a thin bar: how far through the guide you are
-  $('guideBar').style.setProperty('--done', `${((player.tutorial - 1) / GUIDE.length) * 100}%`);
+  $('guideBar').style.setProperty('--done', `${((guideCount().at - 1) / guideCount().of) * 100}%`);
   // its little picture
   const art = $('guideArt');
   art.replaceChildren(...(step.art && GUIDE_ART[step.art] && !(touchScreen && (step.done || step.on)) ? GUIDE_ART[step.art]() : []));
@@ -337,6 +343,7 @@ const GuideSpot = (() => {
       box.style.setProperty('--guide-top', `${Math.round(top)}px`);
     }
     const boxShown = visible(box);
+    if (touchScreen && typeof placeToasts === 'function' && $('toasts') && $('toasts').childElementCount) placeToasts(); // (below the guide's box)
     const on = !!target && (boxShown || !!target.closest('#favPicker')) && !document.body.classList.contains('panel-open');
     if (!layer) { if (!on) return; make(); }
     layer.classList.toggle('on', on);
@@ -1105,7 +1112,7 @@ function renderQuests() {
   if (gs.step) {
     const box = document.createElement('div');
     box.className = 'story guide-card';
-    const head = document.createElement('b'); head.textContent = `Guide ${player.tutorial} / ${GUIDE.length}`;
+    const head = document.createElement('b'); head.textContent = `Guide ${guideCount().at} / ${guideCount().of}`;
     const p = document.createElement('div'); p.textContent = gs.text;
     box.append(head, p);
     if (gs.now) { const n = document.createElement('div'); n.className = 'guide-now'; n.textContent = gs.now; box.append(n); }
@@ -1274,10 +1281,11 @@ function handleEvents() {
       if (touchScreen && typeof InventoryDrawer !== 'undefined' && document.getElementById('inventoryDrawer')) InventoryDrawer.open(2); // (expanded: where the other bags show)
       else document.body.classList.add(touchScreen ? 'bag-open' : 'panel-open');
     } else if (kind === 'useWith') {
-      document.body.classList.remove('panel-open'); // out of the way, to tap the target
+      document.body.classList.remove('panel-open', 'bag-open'); // out of the way, to tap the target
+      if (touchScreen && typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage()) InventoryDrawer.close(); // (the phone's drawer too)
       useWith = data;
       canvas.classList.add('targeting');
-      log(`Click where to use the ${data.name}. (Right-click or Esc to cancel.)`);
+      log(touchScreen ? `Tap where to use the ${data.name}.` : `Click where to use the ${data.name}. (Right-click or Esc to cancel.)`);
     } else if (kind === 'raid') raidBanner = { text: data.message, until: now + 7000, color: '#ff6040' };
     else if (kind === 'banner') raidBanner = { text: data.message, until: now + 9000, color: '#ffd84a' };
     else if (kind === 'forge') openForge(data.npc);
@@ -1763,11 +1771,10 @@ function drawMap(c, z, scale, cx, cy) {
   drawQuestAreas(g, c, z, scale, ox, oy);
   if (z === player.z && Math.floor(now / 400) % 2 === 0) {
     g.fillStyle = '#fff';
-    if (minimap.whole && c.id === 'minimap') { // (the whole world: a bigger mark, ringed, to find yourself on it)
-      const px = ox + (player.x + 0.5) * scale, py = oy + (player.y + 0.5) * scale;
-      g.fillRect(px - 3, py - 3, 6, 6);
-      g.strokeStyle = '#000'; g.lineWidth = 1; g.strokeRect(px - 3.5, py - 3.5, 7, 7);
-    } else g.fillRect(ox + player.x * scale - 1, oy + player.y * scale - 1, Math.max(3, scale), Math.max(3, scale));
+    // (a white mark ringed in black, to find yourself at a glance: bigger on the whole world)
+    const px = ox + (player.x + 0.5) * scale, py = oy + (player.y + 0.5) * scale, r = minimap.whole && c.id === 'minimap' ? 3 : Math.max(2.5, scale / 2 + 1);
+    g.fillRect(px - r, py - r, r * 2, r * 2);
+    g.strokeStyle = '#000'; g.lineWidth = 1; g.strokeRect(px - r - 0.5, py - r - 0.5, r * 2 + 1, r * 2 + 1);
   }
   return { ox, oy };
 }
@@ -2167,10 +2174,10 @@ function initUI() {
     const b = $('guideSkip');
     if (!b.classList.contains('sure')) {
       b.classList.add('sure'); b.textContent = 'Turn it off? Tap again';
-      clearTimeout(skipAsk); skipAsk = setTimeout(() => { b.classList.remove('sure'); b.textContent = 'Close'; }, 3500);
+      clearTimeout(skipAsk); skipAsk = setTimeout(() => { b.classList.remove('sure'); b.textContent = 'Turn off'; }, 3500);
       return;
     }
-    clearTimeout(skipAsk); b.classList.remove('sure'); b.textContent = 'Close';
+    clearTimeout(skipAsk); b.classList.remove('sure'); b.textContent = 'Turn off';
     Actions.skipGuide();
   });
   $('battle').addEventListener('pointerleave', () => { battleHover = null; });
