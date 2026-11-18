@@ -2020,8 +2020,8 @@ function buildTown(m, S, runs, river) {
     }
     // cannons along the battlements, every eleven tiles, pointing out, a pile of balls beside each and every other one a
     // keg of powder on its other side (only where the wall is solid below, not over a gate or the water)
-    const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Cold now: Oakvale has not had to fire it in a long time.';
-    let cannons = 0, kegs = null;
+    const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Its muzzle is black with soot: the north wall fires it more nights than anyone likes to count.';
+    let cannons = 0;
     for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
       if (!inRing(x, y) || inTower(x, y)) continue;
       const out = y === R.y0 ? 'n' : y === R.y1 ? 's' : x === R.x0 ? 'w' : x === R.x1 ? 'e' : null;
@@ -2031,8 +2031,13 @@ function buildTown(m, S, runs, river) {
       if (along % 11 !== 6 || !solid(0, 0) || !solid(ax, ay) || !solid(-ax, -ay)) continue;
       put(x, y, S + 1, `cannon_${out}`); m.setMeta(x, y, S + 1, { look: CANNON_LOOK });
       put(x + ax, y + ay, S + 1, 'cannonballs');
-      if (cannons++ % 2) put(x - ax, y - ay, S + 1, out === 'n' && !kegs ? (kegs = 'powder_kegs') : 'barrel'); // (on the north wall, the first: Clang hides behind them)
+      if (cannons++ % 2) put(x - ax, y - ay, S + 1, 'barrel');
     }
+    // and one more on the north wall just east of its gatehouse, where the Host comes, beside the steps up (west of the
+    // gate the canal runs under the wall); behind its powder kegs Clang, the temple's kitten, sleeps (The Last Town)
+    { const x = R.gates[0][2] + 5, y = R.y0;
+      put(x, y, S + 1, 'cannon_n'); m.setMeta(x, y, S + 1, { look: CANNON_LOOK });
+      put(x + 1, y, S + 1, 'cannonballs'); put(x - 1, y, S + 1, 'powder_kegs'); }
     // banners down the faces of the wall you see from outside (south and east), between the cannons
     for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }
     for (let y = R.y0; y <= R.y1; y++) { const t = m.get(R.x1, y, S); if (y % 11 === 0 && !inTower(R.x1, y) && t.items.includes('rampart')) put(R.x1, y, S, 'wall_banner_e'); }

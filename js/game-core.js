@@ -1565,6 +1565,7 @@ function advanceQuest(id) {
   }
   const r = q.reward || {};
   player.quests[id] = { status: 'done', step: state.step, kills: {}, doneAt: now }; // (doneAt: for a quest that can be done again)
+  if (state.firedAt) Object.assign(player.quests[id], { siegeAt: state.siegeAt, firedAt: state.firedAt }); // (the Host still seen running)
   log(`Quest completed: ${q.name}!`, 'quest');
   addSound('level', player.x, player.y, player.z);
   if ((r.items || []).length) log(`You received ${r.items.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest'); // (before "lying at your feet")
@@ -1579,14 +1580,15 @@ function advanceQuest(id) {
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
   if (r.pet) givePet(r.pet);
+  if (r.namePet && player.pet && player.pet.name === 'Clang') playerEvent('petName', { name: player.pet.name }); // (now the fight is over)
   uiDirty();
 }
 
-// A companion: it follows you from now on (game-update.js updatePet)
-function givePet(pet) {
+// A companion: it follows you from now on (game-update.js updatePet); ask: the browser asks what to call it, now
+function givePet(pet, ask = true) {
   if (player.pet) return;
   player.pet = { name: pet.name, kind: pet.kind, level: 1, xp: 0, hp: PETS[pet.kind].hp(1), home: false, downUntil: 0, mode: 'assist' };
-  playerEvent('petName', { name: pet.name }); // (the browser asks what to call it)
+  if (ask) playerEvent('petName', { name: pet.name });
   log(`${pet.name} is your companion now: he follows you, fights at your side, and grows stronger as he fights and trains with you.`, 'level');
 }
 
@@ -1613,12 +1615,13 @@ function onMonsterKilled(type) {
 function rescueAt(questId, thingId) {
   const st = questState(questId) === 'active' && questStep(questId), def = THINGS[thingId] || {};
   if (st && st.thing === thingId) {
-    if (st.done) log(storyText(st, 'done'), 'quest');
+    const had = !!player.pet; // (an old companion already: the kitten runs home instead)
+    if (had && st.doneHasPet) log(st.doneHasPet, 'quest'); else if (st.done) log(storyText(st, 'done'), 'quest');
     addSparkle(player, '#ffe080');
-    if (st.pet) givePet(st.pet);
+    if (st.pet && !had) givePet(st.pet, false);
     return advanceQuest(questId);
   }
-  if (questState(questId) === 'done' || player.pet) return log(def.rescued || 'Nothing behind it now but dust and a few cat hairs.');
+  if (questState(questId) === 'done' || (player.pet && questState(questId) !== 'active')) return log(def.rescued || 'Nothing behind it now but dust and a few cat hairs.');
   log(questState(questId) === 'active' ? def.notYet || 'Something behind the crate hisses at the rats. Deal with them first.' : def.before || 'Something moves behind the crate, and mews.');
 }
 
@@ -1683,7 +1686,7 @@ const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y'
   'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal', 'paths'];
 
 function serializePlayer(p) {
-  const data = { fed: Math.max(0, p.fedUntil - now) };
+  const data = { fed: Math.max(0, p.fedUntil - now), light: Math.max(0, p.lightUntil - now) };
   for (const f of SAVED_FIELDS) data[f] = p[f];
   trialSave(p, data); // (never mid-trial: the player as they were before it, back in the hall)
   data.housePiles = piles.filter(pl => p.house && pl.house === p.house).map(pl => ({ x: pl.x, y: pl.y, z: pl.z, items: pl.items }));
@@ -1713,7 +1716,13 @@ function applySave(data) {
   for (const type of Object.keys(kills)) if (Object.hasOwn(MONSTERS, type) && kills[type] > 0) player.bestiary[type] = Math.floor(kills[type]);
   player.cosmetics = Array.isArray(player.cosmetics) ? player.cosmetics.filter(id => Object.hasOwn(COSMETICS, id)) : [];
   if (player.outfit) for (const k of ['feather', 'cloak']) if (player.outfit[k] && !player.cosmetics.includes(player.outfit[k])) delete player.outfit[k];
-  player.fedUntil = now + (data.fed || 0);
+  player.fedUntil = data.fed ? now + data.fed : 0; // (a clock that started again: what's left of it)
+  player.lightUntil = data.light ? now + data.light : 0;
+  // The North Wall's siege, timed by a clock that may have started again (playing alone, a reloaded page): it goes on
+  // where it was, marching done; a volley fired long ago is over
+  const lt = player.quests.last_town;
+  if (lt && lt.siegeAt > now) lt.siegeAt = now - 9000;
+  if (lt && lt.firedAt > now) lt.firedAt = now - 60000;
   const house = map.houses.find(h => h.id === player.house);
   if (house && (!house.owner || house.owner === player.name)) {
     house.owner = player.name;

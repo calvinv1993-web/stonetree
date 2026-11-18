@@ -264,7 +264,7 @@ function openPetMenu(e) {
 function askPetName(current) {
   const dlg = document.createElement('div');
   dlg.className = 'window dialog pet-name';
-  dlg.innerHTML = '<header><b>Name your companion</b></header><p class="muted small">What will you call your cat?</p>';
+  dlg.innerHTML = '<header><b>Your companion</b></header><p class="muted small">The temple calls him Clang, for the bell on his collar. Keep it, or give him a name of your own?</p>';
   const input = Object.assign(document.createElement('input'), { value: current || '', maxLength: 14, placeholder: 'Clang' });
   const ok = Object.assign(document.createElement('button'), { textContent: 'Done' });
   const done = () => { Actions.petName(input.value || current || 'Clang'); dlg.remove(); paused = false; };
@@ -364,7 +364,7 @@ function clickTile(e, t, wx, wy) {
   const tile = map.get(t.x, t.y, t.z);
   const usable = pileAt(t.x, t.y, t.z) || (tile && tile.items.some(id => {
     const d = THINGS[id];
-    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb || d.trainer;
+    return d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.useToClimb || d.trainer || d.cannon || d.rescue;
   }));
   if (e.button === 2 || usable) markWalk(t), Actions.interact('use', t.x, t.y, t.z);
   else if (e.button === 0) markWalk(t), Actions.walkTo(t.x, t.y);
@@ -855,15 +855,18 @@ function strikeOf(c) {
 // never part of the world. The figures are the monsters' own pictures. ----
 const SIEGE_KINDS = ['goblin', 'wolf', 'skeleton', 'goblin', 'spider', 'skeleton', 'wolf'];
 // how far north the view slides on the wall: enough to see the Host's front rows (row 84 on), whatever the view's size
-const siegeLookTiles = () => Math.max(0, Math.min(4, player.y - 84 - VIEW_H / 2));
+const siegeLookTiles = () => Math.max(0, Math.min(4, VIEW_H / 2 - 3, player.y - 84 - VIEW_H / 2)); // (and always 3 rows below you in sight: the steps down)
 let siegeLook = 0; // (0 to 1, eased)
 let siegeFigures = null;
 function siegeHost() { // where each figure ends up at the moat (worked out once): land north of it, between the towers
   if (siegeFigures) return siegeFigures;
   siegeFigures = [];
-  for (let i = 0; i < 260 && siegeFigures.length < 70; i++) {
-    const x = 100 + ((i * 37) % 53), y = 85 + (i % 5);
-    if (map.isWalkable(x, y, map.surfaceZ)) siegeFigures.push({ i, x, y, type: SIEGE_KINDS[i % SIEGE_KINDS.length], struck: i % 3 === 0 });
+  const taken = new Set(); // (one to a tile: no twins side by side)
+  for (let i = 0; i < 400 && siegeFigures.length < 70; i++) {
+    const x = 100 + ((i * 37) % 53), y = 85 + ((i * 7 + (i >> 3)) % 5), key = `${x},${y}`;
+    if (taken.has(key) || !map.isWalkable(x, y, map.surfaceZ)) continue;
+    taken.add(key);
+    siegeFigures.push({ i, x, y, type: SIEGE_KINDS[(i * 5 + (i >> 2)) % SIEGE_KINDS.length], struck: i % 3 === 0 });
   }
   return siegeFigures;
 }

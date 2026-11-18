@@ -477,27 +477,48 @@ test('The Last Town: turned away, then the Host at the wall: four cannons on the
   go('gate_north'); A.say('hi'); A.say('fight'); A.say('bye');
   assert(p.quests.last_town.siegeAt > 0 && ctx.siegeScene(), 'the horns: the siege begins, for you');
   // the kegs and the fuse wait for the cannons; a cannon on another wall doesn't count
-  use(115, 94, 9); assert.strictEqual(p.pet, null, 'the kegs first: nothing yet');
+  use(131, 94, 9); assert.strictEqual(p.pet, null, 'the kegs first: nothing yet');
   const east = state.map.get(152, 96, 10).items.includes('cannon_e');
   if (east) { use(152, 96, 10); assert.strictEqual((p.quests.last_town.loaded || []).length, 0, 'a cannon on the east side: wrong way'); }
-  const north = [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]];
+  const north = [[132, 94, 9], [138, 94, 9], [116, 94, 9], [105, 94, 9]];
   use(...north[0]); use(...north[0]);
   assert.strictEqual(p.quests.last_town.loaded.length, 1, 'one cannon loaded once');
+  go('gate_north'); A.say('hi'); A.say('fight'); A.say('bye');
+  assert(/Loaded: 1\/4/.test(messages.slice(-3).join(' ')) && !/Sister Ama is waiting/.test(messages.slice(-3).join(' ')), 'Osric, asked again: the cannons, not back to Ama');
+  assert.notStrictEqual((ctx.questNews('ama') || {}).mark, 'busy', 'and no mark over Ama in the temple');
   for (const c of north.slice(1)) use(...c);
   assert.strictEqual(p.quests.last_town.step, 2, 'four loaded: then a mew behind the kegs');
   use(105, 94, 9); assert.strictEqual(p.quests.last_town.step, 2, 'no firing before Clang is safe');
-  use(115, 94, 9);
+  use(131, 94, 9);
   assert(p.pet && p.pet.name === 'Clang' && p.pet.kind === 'cat', 'Clang, found behind the kegs, is your companion');
   assert.strictEqual(p.quests.last_town.step, 3);
+  assert(!p.events.some(e => e.kind === 'petName'), 'his name is asked later, not in the middle of the fight');
   use(151, 95, 10); assert.strictEqual(p.quests.last_town.step, 3, 'an unloaded cannon does not fire');
   use(116, 94, 9);
   assert(p.quests.last_town.firedAt > 0 && p.quests.last_town.step === 4, 'fire!');
   assert(ctx.siegeScene().fired, 'the Host runs');
   go('gate_north'); A.say('hi'); A.say('fight'); A.say('bye');
   assert.strictEqual(state.questState('last_town'), 'done', 'Osric: you held the wall');
+  assert(p.events.some(e => e.kind === 'petName') && ctx.siegeScene(), 'now his name; and the Host is still seen running');
   assert.strictEqual(ctx.questNews('corwin').mark, 'offer', 'Corwin has training for you: !');
   tick(game, 21000); assert.strictEqual(ctx.siegeScene(), null, 'and the siege is over');
-  use(115, 94, 9); assert(/Nothing mews/.test(messages[messages.length - 1]), 'the kegs are only kegs now');
+  use(131, 94, 9); assert(/Nothing mews/.test(messages[messages.length - 1]), 'the kegs are only kegs now');
+});
+
+test('The North Wall, odd cases: an old companion already (the kitten runs home); a page reloaded mid-siege (its clock started again) goes on; the kegs and cannons show and can be clicked', () => {
+  const game = quietGame(), { ctx, state, messages } = game, p = state.player, A = state.Actions;
+  p.quests.last_town = { status: 'active', step: 2, kills: {}, siegeAt: state.now - 5000, loaded: ['132,94,9', '138,94,9', '116,94,9', '105,94,9'] };
+  p.pet = { name: 'Rex', kind: 'cat', level: 3, xp: 0, hp: 50, home: false, downUntil: 0, mode: 'assist' };
+  ctx.teleport({ x: 131, y: 95, z: 9 }); ctx.useThing(131, 94, 9); tick(game, 100);
+  assert(p.pet.name === 'Rex' && p.quests.last_town.step === 3 && /bolts down them/.test(messages.join(' ')), 'Rex stays; the kitten runs home; the story goes on');
+  // saved an hour into a session, loaded into a page whose clock starts again
+  p.quests.last_town.siegeAt = state.now + 3600000; p.quests.last_town.firedAt = 0;
+  const save = ctx.serializePlayer(p); ctx.applySave(JSON.parse(JSON.stringify(save)));
+  const sc = ctx.siegeScene();
+  assert(sc && sc.at <= state.now, 'the siege goes on at once, not an hour from now');
+  p.quests.last_town.firedAt = state.now + 3600000; ctx.applySave(JSON.parse(JSON.stringify(ctx.serializePlayer(p))));
+  assert.strictEqual(ctx.siegeScene(), null, 'a volley fired long ago is over');
+  assert(ctx.thingSpot('powder_kegs', p) && ctx.thingSpot('cannon_n', p), 'the kegs and cannons are on the wall');
 });
 
 test('The Recruit: the dummy (skills), a cap, Farmer Ned\'s rats down a grate with his torch, a trade with Pip, a locker with Hobb, and a shield', () => {
@@ -1370,7 +1391,7 @@ test('the map shows roughly where each quest you\'re on is done: Osric, the nort
   assert(near(area('last_town'), osric.x, osric.y, 8, 4), 'The Last Town begins at Osric');
   p.quests.last_town.step = 1; const wall = area('last_town');
   assert(wall.z === 9 && wall.y <= 96 && wall.r >= 15, `then the cannons along the north wall (${JSON.stringify(wall)})`);
-  p.quests.last_town.step = 2; assert(near(area('last_town'), 115, 94, 9, 1), 'then the powder kegs');
+  p.quests.last_town.step = 2; assert(near(area('last_town'), 131, 94, 9, 1), 'then the powder kegs, by the steps');
   assert(near(area('recruit'), 145, 138, 8, 1), 'The Recruit: the training yard');
   p.quests.recruit.hits = 10; assert(near(area('recruit'), corwin.x, corwin.y, 8, 4), 'ten hits: back to Corwin');
   p.quests.recruit.step = 2;
@@ -1433,16 +1454,16 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   talk('gate_north'); tick(game, 100);
   assert.strictEqual(arrow(), 'gate_north', 'greeting him is not enough: ask to fight');
   talk('gate_north', 'fight');
-  assert.strictEqual(arrow(), '100,95,8', 'stairs: up the north-west tower');
+  assert.strictEqual(arrow(), '130,96,8', 'stairs: the steps up the wall beside the gate');
   on(null, { x: 106, y: 95, z: 9 });
   assert.strictEqual(arrow(), '105,94,9', 'on the wall: to the nearest cannon');
-  for (const c of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(...c);
-  assert.strictEqual(arrow(), '115,94,9', 'four loaded: to the powder kegs, where something mews');
-  use(115, 94, 9); assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
-  assert.strictEqual(arrow(), '115,94,9'.replace('115', '116'), 'then a loaded cannon, to fire');
-  use(116, 94, 9); assert(p.quests.last_town.firedAt > 0, 'fired');
+  for (const c of [[132, 94, 9], [138, 94, 9], [116, 94, 9], [105, 94, 9]]) use(...c);
+  assert.strictEqual(arrow(), '131,94,9', 'four loaded: to the powder kegs by the steps, where something mews');
+  use(131, 94, 9); assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
+  assert.strictEqual(arrow(), '132,94,9', 'then the nearest loaded cannon, to fire');
+  use(132, 94, 9); assert(p.quests.last_town.firedAt > 0, 'fired');
   on(null, { x: 106, y: 95, z: 9 });
-  assert.strictEqual(arrow(), '100,95,9', 'down the tower again');
+  assert.strictEqual(arrow(), '130,96,9', 'down the steps again');
   on(null, { x: 120, y: 100, z: 8 });
   assert.strictEqual(arrow(), 'gate_north', 'to Osric'); talk('gate_north', 'fight'); assert.strictEqual(state.questState('last_town'), 'done');
   // The Recruit: skills at the dummy, the cap, Ned's rats down a grate (a torch, a fight, healing, the loot, dying)

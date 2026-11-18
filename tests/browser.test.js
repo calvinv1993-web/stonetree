@@ -58,6 +58,18 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
     const errors = [];
     const tryDraw = (what, f) => { try { f(); } catch (e) { errors.push(`${what}: ${e.message}`); } };
     for (const id of Object.keys(THINGS)) for (const shape of ['0000', '1000', '0100', '1100', '1111', '0110', '1001']) tryDraw(`thing ${id} ${shape}`, () => Sprites.thing(id, 0, 0, 0, shape));
+    // and none comes out blank (a thing drawn in the wrong frame shows nothing at all: the powder kegs once did); the tops
+    // of steps and ramps, and a fountain's rim (drawn by the fountain), are meant to be bare
+    for (const id of Object.keys(THINGS)) {
+      if (['ramp_top', 'steps_top', 'fountain_rim'].includes(id)) continue;
+      tryDraw(`thing ${id} blank`, () => {
+        const c = Sprites.thing(id, 0, 0, 0, '0000');
+        if (!c || !c.getContext) return;
+        const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        for (let i = 3; i < d.length; i += 4) if (d[i] > 20) return;
+        throw new Error('drawn blank');
+      });
+    }
     for (const id of Object.keys(ITEMS)) tryDraw(`item ${id}`, () => Sprites.itemURL(id));
     for (const id of Object.keys(MONSTERS)) tryDraw(`monster ${id}`, () => Sprites.creature(id, 2, 1));
     for (const id of Object.keys(NPCS)) tryDraw(`npc ${id}`, () => Sprites.creature(`npc:${id}`, 2, 1));

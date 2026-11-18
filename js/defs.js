@@ -301,7 +301,7 @@ const THINGS = {
   // powder kegs on the north wall: on The Last Town, Clang the kitten hides behind them (rescueAt; its words to others)
   powder_kegs: { name: 'powder kegs', cat: 'Town', block: true, low: true, rescue: 'last_town',
     rescued: 'Powder kegs, and a few grey cat hairs. Nothing mews behind them now.', notYet: 'Powder kegs for the cannons. The cannons first!',
-    before: 'Powder kegs for the cannons. Keep fire well away from them.' },
+    before: 'Powder kegs for the cannons. Grey cat hairs on the lid, and a warm hollow in the straw behind them: something small sleeps back here.' },
   // Oakvale's banner hanging down the outer face of the town wall (the south or east face, the ones you see)
   wall_banner_s: { name: 'banner of Oakvale', cat: 'Walls', tall: true },
   wall_banner_e: { name: 'banner of Oakvale', cat: 'Walls', tall: true },

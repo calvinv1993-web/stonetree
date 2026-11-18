@@ -14,7 +14,8 @@
 // It only chooses: the game's own rules (protection zones, targeting, reach, paths) decide what happens. context() is
 // plain game logic and needs no page (tests/smart-button.test.js); refresh and press are for the button.
 const SmartButton = (() => {
-  const USABLE = d => d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor || d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache || d.trainer);
+  const USABLE = d => d && (d.toggle || d.lockDoor || d.questDoor || d.levelDoor || d.chest || d.lever || d.depot || d.readable || d.bookshelf || d.cache || d.trainer
+    || (d.cannon && questState('last_town') === 'active') || (d.rescue && questState(d.rescue) === 'active')); // (the north wall's cannons and kegs: The Last Town)
 
   function context() {
     const picker = document.getElementById && document.getElementById('favPicker');

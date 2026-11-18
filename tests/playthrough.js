@@ -356,8 +356,8 @@ try {
   const step = (name, fn) => { const t0 = state.now; note(`== ${name}`); fn(); note(`   (${((state.now - t0) / 60000).toFixed(1)} min)`); };
   step('The Last Town', () => {
     talkFor('last_town', 'active', 'ama', 'fight', 'yes'); talk('gate_north', 'fight');
-    for (const [x, y, z] of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(x, y, z, 'a cannon on the north wall', /cannons loaded/);
-    useFor('last_town', 115, 94, 9, 'the powder kegs'); use(116, 94, 9, 'the fuse', /FIRE!/);
+    for (const [x, y, z] of [[132, 94, 9], [138, 94, 9], [116, 94, 9], [105, 94, 9]]) use(x, y, z, 'a cannon on the north wall', /cannons loaded/);
+    useFor('last_town', 131, 94, 9, 'the powder kegs'); use(116, 94, 9, 'the fuse', /FIRE!/);
     talkFor('last_town', 'done', 'gate_north', 'fight');
     note(p.pet ? `${p.pet.name} follows, and fights along` : 'no Clang!');
   });

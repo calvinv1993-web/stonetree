@@ -54,8 +54,8 @@ const STEPS = [
   ['The Last Town: Ama, Osric', d => { d.talk('ama'); d.talk('ama', 'fight', 'yes'); d.talk('gate_north', 'fight'); }],
   ['The Last Town: the cannons, Clang, fire', d => {
     d.go({ x: 106, y: 95, z: 9 });
-    for (const c of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) d.use(...c);
-    d.use(115, 94, 9); d.use(116, 94, 9); d.talk('gate_north', 'fight');
+    for (const c of [[132, 94, 9], [138, 94, 9], [116, 94, 9], [105, 94, 9]]) d.use(...c);
+    d.use(131, 94, 9); d.use(116, 94, 9); d.talk('gate_north', 'fight');
   }],
   ['The Recruit: the dummy, the cap', d => { // (a dummy with a free tile north of it: a friend may be training at the first)
     d.talk('corwin', 'fighter', 'yes');
@@ -139,7 +139,7 @@ const SCENARIOS = {
     for (const [n, f] of STEPS.slice(0, 1)) { f(d); check(d, n); }
     d.talk('ama', 'fight', 'yes'); d.talk('gate_north'); d.settle();
     const at = d.p().tutorial;
-    d.use(105, 94, 9); d.use(115, 94, 9); d.settle();
+    d.use(105, 94, 9); d.use(131, 94, 9); d.settle();
     assert.strictEqual(d.p().tutorial, at, 'the guide waits at Osric');
     assert(!d.ctx.siegeScene() && !d.p().pet && !(d.p().quests.last_town.loaded || []).length, 'no siege, no cannons, no Clang yet');
     assert(/Osric/.test(d.run('(GUIDE[player.tutorial - 1].touch || "")')), 'still on the step to talk to him');
@@ -179,7 +179,7 @@ const SCENARIOS = {
   // trying everything too early: nothing opens, nothing is skipped, nothing breaks
   'out-of-order': () => {
     const d = driver(newGame(5));
-    for (const [x, y, z] of [[105, 94, 9], [115, 94, 9], [116, 94, 9]]) d.use(x, y, z);
+    for (const [x, y, z] of [[105, 94, 9], [131, 94, 9], [116, 94, 9]]) d.use(x, y, z);
     for (const [id, word] of [['gate_north', 'fight'], ['corwin', 'fighter'], ['ama', 'farewell'], ['oak_farmer', 'rats'], ['pip', 'supplies'], ['postmaster', 'locker'],
       ['gate_north', 'goblins'], ['oak_oracle', 'knight']]) d.talk(id, word, 'yes');
     d.ctx.ringBell();

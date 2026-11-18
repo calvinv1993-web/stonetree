@@ -16,6 +16,10 @@
 // handed to you when the step comes up (once: its flag), with who gives them and what they say. client: a step the
 // browser sees done (it calls Actions.guideNext; it has no Next button); touchOnly: only for a phone (passed at once
 // on a computer). basicsEnd: the last step with an arrow (guideArrowOn): after it, the map's circles show the way.
+// The steps up the inner face of the wall beside the north gate (OAKVALE.ramparts.stairs), and whether you're up on
+// the north wall's walkway (not the temple's terrace, also a floor up)
+const WALL_STEPS = typeof OAKVALE !== 'undefined' ? OAKVALE.ramparts.stairs[0] : [0, 0];
+function onWall() { return player.z > map.surfaceZ && player.z <= map.surfaceZ + 2 && player.y <= OAKVALE.ramparts.y0 + 3; } // (or a corner tower's lookout)
 const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, as the story needs them (The Last Town, then The Recruit): the world; walking, talking; stairs and
   // using things (the cannons on the wall); skills and gear; then a real fight down a grate (a torch for the dark),
@@ -45,35 +49,35 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => questPast('last_town', 0),
   },
   {
-    text: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down: walk onto the stairs in the north-west tower, in the corner of the wall, to climb up to the wall.',
-    touch: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down: walk onto the stairs in the north-west tower, in the corner of the wall, to climb up to the wall.',
-    target: [{ at: [100, 95, 8], when: () => player.z === map.surfaceZ }],
-    done: () => player.z > map.surfaceZ || questPast('last_town', 1),
+    text: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down. Walk onto the stone steps beside the gate to climb onto the wall.',
+    touch: 'The Host is at the walls! Stairs, ladders and grates take you a floor up or down. Walk onto the stone steps beside the gate to climb onto the wall.',
+    target: [{ at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
+    done: () => onWall() || questPast('last_town', 1),
   },
   {
-    text: 'Load the cannons on the north wall! Stand next to one and click it (or right-click it, from further away) to use it. Four of them: $loaded.',
-    touch: 'Load the cannons on the north wall! Tap one: you walk to it and use it. Four of them: $loaded.',
-    target: [{ cannon: 'empty' }, { at: [100, 95, 8], when: () => player.z === map.surfaceZ }],
+    text: 'Load the cannons along the north wall! Click a cannon: you walk to it and use it. Four of them: $loaded.',
+    touch: 'Load the cannons along the north wall! Tap a cannon: you walk to it and use it. Four of them: $loaded.',
+    target: [{ cannon: 'empty', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 1),
   },
   {
-    text: 'Listen: a tiny mew, behind the powder kegs on the wall! Use the kegs to look behind them.',
-    touch: 'Listen: a tiny mew, behind the powder kegs on the wall! Tap the kegs to look behind them.',
-    target: [{ thing: 'powder_kegs' }],
+    text: 'Listen: a tiny mew, from behind the powder kegs by the steps! Click the kegs to look behind them.',
+    touch: 'Listen: a tiny mew, from behind the powder kegs by the steps! Tap the kegs to look behind them.',
+    target: [{ thing: 'powder_kegs', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 2),
-    art: 'clang',
   },
   {
-    text: 'Clang is safe with you. Now light the fuse at one of the loaded cannons, and FIRE!',
-    touch: 'Clang is safe with you. Now tap one of the loaded cannons to light its fuse, and FIRE!',
-    target: [{ cannon: 'loaded' }],
+    text: 'Clang is safe with you. Now click a loaded cannon to light its fuse, and FIRE!',
+    touch: 'Clang is safe with you. Now tap a loaded cannon to light its fuse, and FIRE!',
+    target: [{ cannon: 'loaded', when: onWall }, { at: [...WALL_STEPS, map.surfaceZ], when: () => !onWall() }],
     done: () => questPast('last_town', 3),
   },
   {
-    text: 'The Host is running! Go back down to Captain Osric at the north gate.',
-    touch: 'The Host is running! Go back down to Captain Osric at the north gate.',
-    target: [{ at: [100, 95, 9], when: () => player.z > map.surfaceZ }, { quest: 'last_town' }],
+    text: 'The Host is running! Down the steps to Captain Osric. Clang follows you now and fights at your side. Quests and fights give experience (the thin bar under health and mana): fill it to reach the next level.',
+    touch: 'The Host is running! Down the steps to Osric. Clang follows you now and fights at your side. Quests and fights give experience (the thin bar at the top): fill it for a level.',
+    target: [{ at: [WALL_STEPS[0], WALL_STEPS[1], map.surfaceZ + 1], when: onWall }, { quest: 'last_town' }],
     done: () => questState('last_town') === 'done',
+    ui: ['.hud-exp-row'], uiDesk: ['.sec-status'],
   },
   {
     text: 'Master Corwin trains the recruits at the academy, south of the square (the yellow roof). Talk to him, and ask him to make a fighter of you.',
@@ -453,7 +457,7 @@ function guideTarget(step) {
     const near = list => list.filter(c => c.z === player.z && dist(c, player) <= 12).sort((a, b) => dist(a, player) - dist(b, player))[0];
     if (t.cannon) { // the nearest cannon on the north wall to load ('empty'), or one that's loaded ('loaded'): The Last Town
       const loaded = (player.quests.last_town || {}).loaded || [];
-      const c = thingSpot('cannon_n', player, p => loaded.includes(`${p.x},${p.y},${p.z}`) === (t.cannon === 'loaded'));
+      const c = thingSpot('cannon_n', player, p => p.z === map.surfaceZ + 1 && loaded.includes(`${p.x},${p.y},${p.z}`) === (t.cannon === 'loaded')); // (on the walkway: not the towers' lookouts)
       if (c) return c;
     }
     if (t.thing) { const c = thingSpot(t.thing, player); if (c) return c; } // (the nearest of these things)
