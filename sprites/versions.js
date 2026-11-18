@@ -15,7 +15,7 @@ const SPRITE_HASHES = {
   "bench@4x.png":"82bb405d3d",
   "bones@4x.png":"7ba7513d62",
   "bookshelf@4x.png":"ba5829efa8",
-  "brazier@4x.png":"b21021129e",
+  "brazier@4x.png":"39ca0956c0",
   "bridge-mock.png":"464ee3e1df",
   "bridge-post@4x.png":"61cb4a2a03",
   "bush@4x.png":"0448ecc124",
