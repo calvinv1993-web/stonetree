@@ -2421,11 +2421,11 @@ Object.assign(NPCS, {
     },
     chatter: ['The wind is turning.', 'A boat out there, without a lamp. Again.', 'Who sings out at sea at night?'],
   },
-  // Oakvale's landlady, at a table in the Sleepy Boar: the town's four houses are hers to let
+  // Oakvale's landlady, at a table in the Sleepy Boar: the town's five houses are hers to let
   oak_landlady: {
     name: 'Landlady Hettie',
     look: { skin: '#f0c8a0', hair: '#b8b0a8', hairStyle: 'long', female: true, body: '#4a6a5a', arms: '#4a6a5a', legs: '#3a3a4a', feet: '#2a2a2a', belt: '#c8a060', robe: true, trim: '#c8a060' },
-    greet: 'A roof of your own, $name? I let the four cottages of Oakvale. Ask me about the {houses}.',
+    greet: 'A roof of your own, $name? I let the five houses of Oakvale. Ask me about the {houses}.',
     keywords: {
       'houses|house|rent|leave|home': { houses: true },
       job: 'I let houses, and I collect the rent, and I remember who paid it late.',

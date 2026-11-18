@@ -187,19 +187,20 @@ const OAKVALE = {
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 123, y1: 139, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 134, y0: 124, x1: 140, y1: 129, door: [137, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
     { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
+    { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 112, y0: 108, x1: 116, y1: 118, door: [112, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
     { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
     { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 145, y0: 108, x1: 148, y1: 111, door: [146, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
-    { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 110, x1: 108, y1: 115, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 109, x1: 108, y1: 118, door: [108, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'house5', name: 'Lane End House', kind: 'house', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate' },
   ],
-  houses: { house1: 350, house2: 400, house3: 450, house4: 350 },
+  houses: { house1: 450, house2: 400, house3: 350, house4: 450, house5: 400 },
   // Fenced gardens: vegetable rows (crops on farmland) or flower beds; gate: the gap in the fence.
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
@@ -234,19 +235,18 @@ const OAKVALE = {
     [[121, 132], [121, 132]],                   // the depot, onto the lane
     [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
-    [[112, 111], [112, 111]], [[114, 123], [114, 123]],                          // the houses on the lane
+    [[114, 123], [114, 123]],                          // the houses on the lane
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]],                   // the academy
     [[139, 112], [146, 112]],                   // Ivy Cottage, onto the temple walk
     [[115, 77], [115, 83]],                     // from the graveyard's gate down to the north road
     [[145, 132], [145, 132]],                   // the training yard
-    [[109, 112], [109, 112]],                   // Bell Cottage
   ],
   // Things standing about: [x, y, id]
   props: [
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
-    [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
+    [123, 128, 'wagon'], [115, 134, 'haystack'],
      [123, 143, 'bench'],
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
