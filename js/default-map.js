@@ -271,7 +271,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 134, 125, 8], ['oak_armourer', 140, 126, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 124, 100, 8], ['gate_east', 148, 119, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 119, 8],
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
