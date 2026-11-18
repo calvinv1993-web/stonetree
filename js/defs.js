@@ -215,6 +215,8 @@ const THINGS = {
   torch:       { name: 'torch', cat: 'Furniture', light: 3, fireSwap: 'torch_out' },
   torch_out:   { name: 'unlit torch', cat: 'Furniture', fireSwap: 'torch' },
   campfire:    { name: 'campfire', cat: 'Furniture', block: true, low: true, light: 4, fireSwap: 'campfire_out' },
+  brazier:     { name: 'brazier', cat: 'Town', block: true, low: true, light: 3.5 }, // (the watch's fire baskets: light on the wall and the square)
+  sandbags:    { name: 'sandbags', cat: 'Town', block: true, low: true },
   campfire_out:{ name: 'cold campfire', cat: 'Furniture', block: true, low: true, fireSwap: 'campfire' },
   signpost:    { name: 'signpost', cat: 'Furniture', block: true, low: true, readable: true, meta: 'text' },
   depot:       { name: 'depot locker', cat: 'Furniture', block: true, low: true, depot: true },

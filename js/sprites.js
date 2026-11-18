@@ -1265,7 +1265,7 @@ const Sprites = (() => {
     'chair_west', 'chair_north', 'bench',
     'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
-    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_hole', 'powder_kegs', 'millstone',
+    'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_hole', 'powder_kegs', 'millstone', 'brazier', 'sandbags',
     'sarcophagus', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
     'fallen_pillar', 'fence', 'cauldron', 'battlement_n', 'battlement_e', 'battlement_s', 'battlement_w', 'tower_flag', 'cannon_n', 'cannon_e', 'cannon_s', 'cannon_w', 'cannonballs', 'tree', 'pine', 'snow_pine', 'palm', 'jungle_tree', 'dead_tree', 'ancient_tree',
     'bush', 'cactus', 'fern', 'reeds', 'tallgrass', 'grass_tuft', 'flowers', 'mushrooms', 'crops', 'dry_bush', 'stump', 'log', 'beehive', 'igloo', 'windmill', 'boat', 'wreck', 'treasure', 'trunk']);
@@ -2849,6 +2849,33 @@ const Sprites = (() => {
         }
       });
     },
+    // A brazier, the watch's fire basket: an iron bowl on three legs, heaped with glowing coals, flames licking up out of it
+    // (light for the wall and the square at night)
+    brazier(g, r, frame) {
+      floorShadow(g, 9, 3);
+      const iron = { top: '#2c2a2e', south: '#1e1c20', east: '#141216', edge: '#3c3a40' };
+      for (const [u, v] of [[11, 12], [21, 13], [16, 21]]) prism(g, u, v, u + 2, v + 2, 0, 15, iron); // the legs
+      drum(g, 16, 16, 14, 21, t => 6 + 3.5 * t, { edge: '#141216', light: '#4a464e', mid: '#2e2a32', dark: '#18161a' }); // the bowl
+      const [x, y] = P(16, 16, 21);
+      ellipse(g, '#1a1416', x, y, 9.5, 9.5);
+      ellipse(g, '#b8340c', x, y, 8, 8);                 // the coals
+      for (const [dx, dy] of [[-3, -1], [2, 1], [0, -3], [3, -2], [-2, 2]]) ellipse(g, '#ffb040', x + dx, y + dy, 1.4, 1);
+      flame(g, x, y + 2, 6, 14, frame);
+      flame(g, x - 3, y + 2, 3, 8, ((frame || 0) + 2) % 4);
+    },
+    // Sandbags: a low wall of them, stacked two rows high, against arrows (the watch's, by the gates)
+    sandbags(g) {
+      floorShadow(g, 13, 3);
+      const bag = (u, v, z) => {
+        const [x, y] = P(u, v, z);
+        ellipse(g, '#5a4a30', x + 0.6, y + 1.2, 6.5, 3.6);
+        ellipse(g, '#a08a5c', x, y, 6.2, 3.3);
+        ellipse(g, '#c0a874', x - 1.4, y - 1, 3.4, 1.6);
+        line(g, '#6a5838', 1, x + 4.5, y - 1.5, x + 5.5, y + 1.5);         // its tied end
+      };
+      for (const [u, z] of [[7, 3], [16, 3], [25, 3]]) bag(u, 16, z);
+      for (const [u, z] of [[11.5, 8], [20.5, 8]]) bag(u, 16, z);
+    },
     // An iron cauldron on three short legs over a fire, something green bubbling in it.
     cauldron(g, r, frame) {
       floorShadow(g, 11, 4);
@@ -3776,7 +3803,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, waterwheel: { frames: [0, 1, 2, 3, 4, 5], ms: 150 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, brazier: { frames: [0, 1, 2, 3, 1, 2], ms: 120 }, waterwheel: { frames: [0, 1, 2, 3, 4, 5], ms: 150 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded

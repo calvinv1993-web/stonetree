@@ -206,7 +206,7 @@ const OAKVALE = {
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
-    { x0: 104, y0: 135, x1: 111, y1: 143, kind: 'crops', gate: [107, 135] },   // the town's grain field, the south-west corner, under the hay barn's open side
+    { x0: 104, y0: 135, x1: 111, y1: 143, kind: 'crops', gate: [107, 135], back: [108, 143] },   // the town's grain field, the south-west corner, under the hay barn's open side
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
   graveyard: { x0: 107, y0: 75, x1: 114, y1: 79, gate: [114, 77], stones: [ // (outside the walls, north-west of the north gate, a path from it down to the north road)
@@ -247,9 +247,10 @@ const OAKVALE = {
   props: [
     [145, 109, 'bench'], [147, 109, 'bench'], [146, 108, 'flowers'], [144, 110, 'flowers'], [148, 110, 'flowers'], [146, 111, 'tree'], // (a garden below the bell tower)
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
-    [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
+    [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], // (the corner past it stays open: the south-east tower's door)
     [123, 128, 'wagon'],
-     [123, 143, 'bench'],
+    [123, 144, 'bench'],
+    [124, 99, 'sandbags'], [128, 99, 'sandbags'], // (the watch's, either side of the north gate's mouth)
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
     [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
@@ -258,6 +259,9 @@ const OAKVALE = {
   planters: [],
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
+  // a refugees' camp from the fallen towns, on the lawn south-east of the academy
+  camp: [[130, 143, 'tent'], [133, 143, 'tent'], [131, 145, 'campfire'], [129, 145, 'sack'], [134, 145, 'basket']],
+  braziers: [[122, 121, 8], [130, 121, 8], [147, 135, 8], [143, 141, 8], [104, 96, 9], [110, 96, 9], [122, 96, 9], [136, 96, 9], [144, 96, 9]],
   signs: [
     [124, 87, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
     [92, 119, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
@@ -273,7 +277,7 @@ const OAKVALE = {
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
     ['oak_gunner', 134, 102, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
-  notice: [139, 118, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
+  notice: [142, 119, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
   firstSteps: [140, 110, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
@@ -2320,6 +2324,8 @@ function buildTown(m, S, runs, river) {
   shop(B.armour, ['dummy', 'table', 'dummy']); // (armour on stands and laid out on tables)
   shop(B.general, ['barrel', 'crate', 'sack']);
   shop(B.bakery, ['basket', 'sack', 'barrel']);
+  shop(B.fisher, ['barrel', 'fish_rack', 'crate']); // (rods and the day's catch)
+  shop(B.watch, ['crate', 'chest', 'barrel']);     // (the watch's stores)
   { // the hay barn, across the end of the academy lane: open on its south side, below and in the loft (the hay
     // stacked in the opening), on to the grain field and the farmyard by the mill; stairs to the loft in its corner
     const f = B.farm;
@@ -2347,7 +2353,7 @@ function buildTown(m, S, runs, river) {
     const n = B.inn;
     for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 2, 'counter');
     for (let x = n.x0 + 1; x <= n.x0 + 3; x++) inside(n, x, n.y1 - 1, 'barrel');
-    put(n.x1 - 1, n.y1 - 1, S, 'campfire');
+    put(n.x1 - 1, n.y1 - 1, S, 'brazier'); // (a fire basket in the corner: a campfire on a wooden floor would not do)
     for (const [x, y] of [[n.x0 + 6, n.y0 + 3], [n.x0 + 6, n.y0 + 6], [n.x0 + 2, n.y0 + 3]]) { put(x, y, S, 'table'); inside(n, x - 1, y, 'chair_east'); inside(n, x + 1, y, 'chair_west'); }
     put(n.x1 - 1, n.y0 + 1, S, 'stairs_up');
     put(n.x1 - 1, n.y0 + 1, S + 1, 'stairs_down');
@@ -2418,7 +2424,7 @@ function buildTown(m, S, runs, river) {
     if (gd.kind === 'crops') {
       t.ground = edge ? 'grass' : 'farmland';
       if (!edge && hash(x + 2, y + 7) > 0.1) put(x, y, S, 'crops'); // (full of grain, a bare patch here and there)
-      if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
+      if (edge && !(x === gd.gate[0] && y === gd.gate[1]) && !(gd.back && x === gd.back[0] && y === gd.back[1])) put(x, y, S, 'fence'); // (back: a second gap)
     } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
   // the barn's open side runs straight on to the field (no fence) and the farmyard by the mill (trodden earth)
@@ -2451,6 +2457,10 @@ function buildTown(m, S, runs, river) {
   if (T.statue) put(...T.statue, S, 'statue');
   for (const [x, y, text] of T.signs) { m.ensure(x, y, S).items = []; sign(x, y, S, 'signpost', text); }
   sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
+  // The watch's braziers: fire baskets on the square's sides (the mosaic was the darkest place in town at night), in
+  // the training yard, and along the north wall's walkway, where the Host comes (only on bare walkable ground)
+  for (const [x, y, id] of T.camp) { const t = m.get(x, y, S); if (t && t.ground === 'grass' && !t.items.length) put(x, y, S, id); }
+  for (const [x, y, z] of T.braziers) { const t = m.get(x, y, z); if (t && !t.items.length && m.isWalkable(x, y, z)) put(x, y, z, 'brazier'); }
 
   // The square's edge: where it meets the grass of the quarters round it, a border of flowers with a flower box at every
   // fourth tile and a bush now and then, so it is a place of its own rather than a widening of the street (lamps and
