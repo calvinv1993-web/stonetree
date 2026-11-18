@@ -323,7 +323,7 @@ test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, 
   assert.deepStrictEqual(clash, []);
 });
 
-test('nothing stands in a doorway or straight in front of a door, inside or out', () => {
+test('nothing stands in a doorway or straight in front of a door, inside or out, and no street lamp beside one', () => {
   const blocked = [];
   for (let z = 0; z < map.depth; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const t = map.get(x, y, z);
@@ -332,6 +332,8 @@ test('nothing stands in a doorway or straight in front of a door, inside or out'
       const n = map.get(x + dx, y + dy, z);
       if (n && !n.items.some(id => THINGS[id].wall) && n.items.some(id => THINGS[id].block && !THINGS[id].toggle)) blocked.push(`${x + dx},${y + dy},${z}`);
     }
+    // (nor a street lamp right beside the doorstep, not even on a corner of it)
+    for (const [dx, dy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const n = map.get(x + dx, y + dy, z); if (n && n.items.includes('lamppost')) blocked.push(`${x + dx},${y + dy},${z} (a lamp)`); }
   }
   assert.deepStrictEqual(blocked, []);
 });
