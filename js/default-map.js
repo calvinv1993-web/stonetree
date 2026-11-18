@@ -181,16 +181,16 @@ const OAKVALE = {
   canal: { width: 2, line: [[118, 91], [118, 101], [119, 101], [119, 110], [118, 110], [118, 126], [117, 126], [117, 129], [116, 129], [116, 151]],
     weir: [[118, 103], [116, 135]], lilies: [[119, 98], [119, 115], [117, 140], [116, 145]], reeds: [[117, 99], [120, 110], [115, 138], [118, 144]] },
   // the square: an octagon round the compass in the middle of town, and the way down from the temple's steps to it
-  square: [[122, 115, 130, 127], [120, 117, 132, 125], [121, 116, 131, 126], [133, 110, 141, 111], [130, 112, 136, 114]], // (the last two: a landing under the steps, and a walk from it down to the square)
+  square: [[122, 115, 130, 127], [120, 117, 132, 125], [121, 116, 131, 126], [136, 110, 138, 119]], // (the last: the temple walk, straight down from its steps to the cross street)
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 123, y1: 139, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. New here? The teachers explain the basics. Upstairs, the oracle names the path of adventurers of level 10.' },
-    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 144, y0: 113, x1: 149, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
+    { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 133, y0: 124, x1: 137, y1: 128, door: [135, 128], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 139, y0: 124, x1: 143, y1: 128, door: [141, 128], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
-    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 138, y0: 113, x1: 142, y1: 118, door: [140, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
+    { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
     { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
     { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
@@ -217,7 +217,7 @@ const OAKVALE = {
     [147, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
-  grates: [[131, 113], [140, 130], [110, 128], [127, 141]],
+  grates: [[130, 117], [140, 130], [110, 128], [127, 141]],
   grateLook: 'A rusty grate over the sewers. Something squeaks and scratches down there in the dark. Use it to climb down.',
   // Things with something to say when you look at them: [x, y, text]
   looks: [ // (the well's: see WELL_TUNNELS)
@@ -229,7 +229,7 @@ const OAKVALE = {
   yard: { x0: 108, y0: 134, x1: 114, y1: 143, gate: [111, 134] },
   paths: [
     [[121, 132], [121, 132]],                   // the depot, onto the lane
-    [[140, 119], [140, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
+    [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
     [[112, 111], [112, 111]], [[114, 123], [114, 123]],                          // the houses on the lane
     [[135, 129], [135, 129]], [[141, 129], [141, 129]],                          // the smithy and the armourer
@@ -245,8 +245,8 @@ const OAKVALE = {
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
-    [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [138, 119], [143, 123], [120, 116], [132, 116],
-    [120, 126], [132, 126], [109, 107], [112, 127], [135, 110], [139, 110]],
+    [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
+    [120, 126], [132, 126], [109, 107], [112, 127], [135, 110], [139, 110], [135, 115], [139, 115]],
   benches: [[122, 116], [130, 116], [122, 126], [130, 126]],
   planters: [[129, 111], [141, 111]],
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
@@ -260,7 +260,7 @@ const OAKVALE = {
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
-    ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 140, 115, 8],
+    ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
     ['oak_smith', 134, 125, 8], ['oak_armourer', 141, 124, 8], ['oak_mage', 146, 115, 8], ['oak_baker', 122, 118, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 112, 116, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 124, 100, 8], ['gate_east', 148, 119, 8], ['gate_south', 128, 143, 8], ['gate_west', 104, 119, 8],
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
