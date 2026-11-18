@@ -45,7 +45,7 @@ const ISLE_DESIGN = {
     [[40, 190], [96, 196], [96, 230], [40, 230]],            // below Bone Rocks
     [[112, 204], [150, 204], [150, 232], [112, 232]],        // Lighthouse Point
   ],
-  town: { x0: 97, y0: 92, x1: 156, y1: 150 },  // Oakvale (the plan is OAKVALE below)
+  town: { x0: 94, y0: 89, x1: 158, y1: 151 },  // Oakvale (the plan is OAKVALE below)
   clearings: [ // kept clear for buildings and camps (phase 4)
     { name: "Fisher's Rest", x0: 42, y0: 170, x1: 56, y1: 182 },
     { name: 'Sunny Fields farm', x0: 112, y0: 150, x1: 126, y1: 160 },
@@ -132,7 +132,7 @@ const ISLE_DESIGN = {
 // A beginner's first walk: down the temple's steps onto the square, to the academy and the depot south of it, the
 // shops east of it, and out of a gate.
 //   bounds:    the area the town is built in (cleared first)
-//   moat:      water [x0, y0, x1, y1] (the river's bed through the bounds is kept as well)
+//   moat:      water round the wall { min, max }: its width wanders between them (the river's bed through the bounds is kept as well)
 //   ramparts:  the town wall, a ring x0..x1, y0..y1, `thick` tiles deep: solid masonry with a walkway on top (the floor
 //              above) all the way round, battlements on its outer edge; gates: where streets go through it (the walkway
 //              goes on over them, as it does over water); stairs: stone stairs in its inner face, up
@@ -147,8 +147,10 @@ const ISLE_DESIGN = {
 //   houses:    the buildings players can rent, with their rent
 //   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
-  bounds: { x0: 96, y0: 91, x1: 156, y1: 151 },
-  moat: [[96, 91, 156, 93], [96, 149, 156, 151], [96, 91, 98, 151], [154, 91, 156, 151]],
+  bounds: { x0: 94, y0: 89, x1: 158, y1: 151 },  // (not further south: the farm by the south road starts there)
+  // the moat: water round the wall, against its foot; its far bank wanders, so it is now three tiles wide, now five (less on the south, where the farm begins)
+  // (min..max), and its corners are round
+  moat: { min: 3, max: 5 },
   hills: [],
   // (the wall's middle, (126, 121), is the middle of the square: the four gates face each other across it)
   ramparts: { x0: 99, y0: 94, x1: 153, y1: 148, thick: 3,
@@ -170,8 +172,8 @@ const OAKVALE = {
       [150, 102.5], [149.6, 106.4], [146.4, 106.6], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
     keep: [[131, 99, 142, 108], [128, 102, 131, 107], [134, 109, 140, 109], [143, 99, 149, 106], [142, 105, 143, 106]], clear: [] }, // (a rim round the bell tower)
   streets: [
-    { line: [[126, 91], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
-    { line: [[96, 121], [156, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
+    { line: [[126, 89], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
+    { line: [[94, 121], [158, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
     { line: [[103, 130], [150, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square (narrower)
     { line: [[110, 107], [110, 130]], width: 3, ground: 'cobble' },             // the academy lane
   ],
@@ -252,10 +254,10 @@ const OAKVALE = {
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
   signs: [
-    [124, 90, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
-    [95, 119, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
-    [157, 119, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
-    [124, 152, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
+    [124, 87, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
+    [92, 119, 'West: Frog Marsh and Wolf Woods. East: Oakvale.'],
+    [160, 119, 'East: Deer Woods, the Old Tower and the Spider Hills. West: Oakvale.'],
+    [124, 155, 'South: Sunny Fields, Bone Rocks and Lighthouse Point. North: Oakvale.'],
     [132, 210, 'Lighthouse Point. The old light of Oakvale fell in the great storm; the new tower has never been lit. Keeper Tamsin keeps a fire.'],
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
@@ -1932,7 +1934,11 @@ function buildTown(m, S, runs, river) {
   // The ground: grass, cleared of the wilds, with the river through it in a tidy bed.
   const bed = new Set();
   runs(river.line, river.width, (x, y) => bed.add(`${x},${y}`));
-  const inMoat = (x, y) => T.moat.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1);
+  const inMoat = (x, y) => { // (how far out from the wall's foot, round at the corners; the far bank's distance wanders)
+    const R = T.ramparts, dx = Math.max(R.x0 - x, 0, x - R.x1), dy = Math.max(R.y0 - y, 0, y - R.y1), d = Math.hypot(dx, dy);
+    const w = T.moat.min + (T.moat.max - T.moat.min) * Math.min(1, Math.max(0, smooth(x, y, 11, 61) * 1.3 - 0.15));
+    return d > 0 && d <= w;
+  };
   for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
     const inside = x > T.ramparts.x0 && x < T.ramparts.x1 && y > T.ramparts.y0 && y < T.ramparts.y1; // (inside the wall the river goes round, in the moat)
     m.set(x, y, S, { ground: (bed.has(`${x},${y}`) && !inside) || inMoat(x, y) ? 'water' : 'grass', items: [] });
@@ -2438,6 +2444,16 @@ function buildTown(m, S, runs, river) {
     if (t && t.ground === 'cobble' && !t.items.length && hash(x + 11, y + 5) < 0.06) put(x, y, S, 'pebbles');
   }
 
+  // ---- the moat's banks: reeds along the far bank here and there, water lilies on the water by it ------------------
+  {
+    const R = T.ramparts, outside = (x, y) => x < R.x0 || x > R.x1 || y < R.y0 || y > R.y1;
+    for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) {
+      const t = m.get(x, y, S); if (!t || !outside(x, y) || t.items.length) continue;
+      const wet = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => water(x + dx, y + dy)).length;
+      if (t.ground === 'grass' && wet && hash(x + 3, y + 9) < 0.22) put(x, y, S, 'reeds');
+      else if (t.ground === 'water' && wet < 4 && hash(x + 5, y + 1) < 0.05) put(x, y, S, 'lilypad');
+    }
+  }
   // ---- trees, bushes and flowers in the open ground, thicker by the walls and fences ------------------------------
   const busy = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     const t = m.get(x + dx, y + dy, S); if (!t || t.ground !== 'grass' || t.items.some(id => THINGS[id].wall || id === 'fence')) return !(t && t.items.includes('fence') && (dx || dy)); } return false; };
