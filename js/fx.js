@@ -572,6 +572,8 @@ const Fx = (() => {
       for (let y = player.y - 11; y <= player.y + 11; y++) for (let x = player.x - 14; x <= player.x + 14; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
+        // (a light indoors stays in while its roof or the floor above shows: only a lamp on an outer wall shines out)
+        if (z < view.maxZ && map.get(x, y, z + 1) && !t.items.some(id => THINGS[id].wall)) continue;
         if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
         for (const id of t.items) {
           if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });

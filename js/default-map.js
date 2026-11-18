@@ -2092,8 +2092,9 @@ function buildTown(m, S, runs, river) {
       }
       put(ox, oy, S, 'stairs_up'); put(ox, oy, S + 1, 'stairs_down');
       put(ix, iy, S + 1, 'stairs_up'); put(ix, iy, S + 2, 'stairs_down');
-      put(x0 + 2, y0 + 2, S + 2, 'tower_flag');
-      // two cannons on the lookout, beside the flag, pointing out over the two outer sides
+      // the flag in a corner of the lookout where nothing stands behind it (in the middle its pole hid the cannon there)
+      put(ix, oy, S + 2, 'tower_flag');
+      // two cannons on the lookout, pointing out over the two outer sides
       for (const [cx, cy, dir] of [[x0 + 2, north ? y0 + 1 : y1 - 1, north ? 'n' : 's'], [west ? x0 + 1 : x1 - 1, y0 + 2, west ? 'w' : 'e']]) {
         put(cx, cy, S + 2, `cannon_${dir}`); m.setMeta(cx, cy, S + 2, { look: CANNON_LOOK });
       }
@@ -2536,9 +2537,10 @@ function buildTown(m, S, runs, river) {
     }
   }
 
-  // Nothing in a doorway or straight in front of one.
-  for (const b of T.buildings) { const [dx, dy] = b.door; for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
-    const t = m.get(x, y, S); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }
+  // Nothing in a doorway or straight in front of one (on the building's own floor: the temple's and the bell tower's
+  // are a floor up, and the rock under them stays)
+  for (const b of T.buildings) { const [dx, dy] = b.door, z = S + (b.level || 0); for (const [x, y] of [[dx + 1, dy], [dx - 1, dy], [dx, dy + 1], [dx, dy - 1]]) {
+    const t = m.get(x, y, z); if (t && !inB(b, x, y) && t.items.some(id => THINGS[id].block)) t.items = []; } }
   // (the corner towers' doors too: nothing grows in front of them)
   for (let y = bd.y0; y <= bd.y1; y++) for (let x = bd.x0; x <= bd.x1; x++) if (m.get(x, y, S).items.includes('door')) for (const [ex, ey] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     const t = m.get(x + ex, y + ey, S); if (t && t.ground === 'grass' && t.items.some(id => ['tree', 'bush', 'flowers', 'grass_tuft'].includes(id))) t.items = []; }

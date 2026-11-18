@@ -550,7 +550,10 @@ function creatureKey(c) {
 // standing at a window or a door, or in a doorway, you look in: the roof of the building beyond lifts too.
 const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
 function peekMaxZ(x, y, z) {
-  let top = map.visibleMaxZ(x, y, z);
+  // (on the foot of steps or a mountain path its own top is right over you: no roof, so look past it, or the floors
+  // above blink out for a step: the plateau gone, the rock under it a grey slab)
+  const over = map.get(x, y, z + 1), foot = over && THINGS[over.ground] && THINGS[over.ground].change === -1;
+  let top = foot ? Math.max(z + 1, map.visibleMaxZ(x, y, z + 1)) : map.visibleMaxZ(x, y, z);
   const opening = (tx, ty) => { const t = map.get(tx, ty, z); return !!t && t.items.some(OPENING); };
   const here = opening(x, y);
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {

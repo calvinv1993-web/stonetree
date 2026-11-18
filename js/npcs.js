@@ -2172,7 +2172,7 @@ Object.assign(NPCS, {
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
       'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came, and Oakvale kept a watch in it until its floors fell in. The dead walk its top now. I would not go there before level 6.',
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
-      'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, and the dead in it no longer stay down. Not before level 5, and take potions.',
+      'bone|rocks|crypt': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, and the dead in it no longer stay down. Not before level 5, and take potions.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the training yard.',
       'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
       'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
@@ -2258,7 +2258,7 @@ Object.assign(NPCS, {
   gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
   gate_east: (() => { // (Hilde also knows of the spiders' den, and its queen)
     const g = gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.');
-    g.keywords['queen|brood|den|cave'] = 'Under the Spider Hills there is a den: steps cut into their south face. The spiders in there serve something big. The Brood Queen, we call her. I went in once, at your age. Once. Go much stronger than the Thornmother asks, $name: level twelve, with friends and potions.';
+    g.keywords['queen|brood|den|cave'] = 'Under the Spider Hills there is a den: steps cut into their south face. The spiders in there serve something big. The Brood Queen, we call her. I went in once, at your age. Once. Go much stronger than you would for the Thornmother, $name: level twelve, with friends and potions.';
     g.greet = g.greet.replace('{dangers}?', '{dangers}? Or the spiders\' {den}?');
     return g;
   })(),
@@ -2329,11 +2329,11 @@ Object.assign(NPCS, {
       job: 'I watch the sea and the stars, and the bears watch me. We get on.',
       honey: 'Willa\'s flour for my honey, every spring. The bees up here feed on the heather. Best honey on the isle. The bears agree.',
       'page|diary|chronicle': { text: 'A gull brought this up to its nest, years ago. Old writing: the founder\'s, I think. I have read it a hundred times. Take it to someone who can make sense of it. Corwin, maybe.' },
-      'stars|night|sea': 'At night you can see the boats without lamps, far out. Singing. I do not go down when they sing.',
+      'stars|night|sea|host|fires': 'At night you can see their fires on the far shore, all along it. The Hollow Host. More every winter. I count them, and I do not tell the town the number.',
       'eagle|eagles|eyrie|peaks': 'The eagles nest high on the North Peaks. Leave them be, and they leave you be.',
       'bears|bear': 'They let me be. Do not try their patience, $name: they hit like falling trees.',
     },
-    chatter: ['The stars are clear tonight.', 'Shh. Bears sleeping.', 'Another boat with no lamp...'],
+    chatter: ['The stars are clear tonight.', 'Shh. Bears sleeping.', 'More fires on the far shore...'],
   },
   // Brother Ossian, the ghost of the half-blind gravedigger who laid the island's dead to rest in patterns of bone in a
   // chapel behind the crypt (The Bone Chapel): he wants the crest of Oakvale made whole again
@@ -2348,7 +2348,7 @@ Object.assign(NPCS, {
     },
     chatter: ['...four thousand, two hundred and nine... ten... eleven.', 'Mind the bones.', 'Every one was somebody.'],
   },
-  // Keeper Tamsin, by her fire at Lighthouse Point, where the lighthouse stood: she sees the Choir's boats at night
+  // Keeper Tamsin, by her fire at Lighthouse Point, where the lighthouse stood: she watches the far shore for the Host
   oak_keeper: {
     name: 'Keeper Tamsin',
     look: { skin: '#d8a880', hair: '#c8c0b8', hairStyle: 'long', female: true, body: '#3a4a5a', arms: '#3a4a5a', legs: '#2a2a32', feet: '#2a1a0a', belt: '#8a6a3a', coat: true },
@@ -2360,7 +2360,7 @@ Object.assign(NPCS, {
       'eagle|eagles|peaks|hermit|cave|shades': { after: 'keeper_coat', text: 'That cave under the North Peaks goes further than the flint, they say: up inside the mountain, to where the great eagles nested. The hermit on Hermit Rock climbed it, when he was young. Ask him about the {eagles} - at night: he sleeps by day.',
         before: 'The North Peaks? A cave runs in under their south face. The old keepers went there for their flint. Nobody goes now: the dead walk in there.' },
     },
-    chatter: ['The wind is turning.', 'A boat out there, without a lamp. Again.', 'Who sings out at sea at night?'],
+    chatter: ['The wind is turning.', 'No boats come from the far shore any more.', 'The fires over the water burn brighter tonight.'],
   },
   // Oakvale's landlady, at a table in the Sleepy Boar: the town's one house to let is hers
   oak_landlady: {
