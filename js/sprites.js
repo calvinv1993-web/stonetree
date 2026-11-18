@@ -3232,21 +3232,25 @@ const Sprites = (() => {
       const [x, y] = P(16, 17, 10); ellipse(g, '#4a4640', x, y, 2.2, 2.2);
       const [fx, fy] = P(27, 25, 0); ellipse(g, '#f0ece0', fx, fy, 3.5, 2);
     },
-    // A water wheel standing in the canal: a wooden rim with paddles round a hub, turning (frames), water foaming below
+    // A water wheel standing in the canal beside the mill's wall: its plane runs north to south, along the water,
+    // so it is seen side-on in the world's slant (every point at u = 9, the wall side of the tile); a rim, eight spokes
+    // and paddles round an axle out of the wall, turning (frames), the water foaming where its lower paddles dip
     waterwheel(g, r, frame) {
-      upright(0, () => onSouth(g, 16, f => {
-        const cx = 16, cz = 20, R = 18, a0 = frame * Math.PI / 12;
-        f.strokeStyle = '#5a3a1e'; f.lineWidth = 3; f.beginPath(); f.arc(cx, cz, R, 0, Math.PI * 2); f.stroke();
-        f.strokeStyle = '#7a5230'; f.lineWidth = 1.5; f.beginPath(); f.arc(cx, cz, R - 3, 0, Math.PI * 2); f.stroke();
-        for (let i = 0; i < 8; i++) {
-          const a = a0 + i * Math.PI / 4, c = Math.cos(a), s2 = Math.sin(a);
-          line(f, '#6a4628', 2, cx, cz, cx + c * (R - 2), cz + s2 * (R - 2));
-          poly(f, '#8a6038', [cx + c * (R - 1) - s2 * 3, cz + s2 * (R - 1) + c * 3, cx + c * (R + 4) - s2 * 3, cz + s2 * (R + 4) + c * 3,
-            cx + c * (R + 4) + s2 * 3, cz + s2 * (R + 4) - c * 3, cx + c * (R - 1) + s2 * 3, cz + s2 * (R - 1) - c * 3]);
-        }
-        ellipse(f, '#3a2a18', cx, cz, 3, 3);
-        for (let i = 0; i < 6; i++) ellipse(f, 'rgba(240,250,255,0.8)', 6 + ((i * 5 + frame * 3) % 22), 1 + (i % 2), 2, 1.2);
-      }), 1.6);
+      const U0 = 5, U1 = 13, cv = 16, cz = 16, R = 14, K = 2.4, a0 = frame * Math.PI / 12; // (two rims, U0 by the wall)
+      const at = (u, a, rad) => P(u, cv + Math.cos(a) * rad, cz + Math.sin(a) * rad * K);
+      const ring = (u, rad, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); for (let i = 0; i <= 36; i++) g.lineTo(...at(u, i * Math.PI / 18, rad)); g.stroke(); };
+      line(g, '#3a2a18', 3, ...P(0, cv, cz), ...P(U1 + 2, cv, cz)); // (the axle, out of the wall)
+      ring(U0, R, '#4a3018', 3);
+      // the paddles: boards between the two rims, the far ones first
+      const boards = [...Array(10)].map((_, i) => a0 + i * Math.PI / 5).sort((p, q) => Math.sin(p) - Math.sin(q));
+      for (const a of boards) {
+        const pts = [at(U0, a, R - 3), at(U1, a, R - 3), at(U1, a, R + 3), at(U0, a, R + 3)].flat();
+        poly(g, Math.cos(a) > 0 ? '#8a6038' : '#6a4628', pts);
+      }
+      for (let i = 0; i < 5; i++) { const a = a0 + i * Math.PI / 5; line(g, '#6a4628', 2, ...at(U1, a, 0), ...at(U1, a, R)); line(g, '#6a4628', 2, ...at(U1, a + Math.PI, 0), ...at(U1, a + Math.PI, R)); }
+      ring(U1, R, '#5a3a1e', 3); ring(U1, R - 3, '#7a5230', 1.5);
+      const [hx, hy] = at(U1, 0, 0); ellipse(g, '#3a2a18', hx, hy, 2.5, 3);
+      for (let i = 0; i < 6; i++) { const [fx, fy] = P(U0 + (i % 3) * 5, 4 + ((i * 7 + frame * 4) % 26), 0); ellipse(g, 'rgba(240,250,255,0.85)', fx, fy, 2.6, 1.3); }
     },
     smith_hearth(g, r, frame) {
       floorShadow(g, 13, 4);

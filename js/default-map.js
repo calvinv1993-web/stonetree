@@ -196,7 +196,7 @@ const OAKVALE = {
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
     { id: 'fisher', name: 'The Fisher\'s Hut', kind: 'shop', x0: 112, y0: 108, x1: 116, y1: 118, door: [112, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', shelves: 'shelf', sign: 'The Fisher\'s Hut: fishing rods, and fish bought and sold. The jetty out back is the place to learn.' },
     { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread from the grain of Oakvale\'s own field, cheese, apples and meat. Eat to get your health and mana back faster.' },
-    { id: 'farm', name: 'The Hay Barn', kind: 'farm', x0: 104, y0: 133, x1: 111, y1: 137, door: [107, 133], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', sign: 'The town farm\'s barn. Its grain feeds the Warm Loaf\'s ovens; the hay is kept in the loft.' },
+    { id: 'farm', name: 'The Hay Barn', kind: 'farm', x0: 112, y0: 133, x1: 115, y1: 137, door: [113, 133], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', sign: 'The town farm\'s barn. Its grain feeds the Warm Loaf\'s ovens; the hay is kept in the loft.' },
     { id: 'mill', name: 'The Water Mill', kind: 'mill', x0: 112, y0: 139, x1: 115, y1: 143, door: [113, 139], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_wall', sign: 'The water mill: the canal turns its wheel, and its stones grind the town\'s grain.' },
     { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 109, x1: 108, y1: 118, door: [108, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
     { id: 'watch', name: 'The Watch House', kind: 'shop', x0: 145, y0: 113, x1: 148, y1: 118, door: [146, 118], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_wall', shelves: 'weapon_rack', sign: 'The Watch House. Bring your watch marks: the quartermaster keeps the watch\'s stores.' },
@@ -206,7 +206,7 @@ const OAKVALE = {
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
-    { x0: 104, y0: 138, x1: 111, y1: 143, kind: 'crops', gate: [107, 138] },   // the town's grain field, below the hay barn (open on to it: the way in)
+    { x0: 104, y0: 133, x1: 111, y1: 143, kind: 'crops', gate: [111, 135] },   // the town's grain field, the south-west corner; its gate opens into the hay barn
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
   graveyard: { x0: 107, y0: 75, x1: 114, y1: 79, gate: [114, 77], stones: [ // (outside the walls, north-west of the north gate, a path from it down to the north road)
@@ -239,8 +239,7 @@ const OAKVALE = {
     [[114, 123], [114, 123]],                          // the houses on the lane
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
     [[135, 132], [135, 132]],                   // the academy
-    [[107, 132], [107, 132]],                   // the hay barn
-    [[113, 132], [113, 138]],                   // the water mill
+    [[113, 132], [113, 132]],                   // the hay barn (the water mill: through it, out of its open side)
     [[115, 77], [115, 83]],                     // from the graveyard's gate down to the north road
     [[145, 132], [145, 132]],                   // the training yard
   ],
@@ -270,7 +269,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 106, 135, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 114, 135, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
     ['townsman', 123, 117, 8], ['townswoman', 129, 125, 8], ['child', 129, 118, 8], ['cat', 122, 123, 8], ['old_man', 140, 132, 8],
   ],
@@ -2334,13 +2333,13 @@ function buildTown(m, S, runs, river) {
   shop(B.armour, ['dummy', 'table', 'dummy']); // (armour on stands and laid out on tables)
   shop(B.general, ['barrel', 'crate', 'sack']);
   shop(B.bakery, ['basket', 'sack', 'barrel']);
-  { // the hay barn: open on its south side to the grain field, below and in the loft; sacks and a barrel below,
-    // stairs up to the loft in its north-east corner, the loft full of hay
+  { // the hay barn, by the canal at the grain field's side: open on its south side, below and in the loft (the hay
+    // stacked in the opening), the way through to the mill; the field's gate opens in its west wall; stairs to the loft
     const f = B.farm;
-    for (const [x, y, id] of [[f.x0 + 1, f.y0 + 1, 'sack'], [f.x0 + 2, f.y0 + 1, 'sack'], [f.x0 + 4, f.y0 + 1, 'barrel']]) inside(f, x, y, id);
     put(f.x1 - 1, f.y0 + 1, S, 'stairs_up'); put(f.x1 - 1, f.y0 + 1, S + 1, 'stairs_down');
-    for (const [x, y, id] of [[f.x0 + 1, f.y0 + 1, 'haystack'], [f.x0 + 2, f.y0 + 1, 'haystack'], [f.x0 + 1, f.y0 + 2, 'haystack'], [f.x0 + 4, f.y0 + 1, 'sack'], [f.x0 + 5, f.y0 + 2, 'sack']]) put(x, y, S + 1, id);
-    for (let x = f.x0 + 1; x < f.x1; x++) { m.get(x, f.y1, S).items = []; m.get(x, f.y1, S + 1).items = x % 3 ? ['haystack'] : []; } // (the open side: hay stacked in the loft's opening)
+    for (const [x, y, id] of [[f.x0 + 1, f.y0 + 1, 'haystack'], [f.x0 + 1, f.y0 + 2, 'haystack'], [f.x1 - 1, f.y0 + 3, 'sack']]) put(x, y, S + 1, id);
+    for (let x = f.x0 + 1; x < f.x1; x++) { m.get(x, f.y1, S).items = []; m.get(x, f.y1, S + 1).items = ['haystack']; }
+    for (const y of [f.y0 + 1, f.y0 + 2]) m.get(f.x0, y, S).items = []; // (a wide way in from the field)
   }
   { // the water mill: millstones and sacks of flour inside, its wheel turning in the canal beside it
     const w = B.mill;
@@ -2435,10 +2434,13 @@ function buildTown(m, S, runs, river) {
       if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
     } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
-  // the hay barn's open south side runs straight on to the grain field: no fence between them
-  { const f = B.farm; for (let x = f.x0 + 1; x < f.x1; x++) { const t = m.get(x, f.y1 + 1, S); t.items = []; t.ground = 'farmland'; } }
-  // a scarecrow in the middle of every big field
-  for (const gd of T.gardens) if (gd.kind === 'crops' && gd.x1 - gd.x0 >= 6 && gd.y1 - gd.y0 >= 6) m.get((gd.x0 + gd.x1) >> 1, (gd.y0 + gd.y1) >> 1, S).items = ['scarecrow'];
+  // the field's east side opens into the hay barn: no fence there
+  { const f = B.farm, w = B.mill;
+    for (const y of [f.y0 + 1, f.y0 + 2]) { const t = m.get(f.x0 - 1, y, S); t.items = []; t.ground = 'farmland'; }
+    m.get(f.x0 - 1, f.y0 + 3, S).items = ['fence'];
+    for (let x = w.x0 + 1; x < w.x1; x++) for (let y = f.y1 + 1; y < w.y0; y++) m.setGround(x, y, S, 'dirt'); } // (a trodden farmyard between the barn and the mill)
+  // scarecrows in every big field
+  for (const gd of T.gardens) if (gd.kind === 'crops' && gd.x1 - gd.x0 >= 6 && gd.y1 - gd.y0 >= 6) for (const k of [1, 2]) m.get(gd.x0 + 2 + (k - 1) * 3, gd.y0 + Math.round((gd.y1 - gd.y0) * k / 3), S).items = ['scarecrow']; // (two scarecrows in a big field)
 
   // Gates of gardens and the yard: a step of gravel through them and either side, so nothing grows there.
   for (const g of [...T.gardens.filter(gd => gd.gate).map(gd => gd.gate), T.yard.gate]) for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
