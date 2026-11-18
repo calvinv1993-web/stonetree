@@ -243,7 +243,7 @@ const OAKVALE = {
     [120, 126], [132, 126], [109, 107], [112, 127]],
   benches: [[122, 116], [130, 116], [122, 126], [130, 126]],
   planters: [[129, 111], [141, 111]],
-  mosaic: [124, 119], // the compass mosaic in the middle of the square, and of the town (5x5, round (126, 121))
+  mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
   signs: [
     [124, 90, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
