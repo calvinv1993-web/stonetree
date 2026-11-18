@@ -1135,8 +1135,8 @@ test('Clang learns half of a kill he helped with, a dummy teaches him only to le
   assert.strictEqual(p.pet.xp, Math.floor(rat.def.xp * 0.5), `half the rat's experience (${p.pet.xp})`);
   // at the dummy: a point every fourth blow of yours, up to level 4
   p.pet.xp = 0;
-  ctx.teleport({ x: 110, y: 140, z: 8 }); tick(game, 300);
-  ctx.useThing(110, 141, 8);
+  ctx.teleport({ x: 144, y: 140, z: 8 }); tick(game, 300);
+  ctx.useThing(144, 141, 8);
   for (let i = 0; i < 40; i++) tick(game, 1000);
   assert(p.pet.xp >= 8 && p.pet.xp <= 11 && p.pet.level === 1, `about one point every four blows (${p.pet.xp} after ${p.trainHits})`);
   p.pet.level = 4; p.pet.xp = 0;
@@ -1516,15 +1516,15 @@ test('training: hit a dummy as long as you like and your weapon skill grows; wal
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player;
-  ctx.teleport({ x: 110, y: 140, z: 8 });
-  assert(state.map.get(110, 141, 8).items.includes('dummy'), 'a dummy in the training yard');
+  ctx.teleport({ x: 144, y: 140, z: 8 });
+  assert(state.map.get(144, 141, 8).items.includes('dummy'), 'a dummy in the training yard');
   const club = p.skills.club.level;
-  ctx.useThing(110, 141, 8);
+  ctx.useThing(144, 141, 8);
   for (let i = 0; i < 400; i++) tick(game, 1000);
   assert(p.training, 'still training after many minutes');
   assert(p.trainHits >= 390, `about one hit a second (${p.trainHits})`);
   assert(p.skills.club.level > club, `club fighting went up (${club} -> ${p.skills.club.level})`);
-  state.Actions.walkTo(110, 138); tick(game, 1500);
+  state.Actions.walkTo(144, 137); tick(game, 1500);
   const hits = p.trainHits; tick(game, 3000);
   assert(!p.training && p.trainHits === hits, 'walking away stops it');
 });
@@ -1568,8 +1568,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   while (p.tutorial <= step) { A.guideNext(); tick(game, 100); }
   assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'leather_cap').length, 0, 'no second present when the guide starts again');
   p.tutorial = step + 1;
-  assert.strictEqual(arrow(), '110,141,8', 'then the training yard, on the way to the rats');
-  on(null, { x: 110, y: 140, z: 8 }); ctx.useThing(110, 141, 8); tick(game, 5600);
+  assert.strictEqual(arrow(), '144,141,8', 'then the training yard, on the way to the rats');
+  on(null, { x: 144, y: 140, z: 8 }); ctx.useThing(144, 141, 8); tick(game, 5600);
   assert(p.trainHits >= 5, 'hitting the dummy');
   kill('rat', 5);
   p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null;

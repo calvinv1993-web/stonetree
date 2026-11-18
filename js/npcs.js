@@ -1738,8 +1738,8 @@ Object.assign(QUESTS, {
     reward: { xp: 300, gold: 80, items: [['health_potion', 3]] },
     summary: 'Find the bell\'s rope, at the bottom of the bell shaft deep under the town.',
     steps: [
-      { auto: true, kill: { giant_rat: 8 }, summary: 'Climb down a sewer grate, find the rats\' nest under the graveyard and its trapdoor down, and clear the old drains below: kill 8 giant rats.',
-        progress: 'The rats\' nest is under the graveyard, at the east end of the sewers; a trapdoor in it leads down to the old drains. So far: $progress.',
+      { auto: true, kill: { giant_rat: 8 }, summary: 'Climb down a sewer grate, find the rats\' nest under the training yard and its trapdoor down, and clear the old drains below: kill 8 giant rats.',
+        progress: 'The rats\' nest is under the training yard, at the east end of the sewers; a trapdoor in it leads down to the old drains. So far: $progress.',
         done: 'The old drains fall quiet. A trapdoor leads on down, and from the dark below comes the sound of something big moving in water.' },
       { auto: true, kill: { cistern_slime: 1 }, summary: 'Go down the trapdoor in the old drains to the deep cistern, and kill the great slime that keeps the narrow way east.',
         progress: 'The cistern slime keeps the narrow way east, at the bottom of the sewers. It poisons: take potions.',
@@ -1751,7 +1751,7 @@ Object.assign(QUESTS, {
     ],
     text: {
       offer: 'Master Corwin told me about the note. So our rope lies at the bottom of the bell shaft, under the town... The rats have dug their way down there, $name, and worse lives in the deep cistern. Will you bring our rope home? ({yes}/{no})',
-      accept: 'Go down a grate into the sewers and east to the rats\' nest under the graveyard: a trapdoor there leads down to the old drains, and another to the cistern. This is the most dangerous place on the isle for one of your strength. Eat well, carry health potions from Pip, get the best armour Brenna has, and come back to me if you are hurt: I will {heal} you. Bring me the {rope}.',
+      accept: 'Go down a grate into the sewers and east to the rats\' nest under the training yard: a trapdoor there leads down to the old drains, and another to the cistern. This is the most dangerous place on the isle for one of your strength. Eat well, carry health potions from Pip, get the best armour Brenna has, and come back to me if you are hurt: I will {heal} you. Bring me the {rope}.',
       tooWeak: 'Under the town is no place for you yet, $name. Come back at level 6.',
       elsewhere: 'Sister Ama in the temple wants to know what you found in the crypt.',
       done: 'We have our rope again. But without its clapper, the bell is dumb.',
@@ -2256,7 +2256,7 @@ Object.assign(NPCS, {
       'shield|hoard|storeroom': { quest: ['cellar_shield'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
       'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
-      'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the graveyard.',
+      'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the training yard.',
       'fighting|fight': 'Tap or click a monster to attack it. Put on what you find: drag weapons and armour onto your equipment. Drink a potion or eat when you are hurt, and run if you must - there is no shame in it.',
       'loot|corpse': 'When a monster dies, open its corpse and take what you need. Sell the rest at Pip\'s or the smithy.',
       skills: 'Every weapon trains its skill as you use it, and a shield trains when you are hit. Spending mana trains your magic.',
@@ -2507,8 +2507,8 @@ Object.assign(QUESTS, {
     summary: 'Help Brother Ossian, the ghost in the chapel of bones behind the crypt, make the crest of Oakvale whole again: three carved bones were lost.',
     steps: [
       { npc: 'oak_ossian', fetch: 'crest_jaw', word: 'jaw',
-        summary: 'Find the carved jawbone of the crest: the rats dragged it off to their nest under the graveyard (the sewers, at the east end of the tunnel under the main street).',
-        progress: 'The jawbone, friend. The rats took it to their nest, under the graveyard. Look in their heap of bones.',
+        summary: 'Find the carved jawbone of the crest: the rats dragged it off to their nest under the training yard (the sewers, at the east end of the tunnel under the main street).',
+        progress: 'The jawbone, friend. The rats took it to their nest, under the training yard. Look in their heap of bones.',
         done: 'My jawbone! Gnawed, but whole. (He sets it into the crest with fingers you can see through.) Now the {knucklebone}: it was buried with the one who carved it, in the graveyard above. No stone on her grave: between Bertha Oakhart\'s and Sir Galen\'s. A {shovel} will find her.' },
       { thing: 'ossian_grave', give: [['crest_knuckle', 1]],
         summary: 'Dig with a shovel at the grave with no stone in the old graveyard, between Bertha Oakhart\'s stone and Sir Galen\'s.',
@@ -2520,7 +2520,7 @@ Object.assign(QUESTS, {
     ],
     text: {
       offer: 'You see the crest? Three of its bones are gone: the {jaw}, a knuckle and the skull at its heart. The rats, the grave, and the founders\' hall. My hands go through things now, friend. Would you find them for me? ({yes}/{no})',
-      accept: 'Bless you. The jawbone first: the rats took it to their nest, under the graveyard. Come back to me with it.',
+      accept: 'Bless you. The jawbone first: the rats took it to their nest, under the training yard. Come back to me with it.',
       reward: 'Whole. Whole again, after all these years. (Ossian bows his head, and the candles bow with him.) Take this: I carved it the night the bell first rang, from a bone nobody claimed. It keeps the cold out. And friend... remember them.',
       tooWeak: 'The way here is guarded by the restless dead, friend. Grow a little stronger first: level 6, I would say.',
       done: 'Four thousand, two hundred and eleven... and a crest, whole. Go well, friend.',

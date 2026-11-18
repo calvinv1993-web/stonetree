@@ -60,9 +60,9 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => !!player.equipment.head,
   },
   {
-    text: 'On your way to the rats: train! The training yard is in the south-west of town, by the south gate. Click a dummy and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
-    touch: 'On your way to the rats, train: tap a dummy in the training yard (south-west of town, by the south gate) and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
-    target: [{ at: [110, 141, 8] }],
+    text: 'On your way to the rats: train! The training yard is in the south-east of town, by the south gate. Click a dummy and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
+    touch: 'On your way to the rats, train: tap a dummy in the training yard (south-east of town, by the south gate) and you keep hitting it until you walk away: every hit raises your weapon skill. Hit it 5 times ($trained).',
+    target: [{ at: [144, 141, 8] }],
     done: () => player.trainHits >= 5,
     art: 'train',
   },

@@ -54,7 +54,7 @@ const STEPS = [
   ['bell I: Ama, the bell', d => { d.talk('ama'); d.talk('ama', 'bell', 'yes'); d.next(); }],
   ['bell I: Corwin', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
   ['bell I: the dummy', d => { // (a dummy with a free tile north of it: a friend may be training at the first)
-    for (let x = 104; x <= 116; x++) {
+    for (let x = 140; x <= 150; x++) {
       const t = d.state.map.get(x, 141, 8);
       if (!t || !t.items.includes('dummy') || !d.state.isFree(x, 140, 8)) continue;
       d.go({ x, y: 140, z: 8 }); if (d.p().x !== x) continue;

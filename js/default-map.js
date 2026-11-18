@@ -196,7 +196,7 @@ const OAKVALE = {
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
     { id: 'house1', name: 'Riverside Cottage', kind: 'house', x0: 113, y0: 108, x1: 116, y1: 113, door: [113, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch' },
     { id: 'house2', name: 'Mill Lane House', kind: 'house', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_shingle' },
-    { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 143, y0: 133, x1: 148, y1: 137, door: [145, 133], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
+    { id: 'house3', name: 'Ivy Cottage', kind: 'house', x0: 145, y0: 108, x1: 148, y1: 111, door: [146, 111], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
     { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 110, x1: 108, y1: 115, door: [108, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
   ],
   houses: { house1: 350, house2: 400, house3: 450, house4: 350 },
@@ -204,19 +204,20 @@ const OAKVALE = {
   gardens: [
     { x0: 128, y0: 134, x1: 129, y1: 139, kind: 'flowers' },
     { x0: 136, y0: 141, x1: 140, y1: 143, kind: 'flowers' },                  // the academy's garden
+    { x0: 104, y0: 133, x1: 111, y1: 137, kind: 'crops', gate: [108, 133] },   // a field of grain in the south-west
   ],
   // The old graveyard: a fence, a gate, and gravestones you can read (look at them).
-  graveyard: { x0: 142, y0: 139, x1: 149, y1: 143, gate: [142, 141], stones: [
-    [143, 140, 'Here lies Old Wim, who went down the well for a bet.'],
-    [145, 140, 'An adventurer who never bought a rope.'],
-    [147, 140, 'Bertha Oakhart. She fed the town through the long winter.'],
-    [144, 142, 'Sir Galen. He said the rats in the cellar were "only rats".'],
-    [146, 142, 'Taken by the spiders of the hills. Go well armed, friend.'],
-    [148, 142, 'No name. Only the words: "the hills remember".'],
+  graveyard: { x0: 104, y0: 139, x1: 111, y1: 143, gate: [111, 141], stones: [ // (in the south-west corner)
+    [105, 140, 'Here lies Old Wim, who went down the well for a bet.'],
+    [107, 140, 'An adventurer who never bought a rope.'],
+    [109, 140, 'Bertha Oakhart. She fed the town through the long winter.'],
+    [106, 142, 'Sir Galen. He said the rats in the cellar were "only rats".'],
+    [108, 142, 'Taken by the spiders of the hills. Go well armed, friend.'],
+    [110, 142, 'No name. Only the words: "the hills remember".'],
     // the three of the Old Tower's last watch, side by side: the order they came to the wall is the order of its levers
-    [143, 142, 'Watchman Oswin of the Old Tower. When the horn blew he was always FIRST up the stair, and he held the EAST wall.'],
-    [145, 142, 'Watchwoman Marrow of the Old Tower. SECOND to the wall, every time, and she kept the WEST side of it.'],
-    [147, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
+    [105, 142, 'Watchman Oswin of the Old Tower. When the horn blew he was always FIRST up the stair, and he held the EAST wall.'],
+    [107, 142, 'Watchwoman Marrow of the Old Tower. SECOND to the wall, every time, and she kept the WEST side of it.'],
+    [109, 142, 'Watchman Tobin, the last of the Old Tower\'s watch. He came up THIRD and stood in the MIDDLE, and the cellar was his to keep. He keeps it still, they say.'],
   ] },
   // Grates over the sewers, and what you notice when you look at them.
   grates: [[130, 117], [140, 131], [110, 128], [127, 141]],
@@ -228,16 +229,17 @@ const OAKVALE = {
   // A forgotten chest for whoever explores the strip behind the academy: [x, y, gold]
   cache: [105, 97, 30],
   // The training yard: a fenced sandy yard with dummies.
-  yard: { x0: 108, y0: 134, x1: 114, y1: 143, gate: [111, 134] },
+  yard: { x0: 142, y0: 133, x1: 148, y1: 143, gate: [145, 133] }, // (in the south-east corner)
   paths: [
     [[121, 132], [121, 132]],                   // the depot, onto the lane
     [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and Moonpetal's, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
     [[112, 111], [112, 111]], [[114, 123], [114, 123]],                          // the houses on the lane
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
-    [[135, 132], [135, 132]], [[145, 132], [145, 132]], // the academy, Ivy Cottage
-    [[141, 132], [141, 142]],                   // to the graveyard
-    [[111, 132], [111, 133]],                   // the training yard
+    [[135, 132], [135, 132]],                   // the academy
+    [[139, 112], [146, 112]],                   // Ivy Cottage, onto the temple walk
+    [[113, 132], [113, 141]], [[112, 141], [112, 141]], // to the graveyard
+    [[145, 132], [145, 132]],                   // the training yard
     [[109, 112], [109, 112]],                   // Bell Cottage
   ],
   // Things standing about: [x, y, id]
@@ -245,8 +247,7 @@ const OAKVALE = {
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], [149, 132, 'crate'], [150, 132, 'firewood'],
     [104, 127, 'firewood'], [105, 127, 'barrel'], [123, 128, 'wagon'], [115, 134, 'haystack'],
-    [145, 108, 'tree'], [147, 110, 'tree'], [145, 111, 'bush'], // (under the bell tower: a few trees)
-    [104, 139, 'haystack'], [105, 140, 'haystack'], [123, 143, 'bench'],
+     [123, 143, 'bench'],
   ],
   lamps: [[124, 98], [128, 98], [124, 104], [124, 110], [124, 133], [128, 133], [124, 139], [128, 139], [124, 144], [128, 144],
     [103, 119], [103, 123], [149, 119], [149, 123], [116, 119], [116, 123], [144, 119], [143, 123], [120, 116], [132, 116],
@@ -277,7 +278,7 @@ const OAKVALE = {
 // The sewers under Oakvale, one floor down: brick tunnels under the main streets, each with a channel of
 // murky water down the middle and a walkway on either side. You climb down through the grates in the
 // streets (OAKVALE.grates); a ladder under each one leads back up. The rats live here, and the big ones
-// nest where the brickwork has fallen in, under the graveyard. A dead end under the temple mount is the
+// nest where the brickwork has fallen in, under the training yard. A dead end under the temple mount is the
 // old bell cellar, where the temple bell's rope comes down.
 //   z:        the floor they're on
 //   walks:    walkways and rooms, [x0, y0, x1, y1] (damp flagstones)
@@ -314,7 +315,7 @@ const SEWERS = {
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[148, 140], [146, 142]], // two: a pair a level 4 can take on with care
-  shaft: [147, 102, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the graveyard.'],
+  shaft: [147, 102, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the training yard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -482,7 +483,7 @@ const CRYPT = {
   // The Bone Chapel (The Bone Chapel, QUESTS.bone_chapel): behind a crack in the hall of coffins' east wall (a pick
   // breaks it), a short passage and a chapel where Brother Ossian laid the island's old bones out in patterns: skull
   // pyramids in the corners, a chandelier of bones, the crest of Oakvale in bones on the north wall. A carved skull for
-  // the crest lies in a cracked coffin in the hall (skull), his jawbone in the rats' nest under the graveyard (jaw, in
+  // the crest lies in a cracked coffin in the hall (skull), his jawbone in the rats' nest under the training yard (jaw, in
   // the sewers), and his knucklebone in the grave with no stone in the graveyard (grave: dug with a shovel).
   chapel: {
     z: 7, crack: [89, 181], passage: [[90, 181]], room: [91, 177, 98, 184],
@@ -1749,7 +1750,7 @@ function buildCrypt(m, S) {
   for (const [x, y, id] of B.props) m.addItem(x, y, Z, id);
   m.npcs.push({ type: 'oak_ossian', x: B.ossian[0], y: B.ossian[1], z: Z });
   m.addItem(B.skull[0], B.skull[1], Z, 'qchest_crest_skull');
-  m.addItem(B.jaw[0], B.jaw[1], SEWERS.z, 'qchest_crest_jaw'); // (in the rats' nest under the graveyard)
+  m.addItem(B.jaw[0], B.jaw[1], SEWERS.z, 'qchest_crest_jaw'); // (in the rats' nest under the training yard)
   const [gx, gy] = B.grave; // (the grave with no stone, up in the graveyard: dug with a shovel)
   m.setMeta(gx, gy, S, { dig: 'bone_chapel', thing: 'ossian_grave', look: 'A low mound of earth between the stones, sunken a little, with no stone of its own. Somebody tends it: the grass is cut.' });
 }
@@ -2378,12 +2379,15 @@ function buildTown(m, S, runs, river) {
   // ---- houses: a bed, a table, a chest; rentable --------------------------------------------------------------
   for (const [id, rent] of Object.entries(T.houses)) {
     const h = B[id];
-    const bedX = h.door[0] === h.x0 ? h.x1 - 1 : h.x0 + 1; // against the wall away from a west door
+    const bedX = h.door[0] === h.x0 || h.door[0] === h.x0 + 1 ? h.x1 - 1 : h.x0 + 1; // against the wall away from the door
     longBed(bedX, h.y0 + 1, S);
     inside(h, bedX === h.x0 + 1 ? h.x1 - 1 : h.x0 + 1, h.y0 + 1, 'chest');
+    // (the rest never on the tile just inside the door)
+    const [fx, fy] = [h.door[0] + (h.door[0] === h.x0) - (h.door[0] === h.x1), h.door[1] + (h.door[1] === h.y0) - (h.door[1] === h.y1)];
+    const put2 = (x, y, id) => { if (x !== fx || y !== fy) inside(h, x, y, id); };
     const tx = (h.x0 + h.x1) >> 1, ty = (h.y0 + h.y1 + 1) >> 1;
-    inside(h, tx, ty, 'table'); inside(h, tx + 1, ty, 'chair_west');
-    inside(h, h.x0 + 1, h.y1 - 1, 'plant');
+    put2(tx, ty, 'table'); put2(tx + 1, ty, 'chair_west');
+    put2(h.x0 + 1, h.y1 - 1, 'plant');
     m.houses.push({ id: `oak_${id}`, name: h.name, rent, x0: h.x0, y0: h.y0, x1: h.x1, y1: h.y1, z: S });
   }
 
@@ -2407,7 +2411,7 @@ function buildTown(m, S, runs, river) {
     t.items = [];
     if (gd.kind === 'crops') {
       t.ground = edge ? 'grass' : 'farmland';
-      if (!edge && y % 2) put(x, y, S, 'crops');
+      if (!edge && hash(x + 2, y + 7) > 0.1) put(x, y, S, 'crops'); // (full of grain, a bare patch here and there)
       if (edge && !(x === gd.gate[0] && y === gd.gate[1])) put(x, y, S, 'fence');
     } else put(x, y, S, (x + y) % 4 ? 'flowers' : 'bush');
   }
