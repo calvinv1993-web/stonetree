@@ -232,6 +232,8 @@ const THINGS = {
   bell_sw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_se:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   anvil:       { name: 'anvil', cat: 'Furniture', block: true, low: true },
+  millstone:   { name: 'millstone', cat: 'Furniture', block: true, low: true },
+  waterwheel:  { name: 'water wheel', cat: 'Town', block: true, tall: true }, // stands in water, turning
   smith_hearth:{ name: 'smith\'s hearth', cat: 'Furniture', block: true, low: true, light: 3 },
 
   // In and around towns. A fountain takes 2x2 tiles: the fountain on the bottom-right one, its rim on the others.

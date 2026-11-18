@@ -438,6 +438,18 @@ test('Oakvale: every shopkeeper, teacher and keeper stands inside their own buil
   }
 });
 
+test('Oakvale: you can fish from the jetty behind the Fisher\'s Hut, and Farmer Ned gives his rats quest', () => {
+  const game = quietGame(), { ctx, state } = game, [x, y] = state.OAKVALE.pier;
+  ctx.addItem('fishing_rod', 1); ctx.teleport({ x, y, z: 8 });
+  assert.strictEqual(state.map.get(x, y, 8).ground, 'pier', 'standing on the jetty');
+  for (let i = 0; i < 40; i++) { state.now += 3000; ctx.useItemOn(bagRef(state, 'fishing_rod'), x + 1, y, 8); }
+  assert(state.countItem('fish') > 0, 'a fish caught');
+  const ned = state.npcs.find(o => o.npcId === 'oak_farmer');
+  ctx.teleport({ ...ctx.findFreeTile(ned.x, ned.y, ned.z, 2), z: ned.z });
+  state.Actions.say('hi'); state.Actions.say('rats'); state.Actions.say('yes');
+  assert.strictEqual(state.questState('farm_rats'), 'active', 'Rats in the Grain taken');
+});
+
 test('NPCs say which word to ask with, and show ! or ? when they have something for you', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

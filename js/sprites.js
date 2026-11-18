@@ -1260,7 +1260,7 @@ const Sprites = (() => {
   // you see each thing's top, its front (south) face and a slice of its east face - not a flat picture.
   // Everything that stands on a tile is drawn in this one slant, statues, the scarecrow and dummies too (built of
   // blocks and round bodies, as a pillar is). Only the living (people, creatures) and growing things stand upright.
-  const RAISED = new Set(['eggs', 'smith_hearth', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
+  const RAISED = new Set(['eggs', 'smith_hearth', 'waterwheel', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
     'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
@@ -3224,6 +3224,30 @@ const Sprites = (() => {
       prism(g, 26, 13, 31, 19, 15, 18, { top: '#5a5a62', south: '#3e3e44', east: '#2c2c30', edge: '#7a7a82' });
     },
     // the smith's hearth: a waist-high block of stone, its bed of coals glowing on top, a flame licking up from it
+    // A pair of millstones, the upper turning on the lower, a heap of flour beside them
+    millstone(g) {
+      floorShadow(g, 12, 4);
+      drum(g, 16, 17, 0, 5, () => 12, { edge: '#5a5650', light: '#a8a49c', mid: '#8a867e', dark: '#6a665e' });
+      drum(g, 16, 17, 5, 10, () => 10.5, { edge: '#5a5650', light: '#b8b4ac', mid: '#9a968e', dark: '#7a766e' });
+      const [x, y] = P(16, 17, 10); ellipse(g, '#4a4640', x, y, 2.2, 2.2);
+      const [fx, fy] = P(27, 25, 0); ellipse(g, '#f0ece0', fx, fy, 3.5, 2);
+    },
+    // A water wheel standing in the canal: a wooden rim with paddles round a hub, turning (frames), water foaming below
+    waterwheel(g, r, frame) {
+      upright(0, () => onSouth(g, 16, f => {
+        const cx = 16, cz = 20, R = 18, a0 = frame * Math.PI / 12;
+        f.strokeStyle = '#5a3a1e'; f.lineWidth = 3; f.beginPath(); f.arc(cx, cz, R, 0, Math.PI * 2); f.stroke();
+        f.strokeStyle = '#7a5230'; f.lineWidth = 1.5; f.beginPath(); f.arc(cx, cz, R - 3, 0, Math.PI * 2); f.stroke();
+        for (let i = 0; i < 8; i++) {
+          const a = a0 + i * Math.PI / 4, c = Math.cos(a), s2 = Math.sin(a);
+          line(f, '#6a4628', 2, cx, cz, cx + c * (R - 2), cz + s2 * (R - 2));
+          poly(f, '#8a6038', [cx + c * (R - 1) - s2 * 3, cz + s2 * (R - 1) + c * 3, cx + c * (R + 4) - s2 * 3, cz + s2 * (R + 4) + c * 3,
+            cx + c * (R + 4) + s2 * 3, cz + s2 * (R + 4) - c * 3, cx + c * (R - 1) + s2 * 3, cz + s2 * (R - 1) - c * 3]);
+        }
+        ellipse(f, '#3a2a18', cx, cz, 3, 3);
+        for (let i = 0; i < 6; i++) ellipse(f, 'rgba(240,250,255,0.8)', 6 + ((i * 5 + frame * 3) % 22), 1 + (i % 2), 2, 1.2);
+      }), 1.6);
+    },
     smith_hearth(g, r, frame) {
       floorShadow(g, 13, 4);
       prism(g, 5, 8, 27, 26, 0, 13, { top: '#6a625a', south: '#4a443e', east: '#36312c', edge: '#8a8278' });
@@ -3802,7 +3826,7 @@ const Sprites = (() => {
     },
   };
 
-  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, weir: { frames: [0, 1, 2, 3], ms: 160 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
+  const ANIMATED = { torch: { frames: [0, 1, 2, 3], ms: 120 }, tower_flag: { frames: [0, 1, 2, 3], ms: 240 }, wall_torch: { frames: [0, 2, 1, 3], ms: 130 }, campfire: { frames: [0, 1, 2, 3, 1, 2], ms: 110 }, waterwheel: { frames: [0, 1, 2, 3, 4, 5], ms: 150 }, weir: { frames: [0, 1, 2, 3], ms: 160 }, smith_hearth: { frames: [0, 1, 2, 3], ms: 140 }, windmill: { frames: [0, 1, 2, 3], ms: 260 }, cauldron: { frames: [0, 1, 2], ms: 300 }, fountain: { frames: [0, 1, 2, 3], ms: 220 }, chimney: { frames: [0, 1, 2, 3], ms: 380 }, water: { frames: [0, 1, 2, 1], ms: 400 }, sewer_water: { frames: [0, 1, 2, 1], ms: 520 }, lava: { frames: [0, 1, 2, 1], ms: 500 }, teleport: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ms: 120 } };
 
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded
