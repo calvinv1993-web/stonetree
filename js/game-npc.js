@@ -394,6 +394,11 @@ function questTalk(ids, npc, otherwise) {
     const daily = single && dailyDue(q) && storyText(t, 'daily'); // (the first of the watch's hunts today: more marks)
     const said = single ? `${storyText(t, 'reward')}${daily ? ` ${daily}` : ''}` : storyText(s, 'done');
     advanceQuest(id);
+    if (!single && (s.give || []).length) { // (what a step hands you as it's done: Corwin's cap, Ned's torch)
+      log(`You received ${s.give.map(([item, n]) => itemName(item, n)).join(' and ')}.`, 'quest');
+      for (const [item, n] of s.give) giveItem(item, n);
+    }
+    if (s.scene) startScene(s.scene); // (what happens next, all round you: the Host at the wall, game-siege.js)
     if (s.goesHome) goHome(npc); // (someone you rescued makes their own way home: game-gates.js)
     return said;
   }

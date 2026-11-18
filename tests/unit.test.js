@@ -438,46 +438,102 @@ test('Oakvale: every shopkeeper, teacher and keeper stands inside their own buil
   }
 });
 
-test('Oakvale: you can fish from the jetty behind the Fisher\'s Hut, and Farmer Ned gives his rats quest', () => {
+test('Oakvale: you can fish from the jetty behind the Fisher\'s Hut', () => {
   const game = quietGame(), { ctx, state } = game, [x, y] = state.OAKVALE.pier;
   ctx.addItem('fishing_rod', 1); ctx.teleport({ x, y, z: 8 });
   assert.strictEqual(state.map.get(x, y, 8).ground, 'pier', 'standing on the jetty');
   for (let i = 0; i < 40; i++) { state.now += 3000; ctx.useItemOn(bagRef(state, 'fishing_rod'), x + 1, y, 8); }
   assert(state.countItem('fish') > 0, 'a fish caught');
-  const ned = state.npcs.find(o => o.npcId === 'oak_farmer');
-  ctx.teleport({ ...ctx.findFreeTile(ned.x, ned.y, ned.z, 2), z: ned.z });
-  state.Actions.say('hi'); state.Actions.say('rats'); state.Actions.say('yes');
-  assert.strictEqual(state.questState('farm_rats'), 'active', 'Rats in the Grain taken');
 });
 
 test('NPCs say which word to ask with, and show ! or ? when they have something for you', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
+  const go = id => { const [x, y, z] = besideNpc(game, id); ctx.teleport({ x, y, z }); };
   assert.strictEqual(ctx.questNews('ama').mark, 'offer', 'Ama has a quest: !');
-  assert.strictEqual(ctx.questNews('corwin'), null, 'Corwin has nothing yet');
-  ctx.teleport({ x: 136, y: 102, z: 9 });
-  A.say('hi');
-  assert(messages.some(m => /Ask me about the \{bell\}/.test(m)), 'Ama names the word in blue');
-  A.say('bell'); A.say('yes'); A.say('bye');
-  assert.strictEqual(ctx.questNews('corwin').mark, 'report', 'Corwin is next: ?');
-  { const [x, y, z] = besideNpc(game, 'corwin'); ctx.teleport({ x, y, z }); }
-  A.say('hi');
-  assert(messages.some(m => /Tell me about the \{bell\}/.test(m)), 'Corwin names the word too');
-  A.say('bell');
-  assert.strictEqual(ctx.questNews('corwin').mark, 'busy', 'then waits for the rats');
+  assert.strictEqual(ctx.questNews('gate_north'), null, 'Captain Osric has nothing yet');
+  go('ama'); A.say('hi');
+  assert(messages.some(m => /Ask me about the \{fight\}/.test(m)), 'Ama names the word in blue');
+  A.say('fight'); A.say('yes'); A.say('bye');
+  assert.strictEqual(ctx.questNews('gate_north').mark, 'report', 'Osric is next: ?');
+  go('corwin'); A.say('hi'); A.say('fighter');
+  assert(/north wall needs every pair of hands/.test(messages.slice(-2).join(' ')), 'Corwin: the wall first');
   A.say('bye');
-  ctx.onMonsterKilled('rat');
-  { const [x, y, z] = besideNpc(game, 'corwin'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('bell'); A.say('bye');
-  assert.strictEqual(ctx.questNews('pip').mark, 'report', 'then Pip, with Corwin\'s note: ?');
-  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('locker');
-  assert(/Pip is waiting for you: ask about the note/.test(messages.slice(-2).join(' ')), 'the postmaster points on to Pip first, with the word');
-  { const [x, y, z] = besideNpc(game, 'pip'); ctx.teleport({ x, y, z }); } A.say('hi');
-  assert(messages.some(m => /\{note\}/.test(m)), 'Pip asks about the note');
-  A.say('note'); A.say('bye');
-  assert.strictEqual(ctx.questNews('postmaster').mark, 'report', 'then the postmaster');
-  { const [x, y, z] = besideNpc(game, 'postmaster'); ctx.teleport({ x, y, z }); } A.say('hi'); A.say('locker'); A.say('bye');
-  assert.strictEqual(p.quests.bell_1.step, 4, 'and the locker finishes his step');
+  go('gate_north'); A.say('hi');
+  assert(messages.some(m => /\{fight\}/.test(m)), 'Osric names the word too');
+  A.say('fight'); A.say('bye');
+  assert.strictEqual(p.quests.last_town.step, 1, 'turned away, and the Host at the wall: on to the cannons');
+  assert.strictEqual(ctx.questNews('gate_north'), null, 'the cannons have no NPC: no mark over Osric');
+});
+
+test('The Last Town: turned away, then the Host at the wall: four cannons on the north wall, Clang behind the powder kegs, fire; Osric sends you to Corwin', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const go = id => { const [x, y, z] = besideNpc(game, id); ctx.teleport({ x, y, z }); };
+  const use = (x, y, z) => { const t = ctx.findFreeTile(x, y + 1, z, 2); ctx.teleport({ x: t.x, y: t.y, z }); ctx.useThing(x, y, z); tick(game, 100); };
+  go('ama'); A.say('hi'); A.say('fight'); A.say('yes'); A.say('bye');
+  go('gate_north'); A.say('hi'); A.say('fight'); A.say('bye');
+  assert(p.quests.last_town.siegeAt > 0 && ctx.siegeScene(), 'the horns: the siege begins, for you');
+  // the kegs and the fuse wait for the cannons; a cannon on another wall doesn't count
+  use(115, 94, 9); assert.strictEqual(p.pet, null, 'the kegs first: nothing yet');
+  const east = state.map.get(152, 96, 10).items.includes('cannon_e');
+  if (east) { use(152, 96, 10); assert.strictEqual((p.quests.last_town.loaded || []).length, 0, 'a cannon on the east side: wrong way'); }
+  const north = [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]];
+  use(...north[0]); use(...north[0]);
+  assert.strictEqual(p.quests.last_town.loaded.length, 1, 'one cannon loaded once');
+  for (const c of north.slice(1)) use(...c);
+  assert.strictEqual(p.quests.last_town.step, 2, 'four loaded: then a mew behind the kegs');
+  use(105, 94, 9); assert.strictEqual(p.quests.last_town.step, 2, 'no firing before Clang is safe');
+  use(115, 94, 9);
+  assert(p.pet && p.pet.name === 'Clang' && p.pet.kind === 'cat', 'Clang, found behind the kegs, is your companion');
+  assert.strictEqual(p.quests.last_town.step, 3);
+  use(151, 95, 10); assert.strictEqual(p.quests.last_town.step, 3, 'an unloaded cannon does not fire');
+  use(116, 94, 9);
+  assert(p.quests.last_town.firedAt > 0 && p.quests.last_town.step === 4, 'fire!');
+  assert(ctx.siegeScene().fired, 'the Host runs');
+  go('gate_north'); A.say('hi'); A.say('fight'); A.say('bye');
+  assert.strictEqual(state.questState('last_town'), 'done', 'Osric: you held the wall');
+  assert.strictEqual(ctx.questNews('corwin').mark, 'offer', 'Corwin has training for you: !');
+  tick(game, 21000); assert.strictEqual(ctx.siegeScene(), null, 'and the siege is over');
+  use(115, 94, 9); assert(/Nothing mews/.test(messages[messages.length - 1]), 'the kegs are only kegs now');
+});
+
+test('The Recruit: the dummy (skills), a cap, Farmer Ned\'s rats down a grate with his torch, a trade with Pip, a locker with Hobb, and a shield', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  const go = id => { const [x, y, z] = besideNpc(game, id); ctx.teleport({ x, y, z }); };
+  const talk = (id, ...w) => { go(id); A.say('hi'); for (const x of w) A.say(x); A.say('bye'); tick(game, 100); };
+  talk('corwin', 'fighter', 'yes');
+  assert.strictEqual(state.questState('recruit'), 'none', 'not before the wall');
+  p.quests.last_town = { status: 'done', step: 5, kills: {} };
+  talk('corwin', 'fighter', 'yes');
+  assert.strictEqual(state.questState('recruit'), 'active', 'Corwin trains you');
+  talk('corwin', 'fighter'); assert.strictEqual(p.quests.recruit.step, 0, 'no hits yet: still the dummy');
+  // ten hits on a dummy in the training yard
+  let d = null;
+  for (let y = 133; y <= 143 && !d; y++) for (let x = 140; x <= 150 && !d; x++) if (state.map.get(x, y, 8) && state.map.get(x, y, 8).items.includes('dummy') && state.isFree(x, y - 1, 8)) d = { x, y };
+  assert(d, 'a dummy in the training yard');
+  ctx.teleport({ x: d.x, y: d.y - 1, z: 8 }); ctx.useThing(d.x, d.y, 8);
+  tick(game, 30000);
+  assert(p.quests.recruit.hits >= 10, `ten hits on the dummy (${p.quests.recruit.hits})`);
+  talk('corwin', 'fighter');
+  assert.strictEqual(p.quests.recruit.step, 1); assert.strictEqual(state.countItem('leather_cap'), 1, 'a cap from Corwin');
+  talk('oak_farmer', 'rats');
+  assert.strictEqual(state.countItem('farm_torch'), 1, 'Ned\'s torch'); assert.strictEqual(p.quests.recruit.step, 2);
+  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
+  talk('oak_farmer', 'rats'); assert.strictEqual(p.quests.recruit.step, 3, 'five rats for Ned');
+  talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 3, 'Pip: trade first');
+  assert(/trade/.test(messages.slice(-3).join(' ')), 'he says so');
+  p.chests.guide_bought = true; talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 3, 'bought, but sold nothing yet');
+  p.chests.guide_sold = true; talk('pip', 'supplies'); assert.strictEqual(p.quests.recruit.step, 4, 'bought and sold: on');
+  talk('postmaster', 'locker'); assert.strictEqual(p.quests.recruit.step, 4, 'Hobb: a locker first');
+  p.depot.contents.push({ id: 'apple', count: 1 }); talk('postmaster', 'locker'); assert.strictEqual(p.quests.recruit.step, 5);
+  talk('corwin', 'fighter');
+  assert.strictEqual(state.questState('recruit'), 'done');
+  for (const it of ['wooden_shield', 'backpack', 'rope']) assert.strictEqual(state.countItem(it), 1, `a ${it}`);
 });
 
 
@@ -811,25 +867,6 @@ test('weapon hits as in Tibia: skill counts most, at least level / 5, and a mons
   assert.strictEqual(state.blocked({ type: 'player' }), 0, 'players have no monster defense');
 });
 
-test('under the town: The Rats\' Hoard opens the storeroom chest (a shield) once its rats are dead; the nest has gold and potions', () => {
-  const game = quietGame();
-  const { ctx, state } = game;
-  const p = state.player;
-  ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 0, 'the hoard stays shut without the quest');
-  p.quests.cellar_shield = { status: 'active', step: 0, kills: {} };
-  ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 0, 'and while the rats live');
-  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
-  assert.strictEqual(p.quests.cellar_shield.step, 1, 'five rats: on to the chest');
-  ctx.useThing(105, 121, 7); ctx.useThing(105, 121, 7);
-  assert.strictEqual(state.countItem('wooden_shield'), 1, 'the shield, once');
-  const gold0 = p.gold, pots0 = state.countItem('health_potion');
-  ctx.useThing(144, 140, 7); ctx.useThing(144, 140, 7);
-  assert.strictEqual(p.gold - gold0, 20, 'the nest: 20 gold');
-  assert.strictEqual(state.countItem('health_potion') - pots0, 3, 'and 3 health potions, once');
-});
-
 const vmLevelXp = (ctx, l) => require('vm').runInContext(`xpForLevel(${l})`, ctx);
 
 test('before a vocation dying never costs a level, and Sister Ama says what to do differently', () => {
@@ -865,7 +902,7 @@ test('a newcomer who doesn\'t know the words is understood: "what do I do", "tha
   ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
   const said = w => { const n = messages.length; A.say(w); tick(game, 100); return messages.slice(n).join(' | '); };
   said('hi');
-  assert(/bell/.test(said('what do i do')), 'she says what she has for you (the bell)');
+  assert(/fight/.test(said('what do i do')), 'she says what she has for you (the fight)');
   assert(/welcome/i.test(said('thanks')), 'thanks: you are welcome');
   assert(/Yes, /.test(said('hello')), 'a greeting again is answered');
   assert(!/not sure/.test(said('where am i')), 'where: no "not sure what you mean"');
@@ -889,7 +926,7 @@ test('the Gravewaker was Sir Galen: he speaks (but keeps his name for the hood),
   assert(/burning mountain/.test(talk('books')), 'and Corwin knows of the Ashen Choir from his books');
 });
 
-test('the guide never waits for Next: an explaining step passes once read, or at once when you play on; any shield is not the rats\' shield', () => {
+test('the guide never waits for Next: an explaining step passes once read, or at once when you play on', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, G = state.GUIDE;
@@ -902,13 +939,6 @@ test('the guide never waits for Next: an explaining step passes once read, or at
   const ama = state.npcs.find(n => n.npcId === 'ama');
   ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y + 1, ama.z, 2), z: ama.z }); state.Actions.say('hi'); tick(game, 300);
   assert(p.tutorial >= 3, 'played on: past the welcome, and past meeting her');
-  // the sewer chapter: a shield bought at the shop doesn't pass it; Corwin hearing of the rats' shield does
-  const i = G.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes('cellar_shield'))) + 1;
-  p.quests.cellar_shield = { status: 'active', step: 1, kills: {} };
-  p.equipment.shield = { id: 'wooden_shield', count: 1 }; p.tutorial = i; tick(game, 300);
-  assert.strictEqual(p.tutorial, i, 'any shield: still on the sewer chapter');
-  p.quests.cellar_shield.status = 'done'; tick(game, 300);
-  assert.strictEqual(p.tutorial, i + 1, 'the rats\' shield shown to Corwin: on');
 });
 
 test('a tool used on a spot further off: you walk there and use it; walking away yourself calls it off', () => {
@@ -1170,24 +1200,6 @@ test('the Ashen Choir is ashore at Lighthouse Point only at night once the bell 
   assert.strictEqual(ashore(), 0, 'gone again once they have left');
 });
 
-test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bellringer, the plaque names them, it rings every dawn', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const p = state.player;
-  ctx.ringBell(); assert(/hangs silent/.test(messages.at(-1)), 'silent before anyone brings the clapper home');
-  p.quests.bell_4 = { status: 'active', step: 1, kills: {} }; p.equipment.backpack.contents.push({ id: 'bell_clapper', count: 1 });
-  ctx.advanceQuest('bell_4');
-  assert.strictEqual(state.townBell.first, p.name, 'the first: the Bellringer');
-  assert(p.chests.bellringer && messages.some(m => /first Bellringer/.test(m)), 'told to everyone');
-  // someone who never did the quest may ring it now
-  delete p.quests.bell_4; state.now += 60000; ctx.ringBell();
-  assert(/rings the bell of Oakvale/.test(messages.at(-1)), 'it rings for everyone');
-  assert(new RegExp(p.name).test(ctx.bellPlaque('THE BELL')), 'the plaque names who rang it home');
-  const n = messages.filter(m => /rings in the dawn/.test(m)).length;
-  for (let i = 0; i < 30; i++) tick(game, 60000);
-  assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
-});
-
 test('a save from before the shared bell: whoever brought the clapper home goes on the plaque when they come back', () => {
   const { ctx, state } = quietGame();
   const p = state.player;
@@ -1240,22 +1252,6 @@ test('the oracle: no mainland yet, so you stay as Oakvale\'s own; once there is 
   game2.ctx.chooseVocation('druid'); tick(game2, 3000);
   assert(p2.x === game2.state.map.mainStart.x && p2.y === game2.state.map.mainStart.y && p2.home === 'main', 'sent to the mainland');
   assert(game2.messages.some(m => /Welcome to the mainland/.test(m)));
-});
-
-test('the bell rung home by someone else: for a newcomer its clapper was stolen again, and the plaque says who rang it', () => {
-  const game = quietGame();
-  const { ctx, state, messages } = game;
-  const A = state.Actions;
-  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
-  const ama = state.npcs.find(n => n.npcId === 'ama');
-  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
-  const n = messages.length; A.say('hi'); A.say('bell');
-  const said = messages.slice(n).join(' | ');
-  assert(/rung home by Ana/.test(said) && /stolen again/.test(said), `a newcomer hears the story starts over: ${said}`);
-  assert(!/three days/.test(said));
-  state.townBell = { ringers: [], first: null, dawn: -1 };
-  A.say('bye'); const m = messages.length; A.say('hi'); A.say('bell');
-  assert(/three days/.test(messages.slice(m).join(' | ')), 'and the first to come hears it as it was');
 });
 
 test('the spiders\' den under the Spider Hills: reachable, spiders, and the Brood Queen with her rare fang', () => {
@@ -1454,33 +1450,33 @@ test('training: hit a dummy as long as you like and your weapon skill grows; wal
   assert(!p.training && p.trainHits === hits, 'walking away stops it');
 });
 
-test('the map shows roughly where each quest you\'re on is done: the rats under Ned\'s barn, Sunny Fields, the nests, the bell, and the one to tell once it\'s done; never a hidden quest', () => {
+test('the map shows roughly where each quest you\'re on is done: Osric, the north wall, the kegs, the dummy, the rats under Ned\'s barn, the nests, the bell, and the one to tell once it\'s done; never a hidden quest', () => {
   const { ctx, state } = quietGame(), vm = require('vm'), run = code => vm.runInContext(code, ctx), p = state.player;
   const area = id => run(`questArea('${id}')`), near = (a, x, y, z, d) => a && a.z === z && Math.hypot(a.x - x, a.y - y) <= d;
-  for (const id of ['bell_1', 'farm_rats', 'cellar_shield', 'clang_rescue', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6']) ctx.startQuest(id);
-  const ned = state.map.npcs.find(n => n.type === 'oak_farmer');
-  assert(near(area('farm_rats'), ned.x, ned.y, 7, 6), `Ned's rats: in the sewers under his barn (${JSON.stringify(area('farm_rats'))})`);
-  const corwin = state.map.npcs.find(n => n.type === 'corwin');
-  assert(near(area('bell_1'), corwin.x, corwin.y, 8, 4), 'bell I begins at Corwin');
-  p.quests.bell_1.step = 1; const rats = area('bell_1');
-  assert(rats.z === 8 && rats.y > 150, `then a rat in Sunny Fields, out of the south gate (${JSON.stringify(rats)})`);
-  p.quests.bell_1.kills = { rat: 1 }; assert(near(area('bell_1'), corwin.x, corwin.y, 8, 4), 'the rat dead: back to Corwin');
+  const at = id => state.map.npcs.find(n => n.type === id);
+  for (const id of ['last_town', 'recruit', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6']) ctx.startQuest(id);
+  const osric = at('gate_north'), corwin = at('corwin'), ned = at('oak_farmer');
+  assert(near(area('last_town'), osric.x, osric.y, 8, 4), 'The Last Town begins at Osric');
+  p.quests.last_town.step = 1; const wall = area('last_town');
+  assert(wall.z === 9 && wall.y <= 96 && wall.r >= 15, `then the cannons along the north wall (${JSON.stringify(wall)})`);
+  p.quests.last_town.step = 2; assert(near(area('last_town'), 115, 94, 9, 1), 'then the powder kegs');
+  assert(near(area('recruit'), 145, 138, 8, 1), 'The Recruit: the training yard');
+  p.quests.recruit.hits = 10; assert(near(area('recruit'), corwin.x, corwin.y, 8, 4), 'ten hits: back to Corwin');
+  p.quests.recruit.step = 2;
+  assert(near(area('recruit'), ned.x, ned.y, 7, 6), `Ned's rats: in the sewers under his barn (${JSON.stringify(area('recruit'))})`);
+  p.quests.recruit.kills = { rat: 5 }; assert(near(area('recruit'), ned.x, ned.y, 8, 4), 'five dead: back to Ned');
   const nests = area('gate_east'), [nx, ny] = run('GATE_SITES.nests')[0];
   assert(nests.z === 8 && Math.hypot(nests.x - nx, nests.y - ny) <= nests.r, 'the nests lie in the circle');
   assert(near(area('gate_south'), 101, 220, 8, 1), 'the stranded fisher');
   assert(near(area('gate_north'), 198, 70, 8, 1), 'Gnash\'s war chest');
-  const bell = area('bell_6'); assert(bell && run(`map.get(${bell.x}, ${bell.y}, ${bell.z}).items.some(i => i.startsWith('bell_'))`), 'bell III: the bell itself');
-  p.quests.clang_rescue.step = 1; assert(near(area('clang_rescue'), 148, 105, 7, 1), 'Clang: the fallen crate');
-  assert(near(area('cellar_shield'), 128, 125, 7, 1), 'the shield: the sewers');
-  p.quests.cellar_shield.step = 1; assert(near(area('cellar_shield'), 105, 121, 7, 1), 'then the storeroom\'s chest');
-  p.chests.oak_hoard = true; assert(near(area('cellar_shield'), corwin.x, corwin.y, 8, 4), 'opened: back to Corwin');
+  const bell = area('bell_6'); assert(bell && run(`map.get(${bell.x}, ${bell.y}, ${bell.z}).items.some(i => i.startsWith('bell_'))`), 'the farewell: the bell itself');
   p.quests.old_wim = { status: 'active', step: 0, kills: {} };
   assert.strictEqual(area('old_wim'), null, 'a hidden quest is found, not shown');
   const all = run('questAreas()');
   assert(all.every(a => a.key && Number.isInteger(a.x) && a.r > 0), 'every circle has a place, a size and a key');
 });
 
-test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (the world, walking, talking, a fight, healing, the loot, dying, gear, trading, the locker, Farmer Ned\'s grate and torch, the shield, Clang and the clapper, the gate watch, the farewell)', () => {
+test('the whole road from level 1 to 10: the guide\'s arrow, the marks over heads and the words always point the right way (the last town, walking, talking, the tower stairs, the cannons, Clang, skills at the dummy, gear, a grate and a torch, a fight, healing, the loot, dying, trading, the locker, the gate watch, the farewell)', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
@@ -1498,7 +1494,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   on(null, { ...state.map.start });
   // a step that only explains waits for Next (and Next does nothing on a step with something to do)
   const next = what => { const at = p.tutorial; A.guideNext(); assert.strictEqual(p.tutorial, at + 1, `Next past ${what}`); };
-  assert.strictEqual(arrow(), null, 'the world points at nothing'); next('the world we woke in');
+  const use = (x, y, z) => { const t = ctx.findFreeTile(x, y + 1, z, 2); ctx.teleport({ x: t.x, y: t.y, z }); ctx.useThing(x, y, z); tick(game, 100); };
+  assert.strictEqual(arrow(), null, 'the world points at nothing'); next('the last town');
   const st = state.map.start;
   assert.strictEqual(arrow(), `${st.x},${st.y + 3},${st.z}`, 'walking: to the temple\'s door'); assert.strictEqual(mark('ama'), 'offer');
   A.guideNext(); assert.strictEqual(p.tutorial, 2, 'Next doesn\'t skip a step with something to do');
@@ -1507,73 +1504,66 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   assert.strictEqual(mark('gate_south'), undefined, 'the later gates wait for the first');
   on(null, { x: st.x, y: st.y + 3, z: st.z });
   assert.strictEqual(arrow(), 'ama', 'then back to Sister Ama, to talk');
-  talk('ama'); talk('ama', 'bell', 'yes');
-  assert.strictEqual(arrow(), 'corwin', 'first to Corwin at the academy'); assert.strictEqual(mark('corwin'), 'report');
-  talk('corwin'); tick(game, 100);
-  assert.strictEqual(arrow(), 'corwin', 'greeting him is not enough: the rat only counts once he has heard about the bell');
-  talk('corwin', 'bell'); tick(game, 100);
-  // a fight, healing after it, the loot, what dying costs
-  assert.strictEqual(arrow(), '126,153,8', 'a fight: out of the south gate, to the rats');
-  kill('rat', 1);
-  p.fedUntil = state.now + 99999; tick(game, 100); // (healing: eaten)
-  next('putting Eat on an action button (the browser sees it)');
-  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; // (the loot)
-  next('what dying costs');
-  // back to Corwin: his present, a cap (the shield is to be earned), and the guide waits until it's worn
-  assert.strictEqual(arrow(), 'corwin', 'back to Corwin'); talk('corwin', 'bell');
+  talk('ama'); talk('ama', 'fight', 'yes');
+  // The Last Town: turned away by Osric, then the Host at the wall
+  assert.strictEqual(arrow(), 'gate_north', 'to Captain Osric at the north gate'); assert.strictEqual(mark('gate_north'), 'report');
+  talk('gate_north'); tick(game, 100);
+  assert.strictEqual(arrow(), 'gate_north', 'greeting him is not enough: ask to fight');
+  talk('gate_north', 'fight');
+  assert.strictEqual(arrow(), '100,95,8', 'stairs: up the north-west tower');
+  on(null, { x: 106, y: 95, z: 9 });
+  assert.strictEqual(arrow(), '105,94,9', 'on the wall: to the nearest cannon');
+  for (const c of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(...c);
+  assert.strictEqual(arrow(), '115,94,9', 'four loaded: to the powder kegs, where something mews');
+  use(115, 94, 9); assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
+  assert.strictEqual(arrow(), '115,94,9'.replace('115', '116'), 'then a loaded cannon, to fire');
+  use(116, 94, 9); assert(p.quests.last_town.firedAt > 0, 'fired');
+  on(null, { x: 106, y: 95, z: 9 });
+  assert.strictEqual(arrow(), '100,95,9', 'down the tower again');
+  on(null, { x: 120, y: 100, z: 8 });
+  assert.strictEqual(arrow(), 'gate_north', 'to Osric'); talk('gate_north', 'fight'); assert.strictEqual(state.questState('last_town'), 'done');
+  // The Recruit: skills at the dummy, the cap, Ned's rats down a grate (a torch, a fight, healing, the loot, dying)
+  assert.strictEqual(arrow(), 'corwin', 'to Master Corwin'); assert.strictEqual(mark('corwin'), 'offer');
+  talk('corwin', 'fighter', 'yes');
+  assert(run(`GUIDE[player.tutorial - 1] && map.get(...(t => [t.x, t.y, t.z])(guideTarget(GUIDE[player.tutorial - 1]))).items.includes('dummy')`), 'to a training dummy');
+  p.quests.recruit.hits = 10; tick(game, 300);
+  assert.strictEqual(arrow(), 'corwin', 'ten hits: back to Corwin'); talk('corwin', 'fighter');
   const worn = () => ['wooden_shield', 'leather_cap'].map(id => p.equipment.backpack.contents.findIndex(i => i.id === id));
   assert(worn()[1] >= 0 && worn()[0] < 0, 'Master Corwin gives a leather cap (the shield is to be earned)');
   const step = p.tutorial;
   A.useItem({ root: 'bag', path: [worn()[1]] }); tick(game, 100);
   assert(p.equipment.head && p.tutorial === step + 1, 'worn: on to the next step');
-  A.restartGuide(); A.restartGuide(); assert.strictEqual(p.tutorial, 1); // (the present comes once)
-  while (p.tutorial <= step) { A.guideNext(); tick(game, 100); }
-  assert.strictEqual(p.equipment.backpack.contents.filter(i => i.id === 'leather_cap').length, 0, 'no second present when the guide starts again');
-  p.tutorial = step + 1;
-  // trading with Pip, the locker with Hobb, back to Ama
-  assert.strictEqual(arrow(), 'pip', 'to Pip, with Corwin\'s note'); talk('pip', 'note');
-  assert.strictEqual(arrow(), 'pip', 'the note alone is not enough: buy and sell');
-  p.chests.guide_bought = true; tick(game, 100); // (bought something; nothing to sell: the bag is empty)
-  assert.strictEqual(arrow(), 'postmaster', 'then the depot'); talk('postmaster', 'locker');
-  assert.strictEqual(arrow(), 'postmaster', 'asking is not enough: something in the locker');
-  p.depot.contents.push({ id: 'apple', count: 1 }); tick(game, 100);
-  assert.strictEqual(arrow(), 'ama'); talk('ama', 'bell'); assert.strictEqual(state.questState('bell_1'), 'done');
-  // Farmer Ned: down a grate, his torch for the dark, five rats, back up the ladder
-  assert.strictEqual(arrow(), 'oak_farmer', 'to Farmer Ned at the hay barn'); assert.strictEqual(mark('oak_farmer'), 'offer');
-  talk('oak_farmer', 'rats', 'yes'); assert.strictEqual(state.countItem('farm_torch'), 1, 'his torch to take along');
+  assert.strictEqual(arrow(), 'oak_farmer', 'to Farmer Ned at the hay barn'); assert.strictEqual(mark('oak_farmer'), 'report');
+  talk('oak_farmer', 'rats'); assert.strictEqual(state.countItem('farm_torch'), 1, 'his torch to take along');
   assert.strictEqual(arrow(), grate(8), 'to the grate on the square');
   on(null, { x: gx, y: gy, z: 7 });
   A.useItem({ root: 'bag', path: [p.equipment.backpack.contents.findIndex(i => i.id === 'farm_torch')] }); tick(game, 100);
   assert(p.lightUntil > state.now, 'the torch lit');
-  kill('rat', 5); assert.strictEqual(arrow(), grate(7), 'back up the ladder');
+  assert(arrow(), 'a fight: to the rats');
+  kill('rat', 1);
+  p.fedUntil = state.now + 99999; tick(game, 100); // (healing: eaten)
+  next('putting Eat on an action button (the browser sees it)');
+  p.openPile = { corpse: 'blood' }; tick(game, 100); p.openPile = null; // (the loot)
+  next('what dying costs');
+  kill('rat', 4); assert.strictEqual(arrow(), grate(7), 'back up the ladder');
   on(null, { x: 128, y: 120, z: 8 });
-  assert.strictEqual(arrow(), 'oak_farmer', 'back to him'); talk('oak_farmer', 'rats'); assert.strictEqual(state.questState('farm_rats'), 'done');
+  assert.strictEqual(arrow(), 'oak_farmer', 'back to Ned'); talk('oak_farmer', 'rats');
+  // trading with Pip, the locker with Hobb, back to Corwin
+  assert.strictEqual(arrow(), 'pip', 'to Pip, to trade'); talk('pip', 'supplies');
+  assert.strictEqual(arrow(), 'pip', 'asking is not enough: buy and sell');
+  p.chests.guide_bought = p.chests.guide_sold = true; tick(game, 100); talk('pip', 'supplies');
+  assert.strictEqual(arrow(), 'postmaster', 'then the depot'); talk('postmaster', 'locker');
+  assert.strictEqual(arrow(), 'postmaster', 'asking is not enough: something in the locker');
+  p.depot.contents.push({ id: 'apple', count: 1 }); tick(game, 100); talk('postmaster', 'locker');
+  assert.strictEqual(arrow(), 'corwin'); talk('corwin', 'fighter'); assert.strictEqual(state.questState('recruit'), 'done');
+  assert(worn()[0] >= 0, 'the shield, earned');
   // the end of the basics: from here on no arrow, but a circle on the map for each quest you're on
   assert(run('guideArrowOn()'), 'the arrow leads through the basics');
   next('the end of the basics: the map from here on');
   assert(!run('guideArrowOn()'), 'after the basics the guide shows no arrow');
-  // level 2: a light, then the first way under the town, for a shield
+  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => (s.target || []).some(t => t.news && t.news.includes("gate_west")))') + 1, 'from here on the story leads: the gate watch');
   levelTo(2); tick(game, 100);
-  assert.strictEqual(p.tutorial, run('GUIDE.findIndex(s => (s.target || []).some(t => t.hunt && t.hunt.includes("cellar_shield")))') + 1, 'from here on the story leads: the shield chapter');
-  A.say('lumen'); tick(game, 300); assert(p.lightUntil > state.now, 'lit');
-  assert.strictEqual(arrow(), 'corwin', 'then to Corwin, for the shield'); assert.strictEqual(mark('corwin'), 'offer');
-  talk('corwin', 'shield', 'yes'); on(null, { x: 128, y: 120, z: 8 });
-  assert.strictEqual(arrow(), grate(8), 'to the grate on the square');
-  on(null, { x: 131, y: 112, z: 7 }); kill('rat', 5);
-  assert.strictEqual(arrow(), '105,121,7', 'then to the storeroom chest');
-  ctx.useThing(105, 121, 7); A.useItem({ root: 'bag', path: [p.equipment.backpack.contents.findIndex(i => i.id === 'wooden_shield')] }); tick(game, 200);
-  assert(p.equipment.shield, 'the shield worn');
-  assert.strictEqual(arrow(), grate(7), 'back up the ladder');
-  talk('corwin', 'shield'); assert.strictEqual(state.questState('cellar_shield'), 'done');
-  // Clang, the temple's cat: down in the bell cellar, then a companion
-  assert.strictEqual(arrow(), 'ama', 'to Sister Ama, about her cat'); talk('ama', 'clang', 'yes'); on(null, { x: 128, y: 120, z: 8 });
-  assert.strictEqual(arrow(), grate(8), 'down the grate');
-  on(null, { x: 140, y: 104, z: 7 }); kill('rat', 3);
-  assert.strictEqual(arrow(), '148,105,7', 'to the fallen crate');
-  ctx.useThing(148, 105, 7); tick(game, 200);
-  talk('ama', 'clang'); assert.strictEqual(state.questState('clang_rescue'), 'done');
-  assert(p.pet && p.pet.name === 'Clang', 'Clang is your companion');
-  assert(run('bellHung()'), 'and the clapper he guarded is home: the bell hangs again');
+  A.say('lumen'); tick(game, 300); assert(p.lightUntil > state.now, 'level 2: Torchlight');
   assert.strictEqual(arrow(), 'gate_west', 'on to the gate watch');
   for (const [id, word, type, n, level, next] of [['gate_west', 'wolves', 'wolf', 8, 2, 'gate_south'], ['gate_south', 'crabs', 'crab', 6, 3, 'gate_east'],
     ['gate_east', 'spiders', 'spider', 8, 4, 'gate_north'], ['gate_north', 'goblins', 'goblin', 8, 5, null]]) {
@@ -1600,22 +1590,19 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   levelTo(10); assert.strictEqual(arrow(), 'ama', 'Sister Ama wants to say goodbye'); assert.strictEqual(mark('ama'), 'offer');
   talk('ama', 'farewell', 'yes'); on(null, { x: 145, y: 103, z: 13 });
   assert.strictEqual(arrow(), '145,102,13', 'to the bell'); state.now += 60000; ctx.ringBell();
-  for (const id of ['corwin', 'pip', 'gate_west']) { assert.strictEqual(arrow(), id, `farewell to ${id}`); talk(id, 'farewell'); }
+  for (const id of ['corwin', 'pip', 'gate_north']) { assert.strictEqual(arrow(), id, `farewell to ${id}`); talk(id, 'farewell'); }
   assert.strictEqual(arrow(), 'ama'); talk('ama', 'farewell'); assert.strictEqual(state.questState('bell_6'), 'done');
   assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');
   A.endGuide();
   assert.strictEqual(p.tutorial, 0, 'at its last step, "Got it" puts it away');
   // started again from the menu: the explaining steps wait for Next, the ones already done pass by themselves
-  // skipped: it goes, and Corwin's cap still comes (once)
+  // skipped: it goes (the story's gear comes from its quests all the same)
   { const g2 = quietGame(); const p2 = g2.state.player; p2.tutorial = 1;
     g2.state.Actions.skipGuide();
-    assert.strictEqual(p2.tutorial, 0, 'Skip puts the guide away');
-    assert.strictEqual(g2.state.countItem('leather_cap'), 1, 'and its presents come along');
-    g2.state.Actions.restartGuide(); g2.state.Actions.skipGuide();
-    assert.strictEqual(g2.state.countItem('leather_cap'), 1, 'only once'); }
+    assert.strictEqual(p2.tutorial, 0, 'Skip puts the guide away'); }
   A.restartGuide(); assert.strictEqual(p.tutorial, 1, 'the guide from the start');
   A.guideNext(); A.guideNext(); tick(game, 300);
-  assert(p.tutorial > 4, `meeting Ama and taking the bell quest pass by themselves (now on step ${p.tutorial})`);
+  assert(p.tutorial > 4, `meeting Ama and the first quest pass by themselves (now on step ${p.tutorial})`);
 });
 
 test('the war spear and its circle throw: held in both hands it strikes the tile next to you, like a sword; the sweep round you hits each monster as the blade gets there, one after the other', () => {

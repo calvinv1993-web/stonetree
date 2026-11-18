@@ -217,6 +217,14 @@ function trainTick() {
   if (w.kind === 'distance') { addMissile(player, t, w.missile || 'arrow'); addSkillTries('distance'); }
   else addSkillTries(w.skill);
   player.trainHits++;
+  // (a quest step that asks for hits on a dummy: The Recruit)
+  for (const [id, q] of Object.entries(player.quests)) {
+    const st = q.status === 'active' && QUESTS[id] && questStep(id);
+    if (!st || !st.train || (q.hits || 0) >= st.train) continue;
+    q.hits = (q.hits || 0) + 1;
+    if (q.hits === st.train) log(`${QUESTS[id].name}: done! Report to ${NPCS[st.npc || QUESTS[id].giver].name}.`, 'quest');
+    uiDirty();
+  }
   // your companion, beside you, trains too (a blow of its own at the dummy, now and then)
   if (player.petBody && dist(player.petBody, t) <= 2) petTrain();
   addSound('hit', t.x, t.y, t.z);

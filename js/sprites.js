@@ -2964,6 +2964,20 @@ const Sprites = (() => {
       for (const [u, v] of [[13.5, 16], [18.5, 16]]) ball(u, v, 11);
       ball(16, 16, 17);
     },
+    // Powder kegs for the cannons on the wall: two small dark kegs side by side, iron-hooped, a black powder mark on
+    // each lid (Clang hides behind them on The Last Town)
+    powder_kegs(g) {
+      floorShadow(g, 13, 3);
+      for (const [cu, cv] of [[10, 12], [21, 19]]) {
+        const z1 = 14, rad = t => 6 + 1 * Math.sin(t * Math.PI);
+        drum(g, cu, cv, 0, z1, rad, { edge: '#3a220e', light: '#7a5028', mid: '#5e3a1a', dark: '#30190a' });
+        for (const z of [3, z1 - 3]) { frontRing(g, cu, cv, z, rad(z / z1) + 0.5, '#24201e'); frontRing(g, cu, cv, z - 1, rad(z / z1), '#7a766e', 1); }
+        const [tx, ty] = P(cu, cv, z1), tr = rad(1);
+        ellipse(g, '#2a180a', tx, ty, tr, tr);
+        ellipse(g, '#8a6038', tx, ty, tr - 1.2, tr - 1.2);
+        ellipse(g, '#1a1612', tx + 0.5, ty + 0.5, 2.2, 1.8); // (the powder mark)
+      }
+    },
     // An ancient tree: a massive trunk on great roots, a huge old crown.
     ancient_tree(g, r) {
       floorShadow(g, 22, 8);

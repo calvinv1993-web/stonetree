@@ -301,20 +301,6 @@ const QUESTS = {
       done: 'My seed is safe, thanks to you. Come by any time.',
     },
   },
-  farm_rats: {
-    name: 'Rats in the Grain', giver: 'oak_farmer', kill: { rat: 5 },
-    where: [110, 130, 7, 7], // (the sewers under his barn)
-    startGift: { items: [['farm_torch', 1]], say: 'Take my torch: it is dark down there. Use it, and it lights your way.' },
-    reward: { xp: 50, gold: 20, items: [['bread', 3]] },
-    summary: 'Kill 5 rats for Farmer Ned: they come up out of the sewers into his grain. Any grate in town leads down to them.',
-    text: {
-      offer: 'Rats, up out of the sewers and into my grain, every night. Would you kill 5 of them for me? ({yes}/{no})',
-      accept: 'Bless you. Down the grate on the square: use it, and you climb down; the ladder under it brings you back up. The sewers are full of rats. Come back when it\'s done.',
-      progress: 'So far you have killed $progress. Keep at it!',
-      reward: 'Five fewer rats! Here, some coin and three loaves of Willa\'s bread, baked from this very grain.',
-      done: 'The grain is safe, thanks to you.',
-    },
-  },
   lost_parcel: {
     name: 'The Lost Parcel', giver: 'hilda', fetch: 'parcel',
     reward: { xp: 80, gold: 20, items: [['health_potion', 3]] },
@@ -1637,54 +1623,88 @@ function gateGuard(quest, name, hair, word, gate, captain) {
       [`${word}|task|quest|mission|help|hunt|work`]: { quest: [quest, `task_${quest.slice(5)}`] }, // (the gate's task; done, a hunt again and again)
       job: 'I keep this gate, and what comes through it.',
       'directions|gate|road': gate,
-      'dangers|monsters|news': 'The further from town, the worse it gets: rats in the fields, wolves and slimes beyond, then spiders and goblins. Bears in the deep woods. Know when to run.',
+      'dangers|monsters|news': 'The Host\'s stragglers roam the isle: rats in the fields, wolves and slimes beyond, then spiders and goblins. Bears in the deep woods. The further from the wall, the worse it gets. Know when to run.',
     },
-    chatter: ['All quiet at the gate.', 'Keep your weapon ready out there.', 'Wolves again last night.', 'Mind the road.'],
+    chatter: ['Quiet. Too quiet.', 'Keep your weapon ready out there.', 'Wolves again last night.', 'Eyes on the dark.'],
   };
 }
 
 // ---- Oakvale Isle: the people of the starter town, and its beginner story --------------------------
-// "The Silent Bell": the bell of Oakvale has stopped ringing. Its chapters climb in danger with the player:
-//   I (level 1)   a newcomer learns the town and the game: the priestess, the academy, rats, the depot, Pip
-//   (the gate watch, level 2-5, gives the gear for what comes next: see below)
-//   II (level 5)  the crypt under Bone Rocks: clear the hall of coffins, take one of the founders' weapons,
-//                 and find a note: someone cut the bell's rope, threw it down the shaft, and keeps its clapper
-//   III (level 6) after the rope, deep under the town: the drains full of giant rats, the cistern slime
-//   IV (level 8)  the Gravewaker, in the founder's tomb below the crypt: the clapper, and the bell rings again
-// Kill steps out in the wilds are done as soon as they're done (auto), and the chests along the way only open
-// once you've done them (requires 'quest@step'): nobody gets the gear by running past the monsters.
+// "The Last Town": the Hollow Host, an army of monsters, has swallowed every town and kingdom; Oakvale is the last
+// one standing, most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained.
+//   The Last Town (level 1)  a newcomer asks to fight and is turned away, then the Host attacks the north wall: you
+//                            load its cannons, save a frightened kitten (Clang, your companion from then on) and
+//                            fire them (the siege only you see: game-siege.js)
+//   The Recruit (level 1)    Master Corwin trains you: the dummy, a cap, Farmer Ned's rats in the sewers (his torch),
+//                            trading with Pip, a locker with Hobb, and a shield
+//   (the gate watch, level 2-5, sends you out beyond the wall: see below)
+//   Farewell (level 10)      ring the bell, say farewell, and the oracle names your path to the front
+// (The old chapters of The Silent Bell, bell_2 to bell_5, are kept for tests/later.test.js; nobody offers them.)
 Object.assign(QUESTS, {
-  bell_1: {
-    name: 'The Silent Bell I: A Stranger in Oakvale', story: 'The Silent Bell', giver: 'ama', level: 1, word: 'bell',
-    reward: { xp: 120, gold: 40, items: [['backpack', 1], ['rope', 1]] }, // a backpack: 20 places instead of the bag's 8
-    summary: 'Sister Ama wants you to learn the ways of Oakvale: Master Corwin at the academy, a rat, Pip\'s shop and the depot.',
-    // (the newcomer's first round: fighting with Corwin, trading with Pip, the locker with Hobb; the guide teaches each
-    // thing as it comes up: healing after the fight, the loot, what dying means, gear, buying and selling, the locker)
+  last_town: {
+    name: 'The Last Town', story: 'The Last Town', giver: 'ama', level: 1, word: 'fight',
+    reward: { xp: 60, gold: 20 },
+    summary: 'The Hollow Host has swallowed the world, and Oakvale is the last town standing. You want to fight.',
     steps: [
-      { npc: 'corwin', summary: 'Visit Master Corwin at the academy, south of the square (the yellow roof).',
-        progress: 'Master Corwin teaches at the academy, south of the square: the yellow roof.',
-        done: 'Sister Ama sent you? Good. Before I teach you anything, show me you can fight. A rat runs in {Sunny Fields}, out of the south gate: kill one, then come back and tell me about the {bell} again.' },
-      { npc: 'corwin', kill: { rat: 1 }, summary: 'Kill a rat in Sunny Fields, out of the south gate, and report to Master Corwin.',
-        progress: 'Out of the south gate, in the fields: a rat. Kill it, then come back to me.',
-        done: 'You fought, and you are still standing. Take this cap, and wear it. Now go to Pip, at his shop east of the square, and give him this {note}: he will show you how to trade.' },
-      { npc: 'pip', word: 'note', summary: 'Bring Master Corwin\'s note to Pip at Pip\'s Provisions, east of the square.',
-        progress: 'Pip\'s Provisions is east of the square, on the cross street, with a rope on its sign.',
-        done: 'A note from Corwin! Then you are here to learn trading. Sell me what the rat left you, and buy something you need: a potion is never wasted. Then go to Postmaster Hobb at the depot, by the canal, and ask him about your {locker}.' },
-      { npc: 'postmaster', word: 'locker', summary: 'Ask Postmaster Hobb in the depot, by the canal south of the square, about your locker.',
-        progress: 'The depot stands south of the square, by the canal, across the high street from the academy.',
-        done: 'Your locker? Open any locker here and it is yours, for as long as you live. Put something in it now, so you know how. Then go back to Sister Ama in the temple and tell her about the {bell}.' },
-      { npc: 'ama', summary: 'Go back to Sister Ama in the temple.',
-        progress: 'Sister Ama waits in the Temple of the Dawn, on the mount north of the square.' },
+      { npc: 'gate_north', word: 'fight', scene: 'siege', summary: 'Ask Captain Osric, at the north gate, to let you fight.',
+        progress: 'Captain Osric keeps the north gate: up the high street, north of the square.',
+        done: 'You? No armour, no training, not even a proper weapon. I have buried better fighters than you this month. Go back to the temple, where it is... *A horn blows on the wall. Then another, and another.* No. Not now. They are at the walls! The gunners on the north wall are down. You wanted to fight? Then up the north-west tower, to the wall, and load the {cannons}: four of them. GO!' },
+      { load: 4, auto: true, summary: 'Up the north-west tower to the wall: load four cannons on the north wall (use each one).',
+        progress: 'The north-west tower stands in the corner of the wall, west of the north gate: its stairs take you up. Cannons loaded: $progress.',
+        done: 'You ram the last ball home. Then, under the roar of the Host, a tiny frightened mew: from behind the powder kegs on the wall.' },
+      { thing: 'powder_kegs', pet: { name: 'Clang', kind: 'cat' }, summary: 'Something is mewing behind the powder kegs on the north wall. Find it.',
+        progress: 'Behind the powder kegs on the north wall, something mews.',
+        done: 'A grey kitten with a little bell on his collar, shaking all over. The temple cat, Clang, lost on the wall! You tuck him into your coat, and he hides his face. He will not leave your side now.' },
+      { fire: true, summary: 'Light the fuse at a loaded cannon on the north wall, and fire!',
+        progress: 'The cannons are loaded. Light the fuse at one of them!',
+        done: 'FIRE! One after the other the cannons roar along the wall. Smoke rolls over the battlements, and when it clears, the Host is running for the dark.' },
+      { npc: 'gate_north', word: 'fight', summary: 'Go back down to Captain Osric at the north gate.',
+        progress: 'Captain Osric waits at the north gate.',
+        done: 'I saw it from the gate. Untrained, unarmed, and you held the north wall. I was wrong about you, $name. Go to Master Corwin at the academy, south of the square, and tell him I sent you: he will make a {fighter} of you.' },
     ],
     text: {
-      offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} has not rung for three days. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})',
-      again: { offer: 'Welcome to Oakvale, $name. You woke here, as everyone new to this isle does. But listen... our temple {bell} was rung home by $ringer, and last night its clapper was stolen again, and its new rope cut. Before you can help with that, you must learn our ways. Will you? ({yes}/{no})' },
-      accept: 'Good. Go down the steps, across the square and on south down the high street to the academy, the house with the yellow roof. Master Corwin teaches there: tell him about the {bell}, and that I sent you.',
-      reward: 'You have learned the ways of Oakvale, $name. Take this backpack and this rope; you will need them. Now, the bell: its clapper is gone, and at night I hear our cat {Clang} under the floor, down in the old bell cellar. Ask me about him when you are level 2.',
-      done: 'The bell is still silent, $name. Ask me about {Clang}: I think he knows where its clapper went.',
+      offer: 'You are awake, thank the Dawn. You have heard what has happened? The {Hollow Host} has swallowed every town and kingdom we knew. Oakvale is the last town standing, and most of our fighters lie dead beyond the wall. Outside it is death for anyone untrained. Stay here, where it is safe... You want to fight? Then I cannot stop you. Captain Osric at the north gate decides who goes on the wall. Will you go to him? ({yes}/{no})',
+      accept: 'Then go with the Dawn, $name. Down the temple steps, and north up the high street to the north gate.',
+      elsewhere: 'Sister Ama in the temple looks after everyone who comes to Oakvale. Go to her first.',
+      done: 'They still talk about the newcomer who fired the north wall. Master Corwin is training you, I hear.',
     },
   },
-  // Clang, the temple's cat, chased the rats down into the bell cellar and got stuck: get him back, and he's yours
+  recruit: {
+    name: 'The Recruit', story: 'The Last Town', giver: 'corwin', level: 1, word: 'fighter', after: 'last_town',
+    reward: { xp: 150, gold: 30, items: [['wooden_shield', 1], ['backpack', 1], ['rope', 1]] }, // a backpack: 20 places instead of the bag's 8
+    summary: 'Master Corwin turns you into a fighter: skills, a real fight, trading and the depot.',
+    steps: [
+      { npc: 'corwin', train: 10, where: [145, 138, 8, 4], summary: 'Hit a training dummy in the yard, east of the academy, 10 times; then tell Master Corwin.',
+        progress: 'Ten good hits on a dummy in the training yard, east of here. Then come back to me.',
+        give: [['leather_cap', 1]],
+        done: 'Feel that? Every hit trains your skill: club, sword, axe, or distance with a bow. The more you use a weapon, the harder you hit with it. Here, put this cap on: it is not much, but every bit counts. Now a real fight: Farmer Ned\'s grain is overrun by rats from the sewers. Go to him at the hay barn, at the end of the academy lane, and ask about the {rats}.' },
+      { npc: 'oak_farmer', word: 'rats', summary: 'Ask Farmer Ned at the hay barn, at the end of the academy lane, about his rats.',
+        progress: 'Farmer Ned is at the hay barn, at the end of the academy lane.', give: [['farm_torch', 1]],
+        done: 'Corwin sent you? Bless him. They come up out of the sewers under my barn. Take my torch: it is black as pitch down there. Use it, and it lights your way. Down the grate on the square, kill five, and come back.' },
+      { npc: 'oak_farmer', kill: { rat: 5 }, where: [110, 130, 7, 7], summary: 'Down a grate into the sewers: light Ned\'s torch, kill 5 rats, and tell Farmer Ned.',
+        progress: 'Five rats, down in the sewers: $progress.',
+        done: 'Five! My grain is safe for a while. Whatever they had on them, Pip buys: his shop is east of the square. Go and see him about {supplies}.' },
+      { npc: 'pip', word: 'supplies', ready: () => !!player.chests.guide_bought && (!!player.chests.guide_sold || !bagItems().some(it => ITEMS[it.id] && BUYS.loot(ITEMS[it.id]))),
+        summary: 'Trade with Pip, east of the square: sell what you found and buy something you need, then tell him.',
+        progress: 'Go on, {trade}! Sell me what you found, and buy something you need: a potion is never wasted. Then tell me about the {supplies} again.',
+        done: 'A proper customer! Now, what you cannot carry, leave with Postmaster Hobb at the depot, by the canal south of the square. Ask him about your {locker}.' },
+      { npc: 'postmaster', word: 'locker', ready: () => !!(player.depot && player.depot.contents.length),
+        summary: 'Put something in a locker at the depot, by the canal south of the square, and tell Postmaster Hobb.',
+        progress: 'Open any locker here and it is yours. Put something in it, then tell me about your {locker} again.',
+        done: 'There. Whatever happens to you out there, what lies in your locker stays safe. Master Corwin will want to hear that you are ready.' },
+      { npc: 'corwin', word: 'fighter', summary: 'Go back to Master Corwin at the academy.', progress: 'Master Corwin waits at the academy.',
+        done: 'A fight, a trade and a locker: you are ready for the gates. Take this shield, and this backpack. Remember: the Host does not tire, but you can rest. The gate guards need everyone they can get: start with Sergeant Bram at the west gate.' },
+    ],
+    text: {
+      offer: 'Osric sent you? Then you are the one who fired the north wall. Bravery is a start, $name, but the Host does not die of bravery. Will you train with me? ({yes}/{no})',
+      accept: 'Good. The training yard is east of the academy: hit a dummy there, ten good hits, and come back to me.',
+      tooWeak: 'Come back when you are stronger.',
+      notYet: 'Training? The north wall needs every pair of hands first. Sister Ama in the temple will tell you.',
+      elsewhere: 'Master Corwin at the academy trains the recruits.',
+      done: 'Train every day, $name. The gate guards have work for you.',
+    },
+  },
+  // (Kestrel Isle's preview: world-kestrel.js) Clang, the temple's cat, chased the rats down into the bell cellar and got stuck: get him back, and he's yours
   // (a companion that fights at your side and grows: PETS in creatures.js, updatePet in game-update.js)
   clang_rescue: {
     name: 'The Silent Bell II: Clang and the Clapper', story: 'The Silent Bell', giver: 'ama', level: 2, word: 'clang', after: 'bell_1',
@@ -1707,28 +1727,6 @@ Object.assign(QUESTS, {
       tooWeak: 'The cellar is dark and full of rats, $name. Come back at level 2, with a light.',
       elsewhere: 'Sister Ama in the temple is waiting for her cat.',
       done: 'Clang looks well, and the bell rings every dawn. You are good for each other.',
-    },
-  },
-  // Under the town, at level 2, with a light: the first way down, a few rats, and a shield to wear (the guide sends
-  // you here before the gate watch; the chest opens once the rats are dead)
-  cellar_shield: {
-    name: 'The Rats\' Hoard', story: 'The Silent Bell', giver: 'corwin', level: 2, word: 'shield', after: 'bell_1',
-    reward: { xp: 60, gold: 20, items: [['health_potion', 2]] },
-    summary: 'Go down into the sewers under the town, clear out some rats, and take back the shield they dragged into the old storeroom.',
-    steps: [
-      { auto: true, kill: { rat: 5 }, where: [128, 125, 7, 12], summary: 'Climb down the grate on the square into the sewers, and kill 5 rats in the tunnels.',
-        progress: 'The grate is on the square, south of the temple steps. Light your way with Torchlight. Rats killed: $progress.',
-        done: 'The tunnels fall quiet. Somewhere to the west, in the old storeroom, the rats have been hoarding what they steal.' },
-      { npc: 'corwin', word: 'shield', where: () => (player.chests.oak_hoard ? null : [105, 121, 7, 3]), summary: 'Open the old chest in the storeroom at the west end of the sewers, put on the wooden shield inside, and tell Master Corwin.',
-        progress: 'The old storeroom is at the west end of the sewers, past the barrels. Take the shield from the chest and put it on.',
-        done: 'A shield on your arm, and the rats know your name! Good. Keep it up: blows that would hurt you now glance off. The guards at the town gates have work for someone like you.' },
-    ],
-    text: {
-      offer: 'Level 2, and a light of your own! Then you are ready for the dark. The rats in the sewers under our streets dragged a good wooden shield into their storeroom - the watch lost it chasing them. Go down, thin them out, and take it back: it is yours if you do. ({yes}/{no})',
-      accept: 'Go down the grate on the square, south of the temple steps. Say "lumen" first, or use your Torchlight button: it is dark down there.',
-      tooWeak: 'The sewers are dark, $name. Reach level 2 and learn Torchlight first: the rats of Sunny Fields will get you there.',
-      elsewhere: 'Master Corwin at the academy wants to hear how you did under the town.',
-      done: 'That shield suits you. Now, the gate guards have work for you.',
     },
   },
   bell_2: {
@@ -1831,34 +1829,35 @@ Object.assign(QUESTS, {
       done: 'The founder\'s page lies on my desk. I read it every night. Grow strong, $name.',
     },
   },
-  // VI: level 10, the farewell to your newcomer days: ring the bell yourself, and the town cheers, before the oracle names
-  // your path (no ship has come for anyone yet: you stay, as Oakvale's own)
+  // Farewell: level 10, the end of your newcomer days: ring the bell yourself, and the town cheers, before the oracle
+  // names your path to the front (no ship has come yet: you stay, as Oakvale's own)
   bell_6: {
-    name: 'The Silent Bell III: Farewell', story: 'The Silent Bell', giver: 'ama', level: 10, word: 'farewell', after: 'clang_rescue',
+    name: 'Farewell', story: 'The Last Town', giver: 'ama', level: 10, word: 'farewell', after: 'recruit',
     reward: { xp: 500, gold: 200, items: [['health_potion', 5], ['mana_potion', 5]] },
-    summary: 'Before the oracle names your path, ring the bell of Oakvale yourself, and say farewell to those who helped you as a newcomer.',
+    summary: 'Before the oracle names your path, ring the bell of Oakvale yourself, and say farewell to those who made a fighter of you.',
     steps: [
       { thing: 'bell', summary: 'Climb the bell tower, east of the temple, and ring the bell of Oakvale yourself.',
         progress: 'The bell tower stands east of the temple. Climb to the top and ring the bell.',
-        done: 'You ring the bell, and Oakvale stops to listen. Down in the streets, people look up at the tower, and wave.' },
+        done: 'You ring the bell, and the last town stops to listen. Down in the streets, people look up at the tower, and wave.' },
       { npc: 'corwin', word: 'farewell', summary: 'Say farewell to Master Corwin at the academy.',
         progress: 'Master Corwin is at the academy.',
-        done: 'So the rat-catcher is a hero now. I taught you to hold a weapon; you taught me that the founders\' bell is worth keeping. Go well to the oracle, $name. When the Choir sends its ship, I hope it finds you waiting.' },
+        done: 'The recruit who fired the north wall, a fighter now. I taught you to hold a weapon; the rest you did yourself. Go well to the oracle, $name, and come back from the front.' },
       { npc: 'pip', word: 'farewell', summary: 'Say farewell to Pip at Pip\'s Provisions.',
         progress: 'Pip\'s Provisions is east of the square.',
-        done: 'Off to the oracle? Then take a tip from your first shopkeeper: never leave town without a rope. Or a shovel. Or both! You were my best customer as a newcomer, $name. Don\'t be a stranger now!' },
-      { npc: 'gate_west', word: 'farewell', summary: 'Say farewell to Sergeant Bram at the west gate.',
-        progress: 'Sergeant Bram keeps the west gate.',
-        done: 'At ease, $name. You came to my gate a newcomer with a wooden club and went out to fight Greyfang. The gate is quieter for you. When the oracle has named your path, the watch will be glad of you. Salute! Now go and see Sister Ama.' },
+        done: 'Off to the oracle? Then take a tip from your first shopkeeper: never leave town without a rope. Or a shovel. Or both! You were my best customer, $name. Come back in one piece!' },
+      { npc: 'gate_north', word: 'farewell', summary: 'Say farewell to Captain Osric at the north gate.',
+        progress: 'Captain Osric keeps the north gate.',
+        done: 'At ease, $name. I turned you away once, and the same night you held my wall. I have not made that mistake since. When the oracle has named your path, the front will be glad of you. Salute! Now go and see Sister Ama.' },
       { npc: 'ama', word: 'farewell', summary: 'Go back to Sister Ama in the temple.',
         progress: 'Sister Ama waits in the temple.' },
     ],
     text: {
-      offer: 'You have grown, $name. Level ten: the oracle upstairs in the academy will name your path, and you will be a newcomer no more. Before you go to her, will you ring our bell yourself, and say farewell to those who helped you as one? ({yes}/{no})',
-      accept: 'Climb the bell tower and ring it yourself. Then go round: Master Corwin, Pip, Sergeant Bram. And come back to me last.',
+      offer: 'You have grown, $name. Level ten: the oracle upstairs in the academy will name your path, and you will be a recruit no more. Before you go to her, will you ring our bell yourself, and say farewell to those who made a fighter of you? ({yes}/{no})',
+      accept: 'Climb the bell tower and ring it yourself. Then go round: Master Corwin, Pip, Captain Osric. And come back to me last.',
       tooWeak: 'It is not time to say goodbye yet, $name. Come back at level 10.',
+      notYet: 'Master Corwin has not finished with you yet.',
       elsewhere: 'Sister Ama in the temple wants to say farewell.',
-      reward: 'Then this is farewell to the newcomer. You woke in this temple a stranger, and now you are the one who rang our bell home. Take these, for whatever comes from the sea. Oakvale will ring for you, every dawn. Now go to the {oracle}, $name, and may the Dawn light your way.',
+      reward: 'Then this is farewell to the recruit. You woke in this temple with nothing, and now the last town rings its bell for you. Take these, for whatever waits at the front. Now go to the {oracle}, $name, and may the Dawn keep you.',
       done: 'Go with the Dawn, $name. The oracle upstairs in the academy is waiting.',
     },
   },
@@ -2239,19 +2238,21 @@ Object.assign(NPCS, {
   ama: {
     name: 'Sister Ama',
     look: { skin: '#e8c4a0', hair: '#8a5a2a', body: '#f0ead8', arms: '#f0ead8', legs: '#f0ead8', belt: '#d8a830', robe: true, hat: { style: 'hood', color: '#e8e0c8' } },
-    greet: 'Peace be with you, $name, and welcome to {Oakvale}. I tend this temple. Ask me about the {bell}, or if you are hurt I can {heal} you.',
+    greet: 'Peace be with you, $name. You are safe here, in the last town under the Dawn. Ask me what has {happened}, or if you are hurt I can {heal} you.',
     keywords: {
-      'clang|cat|kitten': { quest: ['clang_rescue'] },
+      'clang|cat|kitten': 'Clang! The temple cat. He ran off when the horns blew, the poor thing. If you find him, keep him close: he will be braver with you than he ever was with me.',
       'pet|companion': { pet: true },
       'galen|knight|ash|spark': { after: 'bell_4', text: 'Galen... I lit candles for him for twenty years. And all that time he was waiting for the bell to fall silent. Whatever the founders hid in that bronze, $name, the Choir wants it. As long as the bell rings, the spark is ours.' },
-      job: 'I keep the Temple of the Dawn. Everyone who comes to this isle wakes here first - and again after each death.',
+      job: 'I keep the Temple of the Dawn. Everyone who comes to Oakvale wakes here first - and again after each death.',
       'founder|founders|history|past': 'The founders came over the sea in the year of the long winter, a hundred and more years ago, on a ship called the Dawn. They built this temple first, and named it after her.',
       'winter|long': 'The long winter, the year the founders came. The sea froze at the shore, and they lived in the hull of their ship until spring. Many are buried under Bone Rocks from that winter.',
       oakvale: 'A small town, but a good one. The {academy} is south of the square, with the yellow roof, the {depot} across the high street from it, and the shops east of the square.',
-      'bell|quest|mission|task|help|clapper|farewell|goodbye': { quest: ['bell_1', 'clang_rescue', 'bell_6'] },
+      'happened|fight|quest|mission|task|help|farewell|goodbye': { quest: ['last_town', 'bell_6'] },
+      'host|hollow|monsters|war|world': 'The Hollow Host. Nobody knows where it came from: one winter the monsters stopped fighting each other and started marching together. Town after town went dark. Oakvale is the last. Our wall still stands, and as long as it does, there is hope.',
+      bell: 'The bell in the tower east of the temple. We ring it when someone leaves for the front.',
       'stone|seal': 'Show the stone to Master Corwin at the academy. He knows old things.',
-      'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10. Some say she will send our best across the sea one day - but no ship has come for anyone yet.',
-      sewers: 'Under the grates in the streets. The old bell cellar under this temple can only be reached through them now.',
+      'oracle|vocation|mainland': 'The oracle lives upstairs in the academy. She lets you choose a vocation at level 10, and names the path you will fight on at the front.',
+      sewers: 'Under the grates in the streets. Rats, mostly. Farmer Ned curses them every day.',
       'mirror|lake|shrine|water|flask': 'Mirror Lake, north of town, past the river. On its south shore the founders built a little shrine, and Edda blessed its water. The dead fear it. Drink it when you are hurt: it heals better than a potion.',
       'academy|corwin|teacher': 'Master Corwin teaches newcomers at the academy, south of the square: the big house with the yellow roof.',
       depot: 'The depot is south-west of the square, by the lane of shops, across the high street from the academy. The postmaster will explain your locker.',
@@ -2261,16 +2262,16 @@ Object.assign(NPCS, {
   corwin: {
     name: 'Master Corwin',
     look: { skin: '#e0b088', hair: '#9a9aa0', beard: '#9a9aa0', body: '#2a4a6a', arms: '#2a4a6a', legs: '#2a2a3a', belt: '#8a6a3a', robe: true },
-    greet: 'Ah, a new face. I am Master Corwin, and this is the academy. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
+    greet: 'Ah, a new face. I am Master Corwin: I make a {fighter} of anyone who wants to stand on the wall. Ask me about {fighting}, {loot}, {skills}, {spells}, {tools} or {food} - or about the {oracle} upstairs.',
     keywords: {
       'farewell|goodbye': { quest: ['bell_6'] },
+      'fighter|train|training|recruit|quest|mission|task': { quest: ['recruit'] },
       'books|lore': { after: 'bell_4', text: 'The Ashen Choir. The old books in my study speak of a cult that sang to something sleeping under a burning mountain, far across the sea. If they sent Galen for the spark in our bell, they will send others. Grow strong, $name: the oracle will want to hear of this too.' },
       'galen|knight': { after: 'bell_4', text: 'Galen taught me to hold a sword, when I was a boy. When he "died", we buried a closed coffin. I should have asked why it was so light.', before: 'Sir Galen? A knight of the town, long dead. The rats got him, the stone says. Odd death for a knight.' },
-      job: 'I teach newcomers how to stay alive on this isle.',
+      job: 'I train the recruits of the last town. Fewer every year, and younger.',
+      'host|hollow|war|front': 'The Hollow Host does not tire and does not fear. What it lacks is cunning: hold a line, use the walls, and it breaks on them. That is what I teach.',
       'history|past|founder|founders': 'Oakvale is young, as towns go. The founders built the wall, the temple and this academy within twenty years. What they fled from, they never wrote down - or if they did, nobody has found it.',
       'tower|old': 'The Old Tower on its hill east of town is older than Oakvale. The founders found it standing, roofless, when they came, and Oakvale kept a watch in it until its floors fell in. The dead walk its top now. I would not go there before level 6.',
-      'bell|quest|mission|task|ama': { quest: ['bell_1'] },
-      'shield|hoard|storeroom': { quest: ['cellar_shield'] },
       'torchlight|light|dark': 'At level 2 you can light your way: say "lumen" (or use the spell button), and you glow like a torch for three minutes. It costs 15 mana.',
       'bone|rocks': 'Bone Rocks is the crag south-west of town, at the end of the bone trail. The founders\' crypt lies beneath it, sealed for a hundred years. Nobody goes there.',
       'sewers|grate|grates': 'The grates in the streets lead down into the sewers. Rats, mostly - and some big ones where the walls have fallen in, under the training yard.',
@@ -2281,7 +2282,7 @@ Object.assign(NPCS, {
       tools: 'A rope gets you up through holes, a shovel digs loose sand, a pick breaks cracked rock. Pip sells them.',
       'food|eat|hungry': 'Eat, and you get your health and mana back much faster. The Warm Loaf sells bread.',
       'oracle|vocation|mainland': 'The oracle lives upstairs. At level 10 she lets you choose a vocation: Bastion, Hawk, Ember or Grove. Choose with care: it cannot be undone. The mainland? No ship has come for anyone yet. Until one does, Oakvale needs its own.',
-      'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate. The rats there are a good first fight.',
+      'sunny|fields|rats': 'Sunny Fields lie south of town, out of the south gate: rats, close to the wall. The sewers under town have plenty too.',
     },
   },
   oak_oracle: {
@@ -2307,7 +2308,7 @@ Object.assign(NPCS, {
     keywords: {
       job: 'I run the depot and the post.',
       'ship|dawn|sea': 'The founders\' ship, the Dawn? Her bronze fittings went into our bell, they say, and her timbers into the depot\'s roof. Look up when you are in here: those beams have crossed an ocean.',
-      'locker|letter|quest|mission|task': { quest: ['bell_1'], otherwise: 'Open any locker here and it is yours. What you put in it is safe, whatever happens to you out there.' },
+      'locker|quest|mission|task': { quest: ['recruit'], otherwise: 'Open any locker here and it is yours. What you put in it is safe, whatever happens to you out there.' },
       depot: 'Open any locker here and it is yours. What you put in it is safe, whatever happens to you out there.',
     },
   },
@@ -2320,7 +2321,7 @@ Object.assign(NPCS, {
       job: 'I sell everything an adventurer needs, and buy what they bring back.',
       'lighthouse|point': 'Lighthouse Point, south of the fields? There was a lighthouse once. A storm took it the year I was born. Only the crabs live there now.',
       'fish|fisher|fishing': 'Fisher\'s Rest is on the west shore. Buy a fishing rod and use it on the water: fish heal you as well as bread does, and cost nothing but patience.',
-      'note|letter|quest|mission|task': { quest: ['bell_1'] },
+      'supplies|quest|mission|task': { quest: ['recruit'], otherwise: 'Supplies? Just ask to {trade}.' },
       'tip|tips': 'Never leave town without a rope and a shovel. And sell your loot before your bag gets too heavy.',
     },
     trade: {
@@ -2354,12 +2355,12 @@ Object.assign(NPCS, {
     greet: 'Welcome to my little shop, $name. Potions, runes and wands - would you like to {trade}?',
     keywords: {
       job: 'I sell magic to those who are ready for it. Most of it is for after you choose a vocation.',
-      'bell|magic|bronze': 'The temple bell? There is more in that bronze than bronze, if you ask me. When it rings, my candles burn straighter. When its clapper is gone... they flicker.',
+      'host|hollow|magic': 'The Hollow Host has no magic of its own, $name. It has numbers. Learn your spells well: one good spell is worth ten swords on a wall.',
     },
     trade: { sells: [['health_potion', 25], ['mana_potion', 50], ['blank_rune', 10], ['rune_heal', 40]], buys: ['magic', 'jewelry'] },
   },
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
-  gate_west: (() => { const g = gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'); g.keywords['farewell|goodbye'] = { quest: ['bell_6'] }; return g; })(),
+  gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),
   gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
   gate_east: (() => { // (Hilde also knows of the spiders' den, and its queen)
     const g = gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.');
@@ -2378,6 +2379,8 @@ Object.assign(NPCS, {
       ['cloak', 5, { cosmetic: 'watch_cloak' }, 'a watch-blue cloak'],
     ] };
     g.greet = g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?');
+    g.keywords['fight|volunteer|cannons|wall'] = { quest: ['last_town'] };
+    g.keywords['farewell|goodbye'] = { quest: ['bell_6'] };
     return g;
   })(),
   oak_baker: {
@@ -2412,10 +2415,10 @@ Object.assign(NPCS, {
   oak_farmer: {
     name: 'Farmer Ned', idle: 5000,
     look: { skin: '#d8a070', hair: '#a07040', body: '#6a5a3a', arms: '#6a5a3a', legs: '#4a4a3a', feet: '#3a2a1a', belt: '#3a2a1a', hat: { style: 'wide', color: '#c8a860' } },
-    greet: 'Morning, $name! This is the town farm. The {rats} are at my grain again. Fancy some {trade}?',
+    greet: 'Morning, $name! This is the town farm: the last grain field there is. The {rats} are at it again. Fancy some {trade}?',
     keywords: {
       job: 'I grow the town\'s grain. Willa bakes it, the town eats it, and the rats try to.',
-      'rats|quest|mission|task|help|grain': { quest: ['farm_rats'] },
+      'rats|quest|mission|task|help|grain': { quest: ['recruit'], otherwise: 'Blasted rats. Master Corwin sends his recruits to me for them: ask him.' },
       'hay|loft|upstairs': 'The loft is full of hay for the winter. Mind the stairs.',
     },
     trade: { sells: [['carrot', 2], ['apple', 2]], buys: ['loot'] },

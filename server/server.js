@@ -47,7 +47,7 @@ vm.runInContext(`
   function logDialog(speaker, text, isPlayer) { if (player) player.outbox.push(['dialog', speaker, text, !!isPlayer]); }
   function uiDirty() { if (player) player.dirty = true; }
 `, sandbox);
-for (const f of ['defs', 'items', 'creatures', 'npcs', 'data', 'map', 'world-kestrel', 'default-map', 'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-paths', 'game-tales', 'game-gates', 'game-update']) {
+for (const f of ['defs', 'items', 'creatures', 'npcs', 'data', 'map', 'world-kestrel', 'default-map', 'game-core', 'game-combat', 'game-npc', 'game-social', 'game-forge', 'game-guide', 'game-paths', 'game-tales', 'game-gates', 'game-siege', 'game-update']) {
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', `${f}.js`), 'utf8'), sandbox, { filename: `${f}.js` });
 }
 // Test mode: level a character to 20 the way the game would, and dress them well.

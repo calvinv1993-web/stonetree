@@ -530,6 +530,7 @@ function useThing(x, y, z) {
     if (def.pickFind) return log(`${capitalize(def.name)}. A pick could break a piece off.`), true;
     if (def.chest) return openChest(def.chest, { x, y, z }), true;
     if (def.rescue) return rescueAt(def.rescue, id), true;
+    if (def.cannon) return useCannon(x, y, z), true;
     if (def.bell) return ringBell(x, y, z), true;
     if (def.trainer) return startTraining(x, y, z), true;
     if (def.cache) return openChest({ flag: `cache:${x},${y},${z}`, ...(map.getMeta(x, y, z) || {}) }), true;
@@ -620,9 +621,8 @@ function ringTownBell(text = 'Dong... dong... dong... The bell of Oakvale rings 
 // The level at which the oracle lets you choose a vocation (and, once there is one, sends you to the mainland).
 const vocationLevel = () => 10;
 
-// Using the bell in the bell tower: silent until its clapper is back (The Silent Bell), then anyone may ring it.
+// Using the bell in the bell tower: anyone may ring it (the farewell asks you to).
 function ringBell(x, y, z) {
-  if (!bellHung()) return log('The great bell hangs silent. Someone has cut its rope, and its clapper is gone.');
   if (now - bellRungAt < 30000) return log('The bell is still humming. Let it rest a moment.');
   ringTownBell(`Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`);
   // the farewell (The Silent Bell VI): ringing it yourself, the town looks up and waves
@@ -1539,8 +1539,8 @@ function gainXp(amount, shared) {
         log(`You learned the spell ${s.name} ("${s.words}"): it's on your action bar${i < 9 ? ` (on a keyboard: key ${i + 1})` : ''}.`, 'level'); // (a phone has no keys)
       }
     });
-    if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: The Silent Bell VI)
-      log(questState('clang_rescue') === 'done' && questState('bell_6') !== 'done'
+    if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: Farewell)
+      log(questState('recruit') === 'done' && questState('bell_6') !== 'done'
         ? 'You are ready to choose a vocation! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
         : 'You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
     }
@@ -1559,7 +1559,10 @@ const questStep = id => questSteps(QUESTS[id])[player.quests[id].step || 0];
 
 function stepReady(id) {
   const s = questStep(id), kills = player.quests[id].kills;
-  if (s.thing) return false; // (done at a thing in the world: rescueAt, questDeed)
+  if (s.thing || s.fire) return false; // (done at a thing in the world: rescueAt, questDeed, useCannon)
+  if (s.load) return ((player.quests[id].loaded || []).length) >= s.load; // (the cannons on the wall: game-siege.js)
+  if (s.train && (player.quests[id].hits || 0) < s.train) return false; // (hits on a training dummy)
+  if (s.ready && !s.ready()) return false; // (something done elsewhere: a trade, a locker)
   if (s.clear && !areaClear(s.clear)) return false; // (the gate watch's tasks: game-gates.js)
   if (s.burn) return burntCount(id) >= s.burn;
   if (s.kill && !Object.entries(s.kill).every(([type, n]) => (kills[type] || 0) >= n)) return false;
@@ -1577,6 +1580,8 @@ function questProgress(id) {
       .filter(Boolean).join(', ');
   }
   if (s.fetch) return countItem(s.fetch) ? 'found' : 'not found yet';
+  if (s.load) return `${Math.min(s.load, (player.quests[id].loaded || []).length)}/${s.load}`;
+  if (s.train) return `${Math.min(s.train, player.quests[id].hits || 0)}/${s.train} hits`;
   if (s.burn) return `${Math.min(s.burn, burntCount(id))}/${s.burn} burnt`;
   if (s.clear) return areaClear(s.clear) ? 'the way is clear' : 'they are still there';
   if (s.has) return stepReady(id) ? 'found' : 'not found yet';
@@ -1625,12 +1630,16 @@ function advanceQuest(id) {
   if (r.xp) gainXp(r.xp);
   if (r.chronicle && !player.chests[`chronicle_${r.chronicle}`]) chronicleRead(r.chronicle);
   if (r.bell) { const first = !townBell.first; bellRestored(); ringTownBell(first ? 'Dong... dong... dong... The bell of Oakvale rings again, for the first time in days!' : `Dong... dong... dong... ${player.name} rings the bell of Oakvale, and the whole isle hears it.`); }
-  if (r.pet && !player.pet) { // a companion: it follows you from now on (game-update.js updatePet)
-    player.pet = { name: r.pet.name, kind: r.pet.kind, level: 1, xp: 0, hp: PETS[r.pet.kind].hp(1), home: false, downUntil: 0, mode: 'assist' };
-    playerEvent('petName', { name: r.pet.name }); // (the browser asks what to call it)
-    log(`${r.pet.name} is your companion now: it follows you, fights at your side, and grows stronger as it fights and trains with you.`, 'level');
-  }
+  if (r.pet) givePet(r.pet);
   uiDirty();
+}
+
+// A companion: it follows you from now on (game-update.js updatePet)
+function givePet(pet) {
+  if (player.pet) return;
+  player.pet = { name: pet.name, kind: pet.kind, level: 1, xp: 0, hp: PETS[pet.kind].hp(1), home: false, downUntil: 0, mode: 'assist' };
+  playerEvent('petName', { name: pet.name }); // (the browser asks what to call it)
+  log(`${pet.name} is your companion now: he follows you, fights at your side, and grows stronger as he fights and trains with you.`, 'level');
 }
 
 // A monster's echo (echoOf in creatures.js) counts as the one it echoes only for a step told again (its again texts,
@@ -1657,16 +1666,19 @@ function onMonsterKilled(type) {
   uiDirty();
 }
 
-// A thing a quest step waits at (step.thing): the crate in the bell cellar, with Clang behind it
+// A thing a quest step waits at (step.thing): Clang, frightened, behind the powder kegs on the wall (or, on Kestrel
+// Isle, behind the crate in the bell cellar). A step's pet: your companion from then on. The thing's own words
+// (THINGS: rescued, notYet, before) for anyone not on that step.
 function rescueAt(questId, thingId) {
-  const st = questState(questId) === 'active' && questStep(questId);
+  const st = questState(questId) === 'active' && questStep(questId), def = THINGS[thingId] || {};
   if (st && st.thing === thingId) {
     if (st.done) log(storyText(st, 'done'), 'quest');
     addSparkle(player, '#ffe080');
+    if (st.pet) givePet(st.pet);
     return advanceQuest(questId);
   }
-  if (questState(questId) === 'done' || player.pet) return log('Nothing behind it now but dust and a few cat hairs.');
-  log(questState(questId) === 'active' ? 'Something behind the crate hisses at the rats. Deal with them first.' : 'Something moves behind the crate, and mews.');
+  if (questState(questId) === 'done' || player.pet) return log(def.rescued || 'Nothing behind it now but dust and a few cat hairs.');
+  log(questState(questId) === 'active' ? def.notYet || 'Something behind the crate hisses at the rats. Deal with them first.' : def.before || 'Something moves behind the crate, and mews.');
 }
 
 // at: where the chest stands (for a guarded one: it stays shut while its guard lives near it)

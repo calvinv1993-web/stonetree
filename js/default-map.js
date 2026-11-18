@@ -310,7 +310,7 @@ const SEWERS = {
   torches: [[108, 127], [116, 127], [125, 127], [137, 127], [143, 127], [131, 107]],
   props: [
     [103, 121, 'barrel'], [104, 121, 'barrel'], [105, 121, 'qchest_oak_cap'], [108, 121, 'crate'], [108, 122, 'crate'], [103, 126, 'sack'], [107, 124, 'bones'],
-    [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [148, 105, 'clang_crate'], // (Clang, the temple's cat, stuck behind it) [133, 105, 'rubble'], [138, 105, 'bones'],
+    [133, 101, 'web'], [140, 101, 'web'], [141, 105, 'crate'], [148, 105, 'crate'], [133, 105, 'rubble'], [138, 105, 'bones'],
     [140, 104, 'rubble'], [134, 105, 'rubble'],
     [142, 137, 'bones'], [149, 138, 'bones'], [144, 140, 'qchest_oak_shield'], [145, 143, 'bones'], [147, 136, 'rubble'], [150, 141, 'rubble'], // a shield the rats dragged into their nest
     [118, 132, 'bones'], [130, 121, 'rubble'], [128, 136, 'bones'], [146, 128, 'rubble'],
@@ -2036,7 +2036,7 @@ function buildTown(m, S, runs, river) {
     // cannons along the battlements, every eleven tiles, pointing out, a pile of balls beside each and every other one a
     // keg of powder on its other side (only where the wall is solid below, not over a gate or the water)
     const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Cold now: Oakvale has not had to fire it in a long time.';
-    let cannons = 0;
+    let cannons = 0, kegs = null;
     for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
       if (!inRing(x, y) || inTower(x, y)) continue;
       const out = y === R.y0 ? 'n' : y === R.y1 ? 's' : x === R.x0 ? 'w' : x === R.x1 ? 'e' : null;
@@ -2046,7 +2046,7 @@ function buildTown(m, S, runs, river) {
       if (along % 11 !== 6 || !solid(0, 0) || !solid(ax, ay) || !solid(-ax, -ay)) continue;
       put(x, y, S + 1, `cannon_${out}`); m.setMeta(x, y, S + 1, { look: CANNON_LOOK });
       put(x + ax, y + ay, S + 1, 'cannonballs');
-      if (cannons++ % 2) put(x - ax, y - ay, S + 1, 'barrel');
+      if (cannons++ % 2) put(x - ax, y - ay, S + 1, out === 'n' && !kegs ? (kegs = 'powder_kegs') : 'barrel'); // (on the north wall, the first: Clang hides behind them)
     }
     // banners down the faces of the wall you see from outside (south and east), between the cannons
     for (let x = R.x0; x <= R.x1; x++) { const t = m.get(x, R.y1, S); if (x % 11 === 0 && !inTower(x, R.y1) && t.items.includes('rampart')) put(x, R.y1, S, 'wall_banner_s'); }

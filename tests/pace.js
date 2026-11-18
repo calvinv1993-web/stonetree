@@ -176,21 +176,20 @@ function grind(level) {
 const section = (name, fn) => { where = name; fn(); };
 
 // ---- the route: the guide's order (game-guide.js), the quests as in npcs.js -----------------------------------------
-section('bell_1', () => {
-  wait(5 * 60000);                               // the temple, the academy: The Silent Bell I begins
-  equip('head', 'leather_cap');                  // (the guide's present, from Master Corwin)
-  hunt(AREA[1], 3);                              // five rats in Sunny Fields
-  finish('bell_1', 8);                           // Corwin, the depot, Pip, back to Ama
-  const bag = p.equipment.backpack; ctx.removeItem('backpack', 1); // the backpack from Ama, with the bag's things in it
+section('last_town', () => {                       // the temple, Osric, the tower, four cannons, Clang behind the kegs, fire
+  wait(4 * 60000);
+  ctx.givePet({ name: 'Clang', kind: 'cat' });
+  finish('last_town', 6);
+});
+section('recruit', () => {                         // Corwin: the dummy and a cap; Ned's five rats in the sewers; Pip, Hobb, Corwin
+  wait(3 * 60000); equip('head', 'leather_cap');
+  hunt(['rat', 'rat'], 3);                         // five rats in the sewers
+  finish('recruit', 8);
+  equip('shield', 'wooden_shield');
+  const bag = p.equipment.backpack; ctx.removeItem('backpack', 1); // the backpack from Corwin, with the bag's things in it
   p.equipment.backpack = { id: 'backpack', count: 1, contents: bag.contents };
 });
 section('to level 2', () => grind(2));
-section('cellar_shield', () => {                  // the Rats' Hoard: the sewers, five rats, the shield in the storeroom
-  take(3); hunt(['rat', 'rat'], 3); equip('shield', 'wooden_shield'); finish('cellar_shield', 3);
-});
-section('clang_rescue', () => {                   // Clang: three rats in the bell cellar, the crate, back to Ama
-  take(2); hunt(['rat', 'rat'], 2); finish('clang_rescue', 3);
-});
 section('gate_west', () => {                      // Bram: 8 wolves and Greyfang
   take(3); hunt(['wolf', 'wolf', 'wolf'], 3); boss(['greyfang', 'wolf']); finish('gate_west', 3); equip('body', 'leather_armor');
 });

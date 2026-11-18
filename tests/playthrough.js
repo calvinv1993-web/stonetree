@@ -353,22 +353,23 @@ const CRYPT = [80, 181, 7], DRAINS = [126, 125, 6], CISTERN = [125, 110, 5], TOM
 const CELLAR = [140, 104, 7], POINT = [128, 219, 8];
 try {
   const step = (name, fn) => { const t0 = state.now; note(`== ${name}`); fn(); note(`   (${((state.now - t0) / 60000).toFixed(1)} min)`); };
-  step('The Silent Bell I', () => {
-    talkFor('bell_1', 'active', 'ama', 'bell', 'yes');
-    talk('corwin', 'bell'); equipBest(); // (the guide's leather cap, from Master Corwin)
-    huntFor('bell_1', 'rat', SUNNY);
-    talk('corwin', 'bell'); talk('postmaster', 'locker'); talk('pip', 'letter'); talk('ama', 'bell');
-  });
-  step('to level 2', () => levelUp(2, 'rat', SUNNY));
-  step('the Rats\' Hoard: a shield', () => {
-    shop(3); talkFor('cellar_shield', 'active', 'corwin', 'shield', 'yes'); huntFor('cellar_shield', 'rat', SEWERS);
-    use(105, 121, 7, 'the storeroom chest'); equipBest(); talkFor('cellar_shield', 'done', 'corwin', 'shield');
-  });
-  step('Clang', () => {
-    talkFor('clang_rescue', 'active', 'ama', 'clang', 'yes'); huntFor('clang_rescue', 'rat', CELLAR);
-    useFor('clang_rescue', 148, 105, 7, 'the fallen crate'); talkFor('clang_rescue', 'done', 'ama', 'clang');
+  step('The Last Town', () => {
+    talkFor('last_town', 'active', 'ama', 'fight', 'yes'); talk('gate_north', 'fight');
+    for (const [x, y, z] of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) use(x, y, z, 'a cannon on the north wall');
+    useFor('last_town', 115, 94, 9, 'the powder kegs'); use(116, 94, 9, 'the fuse');
+    talkFor('last_town', 'done', 'gate_north', 'fight');
     note(p.pet ? `${p.pet.name} follows, and fights along` : 'no Clang!');
   });
+  step('The Recruit', () => {
+    talkFor('recruit', 'active', 'corwin', 'fighter', 'yes');
+    p.quests.recruit.hits = 10; wait(20000); // (ten hits on a dummy)
+    talk('corwin', 'fighter'); equipBest();
+    talk('oak_farmer', 'rats'); huntFor('recruit', 'rat', SEWERS); talk('oak_farmer', 'rats');
+    shop(3); p.chests.guide_bought = p.chests.guide_sold = true; talk('pip', 'supplies');
+    p.depot.contents.push({ id: 'apple', count: 1 }); talk('postmaster', 'locker');
+    talkFor('recruit', 'done', 'corwin', 'fighter'); equipBest();
+  });
+  step('to level 2', () => levelUp(2, 'rat', SUNNY));
   step('Bram: Greyfang\'s den', () => { shop(3); talkFor('gate_west', 'active', 'gate_west', 'wolves', 'yes'); huntFor('gate_west', 'wolf', WOLVES);
     goTo(69, 98, 8, 1, 'to the paw prints'); hunt('greyfang', 1, [67, 71, 8], 'Greyfang, in his den'); talkFor('gate_west', 'done', 'gate_west', 'wolves'); equipBest(); });
   step('the rats\' nest: a shield', () => { shop(3); use(144, 140, 7, 'the chest in the rats\' nest'); equipBest(); });

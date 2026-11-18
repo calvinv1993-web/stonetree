@@ -1,10 +1,10 @@
 'use strict';
 // The whole starter-island story, from a new character to the oracle, played through in several ways, on the real
-// game logic: every quest, the guide, Clang and the bell's clapper, Farmer Ned, the gate watch and its hunts, the farewell and the
+// game logic: every quest, the guide, the siege and Clang, the recruit's training, the gate watch and its hunts, the farewell and the
 // vocation. Each scenario must end with everything done and the guide gone, and may never throw, lose a quest item,
 // skip a step or leave the guide pointing nowhere.
 //   node tests/story.test.js            (all scenarios)
-//   node tests/story.test.js <name>     (one: straight, skip-guide, save-load, deaths, out-of-order, restart-guide, two-friends)
+//   node tests/story.test.js <name>     (one: osric-greet-only, straight, skip-guide, save-load, deaths, out-of-order, restart-guide, two-friends)
 
 const assert = require('assert');
 const vm = require('vm');
@@ -50,19 +50,35 @@ function driver(game) {
 
 // The story's steps, each a function of a driver; between them a scenario may do something (save, die...)
 const STEPS = [
-  ['the world, walking', d => { d.next(); const st = d.state.map.start; d.go({ x: st.x, y: st.y + 3, z: st.z }); }],
-  ['bell I: Ama, the bell', d => { d.talk('ama'); d.talk('ama', 'bell', 'yes'); }],
-  ['bell I: Corwin', d => { d.talk('corwin', 'bell'); }],
-  ['bell I: a rat, healing, the loot', d => { d.kill('rat', 1); d.p().fedUntil = d.state.now + 99999; d.tick(100); d.next();
-    d.p().openPile = { corpse: 'blood' }; d.tick(100); d.p().openPile = null; d.next(); }],
-  ['bell I: Corwin\'s cap', d => { d.talk('corwin', 'bell'); d.wear('leather_cap'); }],
-  ['bell I: Pip, trading', d => { d.talk('pip', 'note'); d.p().chests.guide_bought = d.p().chests.guide_sold = true; d.tick(100); }],
-  ['bell I: the locker, Ama', d => { d.talk('postmaster', 'locker'); d.p().depot.contents.push({ id: 'apple', count: 1 }); d.tick(100); d.talk('ama', 'bell'); }],
-  ['Farmer Ned: the grate, his torch, five rats', d => { d.talk('oak_farmer', 'rats', 'yes'); const [x, y] = d.run('OAKVALE.grates[0]'); d.go({ x, y, z: 7 });
-    d.wear('farm_torch'); d.kill('rat', 5); d.go({ x: x + 2, y, z: 8 }); d.talk('oak_farmer', 'rats'); }],
+  ['the last town, walking', d => { d.next(); const st = d.state.map.start; d.go({ x: st.x, y: st.y + 3, z: st.z }); }],
+  ['The Last Town: Ama, Osric', d => { d.talk('ama'); d.talk('ama', 'fight', 'yes'); d.talk('gate_north', 'fight'); }],
+  ['The Last Town: the cannons, Clang, fire', d => {
+    d.go({ x: 106, y: 95, z: 9 });
+    for (const c of [[105, 94, 9], [116, 94, 9], [138, 94, 9], [101, 95, 10]]) d.use(...c);
+    d.use(115, 94, 9); d.use(116, 94, 9); d.talk('gate_north', 'fight');
+  }],
+  ['The Recruit: the dummy, the cap', d => { // (a dummy with a free tile north of it: a friend may be training at the first)
+    d.talk('corwin', 'fighter', 'yes');
+    for (let y = 133; y <= 143; y++) for (let x = 140; x <= 150; x++) {
+      const t = d.state.map.get(x, y, 8);
+      if (!t || !t.items.includes('dummy') || !d.state.isFree(x, y - 1, 8) || (d.p().quests.recruit.hits || 0) >= 10) continue;
+      d.go({ x, y: y - 1, z: 8 }); if (d.p().x !== x) continue;
+      d.ctx.useThing(x, y, 8); d.tick(25000);
+    }
+    d.go({ x: 126, y: 121, z: 8 }); d.talk('corwin', 'fighter'); d.wear('leather_cap');
+  }],
+  ['The Recruit: Ned\'s rats, down a grate', d => {
+    d.talk('oak_farmer', 'rats'); const [x, y] = d.run('OAKVALE.grates[0]'); d.go({ x, y, z: 7 }); d.wear('farm_torch');
+    d.kill('rat', 1); d.p().fedUntil = d.state.now + 99999; d.tick(100); d.next();
+    d.p().openPile = { corpse: 'blood' }; d.tick(100); d.p().openPile = null; d.next();
+    d.kill('rat', 4); d.go({ x: x + 2, y, z: 8 }); d.talk('oak_farmer', 'rats');
+  }],
+  ['The Recruit: Pip, Hobb, Corwin', d => {
+    d.p().chests.guide_bought = d.p().chests.guide_sold = true; d.talk('pip', 'supplies');
+    d.p().depot.contents.push({ id: 'apple', count: 1 }); d.talk('postmaster', 'locker');
+    d.talk('corwin', 'fighter'); d.wear('wooden_shield');
+  }],
   ['level 2, Torchlight', d => { d.levelTo(2); d.A.say('lumen'); d.tick(300); }],
-  ['the Rats\' Hoard', d => { d.talk('corwin', 'shield', 'yes'); d.go({ x: 131, y: 112, z: 7 }); d.kill('rat', 5); d.use(105, 121, 7); d.wear('wooden_shield'); d.talk('corwin', 'shield'); }],
-  ['Clang', d => { d.talk('ama', 'clang', 'yes'); d.go({ x: 140, y: 104, z: 7 }); d.kill('rat', 3); d.use(148, 105, 7); d.talk('ama', 'clang'); }],
   ['the gate watch', d => {
     // west: Greyfang's pack and Greyfang (his pelt); south: Wendel off his rock (wherever he is: a friend may have sent
     // him home already); east: four nests (one a friend burnt is spun again after a while); north: Gnash's war plans
@@ -84,7 +100,7 @@ const STEPS = [
   }],
   ['a watch hunt and the stores', d => { d.talk('gate_west', 'hunt', 'yes'); d.kill('wolf', 10); d.talk('gate_west', 'hunt'); d.talk('gate_north', 'potions'); }],
   ['bell III: farewell', d => { d.levelTo(10); d.talk('ama', 'farewell', 'yes'); d.go({ x: 145, y: 103, z: 13 }); d.state.now += 60000; d.ctx.ringBell(); d.tick(100);
-    for (const id of ['corwin', 'pip', 'gate_west']) d.talk(id, 'farewell'); d.talk('ama', 'farewell'); }],
+    for (const id of ['corwin', 'pip', 'gate_north']) d.talk(id, 'farewell'); d.talk('ama', 'farewell'); }],
   ['the oracle', d => {
     // (a guide still on has followed the whole story: it's on its last step, the oracle)
     if (d.p().tutorial && !d.p().guideSkipped) assert.strictEqual(d.p().tutorial, d.run('GUIDE.length'), `the guide got stuck on step ${d.p().tutorial}: ${d.run('GUIDE[player.tutorial - 1].text').slice(0, 60)}`);
@@ -95,7 +111,7 @@ const STEPS = [
   }],
 ];
 
-const DONE = ['bell_1', 'cellar_shield', 'clang_rescue', 'farm_rats', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6'];
+const DONE = ['last_town', 'recruit', 'gate_west', 'gate_south', 'gate_east', 'gate_north', 'bell_6'];
 
 // What must hold after each step, whatever the scenario
 function check(d, name) {
@@ -111,22 +127,22 @@ function finished(d, name) {
   const p = d.p();
   for (const id of DONE) assert.strictEqual(d.state_(id), 'done', `${name}: ${id} not done`);
   assert(p.pet && p.pet.kind === 'cat', `${name}: no Clang`);
-  assert(d.run('bellHung()'), `${name}: the bell doesn't hang again`);
   assert.strictEqual(p.vocation, 'knight', `${name}: no vocation`);
   assert.strictEqual(p.tutorial, 0, `${name}: the guide is still on`);
   assert(p.equipment.shield && p.equipment.head, `${name}: lost the starter gear (${JSON.stringify([p.equipment.shield, p.equipment.head, p.tutorial, p.chests.guide_kit, p.equipment.backpack.contents.map(i => i.id)])})`);
 }
 
 const SCENARIOS = {
-  // greeting Corwin without asking about the bell: the rats don't count yet, and the guide waits for him (never "done")
-  'corwin-greet-only': () => {
+  // greeting Osric without asking to fight: no siege yet, and the guide waits for him (never "done"); cannons do nothing
+  'osric-greet-only': () => {
     const d = driver(newGame(8));
-    for (const [n, f] of STEPS.slice(0, 2)) { f(d); check(d, n); }
-    d.talk('corwin'); d.settle();
+    for (const [n, f] of STEPS.slice(0, 1)) { f(d); check(d, n); }
+    d.talk('ama', 'fight', 'yes'); d.talk('gate_north'); d.settle();
     const at = d.p().tutorial;
-    d.kill('rat', 5); d.settle();
-    assert.strictEqual(d.p().tutorial, at, 'the guide waits at Corwin');
-    assert(!/Kill 5 rats/.test(d.run('(GUIDE[player.tutorial - 1].touch || "")')), 'still on the step to talk to him');
+    d.use(105, 94, 9); d.use(115, 94, 9); d.settle();
+    assert.strictEqual(d.p().tutorial, at, 'the guide waits at Osric');
+    assert(!d.ctx.siegeScene() && !d.p().pet && !(d.p().quests.last_town.loaded || []).length, 'no siege, no cannons, no Clang yet');
+    assert(/Osric/.test(d.run('(GUIDE[player.tutorial - 1].touch || "")')), 'still on the step to talk to him');
   },
   // as the guide leads
   straight: () => { const d = driver(newGame()); for (const [n, f] of STEPS) { f(d); check(d, n); } finished(d, 'straight'); },
@@ -163,13 +179,15 @@ const SCENARIOS = {
   // trying everything too early: nothing opens, nothing is skipped, nothing breaks
   'out-of-order': () => {
     const d = driver(newGame(5));
-    for (const [x, y, z] of [[105, 121, 7], [148, 105, 7]]) { d.ctx.useThing(x, y, z); d.tick(50); }
-    for (const [id, word] of [['ama', 'clang'], ['ama', 'farewell'], ['oak_farmer', 'rats'], ['gate_north', 'goblins'], ['oak_oracle', 'knight']]) d.talk(id, word, 'yes');
+    for (const [x, y, z] of [[105, 94, 9], [115, 94, 9], [116, 94, 9]]) d.use(x, y, z);
+    for (const [id, word] of [['gate_north', 'fight'], ['corwin', 'fighter'], ['ama', 'farewell'], ['oak_farmer', 'rats'], ['pip', 'supplies'], ['postmaster', 'locker'],
+      ['gate_north', 'goblins'], ['oak_oracle', 'knight']]) d.talk(id, word, 'yes');
     d.ctx.ringBell();
     assert.strictEqual(d.p().vocation, 'none', 'no vocation at level 1');
-    for (const id of DONE) if (id !== 'bell_1') assert.notStrictEqual(d.state_(id), 'done', `out-of-order: ${id} done too early`);
-    for (const it of ['wooden_shield']) assert.strictEqual(d.state.countItem(it), 0, `out-of-order: ${it} taken too early`);
-    assert(!d.run('bellHung()'), 'out-of-order: the bell hangs too early');
+    for (const id of DONE) if (id !== 'last_town') assert.strictEqual(d.state_(id), 'none', `out-of-order: ${id} taken too early`); // (Ama offers the first whatever you ask)
+    assert.strictEqual(d.p().quests.last_town.step, 0, 'out-of-order: still asking Osric to fight');
+    for (const it of ['wooden_shield', 'leather_cap', 'farm_torch']) assert.strictEqual(d.state.countItem(it), 0, `out-of-order: ${it} taken too early`);
+    assert(!d.p().pet && !d.ctx.siegeScene(), 'out-of-order: no Clang, no siege');
     for (const [n, f] of STEPS) { f(d); check(d, n); } finished(d, 'out-of-order');
   },
   // the guide started again half way: what's done passes, the rest goes on
@@ -189,8 +207,7 @@ const SCENARIOS = {
     }
     finished(d1, 'Ana');
     vm.runInContext('(p, fn) => asPlayer(p, fn)', ctx)(second, () => finished(d1, 'Friend'));
-    assert.strictEqual(state.townBell.first, state.player.name, 'the first to ring the bell home is the Bellringer');
-    assert(state.townBell.ringers.includes('Friend'), 'and the friend is on the plaque too');
+    assert(second.pet && second.pet.name === 'Clang' && state.player.pet, 'each found Clang on the wall');
   },
 };
 

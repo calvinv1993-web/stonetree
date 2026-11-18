@@ -293,11 +293,15 @@ const THINGS = {
   flagpole:    { name: 'banner', cat: 'Wilds', block: true, low: true, tall: true },
   tower_flag:  { name: 'the flag of Oakvale', cat: 'Town', block: true, low: true, tall: true },
   // a cannon on the town wall, on its wooden carriage, its muzzle pointing out (n, e, s or w); and a pile of its balls
-  cannon_n:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
-  cannon_e:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
-  cannon_s:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
-  cannon_w:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true },
+  cannon_n:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true, cannon: true },
+  cannon_e:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true, cannon: true },
+  cannon_s:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true, cannon: true },
+  cannon_w:    { name: 'cannon', cat: 'Town', block: true, low: true, tall: true, cannon: true },
   cannonballs: { name: 'cannonballs', cat: 'Town', block: true, low: true },
+  // powder kegs on the north wall: on The Last Town, Clang the kitten hides behind them (rescueAt; its words to others)
+  powder_kegs: { name: 'powder kegs', cat: 'Town', block: true, low: true, rescue: 'last_town',
+    rescued: 'Powder kegs, and a few grey cat hairs. Nothing mews behind them now.', notYet: 'Powder kegs for the cannons. The cannons first!',
+    before: 'Powder kegs for the cannons. Keep fire well away from them.' },
   // Oakvale's banner hanging down the outer face of the town wall (the south or east face, the ones you see)
   wall_banner_s: { name: 'banner of Oakvale', cat: 'Walls', tall: true },
   wall_banner_e: { name: 'banner of Oakvale', cat: 'Walls', tall: true },
@@ -356,7 +360,7 @@ const THINGS = {
   // Oakvale Isle: gear for those who dare go deep, once per character. Further down, better gear.
   qchest_oak_cap: {
     name: 'old chest', cat: 'Quest chests', block: true, low: true, sprite: 'chest',
-    chest: { flag: 'oak_hoard', requires: 'cellar_shield@1', items: [['wooden_shield', 1]],
+    chest: { flag: 'oak_hoard', items: [['health_potion', 2], ['gold', 15]],
       locked: 'Rats squeal all round you. Deal with them first.' }, // (The Rats' Hoard: the shield, once the rats are dead)
   },
   qchest_oak_shield: {

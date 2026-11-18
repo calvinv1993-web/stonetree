@@ -1067,6 +1067,61 @@ test('The Bone Chapel: a pick through the crypt\'s cracked wall, Ossian\'s three
 });
 
 
+// ---- Oakvale's old story, The Silent Bell (replaced by The Last Town): the Rats' Hoard and the shared bell ----
+test('under the town: The Rats\' Hoard opens the storeroom chest (a shield) once its rats are dead; the nest has gold and potions', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player;
+  ctx.useThing(105, 121, 7);
+  assert.strictEqual(state.countItem('wooden_shield'), 0, 'the hoard stays shut without the quest');
+  p.quests.cellar_shield = { status: 'active', step: 0, kills: {} };
+  ctx.useThing(105, 121, 7);
+  assert.strictEqual(state.countItem('wooden_shield'), 0, 'and while the rats live');
+  for (let i = 0; i < 5; i++) ctx.onMonsterKilled('rat');
+  assert.strictEqual(p.quests.cellar_shield.step, 1, 'five rats: on to the chest');
+  ctx.useThing(105, 121, 7); ctx.useThing(105, 121, 7);
+  assert.strictEqual(state.countItem('wooden_shield'), 1, 'the shield, once');
+  const gold0 = p.gold, pots0 = state.countItem('health_potion');
+  ctx.useThing(144, 140, 7); ctx.useThing(144, 140, 7);
+  assert.strictEqual(p.gold - gold0, 20, 'the nest: 20 gold');
+  assert.strictEqual(state.countItem('health_potion') - pots0, 3, 'and 3 health potions, once');
+});
+
+test('the bell of Oakvale is everyone\'s: the first to bring it home is the Bellringer, the plaque names them, it rings every dawn', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  ctx.ringBell(); assert(/hangs silent/.test(messages.at(-1)), 'silent before anyone brings the clapper home');
+  p.quests.bell_4 = { status: 'active', step: 1, kills: {} }; p.equipment.backpack.contents.push({ id: 'bell_clapper', count: 1 });
+  ctx.advanceQuest('bell_4');
+  assert.strictEqual(state.townBell.first, p.name, 'the first: the Bellringer');
+  assert(p.chests.bellringer && messages.some(m => /first Bellringer/.test(m)), 'told to everyone');
+  // someone who never did the quest may ring it now
+  delete p.quests.bell_4; state.now += 60000; ctx.ringBell();
+  assert(/rings the bell of Oakvale/.test(messages.at(-1)), 'it rings for everyone');
+  assert(new RegExp(p.name).test(ctx.bellPlaque('THE BELL')), 'the plaque names who rang it home');
+  const n = messages.filter(m => /rings in the dawn/.test(m)).length;
+  for (let i = 0; i < 30; i++) tick(game, 60000);
+  assert(messages.filter(m => /rings in the dawn/.test(m)).length > n, 'and every dawn it rings by itself');
+});
+
+test('the bell rung home by someone else: for a newcomer its clapper was stolen again, and the plaque says who rang it', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const A = state.Actions;
+  state.townBell = { ringers: ['Ana'], first: 'Ana', dawn: -1 };
+  const ama = state.npcs.find(n => n.npcId === 'ama');
+  ctx.teleport({ ...ctx.findFreeTile(ama.x, ama.y, ama.z, 2), z: ama.z });
+  const n = messages.length; A.say('hi'); A.say('bell');
+  const said = messages.slice(n).join(' | ');
+  assert(/rung home by Ana/.test(said) && /stolen again/.test(said), `a newcomer hears the story starts over: ${said}`);
+  assert(!/three days/.test(said));
+  state.townBell = { ringers: [], first: null, dawn: -1 };
+  A.say('bye'); const m = messages.length; A.say('hi'); A.say('bell');
+  assert(/three days/.test(messages.slice(m).join(' | ')), 'and the first to come hears it as it was');
+});
+
+
 let failed = 0;
 for (const t of tests) {
   try {

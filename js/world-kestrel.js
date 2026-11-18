@@ -220,8 +220,8 @@ if (typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel' && typeo
     'oracle|vocation|mainland|path|paths|hall': 'Every adventurer walks one of four paths. Pathkeeper Ilse in the {Hall} of Paths, on the square, will show you all four - and let you try them.',
     'job': 'I keep the temple. Everyone who washes up on Kestrel Isle wakes here first - and again after each death.',
   });
-  delete ama.keywords['bell|quest|mission|task|help|rope|cellar|clapper|gravewaker|farewell|goodbye'];
-  ama.keywords['quest|mission|task|cellar'] = { quest: ['clang_rescue'] };
+  delete ama.keywords['happened|fight|quest|mission|task|help|farewell|goodbye']; delete ama.keywords['host|hollow|monsters|war|world'];
+  ama.keywords['clang|cat|kitten|quest|mission|task|cellar'] = { quest: ['clang_rescue'] }; delete ama.keywords['clang|cat|kitten'];
   delete ama.keywords.oakvale; delete ama.keywords['academy|corwin|teacher']; delete ama.keywords.depot; delete ama.keywords['mirror|lake|shrine|water|flask'];
 }
 
