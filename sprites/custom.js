@@ -261,6 +261,7 @@ const CUSTOM_SPRITES = {
   sheet_fields_farmer: 'npc-fields_farmer.png', // Farmer Odo
   sheet_rest_fisher: 'npc-rest_fisher.png', // Old Maddock
   sheet_oak_quartermaster: 'npc-oak_quartermaster.png', // Quartermaster Wynn
+  sheet_oak_farmer: 'npc-oak_farmer.png', // Farmer Ned
   sheet_skeleton: 'monster-skeleton.png', // a monster on two legs: sheet_<monster type>, laid out the same
   sheet_king_mogg: 'monster-king_mogg.png', // King Mogg
   sheet_one_eye_patch: 'monster-one_eye_patch.png', // One-Eye Patch, the rabbits' bandit king
