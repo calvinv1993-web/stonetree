@@ -577,7 +577,15 @@ const Fx = (() => {
         if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
         for (const id of t.items) {
           if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });
-          else if ((id === 'window' || id === 'window_stained') && !underground && amount > 0.25) lights.push({ x: x - d, y: y - d, r: 1.4, color: LIGHT_COLORS.window, flicker: true, soft: true });
+          // (at night a house's windows and doors glow warm out onto the street: someone's home, a fire lit inside. Only
+          // those on a side you see, south or east, with open sky in front: the glass lit, and a pool on the ground before it)
+          else if ((id === 'window' || id === 'window_stained' || id.startsWith('door')) && !underground && amount > 0.25) {
+            const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
+            if (!out) continue;
+            const door = id.startsWith('door');
+            lights.push({ x: x - d + out[0] * 0.6, y: y - d + out[1] * 0.6, r: door ? 2.6 : 2.2, color: LIGHT_COLORS.window, flicker: true });
+            lights.push({ x: x - d - 0.4, y: y - d - 0.45, r: door ? 0.9 : 0.75, color: LIGHT_COLORS.window, flicker: true, glow: door ? 1.8 : 2.2 }); // (the glass, up the wall)
+          }
         }
       }
     }
@@ -628,7 +636,7 @@ const Fx = (() => {
         const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
         if (!onView(sx, sy, r)) continue;
         if (l.arrow !== undefined) continue; // (the arrowhead itself glows: game.js draws it; here only the ground it lights)
-        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
+        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.glow || 1) * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
       dctx.globalAlpha = 1;
