@@ -1312,13 +1312,10 @@ const Sprites = (() => {
             gr = g.createLinearGradient(a0, 0, a1, 0); gr.addColorStop(0, 'rgba(40,22,6,0.3)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
             g.fillStyle = gr; g.fillRect(Math.min(a0, a1), 0, 8, up);
           }
-          // each course's lip: lit along its rounded edge, a shadow under it on the course below
+          // each course's lip lit a little along its rounded edge (the shadow under it is in the straw's own picture)
           for (let b = course; b < up - capW; b += course) {
-            gr = g.createLinearGradient(0, b - 3.5, 0, b);
-            gr.addColorStop(0, 'rgba(36,20,4,0)'); gr.addColorStop(1, 'rgba(36,20,4,0.42)');
-            g.fillStyle = gr; g.fillRect(0, b - 3.5, len, 3.5);
             gr = g.createLinearGradient(0, b, 0, b + 2.4);
-            gr.addColorStop(0, 'rgba(255,226,150,0.3)'); gr.addColorStop(1, 'rgba(255,226,150,0)');
+            gr.addColorStop(0, 'rgba(255,226,150,0.16)'); gr.addColorStop(1, 'rgba(255,226,150,0)');
             g.fillStyle = gr; g.fillRect(0, b, len, 2.4);
           }
           // weathered: streaks of grey running down the straw, and a little moss, low down and by the ridge
