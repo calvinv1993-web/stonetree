@@ -569,11 +569,13 @@ const Fx = (() => {
       const v = visual(c);
       lights.push({ x: v.x, y: v.y, r: 6.5, color: LIGHT_COLORS.you, flicker: false, carried: true });
     }
+    const roofs = []; // the roofs over the floor you're on, where they're drawn: the lamps down in the street don't light them
     for (let z = view.minZ; z <= view.maxZ; z++) {
       const d = z - view.z, inside = [], openings = [];
       for (let y = player.y - 13; y <= player.y + 13; y++) for (let x = player.x - 16; x <= player.x + 16; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
+        if (d > 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d]); // (where a roof is drawn: see below)
         // (doors and windows with open sky in front, on a side you see (south, east): where light from inside gets out)
         if (z < view.maxZ && t.items.some(id => id === 'window' || id === 'window_stained' || id.startsWith('door'))) {
           const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
@@ -655,6 +657,17 @@ const Fx = (() => {
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
       dctx.globalAlpha = 1;
+      // the roofs keep the night: a lamp in the street, or your own light, lights the street and the walls, not the roof
+      // of the house beside it (its pool would show through it)
+      if (roofs.length) {
+        const size = TILE * SCALE;
+        for (const [rx, ry] of roofs) {
+          const [sx, sy] = screen(rx, ry);
+          if (!onView(sx + size / 2, sy + size / 2, size)) continue;
+          dctx.clearRect(sx - 0.5, sy - 0.5, size + 1, size + 1);
+          dctx.fillRect(sx - 0.5, sy - 0.5, size + 1, size + 1);
+        }
+      }
       ctx.imageSmoothingEnabled = true; // (the night is soft: no blocks when it's spread over a finer canvas)
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
