@@ -1166,6 +1166,137 @@ const Sprites = (() => {
     }, N);
   }
 
+  // A roof standing up over a whole building (w x h tiles), instead of lying flat as the floor above it: two slopes rising
+  // from the eaves along its long sides to a ridge, in the world's camera (what rises moves up and to the left, a floor of
+  // 32 pixels as far as 32 pixels each way), and a gable at each end. You see the south (or east) slope big, the north (or
+  // west) one short, the ridge shifted up-left of the building's middle, and the gable on its east (or south) end, plaster
+  // in a timber frame. Each slope shows the roof's own picture of tiles (<id>_tiles: rows along its eave, the eave at its
+  // bottom), lit as it faces; ridge tiles cap the ridge, a roll of edge tiles runs along the eaves and verges, and the
+  // eaves overhang the walls a little, with their shadow on the wall below.
+  // Returns a picture at RAISED_RES pixels a world pixel; mx, my: where the building's top-left corner is in it.
+  const RAISED_RES = 2, RAISED_OVER = 4, RAISED_PITCH = 0.5, RAISED_TOP = 40; // (the overhang, the slope, the highest a ridge goes)
+  function raisedRoof(id, w, h) {
+    const W = w * TILE, H = h * TILE, ew = w >= h; // (the ridge runs along the long side: east-west when it's wide)
+    const half = (ew ? H : W) / 2, top = Math.min(RAISED_TOP, half * RAISED_PITCH), p = top / half, O = RAISED_OVER;
+    const M = Math.ceil(top + O + 4), cw = W + M + O + 10, ch = H + M + O + 10, R = RAISED_RES;
+    return cached(`raisedroof:${id}:${w}:${h}`, g => {
+      g.canvas.res = R; g.canvas.mx = M; g.canvas.my = M; g.canvas.w = cw; g.canvas.h = ch;
+      const S = (x, y, z) => [M + x - z, M + y - z]; // (a point of the building, x, y from its top-left corner, z up)
+      const world = () => g.setTransform(R, 0, 0, R, 0, 0);
+      const path = pts => { g.beginPath(); pts.forEach(([x, y, z], i) => { const [sx, sy] = S(x, y, z); if (i) g.lineTo(sx, sy); else g.moveTo(sx, sy); }); g.closePath(); };
+      const shade = (l, pts) => { // (a face's light: darker or lighter over its picture)
+        path(pts);
+        g.fillStyle = l < 1 ? `rgba(20,10,4,${(1 - l).toFixed(3)})` : `rgba(255,236,200,${((l - 1) * 0.9).toFixed(3)})`;
+        g.fill();
+      };
+      const pic = customImage(`${spriteOf(id)}_tiles`), st = ROOF_STYLES[spriteOf(id)] || ROOF_STYLES.roof, straw = !!st.straw;
+      const cap = roofCap(id) || st.color.map(c => c * 1.05), rgb = (k, a = 1) => `rgba(${cap.map(c => Math.min(255, Math.round(c * k))).join(',')},${a})`;
+      const pattern = pic && pic.complete && pic.naturalWidth ? g.createPattern(pic, 'repeat') : null;
+      // a slope: its corners, the way its eave faces (nx, ny) and a point on its eave; its tiles' rows run along the eave
+      const slope = (pts, nx, ny, ex, ey, light) => {
+        world();
+        path(pts);
+        if (pattern) {
+          const TW = pic.naturalWidth, TH = pic.naturalHeight, L = Math.hypot(1, p), sU = TILE / TW, sV = TILE / (L * TH);
+          const ux = -ny, uy = nx; // (along the eave, so the picture is turned, never mirrored: south is as drawn)
+          const he = -p * O; // (the eave's height: it overhangs, a little below the wall's top)
+          // texture pixel (u, v) -> on the slope: the eave point, u along it, v down the slope (v < 0: up towards the ridge)
+          // -> drawn: what rises moves up-left by its height p * (how far up the slope) + he
+          pattern.setTransform(new DOMMatrix([ux * sU, uy * sU, (nx + p) * sV, (ny + p) * sV, M + ex - he, M + ey - he]));
+          g.fillStyle = pattern;
+        } else g.fillStyle = `rgb(${st.color.join(',')})`;
+        g.fill();
+        shade(light, pts);
+      };
+      // a plain line of round tiles (the ridge, the edges): from a to b, w wide, its top lit
+      const roll = (a, b, width, k = 1) => {
+        world();
+        const [ax, ay] = S(...a), [bx, by] = S(...b);
+        g.lineCap = 'round';
+        g.strokeStyle = rgb(0.45 * k); g.lineWidth = width + 1.2; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+        g.strokeStyle = rgb((straw ? 0.95 : 1.0) * k); g.lineWidth = width; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+        g.strokeStyle = rgb((straw ? 1.15 : 1.3) * k, 0.8); g.lineWidth = width * 0.35;
+        g.beginPath(); g.moveTo(ax - width * 0.18, ay - width * 0.18); g.lineTo(bx - width * 0.18, by - width * 0.18); g.stroke();
+        // (each tile overlapping the next: a dark line every few pixels across it)
+        const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / (straw ? 9 : 6))), dx = (bx - ax) / n, dy = (by - ay) / n, len = Math.hypot(dx, dy) || 1;
+        g.strokeStyle = rgb(0.5 * k, 0.75); g.lineWidth = straw ? 1.2 : 0.8; g.lineCap = 'butt';
+        for (let i = 1; i < n; i++) {
+          const cx = ax + dx * i, cy = ay + dy * i, px = -dy / len * width / 2, py = dx / len * width / 2;
+          g.beginPath(); g.moveTo(cx - px, cy - py); g.lineTo(cx + px, cy + py); g.stroke();
+        }
+      };
+      // a gable: the wall's end over the eave, from the eave's height up to the ridge, in the plane x = at (ew) or
+      // y = at; plaster in a timber frame, a little round window in its middle; drawn in that plane's own coordinates
+      const gable = (at, from, to, light) => {
+        const mid = (from + to) / 2, span = to - from;
+        if (ew) g.setTransform(0, R, -R, -R, R * (M + at), R * M); // (y, z) -> S(at, y, z)
+        else g.setTransform(R, 0, -R, -R, R * M, R * (M + at));    // (x, z) -> S(x, at, z)
+        const tri = () => { g.beginPath(); g.moveTo(from, 0); g.lineTo(to, 0); g.lineTo(mid, top); g.closePath(); };
+        tri(); g.fillStyle = '#c9b993'; g.fill();
+        g.save(); tri(); g.clip();
+        const beam = '#5a3c22', post = (x0, z0, x1, z1, wd = 3) => { g.strokeStyle = beam; g.lineWidth = wd; g.beginPath(); g.moveTo(x0, z0); g.lineTo(x1, z1); g.stroke(); };
+        g.fillStyle = beam; g.fillRect(from, 0, span, 3.2);              // the beam it stands on
+        post(mid, 0, mid, top);                                          // the king post
+        post(from + span * 0.2, 0, mid, top * 0.62, 2.4);                // two braces
+        post(to - span * 0.2, 0, mid, top * 0.62, 2.4);
+        post(from + span * 0.32, 0, from + span * 0.32, top * 0.6, 2.2); // and studs
+        post(to - span * 0.32, 0, to - span * 0.32, top * 0.6, 2.2);
+        g.fillStyle = '#3a2614'; g.beginPath(); g.ellipse(mid, top * 0.42, 3.6, 3.6, 0, 0, Math.PI * 2); g.fill(); // a round window
+        g.fillStyle = '#20160c'; g.beginPath(); g.ellipse(mid, top * 0.42, 2.5, 2.5, 0, 0, Math.PI * 2); g.fill();
+        // its light as it faces, and the shadow of the eaves over its top edges
+        g.fillStyle = light < 1 ? `rgba(20,10,4,${1 - light})` : 'rgba(0,0,0,0)'; g.fillRect(from, 0, span, top + 1);
+        g.strokeStyle = 'rgba(20,10,4,0.35)'; g.lineWidth = 5;
+        g.beginPath(); g.moveTo(from, 0); g.lineTo(mid, top); g.lineTo(to, 0); g.stroke();
+        g.restore();
+      };
+      const he = -p * O, L0 = -O, R0 = W + O, T0 = -O, B0 = H + O;
+      // the eaves' shadow on the walls below them (the south wall's face, the east wall's): soft, slanting with the wall
+      world();
+      const band = (x0, y0, x1, y1, dx, dy) => {
+        const [ax, ay] = S(x0, y0, he), [bx, by] = S(x1, y1, he), gr = g.createLinearGradient(ax, ay, ax + dx, ay + dy);
+        gr.addColorStop(0, 'rgba(20,12,6,0.45)'); gr.addColorStop(1, 'rgba(20,12,6,0)');
+        g.fillStyle = gr; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.lineTo(bx + dx, by + dy); g.lineTo(ax + dx, ay + dy); g.closePath(); g.fill();
+      };
+      if (ew) {
+        const Ym = H / 2;
+        band(L0 + O, B0, R0 - O, B0, 6, 8);                                              // under the south eave
+        gable(W, 0, H, 0.78);                                                            // the east gable (the west one faces away)
+        slope([[L0, T0, he], [R0, T0, he], [R0, Ym, top], [L0, Ym, top]], 0, -1, R0, T0, 1.12); // north slope
+        slope([[L0, Ym, top], [R0, Ym, top], [R0, B0, he], [L0, B0, he]], 0, 1, L0, B0, 0.9);  // south slope
+        roll([L0, B0, he], [R0, B0, he], 3, 0.8);                                         // the eaves
+        roll([L0, T0, he], [R0, T0, he], 2.4, 1.05);
+        roll([R0, T0, he], [R0, Ym, top], 3, 0.85); roll([R0, Ym, top], [R0, B0, he], 3, 0.8); // the verges at the gables
+        roll([L0, T0, he], [L0, Ym, top], 3, 1.05); roll([L0, Ym, top], [L0, B0, he], 3, 0.95);
+        roll([L0, Ym, top], [R0, Ym, top], straw ? 6 : 4.5, 1.05);                         // the ridge
+      } else {
+        const Xm = W / 2;
+        band(R0, T0 + O, R0, B0 - O, 8, 6);                                              // under the east eave
+        gable(H, 0, W, 0.92);                                                            // the south gable
+        slope([[L0, T0, he], [Xm, T0, top], [Xm, B0, top], [L0, B0, he]], -1, 0, L0, B0, 1.04); // west slope
+        slope([[Xm, T0, top], [R0, T0, he], [R0, B0, he], [Xm, B0, top]], 1, 0, R0, T0, 0.8);   // east slope
+        roll([R0, T0, he], [R0, B0, he], 3, 0.78);
+        roll([L0, T0, he], [L0, B0, he], 2.4, 1.05);
+        roll([L0, B0, he], [Xm, B0, top], 3, 0.95); roll([Xm, B0, top], [R0, B0, he], 3, 0.8);
+        roll([L0, T0, he], [Xm, T0, top], 3, 1.05); roll([Xm, T0, top], [R0, T0, he], 3, 0.9);
+        roll([Xm, T0, top], [Xm, B0, top], straw ? 6 : 4.5, 1.05);
+      }
+    }, cw * R, ch * R);
+  }
+  // A raised roof's outline as drawn (x, y in world pixels from its building's top-left corner, on its floor): its eaves,
+  // and on the west (north) the verge rising to the ridge past the building's side (where the night must stay over it)
+  function raisedRoofOutline(w, h) {
+    const W = w * TILE, H = h * TILE, ew = w >= h, half = (ew ? H : W) / 2, top = Math.min(RAISED_TOP, half * RAISED_PITCH), p = top / half;
+    const O = RAISED_OVER, he = -p * O, S = (x, y, z) => [x - z, y - z];
+    return ew ? [S(-O, -O, he), S(W + O, -O, he), S(W + O, H + O, he), S(-O, H + O, he), S(-O, H / 2, top)]
+      : [S(-O, -O, he), S(W / 2, -O, top), S(W + O, -O, he), S(W + O, H + O, he), S(-O, H + O, he)];
+  }
+  // How high a raised roof is over a point of its building (x, y from its top-left corner, in world pixels): where to stand
+  // what stands on it (a chimney)
+  function raisedRoofHeight(w, h, x, y) {
+    const W = w * TILE, H = h * TILE, ew = w >= h, half = (ew ? H : W) / 2, top = Math.min(RAISED_TOP, half * RAISED_PITCH), p = top / half;
+    return Math.max(0, ew ? top - p * Math.abs(y - H / 2) : top - p * Math.abs(x - W / 2));
+  }
+
   // Snow lying on a roof: the same slopes, ridges and eaves, in white (shadows a little
   // blue), thinning out at the eaves where the roof shows through. Drawn over the roof.
   // level 1-5: how far it has settled - patches first (the ridge and the middle), which
@@ -7779,6 +7910,7 @@ const Sprites = (() => {
       return jobs;
     },
     playerAttack, // (a player's strike: see playerAttack)
+    raisedRoof, raisedRoofHeight, raisedRoofOutline, // (a roof standing up over a whole building: see raisedRoof)
     // Sprite for a map thing at map position (x, y); position picks the variant.
     // Trees, walls and wall decorations are 64x64 and must be drawn anchored at
     // the bottom-right of their tile; `shape` is which neighbours a thin wall joins

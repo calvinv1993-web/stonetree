@@ -22,6 +22,37 @@ const STANDING = new WeakMap(); // tile -> whether something stands on it fillin
 // how far (in tiles) a floor mosaic reaches from its centre tile (THINGS mosaic), so the ground around it knows to draw it
 const MOSAIC_REACH = Math.max(0, ...Object.values(THINGS).map(d => Math.ceil((d.mosaic || 0) / 2)));
 const NEAR = Math.max(1, MOSAIC_REACH), NEAR_CORNERS = [[-NEAR, -NEAR], [NEAR, -NEAR], [-NEAR, NEAR], [NEAR, NEAR], [0, 0]]; // (what a changed tile reaches)
+// Roofs that stand up over their building (Sprites.raisedRoof) instead of lying flat as the floor above it. For now a
+// trial: the roof over each of these tiles (x, y, z), a rectangle of one roof. Worked out once per version of the map:
+// each roof's bounds, and which tiles are under one.
+const RAISED_ROOFS = [[137, 127, 9]];
+function raisedRoofs(map) {
+  if (map.raised && map.raised.version === map.version) return map.raised;
+  const list = [], tiles = new Map();
+  for (const [sx, sy, z] of RAISED_ROOFS) {
+    const t = map.get(sx, sy, z), id = t && t.ground;
+    if (!id || !THINGS[id] || !THINGS[id].roof) continue;
+    const cells = [], seen = new Set([`${sx},${sy}`]), todo = [[sx, sy]];
+    while (todo.length) {
+      const [x, y] = todo.pop();
+      cells.push([x, y]);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const k = `${x + dx},${y + dy}`, n = map.get(x + dx, y + dy, z);
+        if (!seen.has(k) && n && n.ground === id) { seen.add(k); todo.push([x + dx, y + dy]); }
+      }
+    }
+    const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]);
+    const r = { id, z, x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
+    if (cells.length !== (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1)) continue; // (only a rectangle stands up, for now)
+    list.push(r);
+    for (const [x, y] of cells) tiles.set((z * map.height + y) * map.width + x, r);
+  }
+  map.raised = { version: map.version, list, tiles };
+  return map.raised;
+}
+// The raised roof over tile (x, y, z), if any
+const raisedAt = (map, x, y, z) => (x < 0 || y < 0 || x >= map.width || y >= map.height ? null : raisedRoofs(map).tiles.get((z * map.height + y) * map.width + x) || null);
+
 const Render = {
   // Draw an upright picture (a creature, drawn at px, py) leaning into the walls' slant from its feet: every pixel
   // as far left as it stands above the feet, so its height runs up-left as a wall's does (32 up, 32 left).
@@ -426,6 +457,7 @@ const Render = {
           if (!t || !t.ground) continue;
           const id = groundShown(x, y, t);
           if (!id) continue;
+          if (THINGS[id].roof && raisedAt(map, x, y, z)) continue; // (a roof that stands up: drawn whole, with what's on the floor)
           const shape = THINGS[id].roof ? roofShape(x, y, id) : bridgeShape(x, y, id);
           if (id === 'water') {
             g.save(); g.imageSmoothingEnabled = true;
@@ -448,7 +480,7 @@ const Render = {
           const here = rawGroundAt(x, y);
           if (here && THINGS[here].roof) continue;
           let roof = null;
-          const sides = EAVE_NEIGHBOURS.map(([dx, dy]) => { const n = rawGroundAt(x + dx, y + dy); if (n && THINGS[n].roof) { roof = roof || n; return '1'; } return '0'; }).join('');
+          const sides = EAVE_NEIGHBOURS.map(([dx, dy]) => { const n = rawGroundAt(x + dx, y + dy); if (n && THINGS[n].roof && !raisedAt(map, x + dx, y + dy, z)) { roof = roof || n; return '1'; } return '0'; }).join('');
           const eave = roof && Sprites.roofEave(roof, sides);
           if (eave) g.drawImage(eave, ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
@@ -938,6 +970,26 @@ const Render = {
       // Stairs are pictures wider than their tile: a wall beside them that is drawn after them (east, or south-west) would cut a
       // piece out, so they wait until that wall is drawn (late, by the wall's tile)
       const late = new Map();
+      // The roofs that stand up, each drawn whole once its southmost row is done (what stands behind it is drawn by then,
+      // and it rises over that), with what stands on it (a chimney) raised to the slope's height there
+      const raised = raisedRoofs(map).list.filter(r => r.z === z && r.y1 >= y0 && r.x1 >= x0 - 2 && r.x0 <= x1 + 2);
+      const raise = r => {
+        const w = r.x1 - r.x0 + 1, h = r.y1 - r.y0 + 1, img = Sprites.raisedRoof(r.id, w, h);
+        g.imageSmoothingEnabled = true;
+        g.drawImage(img, ox + r.x0 * TILE - img.mx, oy + r.y0 * TILE - img.my, img.w, img.h);
+        g.imageSmoothingEnabled = false;
+        for (let ty = r.y0; ty <= r.y1; ty++) for (let tx = r.x0; tx <= r.x1; tx++) {
+          const t = tileAt(tx, ty);
+          if (!t) continue;
+          const up = Math.round(Sprites.raisedRoofHeight(w, h, (tx - r.x0 + 0.5) * TILE, (ty - r.y0 + 0.75) * TILE));
+          for (const id of t.items) {
+            const img2 = Sprites.thing(id, tx, ty, v.time), iw = Sprites.w(img2), ih = Sprites.h(img2);
+            if (img2.res > 1) g.imageSmoothingEnabled = true;
+            g.drawImage(img2, ox + tx * TILE - (iw - TILE) - up, oy + ty * TILE - (ih - TILE) - up, iw, ih);
+            g.imageSmoothingEnabled = false;
+          }
+        }
+      };
       const isWall = (wx, wy) => wx >= x0 && wx <= x1 && wy <= y1 && (tileAt(wx, wy)?.items || []).some(id => { const d = THINGS[id]; return d.wall && !d.onWall && !d.roof; });
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const t = floor[y * map.width + x];
@@ -974,7 +1026,7 @@ const Render = {
             g.drawImage(post.img, cx - post.ax, cy - post.ay, post.w, post.h);
           }
         }
-        if (t) {
+        if (t && !(t.ground && THINGS[t.ground].roof && raisedAt(map, x, y, z))) { // (what's on a raised roof stands on it: see raised below)
           let wallShape = null;
           for (const id of t.items) {
             if (id === 'carpet_rug') continue;
@@ -1057,6 +1109,7 @@ const Render = {
           }
           g.globalAlpha = 1;
         }
+        if (x === x1 && raised.length) for (const r of raised) if (r.y1 === y || (y === y1 && r.y1 > y1)) raise(r);
       }
       if (lifted) g.restore();
     }

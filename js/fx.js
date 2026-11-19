@@ -577,7 +577,14 @@ const Fx = (() => {
       for (let y = player.y - 13; y <= player.y + 13; y++) for (let x = player.x - 16; x <= player.x + 16; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
-        if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d, z]); // (where a roof is drawn: see below)
+        if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) { // (where a roof is drawn: see below)
+          const r = raisedAt(map, x, y, z); // (a roof standing up: its whole outline, once)
+          if (!r) roofs.push([x - d, y - d, z]);
+          else if (r.x0 === x && r.y0 === y) {
+            const out = Sprites.raisedRoofOutline(r.x1 - r.x0 + 1, r.y1 - r.y0 + 1).map(([px, py]) => [x - d + px / TILE, y - d + py / TILE]);
+            roofs.push([x - d, y - d, z, out]);
+          }
+        }
         // (doors and windows with open sky in front, on a side you see (south, east): where light from inside gets out)
         if (z < view.maxZ && t.items.some(id => id === 'window' || id === 'window_stained' || id.startsWith('door'))) {
           const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
@@ -637,7 +644,8 @@ const Fx = (() => {
       dctx.setTransform(LIGHT_RES, 0, 0, LIGHT_RES, 0, 0); // (drawn in overlay pixels, kept at LIGHT_RES)
       dctx.globalCompositeOperation = 'source-over';
       dctx.clearRect(0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
-      dctx.fillStyle = underground ? `rgba(4,3,10,${amount})` : `rgba(6,12,40,${Math.min(0.92, amount * 1.3)})`;
+      const night = underground ? `rgba(4,3,10,${amount})` : `rgba(6,12,40,${Math.min(0.92, amount * 1.3)})`;
+      dctx.fillStyle = night;
       dctx.fillRect(0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       dctx.globalCompositeOperation = 'destination-out';
       dctx.imageSmoothingEnabled = true;
@@ -653,8 +661,10 @@ const Fx = (() => {
         const here = roofs.filter(r => r[2] === f);
         if (here.length) {
           dctx.globalCompositeOperation = 'source-over';
+          dctx.fillStyle = night;
           dctx.beginPath();
-          for (const [rx, ry] of here) {
+          for (const [rx, ry, , out] of here) {
+            if (out) continue; // (a roof standing up: by its outline, below)
             const [sx, sy] = screen(rx, ry);
             if (!onView(sx + size / 2, sy + size / 2, size)) continue;
             const x0 = Math.floor(sx), y0 = Math.floor(sy), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
@@ -662,6 +672,13 @@ const Fx = (() => {
             dctx.rect(x0, y0, x1 - x0, y1 - y0);
           }
           dctx.fill('nonzero');
+          for (const [, , , out] of here) if (out) { // a roof standing up: the night over its whole outline, just once
+            const pts = out.map(([px, py]) => screen(px, py));
+            dctx.save();
+            dctx.beginPath(); pts.forEach(([px, py], i) => (i ? dctx.lineTo(px, py) : dctx.moveTo(px, py))); dctx.closePath();
+            dctx.clip(); dctx.clearRect(0, 0, W, H); dctx.fillRect(0, 0, W, H);
+            dctx.restore();
+          }
         }
         dctx.globalCompositeOperation = 'destination-out';
         for (const l of lights) { // pools of light, every one clear as your own torchlight (no coloured haze over them)
