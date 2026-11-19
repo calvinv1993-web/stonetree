@@ -1670,7 +1670,8 @@ function minimapColor(t) {
 
 // Testing phase: everyone knows the whole map. Set to false to explore it bit by bit again.
 const REVEAL_MAP = true;
-const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], fine: [], lastPos: '', whole: false, view: null };
+const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], fine: [], lastPos: '', whole: false, view: null, pan: { x: 0, y: 0 } };
+// pan: how far (in tiles) the map has been dragged off you; back to 0 when it's opened again or zoomed
 // viewZ: floor looked at, or null for yours; whole: the whole world fitted in (the phone's drawer: its Map button);
 // view: where the last drawing put the map ({ scale, ox, oy }), for telling which tile a tap is on
 // Start the explored map over, sized to the current map (also when the server plays another map).
@@ -2074,7 +2075,7 @@ function drawMinimap() {
   if (minimap.whole) { // the whole world, as big as fits, in the middle
     const scale = Math.min(c.width / map.width, c.height / map.height);
     minimap.view = { scale, ...drawMap(c, z, scale, map.width / 2 - 0.5, map.height / 2 - 0.5) };
-  } else minimap.view = { scale: minimap.zoom, ...drawMap(c, z, minimap.zoom, player.x, player.y) };
+  } else minimap.view = { scale: minimap.zoom, ...drawMap(c, z, minimap.zoom, player.x + minimap.pan.x, player.y + minimap.pan.y) };
   setText($('minimapFloor'), `floor ${map.floorLabel(z)}`);
 }
 
@@ -2140,20 +2141,29 @@ function initMaps() {
   });
   markable(c, minimapTile, () => (minimap.view ? minimap.view.scale : minimap.zoom));
   // two fingers on the minimap zoom it in and out
+  // one finger (or the mouse) drags it about; a tap that didn't move still walks there
   const mmFingers = new Map();
-  let mmPinch = null;
+  let mmPinch = null, mmDrag = null, mmDragged = false;
   const mmSpread = () => { const [a, b] = [...mmFingers.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   c.addEventListener('pointerdown', e => {
     mmFingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (mmFingers.size === 2) mmPinch = { from: mmSpread(), zoom: minimap.zoom };
+    if (mmFingers.size === 2) { mmPinch = { from: mmSpread(), zoom: minimap.zoom }; mmDrag = null; }
+    else if (mmFingers.size === 1 && e.button === 0) { mmDrag = { x: e.clientX, y: e.clientY, pan: { ...minimap.pan } }; mmDragged = false; }
   });
   c.addEventListener('pointermove', e => {
     if (!mmFingers.has(e.pointerId)) return;
     mmFingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (mmPinch && mmFingers.size >= 2) { wholeMap(false); minimap.zoom = Math.max(1, Math.min(8, mmPinch.zoom * (mmSpread() / Math.max(1, mmPinch.from)))); }
+    if (mmPinch && mmFingers.size >= 2) { wholeMap(false); minimap.zoom = Math.max(1, Math.min(8, mmPinch.zoom * (mmSpread() / Math.max(1, mmPinch.from)))); drawMinimap(); return; }
+    if (!mmDrag || minimap.whole) return;
+    const r = c.getBoundingClientRect(), k = (c.width / r.width) / minimap.zoom; // (screen pixels to tiles)
+    const dx = e.clientX - mmDrag.x, dy = e.clientY - mmDrag.y;
+    if (!mmDragged && Math.hypot(dx, dy) < 8) return; // (a tap wobbles a little)
+    mmDragged = true;
+    minimap.pan = { x: mmDrag.pan.x - dx * k, y: mmDrag.pan.y - dy * k };
+    drawMinimap();
   });
-  for (const ev of ['pointerup', 'pointercancel']) c.addEventListener(ev, e => { mmFingers.delete(e.pointerId); if (mmFingers.size < 2) mmPinch = null; });
-  c.addEventListener('click', e => { if (mmFingers.size || mmPinch) e.stopImmediatePropagation(); }, true);
+  for (const ev of ['pointerup', 'pointercancel']) c.addEventListener(ev, e => { mmFingers.delete(e.pointerId); if (mmFingers.size < 2) mmPinch = null; if (!mmFingers.size) mmDrag = null; });
+  c.addEventListener('click', e => { if (mmFingers.size || mmPinch || mmDragged) { e.stopImmediatePropagation(); mmDragged = false; } }, true);
   markable($('worldCanvas'), e => worldMapTile(e), () => worldMap.scale);
   $('markSave').addEventListener('click', () => closeMark(true));
   $('markCancel').addEventListener('click', () => closeMark(false));
@@ -2163,8 +2173,9 @@ function initMaps() {
     if (e.key === 'Enter') closeMark(true);
     if (e.key === 'Escape') closeMark(false);
   });
-  $('mmZoomIn').addEventListener('click', () => { wholeMap(false); minimap.zoom = Math.min(8, minimap.zoom * 2); });
-  $('mmZoomOut').addEventListener('click', () => { wholeMap(false); minimap.zoom = Math.max(1, minimap.zoom / 2); });
+  // (the zoom buttons zoom round you again)
+  $('mmZoomIn').addEventListener('click', () => { wholeMap(false); minimap.pan = { x: 0, y: 0 }; minimap.zoom = Math.min(8, minimap.zoom * 2); });
+  $('mmZoomOut').addEventListener('click', () => { wholeMap(false); minimap.pan = { x: 0, y: 0 }; minimap.zoom = Math.max(1, minimap.zoom / 2); });
   const look = dz => {
     const z = Math.max(0, Math.min(map.depth - 1, (minimap.viewZ ?? player.z) + dz));
     minimap.viewZ = z === player.z ? null : z;

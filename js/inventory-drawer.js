@@ -50,6 +50,7 @@ const InventoryDrawer = (() => {
       put('.drawer-map', document.querySelector('.minimap-box'));
       document.getElementById('mmWorld').textContent = 'Full map'; // ("Map" again in the side panel)
       if (!zoomed && typeof minimap !== 'undefined') { zoomed = true; minimap.zoom = Math.max(minimap.zoom, 4); } // (closer on a phone, the first time)
+      if (typeof minimap !== 'undefined') minimap.pan = { x: 0, y: 0 }; // (opened, it's round you again, however it was dragged)
     } else if (page === 'quests') put('.drawer-quests', byId('tab-quests'));
     else if (page === 'settings') {
       // (the Menu's settings draw only while its "settings" part is chosen: touch.js renderMenu)
