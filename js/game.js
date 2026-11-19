@@ -547,13 +547,14 @@ function creatureKey(c) {
 }
 
 // The highest floor you see from here: what's above you hides the floors over it (a roof, the storey above). And
-// standing in a doorway you look in: the roof of the building beyond lifts too. (Not from beside a window or a door
-// outside: that hid every floor above at once, the town wall's walkway and the towers with it.)
+// standing at a window or a door you look in: the roof of the building beyond lifts, that building's alone (peekLift:
+// the town wall's walkway, the towers and the houses round it stay).
 // Open ground of a floor above that only falls over you as it's drawn (it lies a tile down-right: the top of a wall
 // you stand just north of, a mountain's top behind you) hides nothing: the floors stay, and you (and who's beside
 // you) show through as a silhouette (coveredBy). Only a roof drawn over you lifts, to see behind the house.
-const OPENING = id => id.startsWith('door');
+const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
 let coveredBy = false; // (this frame: open ground of a floor above drawn over you; see draw)
+let peekLift = null; // (this frame: the box of the building you look into at its window or door; see Render's lift)
 // A short covered way through (under a gatehouse, a wall, a bridge): open sky a few steps on two opposite sides,
 // along walkable ground. Not a house: under a passage the floors above stay, as under the open ground beside one.
 const sky = (x, y, z) => !map.get(x, y, z + 1);
@@ -582,14 +583,30 @@ function seenTop(x, y, z) {
 }
 function peekMaxZ(x, y, z) {
   coveredBy = false;
-  let top = seenTop(x, y, z);
+  peekLift = null;
+  const top = seenTop(x, y, z);
+  // beside a window or a door, outside: the building past it, which lifts its roof (only its own: peekLift)
   const opening = (tx, ty) => { const t = map.get(tx, ty, z); return !!t && t.items.some(OPENING); };
-  const here = opening(x, y);
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    if ((!dx && !dy) || !here) continue;
-    top = Math.min(top, map.visibleMaxZ(x + dx, y + dy, z), map.visibleMaxZ(x + 2 * dx, y + 2 * dy, z)); // (the opening, and the room past it)
+  if (top > z) for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+    if (!opening(x + dx, y + dy) || !map.get(x + 2 * dx, y + 2 * dy, z + 1)) continue;
+    const room = roomUnder(x + 2 * dx, y + 2 * dy, z);
+    if (room) { peekLift = room; break; }
   }
   return top;
+}
+// The tiles under a floor above (a building's) joined to (x, y): their box, or null if too big to be one building
+function roomUnder(x, y, z) {
+  const seen = new Set([`${x},${y}`]), todo = [[x, y]], box = { x0: x, y0: y, x1: x, y1: y };
+  while (todo.length) {
+    const [a, b] = todo.pop();
+    if (seen.size > 400) return null;
+    box.x0 = Math.min(box.x0, a); box.x1 = Math.max(box.x1, a); box.y0 = Math.min(box.y0, b); box.y1 = Math.max(box.y1, b);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const k = `${a + dx},${b + dy}`;
+      if (!seen.has(k) && map.get(a + dx, b + dy, z + 1) && map.get(a + dx, b + dy, z)) { seen.add(k); todo.push([a + dx, b + dy]); }
+    }
+  }
+  return box;
 }
 
 function draw() {
@@ -616,7 +633,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); drawPowerGround(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); drawPowerGround(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), lift: z < map.surfaceZ || Render.off.has('floors') ? null : peekLift, beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.groundItem(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });

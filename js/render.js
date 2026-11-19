@@ -265,6 +265,8 @@ const Render = {
   //               null to leave it black (the editor shows where the map ends)
   //   wind:       how hard trees and grass sway (0: still)
   //   roofSnow:   how much snow lies on the roofs (0: none, 1: thick)
+  //   lift:       { x0, y0, x1, y1 }: the floors above the camera floor aren't drawn over these tiles (a building looked
+  //               into at its window or door); the rest of them is
   //   seeThrough: { x, y, z }: tall things standing in front of this tile turn see-through (the game doesn't: things
   //               stay solid, and the player shows through them as a silhouette instead)
   //   objects may also have flash: 0..1, a white flash over the sprite (a hit)
@@ -289,6 +291,14 @@ const Render = {
     const hiddenAbove = v.maxZ + 1 < map.depth && v.maxZ >= v.z ? v.maxZ + 1 : -1;
     for (let z = v.minZ; z <= Math.max(v.maxZ, hiddenAbove); z++) {
       const prepare = z === hiddenAbove;
+      // (looking in at a window or a door: the floors above that one building aren't drawn, all else stays: v.lift)
+      const lifted = !prepare && v.lift && z > v.z;
+      if (lifted) {
+        const sh = (z - v.z) * TILE, lx = Math.round(v.w / 2 - v.cx - sh), ly = Math.round(v.h / 2 - v.cy - sh), L = v.lift;
+        g.save(); g.beginPath(); g.rect(0, 0, v.w, v.h);
+        g.rect(lx + (L.x0 - 1) * TILE, ly + (L.y0 - 1) * TILE, (L.x1 - L.x0 + 3) * TILE, (L.y1 - L.y0 + 3) * TILE); // (its eaves too)
+        g.clip('evenodd');
+      }
       // what's drawn so far lies below this floor: darker, a floor at a time down to the camera floor
       let shade = z > v.minZ && z <= v.z ? (v.dimLower ? (z === v.z ? 0.5 : 0) : v.depth || 0) : 0;
       if (shade && !v.dimLower) { // however deep, what's below stays at least DEEPEST lit: not night under a tower
@@ -859,7 +869,7 @@ const Render = {
         g.restore();
       };
       Render.ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, 0, groundPass, beyond, prepare);
-      if (prepare) continue;
+      if (prepare) continue; // (never lifted)
       // The water ripples: a picture of its loop over the still water kept in the chunks, once that picture is made
       // (between frames: until then it lies still). Water by a shore, a quay or a bridge has its borders drawn again
       // over the ripples.
@@ -1048,6 +1058,7 @@ const Render = {
           g.globalAlpha = 1;
         }
       }
+      if (lifted) g.restore();
     }
   },
 };
