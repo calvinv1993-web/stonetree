@@ -257,7 +257,7 @@ On a touch screen:
 - **The top strip:** health and mana, countdowns for haste, skull and the like, plus ✖ stop, ✋ use and 👁 look (then tap the thing), potions, 💬 chat, 🗺 map, 🐴 ride, ☰ character panel and fullscreen.
 - **Top right:** the fight mode (attack, balanced or defend: tap to switch) and chase or stand.
 - **Map marks:** hold a spot on the world map to mark it.
-- **Maps:** drag the world map with one finger, pinch it (or the minimap) with two to zoom.
+- **Maps:** drag the world map with one finger, pinch it (or the minimap) with two to zoom. The maps are painted in the world's own colours, seen from the sky: roofs, the temple on its mount, the town wall's walkway, trees as crowns, shadows down-right; shops, quests and the temple as gold-rimmed medallions.
 - **Someone on the map:** hold them for the menu: follow, attack, talk, look.
 - **Chat:** put away until you open it with 💬. It also opens by itself when an NPC talks to you, so you can tap the keywords. Other messages pop up at the top for a few seconds ("Your bag is full."). Loot opens in a window over the map.
 

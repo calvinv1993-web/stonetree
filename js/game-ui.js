@@ -1536,6 +1536,119 @@ const WALL_COLORS = {
   cliff: '#5e5446', tree: '#1f4f22', pine: '#1a4426', snow_pine: '#2a5a4a', jungle_tree: '#163a12', palm: '#3a7a2a', dead_tree: '#3a3028',
 };
 
+// The minimap painted as the world is: the colours of the game's own ground pictures (their average), a little
+// lighter, so the map reads as the same land; high things (walls, rock, roofs, trees) cast a shadow down-right as the
+// light from the top left does in the game; shallows along the shores; a faint grain so it looks painted, not flat
+const PAINTED = {
+  grass: '#62792c', dirt: '#86643f', sand: '#e0c592', cobble: '#7d705c', marble: '#e3d3c2', wood: '#8a6139', cave: '#55493c',
+  swamp: '#5f5430', roof: '#8a4a30', water: '#2e6670', mountain: '#7a7262', carpet: '#a8432e', bridge_ns: '#93623a', bridge_ew: '#93623a',
+  paving: '#c9b08a', brick: '#8f4a36', tiles: '#b06c46', gravel: '#968a76', farmland: '#55402a', roof_slate: '#5d6679',
+  roof_thatch: '#bb8836', roof_shingle: '#835b38', roof_green: '#365e4b', roof_flat: '#c8b184', jungle: '#356f30', crypt: '#575a52',
+  sewer: '#4a412f', sewer_water: '#44452a', temple_paving: '#cbb894', rock_top: '#8e8c84', steps_top: '#a89c86', ramp_top: '#7d7262',
+};
+const PAINTED_THINGS = {
+  tree: '#3f5718', pine: '#33521a', bush: '#4c6a22', cliff: '#6d6a5d', wall_stone: '#7d715b', wall_wood: '#5f4d36', wall_rampart: '#a08e69',
+  wall_temple: '#978a6d', wall_cave: '#463e33', wall_crypt: '#3a3b38', wall_sewer: '#3f4034', door: '#c8a060', door_house: '#c8a060',
+};
+const HIGH = new Set(['tree', 'pine', 'snow_pine', 'jungle_tree', 'palm', 'cliff', 'wall_stone', 'wall_wood', 'wall_rampart', 'wall_temple', 'wall_cave',
+  'wall_crypt', 'wall_sewer', 'wall_block', 'wall_sandstone']);
+const isHigh = t => !!t && (t.items.some(id => HIGH.has(id)) || (THINGS[t.ground] && THINGS[t.ground].roof));
+const isWet = t => !!t && (t.ground === 'water' || t.ground === 'sewer_water');
+const mix = (n, m, k) => [0, 8, 16].reduce((v, sh) => v | (Math.round(((n >> sh) & 255) * (1 - k) + ((m >> sh) & 255) * k) << sh), 0);
+const shadeOf = (n, k) => mix(n, 0x0e0a06, k), lighten = (n, k) => mix(n, 0xf4ecd8, k);
+// a tile's painted colour, as a number, with its neighbours' shade and the shallows (null: nothing there)
+// (above ground a tile is seen as the highest thing over it, a few floors up: the land from the sky, the houses roofed,
+// the temple on its mount, the wall's walkway and its towers; underground, the floor itself)
+const seenTile = (x, y, z) => {
+  if (z >= map.surfaceZ) for (let up = Math.min(map.depth - 1, z + 3); up > z; up--) { const u = map.get(x, y, up); if (u && u.ground) return u; }
+  return map.get(x, y, z);
+};
+function paintedColor(x, y, z, plain = false) {
+  const t = seenTile(x, y, z);
+  if (!t) return null;
+  let hex = null;
+  for (let i = t.items.length - 1; i >= 0 && !hex; i--) {
+    const id = t.items[i], def = THINGS[id];
+    if (def.change || def.ropeSpot || def.teleport) return 0xf0c850; // (ways up and down: gold, as before)
+    hex = PAINTED_THINGS[id] || WALL_COLORS[id] || (def.block && !def.low ? '#6e5f48' : null);
+  }
+  hex = hex || PAINTED[t.ground] || GROUND_COLORS[t.ground];
+  if (!hex) return null;
+  let n = parseInt(hex.slice(1), 16);
+  const at = (dx, dy) => seenTile(x + dx, y + dy, z);
+  if (isWet(t)) { // shallows: lighter beside the land, deeper away from it
+    const land = [[0, -1], [-1, 0], [1, 0], [0, 1]].some(([dx, dy]) => { const o = at(dx, dy); return o && !isWet(o); });
+    if (land) n = lighten(n, 0.18);
+  } else if (!isHigh(t)) { // in the shadow of what stands up-left of it
+    if (!plain && (isHigh(at(-1, -1)) || isHigh(at(0, -1)) || isHigh(at(-1, 0)))) n = shadeOf(n, 0.22);
+  } else if (!isHigh(at(-1, 0)) || !isHigh(at(0, -1))) n = lighten(n, 0.1); // (and its lit edge, top left)
+  let h = Math.imul(x, 374761393) + Math.imul(y, 668265263); // (a faint grain: each tile a shade lighter or darker)
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h = (h ^ (h >>> 16)) >>> 0;
+  return h % 4 === 0 ? lighten(n, 0.04) : h % 4 === 1 ? shadeOf(n, 0.05) : n;
+}
+
+// The same, finer: four pixels a tile, for the map seen close (minimap.fine, drawn at a zoom of 3 and more). Trees are
+// round crowns lit on their top left, roofs and walls have a dark edge where they end, and what stands up casts a thin
+// shadow on the tiles down-right of it instead of darkening them all. Made per floor the first time it's looked at.
+const FINE = 4;
+const isRoofT = t => !!t && THINGS[t.ground] && THINGS[t.ground].roof;
+const isTreeId = id => ['tree', 'pine', 'snow_pine', 'jungle_tree', 'palm', 'bush', 'dead_tree'].includes(id);
+// (put(px, py, colour, alpha): writes one of the tile's FINE x FINE pixels, wherever the caller keeps them)
+function paintFineTile(put, x, y, z) {
+  const t = seenTile(x, y, z), at = (dx, dy) => seenTile(x + dx, y + dy, z);
+  if (!t) { for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) put(px, py, 0, 0); return; }
+  const tree = t.items.find(isTreeId), whole = paintedColor(x, y, z);
+  // the ground under a tree (its crown drawn over it), or the tile's own colour
+  const groundHex = PAINTED[t.ground] || GROUND_COLORS[t.ground];
+  let base = tree && groundHex ? parseInt(groundHex.slice(1), 16) : whole;
+  if (base === null) { for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) put(px, py, 0, 0); return; }
+  const high = isHigh(t) && !tree, wet = isWet(t);
+  if (!high && !wet && !tree) base = paintedColor(x, y, z, true); // (the plain colour: its shade is drawn as a band below)
+  for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) {
+    let h = Math.imul(x * FINE + px, 374761393) + Math.imul(y * FINE + py, 668265263); // (a well-mixed hash: no pattern)
+    h = Math.imul(h ^ (h >>> 13), 1274126177); h = (h ^ (h >>> 16)) >>> 0;
+    const k = h % 9;
+    put(px, py, k === 0 ? lighten(base, 0.05) : k === 1 ? shadeOf(base, 0.06) : base);
+  }
+  if (!high && !wet && !tree) { // the shadow of what stands up-left: a band along the top and the left
+    const n = isHigh(at(0, -1)), w = isHigh(at(-1, 0)), nw = isHigh(at(-1, -1));
+    for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) {
+      const k = (n && py < 2 ? 0.28 - py * 0.1 : 0) + (w && px < 2 ? 0.28 - px * 0.1 : 0) + (nw && px < 2 && py < 2 ? 0.15 : 0);
+      if (k > 0) put(px, py, shadeOf(base, Math.min(0.4, k)));
+    }
+  }
+  if (high) { // a dark edge where it ends on the down-right (its side in the shade), a lit one up-left
+    const same = (dx, dy) => { const u = at(dx, dy); return isRoofT(t) ? isRoofT(u) : isHigh(u); };
+    for (let i = 0; i < FINE; i++) {
+      if (!same(1, 0)) put(FINE - 1, i, shadeOf(base, 0.35));
+      if (!same(0, 1)) put(i, FINE - 1, shadeOf(base, 0.35));
+      if (!same(-1, 0)) put(0, i, lighten(base, 0.12));
+      if (!same(0, -1)) put(i, 0, lighten(base, 0.12));
+    }
+  }
+  if (tree) { // a round crown, lit on its top left
+    const c = parseInt((PAINTED_THINGS[tree] || WALL_COLORS[tree] || '#3f5718').slice(1), 16);
+    for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) {
+      const dx = px - 1.5, dy = py - 1.5, r = Math.hypot(dx, dy);
+      if (r > 2.05) continue;
+      put(px, py, dx + dy < -1.2 ? lighten(c, 0.18) : dx + dy > 1.6 ? shadeOf(c, 0.25) : c);
+    }
+  }
+}
+function fineLayer(z) {
+  if (minimap.fine[z]) return minimap.fine[z];
+  const c = document.createElement('canvas'), W = map.width * FINE;
+  c.width = W; c.height = map.height * FINE;
+  const g = c.getContext('2d'), img = g.createImageData(W, c.height), d = img.data, seen = minimap.explored[z];
+  for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
+    if (!seen[y * map.width + x]) continue;
+    const o = (y * FINE * W + x * FINE) * 4;
+    paintFineTile((px, py, n, a = 255) => { const i = o + (py * W + px) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = a; }, x, y, z);
+  }
+  g.putImageData(img, 0, 0);
+  return (minimap.fine[z] = c);
+}
+
 function minimapColor(t) {
   if (!t) return null;
   for (let i = t.items.length - 1; i >= 0; i--) {
@@ -1549,7 +1662,7 @@ function minimapColor(t) {
 
 // Testing phase: everyone knows the whole map. Set to false to explore it bit by bit again.
 const REVEAL_MAP = true;
-const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], lastPos: '', whole: false, view: null };
+const minimap = { zoom: 2, viewZ: null, explored: [], layers: [], fine: [], lastPos: '', whole: false, view: null };
 // viewZ: floor looked at, or null for yours; whole: the whole world fitted in (the phone's drawer: its Map button);
 // view: where the last drawing put the map ({ scale, ox, oy }), for telling which tile a tap is on
 // Start the explored map over, sized to the current map (also when the server plays another map).
@@ -1576,7 +1689,7 @@ function fitMinimap() {
 
 // Draw the explored map again, a floor at a time (all of it while REVEAL_MAP is on).
 function repaintMinimap() {
-  const rgb = new Map();
+  minimap.fine = []; // (made again when next looked at close)
   for (let z = 0; z < map.depth; z++) {
     const floor = map.floors[z], seen = minimap.explored[z], g = minimap.layers[z].getContext('2d');
     if (REVEAL_MAP) seen.fill(1);
@@ -1586,10 +1699,8 @@ function repaintMinimap() {
     }
     const img = g.createImageData(map.width, map.height), d = img.data;
     for (let i = 0; i < floor.length; i++) {
-      const color = seen[i] && floor[i] && minimapColor(floor[i]);
-      if (!color) continue;
-      if (!rgb.has(color)) rgb.set(color, parseInt(color.slice(1), 16));
-      const n = rgb.get(color);
+      const n = seen[i] && floor[i] ? paintedColor(i % map.width, (i / map.width) | 0, z) : null;
+      if (n === null) continue;
       d[i * 4] = n >> 16;
       d[i * 4 + 1] = (n >> 8) & 255;
       d[i * 4 + 2] = n & 255;
@@ -1621,15 +1732,22 @@ function placesOnMap() {
 }
 resetMinimap();
 
-function paintTile(x, y, z) {
-  const g = minimap.layers[z].getContext('2d'), color = minimapColor(map.get(x, y, z));
-  g.clearRect(x, y, 1, 1);
-  if (color) {
-    g.fillStyle = color;
-    g.fillRect(x, y, 1, 1);
+function paintTile(x, y, z) { // (and the tiles down-right of it: its shade falls on them)
+  const g = minimap.layers[z].getContext('2d');
+  for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    const tx = x + dx, ty = y + dy;
+    if (!map.inBounds(tx, ty, z) || (dx || dy) && !minimap.explored[z][ty * map.width + tx]) continue;
+    const n = paintedColor(tx, ty, z);
+    g.clearRect(tx, ty, 1, 1);
+    if (n !== null) { g.fillStyle = `#${n.toString(16).padStart(6, '0')}`; g.fillRect(tx, ty, 1, 1); }
+    const fine = minimap.fine[z];
+    if (fine) { // (its finer picture too)
+      const fg = fine.getContext('2d'), img = fg.createImageData(FINE, FINE), d = img.data;
+      paintFineTile((px, py, n, a = 255) => { const i = (py * FINE + px) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = a; }, tx, ty, z);
+      fg.putImageData(img, tx * FINE, ty * FINE);
+    }
   }
 }
-
 let exploredExport = null; // exportExplored()'s answer, until something new is explored
 function exploreTile(x, y, z) {
   const i = y * map.width + x;
@@ -1715,10 +1833,15 @@ const MapNews = (() => {
 function drawMap(c, z, scale, cx, cy) {
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
-  g.fillStyle = '#000';
+  g.fillStyle = '#1a140e'; // (past the edge of the world, and unexplored: dark parchment)
   g.fillRect(0, 0, c.width, c.height);
   const ox = c.width / 2 - (cx + 0.5) * scale, oy = c.height / 2 - (cy + 0.5) * scale;
-  g.drawImage(minimap.layers[z], ox, oy, map.width * scale, map.height * scale);
+  if (scale >= 3) { g.imageSmoothingEnabled = true; g.drawImage(fineLayer(z), ox, oy, map.width * scale, map.height * scale); g.imageSmoothingEnabled = false; }
+  else g.drawImage(minimap.layers[z], ox, oy, map.width * scale, map.height * scale);
+  // the edge of the map darkens a little all round, as an old map's does
+  const edge = g.createRadialGradient(c.width / 2, c.height / 2, Math.min(c.width, c.height) * 0.35, c.width / 2, c.height / 2, Math.max(c.width, c.height) * 0.75);
+  edge.addColorStop(0, 'rgba(20,12,4,0)'); edge.addColorStop(1, 'rgba(20,12,4,0.38)');
+  g.fillStyle = edge; g.fillRect(0, 0, c.width, c.height);
   // places you have explored: icons, and the names of towns where there's room for them
   const seen = (x, y) => map.inBounds(x, y, z) && minimap.explored[z][y * map.width + x];
   g.textAlign = 'center';
@@ -1729,21 +1852,27 @@ function drawMap(c, z, scale, cx, cy) {
     if (px < -40 || py < -10 || px > c.width + 40 || py > c.height + 10) continue;
     if (p.kind === 'town' || p.kind === 'isle') {
       if (scale > 6 || (p.kind === 'isle' && scale < 2)) continue;
-      g.font = p.kind === 'town' ? 'bold 12px sans-serif' : 'italic 11px sans-serif';
-      g.lineWidth = 3;
-      g.strokeStyle = '#000';
+      g.font = p.kind === 'town' ? 'bold 13px Georgia, serif' : 'italic 12px Georgia, serif'; // (names as on an old map)
+      g.lineWidth = 3.5;
+      g.strokeStyle = 'rgba(20,14,8,0.9)';
       g.strokeText(p.label, px, py - 8);
-      g.fillStyle = p.kind === 'town' ? '#fff' : '#bfe4ff';
+      g.fillStyle = p.kind === 'town' ? '#f1e2bd' : '#cfe3e6';
       g.fillText(p.label, px, py - 8);
       continue;
     }
+    // a medallion, as the game's buttons: dark, a gold rim, the sign in its colour (a quest's beats)
     const [icon, color] = PLACE_ICONS[p.kind];
-    const pulse = p.kind === 'quest' ? 1 + 0.25 * Math.sin(performance.now() / 260) : 1; // quests call out
-    g.font = `bold ${Math.round(Math.max(10, Math.min(16, scale * 3)) * pulse)}px sans-serif`;
-    g.fillStyle = '#000';
-    g.fillText(icon, px + 1, py + 1);
+    const pulse = p.kind === 'quest' ? 1 + 0.12 * Math.sin(performance.now() / 260) : 1;
+    const r = Math.max(6, Math.min(10, scale * 1.9)) * pulse;
+    g.beginPath(); g.arc(px + 0.8, py + 1.2, r, 0, Math.PI * 2); g.fillStyle = 'rgba(0,0,0,0.45)'; g.fill(); // (its shadow)
+    g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2);
+    const face = g.createRadialGradient(px - r * 0.35, py - r * 0.35, r * 0.1, px, py, r);
+    face.addColorStop(0, '#3a3128'); face.addColorStop(1, '#16110c');
+    g.fillStyle = face; g.fill();
+    g.lineWidth = Math.max(1.2, r * 0.18); g.strokeStyle = '#c9a24a'; g.stroke();
+    g.font = `bold ${Math.round(r * 1.25)}px sans-serif`;
     g.fillStyle = color;
-    g.fillText(icon, px, py);
+    g.fillText(icon, px, py + r * 0.06);
   }
   g.textAlign = 'start';
   g.textBaseline = 'alphabetic';
