@@ -1587,10 +1587,10 @@ function paintedColor(x, y, z, plain = false) {
   return h % 4 === 0 ? lighten(n, 0.04) : h % 4 === 1 ? shadeOf(n, 0.05) : n;
 }
 
-// The same, finer: five pixels a tile, for the map seen close (minimap.fine, drawn at a zoom of 3 and more). Trees are
+// The same, finer: eight pixels a tile, for the map seen close (minimap.fine, drawn at a zoom of 3 and more). Trees are
 // round crowns lit on their top left, roofs and walls have a dark edge where they end, and what stands up casts a thin
 // shadow on the tiles down-right of it instead of darkening them all. Made per floor the first time it's looked at.
-const FINE = 5;
+const FINE = 8;
 const isRoofT = t => !!t && THINGS[t.ground] && THINGS[t.ground].roof;
 const isTreeId = id => ['tree', 'pine', 'snow_pine', 'jungle_tree', 'palm', 'bush', 'dead_tree'].includes(id);
 // (put(px, py, colour, alpha): writes one of the tile's FINE x FINE pixels, wherever the caller keeps them)
@@ -1612,8 +1612,13 @@ function paintFineTile(put, x, y, z) {
   }
   if (!high && !wet && !tree) { // the shadow of what stands up-left: a band along the top and the left
     const n = isHigh(at(0, -1)), w = isHigh(at(-1, 0)), nw = isHigh(at(-1, -1));
-    for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) {
-      const k = (n && py < 2 ? 0.28 - py * 0.1 : 0) + (w && px < 2 ? 0.28 - px * 0.1 : 0) + (nw && px < 2 && py < 2 ? 0.15 : 0);
+    const b = Math.round(FINE * 0.4), step = 0.28 / b; // (the band: two fifths of the tile, fading out)
+    for (let py = 0; py < b; py++) for (let px = 0; px < FINE; px++) {
+      const k = (n ? 0.28 - py * step : 0) + (w && px < b ? 0.28 - px * step : 0) + (nw && px < b ? 0.15 : 0);
+      if (k > 0) put(px, py, shadeOf(base, Math.min(0.4, k)));
+    }
+    if (w) for (let py = b; py < FINE; py++) for (let px = 0; px < b; px++) {
+      const k = 0.28 - px * step;
       if (k > 0) put(px, py, shadeOf(base, Math.min(0.4, k)));
     }
   }
@@ -1642,7 +1647,7 @@ function fineLayer(z) {
   const c = document.createElement('canvas'), W = map.width * FINE, seen = minimap.explored[z];
   c.width = W; c.height = map.height * FINE;
   minimap.fine[z] = c;
-  const g = c.getContext('2d'), ROWS = 10;
+  const g = c.getContext('2d'), ROWS = 4;
   for (let y0 = 0; y0 < map.height; y0 += ROWS) Render.chores.push(() => {
     if (minimap.fine[z] !== c) return; // (repainted meanwhile: a new one is being made)
     const rows = Math.min(ROWS, map.height - y0), img = g.createImageData(W, rows * FINE), d = img.data;
