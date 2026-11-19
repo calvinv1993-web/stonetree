@@ -265,7 +265,8 @@ const Render = {
   //               null to leave it black (the editor shows where the map ends)
   //   wind:       how hard trees and grass sway (0: still)
   //   roofSnow:   how much snow lies on the roofs (0: none, 1: thick)
-  //   seeThrough: { x, y, z }: tall things standing in front of this tile turn see-through
+  //   seeThrough: { x, y, z }: tall things standing in front of this tile turn see-through (the game doesn't: things
+  //               stay solid, and the player shows through them as a silhouette instead)
   //   objects may also have flash: 0..1, a white flash over the sprite (a hit)
   // }
   world(g, map, v) {

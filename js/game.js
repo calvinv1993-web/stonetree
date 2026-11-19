@@ -613,7 +613,7 @@ function draw() {
   const [shakeX, shakeY] = Fx.offset(); // a big hit shakes the screen
   view.cx += shakeX;
   view.cy += shakeY;
-  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); drawPowerGround(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), seeThrough: { x: player.x, y: player.y, z }, beyond: f => (f === map.surfaceZ ? 'water' : null) });
+  Object.assign(view, { onFloor: (g, ox, oy, z) => { drawWalkMark(g, ox, oy, z); drawGuideRing(g, ox, oy, z); drawPowerGround(g, ox, oy, z); }, afterGround: Fx.ground, wind: Render.skip('wind') ? 0 : Fx.wind(), roofSnow: Fx.roofSnow(), beyond: f => (f === map.surfaceZ ? 'water' : null) });
   for (const p of piles) {
     const img = p.corpse ? Sprites.corpse(p.corpse) : p.items.length ? Sprites.groundItem(p.items[p.items.length - 1].id) : null;
     if (img) view.objects.push({ x: p.x, y: p.y, z: p.z, img });
