@@ -558,6 +558,8 @@ const Fx = (() => {
     temple_lantern_se: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', brazier: '255,150,60', smith_hearth: '255,140,50', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
     cauldron: '130,255,110', teleport: '190,130,255', lava: '255,90,30', window: '255,200,120', shot: '255,213,74', you: '255,230,190', fire: '255,120,40', energy: '200,140,255', poison: '140,255,100',
   };
+  // What burns in the open and so flickers; every other light (a lantern behind glass, a crystal, a rune stone) is steady
+  const FLAMES = new Set(['torch', 'wall_torch', 'campfire', 'brazier', 'smith_hearth']);
   function light(view, screen, pv, amount, underground) {
     if (amount <= 0.02) return; // (broad day)
     const lights = [{ x: pv.x, y: pv.y, r: now < player.lightUntil ? 6.5 : 3.5, color: LIGHT_COLORS.you, flicker: false }];
@@ -580,12 +582,12 @@ const Fx = (() => {
         // (a light indoors stays in while its roof or the floor above shows: it shines out through the doors and windows
         // of its room instead, below; only a lamp on an outer wall shines out itself)
         if (z < view.maxZ && map.get(x, y, z + 1) && !t.items.some(id => THINGS[id].wall)) {
-          for (const id of [t.ground, ...t.items]) if (id && THINGS[id] && THINGS[id].light) inside.push([x, y, THINGS[id].light, LIGHT_COLORS[id] || '255,190,110']);
+          for (const id of [t.ground, ...t.items]) if (id && THINGS[id] && THINGS[id].light) inside.push([x, y, THINGS[id].light, LIGHT_COLORS[id] || '255,190,110', FLAMES.has(id)]);
           continue;
         }
-        if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
+        if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: FLAMES.has(t.ground) });
         for (const id of t.items) {
-          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });
+          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: FLAMES.has(id) });
         }
       }
       // a fire or a lamp inside a house, seen from the street: its light out of each door and window of its room it
@@ -595,11 +597,11 @@ const Fx = (() => {
         for (const l of inside) {
           const far = Math.max(Math.abs(l[0] - ox), Math.abs(l[1] - oy));
           if (far > l[2] + 2 || (best && far >= best.far) || !sameRoom(l[0], l[1], ox, oy, z)) continue;
-          best = { far, r: l[2], color: l[3] };
+          best = { far, r: l[2], color: l[3], flame: l[4] };
         }
         if (!best) continue;
         const k = Math.max(0.35, 1 - best.far / (best.r + 3));
-        lights.push({ x: ox - d + out[0] * 0.6, y: oy - d + out[1] * 0.6, r: (door ? 2.4 : 2) * k, color: best.color, flicker: true, soft: !door });
+        lights.push({ x: ox - d + out[0] * 0.6, y: oy - d + out[1] * 0.6, r: (door ? 2.4 : 2) * k, color: best.color, flicker: best.flame, soft: !door });
       }
     }
     // a power shot lights the dark: the bow glows brighter as it's drawn, then the arrow carries its light all the way,
@@ -623,7 +625,7 @@ const Fx = (() => {
       if (e.kind !== 'chain' || e.z !== player.z) continue;
       for (let i = 0; i + 1 < e.points.length; i++) { const t = now - e.start - i * e.step; if (t >= 0 && t < 220) lights.push({ x: e.points[i + 1].x, y: e.points[i + 1].y, r: 2.2 * (1 - t / 220), color: LIGHT_COLORS.energy, flicker: true }); }
     }
-    for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: true });
+    for (const f of fields) if (f.z === player.z && f.kind !== 'magic_wall') lights.push({ x: f.x, y: f.y, r: 1.6, color: LIGHT_COLORS[f.kind] || '255,150,60', flicker: f.kind === 'fire' });
     // fire breathes: a slow swell, a quick flutter and a sputter now and then, never in step
     const flick = l => 1 + 0.05 * Math.sin(now / 160 + l.x * 7 + l.y * 3) + 0.035 * Math.sin(now / 47 + l.x * 13) + 0.025 * Math.sin(now / 19 + l.y * 5);
     const rad = l => l.r * TILE * SCALE * (l.flicker ? flick(l) : 1);
