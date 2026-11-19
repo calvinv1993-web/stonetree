@@ -651,14 +651,13 @@ const Fx = (() => {
       // of the house beside it (its pool would show through it)
       if (roofs.length) {
         // (all of them as one shape, on whole pixels: tile by tile, the overlaps were darker and showed a grid)
-        // (a roof's eaves stick out a little past its north and west tiles: they're kept dark too)
-        const size = TILE * SCALE, eave = size * 0.3, isRoof = new Set(roofs.map(([rx, ry]) => `${rx},${ry}`));
+        // (the eaves sticking out past a roof's edge may catch the light: only the roof's own tiles stay dark)
+        const size = TILE * SCALE;
         dctx.beginPath();
         for (const [rx, ry] of roofs) {
           const [sx, sy] = screen(rx, ry);
           if (!onView(sx + size / 2, sy + size / 2, size)) continue;
-          const north = isRoof.has(`${rx},${ry - 1}`) ? 0 : eave, west = isRoof.has(`${rx - 1},${ry}`) ? 0 : eave;
-          const x0 = Math.floor(sx - west), y0 = Math.floor(sy - north), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
+          const x0 = Math.floor(sx), y0 = Math.floor(sy), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
           dctx.clearRect(x0, y0, x1 - x0, y1 - y0);
           dctx.rect(x0, y0, x1 - x0, y1 - y0);
         }
