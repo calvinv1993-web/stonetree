@@ -2255,7 +2255,7 @@ Object.assign(NPCS, {
   },
   // The gate watch: a guard at each of Oakvale's gates, each with a task beyond it (see the gate quests).
   gate_west: gateGuard('gate_west', 'Sergeant Bram', '#5a3a1a', 'wolves', 'The west gate: out over the bridge to Frog Marsh and Wolf Woods.'),
-  gate_south: gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'),
+  gate_south: Object.assign(gateGuard('gate_south', 'Guard Tilda', '#a8582a', 'crabs', 'The south gate: Sunny Fields, then the south road to Lighthouse Point. The bone trail branches off west to Bone Rocks.'), { wander: 1 }), // (a step further and the wall's walkway hides her)
   gate_east: (() => { // (Hilde also knows of the spiders' den, and its queen)
     const g = gateGuard('gate_east', 'Guard Hilde', '#d8c070', 'spiders', 'The east gate: Deer Woods, the Old Tower, and the spider trail south to the Spider Hills.');
     g.keywords['queen|brood|den|cave'] = 'Under the Spider Hills there is a den: steps cut into their south face. The spiders in there serve something big. The Brood Queen, we call her. I went in once, at your age. Once. Go much stronger than you would for the Thornmother, $name: level twelve, with friends and potions.';
@@ -2274,6 +2274,7 @@ Object.assign(NPCS, {
     ] };
     g.greet = { has: 'watch_mark', text: g.greet.replace('{dangers}?', '{dangers}? Watch {marks} to spend?'), before: g.greet }; // (once you have some)
     g.keywords['fight|volunteer|cannons|wall'] = { quest: ['last_town'] };
+    g.wander = 1; // (he keeps close by: a step further and he's behind the founder's statue or under the gatehouse)
     g.keywords['farewell|goodbye'] = { quest: ['bell_6'] };
     return g;
   })(),

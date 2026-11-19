@@ -547,11 +547,12 @@ function creatureKey(c) {
 }
 
 // The highest floor you see from here: what's above you hides the floors over it (a roof, the storey above). And
-// standing at a window or a door, or in a doorway, you look in: the roof of the building beyond lifts too.
+// standing in a doorway you look in: the roof of the building beyond lifts too. (Not from beside a window or a door
+// outside: that hid every floor above at once, the town wall's walkway and the towers with it.)
 // Open ground of a floor above that only falls over you as it's drawn (it lies a tile down-right: the top of a wall
 // you stand just north of, a mountain's top behind you) hides nothing: the floors stay, and you (and who's beside
 // you) show through as a silhouette (coveredBy). Only a roof drawn over you lifts, to see behind the house.
-const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
+const OPENING = id => id.startsWith('door');
 let coveredBy = false; // (this frame: open ground of a floor above drawn over you; see draw)
 // A short covered way through (under a gatehouse, a wall, a bridge): open sky a few steps on two opposite sides,
 // along walkable ground. Not a house: under a passage the floors above stay, as under the open ground beside one.
@@ -571,7 +572,9 @@ function seenTop(x, y, z) {
     if (right && through) { coveredBy = true; continue; }
     if (right && !(d === 1 && THINGS[right.ground] && THINGS[right.ground].change === -1)) return up - 1;
     if (drawn) {
-      if ((THINGS[drawn.ground] && THINGS[drawn.ground].roof) || drawn.items.some(id => THINGS[id].roof)) return up - 1;
+      // (a one-storey house's roof drawn over you lifts, to see behind the house; the roof of a taller one, two
+      // floors up, stays on with its storey under it: you show through as a silhouette)
+      if (d === 1 && ((THINGS[drawn.ground] && THINGS[drawn.ground].roof) || drawn.items.some(id => THINGS[id].roof))) return up - 1;
       coveredBy = true;
     }
   }
@@ -583,7 +586,7 @@ function peekMaxZ(x, y, z) {
   const opening = (tx, ty) => { const t = map.get(tx, ty, z); return !!t && t.items.some(OPENING); };
   const here = opening(x, y);
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    if ((!dx && !dy) || !(here || opening(x + dx, y + dy))) continue;
+    if ((!dx && !dy) || !here) continue;
     top = Math.min(top, map.visibleMaxZ(x + dx, y + dy, z), map.visibleMaxZ(x + 2 * dx, y + 2 * dy, z)); // (the opening, and the room past it)
   }
   return top;

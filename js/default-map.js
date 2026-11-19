@@ -254,15 +254,15 @@ const OAKVALE = {
   ],
   // (each with room round it for its leaning pole and head: none against a wall, beside the well or a bench; along the
   // lane past the academy only on its east side, the building's wall is on the west)
-  lamps: [[124, 98], [128, 98], [124, 104], [124, 112], [128, 133], [128, 139], [128, 145],
-    [103, 119], [103, 123], [150, 119], [149, 123], [116, 123], [143, 123], [120, 116], [132, 116],
+  lamps: [[124, 98], [128, 98], [124, 104], [124, 112], [128, 133], [128, 139],
+    [103, 119], [103, 125], [150, 117], [149, 123], [116, 123], [143, 123], [120, 116], [132, 116],
     [120, 126], [132, 126], [135, 112], [139, 112], [135, 115], [139, 115]],
   benches: [[122, 116], [130, 116], [122, 126], [130, 126]],
   planters: [],
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
   // a refugees' camp from the fallen towns, on the lawn south-east of the academy
-  camp: [[130, 143, 'tent'], [133, 143, 'tent'], [131, 145, 'campfire'], [129, 145, 'sack'], [134, 145, 'basket']],
+  camp: [[130, 143, 'tent'], [133, 143, 'tent'], [131, 144, 'campfire'], [132, 144, 'sack'], [134, 144, 'basket']], // (clear of the south wall: its walkway is drawn over the row next to it)
   braziers: [[122, 121, 8], [130, 121, 8], [147, 135, 8], [143, 141, 8], [104, 96, 9], [110, 96, 9], [122, 96, 9], [136, 96, 9], [144, 96, 9]],
   signs: [
     [124, 87, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
@@ -275,7 +275,7 @@ const OAKVALE = {
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
-    ['gate_north', 125, 98, 8], ['gate_east', 149, 120, 8], ['gate_south', 127, 144, 8], ['gate_west', 103, 122, 8], // (each on the street, just inside its gate)
+    ['gate_north', 124, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
     ['oak_gunner', 134, 105, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
@@ -500,7 +500,7 @@ const CRYPT = {
       [94, 180, 'bone_chandelier'], [92, 181, 'bones'], [96, 182, 'bones']],
     torches: [[92, 176], [96, 176]],
     ossian: [95, 179],
-    skull: [73, 181], jaw: [149, 142], grave: [146, 141],
+    skull: [73, 181], jaw: [149, 142], grave: [111, 77], // (the grave: in the graveyard, between Bertha's stone and Aldous's)
   },
 };
 
@@ -760,7 +760,7 @@ const DISCOVERY = {
   },
   farm: {
     house: { x0: 117, y0: 153, x1: 122, y1: 157, door: [119, 157], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch',
-      props: [[118, 154, 0, 'table'], [117, 154, 0, 'chair_east'], [118, 156, 0, 'sack'], [121, 156, 0, 'sack'], [121, 154, 0, 'trapdoor']] },
+      props: [[118, 154, 0, 'table'], [119, 154, 0, 'chair_west'], [118, 156, 0, 'sack'], [121, 156, 0, 'sack'], [121, 154, 0, 'trapdoor']] },
     windmill: [124, 153], scarecrow: [116, 160], haystacks: [[124, 158], [125, 159]],
     crops: [113, 159, 121, 163], // farmland, a fence round it with a gate on the north side
     cellar: { z: 7, room: [116, 152, 123, 157], ladder: [121, 154],
@@ -1744,6 +1744,7 @@ function buildCrypt(m, S) {
   m.addItem(B.skull[0], B.skull[1], Z, 'qchest_crest_skull');
   m.addItem(B.jaw[0], B.jaw[1], SEWERS.z, 'qchest_crest_jaw'); // (in the rats' nest under the training yard)
   const [gx, gy] = B.grave; // (the grave with no stone, up in the graveyard: dug with a shovel)
+  m.get(gx, gy, S).items = []; // (a bare mound)
   m.setMeta(gx, gy, S, { dig: 'bone_chapel', thing: 'ossian_grave', look: 'A low mound of earth between the stones, sunken a little, with no stone of its own. Somebody tends it: the grass is cut.' });
 }
 
@@ -1802,7 +1803,7 @@ function lampFits(m, x, y, z) {
   if (!t || t.items.some(id => !LOOSE_GROUND.has(id)) || !THINGS[t.ground] || THINGS[t.ground].block || THINGS[t.ground].change || ['water', 'canal'].includes(t.ground)) return false;
   const solid = n => !!n && n.items.some(id => THINGS[id].wall || id === 'cliff' || id.startsWith('door') || TALL_STANDING.has(id) || (THINGS[id].block && !THINGS[id].low));
   for (const [dx, dy] of [[-1, -1], [0, -1], [-1, 0]]) if (solid(m.get(x + dx, y + dy, z)) || m.get(x + dx, y + dy, z + 1)) return false;
-  if (m.get(x, y, z + 1)) return false;
+  if (m.get(x, y, z + 1) || m.get(x + 1, y + 1, z + 1)) return false; // (nor under a floor above, as it's drawn: a roof, the wall walkway)
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const n = m.get(x + dx, y + dy, z); if ((dx || dy) && n && n.items.some(id => TALL_STANDING.has(id))) return false; }
   return true;
 }
@@ -2047,7 +2048,7 @@ function buildTown(m, S, runs, river) {
     }
     // cannons along the battlements, every eleven tiles, pointing out, a pile of balls beside each and every other one a
     // keg of powder on its other side (only where the wall is solid below, not over a gate or the water)
-    const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Its muzzle is black with soot: the north wall fires it more nights than anyone likes to count.';
+    const CANNON_LOOK = 'An old bronze cannon on an oak carriage, pointing out over the battlements. Its muzzle is black with soot: the wall fires it more nights than anyone likes to count.';
     let cannons = 0;
     for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) {
       if (!inRing(x, y) || inTower(x, y)) continue;
@@ -2220,8 +2221,12 @@ function buildTown(m, S, runs, river) {
       t.items = t.items.filter(id => !id.startsWith('window'));
       sign(sx, sy, S, b.signId || 'sign_wall', b.sign);
       // ...and a lantern on the other side of the door
-      const lx = across ? dx - wide : dx, ly = across ? dy : dy - 1, lt = m.get(lx, ly, S);
-      if (lt && isWall(b, lx, ly)) { lt.items = lt.items.filter(id => !id.startsWith('window')); put(lx, ly, S, 'lantern'); }
+      // (not on the building's corner, where it hangs out over the grass: then past the sign instead)
+      const corner = (x, y) => (x === b.x0 || x === b.x1) && (y === b.y0 || y === b.y1);
+      let lx = across ? dx - wide : dx, ly = across ? dy : dy - 1;
+      if (corner(lx, ly)) [lx, ly] = across ? [sx + 1, dy] : [dx, sy + 1];
+      const lt = m.get(lx, ly, S);
+      if (lt && isWall(b, lx, ly) && !corner(lx, ly)) { lt.items = lt.items.filter(id => !id.startsWith('window')); put(lx, ly, S, 'lantern'); }
     }
     if (m.get(...out, S).ground === 'grass') m.setGround(...out, S, 'gravel');
     if (b.kind !== 'temple' && b.kind !== 'depot' && b.kind !== 'tower') for (let z = S; z < S + floors; z++) for (const [x0, y0, x1, y1] of partsOf(b)) m.zones.push({ x0, y0, x1, y1, z, shelter: true });
@@ -2472,6 +2477,8 @@ function buildTown(m, S, runs, river) {
     }
   }
   put(...T.mosaic, S, 'sun_mosaic');
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { // (nothing loose lies on the mosaic's picture)
+    const t = m.get(T.mosaic[0] + dx, T.mosaic[1] + dy, S); if (t) t.items = t.items.filter(i => !LOOSE_GROUND.has(i)); }
   for (const [x, y] of T.benches) put(x, y, S, 'bench');
   for (const [x, y] of T.planters) put(x, y, S, 'planter');
   for (const [x, y, id] of T.props) put(x, y, S, id);
@@ -2484,7 +2491,7 @@ function buildTown(m, S, runs, river) {
   sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
   // The watch's braziers: fire baskets on the square's sides (the mosaic was the darkest place in town at night), in
   // the training yard, and along the north wall's walkway, where the Host comes (only on bare walkable ground)
-  for (const [x, y, id] of T.camp) { const t = m.get(x, y, S); if (t && t.ground === 'grass' && !t.items.length) put(x, y, S, id); }
+  for (const [x, y, id] of T.camp) { const t = m.get(x, y, S); if (t && t.ground === 'grass' && t.items.every(i => LOOSE_GROUND.has(i))) { t.items = []; put(x, y, S, id); } }
   for (const [x, y, z] of T.braziers) { const t = m.get(x, y, z); if (t && !t.items.length && m.isWalkable(x, y, z)) put(x, y, z, 'brazier'); }
 
   // The square's edge: where it meets the grass of the quarters round it, a border of flowers with a flower box at every

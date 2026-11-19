@@ -575,7 +575,7 @@ const Fx = (() => {
       for (let y = player.y - 13; y <= player.y + 13; y++) for (let x = player.x - 16; x <= player.x + 16; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
-        if (d > 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d]); // (where a roof is drawn: see below)
+        if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d]); // (where a roof is drawn: see below)
         // (doors and windows with open sky in front, on a side you see (south, east): where light from inside gets out)
         if (z < view.maxZ && t.items.some(id => id === 'window' || id === 'window_stained' || id.startsWith('door'))) {
           const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
@@ -583,7 +583,7 @@ const Fx = (() => {
         }
         // (a light indoors stays in while its roof or the floor above shows: it shines out through the doors and windows
         // of its room instead, below; only a lamp on an outer wall shines out itself)
-        if (z < view.maxZ && map.get(x, y, z + 1) && !t.items.some(id => THINGS[id].wall)) {
+        if (z < view.maxZ && map.get(x, y, z + 1) && (!t.items.some(id => THINGS[id].wall) || facesIn(x, y, z))) {
           for (const id of [t.ground, ...t.items]) if (id && THINGS[id] && THINGS[id].light) inside.push([x, y, THINGS[id].light, LIGHT_COLORS[id] || '255,190,110', FLAMES.has(id)]);
           continue;
         }
@@ -667,6 +667,14 @@ const Fx = (() => {
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
     }
+  }
+  // Whether a wall's face (where a lamp or torch hangs on it) looks into a room: a wall running east-west shows its
+  // south face, one running north-south its east face; the tile in front of that face under a floor above is indoors
+  function facesIn(x, y, z) {
+    const wall = (wx, wy) => { const t = map.get(wx, wy, z); return !!t && t.items.some(id => THINGS[id].wall); };
+    const northSouth = (wall(x, y - 1) || wall(x, y + 1)) && !wall(x - 1, y) && !wall(x + 1, y);
+    const [fx, fy] = northSouth ? [x + 1, y] : [x, y + 1];
+    return !!map.get(fx, fy, z + 1) && !wall(fx, fy);
   }
   // Whether a light at (ax, ay) reaches the door or window at (bx, by) without a wall between: the tiles on the straight
   // line between them, the opening's own excepted (it's in the wall), all without one
