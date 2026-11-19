@@ -650,13 +650,19 @@ const Fx = (() => {
       // the roofs keep the night: a lamp in the street, or your own light, lights the street and the walls, not the roof
       // of the house beside it (its pool would show through it)
       if (roofs.length) {
-        const size = TILE * SCALE;
+        // (all of them as one shape, on whole pixels: tile by tile, the overlaps were darker and showed a grid)
+        // (a roof's eaves stick out a little past its north and west tiles: they're kept dark too)
+        const size = TILE * SCALE, eave = size * 0.3, isRoof = new Set(roofs.map(([rx, ry]) => `${rx},${ry}`));
+        dctx.beginPath();
         for (const [rx, ry] of roofs) {
           const [sx, sy] = screen(rx, ry);
           if (!onView(sx + size / 2, sy + size / 2, size)) continue;
-          dctx.clearRect(sx - 0.5, sy - 0.5, size + 1, size + 1);
-          dctx.fillRect(sx - 0.5, sy - 0.5, size + 1, size + 1);
+          const north = isRoof.has(`${rx},${ry - 1}`) ? 0 : eave, west = isRoof.has(`${rx - 1},${ry}`) ? 0 : eave;
+          const x0 = Math.floor(sx - west), y0 = Math.floor(sy - north), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
+          dctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+          dctx.rect(x0, y0, x1 - x0, y1 - y0);
         }
+        dctx.fill('nonzero');
       }
       ctx.imageSmoothingEnabled = true; // (the night is soft: no blocks when it's spread over a finer canvas)
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
