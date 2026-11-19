@@ -2552,7 +2552,7 @@ Object.assign(NPCS, {
   },
   // a refugee from Ferndeep, one of the towns the Host took
   oak_refugee: {
-    name: 'Mara of Ferndeep', idle: 7000, wander: 2,
+    name: 'Mara of Ferndeep', idle: 7000, wander: 1, // (she keeps by her tent)
     look: { skin: '#e8c0a0', hair: '#4a3a2a', hairStyle: 'long', female: true, body: '#6a6a5a', arms: '#6a6a5a', legs: '#4a4a3a', feet: '#3a2a1a', belt: '#3a2a1a', robe: true, hat: { style: 'hood', color: '#5a5a4a' } },
     greet: 'Nine days we walked, $name. Behind us the lights went out, one town at a time. This one is still lit. Is it... is it safe here? I came from {Ferndeep}.',
     keywords: {

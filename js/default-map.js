@@ -176,7 +176,7 @@ const OAKVALE = {
   streets: [
     { line: [[126, 89], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
     { line: [[94, 121], [158, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
-    { line: [[120, 130], [146, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square, east from the depot (grass on the canal's bank)
+    { line: [[125, 130], [146, 130]], width: 2, ground: 'cobble' },             // the lane of shops, south of the square, east from the high street
     { line: [[110, 107], [110, 129]], width: 3, ground: 'cobble' },             // the academy lane, down to the hay barn's door
   ],
   // The canal: water let in from the moat under the north wall, down the west side of the square and out under the
@@ -251,7 +251,7 @@ const OAKVALE = {
     [145, 109, 'bench'], [147, 109, 'bench'], [146, 108, 'flowers'], [144, 110, 'flowers'], [148, 110, 'flowers'], [146, 111, 'tree'], // (a garden below the bell tower)
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], // (the corner past it stays open: the south-east tower's door)
-    [123, 128, 'wagon'],
+    [123, 128, 'wagon'], [121, 131, 'tent'], // (Mara's: her wagon and her tent on the grass by the depot, a muddy path to it: refugeeCamp)
     [123, 144, 'bench'],
     [124, 99, 'sandbags'], [128, 99, 'sandbags'], // (the watch's, either side of the north gate's mouth)
   ],
@@ -280,7 +280,7 @@ const OAKVALE = {
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 115, 110, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
-    ['oak_gunner', 134, 105, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
+    ['oak_gunner', 134, 105, 9], ['oak_refugee', 122, 130, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her tent and wagon)
   ],
   notice: [133, 113, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
   founder: [129, 103], // the statue of the founder (3 x 3 tiles, its north-west corner), west of the temple on the mount
@@ -2476,6 +2476,8 @@ function buildTown(m, S, runs, river) {
   }
 
   // ---- paths, the square's furniture, lamps, things about, signs ------------------------------------------------
+  // a muddy path trodden from the high street to Mara's tent, over the grass where the depot's lane used to run
+  for (let x = 122; x <= 124; x++) { const t = m.get(x, 131, S); if (t && t.ground === 'grass') { t.ground = 'dirt'; t.items = []; } }
   for (const pts of T.paths) for (let i = 0; i + 1 < pts.length; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
     for (let x = Math.min(ax, bx); x <= Math.max(ax, bx); x++) for (let y = Math.min(ay, by); y <= Math.max(ay, by); y++) {
