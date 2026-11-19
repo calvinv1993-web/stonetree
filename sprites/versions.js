@@ -346,7 +346,7 @@ const SPRITE_HASHES = {
   "roof-shingle.png":"f7c2f3ee09",
   "roof-slate.png":"31efcc0ea9",
   "roof-thatch-edge.png":"16f9fdd269",
-  "roof-thatch.png":"cbbbda3525",
+  "roof-thatch.png":"6c258fda9f",
   "roof-tiles.png":"38b69c2275",
   "rubble@4x.png":"2524ffe021",
   "sack@4x.png":"78337e2e63",
