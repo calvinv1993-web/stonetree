@@ -1174,7 +1174,7 @@ const Sprites = (() => {
   // bottom), lit as it faces; ridge tiles cap the ridge, a roll of edge tiles runs along the eaves and verges, and the
   // eaves overhang the walls a little, with their shadow on the wall below.
   // Returns a picture at RAISED_RES pixels a world pixel; mx, my: where the building's top-left corner is in it.
-  const RAISED_RES = 2, RAISED_OVER = 4, RAISED_PITCH = 0.5, RAISED_TOP = 40; // (the overhang, the slope, the highest a ridge goes)
+  const RAISED_RES = 2, RAISED_OVER = 7, RAISED_PITCH = 0.5, RAISED_TOP = 40; // (the overhang: past the walls' thickness, the slope, the highest a ridge goes)
   function raisedRoof(id, w, h) {
     const W = w * TILE, H = h * TILE, ew = w >= h; // (the ridge runs along the long side: east-west when it's wide)
     const half = (ew ? H : W) / 2, top = Math.min(RAISED_TOP, half * RAISED_PITCH), p = top / half, O = RAISED_OVER;
@@ -1245,7 +1245,7 @@ const Sprites = (() => {
         g.fillStyle = '#20160c'; g.beginPath(); g.ellipse(mid, top * 0.42, 2.5, 2.5, 0, 0, Math.PI * 2); g.fill();
         // its light as it faces, and the shadow of the eaves over its top edges
         g.fillStyle = light < 1 ? `rgba(20,10,4,${1 - light})` : 'rgba(0,0,0,0)'; g.fillRect(from, 0, span, top + 1);
-        g.strokeStyle = 'rgba(20,10,4,0.35)'; g.lineWidth = 5;
+        g.strokeStyle = 'rgba(20,10,4,0.16)'; g.lineWidth = 3;
         g.beginPath(); g.moveTo(from, 0); g.lineTo(mid, top); g.lineTo(to, 0); g.stroke();
         g.restore();
       };
@@ -1335,6 +1335,9 @@ const Sprites = (() => {
           }
           // the ridge's cap: a thicker roll of straw (a darker, greyer sedge), its lower edge cut in scallops
           const c0 = up - capW, sc = 6;
+          gr = g.createLinearGradient(0, c0 - 4, 0, c0 + 1); // (a soft shadow under its edge, on the coat)
+          gr.addColorStop(0, 'rgba(36,20,4,0)'); gr.addColorStop(1, 'rgba(36,20,4,0.18)');
+          g.fillStyle = gr; g.fillRect(0, c0 - 4, len, 5);
           g.beginPath(); g.moveTo(0, up); g.lineTo(0, c0 + 1);
           for (let a = 0; a < len; a += sc) g.quadraticCurveTo(a + sc / 2, c0 - 2.6, Math.min(len, a + sc), c0 + 1);
           g.lineTo(len, up); g.closePath();
@@ -1345,10 +1348,6 @@ const Sprites = (() => {
           g.strokeStyle = rgb(0.5, 0.45); g.lineWidth = 0.6; // (its stalks run along the ridge)
           for (let k = 0; k < len / 3; k++) { const a = rnd() * len, b = c0 - 2 + rnd() * (capW + 2); g.beginPath(); g.moveTo(a, b); g.lineTo(a + 3 + rnd() * 4, b + (rnd() - 0.5)); g.stroke(); }
           g.restore();
-          g.strokeStyle = 'rgba(36,20,4,0.55)'; g.lineWidth = 0.9; // (the scallops' edge, and their shadow on the coat)
-          g.beginPath(); g.moveTo(0, c0 + 1);
-          for (let a = 0; a < len; a += sc) g.quadraticCurveTo(a + sc / 2, c0 - 2.6, Math.min(len, a + sc), c0 + 1);
-          g.stroke();
           // a hazel rod along it, just above the scallops, pegged down now and then
           g.strokeStyle = 'rgba(40,24,8,0.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, c0 + 2.6); g.lineTo(len, c0 + 2.6); g.stroke();
           g.strokeStyle = 'rgba(196,166,112,0.7)'; g.lineWidth = 0.5; g.beginPath(); g.moveTo(0, c0 + 3); g.lineTo(len, c0 + 3); g.stroke();
