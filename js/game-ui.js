@@ -1635,18 +1635,26 @@ function paintFineTile(put, x, y, z) {
     }
   }
 }
+// (made between frames, a band of rows at a time, so the first look close never stops the game; null until it's done)
 function fineLayer(z) {
-  if (minimap.fine[z]) return minimap.fine[z];
-  const c = document.createElement('canvas'), W = map.width * FINE;
+  const have = minimap.fine[z];
+  if (have) return have.done ? have : null;
+  const c = document.createElement('canvas'), W = map.width * FINE, seen = minimap.explored[z];
   c.width = W; c.height = map.height * FINE;
-  const g = c.getContext('2d'), img = g.createImageData(W, c.height), d = img.data, seen = minimap.explored[z];
-  for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
-    if (!seen[y * map.width + x]) continue;
-    const o = (y * FINE * W + x * FINE) * 4;
-    paintFineTile((px, py, n, a = 255) => { const i = o + (py * W + px) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = a; }, x, y, z);
-  }
-  g.putImageData(img, 0, 0);
-  return (minimap.fine[z] = c);
+  minimap.fine[z] = c;
+  const g = c.getContext('2d'), ROWS = 16;
+  for (let y0 = 0; y0 < map.height; y0 += ROWS) Render.chores.push(() => {
+    if (minimap.fine[z] !== c) return; // (repainted meanwhile: a new one is being made)
+    const rows = Math.min(ROWS, map.height - y0), img = g.createImageData(W, rows * FINE), d = img.data;
+    for (let y = y0; y < y0 + rows; y++) for (let x = 0; x < map.width; x++) {
+      if (!seen[y * map.width + x]) continue;
+      const o = ((y - y0) * FINE * W + x * FINE) * 4;
+      paintFineTile((px, py, n, a = 255) => { const i = o + (py * W + px) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = a; }, x, y, z);
+    }
+    g.putImageData(img, 0, y0 * FINE);
+    if (y0 + rows >= map.height) { c.done = true; if (typeof drawMinimap === 'function' && player) drawMinimap(); }
+  });
+  return null;
 }
 
 function minimapColor(t) {
@@ -1741,7 +1749,7 @@ function paintTile(x, y, z) { // (and the tiles down-right of it: its shade fall
     g.clearRect(tx, ty, 1, 1);
     if (n !== null) { g.fillStyle = `#${n.toString(16).padStart(6, '0')}`; g.fillRect(tx, ty, 1, 1); }
     const fine = minimap.fine[z];
-    if (fine) { // (its finer picture too)
+    if (fine && fine.done) { // (its finer picture too)
       const fg = fine.getContext('2d'), img = fg.createImageData(FINE, FINE), d = img.data;
       paintFineTile((px, py, n, a = 255) => { const i = (py * FINE + px) * 4; d[i] = n >> 16; d[i + 1] = (n >> 8) & 255; d[i + 2] = n & 255; d[i + 3] = a; }, tx, ty, z);
       fg.putImageData(img, tx * FINE, ty * FINE);
@@ -1836,7 +1844,8 @@ function drawMap(c, z, scale, cx, cy) {
   g.fillStyle = '#1a140e'; // (past the edge of the world, and unexplored: dark parchment)
   g.fillRect(0, 0, c.width, c.height);
   const ox = c.width / 2 - (cx + 0.5) * scale, oy = c.height / 2 - (cy + 0.5) * scale;
-  if (scale >= 3) { g.imageSmoothingEnabled = true; g.drawImage(fineLayer(z), ox, oy, map.width * scale, map.height * scale); g.imageSmoothingEnabled = false; }
+  const fine = scale >= 3 && fineLayer(z); // (until it's made, the plain map)
+  if (fine) { g.imageSmoothingEnabled = true; g.drawImage(fine, ox, oy, map.width * scale, map.height * scale); g.imageSmoothingEnabled = false; }
   else g.drawImage(minimap.layers[z], ox, oy, map.width * scale, map.height * scale);
   // the edge of the map darkens a little all round, as an old map's does
   const edge = g.createRadialGradient(c.width / 2, c.height / 2, Math.min(c.width, c.height) * 0.35, c.width / 2, c.height / 2, Math.max(c.width, c.height) * 0.75);
