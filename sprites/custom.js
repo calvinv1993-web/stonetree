@@ -319,6 +319,7 @@ const CUSTOM_SPRITES = {
   roof_shingle_tiles: 'roof-shingle.png',
   roof_green_tiles: 'roof-copper.png',
   roof_thatch_tiles: 'roof-thatch.png',
+  roof_thatch_edge: 'roof-thatch-edge.png', // a raised thatched roof's thickness where you see it: the cut ends of the straw, seamless along, ragged at the bottom
   roof_tiles: 'roof-tiles.png', // the clay roofs: one tile of pan tiles, four rows, seamless, from the owner's picture (see roofFromPicture)
   fence_post: 'fence-post.png', // the fences, from the owner's picture: the post, its rails west and north (see fenceFromPictures)
   fence_west: 'fence-west.png',

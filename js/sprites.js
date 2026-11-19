@@ -1365,9 +1365,18 @@ const Sprites = (() => {
           g.strokeStyle = 'rgba(40,22,6,0.5)'; g.lineWidth = 1;
           g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
           // the coat's thickness along the edges you see: the cut ends of the straw, ragged at the bottom
-        const T = 5.5;
+        const T = 5.5, cut = customImage('roof_thatch_edge'), strip = cut && cut.complete && cut.naturalWidth ? g.createPattern(cut, 'repeat-x') : null;
         for (const [a, b] of front) {
           const [ax, ay] = S(...a), [bx, by] = S(...b), n = Math.max(2, Math.round(Math.hypot(bx - ax, by - ay) / 2.5));
+          if (strip) { // the owner's picture of the cut ends: along the edge, its depth down the coat's thickness (and its ragged hem past it)
+            const l = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / l, dy = (by - ay) / l, along = 24 / cut.naturalWidth, deep = (T * 1.35) / cut.naturalHeight;
+            g.save();
+            g.setTransform(R * dx * along, R * dy * along, R * deep, R * deep, R * ax, R * ay);
+            g.fillStyle = strip; g.fillRect(0, 0, l / along, cut.naturalHeight);
+            g.restore();
+            g.strokeStyle = 'rgba(255,228,150,0.45)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+            continue;
+          }
           g.save();
           g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by);
           for (let k = n; k >= 0; k--) { const t = k / n, j = T - 1.4 + rnd() * 2.2; g.lineTo(ax + (bx - ax) * t + j, ay + (by - ay) * t + j); }
