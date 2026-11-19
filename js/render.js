@@ -25,7 +25,7 @@ const NEAR = Math.max(1, MOSAIC_REACH), NEAR_CORNERS = [[-NEAR, -NEAR], [NEAR, -
 // Roofs that stand up over their building (Sprites.raisedRoof) instead of lying flat as the floor above it. For now a
 // trial: the roof over each of these tiles (x, y, z), a rectangle of one roof. Worked out once per version of the map:
 // each roof's bounds, and which tiles are under one.
-const RAISED_ROOFS = [[137, 127, 9]];
+const RAISED_ROOFS = [[137, 127, 9], [114, 126, 9]];
 function raisedRoofs(map) {
   if (map.raised && map.raised.version === map.version) return map.raised;
   const list = [], tiles = new Map();
