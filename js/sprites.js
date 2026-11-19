@@ -1304,6 +1304,28 @@ const Sprites = (() => {
           g.setTransform(R * -ny, R * nx, R * (-nx - p), R * (-ny - p), R * (M + sl.e[0] - he), R * (M + sl.e[1] - he));
           g.save();
           g.beginPath(); g.rect(0, 0, len, up); g.clip();
+          // the courses don't run ruler-straight: each one's lip waves a little, its own way. The straw is laid again in
+          // thin strips across the eave, each course's band of a strip shifted up or down the slope by a smooth wave
+          // (the bands meet half way between two lips, in the middle of the straw, where a shift doesn't show)
+          if (pattern) {
+            const TW = pic.naturalWidth, TH = pic.naturalHeight, k = st.coarse || 1, sU = (k * TILE) / TW, sV = (k * TILE) / (L * TH);
+            const waves = Array.from({ length: Math.ceil(up / course) + 2 }, () => [rnd() * 6.3, rnd() * 6.3, 9 + rnd() * 6, 4 + rnd() * 2]);
+            const wave = (n, a) => { const [p1, p2, l1, l2] = waves[n]; return 0.9 * Math.sin(a / l1 + p1) + 0.4 * Math.sin(a / l2 + p2); };
+            const SW = 1.5;
+            for (let n = 0; n * course - course / 2 < up; n++) {
+              const b0 = Math.max(0, n * course - course / 2), b1 = Math.min(up, n * course + course / 2);
+              for (let a = 0; a < len; a += SW) {
+                const w = wave(n, a + SW / 2);
+                pattern.setTransform(new DOMMatrix([sU, 0, 0, -sV, 0, w]));
+                g.fillStyle = pattern; g.fillRect(a, b0, Math.min(SW, len - a) + 0.05, b1 - b0);
+                if (n > 0 && n * course < up - capW) { // (and its lip lit a little along its rounded edge)
+                  g.fillStyle = 'rgba(255,226,150,0.18)'; g.fillRect(a, n * course + w, Math.min(SW, len - a) + 0.05, 1.8);
+                }
+              }
+            }
+            g.fillStyle = sl.light < 1 ? `rgba(20,10,4,${(1 - sl.light).toFixed(3)})` : `rgba(255,236,200,${((sl.light - 1) * 0.9).toFixed(3)})`;
+            g.fillRect(0, 0, len, up); // (the slope's light again, over the straw laid again)
+          }
           // rounded off: darker down towards the eave and at the ends, where the coat curves away
           let gr = g.createLinearGradient(0, 0, 0, up * 0.45);
           gr.addColorStop(0, 'rgba(40,22,6,0.34)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
@@ -1311,12 +1333,6 @@ const Sprites = (() => {
           for (const [a0, a1] of [[0, 8], [len, len - 8]]) {
             gr = g.createLinearGradient(a0, 0, a1, 0); gr.addColorStop(0, 'rgba(40,22,6,0.3)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
             g.fillStyle = gr; g.fillRect(Math.min(a0, a1), 0, 8, up);
-          }
-          // each course's lip lit a little along its rounded edge (the shadow under it is in the straw's own picture)
-          for (let b = course; b < up - capW; b += course) {
-            gr = g.createLinearGradient(0, b, 0, b + 2.4);
-            gr.addColorStop(0, 'rgba(255,226,150,0.16)'); gr.addColorStop(1, 'rgba(255,226,150,0)');
-            g.fillStyle = gr; g.fillRect(0, b, len, 2.4);
           }
           // weathered: streaks of grey running down the straw, and a little moss, low down and by the ridge
           for (let k = 0; k < len / 14; k++) {
