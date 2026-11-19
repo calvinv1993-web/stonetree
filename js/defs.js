@@ -212,6 +212,11 @@ const THINGS = {
   altar:       { name: 'altar', cat: 'Furniture', block: true, low: true },
   gravestone:  { name: 'gravestone', cat: 'Furniture', block: true, low: true },
   tent:        { name: 'tent', cat: 'Furniture', block: true },
+  // a big tent, two tiles square (the owner's picture, drawn whole across its four tiles: BIG.big_tent in sprites.js)
+  big_tent_00: { name: 'tent', cat: 'Furniture', block: true, tall: true },
+  big_tent_10: { name: 'tent', cat: 'Furniture', block: true, tall: true },
+  big_tent_01: { name: 'tent', cat: 'Furniture', block: true, tall: true },
+  big_tent_11: { name: 'tent', cat: 'Furniture', block: true, tall: true },
   torch:       { name: 'torch', cat: 'Furniture', light: 3, fireSwap: 'torch_out' },
   torch_out:   { name: 'unlit torch', cat: 'Furniture', fireSwap: 'torch' },
   campfire:    { name: 'campfire', cat: 'Furniture', block: true, low: true, light: 4, fireSwap: 'campfire_out' },

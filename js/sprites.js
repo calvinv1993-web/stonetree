@@ -1605,6 +1605,10 @@ const Sprites = (() => {
   // with the golden sun of the dawn on a rod above it.
   // The statue of the founder, three tiles square, west of the temple: a stepped marble plinth with a gilded band and a
   // plaque, and on it the founder in a long cloak, the left hand on a sword's hilt, the right holding a golden sun high.
+  // A big tent, two tiles square: the owner's picture (sprites/custom.js big_tent); till then the small tent, larger
+  BIG.big_tent = { w: 2, h: 2, rise: 96, ownLeans: true, draw(g) {
+    g.save(); g.translate(64 + 32, 64 + 32); g.scale(2, 2); g.translate(-64 - 16, -64 - 16); DRAW.tent(g, makeRng(7)); g.restore();
+  } };
   BIG.founder = { w: 3, h: 3, rise: 160, upright: true, ownLeans: true, draw(g) {
     const m1 = { top: '#fbf7ee', south: '#e6dfcf', east: '#bdb4a2', edge: '#ffffff' }, m2 = { top: '#efe8d8', south: '#d6cdb8', east: '#aaa18e', edge: '#fffcf4' };
     const gold = { top: '#f2c94c', south: '#d8a030', east: '#9a7420', edge: '#fff0b0' };
@@ -1685,6 +1689,7 @@ const Sprites = (() => {
   } };
   const PARTS = {
     founder_00: ['founder', 0, 0], founder_10: ['founder', 1, 0], founder_20: ['founder', 2, 0], founder_01: ['founder', 0, 1], founder_11: ['founder', 1, 1], founder_21: ['founder', 2, 1], founder_02: ['founder', 0, 2], founder_12: ['founder', 1, 2], founder_22: ['founder', 2, 2],
+    big_tent_00: ['big_tent', 0, 0], big_tent_10: ['big_tent', 1, 0], big_tent_01: ['big_tent', 0, 1], big_tent_11: ['big_tent', 1, 1],
     temple_lantern_nw: ['temple_lantern', 0, 0], temple_lantern_ne: ['temple_lantern', 1, 0], temple_lantern_sw: ['temple_lantern', 0, 1], temple_lantern_se: ['temple_lantern', 1, 1],
     arch_w: ['arch', 0, 0], arch_m: ['arch', 1, 0], arch_e: ['arch', 2, 0],
     bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],

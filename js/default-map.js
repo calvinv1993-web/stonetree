@@ -251,7 +251,7 @@ const OAKVALE = {
     [145, 109, 'bench'], [147, 109, 'bench'], [146, 108, 'flowers'], [144, 110, 'flowers'], [148, 110, 'flowers'], [146, 111, 'tree'], // (a garden below the bell tower)
     [124, 110, 'well'], [121, 118, 'stall'], [121, 119, 'apple_crate'], [131, 118, 'stall'], [131, 119, 'sack'],
     [121, 124, 'barrel'], [121, 125, 'crate'], [131, 124, 'stall'], [148, 132, 'barrel'], // (the corner past it stays open: the south-east tower's door)
-    [123, 128, 'wagon'], [121, 131, 'tent'], // (Mara's: her wagon and her tent on the grass by the depot, a muddy path to it: refugeeCamp)
+    [123, 128, 'wagon'], // (Mara's, beside her big tent on the grass by the depot (bigTents), a muddy path to it)
     [123, 144, 'bench'],
     [124, 99, 'sandbags'], [128, 99, 'sandbags'], // (the watch's, either side of the north gate's mouth)
   ],
@@ -265,7 +265,8 @@ const OAKVALE = {
   mosaic: [126, 121], // the compass mosaic (its centre tile; it reaches two tiles round): the middle of the square, and of the town
   statue: [140, 119],
   // a refugees' camp from the fallen towns, on the lawn south-east of the academy
-  camp: [[130, 143, 'tent'], [133, 143, 'tent'], [131, 144, 'campfire'], [132, 144, 'sack'], [134, 144, 'basket']], // (clear of the south wall: its walkway is drawn over the row next to it)
+  camp: [[131, 144, 'campfire'], [132, 144, 'sack'], [134, 144, 'basket']], // (and two big tents: bigTents)
+  bigTents: [[120, 130], [129, 142], [133, 142]], // big tents, two tiles square: their north-west tile (Mara's, the camp's two) // (clear of the south wall: its walkway is drawn over the row next to it)
   braziers: [[122, 121, 8], [130, 121, 8], [147, 135, 8], [143, 141, 8], [104, 96, 9], [110, 96, 9], [122, 96, 9], [136, 96, 9], [144, 96, 9]],
   signs: [
     [124, 87, 'North: Mirror Lake and the North Peaks. South: Oakvale.'],
@@ -1384,6 +1385,12 @@ function dressMountains(m, S) {
 }
 
 function tidyWorld(m, S) {
+  // no tree or bush right beside a big tent: their crowns would hang over its canvas
+  for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
+    const t = m.get(x, y, S);
+    if (!t || !t.items.some(id => id.startsWith('big_tent_'))) continue;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const n = m.get(x + dx, y + dy, S); if (n && n.items.some(id => ['tree', 'pine', 'bush'].includes(id))) n.items = []; }
+  }
   const CLIMB = ['stairs_up', 'ladder', 'cave_ladder', 'sewer_ladder'];
   for (let z = 0; z < m.depth; z++) for (let y = 1; y < m.height - 1; y++) for (let x = 1; x < m.width - 1; x++) {
     const t = m.get(x, y, z);
@@ -2500,6 +2507,10 @@ function buildTown(m, S, runs, river) {
   sign(...T.notice.slice(0, 2), S, 'noticeboard', T.notice[2]);
   // The watch's braziers: fire baskets on the square's sides (the mosaic was the darkest place in town at night), in
   // the training yard, and along the north wall's walkway, where the Host comes (only on bare walkable ground)
+  // the big tents, two tiles square: whatever grew there goes
+  for (const [x, y] of T.bigTents) {
+    for (const [c, r] of [[0, 0], [1, 0], [0, 1], [1, 1]]) { const t = m.get(x + c, y + r, S); t.ground = 'grass'; t.items = [`big_tent_${c}${r}`]; }
+  }
   for (const [x, y, id] of T.camp) { const t = m.get(x, y, S); if (t && t.ground === 'grass' && t.items.every(i => LOOSE_GROUND.has(i))) { t.items = []; put(x, y, S, id); } }
   for (const [x, y, z] of T.braziers) { const t = m.get(x, y, z); if (t && !t.items.length && m.isWalkable(x, y, z)) put(x, y, z, 'brazier'); }
 
