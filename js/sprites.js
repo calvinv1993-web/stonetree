@@ -879,7 +879,7 @@ const Sprites = (() => {
   const ROOF_STYLES = {
     roof: { color: [166, 64, 42], course: 4, joint: 8 },      // clay tiles
     roof_slate: { color: [94, 104, 126], course: 5, joint: 6 },
-    roof_thatch: { color: [204, 166, 92], course: 3, joint: 0, straw: true, coarse: 1.5 }, // (coarse: a raised roof lays its picture this many tiles across)
+    roof_thatch: { color: [204, 166, 92], course: 3, joint: 0, straw: true, coarse: 1.2 }, // (coarse: a raised roof lays its picture this many tiles across)
     roof_shingle: { color: [130, 88, 54], course: 4, joint: 5 },
     roof_green: { color: [74, 130, 100], course: 4, joint: 8 }, // copper gone green
     roof_marble: { color: [250, 242, 226], course: 4, joint: 8, gild: [232, 181, 74] }, // white marble slabs, gilded ridges and eaves (the temple)
