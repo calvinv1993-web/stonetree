@@ -640,22 +640,12 @@ const Fx = (() => {
       dctx.globalCompositeOperation = 'destination-out';
       dctx.imageSmoothingEnabled = true;
       const W = dark.width / LIGHT_RES, H = dark.height / LIGHT_RES, onView = (sx, sy, r) => sx + r > 0 && sy + r > 0 && sx - r < W && sy - r < H;
-      for (const l of lights) { // pools of light: yours clear, the others leave a little of the night
-        const yours = l === lights[0] || l.carried, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (yours ? 1 : l.soft ? 0.7 : 0.75);
+      for (const l of lights) { // pools of light, every one clear as your own torchlight (no coloured haze over them)
+        const yours = !l.soft, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (l.soft ? 0.7 : 1);
         if (l.arrow !== undefined) { if (onView(sx, sy, r)) arrowLight(sx, sy, rad(l), l.arrow, arrowPicture('hole')); continue; }
-        if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : l.soft ? 'soft' : 'lamp'), sx - r, sy - r, r * 2, r * 2);
+        if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : 'soft'), sx - r, sy - r, r * 2, r * 2);
       }
-      // warm and cold glows in the pools, stronger the darker it is: each a soft round picture made once per colour
-      // (by day there's no night to glow in; a gradient per light per frame was slow where there are many, as in the temple)
       dctx.globalCompositeOperation = 'source-over';
-      for (const l of lights) {
-        if (l === lights[0]) continue;
-        const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
-        if (!onView(sx, sy, r)) continue;
-        if (l.arrow !== undefined) continue; // (the arrowhead itself glows: game.js draws it; here only the ground it lights)
-        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
-        dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
-      }
       dctx.globalAlpha = 1;
       // the roofs keep the night: a lamp in the street, or your own light, lights the street and the walls, not the roof
       // of the house beside it (its pool would show through it)
@@ -684,8 +674,8 @@ const Fx = (() => {
     return true;
   }
   // A pool of light, made once: how much of the night it takes away, from its middle out
-  // (yours clears it; a lamp leaves a little; a lit window only a glimmer)
-  const HOLES = { yours: [1, 0.85], lamp: [0.85, 0.55], soft: [0.5, 0.25] }, holes = new Map();
+  // (a light clears it as your torchlight does; light out of a window only a glimmer)
+  const HOLES = { yours: [1, 0.85], soft: [0.5, 0.25] }, holes = new Map();
   function holePicture(kind) {
     let c = holes.get(kind);
     if (!c) {
@@ -721,21 +711,6 @@ const Fx = (() => {
     dctx.save(); dctx.translate(sx, sy); dctx.rotate(angle);
     dctx.drawImage(pic, -r * 1.1, -r, r * 2, r * 2); // (the tip just ahead of the arrow)
     dctx.restore();
-  }
-  const glows = new Map();
-  function glowPicture(color) {
-    let c = glows.get(color);
-    if (!c) {
-      c = document.createElement('canvas');
-      c.width = c.height = 64;
-      const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-      grad.addColorStop(0, `rgba(${color},1)`);
-      grad.addColorStop(1, `rgba(${color},0)`);
-      g.fillStyle = grad;
-      g.fillRect(0, 0, 64, 64);
-      glows.set(color, c);
-    }
-    return c;
   }
 
   // Over everything, in canvas pixels: clouds, the colours of dawn and dusk and of the
