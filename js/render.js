@@ -972,7 +972,9 @@ const Render = {
       const late = new Map();
       // The roofs that stand up, each drawn whole once its southmost row is done (what stands behind it is drawn by then,
       // and it rises over that), with what stands on it (a chimney) raised to the slope's height there
-      const raised = raisedRoofs(map).list.filter(r => r.z === z && r.y1 >= y0 && r.x1 >= x0 - 2 && r.x0 <= x1 + 2);
+      // (one over the building you look into at a window or door is lifted away whole, the verge sticking out past it too)
+      const L = lifted ? v.lift : null, inLift = r => L && r.x1 >= L.x0 - 1 && r.x0 <= L.x1 + 1 && r.y1 >= L.y0 - 1 && r.y0 <= L.y1 + 1;
+      const raised = raisedRoofs(map).list.filter(r => r.z === z && r.y1 >= y0 && r.x1 >= x0 - 2 && r.x0 <= x1 + 2 && !inLift(r));
       const raise = r => {
         const w = r.x1 - r.x0 + 1, h = r.y1 - r.y0 + 1, img = Sprites.raisedRoof(r.id, w, h);
         g.imageSmoothingEnabled = true;

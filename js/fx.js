@@ -579,8 +579,11 @@ const Fx = (() => {
         if (!t) continue;
         if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) { // (where a roof is drawn: see below)
           const r = raisedAt(map, x, y, z); // (a roof standing up: its whole outline, once)
-          if (!r) roofs.push([x - d, y - d, z]);
-          else if (r.x0 === x && r.y0 === y) {
+          // (a roof lifted away, over the building you look into at a window or door: no night of its own, it isn't there)
+          const L = d > 0 && typeof peekLift !== 'undefined' && peekLift, near = (ax0, ay0, ax1, ay1) => L && ax1 >= L.x0 - 1 && ax0 <= L.x1 + 1 && ay1 >= L.y0 - 1 && ay0 <= L.y1 + 1;
+          const gone = r ? near(r.x0, r.y0, r.x1, r.y1) : near(x, y, x, y);
+          if (!r) { if (!gone) roofs.push([x - d, y - d, z]); }
+          else if (!gone && r.x0 === x && r.y0 === y) {
             const out = Sprites.raisedRoofOutline(r.x1 - r.x0 + 1, r.y1 - r.y0 + 1).map(([px, py]) => [x - d + px / TILE, y - d + py / TILE]);
             roofs.push([x - d, y - d, z, out]);
           }
