@@ -144,6 +144,8 @@ const ISLE_DESIGN = {
 //   square:    the town square, as rectangles [x0, y0, x1, y1]
 //   buildings: { id, name, kind, x0, y0, x1, y1, wings, door: [x, y], floors, floor, wall, roof, sign,
 //                signId, shelves, arch (a wide open archway, three tiles across, instead of a door) }; kind says how it's furnished: temple, academy, depot, shop, smithy, inn, house
+//              (a door is in a south or east wall: those are the faces the camera sees; one in a north or west wall
+//              lies under the roof, its sign and lantern hidden from the street)
 //   houses:    the buildings players can rent, with their rent
 //   paths:     gravel paths to doors, as lines of points
 const OAKVALE = {
@@ -187,15 +189,15 @@ const OAKVALE = {
   buildings: [
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
-    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [121, 133], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [135, 133], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
+    { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [124, 135], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [140, 135], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 134, y0: 124, x1: 140, y1: 129, door: [137, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
     { id: 'general', name: 'Pip\'s Provisions', kind: 'shop', x0: 140, y0: 113, x1: 143, y1: 118, door: [141, 118], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_tools', shelves: 'shelf', sign: 'Pip\'s Provisions: food, potions, ropes, shovels, picks and fishing rods. Every adventurer needs a rope and a shovel.' },
     { id: 'inn', name: 'The Sleepy Boar', kind: 'inn', x0: 104, y0: 99, x1: 113, y1: 106, door: [108, 106], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_green', signId: 'sign_inn', shelves: 'shelf', sign: 'The Sleepy Boar: food, drink and a bed.' },
-    { id: 'fisher', name: 'The Fisher\'s Hut', kind: 'shop', x0: 112, y0: 108, x1: 116, y1: 118, door: [112, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', shelves: 'shelf', sign: 'The Fisher\'s Hut: fishing rods, and fish bought and sold. The jetty out back is the place to learn.' },
-    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 124], floor: 'wood', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread from the grain of Oakvale\'s own field, cheese, apples and meat. Eat to get your health and mana back faster.' },
+    { id: 'fisher', name: 'The Fisher\'s Hut', kind: 'shop', x0: 112, y0: 108, x1: 116, y1: 118, door: [116, 112], floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', shelves: 'shelf', sign: 'The Fisher\'s Hut: fishing rods, and fish bought and sold. The jetty out back is the place to learn.' },
+    { id: 'bakery', name: 'The Warm Loaf', kind: 'shop', x0: 112, y0: 124, x1: 115, y1: 128, door: [114, 128], floor: 'wood', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_food', shelves: 'shelf', sign: 'The Warm Loaf: bread from the grain of Oakvale\'s own field, cheese, apples and meat. Eat to get your health and mana back faster.' },
     { id: 'farm', name: 'The Hay Barn', kind: 'farm', x0: 104, y0: 130, x1: 115, y1: 134, door: [110, 130], floors: 2, floor: 'wood', wall: 'wall_wood', roof: 'roof_thatch', signId: 'sign_wall', sign: 'The town farm\'s barn. Its grain feeds the Warm Loaf\'s ovens; the hay is kept in the loft.' },
     { id: 'mill', name: 'The Water Mill', kind: 'mill', x0: 112, y0: 139, x1: 115, y1: 143, door: [113, 139], floor: 'wood', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_wall', sign: 'The water mill: the canal turns its wheel, and its stones grind the town\'s grain.' },
     { id: 'house4', name: 'Bell Cottage', kind: 'house', x0: 104, y0: 109, x1: 108, y1: 118, door: [108, 113], floor: 'wood', wall: 'wall_wood', roof: 'roof' },
@@ -233,12 +235,13 @@ const OAKVALE = {
   // The training yard: a fenced sandy yard with dummies.
   yard: { x0: 142, y0: 133, x1: 148, y1: 143, gate: [145, 133] }, // (in the south-east corner)
   paths: [
-    [[121, 132], [121, 132]],                   // the depot, onto the lane
+    [[125, 135], [125, 135]],                   // the depot, onto the street
     [[141, 119], [141, 119]], [[146, 119], [146, 119]], // Pip's and the Watch House, onto the cross street
     [[108, 107], [108, 107]],                   // the inn
-    [[114, 123], [114, 123]],                          // the houses on the lane
+    [[117, 112], [117, 119]],                   // the fisher's hut, beside the canal down to the street
+    [[114, 129], [112, 129]],                          // the bakery, along the lane to the path
     [[137, 130], [137, 130]], [[145, 130], [145, 130]],                          // the smithy and the armourer
-    [[135, 132], [135, 132]],                   // the academy
+    [[141, 135], [141, 132]],                   // the academy, up the lane by the yard to the road
     [[115, 77], [115, 83]],                     // from the graveyard's gate down to the north road
     [[145, 132], [145, 132]],                   // the training yard
   ],
@@ -274,7 +277,7 @@ const OAKVALE = {
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
-    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
+    ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 115, 110, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
     ['oak_gunner', 134, 105, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
