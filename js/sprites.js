@@ -879,7 +879,7 @@ const Sprites = (() => {
   const ROOF_STYLES = {
     roof: { color: [166, 64, 42], course: 4, joint: 8 },      // clay tiles
     roof_slate: { color: [94, 104, 126], course: 5, joint: 6 },
-    roof_thatch: { color: [204, 166, 92], course: 3, joint: 0, straw: true },
+    roof_thatch: { color: [204, 166, 92], course: 3, joint: 0, straw: true, coarse: 2 }, // (coarse: a raised roof lays its picture this many tiles across)
     roof_shingle: { color: [130, 88, 54], course: 4, joint: 5 },
     roof_green: { color: [74, 130, 100], course: 4, joint: 8 }, // copper gone green
     roof_marble: { color: [250, 242, 226], course: 4, joint: 8, gild: [232, 181, 74] }, // white marble slabs, gilded ridges and eaves (the temple)
@@ -1197,7 +1197,7 @@ const Sprites = (() => {
         world();
         path(pts);
         if (pattern) {
-          const TW = pic.naturalWidth, TH = pic.naturalHeight, L = Math.hypot(1, p), sU = TILE / TW, sV = TILE / (L * TH);
+          const TW = pic.naturalWidth, TH = pic.naturalHeight, L = Math.hypot(1, p), k = st.coarse || 1, sU = (k * TILE) / TW, sV = (k * TILE) / (L * TH);
           const ux = -ny, uy = nx; // (along the eave, so the picture is turned, never mirrored: south is as drawn)
           const he = -p * O; // (the eave's height: it overhangs, a little below the wall's top)
           // texture pixel (u, v) -> on the slope: the eave point, u along it, v down the slope (v < 0: up towards the ridge)
@@ -1296,7 +1296,7 @@ const Sprites = (() => {
       // the stalks, dark between them, and ragged along the bottom.
       function thatch(slopes, front) {
         const rnd = (seed => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(w * 7919 + h * 104729 + 17);
-        const L = Math.hypot(1, p), course = TILE / 2 / L; // (the picture has two courses a tile: their edges this far apart, across)
+        const L = Math.hypot(1, p), course = ((st.coarse || 1) * TILE) / 2 / L; // (the picture has two courses: their edges this far apart, across)
         const capW = 9;
         slopes.forEach(sl => {
           const [nx, ny] = sl.n;
@@ -1365,11 +1365,11 @@ const Sprites = (() => {
           g.strokeStyle = 'rgba(40,22,6,0.5)'; g.lineWidth = 1;
           g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
           // the coat's thickness along the edges you see: the cut ends of the straw, ragged at the bottom
-        const T = 5.5, cut = customImage('roof_thatch_edge'), strip = cut && cut.complete && cut.naturalWidth ? g.createPattern(cut, 'repeat-x') : null;
+        const T = 4 + 1.5 * (st.coarse || 1), cut = customImage('roof_thatch_edge'), strip = cut && cut.complete && cut.naturalWidth ? g.createPattern(cut, 'repeat-x') : null;
         for (const [a, b] of front) {
           const [ax, ay] = S(...a), [bx, by] = S(...b), n = Math.max(2, Math.round(Math.hypot(bx - ax, by - ay) / 2.5));
           if (strip) { // the owner's picture of the cut ends: along the edge, its depth down the coat's thickness (and its ragged hem past it)
-            const l = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / l, dy = (by - ay) / l, along = 24 / cut.naturalWidth, deep = (T * 1.35) / cut.naturalHeight;
+            const l = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / l, dy = (by - ay) / l, along = (24 * (st.coarse || 1)) / cut.naturalWidth, deep = (T * 1.35) / cut.naturalHeight;
             g.save();
             g.setTransform(R * dx * along, R * dy * along, R * deep, R * deep, R * ax, R * ay);
             g.fillStyle = strip; g.fillRect(0, 0, l / along, cut.naturalHeight);
