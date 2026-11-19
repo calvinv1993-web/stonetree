@@ -1587,10 +1587,10 @@ function paintedColor(x, y, z, plain = false) {
   return h % 4 === 0 ? lighten(n, 0.04) : h % 4 === 1 ? shadeOf(n, 0.05) : n;
 }
 
-// The same, finer: four pixels a tile, for the map seen close (minimap.fine, drawn at a zoom of 3 and more). Trees are
+// The same, finer: five pixels a tile, for the map seen close (minimap.fine, drawn at a zoom of 3 and more). Trees are
 // round crowns lit on their top left, roofs and walls have a dark edge where they end, and what stands up casts a thin
 // shadow on the tiles down-right of it instead of darkening them all. Made per floor the first time it's looked at.
-const FINE = 4;
+const FINE = 5;
 const isRoofT = t => !!t && THINGS[t.ground] && THINGS[t.ground].roof;
 const isTreeId = id => ['tree', 'pine', 'snow_pine', 'jungle_tree', 'palm', 'bush', 'dead_tree'].includes(id);
 // (put(px, py, colour, alpha): writes one of the tile's FINE x FINE pixels, wherever the caller keeps them)
@@ -1629,9 +1629,9 @@ function paintFineTile(put, x, y, z) {
   if (tree) { // a round crown, lit on its top left
     const c = parseInt((PAINTED_THINGS[tree] || WALL_COLORS[tree] || '#3f5718').slice(1), 16);
     for (let py = 0; py < FINE; py++) for (let px = 0; px < FINE; px++) {
-      const dx = px - 1.5, dy = py - 1.5, r = Math.hypot(dx, dy);
-      if (r > 2.05) continue;
-      put(px, py, dx + dy < -1.2 ? lighten(c, 0.18) : dx + dy > 1.6 ? shadeOf(c, 0.25) : c);
+      const m = (FINE - 1) / 2, dx = px - m, dy = py - m, r = Math.hypot(dx, dy);
+      if (r > FINE * 0.52) continue;
+      put(px, py, dx + dy < -FINE * 0.3 ? lighten(c, 0.18) : dx + dy > FINE * 0.38 ? shadeOf(c, 0.25) : c);
     }
   }
 }
@@ -1642,7 +1642,7 @@ function fineLayer(z) {
   const c = document.createElement('canvas'), W = map.width * FINE, seen = minimap.explored[z];
   c.width = W; c.height = map.height * FINE;
   minimap.fine[z] = c;
-  const g = c.getContext('2d'), ROWS = 16;
+  const g = c.getContext('2d'), ROWS = 10;
   for (let y0 = 0; y0 < map.height; y0 += ROWS) Render.chores.push(() => {
     if (minimap.fine[z] !== c) return; // (repainted meanwhile: a new one is being made)
     const rows = Math.min(ROWS, map.height - y0), img = g.createImageData(W, rows * FINE), d = img.data;
