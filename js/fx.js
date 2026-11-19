@@ -568,25 +568,38 @@ const Fx = (() => {
       lights.push({ x: v.x, y: v.y, r: 6.5, color: LIGHT_COLORS.you, flicker: false, carried: true });
     }
     for (let z = view.minZ; z <= view.maxZ; z++) {
-      const d = z - view.z;
-      for (let y = player.y - 11; y <= player.y + 11; y++) for (let x = player.x - 14; x <= player.x + 14; x++) {
+      const d = z - view.z, inside = [], openings = [];
+      for (let y = player.y - 13; y <= player.y + 13; y++) for (let x = player.x - 16; x <= player.x + 16; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
-        // (a light indoors stays in while its roof or the floor above shows: only a lamp on an outer wall shines out)
-        if (z < view.maxZ && map.get(x, y, z + 1) && !t.items.some(id => THINGS[id].wall)) continue;
+        // (doors and windows with open sky in front, on a side you see (south, east): where light from inside gets out)
+        if (z < view.maxZ && t.items.some(id => id === 'window' || id === 'window_stained' || id.startsWith('door'))) {
+          const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
+          if (out) openings.push([x, y, out, t.items.some(id => id.startsWith('door'))]);
+        }
+        // (a light indoors stays in while its roof or the floor above shows: it shines out through the doors and windows
+        // of its room instead, below; only a lamp on an outer wall shines out itself)
+        if (z < view.maxZ && map.get(x, y, z + 1) && !t.items.some(id => THINGS[id].wall)) {
+          for (const id of [t.ground, ...t.items]) if (id && THINGS[id] && THINGS[id].light) inside.push([x, y, THINGS[id].light, LIGHT_COLORS[id] || '255,190,110']);
+          continue;
+        }
         if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: true });
         for (const id of t.items) {
           if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: id !== 'crystal' && id !== 'obelisk' && !id.startsWith('temple_lantern') && !id.startsWith('founder') });
-          // (at night a house's windows and doors glow warm out onto the street: someone's home, a fire lit inside. Only
-          // those on a side you see, south or east, with open sky in front: the glass lit, and a pool on the ground before it)
-          else if ((id === 'window' || id === 'window_stained' || id.startsWith('door')) && !underground && amount > 0.25) {
-            const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
-            if (!out) continue;
-            const door = id.startsWith('door');
-            lights.push({ x: x - d + out[0] * 0.6, y: y - d + out[1] * 0.6, r: door ? 2.6 : 2.2, color: LIGHT_COLORS.window, flicker: true });
-            lights.push({ x: x - d - 0.4, y: y - d - 0.45, r: door ? 0.9 : 0.75, color: LIGHT_COLORS.window, flicker: true, glow: door ? 1.8 : 2.2 }); // (the glass, up the wall)
-          }
         }
+      }
+      // a fire or a lamp inside a house, seen from the street: its light out of each door and window of its room it
+      // reaches (only real lights: a dark house stays dark), weaker the further it has to come
+      for (const [ox, oy, out, door] of openings) {
+        let best = null;
+        for (const l of inside) {
+          const far = Math.max(Math.abs(l[0] - ox), Math.abs(l[1] - oy));
+          if (far > l[2] + 2 || (best && far >= best.far) || !sameRoom(l[0], l[1], ox, oy, z)) continue;
+          best = { far, r: l[2], color: l[3] };
+        }
+        if (!best) continue;
+        const k = Math.max(0.35, 1 - best.far / (best.r + 3));
+        lights.push({ x: ox - d + out[0] * 0.6, y: oy - d + out[1] * 0.6, r: (door ? 2.4 : 2) * k, color: best.color, flicker: true, soft: !door });
       }
     }
     // a power shot lights the dark: the bow glows brighter as it's drawn, then the arrow carries its light all the way,
@@ -636,7 +649,7 @@ const Fx = (() => {
         const [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * 0.8;
         if (!onView(sx, sy, r)) continue;
         if (l.arrow !== undefined) continue; // (the arrowhead itself glows: game.js draws it; here only the ground it lights)
-        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.glow || 1) * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
+        dctx.globalAlpha = Math.min(1, 0.5 * amount * (l.flicker ? 0.8 + 3 * (flick(l) - 1) + 0.2 : 1));
         dctx.drawImage(glowPicture(l.color), sx - r, sy - r, r * 2, r * 2);
       }
       dctx.globalAlpha = 1;
@@ -644,6 +657,16 @@ const Fx = (() => {
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
     }
+  }
+  // Whether a light at (ax, ay) reaches the door or window at (bx, by) without a wall between: the tiles on the straight
+  // line between them, the opening's own excepted (it's in the wall), all without one
+  function sameRoom(ax, ay, bx, by, z) {
+    const n = Math.max(Math.abs(bx - ax), Math.abs(by - ay));
+    for (let i = 0; i < n; i++) {
+      const t = map.get(Math.round(ax + (bx - ax) * i / n), Math.round(ay + (by - ay) * i / n), z);
+      if (t && t.items.some(id => THINGS[id].wall && !THINGS[id].onWall)) return false;
+    }
+    return true;
   }
   // A pool of light, made once: how much of the night it takes away, from its middle out
   // (yours clears it; a lamp leaves a little; a lit window only a glimmer)
