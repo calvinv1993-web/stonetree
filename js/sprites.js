@@ -1257,28 +1257,136 @@ const Sprites = (() => {
         gr.addColorStop(0, 'rgba(20,12,6,0.45)'); gr.addColorStop(1, 'rgba(20,12,6,0)');
         g.fillStyle = gr; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.lineTo(bx + dx, by + dy); g.lineTo(ax + dx, ay + dy); g.closePath(); g.fill();
       };
-      if (ew) {
-        const Ym = H / 2;
-        band(L0 + O, B0, R0 - O, B0, 6, 8);                                              // under the south eave
-        gable(W, 0, H, 0.78);                                                            // the east gable (the west one faces away)
-        slope([[L0, T0, he], [R0, T0, he], [R0, Ym, top], [L0, Ym, top]], 0, -1, R0, T0, 1.12); // north slope
-        slope([[L0, Ym, top], [R0, Ym, top], [R0, B0, he], [L0, B0, he]], 0, 1, L0, B0, 0.9);  // south slope
+      // the slopes: their corners, the way the eave faces (n), the eave's end where 'along' starts (e: going along the
+      // eave from there stays on it), how long the eave is, and the light on them
+      const Ym = H / 2, Xm = W / 2, len = ew ? R0 - L0 : B0 - T0, up = half + O; // (up: from the eave's edge to the ridge, across)
+      const slopes = ew ? [
+        { pts: [[L0, T0, he], [R0, T0, he], [R0, Ym, top], [L0, Ym, top]], n: [0, -1], e: [L0, T0], light: 1.12 },  // north
+        { pts: [[L0, Ym, top], [R0, Ym, top], [R0, B0, he], [L0, B0, he]], n: [0, 1], e: [R0, B0], light: 0.9 },    // south
+      ] : [
+        { pts: [[L0, T0, he], [Xm, T0, top], [Xm, B0, top], [L0, B0, he]], n: [-1, 0], e: [L0, B0], light: 1.04 },  // west
+        { pts: [[Xm, T0, top], [R0, T0, he], [R0, B0, he], [Xm, B0, top]], n: [1, 0], e: [R0, T0], light: 0.8 },    // east
+      ];
+      // the edges you see the thickness of (thatch): the eave in front, and the verge on the gable's two sides
+      const front = ew ? [[[L0, B0, he], [R0, B0, he]], [[R0, T0, he], [R0, Ym, top]], [[R0, Ym, top], [R0, B0, he]]]
+        : [[[R0, T0, he], [R0, B0, he]], [[L0, B0, he], [Xm, B0, top]], [[Xm, B0, top], [R0, B0, he]]];
+      if (ew) band(L0 + O, B0, R0 - O, B0, straw ? 9 : 6, straw ? 11 : 8); // under the south eave
+      else band(R0, T0 + O, R0, B0 - O, straw ? 11 : 8, straw ? 9 : 6);    // under the east eave
+      if (ew) gable(W, 0, H, 0.78); else gable(H, 0, W, 0.92);              // the gable you see (the other faces away)
+      for (const sl of slopes) slope(sl.pts, sl.n[0], sl.n[1], sl.e[0], sl.e[1], sl.light);
+      if (straw) thatch(slopes, front);
+      else if (ew) {
         roll([L0, B0, he], [R0, B0, he], 3, 0.8);                                         // the eaves
         roll([L0, T0, he], [R0, T0, he], 2.4, 1.05);
         roll([R0, T0, he], [R0, Ym, top], 3, 0.85); roll([R0, Ym, top], [R0, B0, he], 3, 0.8); // the verges at the gables
         roll([L0, T0, he], [L0, Ym, top], 3, 1.05); roll([L0, Ym, top], [L0, B0, he], 3, 0.95);
-        roll([L0, Ym, top], [R0, Ym, top], straw ? 6 : 4.5, 1.05);                         // the ridge
+        roll([L0, Ym, top], [R0, Ym, top], 4.5, 1.05);                                    // the ridge
       } else {
-        const Xm = W / 2;
-        band(R0, T0 + O, R0, B0 - O, 8, 6);                                              // under the east eave
-        gable(H, 0, W, 0.92);                                                            // the south gable
-        slope([[L0, T0, he], [Xm, T0, top], [Xm, B0, top], [L0, B0, he]], -1, 0, L0, B0, 1.04); // west slope
-        slope([[Xm, T0, top], [R0, T0, he], [R0, B0, he], [Xm, B0, top]], 1, 0, R0, T0, 0.8);   // east slope
         roll([R0, T0, he], [R0, B0, he], 3, 0.78);
         roll([L0, T0, he], [L0, B0, he], 2.4, 1.05);
         roll([L0, B0, he], [Xm, B0, top], 3, 0.95); roll([Xm, B0, top], [R0, B0, he], 3, 0.8);
         roll([L0, T0, he], [Xm, T0, top], 3, 1.05); roll([Xm, T0, top], [R0, T0, he], 3, 0.9);
-        roll([Xm, T0, top], [Xm, B0, top], straw ? 6 : 4.5, 1.05);
+        roll([Xm, T0, top], [Xm, B0, top], 4.5, 1.05);
+      }
+      // Thatch: a thick, soft coat of straw, not tiles. Each slope drawn in its own terms (along: along the eave from its
+      // end e; across: from the eave's edge up to the ridge): rounded off towards its edges, each course of straw
+      // lying over the one below with a shadow under its lip, weathered here and there (grey streaks, moss), and capped
+      // along the ridge by a thicker roll of straw with a scalloped edge, held down by hazel rods crossed between them.
+      // Where you see an edge (the eave in front, the verges by the gable) the coat's thickness shows: the cut ends of
+      // the stalks, dark between them, and ragged along the bottom.
+      function thatch(slopes, front) {
+        const rnd = (seed => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(w * 7919 + h * 104729 + 17);
+        const L = Math.hypot(1, p), course = TILE / 2 / L; // (the picture has two courses a tile: their edges this far apart, across)
+        const capW = 9;
+        slopes.forEach(sl => {
+          const [nx, ny] = sl.n;
+          // (along, across) -> drawn: along the eave, and across it inwards and up (rising p a pixel)
+          g.setTransform(R * -ny, R * nx, R * (-nx - p), R * (-ny - p), R * (M + sl.e[0] - he), R * (M + sl.e[1] - he));
+          g.save();
+          g.beginPath(); g.rect(0, 0, len, up); g.clip();
+          // rounded off: darker down towards the eave and at the ends, where the coat curves away
+          let gr = g.createLinearGradient(0, 0, 0, up * 0.45);
+          gr.addColorStop(0, 'rgba(40,22,6,0.34)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
+          g.fillStyle = gr; g.fillRect(0, 0, len, up);
+          for (const [a0, a1] of [[0, 8], [len, len - 8]]) {
+            gr = g.createLinearGradient(a0, 0, a1, 0); gr.addColorStop(0, 'rgba(40,22,6,0.3)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
+            g.fillStyle = gr; g.fillRect(Math.min(a0, a1), 0, 8, up);
+          }
+          // each course's lip: lit along its rounded edge, a shadow under it on the course below
+          for (let b = course; b < up - capW; b += course) {
+            gr = g.createLinearGradient(0, b - 3.5, 0, b);
+            gr.addColorStop(0, 'rgba(36,20,4,0)'); gr.addColorStop(1, 'rgba(36,20,4,0.42)');
+            g.fillStyle = gr; g.fillRect(0, b - 3.5, len, 3.5);
+            gr = g.createLinearGradient(0, b, 0, b + 2.4);
+            gr.addColorStop(0, 'rgba(255,226,150,0.3)'); gr.addColorStop(1, 'rgba(255,226,150,0)');
+            g.fillStyle = gr; g.fillRect(0, b, len, 2.4);
+          }
+          // weathered: streaks of grey running down the straw, and a little moss, low down and by the ridge
+          for (let k = 0; k < len / 14; k++) {
+            const a = rnd() * len, b = rnd() * (up - capW - 6), l = 6 + rnd() * 12, wd = 0.8 + rnd() * 1.6;
+            const st = g.createLinearGradient(0, b, 0, b + l), k2 = (0.08 + rnd() * 0.1).toFixed(2);
+            st.addColorStop(0, 'rgba(92,86,70,0)'); st.addColorStop(0.3, `rgba(92,86,70,${k2})`); st.addColorStop(1, 'rgba(92,86,70,0)');
+            g.fillStyle = st; g.fillRect(a, b, wd, l);
+          }
+          for (let k = 0; k < 2 + len / 40; k++) {
+            const a = rnd() * len, b = rnd() < 0.6 ? 2 + rnd() * 8 : up - capW - 2 - rnd() * 6, r = 1.6 + rnd() * 2.6;
+            g.fillStyle = 'rgba(66,84,34,0.32)'; g.beginPath(); g.ellipse(a, b, r * 1.4, r, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = 'rgba(110,128,60,0.25)'; g.beginPath(); g.ellipse(a - r * 0.3, b + r * 0.3, r * 0.7, r * 0.5, 0, 0, Math.PI * 2); g.fill();
+          }
+          // the ridge's cap: a thicker roll of straw (a darker, greyer sedge), its lower edge cut in scallops
+          const c0 = up - capW, sc = 6;
+          g.beginPath(); g.moveTo(0, up); g.lineTo(0, c0 + 1);
+          for (let a = 0; a < len; a += sc) g.quadraticCurveTo(a + sc / 2, c0 - 2.6, Math.min(len, a + sc), c0 + 1);
+          g.lineTo(len, up); g.closePath();
+          g.save(); g.clip();
+          gr = g.createLinearGradient(0, c0 - 3, 0, up);
+          gr.addColorStop(0, rgb(0.62)); gr.addColorStop(0.5, rgb(0.78)); gr.addColorStop(1, rgb(0.9));
+          g.fillStyle = gr; g.fillRect(0, c0 - 3, len, capW + 3);
+          g.strokeStyle = rgb(0.5, 0.45); g.lineWidth = 0.6; // (its stalks run along the ridge)
+          for (let k = 0; k < len / 3; k++) { const a = rnd() * len, b = c0 - 2 + rnd() * (capW + 2); g.beginPath(); g.moveTo(a, b); g.lineTo(a + 3 + rnd() * 4, b + (rnd() - 0.5)); g.stroke(); }
+          g.restore();
+          g.strokeStyle = 'rgba(36,20,4,0.55)'; g.lineWidth = 0.9; // (the scallops' edge, and their shadow on the coat)
+          g.beginPath(); g.moveTo(0, c0 + 1);
+          for (let a = 0; a < len; a += sc) g.quadraticCurveTo(a + sc / 2, c0 - 2.6, Math.min(len, a + sc), c0 + 1);
+          g.stroke();
+          // a hazel rod along it, just above the scallops, pegged down now and then
+          g.strokeStyle = 'rgba(40,24,8,0.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, c0 + 2.6); g.lineTo(len, c0 + 2.6); g.stroke();
+          g.strokeStyle = 'rgba(196,166,112,0.7)'; g.lineWidth = 0.5; g.beginPath(); g.moveTo(0, c0 + 3); g.lineTo(len, c0 + 3); g.stroke();
+          g.fillStyle = 'rgba(40,24,8,0.45)';
+          for (let a = 5 + rnd() * 6; a < len - 3; a += 14 + rnd() * 8) g.fillRect(a, c0 + 2.2, 0.9, 1.6);
+          g.restore();
+        });
+        // the ridge itself: a soft round top where the two caps meet
+        roll(ew ? [L0, Ym, top] : [Xm, T0, top], ew ? [R0, Ym, top] : [Xm, B0, top], 3.5, 0.92);
+        world();
+        // and a soft dark line along the edges that face away (the far eave, the far verge): where the coat turns under
+        for (const sl of slopes) {
+          const pts = sl.pts.map(q => S(...q));
+          g.strokeStyle = 'rgba(40,22,6,0.5)'; g.lineWidth = 1;
+          g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
+          // the coat's thickness along the edges you see: the cut ends of the straw, ragged at the bottom
+        const T = 5.5;
+        for (const [a, b] of front) {
+          const [ax, ay] = S(...a), [bx, by] = S(...b), n = Math.max(2, Math.round(Math.hypot(bx - ax, by - ay) / 2.5));
+          g.save();
+          g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by);
+          for (let k = n; k >= 0; k--) { const t = k / n, j = T - 1.4 + rnd() * 2.2; g.lineTo(ax + (bx - ax) * t + j, ay + (by - ay) * t + j); }
+          g.closePath();
+          g.fillStyle = '#4a3416'; g.fill(); g.clip();
+          const dots = Math.round(Math.hypot(bx - ax, by - ay) * T / 2.2);
+          for (let k = 0; k < dots; k++) {
+            const t = rnd(), d = rnd() * T, x = ax + (bx - ax) * t + d, y = ay + (by - ay) * t + d, lit = 1 - d / T;
+            g.fillStyle = rnd() < 0.5 ? `rgba(226,190,112,${(0.55 + 0.4 * lit).toFixed(2)})` : `rgba(176,138,70,${(0.5 + 0.4 * lit).toFixed(2)})`;
+            g.fillRect(x - 0.5, y - 0.5, 1 + rnd() * 0.6, 1 + rnd() * 0.6);
+          }
+          const gr = g.createLinearGradient(ax, ay, ax + T, ay + T);
+          gr.addColorStop(0, 'rgba(255,230,160,0.25)'); gr.addColorStop(0.35, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(30,16,4,0.45)');
+          g.fillStyle = gr; g.fillRect(Math.min(ax, bx) - 1, Math.min(ay, by) - 1, Math.abs(bx - ax) + T + 2, Math.abs(by - ay) + T + 2);
+          g.restore();
+          // its rounded top edge, lit
+          g.strokeStyle = 'rgba(255,228,150,0.55)'; g.lineWidth = 1; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+        }
+      }
       }
     }, cw * R, ch * R);
   }
