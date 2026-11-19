@@ -42,7 +42,7 @@ const Render = {
     g.restore();
   },
   // ---- the ground, kept in chunks --------------------------------------------------------------------------------
-  // The ground of a floor (its textures, shores, borders, scree, lips and rugs) doesn't change from frame to frame, but
+  // The ground of a floor (its textures, shores, borders, lips and rugs) doesn't change from frame to frame, but
   // drawing it is hundreds of pictures a frame. So it's drawn once per chunk of CHUNK x CHUNK tiles, into a picture
   // kept for later (CHUNK_RES pixels per world pixel: the ground's pictures are drawn that fine), and each frame only
   // the chunks in view are put down. A chunk is drawn again when a tile in or next to it changes (map.dirty, filled by
@@ -378,7 +378,7 @@ const Render = {
         const [a, b] = id.endsWith('_ns') ? [groundAt(x - 1, y), groundAt(x + 1, y)] : [groundAt(x, y - 1), groundAt(x, y + 1)];
         return `${a === id ? 1 : 0}${b === id ? 1 : 0}`;
       };
-      // The ground of tiles gx0..gx1, gy0..gy1 (the scree and lips of x0..x1, y0..y1), at (ox, oy): what lies flat,
+      // The ground of tiles gx0..gx1, gy0..gy1 (the lips of x0..x1, y0..y1), at (ox, oy): what lies flat,
       // under everything on the floor. Drawn live, or once into a chunk kept for later (see groundChunk).
       // A rounded shore (Sprites.shoreField): out in the wilds, where open land meets open water, the two are one smooth
       // shape across the tiles, corners rounded and staircases sloping. A tile has one when it or a tile round it is
@@ -453,7 +453,16 @@ const Render = {
         const SQUASH_WET = 0.45; // (over water a ground's own border reaches less far: the beach's foam shows past it)
         // water at a staircase's inner corner: [corner, land] when one land with border pictures of its own lies on two
         // sides and across the corner between them, and water on the other two sides and their corner
+        // (in town the water meets a bank of stones, square at its corners: no beach on the diagonal there, its foam
+        // showed as a pale streak across the water at every inside bend; see the quay below)
+        const townWater = (() => {
+          const all = map.townZones && map.townZones.zones === map.zones && map.townZones.count === map.zones.length ? map.townZones.list
+            : (map.townZones = { zones: map.zones, count: (map.zones || []).length, list: (map.zones || []).filter(r => r.town) }).list;
+          const here = all.filter(r => r.z === z && r.x1 >= gx0 - 1 && r.x0 <= gx1 + 1 && r.y1 >= gy0 - 1 && r.y0 <= gy1 + 1);
+          return (tx, ty) => here.some(r => tx >= r.x0 && tx <= r.x1 && ty >= r.y0 && ty <= r.y1);
+        })();
         const shoreDiagonal = (x, y, bank) => {
+          if (townWater(x, y)) return null;
           for (const [d, dx, dy] of BORDER_DIRS) {
             const n = bank(x + dx, y + dy);
             if (!n || WET.has(n) || BRIDGE_GROUNDS.has(n) || !Sprites.hasOwnEdge(n) || bank(x + dx, y) !== n || bank(x, y + dy) !== n) continue;
@@ -637,20 +646,8 @@ const Render = {
           }
         }
 
-        // Around the foot of rock walls: scree on the ground next to them (not under walls themselves).
-        const rockAt = (x, y) => { const t = tileAt(x, y); return !!t && t.items.some(id => Sprites.hasFoot(id)); };
-        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-          const t = tileAt(x, y);
-          if (!t || !t.ground || THINGS[t.ground].block || rockAt(x, y) || t.items.some(id => THINGS[id].wall || THINGS[id].change)) continue; // nor over steps
-          const variant = ((x * 83492791) ^ (y * 2654435761)) >>> 0, sides = {};
-          for (const [d, dx, dy] of [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]]) {
-            sides[d] = rockAt(x + dx, y + dy);
-            if (sides[d]) g.drawImage(Sprites.foot(d, variant % 3), ox + x * TILE, oy + y * TILE);
-          }
-          for (const [d, dx, dy, a, b] of BORDER_DIRS) {
-            if (rockAt(x + dx, y + dy) && !sides[a] && !sides[b]) g.drawImage(Sprites.foot(d, (variant >>> 4) % 3), ox + x * TILE, oy + y * TILE);
-          }
-        }
+        // (no scree round the foot of rock walls: their pictures have a ragged foot of their own, and a band of loose grey
+        // stones a tile out read as a dotted outline on the grass)
 
         // Flowers here and there in the grass (Sprites.grassFlowers: a few clumps, picked by place, about one tile in three)
         const flowers = Sprites.grassFlowers && Sprites.grassFlowers();

@@ -7493,7 +7493,7 @@ const Sprites = (() => {
   // Only if they still match: a fingerprint of the code that draws them and of the textures they're made of
   // (groundFingerprint) must be the one they were made with; else they're made as before. Bake again after changing
   // either (node tests/bake-ground.js): the game says so in the console.
-  const BAKED_KINDS = ['edge9:', 'cut3:', 'foot:', 'lip:', 'kerb:']; // (shores are few and quick: made as we go)
+  const BAKED_KINDS = ['edge9:', 'cut3:', 'lip:', 'kerb:']; // (shores are few and quick: made as we go)
   const baked = { img: null, index: null, ok: undefined };
   if (typeof BAKED_GROUND !== 'undefined' && BAKED_GROUND.keys) {
     baked.index = new Map(BAKED_GROUND.keys.map((k, i) => [k, i]));
@@ -8556,42 +8556,6 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       });
     },
-    // The foot of a rock wall (cliff or cave wall) on side d of a ground tile (n, e, s, w; or ne,
-    // se, sw, nw for a corner): scree and stones spilling out from the rock, with its shadow.
-    foot(d, variant = 0) {
-      return cached(`foot:${d}:${variant}`, g => {
-        const r = makeRng(hashStr(`foot${d}${variant}`));
-        const turn = { n: 0, e: 1, s: 2, w: 3, ne: 0, se: 1, sw: 2, nw: 3 }[d];
-        g.translate(16, 16);
-        g.rotate((turn * Math.PI) / 2);
-        g.translate(-16, -16);
-        const corner = d.length === 2; // the rock is off the top-right corner
-        const reach = (x, y) => (corner ? Math.hypot(TILE - x, y) : y);
-        const grad = corner ? g.createRadialGradient(TILE, 0, 0, TILE, 0, 14) : g.createLinearGradient(0, 0, 0, 12);
-        grad.addColorStop(0, 'rgba(20,16,12,0.45)');
-        grad.addColorStop(1, 'rgba(20,16,12,0)');
-        g.fillStyle = grad;
-        g.fillRect(0, 0, TILE, corner ? 16 : 12);
-        // a band of scree, ragged on its outer side
-        for (let x = 0; x < TILE; x += 2) {
-          const depth = 3 + ((r() * 4) | 0);
-          for (let y = 0; y < depth; y++) {
-            if (corner && reach(x, y) > 9) continue;
-            if (r() < 0.75) rect(g, ['#7c7c7a', '#929290', '#6a6a6a', '#a2a29e'][(r() * 4) | 0], x, y, 2, 1);
-          }
-        }
-        // stones of a few sizes, the larger ones nearer the rock
-        for (let i = 0; i < (corner ? 3 : 7); i++) {
-          const x = corner ? TILE - 2 - r() * 10 : 1 + r() * 30, y = corner ? 1 + r() * 8 : 2 + r() * 8, s = y < 5 ? 2.5 : 1.5;
-          if (corner && reach(x, y) > 12) continue;
-          ellipse(g, 'rgba(0,0,0,0.3)', x + 0.5, y + 1, s + 0.5, s * 0.6);
-          ellipse(g, ['#9a9a96', '#8a8a88', '#acaca8'][i % 3], x, y, s, s * 0.75);
-          rect(g, '#dcdcd8', x - s * 0.5, y - s * 0.5, 1, 1);
-        }
-      });
-    },
-    // Rock walls that get a foot of scree on the ground around them.
-    hasFoot: id => id === 'cliff' || id === 'wall_cave',
     // Natural ground that gets a rocky lip where it ends in the open (a mountain top's edge).
     hasLip: id => ['rock_top', 'grass', 'mountain', 'dirt', 'snow', 'sand', 'ash', 'jungle', 'swamp'].includes(id),
     // The lip along side d (n, e, s, w) of a raised tile: a ragged band of rock, lit on top,
