@@ -569,13 +569,15 @@ const Fx = (() => {
       const v = visual(c);
       lights.push({ x: v.x, y: v.y, r: 6.5, color: LIGHT_COLORS.you, flicker: false, carried: true });
     }
-    const roofs = []; // the roofs over the floor you're on, where they're drawn: the lamps down in the street don't light them
+    // the roofs on the floor you're on and above, where they're drawn: lights on a floor below them (the lamps down in the
+    // street) don't light them; lights on their own floor or higher (your torch on the wall beside one) do
+    const roofs = [];
     for (let z = view.minZ; z <= view.maxZ; z++) {
       const d = z - view.z, inside = [], openings = [];
       for (let y = player.y - 13; y <= player.y + 13; y++) for (let x = player.x - 16; x <= player.x + 16; x++) {
         const t = map.get(x, y, z);
         if (!t) continue;
-        if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d]); // (where a roof is drawn: see below)
+        if (d >= 0 && THINGS[t.ground] && THINGS[t.ground].roof) roofs.push([x - d, y - d, z]); // (where a roof is drawn: see below)
         // (doors and windows with open sky in front, on a side you see (south, east): where light from inside gets out)
         if (z < view.maxZ && t.items.some(id => id === 'window' || id === 'window_stained' || id.startsWith('door'))) {
           const out = [[0, 1], [1, 0]].find(([ox, oy]) => { const n = map.get(x + ox, y + oy, z); return n && !map.get(x + ox, y + oy, z + 1) && !n.items.some(i => THINGS[i].wall); });
@@ -587,9 +589,9 @@ const Fx = (() => {
           for (const id of [t.ground, ...t.items]) if (id && THINGS[id] && THINGS[id].light) inside.push([x, y, THINGS[id].light, LIGHT_COLORS[id] || '255,190,110', FLAMES.has(id)]);
           continue;
         }
-        if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: FLAMES.has(t.ground) });
+        if (t.ground && THINGS[t.ground].light) lights.push({ x: x - d, y: y - d, z, r: 1.6, color: LIGHT_COLORS[t.ground], flicker: FLAMES.has(t.ground) });
         for (const id of t.items) {
-          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: FLAMES.has(id) });
+          if (THINGS[id].light) lights.push({ x: x - d, y: y - d, z, r: THINGS[id].light, color: LIGHT_COLORS[id] || '255,190,110', flicker: FLAMES.has(id) });
         }
       }
       // a fire or a lamp inside a house, seen from the street: its light out of each door and window of its room it
@@ -603,7 +605,7 @@ const Fx = (() => {
         }
         if (!best) continue;
         const k = Math.max(0.35, 1 - best.far / (best.r + 3));
-        lights.push({ x: ox - d + out[0] * 0.6, y: oy - d + out[1] * 0.6, r: (door ? 2.4 : 2) * k, color: best.color, flicker: best.flame, soft: !door });
+        lights.push({ x: ox - d + out[0] * 0.6, y: oy - d + out[1] * 0.6, z, r: (door ? 2.4 : 2) * k, color: best.color, flicker: best.flame, soft: !door });
       }
     }
     // a power shot lights the dark: the bow glows brighter as it's drawn, then the arrow carries its light all the way,
@@ -640,29 +642,37 @@ const Fx = (() => {
       dctx.globalCompositeOperation = 'destination-out';
       dctx.imageSmoothingEnabled = true;
       const W = dark.width / LIGHT_RES, H = dark.height / LIGHT_RES, onView = (sx, sy, r) => sx + r > 0 && sy + r > 0 && sx - r < W && sy - r < H;
-      for (const l of lights) { // pools of light, every one clear as your own torchlight (no coloured haze over them)
-        const yours = !l.soft, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (l.soft ? 0.7 : 1);
-        if (l.arrow !== undefined) { if (onView(sx, sy, r)) arrowLight(sx, sy, rad(l), l.arrow, arrowPicture('hole')); continue; }
-        if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : 'soft'), sx - r, sy - r, r * 2, r * 2);
+      // floor by floor from the bottom: first the roofs on that floor keep the night (the pools of light from the floors
+      // below would show through them), then that floor's own lights (yours and every light without a floor: player.z)
+      const floorOf = l => (l.z === undefined ? view.z : l.z);
+      const floors = [...new Set([...lights.map(floorOf), ...roofs.map(r => r[2])])].sort((a, b) => a - b);
+      const size = TILE * SCALE;
+      for (const f of floors) {
+        // (all of a floor's roofs as one shape, on whole pixels: tile by tile, the overlaps were darker and showed a grid)
+        // (the eaves sticking out past a roof's edge may catch the light: only the roof's own tiles stay dark)
+        const here = roofs.filter(r => r[2] === f);
+        if (here.length) {
+          dctx.globalCompositeOperation = 'source-over';
+          dctx.beginPath();
+          for (const [rx, ry] of here) {
+            const [sx, sy] = screen(rx, ry);
+            if (!onView(sx + size / 2, sy + size / 2, size)) continue;
+            const x0 = Math.floor(sx), y0 = Math.floor(sy), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
+            dctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+            dctx.rect(x0, y0, x1 - x0, y1 - y0);
+          }
+          dctx.fill('nonzero');
+        }
+        dctx.globalCompositeOperation = 'destination-out';
+        for (const l of lights) { // pools of light, every one clear as your own torchlight (no coloured haze over them)
+          if (floorOf(l) !== f) continue;
+          const yours = !l.soft, [sx, sy] = screen(l.x + 0.5, l.y + 0.5), r = rad(l) * (l.soft ? 0.7 : 1);
+          if (l.arrow !== undefined) { if (onView(sx, sy, r)) arrowLight(sx, sy, rad(l), l.arrow, arrowPicture('hole')); continue; }
+          if (onView(sx, sy, r)) dctx.drawImage(holePicture(yours ? 'yours' : 'soft'), sx - r, sy - r, r * 2, r * 2);
+        }
       }
       dctx.globalCompositeOperation = 'source-over';
       dctx.globalAlpha = 1;
-      // the roofs keep the night: a lamp in the street, or your own light, lights the street and the walls, not the roof
-      // of the house beside it (its pool would show through it)
-      if (roofs.length) {
-        // (all of them as one shape, on whole pixels: tile by tile, the overlaps were darker and showed a grid)
-        // (the eaves sticking out past a roof's edge may catch the light: only the roof's own tiles stay dark)
-        const size = TILE * SCALE;
-        dctx.beginPath();
-        for (const [rx, ry] of roofs) {
-          const [sx, sy] = screen(rx, ry);
-          if (!onView(sx + size / 2, sy + size / 2, size)) continue;
-          const x0 = Math.floor(sx), y0 = Math.floor(sy), x1 = Math.ceil(sx + size), y1 = Math.ceil(sy + size);
-          dctx.clearRect(x0, y0, x1 - x0, y1 - y0);
-          dctx.rect(x0, y0, x1 - x0, y1 - y0);
-        }
-        dctx.fill('nonzero');
-      }
       ctx.imageSmoothingEnabled = true; // (the night is soft: no blocks when it's spread over a finer canvas)
       ctx.drawImage(dark, 0, 0, dark.width / LIGHT_RES, dark.height / LIGHT_RES);
       ctx.imageSmoothingEnabled = false;
