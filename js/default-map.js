@@ -275,7 +275,7 @@ const OAKVALE = {
   people: [
     ['ama', 136, 103, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 114, 114, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
-    ['gate_north', 124, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
+    ['gate_north', 125, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
     ['oak_gunner', 134, 105, 9], ['oak_refugee', 124, 128, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her wagon on the square)
   ],
@@ -2086,6 +2086,10 @@ function buildTown(m, S, runs, river) {
         m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_rampart'] : [] });
         if (x > x0 && y > y0) m.set(x, y, S + 2, { ground: 'roof', items: [] }); // (its north and west rows left out, as a building's)
       }
+      // (its roof a tile further along the walkway, east or south, over the last of its walls there: two floors up it's
+      // drawn a tile further up-left than the walls under it, which showed a bare stepped ledge beside the roof)
+      if (across) for (let y = y0 + 1; y <= y1; y++) m.set(x1 + 1, y, S + 2, { ground: 'roof', items: [] });
+      else for (let x = x0 + 1; x <= x1; x++) m.set(x, y1 + 1, S + 2, { ground: 'roof', items: [] });
       const [bx, by] = across ? [mx, gy0 === R.y0 ? y1 : y0] : [gx0 === R.x0 ? x1 : x0, my]; // the side towards town
       put(bx, by, S + 1, 'banner');
     }
