@@ -169,15 +169,17 @@ window.addEventListener('keydown', e => {
     if (useWith) cancelUseWith();
     else if (!$('worldmap').hidden) toggleWorldMap();
     else {
-      for (const id of ['read', 'paths', 'hotkeys', 'guild']) $(id).hidden = true;
+      for (const id of ['read', 'paths', 'hotkeys', 'guild', 'skillTree']) $(id).hidden = true;
       closeForge();
       Actions.stop();
     }
   } else if (k === 'enter') {
     $('chat').focus();
   } else if (/^[1-9]$/.test(k)) {
-    const id = spellsFor(player.vocation)[+k - 1];
-    if (id) Actions.castSpell(id);
+    const e = hotbarEntries()[+k - 1]; // (as the bar below the map numbers them: a skill tree's line is one)
+    if (e && SPELLS[e.id] && !e.locked) e.act();
+  } else if (k === 'k' && TREES[player.vocation]) {
+    if ($('skillTree').hidden) openSkillTree(); else $('skillTree').hidden = true;
   } else if ('hmf'.includes(k)) {
     Actions.hotkey(k);
   } else if (k === 'g') {
@@ -877,6 +879,25 @@ function drawLightningChain(fx, ox, oy) {
   ctx.restore();
 }
 
+// A falcon in flight, seen from above (x, y its middle, a its heading, flap 0..1 how far its wings are swept back)
+function drawFalcon(x, y, a, flap, scale = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(scale, scale);
+  const sweep = 0.35 + 0.5 * flap;
+  ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(3, 7, 7, 3, 0, 0, Math.PI * 2); ctx.fill(); // (its shadow below)
+  for (const side of [-1, 1]) { // the wings: long and pointed, out to the sides, their tips swept back as it flaps
+    const tx = -1 - 4 * sweep, ty = side * (12 - 3 * sweep);
+    ctx.fillStyle = '#4e3420';
+    ctx.beginPath(); ctx.moveTo(2, side * 1.2); ctx.quadraticCurveTo(2, side * 8, tx, ty); ctx.quadraticCurveTo(-3, side * 6, -4, side * 1.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#a07a52';
+    ctx.beginPath(); ctx.moveTo(1.6, side * 1.4); ctx.quadraticCurveTo(1.4, side * 6.5, tx + 0.6, ty - side * 1.2); ctx.quadraticCurveTo(-1, side * 4, -2, side * 1.6); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = '#5a3c22'; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(-10, -2.5); ctx.lineTo(-10, 2.5); ctx.closePath(); ctx.fill(); // its tail
+  ctx.fillStyle = '#8a6440'; ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.4, 0, 0, Math.PI * 2); ctx.fill();                       // its body
+  ctx.fillStyle = '#e8dcc0'; ctx.beginPath(); ctx.arc(4, 0, 1.9, 0, Math.PI * 2); ctx.fill();                                    // its head
+  ctx.fillStyle = '#e8b030'; ctx.beginPath(); ctx.moveTo(5.6, -0.6); ctx.lineTo(7.2, 0); ctx.lineTo(5.6, 0.6); ctx.closePath(); ctx.fill(); // its beak
+  ctx.restore();
+}
+
 function glowDot(x, y, r, rgba, a) {
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
   g.addColorStop(0, `${rgba}${a})`); g.addColorStop(0.4, `${rgba}${a * 0.5})`); g.addColorStop(1, `${rgba}0)`);
@@ -1086,7 +1107,50 @@ function drawEffects(ox, oy, z) {
         if (p < 1) glowDot(x, y, 4, 'rgba(235,248,255,', 0.85);
       }
       ctx.restore();
+    } else if (fx.kind === 'rain') { // arrows loosed high: a flash at the bow, then streaks falling on each tile, a puff of dust where they land
+      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+      if (e < 160) glowDot(sx, sy - 6, 5 + 8 * (1 - e / 160), 'rgba(210,236,255,', 0.7 * (1 - e / 160));
+      if (e < 260) { ctx.strokeStyle = `rgba(210,236,255,${0.6 * (1 - e / 260)})`; ctx.lineWidth = 1.5; for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(sx + k * 3, sy - 8); ctx.lineTo(sx + k * 5, sy - 8 - e / 4); ctx.stroke(); } } // (straight up)
+      fx.tiles.forEach(([x, y], i) => {
+        const lag = ((x * 7 + y * 13) % 5) * 40, r = e - fx.fall + 200 - lag; // (each its own moment)
+        const cx = ox + x * TILE + 16 + ((x * 5 + y * 3) % 7) - 3, cy = oy + y * TILE + 14 + ((x * 3 + y * 5) % 7) - 3;
+        if (r >= 0 && r < 200) { // falling: a pale streak from high above, down to the tile
+          const p = r / 200, hy = cy - 70 * (1 - p);
+          ctx.strokeStyle = 'rgba(225,242,255,0.85)'; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(cx - 3, hy - 16); ctx.lineTo(cx, hy); ctx.stroke();
+        } else if (r >= 200 && r < 520) { // landed: a flash and the arrow standing in the ground
+          const f = 1 - (r - 200) / 320;
+          glowDot(cx, cy, 3 + 5 * (1 - f), 'rgba(220,236,255,', 0.6 * f);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = Math.min(1, f * 2);
+          ctx.strokeStyle = '#5a3c22'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 2, cy - 8); ctx.stroke();
+          ctx.fillStyle = '#e8e2d0'; ctx.fillRect(cx - 3.5, cy - 10, 3, 2.5);
+          ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'lighter';
+        }
+      });
+      ctx.restore();
+    } else if (fx.kind === 'falcon_aloft') { // a hunting falcon circling over its Hawk (not while it dives: see falcon_dive)
+      const who = creatureById(fx.cid);
+      if (!who || who.z !== fx.z || effects.some(d => d.kind === 'falcon_dive' && d.cid === fx.cid && d.turn === fx.turn && !d.mark && now >= d.start && now < d.start + d.dur)) continue;
+      const v = visual(who), a = (now - fx.start) / 900 + fx.turn * Math.PI * 2 / fx.of, fade = Math.min(1, (now - fx.start) / 300, (fx.start + fx.dur - now) / 300);
+      const cx = ox + v.x * TILE + 16 + Math.cos(a) * 18, cy = oy + v.y * TILE - 22 + Math.sin(a) * 9;
+      ctx.globalAlpha = Math.max(0, fade);
+      drawFalcon(cx, cy, a + Math.PI / 2, 0.5 + 0.5 * Math.sin(now / 90 + fx.turn), 1);
+      ctx.globalAlpha = 1;
+    } else if (fx.kind === 'falcon_dive') { // the falcon stooping on the target and climbing back (a mark: it flies off after)
+      const who = creatureById(fx.cid), tgt = creatureById(fx.tid), e = now - fx.start;
+      const v = who && who.z === fx.z ? visual(who) : fx, tv = tgt && tgt.z === fx.z && !tgt.dead ? visual(tgt) : { x: fx.tx, y: fx.ty };
+      const hx = ox + v.x * TILE + 16, hy = oy + v.y * TILE - 22, tx = ox + tv.x * TILE + 16, ty = oy + tv.y * TILE + 4;
+      const out = e < fx.dive, p = out ? e / fx.dive : Math.min(1, (e - fx.dive) / (fx.dive + 120)), ease = out ? p * p : p;
+      const [ax, ay, bx, by] = out ? [hx, hy, tx, ty] : fx.mark ? [tx, ty, tx + 60, ty - 90] : [tx, ty, hx, hy];
+      const x = ax + (bx - ax) * ease, y = ay + (by - ay) * ease - (out ? 0 : Math.sin(p * Math.PI) * 18), a = Math.atan2(by - ay, bx - ax);
+      ctx.globalAlpha = fx.mark && !out ? 1 - p : 1;
+      drawFalcon(x, y, a, out ? 0.95 : 0.4 + 0.5 * Math.sin(now / 70), out ? 1.1 : 1);
+      ctx.globalAlpha = 1;
+      if (!out && e - fx.dive < 160) glowDot(tx, ty, 6, 'rgba(255,233,176,', 0.6 * (1 - (e - fx.dive) / 160));
     } else if (fx.kind === 'impact') { // where a strike lands: a flash, and rays of light shooting out every way
+      if (now < fx.start) continue; // (a Sky Lance's burst: when its arrow gets there)
       const cx = ox + fx.x * TILE + 16, cy = oy + fx.y * TILE + 10, f = 1 - t, [r, g, b] = [1, 3, 5].map(k => parseInt(fx.glow.slice(k, k + 2), 16));
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';

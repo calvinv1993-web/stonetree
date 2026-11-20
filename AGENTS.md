@@ -245,7 +245,7 @@ What to keep as it is:
 | A monster | `MONSTERS` in `creatures.js`; a look in `MONSTER_LOOKS` (`sprites.js`); spawns in `default-map.js`: `spawn('type', [[x, y], ...], z)` |
 | An NPC | `NPCS` in `npcs.js`: `look`, `greet`, `keywords` (`'a\|b'` matches either word; services are listed at the top), optional `trade`, `chatter`, `wander`; then place it with `npc('id', x, y, z)` in `default-map.js` |
 | A quest | `QUESTS` in `npcs.js` (`kill`, `fetch`, or `steps` across NPCs; `level`; `reward`; texts), offered through an NPC keyword `{ quest: ['id', ...] }`. One-time chests are `qchest_*` things with a `chest` setting in `defs.js` |
-| A spell | `SPELLS` in `creatures.js` (the kinds are handled in `castSpell` in `game-combat.js`) |
+| A spell | `SPELLS` in `creatures.js` (the kinds are handled in `castSpell` in `game-combat.js`); a path with a skill tree (`TREES`, so far the Hawk) learns its attack spells with points, by tier and rank (docs/skills-plan.md) |
 | A map thing | `THINGS` in `defs.js`; `DRAW` in `sprites.js`; placed with `put(x, y, z, 'id')` |
 | A player action | a method on `Actions` with plain-data arguments; the UI calls it |
 | A player field | `newPlayer`, `SAVED_FIELDS` and `ALWAYS`/`SOMETIMES` (see above) |

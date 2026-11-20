@@ -101,6 +101,30 @@ const Actions = {
   },
   say,
   castSpell,
+  // Your skill tree (creatures.js TREES): learn the next rank of a spell or passive, with your skill points
+  learnRank(id) {
+    if (typeof id !== 'string' || (!Object.hasOwn(SPELLS, id) && !treePassive(player.vocation, id))) return;
+    const why = cantLearn(player, id);
+    if (why) return log(why);
+    player.skillRanks = { ...(player.skillRanks || {}), [id]: rankOf(player, id) + 1 };
+    const name = SPELLS[id] ? SPELLS[id].name : treePassive(player.vocation, id).name, r = rankOf(player, id);
+    log(r === 1 && SPELLS[id] ? `You learned ${name}: it's on its line's button.` : `${name} is rank ${r} now.`, 'level');
+    addSparkle(player, '#ffe080');
+    addSound('level', player.x, player.y, player.z);
+    uiDirty();
+  },
+  // ...and start it over: all your points back. The first time free, then your level x 50 gold
+  resetTree() {
+    if (!TREES[player.vocation] || !treePointsSpent(player)) return;
+    const cost = player.treeResets ? player.level * 50 : 0;
+    if (cost && player.gold < cost) return log(`Starting over costs ${cost} gold.`);
+    player.gold -= cost;
+    player.skillRanks = {};
+    player.treeResets++;
+    player.falcons = null;
+    log(`Your skill tree starts over: ${treePoints(player)} points to spend${cost ? ` (${cost} gold)` : ''}.`, 'level');
+    uiDirty();
+  },
   useItem,
   useItemOn,
   moveItem,
@@ -717,6 +741,7 @@ function updatePlayer() {
   trialTick(); // (out of a practice room: out of the trial)
   updateGuide();
   updatePet();
+  tickFalcons(); // (a Hawk's hunting falcons dive at the target)
   tickConditions(player);
   if (player.dead) return;
   autoHeal();

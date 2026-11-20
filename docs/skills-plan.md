@@ -1,6 +1,6 @@
 # Skill trees: the plan
 
-A draft for the owner's approval, before anything is built. The idea comes from tiered skill trees in older MMOs
+**Built for the Hawk** (the other paths still learn their spells by level). The plan, as approved: The idea comes from tiered skill trees in older MMOs
 (lines of skills that grow stronger tier by tier, points you spend yourself), made simpler and fit for a phone. Every
 name, number and picture here is our own.
 
@@ -21,7 +21,7 @@ name, number and picture here is our own.
 - **Two passives per path**, 5 ranks each at 1 point a rank (a small lasting bonus per rank).
 - **Weapons.** Some lines need a weapon in your hands (a Hawk's shots need a bow or crossbow, a Bastion's shield line a
   shield). Without it the button is greyed, with a word why.
-- **Starting over.** At your path's teacher: the first time free, after that gold (your level x 50).
+- **Starting over.** In the tree's window (for now; later at your path's teacher): the first time free, after that gold (your level x 50).
 - **What stays as it is:** the spells everyone has (Torchlight, Light Heal, Cure Poison, Haste), the conjuring spells
   (arrows, bolts, runes: learned by level, as now, outside the tree) and Final Blaze (said, never on a button).
 

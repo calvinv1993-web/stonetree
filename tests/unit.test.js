@@ -1984,6 +1984,9 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   p.skills.distance.level = 40;
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
   A.say('sagitta trina'); tick(game, 100);
+  assert(messages.some(m => /Learn Triple Shot first/.test(m)), 'a skill of the tree: learned first');
+  A.learnRank('triple_shot');
+  A.say('sagitta trina'); tick(game, 100);
   assert(messages.some(m => /need a target/.test(m)), 'not without a target');
   const m = ctx.spawnMonster({ type: 'bear', x: p.x + 4, y: p.y, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m);
   p.target = m; p.chase = false; state.now += 3000;
@@ -1999,6 +2002,91 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   assert(hits[2] - hits[0] >= 120 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
 });
 
+test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier, tiers opening by level and rank, one button a line', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 9, mana: 900, maxMana: 900 });
+  assert.strictEqual(ctx.treePoints(p), 0, 'no points before level 10');
+  p.level = 30;
+  assert.strictEqual(ctx.treePoints(p), 21, 'a point a level from 10');
+  A.learnRank('gale_shot');
+  assert(messages.some(m => /First learn Power Shot to rank 3/.test(m)), 'a tier waits for the one before it');
+  for (let i = 0; i < 3; i++) A.learnRank('power_shot');
+  A.learnRank('power_shot');
+  assert.strictEqual(ctx.rankOf(p, 'power_shot'), 3, 'three ranks at most');
+  A.learnRank('gale_shot');
+  assert.strictEqual(ctx.rankOf(p, 'gale_shot'), 1);
+  assert.strictEqual(ctx.treePoints(p), 21 - 3 - 2, 'tier 2 ranks cost 2');
+  for (let i = 0; i < 3; i++) A.learnRank('triple_shot');
+  for (let i = 0; i < 3; i++) A.learnRank('arrow_rain');
+  A.learnRank('sky_lance');
+  assert(messages.some(m => /opens at level 45/.test(m)), 'tier 3 waits for level 45');
+  assert.strictEqual(ctx.lineSpell(p, 'power_shot'), 'gale_shot', 'the line casts its highest tier learned');
+  assert.strictEqual(ctx.lineSpell(p, 'falcon_mark'), null, 'a line with nothing learned casts nothing');
+  // more than you have: refused
+  const left = ctx.treePoints(p);
+  for (let i = 0; i < 5; i++) A.learnRank('light_feet');
+  assert.strictEqual(ctx.treePoints(p), Math.max(0, left - 5));
+  // the button of a line (its first tier) casts the highest learned: Power Shot's words loose a Gale Shot
+  p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 50 };
+  p.dir = 2; state.now += 6000; A.castSpell('power_shot');
+  assert(state.effects.some(fx => fx.kind === 'shot') && (p.spellCooldowns || {}).gale_shot > state.now, 'Gale Shot it is');
+  // Arrow Rain: on the target and the tiles round it
+  const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
+  const mid = at(4, 0), side = at(4, 1), far = at(4, 3);
+  p.target = mid; p.chase = false; state.now += 6000; A.castSpell('triple_shot');
+  assert(state.effects.some(fx => fx.kind === 'rain'), 'everyone near sees the rain');
+  tick(game, 900);
+  assert(mid.hp < 9999 && side.hp < 9999 && far.hp === 9999, 'the target and round it, nothing further');
+  // starting over: all points back, the first time free, then gold
+  p.gold = 0; A.resetTree();
+  assert.strictEqual(ctx.treePoints(p), 21, 'all the points back');
+  A.learnRank('falcon_mark'); A.resetTree();
+  assert(messages.some(m => /costs 1500 gold/.test(m)) && ctx.rankOf(p, 'falcon_mark') === 1, 'the second time costs gold');
+});
+
+test('the falcon: a mark makes the target take more, hunting falcons dive at it, Light Feet and Sharp Eye help, and saves keep the tree', () => {
+  const game = quietGame();
+  const { ctx, state } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 40, mana: 900, maxMana: 900 });
+  p.skills.distance.level = 40;
+  const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 99999; state.monsters.push(m);
+  p.target = m; p.chase = false;
+  A.learnRank('falcon_mark'); A.castSpell('falcon_mark');
+  assert(m.conditions.marked && m.conditions.marked.k === 0.15, 'marked: 15% more');
+  // hunting falcons: they dive again and again while it lasts
+  A.learnRank('falcon_mark'); A.learnRank('falcon_mark'); A.learnRank('hunting_falcon');
+  state.now += 9000; A.castSpell('falcon_mark');
+  assert(p.falcons && p.falcons.spell === 'hunting_falcon', 'a falcon at your side');
+  const before = m.hp;
+  tick(game, 4000);
+  assert(m.hp < before && state.effects.some(fx => fx.kind === 'falcon_dive'), 'it dives and strikes');
+  state.now += 20000; tick(game, 100);
+  assert(!p.falcons, 'gone after 20 seconds');
+  // Light Feet: faster
+  const slow = ctx.speedOf(p);
+  A.learnRank('light_feet'); A.learnRank('light_feet');
+  assert(ctx.speedOf(p) > slow, 'Light Feet: faster');
+  // Sharp Eye: critical hits with a plain bow, which has none of its own
+  const crits = () => { let n = 0; for (let i = 0; i < 2000; i++) if (ctx.critical({ kind: 'distance' }, 10)[1]) n++; return n; };
+  assert.strictEqual(crits(), 0, 'no critical hits with a plain bow');
+  p.skillRanks.sharp_eye = 5;
+  assert(crits() > 120 && crits() < 300, 'Sharp Eye at rank 5: about one in ten');
+  delete p.skillRanks.sharp_eye;
+  // a save keeps the tree; nonsense in one is dropped
+  const save = ctx.serializePlayer(p);
+  save.skillRanks.fire_bolt = 3; save.skillRanks.light_feet = 99;
+  ctx.applySave(save);
+  assert.strictEqual(JSON.stringify(p.skillRanks), JSON.stringify({ falcon_mark: 3, hunting_falcon: 1, light_feet: 5 }));
+  // a save from before the tree: all the points to spend
+  delete save.skillRanks; p.skillRanks = undefined; ctx.applySave(save);
+  assert.strictEqual(ctx.treePoints(p), 31);
+});
+
 test('the power shot: a bow drawn to the full for a moment and a half, one arrow ten times as hard loosed through every monster in its way, each hit as the arrow gets there', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
@@ -2006,6 +2094,7 @@ test('the power shot: a bow drawn to the full for a moment and a half, one arrow
   ctx.teleport({ x: 128, y: 172, z: 8 });
   Object.assign(p, { vocation: 'paladin', home: 'main', level: 20, mana: 500, maxMana: 500 });
   p.skills.distance.level = 40;
+  A.learnRank('power_shot');
   A.say('sagitta vis'); tick(game, 100);
   assert(messages.some(m => /bow/.test(m) && /hands/.test(m)), 'not without a bow');
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };

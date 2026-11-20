@@ -193,9 +193,9 @@ function openFavPicker(slot) {
     b.innerHTML = '<span class="pick-main"><span class="pick-text"><b></b><em></em></span></span><small></small>';
     b.querySelector('b').textContent = e.name;
     b.querySelector('em').textContent = favWhat(e.id);
-    const art = ActionSlots.art(e.id);
+    const art = ActionSlots.art((TREES[player.vocation] && treeSpot(e.id) && lineSpell(player, e.id)) || e.id);
     if (art) b.querySelector('.pick-main').prepend(Object.assign(new Image(), { src: art, alt: '', className: 'pick-art' }));
-    const cost = SPELLS[e.id] && !e.locked ? SPELLS[e.id].mana : null;
+    const cur = (TREES[player.vocation] && treeSpot(e.id) && lineSpell(player, e.id)) || e.id, cost = SPELLS[cur] && !e.locked ? SPELLS[cur].mana : null;
     if (cost !== null) b.querySelector('small').replaceChildren(Icons.img('drop', 12), ` ${cost}`);
     else b.querySelector('small').textContent = e.sub;
     b.addEventListener('click', () => {
@@ -218,7 +218,7 @@ function closeFavPicker() {
 }
 // What a choice for an action button does, in a few words: a spell's own description, a potion's numbers
 function favWhat(id) {
-  if (SPELLS[id]) return SPELLS[id].desc || '';
+  if (SPELLS[id]) { const cur = (player && TREES[player.vocation] && treeSpot(id) && lineSpell(player, id)) || id; return SPELLS[cur].desc || ''; }
   const use = id => (ITEMS[id] && ITEMS[id].use) || {};
   if (id === 'h') { const h = use('health_potion').heal; return h ? `Heals ${h[0]}-${h[1]} hitpoints. From your backpack.` : 'Drink a health potion.'; }
   if (id === 'm') { const m = use('mana_potion').mana; return m ? `Restores ${m[0]}-${m[1]} mana. From your backpack.` : 'Drink a mana potion.'; }

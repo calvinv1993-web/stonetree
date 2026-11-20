@@ -65,6 +65,7 @@ function newPlayer(name) {
     huntDay: '', // the real day of your last first-of-the-day watch hunt (its bonus marks: reward.daily, dailyDue)
     guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
     bestiary: {}, // kills of each kind of monster: type -> n (BESTIARY_TIERS in game-combat.js)
+    skillRanks: {}, treeResets: 0, falcons: null, // your skill tree: { spell or passive id: rank }, times started over, hunting falcons at your side (creatures.js TREES)
     paths: {}, trial: null, // the Hall of Paths: your stamps ({ knight: true, ... }), and the trial you're in (game-paths.js)
     cosmetics: [], // what you've bought from the watch's stores to wear (COSMETICS in defs.js), worn through your outfit
     pet: null, // a companion that follows you and fights with you: { name, kind, level, xp, hp, mode, ... } (Clang, the temple's cat; game-update.js updatePet)
@@ -262,6 +263,8 @@ function speedOf(c) {
   if (c.type === 'player' && c.equipment.feet && ITEMS[c.equipment.feet.id]) speed += ITEMS[c.equipment.feet.id].speed || 0; // (featherstep boots)
   const cond = c.conditions || {};
   if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
+  if (cond.slowed) speed /= CONDITIONS.slowed.speed;
+  if (c.type === 'player') speed *= 1 + passiveBonus(c, 'light_feet'); // (a Hawk's Light Feet)
   if (cond.haste) speed /= CONDITIONS.haste.speed;
   const ring = c.type === 'player' && c.equipment.ring && ITEMS[c.equipment.ring.id].ring;
   if (ring && ring.speed) speed /= ring.speed;
@@ -1484,10 +1487,15 @@ function gainXp(amount, shared) {
     addSparkle(player, '#ffe080');
     spellsFor(player.vocation).forEach((id, i) => {
       const s = SPELLS[id];
+      if (TREES[player.vocation] && treeSpot(id)) return; // (a skill tree's spells are learned with points, below)
       if (s.level === player.level && (!s.promoted || player.promoted)) {
         log(`You learned the spell ${s.name} ("${s.words}"): it's on your action bar${i < 9 ? ` (on a keyboard: key ${i + 1})` : ''}.`, 'level'); // (a phone has no keys)
       }
     });
+    if (TREES[player.vocation] && player.level >= TREE_FROM) { // a skill point to spend, and now and then a new tier open
+      const opened = TREE_LEVELS.indexOf(player.level);
+      log(`You have ${treePoints(player)} skill point${treePoints(player) === 1 ? '' : 's'} to spend: open your skill tree (Skills).${opened > 0 ? ` Tier ${opened + 1} is open now!` : ''}`, 'level');
+    }
     if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: Farewell)
       log(questState('recruit') === 'done' && questState('bell_6') !== 'done'
         ? 'You are ready to choose a vocation! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
@@ -1683,7 +1691,8 @@ function arriveOnMainland() {
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
-  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal', 'paths'];
+  'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal', 'paths',
+  'skillRanks', 'treeResets'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now), light: Math.max(0, p.lightUntil - now) };
@@ -1714,6 +1723,17 @@ function applySave(data) {
   const kills = player.bestiary && typeof player.bestiary === 'object' && !Array.isArray(player.bestiary) ? player.bestiary : {};
   player.bestiary = {};
   for (const type of Object.keys(kills)) if (Object.hasOwn(MONSTERS, type) && kills[type] > 0) player.bestiary[type] = Math.floor(kills[type]);
+  // (the skill tree: none in a save from before it, so the points of the levels you have are all yours to spend; ranks of
+  // what no longer exists, or more than it has, are dropped, and if they cost more than you have, it all starts over)
+  const ranks = player.skillRanks && typeof player.skillRanks === 'object' && !Array.isArray(player.skillRanks) ? player.skillRanks : {};
+  player.skillRanks = {};
+  for (const [id, r] of Object.entries(ranks)) {
+    const spot = treeSpot(id), passive = treePassive(player.vocation, id), max = passive ? passive.max : TREE_RANKS;
+    if ((passive || (spot && spot.voc === player.vocation)) && r > 0) player.skillRanks[id] = Math.min(max, Math.floor(r));
+  }
+  if (treePoints(player) < 0) player.skillRanks = {};
+  player.treeResets = Math.max(0, Math.floor(+player.treeResets || 0));
+  player.falcons = null;
   player.cosmetics = Array.isArray(player.cosmetics) ? player.cosmetics.filter(id => Object.hasOwn(COSMETICS, id)) : [];
   if (player.outfit) for (const k of ['feather', 'cloak']) if (player.outfit[k] && !player.cosmetics.includes(player.outfit[k])) delete player.outfit[k];
   player.fedUntil = data.fed ? now + data.fed : 0; // (a clock that started again: what's left of it)

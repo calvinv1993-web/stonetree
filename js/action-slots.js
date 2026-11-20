@@ -19,12 +19,14 @@ const ActionSlots = (() => {
   const food = () => (typeof petFood === 'function' && player ? petFood() : null);
   const picture = id => (id === 'f' && food() && typeof Sprites !== 'undefined' ? Sprites.itemURL(food()) : art(id));
 
+  // The spell a button casts now: a line of your skill tree casts its highest tier learned (the button keeps the first's id)
+  const now_ = id => (player && SPELLS[id] && typeof treeSpot === 'function' && TREES[player.vocation] && treeSpot(id) && lineSpell(player, id)) || id;
   // What stands in the way of an action right now: wait (ms of cooldown left, out of total), short (too little mana)
   function state(id) {
     if (!player) return {};
-    const spell = SPELLS[id];
+    const cur = now_(id), spell = SPELLS[cur];
     if (spell) { // (the shared pause after any spell, or this spell's own longer one: whichever is longer)
-      const own = Math.max(0, ((player.spellCooldowns || {})[id] || 0) - now), shared = Math.max(0, (player.spellReady || 0) - now);
+      const own = Math.max(0, ((player.spellCooldowns || {})[cur] || 0) - now), shared = Math.max(0, (player.spellReady || 0) - now);
       return { mana: spell.mana, short: player.mana < spell.mana, wait: Math.max(own, shared), total: own > shared ? spell.cooldown : SPELL_COOLDOWN };
     }
     if (id === 'h' || id === 'm') // (none left: dimmed as a spell without the mana for it)
@@ -36,7 +38,7 @@ const ActionSlots = (() => {
   // What an action still gives you, cast or eaten earlier: ms left (haste, magic shield, torchlight, being fed)
   function lasting(id) {
     if (!player) return 0;
-    const kind = SPELLS[id] && SPELLS[id].kind, c = player.conditions || {};
+    const kind = SPELLS[now_(id)] && SPELLS[now_(id)].kind, c = player.conditions || {};
     const until = kind === 'haste' ? c.haste && c.haste.until : kind === 'shield' ? c.shield && c.shield.until
       : kind === 'light' ? player.lightUntil : id === 'f' ? player.fedUntil : 0;
     return Math.max(0, (until || 0) - now);
@@ -47,7 +49,7 @@ const ActionSlots = (() => {
     const face = document.createElement('span'), badge = document.createElement('small');
     face.className = 'slot-face';
     badge.className = 'slot-badge';
-    const src = entry && picture(entry.id);
+    const src = entry && picture(now_(entry.id));
     if (src) {
       const img = new Image();
       img.className = 'slot-art'; img.src = src; img.alt = ''; img.draggable = false;
@@ -56,8 +58,8 @@ const ActionSlots = (() => {
       face.classList.add('slot-initials');
       face.textContent = entry.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
     } else face.appendChild(Icons.img('plus', 20));
-    const spell = entry && SPELLS[entry.id];
-    if (entry && entry.locked) badge.textContent = spell && spell.promoted && !player.promoted ? 'promo' : `lv ${spell ? spell.level : ''}`;
+    const spell = entry && SPELLS[now_(entry.id)];
+    if (entry && entry.locked) badge.textContent = entry.badge || (spell && spell.promoted && !player.promoted ? 'promo' : `lv ${spell ? spell.level : ''}`);
     else if (spell) { badge.replaceChildren(Icons.img('drop', 11), String(spell.mana)); badge.classList.add('mana'); } // (a drop and its mana, under it)
     // (no mana potions yet, and no spells that need them: no red 0 from the first minute, just the potion, quiet)
     else if (entry && entry.id === 'm' && player.vocation === 'none' && entry.sub === '×0') button.classList.add('quiet');

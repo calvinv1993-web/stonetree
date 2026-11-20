@@ -387,7 +387,7 @@ function act(conn, msg) {
 const near = (p, o) => o.z !== undefined && Math.abs(o.x - p.x) <= VIEW.x && Math.abs(o.y - p.y) <= VIEW.y;
 const ALWAYS = ['id', 'name', 'trainHits', 'x', 'y', 'z', 'dir', 'walk', 'hp', 'maxHp', 'mana', 'maxMana', 'level', 'xp', 'gold', 'bank', 'dead',
   'respawnAt', 'conditions', 'spellReady', 'spellCooldowns', 'potionReady', 'fedUntil', 'lightUntil', 'skullUntil', 'redSkullUntil', 'pzLockUntil', 'frags', 'vocation', 'promoted', 'outfit', 'fightMode', 'chase', 'secure', 'blessed', 'house', 'home', 'follow', 'tutorial', 'born', 'pet', 'petBody', 'autoHeal', 'trial'];
-const SOMETIMES = ['equipment', 'depot', 'skills', 'quests', 'chests', 'hotkeys', 'markers', 'furniture', 'bestiary', 'cosmetics', 'paths'];
+const SOMETIMES = ['equipment', 'depot', 'skills', 'quests', 'chests', 'hotkeys', 'markers', 'furniture', 'bestiary', 'cosmetics', 'paths', 'skillRanks', 'treeResets'];
 
 function youState(conn) {
   const p = conn.player, you = {};

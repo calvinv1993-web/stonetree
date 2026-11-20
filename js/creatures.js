@@ -498,6 +498,7 @@ const CONDITIONS = {
   burning: { name: 'burning', icon: '🔥', element: 'fire', interval: 2000, ticks: 5 },
   energy: { name: 'electrified', icon: '⚡', element: 'energy', interval: 2000, ticks: 3 },
   paralyze: { name: 'paralyzed', icon: '🕸', duration: 4000, speed: 1.8 },
+  slowed: { name: 'slowed', icon: '≈', duration: 4000, speed: 1.5 }, // (an Arrow Storm's arrows: walking half again as long a step)
   haste: { name: 'hasted', icon: '»', duration: 30000, speed: 0.7 },
   shield: { name: 'magic shield', icon: '◈', duration: 180000 },
 };
@@ -616,7 +617,20 @@ const SPELLS = {
   // A bow drawn to the full and loosed: the arrow flies straight on through everything in its way, each monster hit as
   // the arrow gets there, one after the other (pendingHits, as the circle throw). Paladins: a first try of the bow's skills.
   power_shot: { name: 'Power Shot', words: 'sagitta vis', vocs: ['paladin'], level: 10, mana: 40, kind: 'pierce', cooldown: 5000, range: 6, charge: 1500, perTile: 45, times: 10, desc: 'With a bow and arrows: draw to the full for a moment and a half, then loose one arrow that flies through every monster in its way, at your target or straight ahead, up to 6 tiles, hitting each ten times as hard as a plain shot.' },
-  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 12, mana: 35, kind: 'volley', cooldown: 3000, range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
+  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 10, mana: 35, kind: 'volley', cooldown: 3000, range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
+  // The Hawk's tree (TREES below): the stronger tiers of Power Shot and Triple Shot, and the falcon's line.
+  gale_shot: { name: 'Gale Shot', words: 'sagitta ventus', vocs: ['paladin'], level: 25, mana: 70, kind: 'pierce', cooldown: 5000, range: 8, charge: 1300, perTile: 40, times: 14, desc: 'With a bow drawn to the full: an arrow 8 tiles straight on through everything in its way, each hit as hard as 14 plain shots.' },
+  sky_lance: { name: 'Sky Lance', words: 'sagitta caelum', vocs: ['paladin'], level: 45, mana: 110, kind: 'pierce', cooldown: 5000, range: 9, charge: 1200, perTile: 36, times: 18, burst: 1, desc: 'An arrow 9 tiles straight on through everything in its way (18 plain shots each), bursting where it stops: everything round that tile is hit too.' },
+  // kind rain: arrows loosed high, falling on your target's tile and the tiles round it (radius), a moment later
+  arrow_rain: { name: 'Arrow Rain', words: 'sagitta pluvia', vocs: ['paladin'], level: 25, mana: 70, kind: 'rain', cooldown: 4000, range: 6, radius: 1, fall: 650, mult: [0.8, 1.4], desc: 'Arrows fall on your target and every tile round it.' },
+  arrow_storm: { name: 'Arrow Storm', words: 'sagitta procella', vocs: ['paladin'], level: 45, mana: 110, kind: 'rain', cooldown: 4000, range: 6, radius: 2, fall: 650, mult: [0.9, 1.5], condition: 'slowed', desc: 'Arrows fall on everything within 2 tiles of your target, and slow what they hit.' },
+  // kind mark: your target takes more damage from everyone for a while (mark: how much more, lasts: ms)
+  falcon_mark: { name: "Falcon's Mark", words: 'falco signum', vocs: ['paladin'], level: 10, mana: 30, kind: 'mark', cooldown: 8000, range: 7, mark: 0.15, lasts: 10000, desc: 'Your falcon marks your target: for 10 seconds it takes 15% more damage from everyone.' },
+  // kind falcon: falcons fly at your side (lasts ms), each diving at your target every `every` ms (power: a dive's hit)
+  hunting_falcon: { name: 'Hunting Falcon', words: 'falco venator', vocs: ['paladin'], level: 25, mana: 80, kind: 'falcon', cooldown: 30000, falcons: 1, lasts: 20000, every: 1400, mark: 0.15,
+    power: { min: [0.4, 0, 0.6, 6], max: [0.7, 0, 1, 14] }, desc: 'A falcon flies at your side for 20 seconds, diving at your target again and again; what it strikes is marked as by Falcon\'s Mark.' },
+  twin_falcons: { name: 'Twin Falcons', words: 'falco gemini', vocs: ['paladin'], level: 45, mana: 120, kind: 'falcon', cooldown: 30000, falcons: 2, lasts: 20000, every: 1400, mark: 0.15,
+    power: { min: [0.5, 0, 0.7, 10], max: [0.8, 0, 1.1, 20] }, desc: 'Two falcons fly at your side for 20 seconds, diving at your target in turn; what they strike is marked.' },
   // Said, not clicked: hidden from the spell bar, so nobody blows themselves up by accident.
   final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 
@@ -624,8 +638,8 @@ const SPELLS = {
   conjure_arrows: { name: 'Conjure Arrows', words: 'forma sagitta', vocs: ['paladin'], level: 10, mana: 40, kind: 'conjure', item: 'arrow', count: 15, desc: 'Makes 15 arrows.' },
   greater_heal: { name: 'Greater Heal', words: 'vita major', vocs: ['paladin', 'druid'], level: 12, mana: 50, kind: 'heal', power: { min: [0.6, 4, 0, 40], max: [1, 6, 0, 70] }, desc: 'Heals a lot of hitpoints.' },
   conjure_bolts: { name: 'Conjure Bolts', words: 'forma sagitta gravis', vocs: ['paladin'], level: 15, mana: 60, kind: 'conjure', item: 'bolt', count: 10, desc: 'Makes 10 bolts.' },
-  holy_wave:    { name: 'Holy Wave', words: 'sanctus unda', vocs: ['paladin'], level: 18, mana: 70, kind: 'wave', element: 'holy', power: { min: [0.5, 2, 0.5, 15], max: [0.8, 3, 0.8, 30] }, desc: 'A wave of holy light in front of you.' },
-  holy_storm:   { name: 'Holy Storm', words: 'sanctus tempestas', vocs: ['paladin'], level: 20, promoted: true, mana: 120, kind: 'area', radius: 3, element: 'holy', power: { min: [0.6, 2.5, 0.6, 20], max: [1, 4, 1, 40] }, desc: 'Holy damage to everything within 3 tiles.' },
+  holy_wave:    { name: 'Holy Wave', words: 'sanctus unda', vocs: ['paladin'], level: 25, mana: 70, kind: 'wave', element: 'holy', power: { min: [0.5, 2, 0.5, 15], max: [0.8, 3, 0.8, 30] }, desc: 'A wave of holy light in front of you.' },
+  holy_storm:   { name: 'Holy Storm', words: 'sanctus tempestas', vocs: ['paladin'], level: 45, mana: 120, kind: 'area', radius: 3, element: 'holy', power: { min: [0.6, 2.5, 0.6, 20], max: [1, 4, 1, 40] }, desc: 'Holy damage to everything within 3 tiles.' },
 
   fire_bolt:    { name: 'Fire Bolt', words: 'ignis', vocs: ['sorcerer'], level: 10, mana: 20, kind: 'bolt', element: 'fire', range: 5, power: { min: [0.4, 2.5, 0, 10], max: [0.7, 4, 0, 22] }, desc: 'Fire damage at range.' },
   conjure_missile: { name: 'Conjure Missile', words: 'forma missile', vocs: ['sorcerer', 'druid'], level: 10, mana: 50, kind: 'conjure', item: 'rune_missile', count: 5, blank: true, desc: 'Turns a blank rune into 5 arcane missile runes.' },
@@ -650,6 +664,72 @@ const SPELLS = {
   frost_wave:   { name: 'Frost Wave', words: 'glacies unda', vocs: ['druid'], level: 18, mana: 70, kind: 'wave', element: 'ice', power: { min: [0.6, 3, 0, 20], max: [1, 5, 0, 40] }, desc: 'A wave of frost in front of you.' },
   blizzard:     { name: 'Blizzard', words: 'glacies tempestas', vocs: ['druid'], level: 20, promoted: true, mana: 150, kind: 'area', radius: 3, element: 'ice', power: { min: [0.8, 3.5, 0, 30], max: [1.2, 5.5, 0, 60] }, desc: 'Ice damage to everything within 3 tiles.' },
 };
+
+// Skill trees (docs/skills-plan.md): per vocation, its lines (each a row of tiers: stronger spells, opened at TREE_LEVELS)
+// and its passives. A tier's spell is learned in ranks (TREE_RANKS of them, each costing the tier's number in points),
+// and a line is one button: it casts the highest tier you've learned. Points: one a level from TREE_FROM. For now the Hawk
+// alone has one; the other paths keep their spells by level.
+//   lines:    [{ id, name, tiers: [spell ids] }]; passives: [{ id, name, max (ranks), per (a rank's bonus), desc }]
+//   weapon:   'bow' when a line's spells need a bow or crossbow in your hands
+const TREE_LEVELS = [10, 25, 45], TREE_RANKS = 3, TREE_FROM = 10, RANK_POWER = 0.15;
+const TREES = {
+  paladin: {
+    lines: [
+      { id: 'shot', name: 'Shot', weapon: 'bow', tiers: ['power_shot', 'gale_shot', 'sky_lance'] },
+      { id: 'volley', name: 'Volley', weapon: 'bow', tiers: ['triple_shot', 'arrow_rain', 'arrow_storm'] },
+      { id: 'falcon', name: 'Falcon', tiers: ['falcon_mark', 'hunting_falcon', 'twin_falcons'] },
+      { id: 'holy', name: 'Holy', tiers: ['holy_bolt', 'holy_wave', 'holy_storm'] },
+    ],
+    passives: [
+      { id: 'sharp_eye', name: 'Sharp Eye', max: 5, per: 0.02, desc: 'Each rank: 2% more chance of a critical hit (half again as hard) with a bow, crossbow or spear.' },
+      { id: 'light_feet', name: 'Light Feet', max: 5, per: 0.02, desc: 'Each rank: you walk 2% faster.' },
+    ],
+  },
+};
+// Where a spell sits in its vocation's tree: { line, tier (0-based) }, or null (a spell learned by level, as before)
+function treeSpot(id) {
+  for (const v of Object.keys(TREES)) for (const line of TREES[v].lines) {
+    const tier = line.tiers.indexOf(id);
+    if (tier >= 0) return { voc: v, line, tier };
+  }
+  return null;
+}
+function treePassive(voc, id) { return ((TREES[voc] || {}).passives || []).find(q => q.id === id) || null; }
+// A rank of a spell or passive costs this many points: its tier's number (a passive's: 1)
+function rankCost(id) { const spot = treeSpot(id); return spot ? spot.tier + 1 : 1; }
+function rankOf(p, id) { return (p.skillRanks || {})[id] || 0; }
+function treePointsEarned(p) { return TREES[p.vocation] ? Math.max(0, p.level - TREE_FROM + 1) : 0; }
+function treePointsSpent(p) { return Object.entries(p.skillRanks || {}).reduce((n, [id, r]) => n + r * rankCost(id), 0); }
+function treePoints(p) { return treePointsEarned(p) - treePointsSpent(p); }
+// Why the next rank of a spell or passive can't be learned now (a sentence), or null when it can
+function cantLearn(p, id) {
+  const tree = TREES[p.vocation];
+  if (!tree) return 'Your path has no skill tree yet.';
+  const spot = treeSpot(id), passive = treePassive(p.vocation, id);
+  if (!passive && (!spot || spot.voc !== p.vocation)) return 'That is not one of your skills.';
+  const r = rankOf(p, id), max = passive ? passive.max : TREE_RANKS;
+  if (r >= max) return 'That is learned to its last rank.';
+  if (spot) {
+    const need = TREE_LEVELS[spot.tier];
+    if (p.level < need) return `It opens at level ${need}.`;
+    const before = spot.tier && spot.line.tiers[spot.tier - 1];
+    if (before && rankOf(p, before) < TREE_RANKS) return `First learn ${SPELLS[before].name} to rank ${TREE_RANKS}.`;
+  } else if (p.level < TREE_FROM) return `It opens at level ${TREE_FROM}.`;
+  const cost = rankCost(id);
+  if (treePoints(p) < cost) return `It needs ${cost} skill point${cost > 1 ? 's' : ''}.`;
+  return null;
+}
+// The spell a line's button casts now: its highest tier learned (id: any spell of the line), or null when none is
+function lineSpell(p, id) {
+  const spot = treeSpot(id);
+  if (!spot) return id;
+  for (let t = spot.line.tiers.length - 1; t >= 0; t--) if (rankOf(p, spot.line.tiers[t]) > 0) return spot.line.tiers[t];
+  return null;
+}
+// How much harder a spell hits for its rank (1 at rank 1, then RANK_POWER more a rank)
+function rankPower(p, id) { return 1 + RANK_POWER * Math.max(0, rankOf(p, id) - 1); }
+// A passive's bonus (its rank times its per-rank bonus), 0 when not learned
+function passiveBonus(p, id) { const q = p && treePassive(p.vocation, id); return q ? q.per * rankOf(p, id) : 0; }
 
 // Spells a vocation can learn, in the order of the hotbar.
 function spellsFor(vocation) {

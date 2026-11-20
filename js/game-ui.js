@@ -1092,6 +1092,11 @@ function skillRow(name, value, fraction) {
 function renderSkills() {
   const root = $('tab-skills');
   root.replaceChildren();
+  if (TREES[player.vocation]) { // your skill tree: a button, with your points to spend on it
+    const n = treePoints(player), b = h('button', { className: `tree-open${n ? ' has-points' : ''}` }, 'Skill tree', n ? h('span', { className: 'tree-dot' }, String(n)) : '');
+    b.addEventListener('click', openSkillTree);
+    root.appendChild(b);
+  }
   const lo = xpForLevel(player.level), hi = xpForLevel(player.level + 1);
   root.appendChild(skillRow('Level', player.level, (player.xp - lo) / (hi - lo)));
   root.appendChild(skillRow('Home town', homeTown(), null)); // where you wake up when you die: ask a priest about becoming a citizen
@@ -1222,12 +1227,20 @@ function bestiaryBox() {
 
 // ---- spell bar ---------------------------------------------------------------------------
 // Everything the bar below the map offers: your vocation's spells, potions and food.
+// A line of your skill tree is one entry (its first tier's id, so a button keeps its place as it grows), showing the
+// highest tier you've learned; a line with nothing learned yet waits, locked, for your skill tree.
 function hotbarEntries() {
   // (in a trial of the Hall of Paths: just its two spells, open at any level)
-  const list = (player.trial ? PATHS[player.trial.voc].spells : spellsFor(player.vocation).filter(id => !SPELLS[id].hidden)).map((id, i) => {
-    const s = SPELLS[id], locked = !player.trial && (player.level < s.level || (s.promoted && !player.promoted));
-    const sub = locked ? (s.promoted && !player.promoted ? 'promotion' : `level ${s.level}`) : `${s.mana} mana`;
-    return { id, key: i < 9 ? String(i + 1) : '', name: s.name, sub, tip: `${s.desc} Words: "${s.words}"`, act: () => Actions.castSpell(id), locked };
+  const tree = !player.trial && TREES[player.vocation];
+  const ids = player.trial ? PATHS[player.trial.voc].spells
+    : spellsFor(player.vocation).filter(id => !SPELLS[id].hidden && !(tree && treeSpot(id) && treeSpot(id).tier > 0));
+  const list = ids.map((id, i) => {
+    const line = tree && treeSpot(id), cur = line ? lineSpell(player, id) : id, s = SPELLS[cur || id];
+    const locked = line ? !cur : !player.trial && (player.level < s.level || (s.promoted && !player.promoted));
+    const sub = line && !cur ? 'skill tree' : locked ? (s.promoted && !player.promoted ? 'promotion' : `level ${s.level}`) : `${s.mana} mana`;
+    const rank = line && cur ? ` (rank ${rankOf(player, cur)})` : '';
+    return { id, key: i < 9 ? String(i + 1) : '', name: s.name + rank, sub, tip: `${s.desc} Words: "${s.words}"`, act: () => Actions.castSpell(id), locked,
+      badge: line && !cur ? 'learn' : null };
   });
   list.push(
     { id: 'h', key: 'H', name: 'Health potion', sub: `×${countItem('health_potion')}`, tip: 'Drink a health potion', act: () => Actions.hotkey('h') },
@@ -1262,6 +1275,7 @@ function renderUI() {
   renderLoot();
   renderShop();
   renderSkills();
+  renderSkillTree();
   renderQuests();
   renderHotbar();
   battleKey = '';
@@ -1306,6 +1320,64 @@ function showWindow(heading, body) {
   $('readTitle').textContent = heading;
   $('readText').textContent = body;
   $('read').hidden = false;
+}
+
+// ---- the skill tree (creatures.js TREES, docs/skills-plan.md) ----------------------------------------------------------
+// Its lines one under the other, each a row of its tiers' icons (rank 2/3, a lock and the level while shut), the passives
+// under them; tap one and its card shows what it does now and next, what it needs, and the one button to learn it.
+let treePick = null;
+function openSkillTree() {
+  if (!TREES[player.vocation]) return;
+  if (!treePick || !(treeSpot(treePick) || treePassive(player.vocation, treePick))) treePick = TREES[player.vocation].lines[0].tiers[0];
+  $('skillTree').hidden = false;
+  renderSkillTree();
+}
+function renderSkillTree() {
+  const tree = TREES[player.vocation];
+  if (!tree || $('skillTree').hidden) return;
+  const n = treePoints(player);
+  $('treeTitle').textContent = `${vocName(player.vocation)} skill tree`;
+  $('treePoints').textContent = `${n} point${n === 1 ? '' : 's'}`;
+  $('treePoints').classList.toggle('has-points', n > 0);
+  const icon = (id, label, max, opens) => {
+    const r = rankOf(player, id), why = cantLearn(player, id), shut = opens && player.level < opens;
+    const b = h('button', { className: `tree-icon${r ? ' learned' : ''}${!why ? ' can' : ''}${shut ? ' shut' : ''}${treePick === id ? ' picked' : ''}` });
+    const art = typeof ActionSlots !== 'undefined' && ActionSlots.art(id);
+    b.appendChild(art ? Object.assign(new Image(), { src: art, alt: '', className: 'tree-art' })
+      : h('span', { className: 'tree-initials' }, label.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()));
+    b.appendChild(h('small', { className: 'tree-rank' }, shut ? `Lv ${opens}` : `${r}/${max}`));
+    b.title = label;
+    b.addEventListener('click', () => { treePick = id; renderSkillTree(); });
+    return b;
+  };
+  const rows = tree.lines.map(line => h('div', { className: 'tree-line' }, h('span', { className: 'tree-name' }, line.name),
+    h('div', { className: 'tree-tiers' }, ...line.tiers.map((id, t) => icon(id, SPELLS[id].name, TREE_RANKS, TREE_LEVELS[t])))));
+  rows.push(h('div', { className: 'tree-line passive' }, h('span', { className: 'tree-name' }, 'Passive'),
+    h('div', { className: 'tree-tiers' }, ...tree.passives.map(q => icon(q.id, q.name, q.max, TREE_FROM)))));
+  $('treeLines').replaceChildren(...rows);
+  // the card of the one picked
+  const id = treePick, s = SPELLS[id], q = treePassive(player.vocation, id), spot = treeSpot(id), r = rankOf(player, id);
+  const max = q ? q.max : TREE_RANKS, why = cantLearn(player, id), cost = rankCost(id);
+  const what = [];
+  if (s) {
+    what.push(h('p', { className: 'tree-desc' }, s.desc));
+    what.push(h('p', { className: 'tree-facts' }, [`${s.mana} mana`, s.cooldown ? `ready again after ${s.cooldown / 1000} s` : '', spot.line.weapon === 'bow' ? 'needs a bow or crossbow' : '',
+      `tier ${spot.tier + 1}, opens at level ${TREE_LEVELS[spot.tier]}`].filter(Boolean).join(' · ')));
+    what.push(h('p', { className: 'tree-facts' }, r ? `Rank ${r}: ${Math.round(rankPower(player, id) * 100)}% power${r < max ? `; rank ${r + 1}: ${Math.round((1 + RANK_POWER * r) * 100)}%` : ''}.`
+      : 'Rank 1: its full power; each rank after it, 15% more.'));
+  } else {
+    what.push(h('p', { className: 'tree-desc' }, q.desc));
+    what.push(h('p', { className: 'tree-facts' }, `Now: +${Math.round(q.per * r * 100)}%${r < max ? ` · next rank: +${Math.round(q.per * (r + 1) * 100)}%` : ''}`));
+  }
+  const learn = h('button', { className: 'primary tree-learn' }, r >= max ? 'Learned to its last rank' : `${r ? 'Next rank' : 'Learn'} (${cost} point${cost > 1 ? 's' : ''})`);
+  learn.disabled = !!why;
+  learn.addEventListener('click', () => { Actions.learnRank(id); });
+  $('treeCard').replaceChildren(h('div', { className: 'tree-card-head' }, h('b', {}, s ? s.name : q.name), h('span', {}, `rank ${r} / ${max}`)),
+    ...what, why && r < max ? h('p', { className: 'tree-why' }, why) : '', learn);
+  // starting over
+  const spent = treePointsSpent(player), resetCost = player.treeResets ? player.level * 50 : 0;
+  $('treeReset').textContent = spent ? `Start over (${resetCost ? `${resetCost} gold` : 'free the first time'})` : 'Start over';
+  $('treeReset').disabled = !spent;
 }
 
 // The Book of Paths: the four paths side by side, with the stamps of the trials you've done (game-paths.js)
@@ -2365,6 +2437,11 @@ function initUI() {
   $('lootAll').addEventListener('click', () => player.openPile && Actions.takeAll(player.openPile.id));
   $('readClose').addEventListener('click', () => { $('read').hidden = true; });
   $('pathsClose').addEventListener('click', () => { $('paths').hidden = true; });
+  $('treeClose').addEventListener('click', () => { $('skillTree').hidden = true; });
+  $('treeReset').addEventListener('click', () => {
+    const cost = player.treeResets ? player.level * 50 : 0;
+    if (confirm(`Start your skill tree over? All your points come back${cost ? `, for ${cost} gold` : ' (free the first time)'}.`)) Actions.resetTree();
+  });
   $('hotkeysBtn').addEventListener('click', openHotkeys);
   $('guideBtn').addEventListener('click', () => Actions.restartGuide());
   $('hotkeysSave').addEventListener('click', saveHotkeys);

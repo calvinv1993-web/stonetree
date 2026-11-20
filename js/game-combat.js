@@ -134,11 +134,14 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'chain', 'selfdestruct'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'chain', 'selfdestruct', 'rain', 'mark', 'falcon'];
 
 // A critical hit, now and then, from a weapon that has them (crit: { chance, mult }): [the damage, whether it was one]
+// A critical hit: a weapon's own chance (a hawkeye bow's), and a Hawk's Sharp Eye on top (half again as hard)
 function critical(w, dmg) {
-  return w && w.crit && Math.random() < w.crit.chance ? [Math.round(dmg * w.crit.mult), true] : [dmg, false];
+  const eye = w && (w.kind === 'distance' || w.spear) ? passiveBonus(player, 'sharp_eye') : 0;
+  const chance = ((w && w.crit && w.crit.chance) || 0) + eye, mult = (w && w.crit && w.crit.mult) || 1.5;
+  return chance > 0 && Math.random() < chance ? [Math.round(dmg * mult), true] : [dmg, false];
 }
 
 function hurt(target, dmg, element, crit) {
@@ -256,6 +259,8 @@ function damageMonster(m, dmg, element, crit) {
   if (element === 'physical' && m.def.armor) dmg -= randInt(Math.floor(m.def.armor * 0.475), Math.floor(m.def.armor * 0.95)); // armor, as in Tibia
   dmg = Math.round(dmg * ((m.def.weak && m.def.weak[element]) || 1));
   dmg = withBestiary(dmg, m.type); // (you know the kind well: you hit it a little harder)
+  const mark = m.conditions && m.conditions.marked; // (a falcon's mark: it takes more from everyone)
+  if (mark && now < mark.until) dmg = Math.round(dmg * (1 + mark.k));
   m.angryAt = player.id;
   m.angryUntil = now + 15000; // whatever hits a monster gets hunted, even from afar
   // a band that fights as one (the Ashen Choir: spawn.band): hit one and the rest of it near by come for you too
@@ -599,6 +604,8 @@ function updatePendingHits() {
       effects.push({ kind: 'impact', x: t.x, y: t.y, z: t.z, glow: h.glow || '#ffe27a', small: h.small, start: now, dur: h.small ? 260 : 380 }); // (a burst of light rays where it lands)
       addSound('hit', t.x, t.y, t.z);
       hurt(t, h.dmg, h.element, h.crit);
+      if (h.mark) markTarget(t, h.mark, 6000); // (a falcon's dive marks what it strikes)
+      if (h.condition && !t.dead && t.type !== 'player') applyCondition(t, h.condition, 1, player.id);
     });
   }
 }
@@ -636,13 +643,13 @@ function castArc(s) {
 // hit when the arrow gets there.
 // The triple shot: quick arrows at your target, one after the other (lead ms to draw, then one every gap ms), each one
 // arrow from your quiver and each hit on its own as it gets there.
-function castVolley(s) {
+function castVolley(s, k = 1) {
   const w = playerWeapon(), t = player.target, z = player.z, d = Math.max(1, dist(player, t)), max = physicalMax(w);
   player.dir = dirTo(t.x - player.x, t.y - player.y) ?? player.dir;
   let shots = 0;
   for (let i = 0; i < s.shots && player.equipment.ammo && player.equipment.ammo.count > 0; i++) {
     useAmmo(w); shots++;
-    const [dmg, crit] = critical(w, Math.round(max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
+    const [dmg, crit] = critical(w, Math.round(k * max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
     pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, crit, element: 'physical', glow: '#bfe6ff', small: true });
   }
   addSkillTries('distance');
@@ -671,7 +678,7 @@ function castChain(s, roll) {
     dur: 40 + (struck.length - 1) * s.step + 260 });
 }
 
-function castPierce(s) {
+function castPierce(s, k = 1) {
   const w = playerWeapon(), t = player.target, z = player.z;
   let ax = DX[player.dir || 0], ay = DY[player.dir || 0];
   if (t && t.z === z && dist(player, t) <= s.range && (t.x !== player.x || t.y !== player.y)) { ax = t.x - player.x; ay = t.y - player.y; }
@@ -687,7 +694,7 @@ function castPierce(s) {
     way.push({ x, y, d });
   }
   const reach = way.length ? way[way.length - 1].d : 1;
-  const shot = () => s.times * physicalHit(w); // (each one hit as hard as that many plain shots)
+  const shot = () => Math.round(k * s.times * physicalHit(w)); // (each one hit as hard as that many plain shots)
   useAmmo(w);
   addSkillTries('distance');
   player.drawingUntil = now + s.charge; player.path = []; player.action = null; // (rooted while the bow is drawn)
@@ -698,7 +705,61 @@ function castPierce(s) {
       ...players.filter(p => p !== player && !p.dead && p.x === x && p.y === y && p.z === z && pvpAllowed(p) && mayHurt(p))];
     for (const c of hit) { const [dmg, crit] = critical(w, shot()); pendingHits.push({ at: now + s.charge + Math.round(d * s.perTile), by: player, target: c, z, dmg, crit, element: 'physical', glow: '#ffd25a' }); }
   }
+  if (s.burst) { // (a Sky Lance: where it stops, it bursts, hitting the tiles round that one too: half a shot each)
+    const end = way[way.length - 1] || { x: player.x + Math.round(ax), y: player.y + Math.round(ay), d: 1 }, at = now + s.charge + Math.round(end.d * s.perTile);
+    for (let dy = -s.burst; dy <= s.burst; dy++) for (let dx = -s.burst; dx <= s.burst; dx++) {
+      if (!dx && !dy) continue;
+      const x = end.x + dx, y = end.y + dy;
+      for (const c of monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z)) pendingHits.push({ at, by: player, target: c, z, dmg: Math.round(shot() / 2), element: 'physical', glow: '#ffd25a', small: true });
+    }
+    effects.push({ kind: 'impact', x: end.x, y: end.y, z, glow: '#ffd25a', start: at, dur: 420 });
+  }
   addSound('shoot', player.x, player.y, z);
+}
+
+// Arrows loosed high (kind rain): they fall on your target's tile and every tile within s.radius of it, s.fall ms later,
+// each tile struck by one (a bow shot's worth times s.mult), and slowing what they hit when the spell says so
+function castRain(s, k = 1) {
+  const w = playerWeapon(), t = player.target, z = player.z, max = physicalMax(w);
+  player.dir = dirTo(Math.sign(t.x - player.x), Math.sign(t.y - player.y)) ?? player.dir;
+  useAmmo(w);
+  addSkillTries('distance');
+  const tiles = [];
+  for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
+    const x = t.x + dx, y = t.y + dy;
+    if (sightClear(t, { x, y, z })) tiles.push([x, y]);
+  }
+  for (const [x, y] of tiles) for (const c of monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z)) {
+    const [dmg, crit] = critical(w, Math.round(k * max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
+    pendingHits.push({ at: now + s.fall, by: player, target: c, z, dmg, crit, element: 'physical', glow: '#cfe8ff', small: true, condition: s.condition });
+  }
+  player.drawingUntil = now + 300; player.path = []; player.action = null;
+  effects.push({ kind: 'rain', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, radius: s.radius, tiles, start: now, fall: s.fall, dur: s.fall + 350 });
+  addSound('shoot', player.x, player.y, z);
+}
+
+// A falcon's mark (kind mark): your target takes s.mark more damage from everyone for s.lasts ms
+function markTarget(t, mark, lasts) {
+  if (!t || t.dead || t.type === 'player') return;
+  t.conditions = t.conditions || {};
+  const cur = t.conditions.marked;
+  t.conditions.marked = { until: now + lasts, k: Math.max(mark, cur && now < cur.until ? cur.k : 0) };
+}
+
+// Hunting falcons (kind falcon): they fly at your side for s.lasts ms (player.falcons), and in turn dive at your target
+// every s.every ms while it's in sight within 7 tiles: each dive hits (s.power) and marks it. tickFalcons, every tick.
+function tickFalcons() {
+  const f = player.falcons;
+  if (!f) return;
+  if (now >= f.until || player.dead) { player.falcons = null; return; }
+  if (now < f.next) return;
+  const t = player.target;
+  if (!t || t.dead || t.type === 'player' || t.z !== player.z || dist(player, t) > 7 || !sightClear(player, t)) { f.next = now + 300; return; }
+  const s = SPELLS[f.spell], dmg = Math.round(f.k * randInt(...powerRange(player, s.power))), dive = 380;
+  f.next = now + Math.round(s.every / f.count);
+  f.turn = (f.turn + 1) % f.count;
+  pendingHits.push({ at: now + dive, by: player, target: t, z: t.z, dmg, element: 'physical', glow: '#ffe9b0', small: true, mark: s.mark });
+  effects.push({ kind: 'falcon_dive', cid: player.id, x: player.x, y: player.y, z: player.z, tx: t.x, ty: t.y, tid: t.id, turn: f.turn, start: now, dive, dur: dive * 2 + 120 });
 }
 
 function hitTiles(tiles, element, roll, z = player.z) {
@@ -711,10 +772,17 @@ function hitTiles(tiles, element, roll, z = player.z) {
 }
 
 function castSpell(id) {
-  const s = SPELLS[id];
-  if (player.dead || !s) return;
-  if (!spellsFor(player.vocation).includes(id)) return log(`Only ${s.vocs.map(vocName).join('s and ')}s can cast ${s.name}.`);
+  if (player.dead || !SPELLS[id]) return;
+  if (!spellsFor(player.vocation).includes(id)) return log(`Only ${SPELLS[id].vocs.map(vocName).join('s and ')}s can cast ${SPELLS[id].name}.`);
   const trying = player.trial && PATHS[player.trial.voc].spells.includes(id); // (in a trial: its spells, at any level)
+  // a line of your skill tree is one button: it casts the highest tier you've learned of it (none yet: learn it first)
+  const spot = !trying && TREES[player.vocation] && treeSpot(id);
+  if (spot) {
+    const now_ = lineSpell(player, id);
+    if (!now_) return log(`Learn ${SPELLS[spot.line.tiers[0]].name} first: open your skill tree (Skills).`);
+    id = now_;
+  }
+  const s = SPELLS[id], k = spot ? rankPower(player, id) : 1; // (its rank: harder)
   if (player.trial && s.vocs && !trying) return log(`Not in this trial: try ${PATHS[player.trial.voc].spells.map(o => SPELLS[o].name).join(' and ')}.`);
   if (player.level < s.level && !trying) return log(`You need level ${s.level} to cast ${s.name}.`);
   if (s.promoted && !player.promoted) return log(`You need to be promoted to cast ${s.name}.`);
@@ -735,7 +803,12 @@ function castSpell(id) {
     if (!t) return log('You need a target for this spell. Click a monster first.');
     if (t.z !== player.z || dist(player, t) > s.range || !sightClear(player, t)) return log('Your target is out of range.');
   }
-  if (s.kind === 'pierce' || s.kind === 'volley') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
+  if (s.kind === 'rain' || s.kind === 'mark') {
+    if (!t) return log('You need a target for this spell. Click a monster first.');
+    if (t.type === 'player') return log('Only on monsters.');
+    if (t.z !== player.z || dist(player, t) > s.range || !sightClear(player, t)) return log('Your target is out of range.');
+  }
+  if (s.kind === 'pierce' || s.kind === 'volley' || s.kind === 'rain') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
@@ -745,7 +818,7 @@ function castSpell(id) {
   addSkillTries('magic', s.mana);
   addSpeech(player, s.words);
   addSound('magic', player.x, player.y, player.z);
-  const roll = () => randInt(...powerRange(player, s.power));
+  const roll = () => Math.round(k * randInt(...powerRange(player, s.power)));
   const melee = () => {
     const w = playerWeapon();
     const max = physicalMax(w.kind === 'melee' ? w : { skill: 'fist', attack: 6 });
@@ -792,9 +865,19 @@ function castSpell(id) {
   } else if (s.kind === 'arc') {
     castArc(s);
   } else if (s.kind === 'pierce') {
-    castPierce(s);
+    castPierce(s, k);
   } else if (s.kind === 'volley') {
-    castVolley(s);
+    castVolley(s, k);
+  } else if (s.kind === 'rain') {
+    castRain(s, k);
+  } else if (s.kind === 'mark') {
+    markTarget(t, s.mark * k, s.lasts);
+    effects.push({ kind: 'falcon_dive', cid: player.id, x: player.x, y: player.y, z: player.z, tx: t.x, ty: t.y, tid: t.id, turn: 0, start: now, dive: 380, dur: 880, mark: true });
+    addSparkle(t, '#ffd25a');
+  } else if (s.kind === 'falcon') {
+    player.falcons = { spell: id, count: s.falcons, until: now + s.lasts, next: now + 400, turn: 0, k };
+    for (let i = 0; i < s.falcons; i++) effects.push({ kind: 'falcon_aloft', cid: player.id, x: player.x, y: player.y, z: player.z, turn: i, of: s.falcons, start: now, dur: s.lasts });
+    addSparkle(player, '#ffe9b0');
   } else if (s.kind === 'chain') {
     castChain(s, roll);
   } else if (s.kind === 'selfdestruct') { // everything around you burns, and so do you
