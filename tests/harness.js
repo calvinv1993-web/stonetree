@@ -89,7 +89,7 @@ function loadGame({ seed = 1, world = '' } = {}) {
     get now() { return now; }, set now(v) { now = v; },
     get pendingHits() { return pendingHits; },
     PATHS,
-    DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
+    DIR_KEYS, THINGS, ITEMS, MONSTERS, NPCS, QUESTS, SPELLS, TREES, VOCATIONS, SLOTS, BUYS, CONDITIONS, FIELDS, Actions, RAIDS, GUIDE, PETS, PET_MODES,
     bag, dist, countItem, questState, pileAt, fieldAt, xpForLevel, freeCapacity, capacity, bagItems, findInBag, isFree, playerWeapon,
     physicalMax, physicalHit, blocked, FIGHT_MODES, wantsTestSpear, KESTREL, OAKVALE,
     RARE_KIN, RARE_CHANCE, BESTIARY_TIERS, COSMETICS, bestiaryTier, bestiaryBonus, withBestiary,

@@ -569,8 +569,8 @@ body.touch-ui #skillTree { z-index: 61; top: 0; left: 0; right: 0; bottom: 0; tr
   display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px calc(env(safe-area-inset-bottom, 0px) + 12px); }
 body.touch-ui #skillTree[hidden] { display: none; }
 body.touch-ui #skillTree .tree-lines { gap: 12px; }
-body.touch-ui #skillTree .tree-tiers { gap: 14px; }
-body.touch-ui #skillTree .tree-icon { width: 64px; height: 64px; min-width: 64px; }
-body.touch-ui #skillTree .tree-icon .tree-art { width: 50px; height: 50px; }
+body.touch-ui #skillTree .tree-tiers { gap: 10px; }
+body.touch-ui #skillTree .tree-icon { width: 60px; height: 60px; min-width: 60px; }
+body.touch-ui #skillTree .tree-icon .tree-art { width: 46px; height: 46px; }
 body.touch-ui #skillTree .tree-card { margin-top: auto; }
 body.touch-ui #skillTree .tree-learn { min-height: 48px; font-size: 15px; }

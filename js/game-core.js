@@ -263,7 +263,6 @@ function speedOf(c) {
   if (c.type === 'player' && c.equipment.feet && ITEMS[c.equipment.feet.id]) speed += ITEMS[c.equipment.feet.id].speed || 0; // (featherstep boots)
   const cond = c.conditions || {};
   if (cond.paralyze) speed /= CONDITIONS.paralyze.speed;
-  if (cond.slowed) speed /= CONDITIONS.slowed.speed;
   if (c.type === 'player') speed *= 1 + passiveBonus(c, 'light_feet'); // (a Hawk's Light Feet)
   if (cond.haste) speed /= CONDITIONS.haste.speed;
   const ring = c.type === 'player' && c.equipment.ring && ITEMS[c.equipment.ring.id].ring;
@@ -1725,7 +1724,8 @@ function applySave(data) {
   for (const type of Object.keys(kills)) if (Object.hasOwn(MONSTERS, type) && kills[type] > 0) player.bestiary[type] = Math.floor(kills[type]);
   // (the skill tree: none in a save from before it, so the points of the levels you have are all yours to spend; ranks of
   // what no longer exists, or more than it has, are dropped, and if they cost more than you have, it all starts over)
-  const ranks = player.skillRanks && typeof player.skillRanks === 'object' && !Array.isArray(player.skillRanks) ? player.skillRanks : {};
+  const ranks = player.skillRanks && typeof player.skillRanks === 'object' && !Array.isArray(player.skillRanks) ? { ...player.skillRanks } : {};
+  if (ranks.triple_shot && !ranks.double_shot) { ranks.double_shot = ranks.triple_shot; delete ranks.triple_shot; } // (Triple Shot came first in the Volley line once: its ranks are Double Shot's now)
   player.skillRanks = {};
   for (const [id, r] of Object.entries(ranks)) {
     const spot = treeSpot(id), passive = treePassive(player.vocation, id), max = passive ? passive.max : TREE_RANKS;

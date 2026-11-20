@@ -46,7 +46,7 @@ Passives: **Thick Skin** (+3% health a rank), **Steady Arm** (+2% chance to bloc
 | Line | Tier 1 (level 10) | Tier 2 (level 25) | Tier 3 (level 45) |
 |---|---|---|---|
 | **Shot** (one line) | Power Shot (Power Shot) | Gale Shot: further, through more | Sky Lance: and a burst where it stops |
-| **Volley** (many) | Triple Shot (Triple Shot) | Arrow Rain: on and around your target, radius 1 | Arrow Storm: radius 2, slows them |
+| **Volley** (many) | Double Shot: 2 arrows, a red trail | Triple Shot: 3 arrows, a red trail | Quad Shot: 4 blood-red arrows (and at level 65 a fourth tier, Penta Shot: 5, darker, sparks and bursts) |
 | **Falcon** (helper) | Falcon's Mark: your target takes +15% damage, 10 s | Hunting Falcon: a falcon fights by you for 20 s | Twin Falcons: two of them |
 | **Holy** (a little magic) | Holy Bolt (Holy Bolt) | Holy Wave (Holy Wave) | Holy Storm (Holy Storm) |
 

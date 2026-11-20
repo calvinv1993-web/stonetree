@@ -498,7 +498,6 @@ const CONDITIONS = {
   burning: { name: 'burning', icon: '🔥', element: 'fire', interval: 2000, ticks: 5 },
   energy: { name: 'electrified', icon: '⚡', element: 'energy', interval: 2000, ticks: 3 },
   paralyze: { name: 'paralyzed', icon: '🕸', duration: 4000, speed: 1.8 },
-  slowed: { name: 'slowed', icon: '≈', duration: 4000, speed: 1.5 }, // (an Arrow Storm's arrows: walking half again as long a step)
   haste: { name: 'hasted', icon: '»', duration: 30000, speed: 0.7 },
   shield: { name: 'magic shield', icon: '◈', duration: 180000 },
 };
@@ -617,13 +616,15 @@ const SPELLS = {
   // A bow drawn to the full and loosed: the arrow flies straight on through everything in its way, each monster hit as
   // the arrow gets there, one after the other (pendingHits, as the circle throw). Paladins: a first try of the bow's skills.
   power_shot: { name: 'Power Shot', words: 'sagitta vis', vocs: ['paladin'], level: 10, mana: 40, kind: 'pierce', cooldown: 5000, range: 6, charge: 1500, perTile: 45, times: 10, desc: 'With a bow and arrows: draw to the full for a moment and a half, then loose one arrow that flies through every monster in its way, at your target or straight ahead, up to 6 tiles, hitting each ten times as hard as a plain shot.' },
-  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 10, mana: 35, kind: 'volley', cooldown: 3000, range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.55, 1.0], desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
-  // The Hawk's tree (TREES below): the stronger tiers of Power Shot and Triple Shot, and the falcon's line.
+  // The Hawk's Volley line: two, three, four, five quick arrows at your target, each hit on its own, each drawn with a
+  // red trail behind it (look: how it's drawn; the last two look meaner: blood-red with a dark core, sparks, bigger bursts)
+  double_shot: { name: 'Double Shot', words: 'sagitta bina', vocs: ['paladin'], level: 10, mana: 25, kind: 'volley', cooldown: 3000, range: 6, shots: 2, lead: 90, gap: 140, perTile: 28, mult: [0.6, 1.05], look: 1, desc: 'With a bow and arrows: two quick arrows at your target, one right after the other, each hit on its own. Costs two arrows.' },
+  triple_shot: { name: 'Triple Shot', words: 'sagitta trina', vocs: ['paladin'], level: 25, mana: 45, kind: 'volley', cooldown: 3000, range: 6, shots: 3, lead: 90, gap: 140, perTile: 28, mult: [0.6, 1.05], look: 1, desc: 'With a bow and arrows: three quick arrows at your target, one right after the other, each hit on its own. Costs three arrows.' },
+  quad_shot: { name: 'Quad Shot', words: 'sagitta quaterna', vocs: ['paladin'], level: 45, mana: 70, kind: 'volley', cooldown: 3000, range: 6, shots: 4, lead: 90, gap: 120, perTile: 26, mult: [0.65, 1.1], look: 2, desc: 'With a bow and arrows: four blood-red arrows at your target, quick as thought, each hit on its own. Costs four arrows.' },
+  penta_shot: { name: 'Penta Shot', words: 'sagitta quina', vocs: ['paladin'], level: 65, mana: 100, kind: 'volley', cooldown: 3000, range: 6, shots: 5, lead: 90, gap: 105, perTile: 24, mult: [0.7, 1.2], look: 3, desc: 'With a bow and arrows: five dark-red arrows at your target, a storm of them, each hit on its own and bursting where it strikes. Costs five arrows.' },
+  // The Hawk's tree (TREES below): the stronger tiers of Power Shot, and the falcon's line.
   gale_shot: { name: 'Gale Shot', words: 'sagitta ventus', vocs: ['paladin'], level: 25, mana: 70, kind: 'pierce', cooldown: 5000, range: 8, charge: 1300, perTile: 40, times: 14, desc: 'With a bow drawn to the full: an arrow 8 tiles straight on through everything in its way, each hit as hard as 14 plain shots.' },
   sky_lance: { name: 'Sky Lance', words: 'sagitta caelum', vocs: ['paladin'], level: 45, mana: 110, kind: 'pierce', cooldown: 5000, range: 9, charge: 1200, perTile: 36, times: 18, burst: 1, desc: 'An arrow 9 tiles straight on through everything in its way (18 plain shots each), bursting where it stops: everything round that tile is hit too.' },
-  // kind rain: arrows loosed high, falling on your target's tile and the tiles round it (radius), a moment later
-  arrow_rain: { name: 'Arrow Rain', words: 'sagitta pluvia', vocs: ['paladin'], level: 25, mana: 70, kind: 'rain', cooldown: 4000, range: 6, radius: 1, fall: 650, mult: [0.8, 1.4], desc: 'Arrows fall on your target and every tile round it.' },
-  arrow_storm: { name: 'Arrow Storm', words: 'sagitta procella', vocs: ['paladin'], level: 45, mana: 110, kind: 'rain', cooldown: 4000, range: 6, radius: 2, fall: 650, mult: [0.9, 1.5], condition: 'slowed', desc: 'Arrows fall on everything within 2 tiles of your target, and slow what they hit.' },
   // kind mark: your target takes more damage from everyone for a while (mark: how much more, lasts: ms)
   falcon_mark: { name: "Falcon's Mark", words: 'falco signum', vocs: ['paladin'], level: 10, mana: 30, kind: 'mark', cooldown: 8000, range: 7, mark: 0.15, lasts: 10000, desc: 'Your falcon marks your target: for 10 seconds it takes 15% more damage from everyone.' },
   // kind falcon: falcons fly at your side (lasts ms), each diving at your target every `every` ms (power: a dive's hit)
@@ -665,18 +666,18 @@ const SPELLS = {
   blizzard:     { name: 'Blizzard', words: 'glacies tempestas', vocs: ['druid'], level: 20, promoted: true, mana: 150, kind: 'area', radius: 3, element: 'ice', power: { min: [0.8, 3.5, 0, 30], max: [1.2, 5.5, 0, 60] }, desc: 'Ice damage to everything within 3 tiles.' },
 };
 
-// Skill trees (docs/skills-plan.md): per vocation, its lines (each a row of tiers: stronger spells, opened at TREE_LEVELS)
+// Skill trees (docs/skills-plan.md): per vocation, its lines (each a row of tiers, 3 or 4: stronger spells, opened at TREE_LEVELS)
 // and its passives. A tier's spell is learned in ranks (TREE_RANKS of them, each costing the tier's number in points),
 // and a line is one button: it casts the highest tier you've learned. Points: one a level from TREE_FROM. For now the Hawk
 // alone has one; the other paths keep their spells by level.
 //   lines:    [{ id, name, tiers: [spell ids] }]; passives: [{ id, name, max (ranks), per (a rank's bonus), desc }]
 //   weapon:   'bow' when a line's spells need a bow or crossbow in your hands
-const TREE_LEVELS = [10, 25, 45], TREE_RANKS = 3, TREE_FROM = 10, RANK_POWER = 0.15;
+const TREE_LEVELS = [10, 25, 45, 65], TREE_RANKS = 3, TREE_FROM = 10, RANK_POWER = 0.15;
 const TREES = {
   paladin: {
     lines: [
       { id: 'shot', name: 'Shot', weapon: 'bow', tiers: ['power_shot', 'gale_shot', 'sky_lance'] },
-      { id: 'volley', name: 'Volley', weapon: 'bow', tiers: ['triple_shot', 'arrow_rain', 'arrow_storm'] },
+      { id: 'volley', name: 'Volley', weapon: 'bow', tiers: ['double_shot', 'triple_shot', 'quad_shot', 'penta_shot'] },
       { id: 'falcon', name: 'Falcon', tiers: ['falcon_mark', 'hunting_falcon', 'twin_falcons'] },
       { id: 'holy', name: 'Holy', tiers: ['holy_bolt', 'holy_wave', 'holy_storm'] },
     ],

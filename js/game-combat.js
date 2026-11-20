@@ -134,7 +134,7 @@ const mayHurt = c => !player.secure || (!innocentTo(c, player) && !sameParty(pla
 // no attack spells or runes from inside, and none thrown in from outside.
 const inPZ = (o = player) => map.isProtected(o.x, o.y, o.z);
 const NOT_IN_PZ = 'This action is not permitted in a protection zone.';
-const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'chain', 'selfdestruct', 'rain', 'mark', 'falcon'];
+const AGGRESSIVE = ['bolt', 'strike', 'wave', 'beam', 'area', 'whirl', 'arc', 'pierce', 'volley', 'chain', 'selfdestruct', 'mark', 'falcon'];
 
 // A critical hit, now and then, from a weapon that has them (crit: { chance, mult }): [the damage, whether it was one]
 // A critical hit: a weapon's own chance (a hawkeye bow's), and a Hawk's Sharp Eye on top (half again as hard)
@@ -605,7 +605,6 @@ function updatePendingHits() {
       addSound('hit', t.x, t.y, t.z);
       hurt(t, h.dmg, h.element, h.crit);
       if (h.mark) markTarget(t, h.mark, 6000); // (a falcon's dive marks what it strikes)
-      if (h.condition && !t.dead && t.type !== 'player') applyCondition(t, h.condition, 1, player.id);
     });
   }
 }
@@ -650,12 +649,13 @@ function castVolley(s, k = 1) {
   for (let i = 0; i < s.shots && player.equipment.ammo && player.equipment.ammo.count > 0; i++) {
     useAmmo(w); shots++;
     const [dmg, crit] = critical(w, Math.round(k * max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
-    pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, crit, element: 'physical', glow: '#bfe6ff', small: true });
+    pendingHits.push({ at: now + s.lead + i * s.gap + Math.round(d * s.perTile), by: player, target: t, z, dmg, crit, element: 'physical',
+      glow: s.look >= 2 ? '#ff2a1e' : s.look ? '#ff6a4a' : '#bfe6ff', small: (s.look || 0) < 3 });
   }
   addSkillTries('distance');
   player.drawingUntil = now + s.lead + (shots - 1) * s.gap + 80; player.path = []; player.action = null; // (rooted till the last arrow is off)
   const flight = Math.round(d * s.perTile);
-  effects.push({ kind: 'volley', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, start: now, lead: s.lead, gap: s.gap, shots, flight,
+  effects.push({ kind: 'volley', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, start: now, lead: s.lead, gap: s.gap, shots, flight, look: s.look || 0,
     dur: s.lead + (shots - 1) * s.gap + flight + 160 });
   addSound('shoot', player.x, player.y, z); // (the next arrows' twangs: the picture plays them, as they're loosed)
 }
@@ -714,27 +714,6 @@ function castPierce(s, k = 1) {
     }
     effects.push({ kind: 'impact', x: end.x, y: end.y, z, glow: '#ffd25a', start: at, dur: 420 });
   }
-  addSound('shoot', player.x, player.y, z);
-}
-
-// Arrows loosed high (kind rain): they fall on your target's tile and every tile within s.radius of it, s.fall ms later,
-// each tile struck by one (a bow shot's worth times s.mult), and slowing what they hit when the spell says so
-function castRain(s, k = 1) {
-  const w = playerWeapon(), t = player.target, z = player.z, max = physicalMax(w);
-  player.dir = dirTo(Math.sign(t.x - player.x), Math.sign(t.y - player.y)) ?? player.dir;
-  useAmmo(w);
-  addSkillTries('distance');
-  const tiles = [];
-  for (let dy = -s.radius; dy <= s.radius; dy++) for (let dx = -s.radius; dx <= s.radius; dx++) {
-    const x = t.x + dx, y = t.y + dy;
-    if (sightClear(t, { x, y, z })) tiles.push([x, y]);
-  }
-  for (const [x, y] of tiles) for (const c of monsters.filter(m => !m.dead && m.x === x && m.y === y && m.z === z)) {
-    const [dmg, crit] = critical(w, Math.round(k * max * (s.mult[0] + Math.random() * (s.mult[1] - s.mult[0]))));
-    pendingHits.push({ at: now + s.fall, by: player, target: c, z, dmg, crit, element: 'physical', glow: '#cfe8ff', small: true, condition: s.condition });
-  }
-  player.drawingUntil = now + 300; player.path = []; player.action = null;
-  effects.push({ kind: 'rain', cid: player.id, x: player.x, y: player.y, z, tx: t.x, ty: t.y, radius: s.radius, tiles, start: now, fall: s.fall, dur: s.fall + 350 });
   addSound('shoot', player.x, player.y, z);
 }
 
@@ -803,12 +782,12 @@ function castSpell(id) {
     if (!t) return log('You need a target for this spell. Click a monster first.');
     if (t.z !== player.z || dist(player, t) > s.range || !sightClear(player, t)) return log('Your target is out of range.');
   }
-  if (s.kind === 'rain' || s.kind === 'mark') {
+  if (s.kind === 'mark') {
     if (!t) return log('You need a target for this spell. Click a monster first.');
     if (t.type === 'player') return log('Only on monsters.');
     if (t.z !== player.z || dist(player, t) > s.range || !sightClear(player, t)) return log('Your target is out of range.');
   }
-  if (s.kind === 'pierce' || s.kind === 'volley' || s.kind === 'rain') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
+  if (s.kind === 'pierce' || s.kind === 'volley') { const w = playerWeapon(); if (w.kind !== 'distance' || w.thrown) return log('You need a bow (or a crossbow) in your hands for that.'); if (w.noAmmo) return log(`You need ${w.noAmmo}s in your ammo slot.`); }
   if (AGGRESSIVE.includes(s.kind) && inPZ()) return log(NOT_IN_PZ);
 
   player.mana -= s.mana;
@@ -868,8 +847,6 @@ function castSpell(id) {
     castPierce(s, k);
   } else if (s.kind === 'volley') {
     castVolley(s, k);
-  } else if (s.kind === 'rain') {
-    castRain(s, k);
   } else if (s.kind === 'mark') {
     markTarget(t, s.mark * k, s.lasts);
     effects.push({ kind: 'falcon_dive', cid: player.id, x: player.x, y: player.y, z: player.z, tx: t.x, ty: t.y, tid: t.id, turn: 0, start: now, dive: 380, dur: 880, mark: true });

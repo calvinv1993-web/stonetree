@@ -1075,60 +1075,56 @@ function drawEffects(ox, oy, z) {
       drawPowerShot(fx, ox, oy);
     } else if (fx.kind === 'chain') { // lightning bolt: a jagged bolt from the caster to the target, then leaping on from one to the next
       drawLightningChain(fx, ox, oy);
-    } else if (fx.kind === 'volley') { // the triple shot: quick arrows, each a short streak of pale light with a small flash at the bow
-      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
+    } else if (fx.kind === 'volley') { // quick arrows at the target (the Volley line), each a short streak with a flash at the bow
+      // (look 0: pale light, a trial's Triple Shot; 1: a red trail following each arrow; 2: blood-red, a dark core and a
+      // glow; 3: darker still, a smoking trail, sparks thrown off and a shudder of light at the bow)
+      const e = now - fx.start, look = fx.look || 0, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12, ex = ox + fx.tx * TILE + 16, ey = oy + fx.ty * TILE + 12;
       const a = Math.atan2(ey - sy, ex - sx), bx = sx + Math.cos(a) * 10, by = sy + Math.sin(a) * 10, nx = -Math.sin(a), ny = Math.cos(a);
+      const C = look === 0 ? { glow: 'rgba(210,236,255,', ray: '200,232,255', tail: '150,200,255', head: '225,242,255', dot: 'rgba(235,248,255,' }
+        : look === 1 ? { glow: 'rgba(255,90,70,', ray: '255,90,70', tail: '235,20,10', head: '255,80,60', dot: 'rgba(255,200,180,' }
+          : look === 2 ? { glow: 'rgba(255,40,30,', ray: '255,70,50', tail: '200,0,0', head: '255,90,70', dot: 'rgba(255,170,150,' }
+            : { glow: 'rgba(255,30,20,', ray: '255,60,30', tail: '140,0,0', head: '255,60,40', dot: 'rgba(255,200,120,' };
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
+      if (look >= 3 && e < fx.lead + (fx.shots - 1) * fx.gap + 120) glowDot(bx, by, 9 + 3 * Math.sin(e / 30), 'rgba(255,40,20,', 0.35); // (the bow smoulders while it looses)
       for (let i = 0; i < fx.shots; i++) {
         const r = e - fx.lead - i * fx.gap;
         if (r < 0) continue;
         if (i && !(fx.twang & (1 << i))) { fx.twang = (fx.twang || 0) | (1 << i); if (fx.z === player.z && dist(fx, player) <= 10) Sound.play('shoot'); }
-        if (r < 120) { // loosed: a quick flash and three short rays
+        if (r < 120) { // loosed: a quick flash and short rays
           const f = 1 - r / 120;
-          glowDot(bx, by, 4 + 6 * f, 'rgba(210,236,255,', 0.75 * f);
+          glowDot(bx, by, (4 + 6 * f) * (1 + look * 0.2), C.glow, 0.75 * f);
           for (let k = -1; k <= 1; k++) {
-            const ra = a + k * 0.22, len = 14 + (1 - Math.abs(k)) * 8;
-            ctx.strokeStyle = `rgba(200,232,255,${0.5 * f})`; ctx.lineWidth = 1.5;
+            const ra = a + k * 0.22, len = (14 + (1 - Math.abs(k)) * 8) * (1 + look * 0.15);
+            ctx.strokeStyle = `rgba(${C.ray},${0.5 * f})`; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.moveTo(bx + Math.cos(ra) * 3, by + Math.sin(ra) * 3); ctx.lineTo(bx + Math.cos(ra) * len, by + Math.sin(ra) * len); ctx.stroke();
           }
         }
-        const p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / 120) : 1;
+        const p = Math.min(1, r / Math.max(1, fx.flight)), fade = r > fx.flight ? Math.max(0, 1 - (r - fx.flight) / (look ? 220 : 120)) : 1;
         if (fade <= 0) continue;
-        const off = (i - 1) * 2.5, x = sx + (ex - sx) * p + nx * off, y = sy + (ey - sy) * p + ny * off; // (each arrow a little beside the last)
-        const tail = Math.min(TILE * 1.3, Math.hypot(ex - sx, ey - sy) * p), tx = x - Math.cos(a) * tail, ty = y - Math.sin(a) * tail;
-        for (const [w, al] of [[5, 0.22], [1.8, 0.85]]) {
+        const off = (i - (fx.shots - 1) / 2) * 2.5, x = sx + (ex - sx) * p + nx * off, y = sy + (ey - sy) * p + ny * off; // (each arrow a little beside the last)
+        // its trail: following it all the way from the bow (a red line, hanging a moment after it lands), longer the meaner
+        const tail = look ? Math.hypot(ex - sx, ey - sy) * p : Math.min(TILE * 1.3, Math.hypot(ex - sx, ey - sy) * p), tx = x - Math.cos(a) * tail, ty = y - Math.sin(a) * tail;
+        for (const [w, al] of look >= 2 ? [[7, 0.28], [3, 0.7], [1.2, 0.9]] : look ? [[5, 0.35], [2, 1]] : [[5, 0.22], [1.8, 0.85]]) {
           const grad = ctx.createLinearGradient(tx, ty, x, y);
-          grad.addColorStop(0, 'rgba(150,200,255,0)'); grad.addColorStop(1, `rgba(225,242,255,${al * fade})`);
+          grad.addColorStop(0, `rgba(${C.tail},0)`); grad.addColorStop(0.6, `rgba(${C.tail},${al * 0.5 * fade})`); grad.addColorStop(1, `rgba(${C.head},${al * fade})`);
           ctx.strokeStyle = grad; ctx.lineWidth = w;
           ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
         }
-        if (p < 1) glowDot(x, y, 4, 'rgba(235,248,255,', 0.85);
-      }
-      ctx.restore();
-    } else if (fx.kind === 'rain') { // arrows loosed high: a flash at the bow, then streaks falling on each tile, a puff of dust where they land
-      const e = now - fx.start, sx = ox + fx.x * TILE + 16, sy = oy + fx.y * TILE + 12;
-      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-      if (e < 160) glowDot(sx, sy - 6, 5 + 8 * (1 - e / 160), 'rgba(210,236,255,', 0.7 * (1 - e / 160));
-      if (e < 260) { ctx.strokeStyle = `rgba(210,236,255,${0.6 * (1 - e / 260)})`; ctx.lineWidth = 1.5; for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(sx + k * 3, sy - 8); ctx.lineTo(sx + k * 5, sy - 8 - e / 4); ctx.stroke(); } } // (straight up)
-      fx.tiles.forEach(([x, y], i) => {
-        const lag = ((x * 7 + y * 13) % 5) * 40, r = e - fx.fall + 200 - lag; // (each its own moment)
-        const cx = ox + x * TILE + 16 + ((x * 5 + y * 3) % 7) - 3, cy = oy + y * TILE + 14 + ((x * 3 + y * 5) % 7) - 3;
-        if (r >= 0 && r < 200) { // falling: a pale streak from high above, down to the tile
-          const p = r / 200, hy = cy - 70 * (1 - p);
-          ctx.strokeStyle = 'rgba(225,242,255,0.85)'; ctx.lineWidth = 1.6;
-          ctx.beginPath(); ctx.moveTo(cx - 3, hy - 16); ctx.lineTo(cx, hy); ctx.stroke();
-        } else if (r >= 200 && r < 520) { // landed: a flash and the arrow standing in the ground
-          const f = 1 - (r - 200) / 320;
-          glowDot(cx, cy, 3 + 5 * (1 - f), 'rgba(220,236,255,', 0.6 * f);
+        if (look >= 2 && p < 1) { // a dark core down its middle, so it reads as an arrow of blood, not of light
           ctx.globalCompositeOperation = 'source-over';
-          ctx.globalAlpha = Math.min(1, f * 2);
-          ctx.strokeStyle = '#5a3c22'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 2, cy - 8); ctx.stroke();
-          ctx.fillStyle = '#e8e2d0'; ctx.fillRect(cx - 3.5, cy - 10, 3, 2.5);
-          ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'lighter';
+          ctx.strokeStyle = `rgba(60,0,0,${0.75 * fade})`; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * 9, y - Math.sin(a) * 9); ctx.lineTo(x, y); ctx.stroke();
+          ctx.globalCompositeOperation = 'lighter';
         }
-      });
+        if (look >= 3 && p < 1) for (let k = 0; k < 3; k++) { // sparks thrown off behind it
+          const q = ((r * 7 + k * 53 + i * 31) % 100) / 100, d = 6 + q * 22, s2 = (k - 1) * (2 + q * 4);
+          glowDot(x - Math.cos(a) * d + nx * s2, y - Math.sin(a) * d + ny * s2, 1.6, 'rgba(255,170,60,', 0.8 * (1 - q));
+        }
+        if (p < 1) glowDot(x, y, 4 + look, C.dot, 0.85);
+        else if (look >= 3 && r - fx.flight < 200) glowDot(x, y, 6 + 10 * (r - fx.flight) / 200, 'rgba(255,40,20,', 0.6 * (1 - (r - fx.flight) / 200)); // (a burst where it strikes)
+      }
       ctx.restore();
     } else if (fx.kind === 'falcon_aloft') { // a hunting falcon circling over its Hawk (not while it dives: see falcon_dive)
       const who = creatureById(fx.cid);

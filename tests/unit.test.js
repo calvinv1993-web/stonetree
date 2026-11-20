@@ -1980,11 +1980,12 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 30, mana: 500, maxMana: 500 });
   p.skills.distance.level = 40;
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
   A.say('sagitta trina'); tick(game, 100);
-  assert(messages.some(m => /Learn Triple Shot first/.test(m)), 'a skill of the tree: learned first');
+  assert(messages.some(m => /Learn Double Shot first/.test(m)), 'a skill of the tree: learned first');
+  for (let i = 0; i < 3; i++) A.learnRank('double_shot');
   A.learnRank('triple_shot');
   A.say('sagitta trina'); tick(game, 100);
   assert(messages.some(m => /need a target/.test(m)), 'not without a target');
@@ -2019,8 +2020,8 @@ test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier,
   A.learnRank('gale_shot');
   assert.strictEqual(ctx.rankOf(p, 'gale_shot'), 1);
   assert.strictEqual(ctx.treePoints(p), 21 - 3 - 2, 'tier 2 ranks cost 2');
-  for (let i = 0; i < 3; i++) A.learnRank('triple_shot');
-  for (let i = 0; i < 3; i++) A.learnRank('arrow_rain');
+  for (let i = 0; i < 3; i++) A.learnRank('double_shot');
+  A.learnRank('triple_shot');
   A.learnRank('sky_lance');
   assert(messages.some(m => /opens at level 45/.test(m)), 'tier 3 waits for level 45');
   assert.strictEqual(ctx.lineSpell(p, 'power_shot'), 'gale_shot', 'the line casts its highest tier learned');
@@ -2033,13 +2034,12 @@ test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier,
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 50 };
   p.dir = 2; state.now += 6000; A.castSpell('power_shot');
   assert(state.effects.some(fx => fx.kind === 'shot') && (p.spellCooldowns || {}).gale_shot > state.now, 'Gale Shot it is');
-  // Arrow Rain: on the target and the tiles round it
-  const at = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m); return m; };
-  const mid = at(4, 0), side = at(4, 1), far = at(4, 3);
-  p.target = mid; p.chase = false; state.now += 6000; A.castSpell('triple_shot');
-  assert(state.effects.some(fx => fx.kind === 'rain'), 'everyone near sees the rain');
-  tick(game, 900);
-  assert(mid.hp < 9999 && side.hp < 9999 && far.hp === 9999, 'the target and round it, nothing further');
+  // the Volley line: two arrows, then three; four at level 45, five at 65 (blood-red, meaner)
+  const m1 = ctx.spawnMonster({ type: 'bear', x: p.x + 4, y: p.y, z: 8 }); m1.hp = m1.maxHp = 9999; state.monsters.push(m1);
+  p.target = m1; p.chase = false; state.now += 6000; A.castSpell('double_shot');
+  assert(state.effects.some(fx => fx.kind === 'volley' && fx.shots === 3), 'Double Shot\'s button looses the Triple Shot learned');
+  assert.strictEqual(JSON.stringify(state.TREES.paladin.lines[1].tiers), JSON.stringify(['double_shot', 'triple_shot', 'quad_shot', 'penta_shot']));
+  assert(state.SPELLS.penta_shot.shots === 5 && state.SPELLS.penta_shot.level === 65 && state.SPELLS.quad_shot.look > state.SPELLS.triple_shot.look);
   // starting over: all points back, the first time free, then gold
   p.gold = 0; A.resetTree();
   assert.strictEqual(ctx.treePoints(p), 21, 'all the points back');
@@ -2082,6 +2082,9 @@ test('the falcon: a mark makes the target take more, hunting falcons dive at it,
   save.skillRanks.fire_bolt = 3; save.skillRanks.light_feet = 99;
   ctx.applySave(save);
   assert.strictEqual(JSON.stringify(p.skillRanks), JSON.stringify({ falcon_mark: 3, hunting_falcon: 1, light_feet: 5 }));
+  // a save from when Triple Shot came first in its line: its ranks are Double Shot's now
+  save.skillRanks = { triple_shot: 2 }; ctx.applySave(save);
+  assert.strictEqual(JSON.stringify(p.skillRanks), JSON.stringify({ double_shot: 2 }));
   // a save from before the tree: all the points to spend
   delete save.skillRanks; p.skillRanks = undefined; ctx.applySave(save);
   assert.strictEqual(ctx.treePoints(p), 31);
