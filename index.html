@@ -16,6 +16,9 @@
   <!-- On a phone, the page stays hidden until the phone's layout is in place (mobile-viewport.js, the last script, shows
        it): otherwise the computer's layout flashes up while the scripts load. Shown anyway after 10 s, should one fail. -->
   <script>
+    // errors while the game's scripts load (before game.js can report them): kept, and told in the log once it can
+    window.bootErrors = [];
+    window.addEventListener('error', e => window.bootErrors && window.bootErrors.push(`${e.message} (${(e.filename || '').split('/').pop().split('?')[0]}:${e.lineno})`));
     if (matchMedia('(pointer: coarse)').matches || /[?&]mobile\b/.test(location.search)) {
       document.documentElement.classList.add('booting');
       setTimeout(() => document.documentElement.classList.remove('booting'), 10000);

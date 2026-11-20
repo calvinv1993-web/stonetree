@@ -1576,14 +1576,23 @@ function meterFrame(t, dt, work, did) {
 }
 
 // A bug must never stop the game loop: report it in the log and keep going.
-function reportError(err) {
+// Each different error is told once (the first is often the cause of the rest, so it stays in the log), with where it
+// happened (file and line), so a screenshot of a phone that has no console still says enough to find it.
+const errorsTold = new Set();
+function reportError(err, where = '') {
   console.error(err);
   const message = String((err && err.message) || err);
-  if (message === lastError) return;
+  if (message === lastError || errorsTold.has(message) || errorsTold.size >= 6) return;
   lastError = message;
-  log(`Internal error: ${message} (details in the browser console)`, 'damage');
+  errorsTold.add(message);
+  const at = where || ((err && err.stack) || '').split('\n').map(l => (l.match(/([\w.-]+\.js)(?:\?[^:]*)?:(\d+)/) || [])).find(m => m[1]) || null;
+  const spot = typeof at === 'string' ? at : at ? `${at[1]}:${at[2]}` : '';
+  log(`Internal error: ${message}${spot ? ` (${spot})` : ''} (details in the browser console)`, 'damage');
 }
-window.addEventListener('error', e => reportError(e.error || e.message));
+window.addEventListener('error', e => reportError(e.error || e.message, e.filename ? `${e.filename.split('/').pop().split('?')[0]}:${e.lineno}` : ''));
+// (and what went wrong while the scripts were loading, before this could listen: index.html kept it)
+for (const m of window.bootErrors || []) setTimeout(() => log(`Internal error while loading: ${m}`, 'damage'), 0);
+window.bootErrors = null;
 
 // Calm: you stand still, with no target, no monster near, and haven't touched the screen or a key for a moment. Then
 // the game draws 30 frames a second instead of 60 (only the small movements round you, water, leaves, torches, are a
