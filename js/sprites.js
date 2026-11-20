@@ -1296,118 +1296,141 @@ const Sprites = (() => {
       // the stalks, dark between them, and ragged along the bottom.
       function thatch(slopes, front) {
         const rnd = (seed => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(w * 7919 + h * 104729 + 17);
-        const L = Math.hypot(1, p), course = ((st.coarse || 1) * TILE) / 2 / L; // (the picture has two courses: their edges this far apart, across)
-        const capW = 9;
+        const L = Math.hypot(1, p), k = st.coarse || 1, course = (k * TILE) / 2 / L; // (the picture has two courses: their lips this far apart, across)
+        const capW = 5, SW = 1.5, straw = (a, l) => `rgba(${Math.min(255, Math.round(244 * l))},${Math.min(255, Math.round(184 * l))},${Math.min(255, Math.round(72 * l))},0.95)`;
+        // a fringe of straw tips hanging from a lip (a line along the slope at lip(a)) down over what's below it
+        const fringe = (lip, from, to) => {
+          for (let a = from; a < to; a += 0.8) {
+            const b = lip(a), l = 1.2 + rnd() * 2.4, x = a + (rnd() - 0.5) * 0.4;
+            g.fillStyle = straw(0, 0.8 + rnd() * 0.45);
+            g.beginPath(); g.moveTo(x - 0.55, b + 0.3); g.lineTo(x + 0.55, b + 0.3); g.lineTo(x + (rnd() - 0.5) * 0.5, b - l); g.closePath(); g.fill();
+          }
+        };
         slopes.forEach(sl => {
           const [nx, ny] = sl.n;
           // (along, across) -> drawn: along the eave, and across it inwards and up (rising p a pixel)
           g.setTransform(R * -ny, R * nx, R * (-nx - p), R * (-ny - p), R * (M + sl.e[0] - he), R * (M + sl.e[1] - he));
           g.save();
           g.beginPath(); g.rect(0, 0, len, up); g.clip();
-          // the courses don't run ruler-straight: each one's lip waves a little, its own way. The straw is laid again in
-          // thin strips across the eave, each course's band of a strip shifted up or down the slope by a smooth wave
-          // (the bands meet half way between two lips, in the middle of the straw, where a shift doesn't show)
+          // the courses don't run ruler-straight: each one's lip waves a little, its own way
+          const waves = Array.from({ length: Math.ceil(up / course) + 3 }, () => [rnd() * 6.3, rnd() * 6.3, 9 + rnd() * 6, 4 + rnd() * 2]);
+          const wave = (n, a) => { const [p1, p2, l1, l2] = waves[n]; return 0.9 * Math.sin(a / l1 + p1) + 0.4 * Math.sin(a / l2 + p2); };
+          const lip = n => a => n * course + wave(n, a);
+          const top = up - capW, courses = Math.ceil(top / course);
+          // the straw laid again in thin strips across the eave, each course's band shifted by its wave (the bands meet
+          // half way between two lips, in the middle of the straw, where a shift doesn't show)
           if (pattern) {
-            const TW = pic.naturalWidth, TH = pic.naturalHeight, k = st.coarse || 1, sU = (k * TILE) / TW, sV = (k * TILE) / (L * TH);
-            const waves = Array.from({ length: Math.ceil(up / course) + 2 }, () => [rnd() * 6.3, rnd() * 6.3, 9 + rnd() * 6, 4 + rnd() * 2]);
-            const wave = (n, a) => { const [p1, p2, l1, l2] = waves[n]; return 0.9 * Math.sin(a / l1 + p1) + 0.4 * Math.sin(a / l2 + p2); };
-            const SW = 1.5;
+            const TW = pic.naturalWidth, TH = pic.naturalHeight, sU = (k * TILE) / TW, sV = (k * TILE) / (L * TH);
             for (let n = 0; n * course - course / 2 < up; n++) {
               const b0 = Math.max(0, n * course - course / 2), b1 = Math.min(up, n * course + course / 2);
               for (let a = 0; a < len; a += SW) {
-                const w = wave(n, a + SW / 2);
-                pattern.setTransform(new DOMMatrix([sU, 0, 0, -sV, 0, w]));
+                pattern.setTransform(new DOMMatrix([sU, 0, 0, -sV, 0, wave(n, a + SW / 2)]));
                 g.fillStyle = pattern; g.fillRect(a, b0, Math.min(SW, len - a) + 0.05, b1 - b0);
-                if (n > 0 && n * course < up - capW) { // (and its lip lit a little along its rounded edge)
-                  g.fillStyle = 'rgba(255,226,150,0.18)'; g.fillRect(a, n * course + w, Math.min(SW, len - a) + 0.05, 1.8);
-                }
               }
             }
-            g.fillStyle = sl.light < 1 ? `rgba(20,10,4,${(1 - sl.light).toFixed(3)})` : `rgba(255,236,200,${((sl.light - 1) * 0.9).toFixed(3)})`;
+            const lt = 1 + (sl.light - 1) * 0.4; // (straw: its slopes far less apart in light than tiles, it's soft and bright)
+            g.fillStyle = lt < 1 ? `rgba(20,10,4,${(1 - lt).toFixed(3)})` : `rgba(255,236,200,${((lt - 1) * 0.9).toFixed(3)})`;
             g.fillRect(0, 0, len, up); // (the slope's light again, over the straw laid again)
           }
-          // rounded off: darker down towards the eave and at the ends, where the coat curves away
-          let gr = g.createLinearGradient(0, 0, 0, up * 0.45);
-          gr.addColorStop(0, 'rgba(40,22,6,0.34)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
+          // each course a soft cushion: lit along its rounded lip, darker up under the lip of the course above it
+          for (let n = 0; n < courses; n++) for (let a = 0; a < len; a += SW) {
+            const m = a + SW / 2, bA = n ? lip(n)(m) : 0, bB = n + 1 < courses ? lip(n + 1)(m) : top;
+            if (bB <= bA) continue;
+            const gr = g.createLinearGradient(0, bA, 0, bB);
+            gr.addColorStop(0, n ? 'rgba(255,234,160,0.22)' : 'rgba(255,234,160,0.08)'); gr.addColorStop(0.3, 'rgba(255,234,160,0)');
+            gr.addColorStop(0.6, 'rgba(40,20,4,0)'); gr.addColorStop(1, 'rgba(40,20,4,0.3)');
+            g.fillStyle = gr; g.fillRect(a, bA, Math.min(SW, len - a) + 0.05, bB - bA);
+          }
+          // and their lips' straw tips hanging over the shade of the course below
+          for (let n = 1; n < courses; n++) fringe(lip(n), 0, len);
+          // rounded off: a little darker down towards the eave and at the ends, where the coat curves away
+          let gr = g.createLinearGradient(0, 0, 0, up * 0.35);
+          gr.addColorStop(0, 'rgba(40,22,6,0.14)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
           g.fillStyle = gr; g.fillRect(0, 0, len, up);
-          for (const [a0, a1] of [[0, 8], [len, len - 8]]) {
-            gr = g.createLinearGradient(a0, 0, a1, 0); gr.addColorStop(0, 'rgba(40,22,6,0.3)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
-            g.fillStyle = gr; g.fillRect(Math.min(a0, a1), 0, 8, up);
+          for (const [a0, a1] of [[0, 7], [len, len - 7]]) {
+            gr = g.createLinearGradient(a0, 0, a1, 0); gr.addColorStop(0, 'rgba(40,22,6,0.26)'); gr.addColorStop(1, 'rgba(40,22,6,0)');
+            g.fillStyle = gr; g.fillRect(Math.min(a0, a1), 0, 7, up);
           }
-          // weathered: streaks of grey running down the straw, and a little moss, low down and by the ridge
-          for (let k = 0; k < len / 14; k++) {
-            const a = rnd() * len, b = rnd() * (up - capW - 6), l = 6 + rnd() * 12, wd = 0.8 + rnd() * 1.6;
-            const st = g.createLinearGradient(0, b, 0, b + l), k2 = (0.08 + rnd() * 0.1).toFixed(2);
-            st.addColorStop(0, 'rgba(92,86,70,0)'); st.addColorStop(0.3, `rgba(92,86,70,${k2})`); st.addColorStop(1, 'rgba(92,86,70,0)');
-            g.fillStyle = st; g.fillRect(a, b, wd, l);
+          // weathered: a few greyer streaks, and a little moss low down
+          for (let q = 0; q < len / 18; q++) {
+            const a = rnd() * len, b = rnd() * (top - 6), l = 6 + rnd() * 10, wd = 0.8 + rnd() * 1.4;
+            const sg = g.createLinearGradient(0, b, 0, b + l), k2 = (0.06 + rnd() * 0.08).toFixed(2);
+            sg.addColorStop(0, 'rgba(92,86,70,0)'); sg.addColorStop(0.3, `rgba(92,86,70,${k2})`); sg.addColorStop(1, 'rgba(92,86,70,0)');
+            g.fillStyle = sg; g.fillRect(a, b, wd, l);
           }
-          for (let k = 0; k < 2 + len / 40; k++) {
-            const a = rnd() * len, b = rnd() < 0.6 ? 2 + rnd() * 8 : up - capW - 2 - rnd() * 6, r = 1.6 + rnd() * 2.6;
-            g.fillStyle = 'rgba(66,84,34,0.32)'; g.beginPath(); g.ellipse(a, b, r * 1.4, r, 0, 0, Math.PI * 2); g.fill();
-            g.fillStyle = 'rgba(110,128,60,0.25)'; g.beginPath(); g.ellipse(a - r * 0.3, b + r * 0.3, r * 0.7, r * 0.5, 0, 0, Math.PI * 2); g.fill();
+          for (let q = 0; q < 1 + len / 60; q++) {
+            const a = rnd() * len, b = 2 + rnd() * 7, r = 1.4 + rnd() * 2;
+            g.fillStyle = 'rgba(66,84,34,0.28)'; g.beginPath(); g.ellipse(a, b, r * 1.4, r, 0, 0, Math.PI * 2); g.fill();
           }
-          // the ridge's cap: a thicker roll of straw (a darker, greyer sedge), its lower edge cut in scallops
-          const c0 = up - capW, sc = 6;
-          gr = g.createLinearGradient(0, c0 - 4, 0, c0 + 1); // (a soft shadow under its edge, on the coat)
-          gr.addColorStop(0, 'rgba(36,20,4,0)'); gr.addColorStop(1, 'rgba(36,20,4,0.18)');
-          g.fillStyle = gr; g.fillRect(0, c0 - 4, len, 5);
-          g.beginPath(); g.moveTo(0, up); g.lineTo(0, c0 + 1);
-          for (let a = 0; a < len; a += sc) g.quadraticCurveTo(a + sc / 2, c0 - 2.6, Math.min(len, a + sc), c0 + 1);
-          g.lineTo(len, up); g.closePath();
-          g.save(); g.clip();
-          gr = g.createLinearGradient(0, c0 - 3, 0, up);
-          gr.addColorStop(0, rgb(0.62)); gr.addColorStop(0.5, rgb(0.78)); gr.addColorStop(1, rgb(0.9));
-          g.fillStyle = gr; g.fillRect(0, c0 - 3, len, capW + 3);
-          g.strokeStyle = rgb(0.5, 0.45); g.lineWidth = 0.6; // (its stalks run along the ridge)
-          for (let k = 0; k < len / 3; k++) { const a = rnd() * len, b = c0 - 2 + rnd() * (capW + 2); g.beginPath(); g.moveTo(a, b); g.lineTo(a + 3 + rnd() * 4, b + (rnd() - 0.5)); g.stroke(); }
-          g.restore();
-          // a hazel rod along it, just above the scallops, pegged down now and then
-          g.strokeStyle = 'rgba(40,24,8,0.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, c0 + 2.6); g.lineTo(len, c0 + 2.6); g.stroke();
-          g.strokeStyle = 'rgba(196,166,112,0.7)'; g.lineWidth = 0.5; g.beginPath(); g.moveTo(0, c0 + 3); g.lineTo(len, c0 + 3); g.stroke();
-          g.fillStyle = 'rgba(40,24,8,0.45)';
-          for (let a = 5 + rnd() * 6; a < len - 3; a += 14 + rnd() * 8) g.fillRect(a, c0 + 2.2, 0.9, 1.6);
+          // the ridge: a thick round roll of straw along it, bound with rope every so often, its edge a fringe of tips
+          gr = g.createLinearGradient(0, top - 4, 0, top + 1); // (its shadow on the coat)
+          gr.addColorStop(0, 'rgba(36,20,4,0)'); gr.addColorStop(1, 'rgba(36,20,4,0.4)');
+          g.fillStyle = gr; g.fillRect(0, top - 4, len, 5);
+          fringe(() => top, 0, len);
           g.restore();
         });
-        // the ridge itself: a soft round top where the two caps meet
-        roll(ew ? [L0, Ym, top] : [Xm, T0, top], ew ? [R0, Ym, top] : [Xm, B0, top], 3.5, 0.92);
         world();
-        // and a soft dark line along the edges that face away (the far eave, the far verge): where the coat turns under
+        // the ridge: a thick round roll of straw lying along it, bound with rope every so often
+        {
+          const [ax, ay] = S(...(ew ? [L0, Ym, top + 1.5] : [Xm, T0, top + 1.5])), [bx, by] = S(...(ew ? [R0, Ym, top + 1.5] : [Xm, B0, top + 1.5]));
+          const l = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / l, dy = (by - ay) / l, Wr = 6.5;
+          const lit = dy - dx > 0 ? 1 : -1; // (which way across it is towards the light, up-left)
+          g.setTransform(R * dx, R * dy, R * -dy * lit, R * dx * lit, R * ax, R * ay); // (u along, v across: +v towards the light)
+          let rg = g.createLinearGradient(0, -Wr - 4, 0, -Wr); // (its shadow on the slope below it, away from the light)
+          rg.addColorStop(0, 'rgba(36,20,4,0)'); rg.addColorStop(1, 'rgba(36,20,4,0.45)');
+          g.fillStyle = rg; g.fillRect(0, -Wr - 4, l, 4);
+          g.beginPath(); g.moveTo(0, -Wr); g.lineTo(l, -Wr); g.lineTo(l, Wr); g.lineTo(0, Wr); g.closePath();
+          g.fillStyle = straw(0, 0.9); g.fill();
+          for (let q = 0; q < l * 3; q++) { // (its stalks, laid along it)
+            const u = rnd() * l, v = (rnd() * 2 - 1) * (Wr - 0.4), lt = 0.78 + rnd() * 0.45;
+            g.strokeStyle = straw(0, lt); g.lineWidth = 0.8; g.beginPath(); g.moveTo(u, v); g.lineTo(u + 2.5 + rnd() * 4, v + (rnd() - 0.5) * 0.6); g.stroke();
+          }
+          const round = (a0, a1) => { // (round: dark at both edges, lit on the side towards the light)
+            const q = g.createLinearGradient(0, -Wr, 0, Wr);
+            q.addColorStop(0, 'rgba(60,30,4,0.6)'); q.addColorStop(0.3, 'rgba(60,30,4,0.08)'); q.addColorStop(0.62, 'rgba(255,236,160,0.22)');
+            q.addColorStop(0.85, 'rgba(255,236,160,0.06)'); q.addColorStop(1, 'rgba(60,30,4,0.35)');
+            g.fillStyle = q; g.fillRect(a0, -Wr, a1 - a0, 2 * Wr);
+          };
+          round(0, l);
+          for (let u = 7 + rnd() * 4; u < l - 3; u += 15) { // (the ropes round it)
+            g.fillStyle = 'rgba(60,36,10,0.4)'; g.fillRect(u - 0.4, -Wr - 0.3, 3.2, 2 * Wr + 0.6);
+            g.fillStyle = '#e4d2a0'; g.fillRect(u, -Wr, 2.4, 2 * Wr);
+            g.fillStyle = 'rgba(120,90,46,0.5)'; for (let v = -Wr + 0.8; v < Wr; v += 1.5) { g.beginPath(); g.moveTo(u, v); g.lineTo(u + 2.4, v - 0.9); g.lineTo(u + 2.4, v - 0.4); g.lineTo(u, v + 0.5); g.fill(); } // (its twist)
+            round(u, u + 2.4);
+          }
+          g.fillStyle = straw(0, 0.75); // (a few stray tips along its lower edge)
+          for (let u = 0; u < l; u += 1.1) { const t = 1 + rnd() * 2; g.beginPath(); g.moveTo(u - 0.5, -Wr + 0.4); g.lineTo(u + 0.5, -Wr + 0.4); g.lineTo(u + (rnd() - 0.5) * 0.5, -Wr - t); g.fill(); }
+        }
+        world();
+        // a soft dark line along the edges that face away (the far eave, the far verge): where the coat turns under
         for (const sl of slopes) {
           const pts = sl.pts.map(q => S(...q));
-          g.strokeStyle = 'rgba(40,22,6,0.5)'; g.lineWidth = 1;
-          g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
-          // the coat's thickness along the edges you see: the cut ends of the straw, ragged at the bottom
-        const T = 4 + 1.5 * (st.coarse || 1), cut = customImage('roof_thatch_edge'), strip = cut && cut.complete && cut.naturalWidth ? g.createPattern(cut, 'repeat-x') : null;
+          g.strokeStyle = 'rgba(40,22,6,0.45)'; g.lineWidth = 1;
+          g.beginPath(); pts.forEach(([x, y], q) => (q ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
+        }
+        // along the edges you see (the eave in front, the verges by the gable) the coat is thick and rounded: its straw
+        // runs down over the edge, lit along the top, darker below, ending in a ragged fringe of tips
+        const T = 6.5;
         for (const [a, b] of front) {
-          const [ax, ay] = S(...a), [bx, by] = S(...b), n = Math.max(2, Math.round(Math.hypot(bx - ax, by - ay) / 2.5));
-          if (strip) { // the owner's picture of the cut ends: along the edge, its depth down the coat's thickness (and its ragged hem past it)
-            const l = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / l, dy = (by - ay) / l, along = (24 * (st.coarse || 1)) / cut.naturalWidth, deep = (T * 1.35) / cut.naturalHeight;
-            g.save();
-            g.setTransform(R * dx * along, R * dy * along, R * deep, R * deep, R * ax, R * ay);
-            g.fillStyle = strip; g.fillRect(0, 0, l / along, cut.naturalHeight);
-            g.restore();
-            g.strokeStyle = 'rgba(255,228,150,0.45)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
-            continue;
-          }
+          const [ax, ay] = S(...a), [bx, by] = S(...b), l = Math.hypot(bx - ax, by - ay);
+          const ends = [];
+          for (let q = 0; q <= l; q += 0.7) ends.push([q / l, T - 1.5 + rnd() * 2.6]);
           g.save();
           g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by);
-          for (let k = n; k >= 0; k--) { const t = k / n, j = T - 1.4 + rnd() * 2.2; g.lineTo(ax + (bx - ax) * t + j, ay + (by - ay) * t + j); }
+          for (let q = ends.length - 1; q >= 0; q--) { const [t, d] = ends[q]; g.lineTo(ax + (bx - ax) * t + d, ay + (by - ay) * t + d); }
           g.closePath();
-          g.fillStyle = '#4a3416'; g.fill(); g.clip();
-          const dots = Math.round(Math.hypot(bx - ax, by - ay) * T / 2.2);
-          for (let k = 0; k < dots; k++) {
-            const t = rnd(), d = rnd() * T, x = ax + (bx - ax) * t + d, y = ay + (by - ay) * t + d, lit = 1 - d / T;
-            g.fillStyle = rnd() < 0.5 ? `rgba(226,190,112,${(0.55 + 0.4 * lit).toFixed(2)})` : `rgba(176,138,70,${(0.5 + 0.4 * lit).toFixed(2)})`;
-            g.fillRect(x - 0.5, y - 0.5, 1 + rnd() * 0.6, 1 + rnd() * 0.6);
+          g.fillStyle = straw(0, 0.5); g.fill(); g.clip();
+          for (const [t, d] of ends) { // (each stalk down over the edge)
+            const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, lt = 0.8 + rnd() * 0.4;
+            g.strokeStyle = straw(0, lt); g.lineWidth = 1.1;
+            g.beginPath(); g.moveTo(x, y); g.lineTo(x + d, y + d); g.stroke();
           }
           const gr = g.createLinearGradient(ax, ay, ax + T, ay + T);
-          gr.addColorStop(0, 'rgba(255,230,160,0.25)'); gr.addColorStop(0.35, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(30,16,4,0.45)');
-          g.fillStyle = gr; g.fillRect(Math.min(ax, bx) - 1, Math.min(ay, by) - 1, Math.abs(bx - ax) + T + 2, Math.abs(by - ay) + T + 2);
+          gr.addColorStop(0, 'rgba(255,236,170,0.12)'); gr.addColorStop(0.3, 'rgba(255,236,170,0)'); gr.addColorStop(0.5, 'rgba(50,24,2,0)'); gr.addColorStop(1, 'rgba(50,24,2,0.5)');
+          g.fillStyle = gr; g.fillRect(Math.min(ax, bx) - 2, Math.min(ay, by) - 2, Math.abs(bx - ax) + T + 4, Math.abs(by - ay) + T + 4);
           g.restore();
-          // its rounded top edge, lit
-          g.strokeStyle = 'rgba(255,228,150,0.55)'; g.lineWidth = 1; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke();
+          g.strokeStyle = 'rgba(255,232,160,0.55)'; g.lineWidth = 0.9; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke(); // (its rounded top, lit)
         }
-      }
       }
     }, cw * R, ch * R);
   }
