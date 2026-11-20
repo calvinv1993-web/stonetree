@@ -299,6 +299,17 @@ const GuideSpot = (() => {
     const x = Math.max(3, r.left - pad), y = Math.max(3, r.top - pad), w = Math.min(innerWidth - 3, r.right + pad) - x, hh = Math.min(innerHeight - 3, r.bottom + pad) - y;
     const k = Math.max(0, Math.min(rad, w / 2, hh / 2));
     return `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + hh - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + hh}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + hh - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`; };
+  // (a part under an open window, say the backpack's tabs under a conversation, isn't lit: the hand would point at the window)
+  const covered = el => { const r = el.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !!top && !el.contains(top) && !top.contains(el) && !top.closest('#guide'); };
+  // (what a step lights stops being lit once you've tapped it: the step's own task is somewhere else, the Quests tab was a tip)
+  const spotTapped = { step: 0, sels: new Set() };
+  document.addEventListener('click', e => {
+    const step = player && player.tutorial ? GUIDE[player.tutorial - 1] : null;
+    if (!step) return;
+    if (spotTapped.step !== player.tutorial) { spotTapped.step = player.tutorial; spotTapped.sels = new Set(); }
+    for (const sel of (touchScreen ? step.ui : step.uiDesk) || []) if (e.target.closest && e.target.closest(sel)) spotTapped.sels.add(sel);
+  }, true);
   let passed = 0, looked = 0, scrolled = 0; // (the step this browser last moved the guide on from: once, not every frame while the server answers)
   function frame() {
     requestAnimationFrame(frame);
@@ -323,7 +334,8 @@ const GuideSpot = (() => {
         if (list) { const lr = list.getBoundingClientRect(), pr = pick.getBoundingClientRect(); list.scrollTop += pr.top - lr.top - (lr.height - pr.height) / 2; }
         for (const el of [$('viewport'), document.scrollingElement]) if (el) el.scrollTop = 0;
       }
-      target = [...document.querySelectorAll(sel)].find(visible); if (target) break;
+      if (spotTapped.step === player.tutorial && spotTapped.sels.has(sel)) { if (sel === list[0]) break; continue; } // (tapped already: done with)
+      target = [...document.querySelectorAll(sel)].find(el => visible(el) && !covered(el)); if (target) break;
     }
     // on a computer what it's about may be down the side panel, below the window's edge: brought into sight, once a step
     if (target && !touchScreen && scrolled !== player.tutorial) {

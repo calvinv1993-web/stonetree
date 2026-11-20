@@ -284,6 +284,18 @@ function step(c, dx, dy) {
   // (doors, keys and houses are checked for the acting player: another player's step is taken as them)
   if (isPlayer && c !== player) return asPlayer(c, () => step(c, dx, dy));
   if (isPlayer && skullBlocks(c, nx, ny)) return false;
+  if (isPlayer) { // (a gate you may not pass yet: the guard there stops you, and says why, once in a while)
+    const bar = gateBars(nx, ny, c.z);
+    if (bar) {
+      if (!(now < (c.gateToldAt || 0))) {
+        c.gateToldAt = now + 4000;
+        const guard = npcs.filter(n => n.z === c.z && /^gate_/.test(n.npcId) && dist(n, c) <= 10).sort((a, b) => dist(a, c) - dist(b, c))[0];
+        if (guard) addSpeech(guard, bar, true, c.id);
+        log(guard ? `${guard.name}: ${bar}` : bar);
+      }
+      c.path = []; return false;
+    }
+  }
   if (isPlayer && !creatureAt(nx, ny, c.z) && bumpDoor(nx, ny, c.z)) return false;
   const push = isPlayer && !creatureAt(nx, ny, c.z) && pushBoulder(nx, ny, c.z, dx, dy);
   if (push === 'stuck') return false;

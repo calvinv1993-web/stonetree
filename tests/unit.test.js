@@ -2678,6 +2678,27 @@ test('greetings follow you: Osric mentions watch marks only once you have some, 
   assert(/Back again/.test(greet('corwin')) && !/new face/.test(greet('corwin')), 'one of his fighters after it');
 });
 
+test('the town gates stay shut until Corwin has trained you, and the guard there says why', () => {
+  const { ctx, state } = quietGame();
+  const p = state.player;
+  // a new character on the street just inside the north gate, walking north into it
+  ctx.teleport({ x: 126, y: 97, z: 8 });
+  Object.assign(p, { quests: {}, level: 1, oracle: false });
+  const tryNorth = () => { p.walk = null; const y = p.y; ctx.step(p, 0, -1); const moved = p.y !== y; p.y = y; return moved; };
+  assert.ok(!tryNorth(), 'not without the captain\'s leave');
+  p.quests.last_town = { status: 'active', step: 1, kills: {} };
+  assert.ok(!tryNorth(), 'not while the Host is at the walls');
+  assert.ok(/onto the wall/.test(ctx.gateBars(126, 96, 8)), 'the siege: up onto the wall instead');
+  p.quests.last_town = { status: 'done', step: 0, kills: {} };
+  p.quests.recruit = { status: 'active', step: 2, kills: {} };
+  assert.ok(!tryNorth(), 'not before the training is done');
+  assert.ok(state.effects.some(e => e.kind === 'speech' && /gate/.test(e.text)), 'the guard says it');
+  p.quests.recruit = { status: 'done', step: 0, kills: {} };
+  assert.ok(tryNorth(), 'a recruit who has trained goes out');
+  p.quests = {}; p.level = 3;
+  assert.ok(tryNorth(), 'and so does anyone of level 3 or more');
+});
+
 test('every picture is listed with its own version (else run: node tests/sprite-versions.js)', () => {
   const { versions, OUT } = require('./sprite-versions');
   const listed = vm.runInNewContext(`${fs.readFileSync(OUT, 'utf8')}; SPRITE_HASHES`);

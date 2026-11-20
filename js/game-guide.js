@@ -517,6 +517,18 @@ function questOnStep(spec) {
 const onIsle = p => !!map.isle && p.x >= map.isle.x0 && p.x <= map.isle.x1 && p.y >= map.isle.y0 && p.y <= map.isle.y1;
 
 // Why a ride from here to there can't go, or null if it can.
+// The town's gates stay shut to you until Master Corwin has trained you (The Recruit): outside is death for the
+// untrained, and while the Host is at the walls nobody goes out at all. The guard at the gate says so.
+function gateBars(x, y, z) {
+  if (!map.isle || typeof OAKVALE === 'undefined' || z !== map.surfaceZ || graduated() || player.level >= 3) return null;
+  const q = player.quests.recruit;
+  if (q && q.status === 'done') return null;
+  if (!OAKVALE.ramparts.gates.some(([x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1)) return null;
+  const lt = player.quests.last_town;
+  if (lt && lt.status !== 'done' && (lt.step || 0) >= 1) return 'The Host is out there! Not through the gate: up the steps beside it, onto the wall!';
+  if (!lt || lt.status !== 'done') return 'Halt! Nobody goes past the gate without the captain\'s leave. Out there it is death for anyone untrained.';
+  return 'Not past this gate yet, recruit. Master Corwin at the academy trains you first: then the watch will want you out there.';
+}
 function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
