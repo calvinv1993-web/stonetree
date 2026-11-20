@@ -177,17 +177,17 @@
           <canvas id="worldCanvas" width="640" height="480"></canvas>
         </div>
 
-        <div id="storyBook" class="story-book" hidden>
-          <div class="sb-frame">
-            <img class="sb-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
-            <div class="sb-art"><img id="sbArt" alt=""></div>
-            <div class="sb-page">
+        <div id="storyBook" class="story-book" hidden role="dialog" aria-modal="true" aria-labelledby="sbTitle">
+          <div class="sb-stage" aria-hidden="true"><img class="sb-shot" alt=""><img class="sb-shot" alt=""></div>
+          <img class="sb-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
+          <div class="sb-panel">
+            <div id="sbPage" class="sb-page" aria-live="polite">
               <h2 id="sbTitle"></h2>
               <div class="sb-rule" aria-hidden="true"><span></span></div>
               <div id="sbText" class="sb-text"></div>
             </div>
-            <div id="sbDots" class="sb-dots" aria-hidden="true"></div>
-            <div class="sb-nav"><button id="sbBack" class="sb-back" title="Back">&#8249;</button><button id="sbNext" class="sb-go">Next &#8250;</button><button id="sbSkip" class="sb-skip">Skip</button></div>
+            <div id="sbDots" class="sb-dots" role="progressbar" aria-valuemin="1"></div>
+            <div class="sb-nav"><button id="sbBack" class="sb-back" aria-label="Previous page">&#8249;</button><button id="sbNext" class="sb-go">Next</button><button id="sbSkip" class="sb-skip">Skip</button></div>
           </div>
         </div>
 

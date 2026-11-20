@@ -517,55 +517,84 @@ body.map-news #hudMap::after, body.map-news .drawer-tabs button[data-page="map"]
 @keyframes map-news { 50% { transform: scale(1.25); } }
 body.map-news #mmWorld::after { top: -4px; right: -4px; width: 8px; height: 8px; } /* (a small button: on its corner, off the word) */
 
-/* ---- the story book (game-ui.js StoryBook): a new character's first pages, and the making of the character after it
-   in the same look: a stone arch, a picture that drifts in on what a page is about, and a page of parchment ---- */
-:root { --parch-ink: #3a2414; --parch-red: #6e1c12; --parch-gold: #c8963c; }
-.story-book { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at 50% 30%, #2a2420 0%, #12100e 70%, #080706 100%); }
+/* ---- the welcome's shared look (the story book, and the windows a character is made in): its tokens ---- */
+:root {
+  --ob-bg: #0e0c0a; --ob-ink-light: #f2e6c8; --ob-ink-soft: #cdbb94;
+  --parch-ink: #3a2414; --parch-red: #6e1c12; --parch-gold: #c8963c; --parch-gold-dim: #8a6428; --parch-edge: #3a2610;
+  --parch-fill: radial-gradient(ellipse at 50% 35%, #f6e8c6 0%, #ecd6a6 58%, #d6b57c 100%);
+  --ob-serif: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --ob-radius: 12px; --ob-gap: clamp(10px, 2.6vw, 16px); --ob-fade: 650ms; --ob-text-in: 420ms;
+  --ob-panel-shadow: inset 0 0 24px rgba(120, 78, 28, 0.38), 0 0 0 1px var(--parch-edge), 0 0 0 3px var(--parch-gold-dim), 0 14px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- the story book (game-ui.js StoryBook): a new character's first pages. The picture fills the screen and slowly
+   drifts in on what a page is about; a page of parchment lies over its lower part (on a wide screen: beside it, on the
+   right), with the pages' marks and the way on. One layout for every screen, by its shape. ---- */
+.story-book { position: fixed; inset: 0; z-index: 40; overflow: hidden; background: var(--ob-bg); color: var(--ob-ink-light); font-family: var(--ob-serif); touch-action: pan-y; }
 .story-book[hidden] { display: none; }
-.sb-frame { position: relative; display: flex; flex-direction: column; width: min(560px, 100vw); height: min(100dvh, 920px);
-  padding: max(8px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom)); box-sizing: border-box;
-  background: linear-gradient(90deg, #1b1714 0, #2b2520 14px, transparent 30px, transparent calc(100% - 30px), #2b2520 calc(100% - 14px), #1b1714 100%);
-  border-left: 2px solid #3d332a; border-right: 2px solid #3d332a; }
-.sb-logo { display: block; width: min(250px, 56vw); height: auto; margin: 0 auto -26px; position: relative; z-index: 2; filter: drop-shadow(0 4px 8px #000c); }
-.sb-art { position: relative; flex: 1 1 auto; min-height: 30vh; overflow: hidden; border-radius: 46% 46% 6px 6px / 16% 16% 6px 6px;
-  border: 3px solid var(--parch-gold); box-shadow: 0 0 0 2px #2a1d10, 0 0 0 5px #8a6428, 0 10px 30px #000c, inset 0 0 40px #000a; background: #1a1612; }
-.sb-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); transform: scale(var(--zoom, 1)); }
-.sb-art img.drift { animation: sb-drift 10s ease-out forwards; }
-@keyframes sb-drift { from { transform: scale(var(--zoom, 1)); opacity: 0.25; } 12% { opacity: 1; } to { transform: scale(calc(var(--zoom, 1) * 1.1)); opacity: 1; } }
-.sb-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.55); border-radius: inherit; }
-/* parchment: the story's page, and the windows a character is made in */
-.sb-page, body.welcome .window.book { color: var(--parch-ink); font-family: Georgia, 'Times New Roman', serif;
-  background: radial-gradient(ellipse at 50% 40%, #f6e8c6 0%, #ead2a0 62%, #d2b077 100%);
-  border: 3px solid var(--parch-gold); border-radius: 8px;
-  box-shadow: inset 0 0 28px rgba(120, 78, 28, 0.45), 0 0 0 2px #3a2610, 0 0 0 4px #9a7030, 0 8px 22px rgba(0, 0, 0, 0.7); }
-/* (over the phone's and the computer's own window look, which insist on theirs) */
-body.welcome .window.book { background: radial-gradient(ellipse at 50% 40%, #f6e8c6 0%, #ead2a0 62%, #d2b077 100%) !important; color: var(--parch-ink) !important;
-  border: 3px solid var(--parch-gold) !important; border-radius: 10px !important;
-  box-shadow: inset 0 0 28px rgba(120, 78, 28, 0.45), 0 0 0 2px #3a2610, 0 0 0 4px #9a7030, 0 8px 22px rgba(0, 0, 0, 0.7) !important; }
-.sb-page { position: relative; z-index: 1; flex: 0 0 auto; margin: -22px 6px 0; padding: 14px 18px 12px; min-height: 30%; box-sizing: border-box; }
-.sb-page h2 { margin: 0; text-align: center; font: bold clamp(21px, 6vw, 28px) Georgia, serif; color: var(--parch-red); text-shadow: 0 1px 0 #fff6; }
-.sb-rule { display: flex; align-items: center; gap: 8px; margin: 6px 12% 8px; }
-.sb-rule::before, .sb-rule::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, transparent, #8a5a26); }
+.sb-stage { position: absolute; inset: 0 0 38% 0; overflow: hidden; } /* (upright: the top of the screen, above the page, so what a page is about isn't under its words) */
+.sb-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%);
+  transform-origin: var(--fx, 50%) var(--fy, 50%); transform: scale(var(--zoom, 1)); opacity: 0; transition: opacity var(--ob-fade) ease; will-change: opacity, transform; }
+.sb-shot.on { opacity: 1; }
+.sb-shot.drift { animation: sb-drift 14s ease-out forwards; }
+@keyframes sb-drift { from { transform: scale(var(--zoom, 1)); } to { transform: scale(calc(var(--zoom, 1) * 1.08)); } }
+/* (the picture darkens into the page below it, and a little at the top behind the logo) */
+.sb-stage::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 8, 6, 0.55) 0%, rgba(10, 8, 6, 0) 20%, rgba(10, 8, 6, 0) 70%, rgba(10, 8, 6, 0.75) 88%, var(--ob-bg) 100%); }
+.sb-logo { position: absolute; z-index: 2; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  width: clamp(104px, 30vw, 170px); height: auto; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none; }
+.sb-panel { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: 0; box-sizing: border-box;
+  width: min(100%, 560px); max-height: calc(100% - 96px - env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px;
+  padding: 0 max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-right)); }
+.sb-page { position: relative; overflow-y: auto; overscroll-behavior: contain; padding: clamp(14px, 3.6vw, 20px) clamp(16px, 4.6vw, 24px);
+  color: var(--parch-ink); background: var(--parch-fill); border: 2px solid var(--parch-gold); border-radius: var(--ob-radius); box-shadow: var(--ob-panel-shadow); }
+.sb-page h2 { margin: 0; text-align: center; font: 700 clamp(21px, 6vw, 27px) / 1.15 var(--ob-serif); color: var(--parch-red); letter-spacing: 0.01em; }
+.sb-rule { display: flex; align-items: center; gap: 8px; margin: 8px 14% 10px; }
+.sb-rule::before, .sb-rule::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #8a5a26); }
 .sb-rule::after { background: linear-gradient(90deg, #8a5a26, transparent); }
-.sb-rule span { width: 9px; height: 9px; transform: rotate(45deg); background: var(--parch-red); box-shadow: 0 0 0 2px #e8c88a; }
-.sb-text p { margin: 0 0 9px; font-size: clamp(15px, 4.2vw, 18px); line-height: 1.42; }
+.sb-rule span { width: 7px; height: 7px; transform: rotate(45deg); background: var(--parch-red); }
+.sb-text p { margin: 0 0 0.6em; font-size: clamp(15px, 4.3vw, 18px); line-height: 1.45; }
 .sb-text p:last-child { margin-bottom: 0; }
-.sb-dots { display: flex; justify-content: center; gap: 9px; margin: 12px 0 10px; }
-.sb-dots i { width: 10px; height: 10px; transform: rotate(45deg); background: #5a5048; border: 1px solid #2a2420; }
-.sb-dots i.past { background: #8a7050; }
-.sb-dots i.on { background: #ffd060; box-shadow: 0 0 8px #ffc040; }
-.sb-nav { display: grid; grid-template-columns: 56px 1fr 72px; align-items: center; gap: 10px; }
-.sb-nav button { font-family: Georgia, serif; cursor: pointer; }
-.story-book .sb-nav .sb-back { height: 46px; font-size: 30px; line-height: 1; color: #f0c860; background: linear-gradient(#3a302a, #221c18) !important; border: 2px solid #8a6a38; border-radius: 8px; }
-.story-book .sb-nav .sb-back:disabled { opacity: 0.35; }
-.story-book .sb-nav .sb-go, body.welcome .window.book button.primary { min-height: 50px; font: bold clamp(19px, 5.4vw, 24px) Georgia, serif; color: #fff4d6; text-shadow: 0 2px 2px #0008;
-  background: linear-gradient(#4f9a3c, #2c6a24 55%, #1f4e1a) !important; border: 2px solid #e0b860 !important; border-radius: 10px !important;
-  box-shadow: 0 0 0 2px #3a2610, inset 0 2px 0 #9ad070, 0 4px 10px #0009; }
-.sb-go:active, body.welcome .window.book button.primary:active { transform: translateY(1px); filter: brightness(0.92); }
-.story-book .sb-nav .sb-skip { background: none !important; border: none; box-shadow: none; color: #d8c8a0; font-size: 16px; text-decoration: underline; text-underline-offset: 3px; }
-.sb-skip[hidden] { visibility: hidden; display: block; }
-@media (max-height: 640px) { .sb-logo { width: 170px; margin-bottom: -16px; } .sb-text p { font-size: 14px; } }
+/* (a page's words come in after its picture) */
+.sb-page.enter > * { animation: sb-text-in var(--ob-text-in) ease-out both; }
+.sb-page.enter .sb-text { animation-delay: 90ms; }
+@keyframes sb-text-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sb-dots { display: flex; justify-content: center; align-items: center; gap: 7px; height: 12px; }
+.sb-dots i { width: 7px; height: 7px; border-radius: 4px; background: rgba(240, 220, 170, 0.32); transition: width 300ms ease, background-color 300ms ease; }
+.sb-dots i.past { background: rgba(240, 210, 140, 0.6); }
+.sb-dots i.on { width: 24px; background: #f0c45a; box-shadow: 0 0 8px rgba(255, 196, 64, 0.6); }
+.sb-nav { display: grid; grid-template-columns: 48px 1fr 64px; align-items: center; gap: 10px; }
+.story-book .sb-nav button { font-family: var(--ob-serif); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.story-book .sb-nav .sb-back { height: 48px; padding: 0; font-size: 28px; line-height: 1; color: #f0c860; background: rgba(28, 22, 18, 0.88) !important;
+  border: 1px solid var(--parch-gold-dim); border-radius: 10px; box-shadow: none; }
+.story-book .sb-nav .sb-back:disabled { visibility: hidden; }
+.story-book .sb-nav .sb-skip { height: 48px; padding: 0; background: none !important; border: none; box-shadow: none; color: var(--ob-ink-soft); font-size: 16px; }
+.story-book .sb-nav .sb-skip[hidden] { display: block; visibility: hidden; }
+/* the one way on: shared with the windows a character is made in */
+.story-book .sb-nav .sb-go, body.welcome .window.book button.primary { min-height: 48px; padding: 0 18px; font: 700 clamp(18px, 5vw, 21px) var(--ob-serif); color: #fff4d6; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, #4e9a3c, #2d6c25 60%, #22561c) !important; border: 1px solid #e0b860 !important; border-radius: 10px !important;
+  box-shadow: inset 0 1px 0 rgba(170, 230, 130, 0.55), 0 0 0 1px var(--parch-edge), 0 4px 10px rgba(0, 0, 0, 0.5) !important; }
+.story-book .sb-nav .sb-go:active, body.welcome .window.book button.primary:active { transform: translateY(1px); filter: brightness(0.92); }
+/* a wide screen (a tablet on its side, a computer): the page beside the picture, on the right, the picture darkening into it */
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  .sb-stage { inset: 0 26vw 0 0; }
+  .sb-stage::after { background: linear-gradient(90deg, rgba(10, 8, 6, 0) 0%, rgba(10, 8, 6, 0) 62%, rgba(10, 8, 6, 0.75) 86%, var(--ob-bg) 100%),
+    linear-gradient(180deg, rgba(10, 8, 6, 0.45) 0%, rgba(10, 8, 6, 0) 20%); }
+  .sb-logo { left: max(24px, env(safe-area-inset-left)); transform: none; width: clamp(150px, 15vw, 210px); }
+  .sb-panel { left: auto; right: max(4vw, env(safe-area-inset-right)); top: 50%; bottom: auto; transform: translateY(-50%); width: clamp(360px, 34vw, 460px); max-height: calc(100% - 48px); padding: 0; }
+}
+/* a short screen: smaller words, a smaller logo */
+@media (max-height: 620px) { .sb-text p { font-size: 14.5px; line-height: 1.4; } .sb-page h2 { font-size: 20px; } .sb-logo { width: 96px; } }
+@media (prefers-reduced-motion: reduce) {
+  .sb-shot { transition-duration: 200ms; }
+  .sb-shot.drift { animation: none; }
+  .sb-page.enter > * { animation: none; }
+  .sb-dots i { transition: none; }
+}
+
+/* parchment for the windows a character is made in (over the phone's and the computer's own window look, which insist on theirs) */
+body.welcome .window.book { color: var(--parch-ink) !important; font-family: var(--ob-serif); background: var(--parch-fill) !important;
+  border: 2px solid var(--parch-gold) !important; border-radius: var(--ob-radius) !important; box-shadow: var(--ob-panel-shadow) !important; }
 
 /* the windows a character is made in, on the welcome: parchment over the dark (its name, its outfit, its path) */
 body.welcome .window.book { padding: 14px 16px; max-width: min(560px, 96vw); box-sizing: border-box; }
@@ -590,3 +619,5 @@ body.welcome #pathPick .path-pick-card { background: rgba(255, 248, 226, 0.55); 
 body.welcome #pathPick .path-pick-card h3 { color: var(--parch-red); font-family: Georgia, serif; }
 body.welcome #pathPick .path-pick-card .role, body.welcome #pathPick .path-pick-how { color: #5a4028; }
 body.welcome #create.book { width: min(420px, 92vw); }
+/* (a tablet or a computer: words a little bigger, the page a little wider) */
+@media (min-width: 700px) { .sb-panel { width: min(100%, 600px); } .sb-text p { font-size: 19px; } .sb-page h2 { font-size: 28px; } }

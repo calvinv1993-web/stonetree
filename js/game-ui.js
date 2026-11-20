@@ -2543,65 +2543,99 @@ function updateSoundButtons() {
 function welcome(on) { document.body.classList.toggle('welcome', !!on); }
 
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
-// Each page: a title, its words, and where its picture looks (the picture slowly drifts in on that spot: x and y in %
-// of the picture, and how far in). Shown before a new character is made; tests in a browser skip it unless ?story.
+// Plain data, as many pages as there are: id, title, its paragraphs, its picture (sprites/ui/story/<image>.jpg) and
+// where on it the page looks: focus [x %, y %, how far in]; the picture slowly drifts in on that spot. Shown before a
+// new character is made (Skip skips only the story); browser tests skip it unless ?story.
 const STORY_PAGES = [
-  { title: 'The Beginning', art: 'story-1', focus: [50, 50, 1],
-    text: ['For an age the land lay at peace: a hundred towns, their lights burning through every night.',
-      'Then, far in the north, an old and dark power woke again.'] },
-  { title: 'The Hollow Host', art: 'story-1', focus: [79, 16, 1.8],
-    text: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
+  { id: 'beginning', title: 'The Beginning', image: 'story-1', focus: [50, 50, 1],
+    paragraphs: ['For an age the land lay at peace: a hundred towns, their lights burning through every night, their roads open from sea to sea.',
+      'Then, far in the north, an old and dark power woke again, and the towns at its edge fell silent one by one.'] },
+  { id: 'host', title: 'The Hollow Host', image: 'story-1', focus: [80, 16, 1.25],
+    paragraphs: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
       'Town after town went dark. Kingdoms fell in a single winter.'] },
-  { title: 'The Last Town', art: 'story-1', focus: [74, 62, 1.7],
-    text: ['Only Oakvale still stands, on its island behind its wall.',
+  { id: 'last-town', title: 'The Last Town', image: 'story-1', focus: [74, 60, 1.2],
+    paragraphs: ['Only Oakvale still stands, on its island behind its wall. Its bell still rings at dawn, and its gate still opens to anyone who reaches it alive.',
       'Most of its fighters lie dead beyond that wall. At night the Host\'s fires burn on the far shore, more every winter.'] },
-  { title: 'And You', art: 'story-1', focus: [20, 48, 1.5],
-    text: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
+  { id: 'you', title: 'And You', image: 'story-1', focus: [20, 46, 1.1],
+    paragraphs: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
       'That was you. You wake in Oakvale\'s temple with almost nothing. But you are alive, and you want to fight.'] },
-  { title: 'Your Road', art: 'story-1', focus: [50, 45, 1.15],
-    text: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
+  { id: 'road', title: 'Your Road', image: 'story-1', focus: [56, 45, 1],
+    paragraphs: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
       'At level 10 the oracle names you before the town. Then you sail for the world the Host has taken, to win it back.'] },
 ];
 const StoryBook = (() => {
-  let at = 0, done = null;
-  const art = id => `sprites/ui/story/${id}.jpg`;
-  function render() {
-    const page = STORY_PAGES[at], [fx, fy, zoom] = page.focus, img = $('sbArt');
-    if (img.dataset.art !== page.art) { img.dataset.art = page.art; img.src = art(page.art); }
-    img.style.transformOrigin = `${fx}% ${fy}%`;
-    img.style.setProperty('--fx', `${fx}%`); img.style.setProperty('--fy', `${fy}%`); // (the picture's crop leans that way too)
-    img.classList.remove('drift'); void img.offsetWidth; // (each page drifts in afresh)
-    img.style.setProperty('--zoom', zoom);
-    img.classList.add('drift');
-    $('sbTitle').textContent = page.title;
-    $('sbText').replaceChildren(...page.text.map(t => h('p', {}, t)));
-    $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
-    $('sbBack').disabled = at === 0;
-    $('sbNext').innerHTML = at === STORY_PAGES.length - 1 ? 'Begin &#8250;' : 'Next &#8250;';
-    $('sbSkip').hidden = at === STORY_PAGES.length - 1;
+  let at = 0, done = null, front = 0, busyUntil = 0, startX = null, startY = null;
+  const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const src = page => `sprites/ui/story/${page.image}.jpg`;
+  // (the pictures the book uses, each once, fetched as it opens: no wait between pages)
+  const preload = () => [...new Set(STORY_PAGES.map(src))].forEach(u => { new Image().src = u; });
+  // the page's picture: on the layer behind, drifting in on its spot, then faded over the one before
+  function picture(page, first) {
+    const shots = $('storyBook').querySelectorAll('.sb-shot'), [fx, fy, zoom] = page.focus || [50, 50, 1];
+    const next = shots[first ? front : 1 - front], last = shots[first ? 1 - front : front];
+    next.src = src(page);
+    next.style.setProperty('--fx', `${fx}%`); next.style.setProperty('--fy', `${fy}%`); next.style.setProperty('--zoom', zoom);
+    next.classList.remove('drift'); void next.offsetWidth;
+    if (!still()) next.classList.add('drift');
+    next.classList.add('on'); if (!first) last.classList.remove('on');
+    front = [...shots].indexOf(next);
   }
-  const close = () => { $('storyBook').hidden = true; const d = done; done = null; if (d) d(); };
-  const go = d => { const n = at + d; if (n < 0) return; if (n >= STORY_PAGES.length) return close(); at = n; render(); if (typeof Sound !== 'undefined' && Sound.play) Sound.play('page'); };
+  function render(first) {
+    const page = STORY_PAGES[at], n = STORY_PAGES.length;
+    picture(page, first);
+    $('sbTitle').textContent = page.title;
+    $('sbText').replaceChildren(...page.paragraphs.map(t => h('p', {}, t)));
+    const box = $('sbPage'); box.scrollTop = 0; box.classList.remove('enter'); void box.offsetWidth; box.classList.add('enter');
+    $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
+    $('sbDots').setAttribute('aria-valuemax', n); $('sbDots').setAttribute('aria-valuenow', at + 1);
+    $('sbDots').setAttribute('aria-label', `Page ${at + 1} of ${n}`);
+    $('sbBack').disabled = at === 0;
+    $('sbNext').textContent = at === n - 1 ? 'Begin' : 'Next';
+    $('sbSkip').hidden = at === n - 1;
+  }
+  const close = () => {
+    if (!done && $('storyBook').hidden) return;
+    $('storyBook').hidden = true;
+    const d = done; done = null; if (d) d();
+  };
+  // a page on or back (not again while the last turn is still fading: a double tap turns one page)
+  function go(d) {
+    if (performance.now() < busyUntil) return;
+    const n = at + d;
+    if (n < 0) return;
+    if (n >= STORY_PAGES.length) { close(); return; }
+    busyUntil = performance.now() + (still() ? 150 : 450);
+    at = n; render(false);
+  }
   function show(onDone) {
     if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (onDone) onDone(); return; } // (browser tests: straight on)
-    done = onDone; at = 0;
+    if (!STORY_PAGES.length) { if (onDone) onDone(); return; }
+    done = onDone; at = 0; busyUntil = 0;
     welcome(true);
+    preload();
     $('storyBook').hidden = false;
-    render();
+    render(true);
+    $('sbNext').focus({ preventScroll: true });
   }
   function setup() {
+    const book = $('storyBook');
     $('sbNext').addEventListener('click', () => go(1));
     $('sbBack').addEventListener('click', () => go(-1));
     $('sbSkip').addEventListener('click', close);
-    // (a swipe turns the page too, and the arrow keys)
-    let sx = null;
-    $('storyBook').addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
-    $('storyBook').addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); });
+    // (a sideways swipe turns the page; an upright one scrolls a long page's words)
+    book.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true });
+    book.addEventListener('touchend', e => {
+      if (startX === null) return;
+      const dx = e.changedTouches[0].clientX - startX, dy = e.changedTouches[0].clientY - startY;
+      startX = startY = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
     addEventListener('keydown', e => {
-      if ($('storyBook').hidden) return;
-      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { go(1); e.preventDefault(); e.stopPropagation(); }
-      else if (e.key === 'ArrowLeft') { go(-1); e.preventDefault(); e.stopPropagation(); }
+      if (book.hidden) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') { go(1); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(-1); e.preventDefault(); e.stopPropagation(); }
       else if (e.key === 'Escape') { close(); e.stopPropagation(); }
+      else if (e.key === 'Enter' && document.activeElement && !book.contains(document.activeElement)) { go(1); e.preventDefault(); e.stopPropagation(); }
     }, true);
   }
   return { show, setup, get open() { return !$('storyBook').hidden; } };
