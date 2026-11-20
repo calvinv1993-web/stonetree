@@ -1352,7 +1352,7 @@ function maybeAskPath() {
 }
 function askPath(onDone) {
   $('pathPickCards').replaceChildren(...START_PATHS.map(v => {
-    const b = h('button', { className: 'primary path-pick-go' }, `Be ${aVoc(v)}`);
+    const b = h('button', { className: 'primary path-pick-go ob-btn' }, `Be ${aVoc(v)}`);
     b.addEventListener('click', () => { Actions.choosePath(v); $('pathPick').hidden = true; if (onDone) onDone(); });
     return h('div', { className: `path-pick-card path-${v}` }, h('h3', {}, vocName(v)), h('p', { className: 'role' }, `${capitalize(VOCATIONS[v].role)}.`),
       h('p', {}, VOCATIONS[v].desc), h('p', { className: 'path-pick-how' }, PATH_PICK[v].look), h('p', { className: 'path-pick-how' }, PATH_PICK[v].weapons), b);

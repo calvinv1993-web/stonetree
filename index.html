@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="css/phone/inventory-drawer.css?v=ui410">
   <link rel="stylesheet" href="css/phone/companion-card.css?v=ui410">
   <link rel="stylesheet" href="css/phone/theme.css?v=ui410">
+  <link rel="stylesheet" href="css/onboarding.css?v=ui410">
   <link rel="icon" type="image/png" sizes="32x32" href="sprites/ui/icon/icon-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="sprites/ui/icon/icon-180.png">
   <title>Lickii Adventures</title>
@@ -113,9 +114,9 @@
           <p id="pathsNote" class="paths-note"></p>
         </div>
 
-        <div id="pathPick" class="window dialog book" hidden>
-          <header><b>Choose your path</b></header>
-          <p class="path-pick-note">How will you fight? You walk this path from the start; at level 10 the oracle names you before the town.</p>
+        <div id="pathPick" class="window dialog book ob-panel ob-screen ob-wide" hidden>
+          <header><b class="ob-title">Choose your path</b></header>
+          <p class="path-pick-note ob-lede">How will you fight? You walk this path from the start; at level 10 the oracle names you before the town.</p>
           <div id="pathPickCards" class="path-pick-cards"></div>
         </div>
 
@@ -151,11 +152,11 @@
           <div class="dialog-buttons"><button id="markDelete">Delete</button> <button id="markCancel">Cancel</button> <button id="markSave" class="primary">OK</button></div>
         </div>
 
-        <div id="outfit" class="window dialog book" hidden>
-          <header><b>Choose your outfit</b></header>
+        <div id="outfit" class="window dialog book ob-panel ob-screen" hidden>
+          <header><b class="ob-title">Choose your outfit</b></header>
           <canvas id="outfitPreview" width="256" height="64"></canvas>
           <div id="outfitParts"></div>
-          <div class="dialog-buttons"><button id="outfitDone" class="primary">Done</button></div>
+          <div class="dialog-buttons"><button id="outfitDone" class="primary ob-btn">Done</button></div>
         </div>
 
         <div id="favPicker" class="window dialog fav-picker" hidden>
@@ -181,21 +182,21 @@
           <div class="sb-stage" aria-hidden="true"><img class="sb-shot" alt=""><img class="sb-shot" alt=""></div>
           <img class="sb-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
           <div class="sb-panel">
-            <div id="sbPage" class="sb-page" aria-live="polite">
-              <h2 id="sbTitle"></h2>
+            <div id="sbPage" class="sb-page ob-panel" aria-live="polite">
+              <h2 id="sbTitle" class="ob-title"></h2>
               <div class="sb-rule" aria-hidden="true"><span></span></div>
               <div id="sbText" class="sb-text"></div>
             </div>
             <div id="sbDots" class="sb-dots" role="progressbar" aria-valuemin="1"></div>
-            <div class="sb-nav"><button id="sbBack" class="sb-back" aria-label="Previous page">&#8249;</button><button id="sbNext" class="sb-go">Next</button><button id="sbSkip" class="sb-skip">Skip</button></div>
+            <div class="sb-nav ob-nav"><button id="sbBack" class="sb-back ob-icon-btn" aria-label="Previous page">&#8249;</button><button id="sbNext" class="sb-go ob-btn">Next</button><button id="sbSkip" class="sb-skip ob-link">Skip</button></div>
           </div>
         </div>
 
-        <div id="create" class="window create book" hidden>
+        <div id="create" class="window create book ob-panel ob-screen ob-narrow" hidden>
           <h1><img class="create-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures"></h1>
-          <p>Name your character</p>
+          <p class="ob-title">Name your character</p>
           <input id="createName" maxlength="20" placeholder="Adventurer" autocomplete="off">
-          <button id="createStart" class="primary">Next</button>
+          <button id="createStart" class="primary ob-btn">Next</button>
           <div id="versionCreate" class="version-tag"></div>
         </div>
       </div>

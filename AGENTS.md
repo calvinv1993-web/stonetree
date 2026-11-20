@@ -170,7 +170,7 @@ Some details of the online client:
 | `touch.js` | Phone controls. |
 | `sound.js` | Synthesized sounds and music. Sound names are used by `addSound`. |
 
-- **The stylesheets**: `css/base.css` for every page; the game adds `css/game.css` and then the phone's files in `css/phone/` (`layout.css`, one per phone module, `theme.css` last); the editors add `css/editor.css`. Check a CSS change with `tests/ui-snapshots.js`.
+- **The stylesheets**: `css/base.css` for every page; the game adds `css/game.css` and then the phone's files in `css/phone/` (`layout.css`, one per phone module, `theme.css` last); the editors add `css/editor.css`; `css/onboarding.css`, last, is the welcome's own look (the story book and the windows a character is made in: tokens and `.ob-*` parts, documented at its top). Check a CSS change with `tests/ui-snapshots.js`.
 - **The art style** (camera, light, outline, shading, ground transitions, what stands upright) is in `docs/art-style.md`. Every new sprite follows it.
 - **The phone's interface** (status bar, action bar, smart button, inventory drawer, chat line, their modules and tests) is in `docs/mobile-ui.md`.
 - **Every item needs an `ITEM_DRAW` entry, and every thing a `DRAW` entry.** A missing one crashes drawing. The browser soak test draws them all.
