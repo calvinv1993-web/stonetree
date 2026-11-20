@@ -1346,11 +1346,14 @@ function maybeAskPath() {
   if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
   // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
   if (navigator.webdriver && !/[?&]pickpath\b/.test(location.search)) return;
-  if (!$('create').hidden || !$('outfit').hidden || document.body.classList.contains('welcome')) return;
+  if (!$('create').hidden || !$('outfit').hidden || StoryBook.open || document.body.classList.contains('welcome')) return;
   if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
+  askPath();
+}
+function askPath(onDone) {
   $('pathPickCards').replaceChildren(...START_PATHS.map(v => {
     const b = h('button', { className: 'primary path-pick-go' }, `Be ${aVoc(v)}`);
-    b.addEventListener('click', () => { Actions.choosePath(v); $('pathPick').hidden = true; });
+    b.addEventListener('click', () => { Actions.choosePath(v); $('pathPick').hidden = true; if (onDone) onDone(); });
     return h('div', { className: `path-pick-card path-${v}` }, h('h3', {}, vocName(v)), h('p', { className: 'role' }, `${capitalize(VOCATIONS[v].role)}.`),
       h('p', {}, VOCATIONS[v].desc), h('p', { className: 'path-pick-how' }, PATH_PICK[v].look), h('p', { className: 'path-pick-how' }, PATH_PICK[v].weapons), b);
   }));
@@ -2474,6 +2477,7 @@ function initUI() {
   $('pathsClose').addEventListener('click', () => { $('paths').hidden = true; });
   $('treeClose').addEventListener('click', () => { $('skillTree').hidden = true; });
   setInterval(maybeAskPath, 500); // (a new character: its path, once its name and outfit are done)
+  StoryBook.setup();
   $('treeReset').addEventListener('click', () => {
     const cost = player.treeResets ? player.level * 50 : 0;
     if (confirm(`Start your skill tree over? All your points come back${cost ? `, for ${cost} gold` : ' (free the first time)'}.`)) Actions.resetTree();
@@ -2538,25 +2542,95 @@ function updateSoundButtons() {
 // and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
 function welcome(on) { document.body.classList.toggle('welcome', !!on); }
 
+// ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
+// Each page: a title, its words, and where its picture looks (the picture slowly drifts in on that spot: x and y in %
+// of the picture, and how far in). Shown before a new character is made; tests in a browser skip it unless ?story.
+const STORY_PAGES = [
+  { title: 'The Beginning', art: 'story-1', focus: [50, 50, 1],
+    text: ['For an age the land lay at peace: a hundred towns, their lights burning through every night.',
+      'Then, far in the north, an old and dark power woke again.'] },
+  { title: 'The Hollow Host', art: 'story-1', focus: [79, 16, 1.8],
+    text: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
+      'Town after town went dark. Kingdoms fell in a single winter.'] },
+  { title: 'The Last Town', art: 'story-1', focus: [74, 62, 1.7],
+    text: ['Only Oakvale still stands, on its island behind its wall.',
+      'Most of its fighters lie dead beyond that wall. At night the Host\'s fires burn on the far shore, more every winter.'] },
+  { title: 'And You', art: 'story-1', focus: [20, 48, 1.5],
+    text: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
+      'That was you. You wake in Oakvale\'s temple with almost nothing. But you are alive, and you want to fight.'] },
+  { title: 'Your Road', art: 'story-1', focus: [50, 45, 1.15],
+    text: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
+      'At level 10 the oracle names you before the town. Then you sail for the world the Host has taken, to win it back.'] },
+];
+const StoryBook = (() => {
+  let at = 0, done = null;
+  const art = id => `sprites/ui/story/${id}.jpg`;
+  function render() {
+    const page = STORY_PAGES[at], [fx, fy, zoom] = page.focus, img = $('sbArt');
+    if (img.dataset.art !== page.art) { img.dataset.art = page.art; img.src = art(page.art); }
+    img.style.transformOrigin = `${fx}% ${fy}%`;
+    img.style.setProperty('--fx', `${fx}%`); img.style.setProperty('--fy', `${fy}%`); // (the picture's crop leans that way too)
+    img.classList.remove('drift'); void img.offsetWidth; // (each page drifts in afresh)
+    img.style.setProperty('--zoom', zoom);
+    img.classList.add('drift');
+    $('sbTitle').textContent = page.title;
+    $('sbText').replaceChildren(...page.text.map(t => h('p', {}, t)));
+    $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
+    $('sbBack').disabled = at === 0;
+    $('sbNext').innerHTML = at === STORY_PAGES.length - 1 ? 'Begin &#8250;' : 'Next &#8250;';
+    $('sbSkip').hidden = at === STORY_PAGES.length - 1;
+  }
+  const close = () => { $('storyBook').hidden = true; const d = done; done = null; if (d) d(); };
+  const go = d => { const n = at + d; if (n < 0) return; if (n >= STORY_PAGES.length) return close(); at = n; render(); if (typeof Sound !== 'undefined' && Sound.play) Sound.play('page'); };
+  function show(onDone) {
+    if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (onDone) onDone(); return; } // (browser tests: straight on)
+    done = onDone; at = 0;
+    welcome(true);
+    $('storyBook').hidden = false;
+    render();
+  }
+  function setup() {
+    $('sbNext').addEventListener('click', () => go(1));
+    $('sbBack').addEventListener('click', () => go(-1));
+    $('sbSkip').addEventListener('click', close);
+    // (a swipe turns the page too, and the arrow keys)
+    let sx = null;
+    $('storyBook').addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+    $('storyBook').addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); });
+    addEventListener('keydown', e => {
+      if ($('storyBook').hidden) return;
+      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { go(1); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'ArrowLeft') { go(-1); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'Escape') { close(); e.stopPropagation(); }
+    }, true);
+  }
+  return { show, setup, get open() { return !$('storyBook').hidden; } };
+})();
+
+// A new character after its outfit: its path (in the same book), then into the world
+function newCharacterPath(onDone) {
+  if (player.vocation !== 'none' || (navigator.webdriver && !/[?&]pickpath\b/.test(location.search))) { onDone(); return; }
+  askPath(onDone);
+}
+
 // First visit: ask for a name, then an outfit.
 function showCharacterCreation(onDone) {
   const dialog = $('create');
-  dialog.hidden = false;
   welcome(true);
   const input = $('createName');
+  StoryBook.show(() => { dialog.hidden = false; input.focus(); });
   // for testing: start as a level 100 character with the best gear (see makeTestHero)
   const start = document.createElement('select');
   start.id = 'createTest';
   start.add(new Option('Normal start (level 1, with the guide)', ''));
   for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
   input.after(start);
-  input.focus();
   const done = () => {
     player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20) || 'Adventurer');
     guideFolded = false; try { localStorage.setItem('tilequest.guideFolded', '0'); } catch (e) { /* no storage */ } // (a new character: the guide open)
     dialog.hidden = true;
     if (start.value) makeTestHero(start.value);
-    openOutfit(() => { welcome(false); if (onDone) onDone(); });
+    openOutfit(() => newCharacterPath(() => { welcome(false); if (onDone) onDone(); }));
   };
   $('createStart').addEventListener('click', done);
   input.addEventListener('keydown', e => {

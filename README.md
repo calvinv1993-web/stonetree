@@ -71,6 +71,7 @@ The built-in world is **Oakvale Isle**, a hand-built starter island, and for now
 
 The **Hollow Host**, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing; most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. You wake in its temple with nothing. Before each fight the townsfolk tell you to buy armour from Brenna and potions from Pip; Sister Ama heals you for free.
 
+- **The story book:** a new character starts with five pages of the story (the Hollow Host, Oakvale the last town, who you are and what you're here to do), each with its picture; tap Next or swipe, or Skip. Then you name your character, choose its outfit and colours and choose your path, all on the same parchment.
 - **The North Wall** (level 1, Sister Ama in the temple; the first chapter of The Last Town): tell her you want to fight, and she sends you to **Captain Osric** at the north gate, who turns you away. Then the war horns blow: the Host is at the north wall, and its gunners are down.
   - Climb the stone steps beside the gate onto the wall, and **load four cannons** along it (click or tap each one).
   - Behind the powder kegs by the steps something mews: **Clang**, the temple's grey kitten, who sleeps up there (Sister Ama and Gunner Hale, hurt in the temple, know it). Use the kegs: he hides in your coat, and from then on he's your companion. Once the Host has run, you may give him a name of your own.

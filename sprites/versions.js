@@ -439,6 +439,7 @@ const SPRITE_HASHES = {
   "ui/loading/background-phone.jpg":"add46e173d",
   "ui/loading/background-tablet.jpg":"db35093bb2",
   "ui/loading/logo.png":"5c55c69a48",
+  "ui/story/story-1.jpg":"91e73d425a",
   "wagon@4x.png":"5fa333b2e2",
   "wall-banner-front.png":"6737c4056a",
   "wall-cave-face.png":"c2dabfbab1",
