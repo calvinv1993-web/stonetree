@@ -33,12 +33,19 @@ const key = (x, y, z) => (z * H + y) * W + x;
 const unkey = k => { const x = k % W, r = (k - x) / W, y = r % H; return { x, y, z: (r - y) / H }; };
 // Walkable for this check: free ground, or a door someone can open (closed doors, quest and level doors, house doors for
 // their owners, locked doors and gates for whoever has the key), a boulder (it can be pushed out of the way) or a cracked
-// rock (a pick breaks it). Roofs don't count: nobody walks on them.
+// rock (a pick breaks it). Roofs don't count: nobody walks on them (nor on the gatehouses' tops, below).
 const opens = id => THINGS[id].toggle || THINGS[id].houseDoor || THINGS[id].questDoor || THINGS[id].levelDoor || THINGS[id].lockDoor // (some open for some)
   || THINGS[id].push || THINGS[id].breakable || THINGS[id].burnable;
+// The gatehouses' tops are a castle top seen from the street, battlements all round, with no way up: like roofs, nobody
+// walks on them.
+const GATEHOUSE_TOPS = new Set();
+for (const [gx0, gy0, gx1, gy1] of require('vm').runInContext('OAKVALE.ramparts.gates', ctx)) {
+  for (let y = gy0 - 1; y <= gy1 + 1; y++) for (let x = gx0 - 1; x <= gx1 + 1; x++) GATEHOUSE_TOPS.add(`${x},${y}`);
+}
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;
+  if (z === map.surfaceZ + 2 && GATEHOUSE_TOPS.has(`${x},${y}`)) return false;
   return !t.items.some(id => THINGS[id].block && !opens(id));
 };
 const change = (x, y, z) => map.floorChange(x, y, z);

@@ -190,7 +190,7 @@ const OAKVALE = {
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 101, x1: 141, y1: 106, level: 1, door: [137, 106], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
     { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 104, door: [146, 104], level: 1, floors: 4, floor: 'paving', wall: 'wall_temple', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [124, 135], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
-    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [140, 135], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_thatch', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
+    { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [140, 135], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
     { id: 'smith', name: 'The Dented Shield', kind: 'smithy', x0: 134, y0: 124, x1: 140, y1: 129, door: [137, 129], floor: 'cobble', wall: 'wall_stone', roof: 'roof', signId: 'sign_weapons', shelves: 'weapon_rack', sign: 'The Dented Shield: weapons, bought and sold. Say hi, then ask to trade.' },
     { id: 'armour', name: 'Hide and Iron', kind: 'shop', x0: 142, y0: 124, x1: 148, y1: 129, door: [145, 129], floor: 'wood', wall: 'wall_wood', roof: 'roof', signId: 'sign_armour', shelves: 'weapon_rack', sign: 'Hide and Iron: armour, helmets and shields. Say hi, then ask to trade.' },
@@ -2086,20 +2086,18 @@ function buildTown(m, S, runs, river) {
       m.set(x + dx, y, S, { ground: 'paving', items: ['steps'] });   // as the temple mount's: their top is the walkway
       m.setGround(x + dx, y, S + 1, 'steps_top');
     }
-    // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, under a slate roof, so
-    // you see from anywhere in town where the gate is; the walkway goes through it, a banner hangs on its town side
+    // a gatehouse over each gate: a room on the walkway, a tile wider than the gate on both sides, topped with battlements
+    // as the towers are (a little castle over the gate), so you see from anywhere in town where the gate is; the walkway
+    // goes through it, a banner hangs on its town side
     for (const [gx0, gy0, gx1, gy1] of R.gates) {
       const across = gy0 === R.y0 || gy1 === R.y1, box = across ? [gx0 - 1, gy0, gx1 + 1, gy1] : [gx0, gy0 - 1, gx1, gy1 + 1];
       const [x0, y0, x1, y1] = box, mx = (x0 + x1) >> 1, my = (y0 + y1) >> 1;
       for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const edge = x === x0 || x === x1 || y === y0 || y === y1, through = across ? y === my : x === mx; // (where the walkway comes in)
         m.set(x, y, S + 1, { ground: 'temple_paving', items: edge && !(through && (across ? x === x0 || x === x1 : y === y0 || y === y1)) ? ['wall_rampart'] : [] });
-        if (x > x0 && y > y0) m.set(x, y, S + 2, { ground: 'roof', items: [] }); // (its north and west rows left out, as a building's)
+        m.set(x, y, S + 2, { ground: 'temple_paving', items: [] }); // (its top: flagstones and battlements all round)
+        parapet(x, y, S + 2, box);
       }
-      // (its roof a tile further along the walkway, east or south, over the last of its walls there: two floors up it's
-      // drawn a tile further up-left than the walls under it, which showed a bare stepped ledge beside the roof)
-      if (across) for (let y = y0 + 1; y <= y1; y++) m.set(x1 + 1, y, S + 2, { ground: 'roof', items: [] });
-      else for (let x = x0 + 1; x <= x1; x++) m.set(x, y1 + 1, S + 2, { ground: 'roof', items: [] });
       const [bx, by] = across ? [mx, gy0 === R.y0 ? y1 : y0] : [gx0 === R.x0 ? x1 : x0, my]; // the side towards town
       put(bx, by, S + 1, 'banner');
     }
