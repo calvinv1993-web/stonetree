@@ -1141,7 +1141,7 @@ function renderQuests() {
     if (st) (stories[st === true ? 'The Ember Seal' : st] = stories[st === true ? 'The Ember Seal' : st] || []).push(id);
   }
   for (const [title, story] of Object.entries(stories)) {
-    const waits = title === 'The Ember Seal' ? player.vocation === 'none' || !mainlandOpen() : player.vocation !== 'none'; // the mainland's story waits for the mainland
+    const waits = title === 'The Ember Seal' ? !graduated() || !mainlandOpen() : graduated(); // the mainland's story waits for the mainland
     if (waits && !story.some(id => questState(id) !== 'none')) continue;
     const box = document.createElement('div'), head = document.createElement('b');
     box.className = 'story';
@@ -1320,6 +1320,29 @@ function showWindow(heading, body) {
   $('readTitle').textContent = heading;
   $('readText').textContent = body;
   $('read').hidden = false;
+}
+
+// ---- choosing a path, as a new character is made (game-core.js choosePath) ------------------------------------------
+// Bastion, Hawk or Ember, each a card: what it is, how it fights, and one button. Asked of anyone without a path once
+// their name and outfit are done (online too: the choice goes to the server), never in a trial or on Kestrel Isle.
+const PATH_PICK = {
+  knight: { weapons: 'Swords, axes, clubs and a shield', look: 'Up close: lots of health, heavy blows' },
+  paladin: { weapons: 'Bows and crossbows (a bow and arrows to start)', look: 'From afar: a skill tree of shots, volleys and a falcon' },
+  sorcerer: { weapons: 'Wands and runes', look: 'Magic: fire and lightning over whole packs, but fragile' },
+};
+function maybeAskPath() {
+  if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
+  // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
+  if (navigator.webdriver && !/[?&]pickpath\b/.test(location.search)) return;
+  if (!$('create').hidden || !$('outfit').hidden || document.body.classList.contains('welcome')) return;
+  if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
+  $('pathPickCards').replaceChildren(...START_PATHS.map(v => {
+    const b = h('button', { className: 'primary path-pick-go' }, `Be ${aVoc(v)}`);
+    b.addEventListener('click', () => { Actions.choosePath(v); $('pathPick').hidden = true; });
+    return h('div', { className: `path-pick-card path-${v}` }, h('h3', {}, vocName(v)), h('p', { className: 'role' }, `${capitalize(VOCATIONS[v].role)}.`),
+      h('p', {}, VOCATIONS[v].desc), h('p', { className: 'path-pick-how' }, PATH_PICK[v].look), h('p', { className: 'path-pick-how' }, PATH_PICK[v].weapons), b);
+  }));
+  $('pathPick').hidden = false;
 }
 
 // ---- the skill tree (creatures.js TREES, docs/skills-plan.md) ----------------------------------------------------------
@@ -2438,6 +2461,7 @@ function initUI() {
   $('readClose').addEventListener('click', () => { $('read').hidden = true; });
   $('pathsClose').addEventListener('click', () => { $('paths').hidden = true; });
   $('treeClose').addEventListener('click', () => { $('skillTree').hidden = true; });
+  setInterval(maybeAskPath, 500); // (a new character: its path, once its name and outfit are done)
   $('treeReset').addEventListener('click', () => {
     const cost = player.treeResets ? player.level * 50 : 0;
     if (confirm(`Start your skill tree over? All your points come back${cost ? `, for ${cost} gold` : ' (free the first time)'}.`)) Actions.resetTree();
@@ -2512,7 +2536,7 @@ function showCharacterCreation(onDone) {
   const start = document.createElement('select');
   start.id = 'createTest';
   start.add(new Option('Normal start (level 1, with the guide)', ''));
-  for (const v of Object.keys(TEST_HERO_SKILLS)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
+  for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
   input.after(start);
   input.focus();
   const done = () => {

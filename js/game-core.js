@@ -65,6 +65,7 @@ function newPlayer(name) {
     huntDay: '', // the real day of your last first-of-the-day watch hunt (its bonus marks: reward.daily, dailyDue)
     guideSeen: 0, // the furthest step of the guide reached (started again, the ones before it pass by themselves)
     bestiary: {}, // kills of each kind of monster: type -> n (BESTIARY_TIERS in game-combat.js)
+    oracle: false, // named by the oracle at level 10 (game-npc.js): no longer a newcomer (graduated)
     skillRanks: {}, treeResets: 0, falcons: null, // your skill tree: { spell or passive id: rank }, times started over, hunting falcons at your side (creatures.js TREES)
     paths: {}, trial: null, // the Hall of Paths: your stamps ({ knight: true, ... }), and the trial you're in (game-paths.js)
     cosmetics: [], // what you've bought from the watch's stores to wear (COSMETICS in defs.js), worn through your outfit
@@ -1074,7 +1075,7 @@ const TEST_HERO_SKILLS = {
 function makeTestHero(vocation) {
   if (!TEST_HERO_SKILLS[vocation]) return false;
   const p = player, v = VOCATIONS[vocation], L = TEST_HERO_LEVEL;
-  Object.assign(p, { vocation, promoted: true, level: L, xp: xpForLevel(L), tutorial: 0,
+  Object.assign(p, { vocation, oracle: true, promoted: true, level: L, xp: xpForLevel(L), tutorial: 0,
     maxHp: 150 + (L - 1) * v.hp, maxMana: 50 + (L - 1) * v.mana, gold: 100000, bank: 1000000 });
   p.hp = p.maxHp;
   p.mana = p.maxMana;
@@ -1505,10 +1506,10 @@ function gainXp(amount, shared) {
       const opened = TREE_LEVELS.indexOf(player.level);
       log(`You have ${treePoints(player)} skill point${treePoints(player) === 1 ? '' : 's'} to spend: open your skill tree (Skills).${opened > 0 ? ` Tier ${opened + 1} is open now!` : ''}`, 'level');
     }
-    if (player.level === 10 && player.vocation === 'none') { // (Sister Ama says goodbye first: Farewell)
+    if (player.level === 10 && !graduated()) { // (Sister Ama says goodbye first: Farewell)
       log(questState('recruit') === 'done' && questState('bell_6') !== 'done'
-        ? 'You are ready to choose a vocation! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
-        : 'You are ready to choose a vocation! Visit the oracle, upstairs in the academy.', 'quest');
+        ? 'Level 10: the oracle will name you now! First visit Sister Ama in the temple: she wants to see you. Then the oracle, upstairs in the academy.'
+        : 'Level 10: the oracle will name you now! Visit her, upstairs in the academy.', 'quest');
     }
     // (only where someone in the world can promote you)
     const promoter = player.level === 20 && player.vocation !== 'none' && !player.promoted
@@ -1677,8 +1678,30 @@ function openChest(chest, at) {
   uiDirty();
 }
 
+// Whether the oracle has named you (at level 10): a newcomer no more. Before it, Oakvale looks after you: dying costs
+// little, no player may fight you, and the guide shows the way. (Old characters who chose their path at the oracle are.)
+function graduated(p = player) { return !!p.oracle; }
+
+// A new character's path, chosen as they're made (or by one made before paths were chosen at the start): its first
+// gear in hand. Only once, only Bastion, Hawk or Ember.
+function choosePath(v) {
+  if (player.vocation !== 'none' || player.trial || typeof v !== 'string' || !START_PATHS.includes(v)) return;
+  player.vocation = v;
+  for (const [where, id, n] of START_KITS[v] || []) {
+    if (where === 'weapon' || where === 'ammo') {
+      const old = player.equipment[where];
+      player.equipment[where] = makeItem(id, n);
+      if (old) giveItem(old.id, old.count || 1);
+    } else giveItem(id, n);
+  }
+  addSparkle(player, '#ffe080');
+  log(`You are ${aVoc(v)}! ${TREES[v] ? 'Your first skill point is yours to spend: open your skill tree (Skills).' : 'Your spells come with your levels.'} At level 10 the oracle names you before the town.`, 'quest');
+  uiDirty();
+}
+
 function chooseVocation(v) {
   player.vocation = v;
+  player.oracle = true;
   player.home = mainlandOpen() ? 'main' : 'start'; // (no mainland yet: you stay, and wake in Oakvale's temple)
   player.teleportAt = now + 2500; // give the player a moment to read the oracle's farewell
   uiDirty();
@@ -1693,15 +1716,16 @@ function arriveOnMainland() {
   for (const [id, n] of VOCATIONS[player.vocation].kit || []) giveItem(id, n);
   addSparkle(player, '#c58cff');
   if (map.trialRooms && !away) return log(`You are now ${aVoc(player.vocation)}! Check your bag for a gift from your teacher. The spells you tried come back as you grow: look for them on the spell buttons.`, 'quest'); // (Kestrel Isle: chosen in the Hall of Paths)
-  log(away ? `You are now ${aVoc(player.vocation)}! Welcome to the mainland. Check your bag for a gift from the oracle, and the spell buttons below the map.`
-    : `You are now ${aVoc(player.vocation)}, one of Oakvale's defenders! The road to the front is not open yet: until it is, the isle is yours to hold. Check your bag for a gift from the oracle, and the spell buttons below the map.`, 'quest');
+  const points = TREES[player.vocation] ? ` and ${ORACLE_POINTS} skill points` : '';
+  log(away ? `The oracle has named you ${aVoc(player.vocation)}! Welcome to the mainland. Check your bag for her gift${points}.`
+    : `The oracle has named you ${aVoc(player.vocation)}, one of Oakvale's defenders! The road to the front is not open yet: until it is, the isle is yours to hold. Check your bag for her gift${points}.`, 'quest');
 }
 
 // ---- saving ------------------------------------------------------------------------
 const SAVED_FIELDS = ['name', 'vocation', 'promoted', 'home', 'outfit', 'x', 'y', 'z', 'level', 'xp', 'hp', 'maxHp', 'mana', 'maxMana',
   'gold', 'bank', 'skills', 'equipment', 'depot', 'quests', 'chests', 'blessed', 'house', 'furniture', 'hotkeys', 'markers',
   'fightMode', 'chase', 'secure', 'tutorial', 'tale', 'born', 'pet', 'guideSeen', 'huntDay', 'bestiary', 'cosmetics', 'autoHeal', 'paths',
-  'skillRanks', 'treeResets'];
+  'skillRanks', 'treeResets', 'oracle'];
 
 function serializePlayer(p) {
   const data = { fed: Math.max(0, p.fedUntil - now), light: Math.max(0, p.lightUntil - now) };
@@ -1728,6 +1752,10 @@ function applySave(data) {
   for (const id in SKILLS) if (!player.skills[id]) player.skills[id] = { level: SKILLS[id].start, tries: 0 };
   for (const id in player.quests) if (!QUESTS[id]) delete player.quests[id];
   if (!VOCATIONS[player.vocation]) player.vocation = 'none';
+  // (from before paths were chosen at the start: whoever had a vocation had it from the oracle)
+  if (data.oracle === undefined) player.oracle = player.vocation !== 'none';
+  // (the Grove is retired: a Grove from before walks the path of the Ember now, its rods and mana with it)
+  if (player.vocation === 'druid') { player.vocation = 'sorcerer'; log('The path of the Grove is no more: you walk the path of the Ember now. Your rods still serve you.', 'quest'); }
   // (the bestiary and cosmetics: none in a save from before them; anything unknown is dropped)
   const kills = player.bestiary && typeof player.bestiary === 'object' && !Array.isArray(player.bestiary) ? player.bestiary : {};
   player.bestiary = {};
@@ -1771,7 +1799,7 @@ function applySave(data) {
     player.house = null;
     player.furniture = [];
   }
-  if (player.vocation !== 'none' && mainlandOpen() && onIsle(player)) player.teleportAt = now + 1000; // the oracle was about to send you
+  if (graduated() && mainlandOpen() && onIsle(player)) player.teleportAt = now + 1000; // the oracle was about to send you
   if (!map.inBounds(player.x, player.y, player.z) || !map.isWalkable(player.x, player.y, player.z)) teleport(homePos());
 }
 

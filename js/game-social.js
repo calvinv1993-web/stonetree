@@ -215,7 +215,7 @@ function guildInfo(p) {
 function guildCreate(name) {
   name = String(name || '').trim().replace(/\s+/g, ' ');
   if (!/^[A-Za-z][A-Za-z' -]{2,28}$/.test(name)) return log('A guild name has 3 to 29 letters (spaces, - and \' are fine too).');
-  if (player.vocation === 'none') return log('Only adventurers with a vocation can found a guild.');
+  if (!graduated()) return log('Only adventurers the oracle has named can found a guild.');
   if (guildOf(player)) return log('You are already in a guild.');
   if (guilds[nameKey(name)]) return log('There is already a guild with that name.');
   guilds[nameKey(name)] = {

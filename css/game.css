@@ -142,6 +142,18 @@
 .read-text { white-space: pre-wrap; max-width: 420px; line-height: 1.5; }
 /* the Book of Paths: the four paths side by side (two by two on a narrow screen), each with its colour and stamp */
 #paths { width: min(860px, 94vw); }
+/* choosing a path (game-ui.js maybeAskPath): three cards side by side, one button each */
+#pathPick { width: min(760px, 94vw); z-index: 70; }
+.path-pick-note { margin: 0 0 10px; color: #b8ac90; font-size: 13px; }
+.path-pick-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.path-pick-card { display: flex; flex-direction: column; border: 1px solid #5a544b; border-top: 4px solid #c8a858; border-radius: 10px; padding: 10px 12px; background: #1c1a17; font-size: 13px; line-height: 1.45; }
+.path-pick-card.path-knight { border-top-color: #b07ad0; } .path-pick-card.path-paladin { border-top-color: #6ac070; } .path-pick-card.path-sorcerer { border-top-color: #e07a4a; }
+.path-pick-card h3 { margin: 0 0 2px; font-size: 18px; color: #f0e0b0; }
+.path-pick-card p { margin: 4px 0; }
+.path-pick-card .role { color: #b8ac90; font-style: italic; }
+.path-pick-how { color: #d8cca8; font-size: 12px; }
+.path-pick-go { margin-top: auto; min-height: 40px; font-weight: 600; }
+@media (max-width: 720px) { .path-pick-cards { grid-template-columns: 1fr; } }
 /* the skill tree (game-ui.js openSkillTree): its lines, each a row of tier icons, and the card of the one picked */
 #skillTree { width: min(460px, 94vw); }
 #skillTree header { gap: 10px; }

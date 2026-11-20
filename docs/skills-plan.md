@@ -7,15 +7,15 @@ name, number and picture here is our own.
 ## 1. The rules
 
 - **Four lines per path, three tiers each.** A line is one kind of skill (a hard single shot, an area attack, a helper,
-  a buff). Its tiers are stronger versions of it, opened by your level: **tier 1 at level 10, tier 2 at 25, tier 3 at
-  45.** Tiers 4 (level 65) and 5 (level 85) come later, with the levelling to 100.
+  a buff). Its tiers are stronger versions of it, opened by your level: **tier 1 at level 1, tier 2 at 10, tier 3 at
+  25** (since paths are chosen at the start; a fourth tier at 45). Tiers 4 (level 65) and 5 (level 85) come later, with the levelling to 100.
 - **One button per line, and it grows.** A line is one button on the action bar, whatever its tier: when you learn tier
   2, the same button casts the stronger skill, with its own picture. Four lines fit the phone's action bar beside the
   potions and food.
 - **Ranks.** Each tier has **3 ranks**. A rank makes it stronger (about +15% power each). The next tier opens once the
   one before is at rank 3 and your level is high enough.
-- **Skill points.** **1 point a level from level 10** (when you choose your path), and one more for each of a few big
-  quests. **A rank costs its tier's number in points**: tier 1 ranks cost 1, tier 2 ranks cost 2, tier 3 ranks cost 3.
+- **Skill points.** **1 point a level from level 1** (the path is chosen as the character is made), and 3 more when the
+  oracle names you at level 10. **A rank costs its tier's number in points**: tier 1 ranks cost 1, tier 2 ranks cost 2, tier 3 ranks cost 3.
   So a whole line to tier 3 costs 18 points, all four 72, and by level 45 you have about 36: you choose which lines
   come first. At level 100 (with tiers 4 and 5) you still can't have everything.
 - **Two passives per path**, 5 ranks each at 1 point a rank (a small lasting bonus per rank).

@@ -85,9 +85,9 @@ function warn(text) {
   log(text);
 }
 
-// No fighting between players on the starter island, in temples, or with players without a vocation.
+// No fighting between players on the starter island, in temples, or with players the oracle hasn't named yet.
 function pvpAllowed(victim) {
-  if (victim.dead || player.vocation === 'none' || victim.vocation === 'none') return false;
+  if (victim.dead || !graduated(player) || !graduated(victim)) return false;
   const safe = p => onIsle(p) || map.isProtected(p.x, p.y, p.z);
   return !safe(player) && !safe(victim);
 }
@@ -422,7 +422,7 @@ function playerDies(killer) {
   const red = player.redSkullUntil > now; // nothing protects you then
   Object.assign(player, { skullUntil: 0, pzLockUntil: 0, yellowTo: {} }); // death wipes the white slate clean, and ends the fight (not a red skull)
   const eq = player.equipment;
-  const protection = red ? null : player.vocation === 'none' ? 'starter' : player.blessed ? 'blessing'
+  const protection = red ? null : !graduated() ? 'starter' : player.blessed ? 'blessing'
     : eq.neck && ITEMS[eq.neck.id].keeping ? 'amulet' : null;
   // As in Tibia, death costs a tenth of all your experience (a blessing spares 30% of that, and before a vocation
   // you lose only half), so it can cost levels too - and the health and mana they gave you. Not before a vocation:
@@ -433,7 +433,7 @@ function playerDies(killer) {
   // (and before a vocation, never below the level you've reached: a newcomer may lose a little, never a level)
   player.xp = Math.max(protection === 'starter' ? xpForLevel(player.level) : 0, player.xp - lost);
   while (player.level > 1 && player.xp < xpForLevel(player.level)) {
-    const v = VOCATIONS[player.level <= 10 ? 'none' : player.vocation] || VOCATIONS.none; // levels up to 10 come before a vocation
+    const v = VOCATIONS[player.vocation] || VOCATIONS.none; // (the health and mana that level gave you)
     player.maxHp = Math.max(1, player.maxHp - v.hp);
     player.maxMana = Math.max(0, player.maxMana - v.mana);
     player.level--;

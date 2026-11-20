@@ -93,8 +93,8 @@ const ITEMS = {
 
   wand_sparks:   { name: 'wand of sparks', slot: 'weapon', weapon: { type: 'wand', dmg: [10, 20], mana: 2, range: 4, element: 'energy' }, level: 10, vocations: ['sorcerer'], value: 100, weight: 22 },
   wand_flames:   { name: 'wand of flames', slot: 'weapon', weapon: { type: 'wand', dmg: [20, 36], mana: 4, range: 4, element: 'fire' }, level: 18, vocations: ['sorcerer'], value: 250, weight: 22 },
-  rod_frost:     { name: 'rod of frost', slot: 'weapon', weapon: { type: 'wand', dmg: [10, 20], mana: 2, range: 4, element: 'ice' }, level: 10, vocations: ['druid'], value: 100, weight: 22 },
-  rod_thorns:    { name: 'rod of thorns', slot: 'weapon', weapon: { type: 'wand', dmg: [20, 36], mana: 4, range: 4, element: 'earth' }, level: 18, vocations: ['druid'], value: 250, weight: 22 },
+  rod_frost:     { name: 'rod of frost', slot: 'weapon', weapon: { type: 'wand', dmg: [10, 20], mana: 2, range: 4, element: 'ice' }, level: 10, vocations: MAGES, value: 100, weight: 22 },
+  rod_thorns:    { name: 'rod of thorns', slot: 'weapon', weapon: { type: 'wand', dmg: [20, 36], mana: 4, range: 4, element: 'earth' }, level: 18, vocations: MAGES, value: 250, weight: 22 },
 
   wooden_shield: { name: 'wooden shield', slot: 'shield', defense: 12, value: 5, weight: 40 },
   studded_shield:{ name: 'studded shield', slot: 'shield', defense: 15, value: 15, weight: 59 },
@@ -108,7 +108,7 @@ const ITEMS = {
   hawkeye_bow:   { name: 'hawkeye bow', slot: 'weapon', weapon: { type: 'distance', attack: 4, range: 6, ammo: 'arrow', twoHanded: true, crit: { chance: 0.15, mult: 2 } }, level: 8, value: 600, weight: 28 }, // (a sharp eye: now and then a critical hit)
   elven_bow:     { name: 'elven bow', slot: 'weapon', weapon: { type: 'distance', attack: 8, range: 7, ammo: 'arrow', twoHanded: true }, level: 30, vocations: ['paladin'], value: 800, weight: 25 },
   wand_storm:    { name: 'wand of storms', slot: 'weapon', weapon: { type: 'wand', dmg: [35, 60], mana: 7, range: 4, element: 'energy' }, level: 35, vocations: ['sorcerer'], value: 900, weight: 22 },
-  rod_glacier:   { name: 'rod of the glacier', slot: 'weapon', weapon: { type: 'wand', dmg: [35, 60], mana: 7, range: 4, element: 'ice' }, level: 35, vocations: ['druid'], value: 900, weight: 22 },
+  rod_glacier:   { name: 'rod of the glacier', slot: 'weapon', weapon: { type: 'wand', dmg: [35, 60], mana: 7, range: 4, element: 'ice' }, level: 35, vocations: MAGES, value: 900, weight: 22 },
   crown_helmet:  { name: 'crown helmet', slot: 'head', armor: 7, level: 40, vocations: ['knight', 'paladin'], value: 1200, weight: 50 },
   witch_hat:     { name: 'witch hat', slot: 'head', armor: 3, level: 20, vocations: MAGES, value: 300, weight: 8 },
   lizard_mail:   { name: 'lizard scale mail', slot: 'body', armor: 9, level: 30, vocations: ['knight', 'paladin'], value: 900, weight: 90 },

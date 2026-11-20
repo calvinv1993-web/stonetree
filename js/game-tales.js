@@ -127,7 +127,7 @@ function taleTimes() {
 // Someone did something that a tale might be waiting for: kind ('dig', 'pick', 'say',
 // 'blow' or 'kill') and what and where. True when it was the next step of their tale.
 function taleDeed(kind, what) {
-  if (player.vocation !== 'none') return false;
+  if (graduated()) return false; // (only a newcomer: before the oracle names you)
   const step = TALE[player.tale || 0];
   if (!step) return false;
   const deed = `${kind}|${what}`;

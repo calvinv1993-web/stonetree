@@ -170,7 +170,7 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => questPast('recruit', 2),
   },
   {
-    text: 'And if your health runs out? Here in Oakvale it costs little: you wake up in the temple with everything you carry, a bit of experience gone but never a level, and Sister Ama heals you for free. Once you have chosen a vocation, it costs more: a tenth of your experience (levels too), and some of what you carry. That is what the depot is for.',
+    text: 'And if your health runs out? Here in Oakvale it costs little: you wake up in the temple with everything you carry, a bit of experience gone but never a level, and Sister Ama heals you for free. Once the oracle has named you (at level 10), it costs more: a tenth of your experience (levels too), and some of what you carry. That is what the depot is for.',
     touch: 'If your health runs out here, it costs little: you wake in the temple with all you carry, a bit of experience gone, never a level, and Ama heals you for free. After the oracle it costs more: keep spares in the depot.',
     art: 'death',
   },
@@ -206,8 +206,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
   },
   // ---- the story, a chapter at a time, to the oracle ----
   {
-    text: 'Out beyond the wall: the four gate guards each have a task and gear for you, one after the other. Start with Sergeant Bram at the west gate (Greyfang, the grey wolf); then south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans). Your spells come with your levels: they appear on your action bar.',
-    touch: 'Beyond the wall, the gate guards have a task each: start with Sergeant Bram at the west gate. Your spells come with your levels.',
+    text: 'Out beyond the wall: the four gate guards each have a task and gear for you, one after the other. Start with Sergeant Bram at the west gate (Greyfang, the grey wolf); then south (a stranded fisher), east (spider nests), north (Chief Gnash\'s war plans). Your spells come with your levels (a Hawk learns skills with points: Skills, Skill tree).',
+    touch: 'Beyond the wall, the gate guards have a task each: start with Sergeant Bram at the west gate.',
     target: [{ news: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
       { hunt: ['gate_west', 'gate_south', 'gate_east', 'gate_north'] },
       { monster: 'greyfang', active: 'gate_west' }, { lead: [69, 98, 8], near: 5, active: 'gate_west' },
@@ -218,7 +218,7 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
-    text: 'Level 10! Before you choose your vocation, Sister Ama has one last thing for you: climb the bell tower east of the temple and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the bell tower east of the temple and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
     touch: 'Level 10! Sister Ama has one last thing: ring the bell in the tower east of the temple, then say farewell.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
@@ -226,8 +226,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     minLevel: 10, // (till then: hunt at the gates)
   },
   {
-    text: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose the path you will fight on: Bastion, Hawk, Ember or Grove (ask about each before you decide).',
-    touch: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny, and choose the path you will fight on: Bastion, Hawk, Ember or Grove (ask about each before you decide).',
+    text: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny: she names you before the whole town, the bell rings for you, and she has a gift for your path.',
+    touch: 'Sister Ama has said goodbye. Last of all: the oracle, upstairs in the academy. Ask her about your destiny: she names you before the town, and has a gift for you.',
     target: [{ npc: 'oak_oracle', level: 10 }],
   },
 ];
@@ -333,7 +333,7 @@ function updateGuide() {
   if (!player.tutorial) return;
   const step = GUIDE[player.tutorial - 1];
   // (a vocation ends the guide - not a trial's, and not on Kestrel Isle, whose guide goes on past choosing one)
-  if (!step || (player.vocation !== 'none' && !player.trial && !GUIDE.kestrel)) player.tutorial = 0;
+  if (!step || (graduated() && !player.trial && !GUIDE.kestrel)) player.tutorial = 0;
   else {
     if (step.gift && !player.chests[step.gift.flag]) guideGift(step.gift);
     player.guideSeen = Math.max(player.guideSeen || 0, player.tutorial);
@@ -520,7 +520,7 @@ const onIsle = p => !!map.isle && p.x >= map.isle.x0 && p.x <= map.isle.x1 && p.
 function isleBars(to) {
   if (!map.isle) return null;
   const there = onIsle(to), here = onIsle(player);
-  if (player.vocation !== 'none' && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
-  if (player.vocation === 'none' && here && !there) return 'Nobody leaves Oakvale Isle without a path. The oracle, upstairs in the academy, names yours at level 10.';
+  if (graduated() && there && !here) return 'Nobody takes you back to the starter island. Once you have chosen your path, the island is behind you for good.';
+  if (!graduated() && here && !there) return 'Nobody leaves Oakvale Isle without a path. The oracle, upstairs in the academy, names yours at level 10.';
   return null;
 }

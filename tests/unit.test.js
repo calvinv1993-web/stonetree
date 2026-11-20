@@ -148,9 +148,9 @@ test('a guild: found it, invite and join, ranks, nicks, chat, and it shows when 
   const { ctx, state, messages } = game;
   const a = state.player, b = ctx.newPlayer('Friend'), A = state.Actions;
   state.players.push(b);
-  Object.assign(a, { vocation: 'knight', level: 30, home: 'main' });
+  Object.assign(a, { vocation: 'knight', oracle: true, level: 30, home: 'main' });
   ctx.teleport({ x: 92, y: 72, z: 4 });
-  Object.assign(b, { vocation: 'paladin', level: 25, x: a.x + 1, y: a.y, z: 4 });
+  Object.assign(b, { vocation: 'paladin', oracle: true, level: 25, x: a.x + 1, y: a.y, z: 4 });
   A.guildCreate('x');
   assert(!Object.keys(state.guilds).length, 'a guild needs a proper name');
   A.guildCreate('Dawn Guard');
@@ -199,7 +199,7 @@ test('walking is quicker on roads than on grass, and a click takes the quickest 
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
-  Object.assign(p, { vocation: 'knight', level: 20, home: 'main' });
+  Object.assign(p, { vocation: 'knight', oracle: true, level: 20, home: 'main' });
   const timeTo = (ground) => {
     for (let x = 88; x <= 92; x++) state.map.setGround(x, 72, 4, ground);
     Object.assign(p, { x: 88, y: 72, z: 4, walk: null, path: [] });
@@ -233,7 +233,7 @@ test('death: blessings protect your things, otherwise they stay in your corpse',
   const game = quietGame();
   const { ctx, state } = game;
   const p = state.player;
-  Object.assign(p, { vocation: 'knight', level: 20, xp: state.xpForLevel(20) + 50 });
+  Object.assign(p, { vocation: 'knight', oracle: true, level: 20, xp: state.xpForLevel(20) + 50 });
   p.blessed = true;
   ctx.asPlayer(p, () => ctx.damagePlayer(null, 9999, 'physical'));
   assert(p.dead && !p.blessed && state.countItem('apple') === 5, 'the blessing kept the bag and was used up');
@@ -249,7 +249,7 @@ test('death costs a tenth of your experience, and can cost levels', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player;
-  Object.assign(p, { vocation: 'knight', level: 20, xp: state.xpForLevel(20) + 10, maxHp: 345, maxMana: 145 });
+  Object.assign(p, { vocation: 'knight', oracle: true, level: 20, xp: state.xpForLevel(20) + 10, maxHp: 345, maxMana: 145 });
   const xp = p.xp;
   ctx.asPlayer(p, () => ctx.damagePlayer(null, 9999, 'physical'));
   assert.strictEqual(p.xp, xp - Math.floor(xp * 0.1), 'a tenth of all your experience is gone');
@@ -318,7 +318,7 @@ test('the island\'s tale: deeds out of turn do nothing, and the way through work
   assert(p.events.some(e => e.kind === 'banner'), 'everyone hears of it');
   // once is enough, and a vocation closes the island's tales
   const vocal = loadGame();
-  Object.assign(vocal.state.player, { vocation: 'knight' });
+  Object.assign(vocal.state.player, { vocation: 'knight', oracle: true });
   vocal.ctx.addItem('shovel', 1);
   const d = tale.steps[0].deeds[0], pos = deedAt(d);
   vocal.ctx.teleport({ x: pos.x - 1, y: pos.y, z: pos.z });
@@ -352,7 +352,7 @@ test('only what is within reach: no piles or depot from afar, no fractions, no f
 test('house things come back once, a full bag does not copy things, a quest item stays yours', () => {
   const { ctx, state } = quietGame();
   const p = state.player, A = state.Actions, house = state.map.houses[0];
-  Object.assign(p, { vocation: 'knight', level: 20, home: 'main', house: house.id });
+  Object.assign(p, { vocation: 'knight', oracle: true, level: 20, home: 'main', house: house.id });
   house.owner = p.name;
   ctx.dropToGround(ctx.makeItem('health_potion', 5), { x: Math.floor((house.x0 + house.x1) / 2), y: Math.floor((house.y0 + house.y1) / 2), z: house.z });
   const save = ctx.serializePlayer(p), potions = () => state.piles.filter(pl => pl.house === house.id).reduce((n, pl) => n + pl.items.reduce((m, it) => m + it.count, 0), 0);
@@ -1559,7 +1559,7 @@ test('the war spear and its circle throw: held in both hands it strikes the tile
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'knight', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  Object.assign(p, { vocation: 'knight', oracle: true, home: 'main', level: 20, mana: 500, maxMana: 500 });
   p.skills.axe.level = 40;
   A.say('hasta orbis'); tick(game, 100);
   assert(messages.some(m => /war spear in your hands/.test(m)), 'not without a war spear');
@@ -1586,7 +1586,7 @@ test('every plain shot from a bow, and blow of a war spear, shows the hero loosi
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20 });
+  Object.assign(p, { vocation: 'paladin', oracle: true, home: 'main', level: 20 });
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
   const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m);
   let seen = 0;
@@ -1946,7 +1946,7 @@ test('lightning bolt (an Ember\'s): it strikes the target, then leaps to the nex
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'sorcerer', home: 'main', level: 30, mana: 900, maxMana: 900 });
+  Object.assign(p, { vocation: 'sorcerer', oracle: true, home: 'main', level: 30, mana: 900, maxMana: 900 });
   p.skills.magic.level = 30;
   const put = (dx, dy) => { const m = ctx.spawnMonster({ type: 'bear', x: p.x + dx, y: p.y + dy, z: 8 }); Object.assign(m, { x: p.x + dx, y: p.y + dy, hp: 9999, maxHp: 9999, aggro: 0 }); state.monsters.push(m); return m; };
   // a line of monsters 2 tiles apart, eight of them, from 3 tiles away; and one 5 tiles off the line (too far to leap to)
@@ -1980,7 +1980,7 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 30, mana: 500, maxMana: 500 });
+  Object.assign(p, { vocation: 'paladin', oracle: true, home: 'main', level: 30, mana: 500, maxMana: 500 });
   p.skills.distance.level = 40;
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 10 };
   A.say('sagitta trina'); tick(game, 100);
@@ -2003,15 +2003,15 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   assert(hits[2] - hits[0] >= 120 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
 });
 
-test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier, tiers opening by level and rank, one button a line', () => {
+test('the Hawk\'s skill tree: a point a level (and three from the oracle), ranks costing their tier, tiers opening by level and rank, one button a line', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 9, mana: 900, maxMana: 900 });
-  assert.strictEqual(ctx.treePoints(p), 0, 'no points before level 10');
-  p.level = 30;
-  assert.strictEqual(ctx.treePoints(p), 21, 'a point a level from 10');
+  Object.assign(p, { vocation: 'paladin', oracle: false, home: 'main', level: 9, mana: 900, maxMana: 900 });
+  assert.strictEqual(ctx.treePoints(p), 9, 'a point a level, from level 1');
+  p.oracle = true; p.level = 20;
+  assert.strictEqual(ctx.treePoints(p), 23, 'and three more from the oracle');
   A.learnRank('gale_shot');
   assert(messages.some(m => /First learn Power Shot to rank 3/.test(m)), 'a tier waits for the one before it');
   for (let i = 0; i < 3; i++) A.learnRank('power_shot');
@@ -2019,11 +2019,11 @@ test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier,
   assert.strictEqual(ctx.rankOf(p, 'power_shot'), 3, 'three ranks at most');
   A.learnRank('gale_shot');
   assert.strictEqual(ctx.rankOf(p, 'gale_shot'), 1);
-  assert.strictEqual(ctx.treePoints(p), 21 - 3 - 2, 'tier 2 ranks cost 2');
+  assert.strictEqual(ctx.treePoints(p), 23 - 3 - 2, 'tier 2 ranks cost 2');
   for (let i = 0; i < 3; i++) A.learnRank('double_shot');
   A.learnRank('triple_shot');
   A.learnRank('sky_lance');
-  assert(messages.some(m => /opens at level 45/.test(m)), 'tier 3 waits for level 45');
+  assert(messages.some(m => /opens at level 25/.test(m)), 'tier 3 waits for level 25');
   assert.strictEqual(ctx.lineSpell(p, 'power_shot'), 'gale_shot', 'the line casts its highest tier learned');
   assert.strictEqual(ctx.lineSpell(p, 'falcon_mark'), null, 'a line with nothing learned casts nothing');
   // more than you have: refused
@@ -2034,17 +2034,17 @@ test('the Hawk\'s skill tree: a point a level from 10, ranks costing their tier,
   p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = { id: 'arrow', count: 50 };
   p.dir = 2; state.now += 6000; A.castSpell('power_shot');
   assert(state.effects.some(fx => fx.kind === 'shot') && (p.spellCooldowns || {}).gale_shot > state.now, 'Gale Shot it is');
-  // the Volley line: two arrows, then three; four at level 45, five at 65 (blood-red, meaner)
+  // the Volley line: two arrows, then three; four at level 25, five at 45 (blood-red, meaner)
   const m1 = ctx.spawnMonster({ type: 'bear', x: p.x + 4, y: p.y, z: 8 }); m1.hp = m1.maxHp = 9999; state.monsters.push(m1);
   p.target = m1; p.chase = false; state.now += 6000; A.castSpell('double_shot');
   assert(state.effects.some(fx => fx.kind === 'volley' && fx.shots === 3), 'Double Shot\'s button looses the Triple Shot learned');
   assert.strictEqual(JSON.stringify(state.TREES.paladin.lines[1].tiers), JSON.stringify(['double_shot', 'triple_shot', 'quad_shot', 'penta_shot']));
-  assert(state.SPELLS.penta_shot.shots === 5 && state.SPELLS.penta_shot.level === 65 && state.SPELLS.quad_shot.look > state.SPELLS.triple_shot.look);
+  assert(state.SPELLS.penta_shot.shots === 5 && state.SPELLS.penta_shot.level === 45 && state.SPELLS.quad_shot.look > state.SPELLS.triple_shot.look);
   // starting over: all points back, the first time free, then gold
   p.gold = 0; A.resetTree();
-  assert.strictEqual(ctx.treePoints(p), 21, 'all the points back');
+  assert.strictEqual(ctx.treePoints(p), 23, 'all the points back');
   A.learnRank('falcon_mark'); A.resetTree();
-  assert(messages.some(m => /costs 1500 gold/.test(m)) && ctx.rankOf(p, 'falcon_mark') === 1, 'the second time costs gold');
+  assert(messages.some(m => /costs 1000 gold/.test(m)) && ctx.rankOf(p, 'falcon_mark') === 1, 'the second time costs gold');
 });
 
 test('the falcon: a mark makes the target take more, hunting falcons dive at it, Light Feet and Sharp Eye help, and saves keep the tree', () => {
@@ -2052,7 +2052,7 @@ test('the falcon: a mark makes the target take more, hunting falcons dive at it,
   const { ctx, state } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 40, mana: 900, maxMana: 900 });
+  Object.assign(p, { vocation: 'paladin', oracle: true, home: 'main', level: 40, mana: 900, maxMana: 900 });
   p.skills.distance.level = 40;
   const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 99999; state.monsters.push(m);
   p.target = m; p.chase = false;
@@ -2087,7 +2087,42 @@ test('the falcon: a mark makes the target take more, hunting falcons dive at it,
   assert.strictEqual(JSON.stringify(p.skillRanks), JSON.stringify({ double_shot: 2 }));
   // a save from before the tree: all the points to spend
   delete save.skillRanks; p.skillRanks = undefined; ctx.applySave(save);
-  assert.strictEqual(ctx.treePoints(p), 31);
+  assert.strictEqual(ctx.treePoints(p), 43);
+});
+
+test('a path from the start: Bastion, Hawk or Ember, its first gear, and the oracle names you at level 10; a Grove becomes an Ember', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  A.choosePath('druid');
+  assert.strictEqual(p.vocation, 'none', 'the Grove is no longer chosen');
+  A.choosePath('paladin');
+  assert.strictEqual(p.vocation, 'paladin');
+  assert(p.equipment.weapon.id === 'bow' && p.equipment.ammo.id === 'arrow', 'a bow and arrows in hand');
+  assert.strictEqual(ctx.treePoints(p), 1, 'a skill point at level 1');
+  A.choosePath('knight');
+  assert.strictEqual(p.vocation, 'paladin', 'only once');
+  assert(!ctx.graduated(p), 'a newcomer still');
+  // a newcomer dies cheaply and no player may fight them
+  const b = ctx.newPlayer('Other'); Object.assign(b, { vocation: 'knight', oracle: true, x: 50, y: 50, z: 8 });
+  assert(!ctx.asPlayer(b, () => ctx.pvpAllowed(p)), 'no fighting a newcomer');
+  // the oracle names you at level 10: the bell, her gift and three skill points
+  const o = state.npcs.find(n => n.npcId === 'oak_oracle');
+  ctx.teleport({ ...ctx.findFreeTile(o.x, o.y, o.z, 2), z: o.z });
+  Object.assign(p, { level: 9, xp: state.xpForLevel(9) });
+  A.say('hi'); A.say('destiny');
+  assert(messages.some(m => /not ready yet/.test(m)), 'not before level 10');
+  Object.assign(p, { level: 10, xp: state.xpForLevel(10) });
+  A.say('destiny'); A.say('yes');
+  tick(game, 3000);
+  assert(ctx.graduated(p) && p.vocation === 'paladin', 'named');
+  assert(messages.some(m => /bell of Oakvale rings for/.test(m)), 'the bell rings');
+  assert.strictEqual(ctx.treePoints(p), 13, 'ten points and three from the oracle');
+  // an old save: a Grove walks the path of the Ember now; one who had a vocation had it from the oracle
+  const save = ctx.serializePlayer(p);
+  delete save.oracle; save.vocation = 'druid';
+  ctx.applySave(save);
+  assert(p.vocation === 'sorcerer' && ctx.graduated(p), 'a Grove becomes an Ember, already named');
 });
 
 test('the practice room: golems that never move nor hit back, heal, tell the damage done, and stand up again at once', () => {
@@ -2123,7 +2158,7 @@ test('the power shot: a bow drawn to the full for a moment and a half, one arrow
   const { ctx, state, messages } = game;
   const p = state.player, A = state.Actions;
   ctx.teleport({ x: 128, y: 172, z: 8 });
-  Object.assign(p, { vocation: 'paladin', home: 'main', level: 20, mana: 500, maxMana: 500 });
+  Object.assign(p, { vocation: 'paladin', oracle: true, home: 'main', level: 20, mana: 500, maxMana: 500 });
   p.skills.distance.level = 40;
   A.learnRank('power_shot');
   A.say('sagitta vis'); tick(game, 100);

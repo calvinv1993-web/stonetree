@@ -437,7 +437,7 @@ function renderMenu() {
     h('div', { className: 'menu-sub' }, h('span', {}, 'Drink a potion by itself ', h('small', {}, 'below this much health or mana, from your backpack'))),
     autoHealControls(),
     ...(player.pet ? [row([player.pet.name, h('small', {}, player.pet.downUntil ? 'Resting at the temple' : player.pet.home ? 'Waiting at the temple: tap to call' : 'With you: tap to send home')], h('span', {}, '›'), player.pet.downUntil ? null : () => { (player.pet.home ? Actions.petCall() : Actions.petHome()); menuShown = ''; renderMenu(); })] : []), // (resting: nothing to tap)
-    row(['The guide', h('small', {}, player.vocation === 'none' ? 'From the start: how everything works' : 'For the starter island')], h('span', {}, '›'), () => { Actions.restartGuide(); InventoryDrawer.close(); }),
+    row(['The guide', h('small', {}, !graduated() ? 'From the start: how everything works' : 'For the starter island')], h('span', {}, '›'), () => { Actions.restartGuide(); InventoryDrawer.close(); }),
     row('Outfit', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); openOutfit(); }),
     row('Party & guild', h('span', {}, '›'), () => { closeSheet(); InventoryDrawer.close(); $('guildBtn').click(); }),
     row('Fullscreen', h('span', {}, '›'), () => toggleFullscreen()),

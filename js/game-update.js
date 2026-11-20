@@ -101,6 +101,7 @@ const Actions = {
   },
   say,
   castSpell,
+  choosePath, // (a new character's path, as they're made: game-core.js)
   // Your skill tree (creatures.js TREES): learn the next rank of a spell or passive, with your skill points
   learnRank(id) {
     if (typeof id !== 'string' || (!Object.hasOwn(SPELLS, id) && !treePassive(player.vocation, id))) return;
@@ -188,7 +189,7 @@ const Actions = {
   // The guide again from its first step (on the starter island: the steps already done pass by themselves, the ones
   // that only explain wait for Next again)
   restartGuide() {
-    if (player.vocation !== 'none') return log('The guide is for the starter island.');
+    if (graduated()) return log('The guide is for the starter island.');
     player.tutorial = 1;
     uiDirty();
   },

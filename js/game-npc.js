@@ -417,14 +417,25 @@ function questTalk(ids, npc, otherwise) {
   return otherwise || (last && last.text && storyText(last.text, 'done')) || 'Thank you again for your help.';
 }
 
+// The oracle: at level 10 she names you before the town, on the path you chose as you came (a newcomer no more: the
+// bell rings for you, her gift for your path, and a Hawk's skill points); one who came without a path chooses it here.
 function destinyTalk() {
-  if (player.vocation !== 'none') return `You already walk the path of the ${vocName(player.vocation)}.`;
-  if (player.level < vocationLevel()) return `You are not ready yet. Come back when you are level ${vocationLevel()} (you are level ${player.level}).`;
-  return 'Your path lies before you. Will you be a {Bastion}, a {Hawk}, an {Ember} or a {Grove}? Ask about each before you decide.';
+  if (graduated()) return `You already walk the path of the ${vocName(player.vocation)}, and the town knows your name.`;
+  if (player.level < vocationLevel()) return `You walk the path of the ${player.vocation !== 'none' ? vocName(player.vocation) : 'newcomer'}, but you are not ready yet. Come back at level ${vocationLevel()} (you are level ${player.level}), and I will name you before the town.`;
+  if (player.vocation === 'none') return 'Your path lies before you. Will you be a {Bastion}, a {Hawk} or an {Ember}? Ask about each before you decide.';
+  const v = player.vocation, name = vocName(v), away = mainlandOpen();
+  return ask(`I see it plainly: you are ${aVoc(v)}. Shall I name you before the town, $name? You will be a newcomer no more${away ? ', and you will leave the starter island for good' : ''}. ({yes}/{no})`, () => {
+    chooseVocation(v);
+    ringTownBell(away ? `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, the new ${name}, who leaves the isle today.`
+      : `Dong... dong... dong... The bell of Oakvale rings for ${player.name}, Oakvale's new ${name}.`);
+    return away ? `Then be named, ${name}! I will now send you across the sea to the mainland. Farewell, $name, and may the Dawn light your way.`
+      : `Then be named, ${name}! The road to the front is closed for now: the Host holds the passes. Until the watch opens it, you are one of Oakvale's own, and the wall is yours to hold. May the Dawn keep you, $name.`;
+  }, () => 'Take your time.');
 }
 
 function vocationTalk(v) {
   if (player.vocation !== 'none') return `You already walk the path of the ${vocName(player.vocation)}.`;
+  if (VOCATIONS[v].retired) return 'That path is closed: nobody walks it any more. Choose a {Bastion}, a {Hawk} or an {Ember}.';
   if (player.level < vocationLevel()) return `${VOCATIONS[v].desc} Come back at level ${vocationLevel()} to choose it (you are level ${player.level}).`;
   // (once there is a mainland, the oracle sends you across the sea; till then you stay, as Oakvale's own)
   const away = mainlandOpen(), name = vocName(v);
@@ -463,7 +474,7 @@ function bankTalk(text) {
 }
 
 function travelTalk(trip) {
-  if (player.vocation === 'none') return 'I only take adventurers with a vocation.';
+  if (!graduated()) return 'I only take adventurers the oracle has named.';
   return ask(`Do you want to sail to ${trip.name} for ${trip.cost} gold? ({yes}/{no})`, () => {
     if (player.gold < trip.cost) return 'You do not have enough gold.';
     if (player.target || Object.keys(player.conditions).some(k => CONDITIONS[k].interval)) return 'Not while you are fighting or hurt!';
@@ -486,7 +497,7 @@ function cartTalk(cart) {
 }
 
 function promoteTalk({ level, cost }) {
-  if (player.vocation === 'none') return 'Choose a vocation first.';
+  if (!graduated()) return 'Let the oracle name you first.';
   if (player.promoted) return `You are already a ${title(player)}.`;
   if (player.level < level) return `Come back at level ${level}.`;
   return ask(`I can promote you to ${VOCATIONS[player.vocation].promoted} for ${cost} gold. You will regenerate faster and learn mighty new spells. ({yes}/{no})`, () => {
