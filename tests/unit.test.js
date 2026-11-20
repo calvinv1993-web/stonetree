@@ -2090,6 +2090,34 @@ test('the falcon: a mark makes the target take more, hunting falcons dive at it,
   assert.strictEqual(ctx.treePoints(p), 31);
 });
 
+test('the practice room: golems that never move nor hit back, heal, tell the damage done, and stand up again at once', () => {
+  const game = loadGame();
+  const { ctx, state, messages } = game;
+  const p = state.player;
+  ctx.goPracticeRoom();
+  const R = require('vm').runInContext('PRACTICE_ROOM', ctx);
+  assert.deepStrictEqual([p.x, p.y, p.z], [R.entry.x, R.entry.y, R.z], 'there');
+  tick(game, 200);
+  const golems = state.monsters.filter(m => m.type === 'practice_golem' && !m.dead);
+  assert.strictEqual(golems.length, 8, 'eight golems');
+  const g = golems[0], at = [g.x, g.y], hp0 = p.hp;
+  ctx.damageMonster(g, 5000, 'physical');
+  assert.strictEqual(g.maxHp - g.hp, 5000);
+  tick(game, 2000);
+  assert(g.hp > g.maxHp - 5000 && g.hp < g.maxHp, 'it heals');
+  assert.deepStrictEqual([g.x, g.y], at, 'it never moves');
+  assert.strictEqual(p.hp, hp0, 'it never hits back');
+  tick(game, 3500);
+  assert(messages.some(m => /Practice golem: 5000 damage in .* s, \d+ a second/.test(m)), 'it tells the damage done');
+  ctx.damageMonster(g, 999999, 'physical');
+  assert(g.dead, 'it can fall');
+  tick(game, 1500);
+  assert(state.monsters.some(m => m.type === 'practice_golem' && !m.dead && m.x === at[0] && m.y === at[1]), 'and stands up again at once');
+  // the forcefield takes you back to the temple
+  ctx.teleport({ x: R.exit.x + 1, y: R.exit.y, z: R.z }); state.Actions.keyDown('a'); tick(game, 600); state.Actions.keyUp('a'); tick(game, 600);
+  assert.strictEqual(p.z, state.map.start.z, 'back at the temple');
+});
+
 test('the power shot: a bow drawn to the full for a moment and a half, one arrow ten times as hard loosed through every monster in its way, each hit as the arrow gets there', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

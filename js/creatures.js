@@ -12,6 +12,7 @@
 // invisible: hard to see and can't be targeted from afar; plural: the name for more than one, if not name + 's';
 // still: never moves (a practice dummy; a sparring one hits whoever stands next to it); standsUp: comes back even in sight;
 // trial: knocking it down counts for a trial in the Hall of Paths (game-paths.js)
+// regen: share of its health it heals a second; meter: it tells whoever hits it how much damage they did (the practice room)
 // respawn: ms (default 60 s, and never while a player can see the spot); loot: { gold: [min, max], items: [[itemId, chance, min, max]] }
 // voices: { aggro, low, death }: what it says, once, when it first goes for you, when it's nearly beaten, and as it falls
 const MONSTERS = {
@@ -24,6 +25,13 @@ const MONSTERS = {
   sparring_dummy: { // (it hits back, a little: for a shield to block, and something to heal)
     name: 'sparring dummy', hp: 70, xp: 0, dmg: [2, 6], defense: 2, armor: 1, speed: 0, attackSpeed: 2000, aggro: 0, corpse: 'none',
     still: true, standsUp: true, trial: true, respawn: 3000,
+  },
+  // the practice room's golem (default-map.js PRACTICE_ROOM): it never moves nor hits back, has a great deal of health and
+  // heals fast, tells you the damage you did every 5 s (and the damage a second), and stands up again a moment after
+  // it falls. It gives nothing.
+  practice_golem: {
+    name: 'practice golem', hp: 30000, xp: 0, dmg: [0, 0], defense: 0, armor: 0, speed: 0, attackSpeed: 2000, aggro: 0, corpse: 'none',
+    still: true, standsUp: true, respawn: 1000, regen: 0.01, meter: true,
   },
   rat: {
     name: 'rat', hp: 20, xp: 5, dmg: [0, 3], defense: 0, armor: 1, speed: 140, attackSpeed: 1600, aggro: 4, corpse: 'blood',

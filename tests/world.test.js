@@ -42,6 +42,9 @@ const GATEHOUSE_TOPS = new Set();
 for (const [gx0, gy0, gx1, gy1] of require('vm').runInContext('OAKVALE.ramparts.gates', ctx)) {
   for (let y = gy0 - 1; y <= gy1 + 1; y++) for (let x = gx0 - 1; x <= gx1 + 1; x++) GATEHOUSE_TOPS.add(`${x},${y}`);
 }
+// The practice room is cut off on purpose: it's reached from the Menu, not on foot (default-map.js PRACTICE_ROOM)
+const PR = require('vm').runInContext('PRACTICE_ROOM', ctx);
+const inPractice = (x, y, z) => z === PR.z && x >= PR.x0 && x <= PR.x1 && y >= PR.y0 && y <= PR.y1;
 const walkable = (x, y, z) => {
   const t = map.get(x, y, z);
   if (!t || !t.ground || THINGS[t.ground].block || THINGS[t.ground].roof) return false;
@@ -234,7 +237,7 @@ test('no land is cut off, apart from pockets of a few tiles between trees', () =
     if (!walkable(x, y, z) || change(x, y, z) || reached.has(k) || seen.has(k)) continue;
     const part = flood(edges, k);
     for (const j of part) seen.add(j);
-    if (!(z === S && islet(x, y)) && part.size > 6) cut.push(`${part.size} tiles around ${x},${y},${z}`);
+    if (!(z === S && islet(x, y)) && !inPractice(x, y, z) && part.size > 6) cut.push(`${part.size} tiles around ${x},${y},${z}`);
   }
   assert.deepStrictEqual(cut, []);
 });
@@ -244,7 +247,7 @@ test('the start, monsters and NPCs stand on free ground, and no monster in a pro
   for (const s of map.spawns) {
     assert.ok(walkable(s.x, s.y, s.z), `spawn ${s.type} at ${s.x},${s.y},${s.z} is not walkable`);
     assert.ok(!map.isShelter(s.x, s.y, s.z), `spawn ${s.type} at ${s.x},${s.y},${s.z} is in a protection zone or shelter`);
-    assert.ok(reached.has(key(s.x, s.y, s.z)), `spawn ${s.type} at ${s.x},${s.y},${s.z} can't be reached`);
+    assert.ok(reached.has(key(s.x, s.y, s.z)) || inPractice(s.x, s.y, s.z), `spawn ${s.type} at ${s.x},${s.y},${s.z} can't be reached`);
   }
   for (const n of map.npcs) assert.ok(walkable(n.x, n.y, n.z), `NPC ${n.type} at ${n.x},${n.y},${n.z} is not walkable`);
 });

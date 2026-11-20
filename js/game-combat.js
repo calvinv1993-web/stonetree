@@ -261,6 +261,11 @@ function damageMonster(m, dmg, element, crit) {
   dmg = withBestiary(dmg, m.type); // (you know the kind well: you hit it a little harder)
   const mark = m.conditions && m.conditions.marked; // (a falcon's mark: it takes more from everyone)
   if (mark && now < mark.until) dmg = Math.round(dmg * (1 + mark.k));
+  if (m.def.meter && dmg > 0) { // (the practice golem counts what you do to it)
+    m.meter = m.meter || { from: now, last: now, by: {} };
+    m.meter.by[player.id] = (m.meter.by[player.id] || 0) + Math.min(dmg, m.hp);
+    m.meter.last = now;
+  }
   m.angryAt = player.id;
   m.angryUntil = now + 15000; // whatever hits a monster gets hunted, even from afar
   // a band that fights as one (the Ashen Choir: spawn.band): hit one and the rest of it near by come for you too
@@ -278,6 +283,7 @@ function damageMonster(m, dmg, element, crit) {
   addText(m, crit ? `${dmg}!` : String(dmg), crit ? '#ffb22e' : '#ffffff', crit);
   addBurst(m.x, m.y, m.z, ELEMENT_COLORS[element]);
   if (crit) effects.push({ kind: 'impact', x: m.x, y: m.y, z: m.z, glow: '#ff9a2e', start: now, dur: 420 }); // (a critical hit: a big burst of orange light)
+  if (m.hp === 0 && m.meter) tellMeter(m); // (the practice golem: what you did, before it falls)
   if (m.hp === 0) killMonster(m);
 }
 
@@ -1001,6 +1007,16 @@ function monsterTarget(m) {
 // Whether player p has position o on their screen (or close to its edge).
 const inView = (p, o) => o.z === p.z && Math.abs(o.x - p.x) <= 10 && Math.abs(o.y - p.y) <= 8;
 
+// The practice golem's count (meter): the damage each player did it in the last 5 s, told to them, with the damage a second
+function tellMeter(m) {
+  const secs = Math.max(1, (Math.max(m.meter.last, m.meter.from + 1000) - m.meter.from) / 1000);
+  for (const [id, sum] of Object.entries(m.meter.by)) {
+    const p = players.find(q => q.id === +id || q.id === id);
+    if (p) asPlayer(p, () => log(`Practice golem: ${Math.round(sum)} damage in ${secs.toFixed(1)} s, ${Math.round(sum / secs)} a second.`, 'quest'));
+  }
+  m.meter = null;
+}
+
 function updateMonster(m, i) {
   if (m.dead) {
     if (!m.spawn || m.raid) {
@@ -1029,6 +1045,9 @@ function updateMonster(m, i) {
   finishWalk(m);
   if (m.walk) return;
   if (m.def.still) { // (a practice dummy: it stands where it stands, and a sparring one hits back whoever is next to it)
+    if (m.def.regen && m.hp < m.maxHp) { const dt = Math.min(1000, now - (m.healedAt || now)); m.hp = Math.min(m.maxHp, Math.round(m.hp + m.maxHp * m.def.regen * dt / 1000)); }
+    m.healedAt = now;
+    if (m.meter && now - m.meter.from >= 5000) tellMeter(m);
     const t = m.def.dmg[1] && players.find(p => !p.dead && p.z === m.z && Math.max(Math.abs(p.x - m.x), Math.abs(p.y - m.y)) === 1);
     if (t && now >= (m.nextAttack || 0)) { m.nextAttack = now + m.def.attackSpeed; asPlayer(t, () => damagePlayer(m, randInt(...m.def.dmg), 'physical')); }
     return;

@@ -1110,6 +1110,16 @@ function makeTestHero(vocation) {
   return true;
 }
 
+// For testing: the practice room (default-map.js PRACTICE_ROOM), golems that never hit back to try your attacks on, and
+// a forcefield back to the temple. Playing alone only (Menu: "Test: practice room"): the server has no button.
+function goPracticeRoom() {
+  if (typeof PRACTICE_ROOM === 'undefined' || !map.get(PRACTICE_ROOM.entry.x, PRACTICE_ROOM.entry.y, PRACTICE_ROOM.z)) return log('There is no practice room in this world.');
+  player.target = null;
+  teleport({ x: PRACTICE_ROOM.entry.x, y: PRACTICE_ROOM.entry.y, z: PRACTICE_ROOM.z });
+  addSparkle(player, '#c58cff');
+  log('The practice room: the golems never hit back, heal fast and stand up again at once. Each tells you the damage you did. The forcefield takes you back to the temple.', 'quest');
+}
+
 // For testing: Clang at your level (full grown, the temple's guardian), beside you. A test character gets him on making;
 // one made before that can ask for him (Menu: "Test: Clang at level 100"). Playing alone only: the server has no button.
 function isTestHero(p = player) { return p.level >= TEST_HERO_LEVEL && p.promoted; }

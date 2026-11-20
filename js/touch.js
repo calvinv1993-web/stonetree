@@ -448,6 +448,8 @@ function renderMenu() {
       : row(['Preview: the new world', h('small', {}, 'Walk round Bellhaven, still being built (a character of its own)')], h('span', {}, '›'), () => { location.href = 'index.html?world=kestrel'; }),
     row(['Map editor', h('small', {}, 'Draw and change the world')], h('span', {}, '›'), () => { location.href = 'editor.html'; }),
     row(['Data editor', h('small', {}, 'Items, monsters and NPCs, in this browser')], h('span', {}, '›'), () => { location.href = 'data.html'; }),
+    ...(!Net.online ? [row(['Test: practice room', h('small', {}, 'Golems that never hit back, to try your attacks on')], h('span', {}, '›'),
+      () => { goPracticeRoom(); if (typeof InventoryDrawer !== 'undefined' && InventoryDrawer.close) InventoryDrawer.close(); })] : []),
     // (a test character playing alone: Clang at its level, if it was made before test characters got him)
     ...(!Net.online && isTestHero() && !(pet && pet.level >= player.level) ? [row(['Test: Clang at level ' + player.level, h('small', {}, 'For trying things out')], h('span', {}, '›'),
       () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); menuShown = ''; renderMenu(); })] : []),

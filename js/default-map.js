@@ -794,6 +794,8 @@ const DISCOVERY = {
   people: [['rest_fisher', 36, 175, 8], ['fields_farmer', 121, 158, 8]],
 };
 
+// The practice room (see createDefaultMap): its walls' corners, its floor, where you arrive and the forcefield out
+const PRACTICE_ROOM = { x0: 4, y0: 4, x1: 17, y1: 12, z: 7, entry: { x: 9, y: 10 }, exit: { x: 5, y: 11 } };
 function createDefaultMap() {
   // (the new world, Kestrel Isle, played as a preview: index.html?world=kestrel; see js/world-kestrel.js)
   if (KESTREL_PREVIEW && typeof createKestrelMap === 'function') return createKestrelMap();
@@ -1323,6 +1325,24 @@ function createDefaultMap() {
   { const [x0, y0, x1, y1] = GATE_SITES.sleepers; for (const s of m.spawns) if (s.z === S && ['goblin', 'gnash'].includes(s.type) && s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1) s.sleeps = true; }
   { const g = OAKVALE.graveyard; m.spawns = m.spawns.filter(p => p.z !== S || p.x < g.x0 || p.x > g.x1 || p.y < g.y0 || p.y > g.y1); } // (nothing spawns in the graveyard)
   tidyWorld(m, S);
+
+  // ---- the practice room: a lit stone hall deep under the sea in the world's north-west corner, cut off from everything,
+  // reached only from the Menu (Test: practice room; goPracticeRoom in game-core.js). Practice golems to try your attacks
+  // on: one alone, a row of three (a shot that goes through), and a knot of four (what hits several at once); a forcefield
+  // takes you back to the temple.
+  {
+    const { x0, y0, x1, y1, z } = PRACTICE_ROOM;
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const edge = x === x0 || x === x1 || y === y0 || y === y1;
+      m.set(x, y, z, { ground: 'paving', items: edge ? ['wall_stone'] : [] });
+    }
+    for (const [x, y] of [[x0 + 3, y0], [x1 - 3, y0], [x0 + 7, y0], [x0, y0 + 4], [x1, y0 + 4]]) m.get(x, y, z).items.push('wall_torch');
+    for (const [x, y] of [[x0 + 1, y0 + 1], [x1 - 1, y1 - 1], [x1 - 1, y0 + 1]]) m.get(x, y, z).items.push('brazier');
+    const golems = [[x0 + 3, y0 + 3], [x0 + 6, y0 + 2], [x0 + 6, y0 + 3], [x0 + 6, y0 + 4], [x0 + 9, y0 + 3], [x0 + 10, y0 + 3], [x0 + 9, y0 + 4], [x0 + 10, y0 + 4]];
+    for (const [x, y] of golems) m.spawns.push({ type: 'practice_golem', x, y, z });
+    m.get(PRACTICE_ROOM.exit.x, PRACTICE_ROOM.exit.y, z).items.push('teleport');
+    m.setMeta(PRACTICE_ROOM.exit.x, PRACTICE_ROOM.exit.y, z, { to: { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 } });
+  }
 
   // ---- where you start: in the temple ------------------------------------------------------------
   m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount
