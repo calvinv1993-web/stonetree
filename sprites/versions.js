@@ -270,7 +270,7 @@ const SPRITE_HASHES = {
   "mountain-own.png":"d119fe701f",
   "mushrooms@4x.png":"de723461e7",
   "noticeboard@4x.png":"51f718040c",
-  "npc-ama.png":"6d4183ff22",
+  "npc-ama.png":"c5e9a7050c",
   "npc-child.png":"530109fdbd",
   "npc-corwin.png":"a78add75de",
   "npc-fields_farmer.png":"f62c1c5051",

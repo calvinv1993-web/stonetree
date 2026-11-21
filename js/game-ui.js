@@ -2893,6 +2893,7 @@ function newCharacterPath(onDone) {
 // from), a moment after the world comes into sight
 function newCharacterInWorld() {
   welcome(false);
+  if (navigator.webdriver && !/[?&]pickpath\b/.test(location.search)) return; // (browser tests: as with the path, only when they ask)
   const open = () => {
     if (typeof Preload !== 'undefined' && !Preload.ready) return setTimeout(open, 300); // (once the world is ready: not behind the loading screen)
     if ($('outfit').hidden && !document.body.classList.contains('welcome')) openOutfit();
