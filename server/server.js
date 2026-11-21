@@ -1,5 +1,5 @@
 'use strict';
-// Lickii Adventures online: serves the game and runs one shared world for everyone.
+// SORTIA online: serves the game and runs one shared world for everyone.
 //
 //   node server/server.js [port = 8080] [--test]
 //
@@ -592,7 +592,7 @@ function publishMap(req, res) {
   req.on('end', () => {
     try {
       const text = Buffer.concat(chunks).toString('utf8'), m = JSON.parse(text);
-      if (!m || !['tilequest-map-3', 'tilequest-map-4'].includes(m.format)) return answer(400, 'That is not a Lickii Adventures map.');
+      if (!m || !['tilequest-map-3', 'tilequest-map-4'].includes(m.format)) return answer(400, 'That is not a SORTIA map.');
       const loaded = vm.runInContext('GameMap', sandbox).fromJSON(m); // as the server will load it: if this fails, so would every start
       if (!loaded.inBounds(loaded.start.x, loaded.start.y, loaded.start.z)) return answer(400, 'The map has no start position on it.');
       fs.writeFileSync(`${MAP_FILE}.tmp`, text);
@@ -638,7 +638,7 @@ setInterval(() => {
 
 server.listen(PORT, () => {
   if (TEST) console.log('Test mode: new characters start at level 20 in Valoria, with good gear (or fresh on Brightwater Isle, if they choose).');
-  console.log(`Lickii Adventures server running: open http://localhost:${PORT} (others on your network: http://<this computer's address>:${PORT})`);
+  console.log(`SORTIA server running: open http://localhost:${PORT} (others on your network: http://<this computer's address>:${PORT})`);
 });
 
 // Stopping the server (Ctrl+C, or a kill while updating it) saves everyone first. dev.js

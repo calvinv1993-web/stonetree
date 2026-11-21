@@ -24,10 +24,10 @@
     ? ['Open this page in <b>Safari</b> (or Chrome) first: tap the menu of this app and choose <b>Open in browser</b>.', 'Then add it to your home screen from there.']
     : ios
       ? [`In <b>Safari</b>, tap <b>Share</b> ${share} in the bar at the bottom (on newer iPhones: <b>⋯</b>, then <b>Share</b>). Opened from a link in another app? Choose <b>Open in Safari</b> first.`,
-        `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list, or tap <b>More</b>, if you don't see it).`, 'Open <b>Lickii</b> from your home screen.']
+        `Choose <b>Add to Home Screen</b> ${plus} (scroll down the list, or tap <b>More</b>, if you don't see it).`, 'Open <b>SORTIA</b> from your home screen.']
       : samsung
-        ? ['Tap the menu <b>≡</b> (bottom right).', 'Choose <b>Add page to</b>, then <b>Home screen</b> (or tap <b>Install</b> if it\'s offered).', 'Open <b>Lickii</b> from your home screen.']
-        : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>Lickii</b> from your home screen.'];
+        ? ['Tap the menu <b>≡</b> (bottom right).', 'Choose <b>Add page to</b>, then <b>Home screen</b> (or tap <b>Install</b> if it\'s offered).', 'Open <b>SORTIA</b> from your home screen.']
+        : ['Tap the browser\'s menu <b>⋮</b> (top right).', 'Choose <b>Install app</b> or <b>Add to Home screen</b>.', 'Open <b>SORTIA</b> from your home screen.'];
   const gate = document.createElement('div');
   gate.id = 'installGate';
   gate.innerHTML = `
@@ -36,7 +36,7 @@
       #installGate { position: fixed; inset: 0; z-index: 2147483647; display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: 14px; padding: max(20px, env(safe-area-inset-top)) 20px calc(52px + env(safe-area-inset-bottom)); box-sizing: border-box; overflow: auto;
         background: radial-gradient(ellipse at 50% 30%, #2a2418 0%, #0d0c0b 70%); color: #efe6d2; font: 16px/1.5 Inter, system-ui, sans-serif; text-align: center; }
-      #installGate img { width: min(52vw, 220px); height: auto; }
+      #installGate img { width: min(80vw, 340px); height: auto; }
       #installGate h1 { margin: 0; font-size: 21px; font-weight: 700; color: #e8c46a; }
       #installGate p { margin: 0; max-width: 340px; color: #cbbfa6; }
       #installGate ol { margin: 0; padding: 0; list-style: none; counter-reset: step; max-width: 340px; width: 100%; }
@@ -51,10 +51,10 @@
         animation: gate-bob 1s ease-in-out infinite; pointer-events: none; }
       @keyframes gate-bob { 50% { transform: translateY(8px); } }
     </style>
-    <img src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
-    <h1>Play Lickii Adventures as an app</h1>
+    <img src="sprites/ui/loading/logo.png" alt="SORTIA: The Broken Seal">
+    <h1>Play SORTIA as an app</h1>
     <p>On a phone the game is played from your home screen: the whole screen for the game, and it stays upright.</p>
-    <button id="installNow" hidden>Install Lickii</button>
+    <button id="installNow" hidden>Install SORTIA</button>
     <ol>${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol>
     ${ios && !inApp ? '<svg class="down" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v16m0 0-6-6m6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}`;
   document.body.prepend(gate);

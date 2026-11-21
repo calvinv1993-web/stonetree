@@ -144,10 +144,10 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
 /* (on a wide screen: the same picture, large and dark, all round the painting: no blur) */
 .sb-stage::before { content: none; }
 .sb-logo { position: absolute; z-index: 2; top: var(--ob-safe-top); left: 50%; transform: translateX(-50%);
-  width: clamp(76px, 22vw, 116px); height: auto; opacity: 0.92; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none;
+  width: clamp(120px, 34vw, 180px); height: auto; opacity: 0.92; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none;
   transition: width var(--ob-fade) ease, opacity var(--ob-fade) ease; }
 /* (large on the first page; after it, small, and the picture has the room) */
-.story-book.first .sb-logo { width: clamp(140px, 44vw, 230px); opacity: 1; }
+.story-book.first .sb-logo { width: clamp(190px, 58vw, 340px); opacity: 1; }
 .sb-panel { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: 0; box-sizing: border-box;
   width: min(100%, var(--ob-w)); max-height: calc(100% - 96px - env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px;
   padding: 0 max(14px, env(safe-area-inset-left)) var(--ob-safe-bottom) max(14px, env(safe-area-inset-right)); }
@@ -178,14 +178,14 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
   .sb-stage::before { content: ''; position: absolute; inset: -4%; background: #0e0c0a var(--sb-ambient, none) center / cover no-repeat; filter: brightness(0.32) saturate(0.85); }
   .sb-shot { object-fit: contain; object-position: 30% 50%; transform-origin: 30% 50%; filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.7)); }
   .sb-stage::after { background: linear-gradient(90deg, rgba(10, 8, 6, 0) 55%, rgba(10, 8, 6, 0.55) 100%); }
-  .sb-logo { left: auto; right: calc(max(4vw, env(safe-area-inset-right)) + clamp(360px, 34vw, 460px) / 2); transform: translateX(50%); top: max(24px, env(safe-area-inset-top)); width: clamp(110px, 10vw, 150px); }
-  .story-book.first .sb-logo { width: clamp(170px, 16vw, 230px); }
+  .sb-logo { left: auto; right: calc(max(4vw, env(safe-area-inset-right)) + clamp(360px, 34vw, 460px) / 2); transform: translateX(50%); top: max(24px, env(safe-area-inset-top)); width: clamp(170px, 15vw, 230px); }
+  .story-book.first .sb-logo { width: clamp(260px, 24vw, 360px); }
   .sb-panel { left: auto; right: max(4vw, env(safe-area-inset-right)); top: 50%; bottom: auto; transform: translateY(-50%); width: clamp(360px, 34vw, 460px); max-height: calc(100% - 48px); padding: 0; }
 }
 /* a tablet or a computer: words a little bigger */
 @media (min-width: 700px) { .sb-text p { font-size: 17px; } :root { --ob-title-size: 28px; } .story-book { --ob-title-size: 24px; } }
 /* a short screen: smaller words, a smaller logo */
-@media (max-height: 620px) { .sb-text p { font-size: 15px; line-height: 1.45; } :root { --ob-title-size: 20px; } .story-book { --ob-title-size: 18px; } .sb-logo { width: 76px; } .story-book.first .sb-logo { width: 120px; } }
+@media (max-height: 620px) { .sb-text p { font-size: 15px; line-height: 1.45; } :root { --ob-title-size: 20px; } .story-book { --ob-title-size: 18px; } .sb-logo { width: 120px; } .story-book.first .sb-logo { width: 190px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .sb-shot { transition-duration: 200ms; }

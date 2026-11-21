@@ -1,4 +1,4 @@
-# Lickii Adventures's art style
+# SORTIA's art style
 
 The rules every sprite follows, so the world looks like one piece. They borrow the way PixelLab works (one camera
 for everything, one light, one kind of outline, one shading level, terrain transitions with a layer and a height of

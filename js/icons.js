@@ -1,5 +1,5 @@
 'use strict';
-// Lickii Adventures's interface icons: one consistent set of line icons on a 24-unit grid, drawn as vectors (SVG) with rounded
+// SORTIA's interface icons: one consistent set of line icons on a 24-unit grid, drawn as vectors (SVG) with rounded
 // strokes, so they're sharp at any size. They take the colour of the text around them (currentColor): grey when idle,
 // gold when chosen, set in css/game.css. Potions, food and gold keep a fill of their own colour: you look for those in a fight.
 //   Icons.svg(name): the icon's SVG text

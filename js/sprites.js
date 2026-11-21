@@ -7795,7 +7795,7 @@ const Sprites = (() => {
     if (baked.ok === undefined) {
       if (!baked.img.complete || !baked.img.naturalWidth || [...custom.values()].some(i => !i.complete)) return null; // (not loaded yet)
       baked.ok = groundFingerprint() === BAKED_GROUND.fingerprint;
-      if (!baked.ok) console.info('Lickii Adventures: the baked ground pictures are out of date; making them as we go. Run node tests/bake-ground.js.');
+      if (!baked.ok) console.info('SORTIA: the baked ground pictures are out of date; making them as we go. Run node tests/bake-ground.js.');
     }
     if (!baked.ok) return null;
     const i = baked.index.get(key), T = BAKED_GROUND.tile, cols = BAKED_GROUND.cols, c = document.createElement('canvas');

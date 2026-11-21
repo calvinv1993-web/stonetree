@@ -1,6 +1,6 @@
 # The phone's interface
 
-How Lickii Adventures looks and works on a phone, held upright, and which file does what. Built in eleven phases in
+How SORTIA looks and works on a phone, held upright, and which file does what. Built in eleven phases in
 November 2026 (versions ui227 to ui236); the last version before it is commit `819e3cc` (ui227), to go back to if
 ever needed.
 
