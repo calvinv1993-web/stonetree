@@ -1730,7 +1730,7 @@ function renderOutfit() {
     }
     look.appendChild(row);
   }
-  // colours: which part (its colour on its button), then a hue, then one of its shades
+  // colours: which part (its colour on its button), then a hue (taken at once), then, if you like, one of its shades
   const colours = section('Colours');
   const parts = el('div', 'outfit-parts');
   for (const [part, label] of OUTFIT_PARTS) {
@@ -1750,7 +1750,7 @@ function renderOutfit() {
     b.style.background = OUTFIT_COLORS[3 * HUES + c]; // (each hue shown at its middle shade)
     b.title = c === 0 ? 'Greys' : `Hue ${c}`;
     b.setAttribute('aria-label', b.title);
-    b.onclick = () => { outfitHue = c; renderOutfit(); };
+    b.onclick = () => { outfitHue = c; outfitDraft[outfitPart] = OUTFIT_COLORS[3 * HUES + c]; renderOutfit(); }; // (taken at once, at its middle shade; a shade below changes it)
     hues.appendChild(b);
   }
   colours.appendChild(hues);

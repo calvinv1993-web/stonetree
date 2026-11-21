@@ -140,6 +140,8 @@ const fits = page => page.evaluate(() => {
     await page.click('.outfit-hues .swatch-color:nth-child(12)');
     await page.click('.outfit-shades .swatch-color:nth-child(4)');
     await page.click('#outfit >> text=Female');
+    check(await page.evaluate(() => [...document.querySelectorAll('#outfit .swatch-color.active')].every(b => getComputedStyle(b).backgroundColor === b.style.backgroundColor && getComputedStyle(b).backgroundImage === 'none')),
+      `${name}: a chosen colour shows as itself`);
     const want = await page.evaluate(() => JSON.stringify(outfitDraft));
     if (shots) await page.screenshot({ path: path.join(shots, `${name}-outfit.png`) }); // (the game's own window: not the welcome's checks)
     check(await page.evaluate(() => { const r = outfit.getBoundingClientRect(); return r.top >= -0.5 && r.bottom <= innerHeight + 0.5; }), `${name}: the outfit window on the screen`);

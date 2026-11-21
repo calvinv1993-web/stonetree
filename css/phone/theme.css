@@ -51,7 +51,8 @@ body.touch-ui .item-menu.item-card, body.touch-ui .item-menu { background: linea
 body.touch-ui .item-menu .item-stats { background: #1c1d1f !important; border-radius: 5px; }
 body.touch-ui .drawer-tabs button.active { border-color: var(--hud-edge) !important; background: linear-gradient(var(--hud-slot-top), var(--hud-slot-bottom)) !important;
   color: var(--hud-text) !important; box-shadow: inset 0 -2px 0 var(--hud-gold) !important; }
-body.touch-ui .window button.active, body.touch-ui .dialog button.active, body.touch-ui .panel button.active:not(.seg button), body.touch-ui .seg button.active {
+/* (a colour swatch keeps its own colour when it's the chosen one: it shows that with a ring, below) */
+body.touch-ui .window button.active:not(.swatch-color), body.touch-ui .dialog button.active:not(.swatch-color), body.touch-ui .panel button.active:not(.seg button):not(.swatch-color), body.touch-ui .seg button.active {
   border-color: var(--hud-edge) !important; background: linear-gradient(var(--hud-active-top), var(--hud-active-bottom)) !important; color: var(--hud-text) !important;
   box-shadow: inset 0 -2px 0 var(--hud-gold) !important;
 }
