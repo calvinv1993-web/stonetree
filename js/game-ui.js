@@ -1657,6 +1657,7 @@ function openOutfit(onDone) {
     if (sent) return; sent = true;
     Actions.setOutfit(outfitDraft);
     $('outfit').hidden = true;
+    const view = $('viewport'); if (view.scrollTop || view.scrollLeft) view.scrollTo(0, 0); // (the map never scrolls: put back what bringing the window in sight moved)
     if (onDone) onDone();
   };
   const turn = d => { outfitDir = (outfitDir + d + 4) % 4; drawOutfitPreview(); };
@@ -2892,7 +2893,11 @@ function newCharacterPath(onDone) {
 // from), a moment after the world comes into sight
 function newCharacterInWorld() {
   welcome(false);
-  setTimeout(() => { if ($('outfit').hidden && !document.body.classList.contains('welcome')) openOutfit(); }, 1200);
+  const open = () => {
+    if (typeof Preload !== 'undefined' && !Preload.ready) return setTimeout(open, 300); // (once the world is ready: not behind the loading screen)
+    if ($('outfit').hidden && !document.body.classList.contains('welcome')) openOutfit();
+  };
+  setTimeout(open, 1200);
 }
 
 // ---- after the story: Oakvale's temple, and Sister Ama at your side -------------------------------------------------
