@@ -1384,7 +1384,7 @@ function curveTitle(el) {
   if (!el.querySelector('i')) el.replaceChildren(...[...el.textContent].map(ch => h('i', { className: ch === ' ' ? 'sp' : '' }, ch === ' ' ? '\u00a0' : ch)));
   const letters = [...el.querySelectorAll('i')], box = el.getBoundingClientRect(), half = box.width / 2;
   if (!half) return;
-  const sag = half * 0.13; // (how far the ends sit below the middle, as the banner's own curve)
+  const sag = half * 0.17; // (how far the ends sit below the middle, as the banner's own curve)
   for (const l of letters) {
     l.style.transform = '';
     const r = l.getBoundingClientRect(), u = (r.left + r.width / 2 - (box.left + half)) / half; // -1 .. 1 across the banner

@@ -41,7 +41,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-stage { --E: calc(85.74cqw * (var(--kc) - 1)); position: relative; flex: none; height: calc(82.24cqw * var(--kc)); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .sv-banner { position: absolute; left: 17.3%; top: 4.3cqw; width: 65.5%; height: 15.75cqw; margin: 0;
   background: var(--sv-banner, url(../sprites/ui/sortia/banner.webp)) center / 100% 100% no-repeat; }
-.sv-title { position: absolute; inset: 0 0 14% 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+.sv-title { position: absolute; inset: 0 0 28% 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
   font-size: 4.05cqw; font-weight: 700; letter-spacing: 0.03em; line-height: 1; filter: drop-shadow(0 0.16cqw 0.1cqw rgba(20, 8, 4, 0.9)); }
 /* (the title is HTML, its letters set on a gentle arc by game-ui.js curveTitle: an SVG text path was cut short in Safari) */
 .sv-title i { display: inline-block; font-style: normal; color: #f1cf8e; background: linear-gradient(180deg, #fff3d2, #f1cf8e 50%, #c8955a);
