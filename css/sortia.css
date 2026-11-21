@@ -92,6 +92,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-card[data-position="right"] .sv-info { right: -6%; }
 
 /* the arrows: round seals beside the middle card, 44px to tap at the least */
+#pathPick .sv-arrow { display: none !important; } /* (no arrows: a swipe or a tap on a side card goes through the paths, the arrow keys on a keyboard) */
 .sv-arrow { position: absolute; z-index: 3; top: calc(49.5cqw + var(--E) / 2); width: max(44px, 6.6cqw); height: max(44px, 6.6cqw); display: grid; place-items: center; transform: translate(-50%, -50%); }
 .sv-arrow.sv-left { left: 24.45%; }
 .sv-arrow.sv-right { left: 75.55%; }
