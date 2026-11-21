@@ -42,7 +42,7 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-banner { position: absolute; left: 17.3%; top: 4.3cqw; width: 65.5%; height: 15.75cqw; margin: 0;
   background: var(--sv-banner, url(../sprites/ui/sortia/banner.webp)) center / 100% 100% no-repeat; }
 .sv-title { display: block; width: 100%; height: 100%; overflow: visible; }
-.sv-title text { fill: url(#svTitleGold); font-size: 43px; font-weight: 700; letter-spacing: 0.02em; /* (well inside its curve: a wider fallback font still fits) */ paint-order: stroke; stroke: #3a1a10; stroke-width: 1.4px; }
+.sv-title text { fill: url(#svTitleGold); font-size: 41px; font-weight: 700; letter-spacing: 0.02em; /* (its curve runs past the banner's ends, the same arc drawn longer: Safari drops a letter that runs off a path's end) */ paint-order: stroke; stroke: #3a1a10; stroke-width: 1.4px; }
 .sv-rule { display: flex; align-items: center; justify-content: center; gap: 0.7cqw; pointer-events: none; color: #e1b77e; }
 .sv-rule::before, .sv-rule::after { content: ''; width: 8cqw; height: 1px; background: linear-gradient(90deg, transparent, currentColor); }
 .sv-rule::after { transform: scaleX(-1); }
@@ -102,7 +102,6 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-paper::before { position: absolute; content: ''; inset: 0; z-index: -1; background: var(--sv-paper, url(../sprites/ui/sortia/parchment.webp)) center / 100% 100% no-repeat; }
 .sv-paper .sv-rule { color: #71503b; }
 .sv-desc { margin: 0.5cqw auto 1.05cqw; text-align: center; font: italic 500 clamp(12.5px, calc(2.55cqw * var(--pk)), 27px) / 1.17 var(--sv-story); }
-.sv-desc b { color: #4b1b1a; font-style: normal; font-weight: 600; font-size: 1.22em; }
 .sv-cols { display: grid; grid-template-columns: 1fr 1fr; margin-top: 0.75cqw; }
 .sv-cols > div:first-child { padding-right: 3cqw; }
 .sv-cols > div:last-child { padding-left: 3cqw; border-left: 1px solid rgba(101, 71, 48, 0.41); }

@@ -1442,7 +1442,7 @@ function askPath(onDone, onBack) {
     const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
     return [
       rule(),
-      h('p', { className: 'sv-desc' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
+      h('p', { className: 'sv-desc' }, `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
       rule(),
       h('div', { className: 'sv-cols' },
         h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
