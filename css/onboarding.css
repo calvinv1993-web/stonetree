@@ -244,3 +244,35 @@ body.welcome #create input#createName { min-height: var(--ob-touch) !important; 
 body.welcome .ob-screen .dialog-buttons, body.welcome .ob-screen > .ob-nav { position: sticky; bottom: calc(-1 * var(--ob-pad)); z-index: 2;
   margin: var(--ob-gap) calc(-1 * var(--ob-pad)) calc(-1 * var(--ob-pad)); padding: 10px var(--ob-pad) var(--ob-pad);
   background: linear-gradient(180deg, rgba(226, 198, 146, 0), #e2c692 35%); border-radius: 0 0 var(--ob-radius) var(--ob-radius); }
+
+/* ---- your appearance, compact (making a character only; the outfit window in the game keeps its own): the outfit and
+   male or female on one row, the addons side by side, the four colour parts in one row (their colour over their name),
+   the preview as tall as the screen allows; on a short screen the sections' titles fold away ---- */
+body.welcome #outfitPreview { width: min(168px, 44vw, 22vh); }
+body.welcome #outfit .outfit-sec:first-of-type { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px; }
+body.welcome #outfit .outfit-sec:first-of-type .outfit-sec-title { flex-basis: 100%; }
+body.welcome #outfit .outfit-type { gap: 4px; }
+body.welcome #outfit .outfit-name { min-width: 78px; font-size: 16px; }
+body.welcome #outfit .outfit-sex { margin: 0; gap: 4px; }
+body.welcome #outfit .outfit-sex button { flex: 0 1 auto; min-width: 66px; }
+body.welcome #outfit .outfit-addons { flex-basis: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px 16px; margin: 0; }
+body.welcome #outfit .outfit-addon { min-height: 30px; }
+body.welcome #outfit .outfit-lock { margin-left: 2px; }
+body.welcome #outfit .outfit-parts { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+body.welcome #outfit .outfit-parts button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 46px; padding: 2px; font-size: 12.5px; }
+body.welcome #outfit .outfit-parts .outfit-dot { margin: 0; width: 14px; height: 14px; }
+body.welcome #outfit .outfit-hues { margin: 8px 0 6px; }
+body.welcome #outfit .outfit-sec-title { margin: 6px 0 4px; }
+@media (max-height: 700px) { body.welcome #outfit .outfit-sec-title { display: none; } body.welcome #outfit .outfit-sec { border-top: none; } body.welcome #outfit header { margin-bottom: 6px !important; } }
+/* (a very short screen, an iPhone SE: smaller preview and shades, tighter gaps) */
+@media (max-height: 600px) {
+  body.welcome #outfitPreview { width: min(168px, 44vw, 18vh); }
+  body.welcome #outfit .outfit-stage { margin: 0 0 2px; gap: 2px 8px; }
+  body.welcome #outfit .outfit-shades .swatch-color { height: 34px; }
+  body.welcome #outfit .outfit-hues { margin: 6px 0 5px; gap: 4px; }
+  body.welcome #outfit .outfit-sec { margin: 2px 0 0; }
+  body.welcome #outfit .outfit-addon { min-height: 26px; }
+  body.welcome #outfit .ob-title { font-size: 20px !important; }
+  body.welcome #outfit .ob-title::after { display: none; }
+  body.welcome #outfit .dialog-buttons { margin-top: 4px; padding-top: 6px; }
+}
