@@ -1403,11 +1403,10 @@ function askPath(onDone, onBack) {
       const dot = h('button', { type: 'button' }, h('span')); dot.setAttribute('aria-label', `Show ${vocName(v)}`); dot.onclick = () => show(i); return dot;
     }));
   }
-  // the screen's shape: taller than the reference's 2:3 (a phone), the cards a little taller, the parchment's words larger
+  // the screen's shape: taller than the reference's 2:3 (a phone), the parchment's words larger (the cards keep their proportions)
   // and the hall's tall picture behind (its dark middle drawn out, its banners and candles where they were)
   function place() {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
-    scene.style.setProperty('--kc', Math.min(1.25, Math.max(1, 1 + (ratio - 1.5) * 0.35)).toFixed(3));
     scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3));
     win.style.setProperty('--sv-hall', `url("${new URL(sortiaArt(ratio > 1.8 ? 'vocation-hall-tall.webp' : 'vocation-hall.webp'), location.href).href}")`);
   }
