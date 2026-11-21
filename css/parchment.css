@@ -12,7 +12,19 @@
      .pp-ceremonial   the gold frame: its bannered top corners, the crest, the corners below (the default)
      .pp-compact      a thin antique-gold line round the paper's middle instead (small windows, where the frame would crowd)
    Options:
-     .pp-ornate       the golden tree ornament crowning the panel, in place of the crest */
+     .pp-ornate       the golden tree ornament crowning the panel, in place of the crest
+     .pp-scroll       its words in .pp-content, which scrolls if they're too long (the frame stays put); a .pp-foot
+                      under it (the way on) never scrolls
+     --pp-w           the panel's width, where % can't say it (a fixed window: its % would be the screen's)
+
+   Its type: Cinzel for titles (--pp-head), Literata for words (--pp-book), both in css/fonts (SIL Open Font License). */
+
+@font-face { font-family: 'Cinzel'; font-weight: 600; font-display: swap; src: url(fonts/cinzel-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Cinzel'; font-weight: 700; font-display: swap; src: url(fonts/cinzel-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Literata'; font-weight: 400; font-display: swap; src: url(fonts/literata-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Literata'; font-weight: 400; font-style: italic; font-display: swap; src: url(fonts/literata-latin-400-italic.woff2) format('woff2'); }
+@font-face { font-family: 'Literata'; font-weight: 600; font-display: swap; src: url(fonts/literata-latin-600-normal.woff2) format('woff2'); }
+:root { --pp-head: 'Cinzel', 'Palatino Linotype', Georgia, serif; --pp-book: 'Literata', 'Palatino Linotype', Georgia, serif; }
 
 .parchment-panel {
   /* (its pictures; set again with their versions by ParchmentPanel, so an update fetches only the ones that changed) */
@@ -23,7 +35,7 @@
   --pp-left: url(../sprites/ui/parchment/edge-left.webp); --pp-right: url(../sprites/ui/parchment/edge-right.webp);
   --pp-crest: url(../sprites/ui/parchment/crest.webp); --pp-ornament: url(../sprites/ui/parchment/ornament.webp);
   position: relative; isolation: isolate; box-sizing: border-box; container-type: inline-size;
-  color: #3b2412; font-family: var(--ob-serif, Georgia, serif);
+  color: #3b2412; font-family: var(--pp-book); font-size: 16px; line-height: 1.5;
 }
 /* one unit of the original, on the panel: read by its layers (they're inside it, so 100cqw is the panel's width) */
 .parchment-panel > .pp-paper, .parchment-panel > .pp-frame { --pp-u: min(calc(100cqw / 1536), 0.34px); }
@@ -39,7 +51,7 @@
 /* ---- the gold frame ---- */
 .pp-ceremonial {
   /* (round the words: clear of the crest above, the banners at the sides and the corners below; in % of the panel's width) */
-  padding: min(12.4%, 64px) min(10.8%, 56px) min(6.6%, 34px);
+  padding: min(calc(var(--pp-w, 100%) * 0.124), 64px) min(calc(var(--pp-w, 100%) * 0.108), 56px) min(calc(var(--pp-w, 100%) * 0.066), 34px);
   min-height: 150px;
 }
 /* the paper reaches the middle of the bars: their outer half lies over the scene */
@@ -68,7 +80,7 @@
 .pp-ornate .pp-crest { display: none; }
 .pp-ornate .pp-ornament { display: block; left: 50%; top: calc(-170 * var(--pp-u)); width: calc(820 * var(--pp-u)); aspect-ratio: 600 / 294; height: auto;
   transform: translateX(-50%); z-index: 2; background-image: var(--pp-ornament); }
-.pp-ornate.pp-ceremonial { padding-top: min(18.5%, 96px); }
+.pp-ornate.pp-ceremonial { padding-top: min(calc(var(--pp-w, 100%) * 0.185), 96px); }
 
 /* ---- the thin antique-gold line round the aged paper, for a small window ---- */
 .pp-compact { padding: 12px 16px; border-radius: 6px; }
@@ -76,6 +88,11 @@
 .pp-compact .pp-frame, .pp-compact > .pp-paper::after { display: none; }
 
 /* ---- its words: a burgundy serif title, dark brown text ---- */
-.parchment-panel .pp-title { margin: 0; text-align: center; font: 700 clamp(18px, 5vw, 22px) / 1.15 var(--ob-serif, Georgia, serif); color: #6a1a10; letter-spacing: 0.01em;
+.parchment-panel .pp-title { margin: 0; text-align: center; font: 700 clamp(18px, 5vw, 22px) / 1.2 var(--pp-head); color: #6a1a10; letter-spacing: 0.03em;
   text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45); }
 .parchment-panel p { color: #3b2412; }
+
+/* ---- words that may be too long: they scroll inside the paper, the frame and the way on stay where they are ---- */
+.pp-scroll { display: flex; flex-direction: column; }
+.pp-scroll > .pp-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-right: -6px; padding-right: 6px; }
+.pp-scroll > .pp-foot { flex: none; }

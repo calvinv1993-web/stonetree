@@ -487,7 +487,7 @@ for (const dir of CLIENT_DIRS) fs.watch(path.join(ROOT, dir), { recursive: true 
 fs.watch(ROOT, (event, file) => file && /\.(html|json)$/.test(file) && changed());
 
 // ---- HTTP: the game files, and the WebSocket ------------------------------------------------
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.json': 'application/json', '.md': 'text/plain' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.json': 'application/json', '.md': 'text/plain' };
 
 const server = http.createServer((req, res) => {
   let url, file;

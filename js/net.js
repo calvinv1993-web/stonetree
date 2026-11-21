@@ -58,6 +58,7 @@ const Net = (() => {
         pw.after(voc);
       }).catch(() => {});
     }
+    ParchmentPanel.decorate(dialog, { scroll: true });
     $('createName').focus();
   }
 

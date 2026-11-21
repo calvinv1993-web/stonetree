@@ -1438,7 +1438,7 @@ function askPath(onDone, onBack) {
       h('img', { className: 'cp-ask-emblem', src: classArt(`${PATH_PICK[v].art}-emblem.png`), alt: '' }),
       h('h3', { id: 'pathAskTitle', className: 'pp-title' }, `Walk the path of ${aVoc(v)}?`), h('p', {}, 'It is yours for good: no one changes their path.'),
       h('div', { className: 'cp-ask-row' }, no, yes));
-    ParchmentPanel.decorate(panel, { variant: 'compact' });
+    ParchmentPanel.decorate(panel, { variant: 'ceremonial' });
     box.replaceChildren(panel);
     yes.focus({ preventScroll: true });
   }
@@ -1649,6 +1649,7 @@ function openOutfit(onDone) {
   outfitHue = null; outfitDir = 0;
   const making = document.body.classList.contains('welcome'); // (a new character, or the outfit window in the game)
   $('outfitTitle').textContent = making ? 'Create your appearance' : 'Choose your outfit';
+  if (making) ParchmentPanel.decorate($('outfit'), { scroll: true }); else ParchmentPanel.undecorate($('outfit')); // (the game's own look in the game)
   $('outfitDone').textContent = making ? 'Continue' : 'Done';
   renderOutfit();
   let sent = false; // (once: a double tap goes on once)
@@ -2712,8 +2713,10 @@ const ParchmentPanel = (() => {
       document.documentElement.style.setProperty(`--pp-${key}`, `url("${url}")`);
     }
   }
-  function decorate(el, { variant = 'ceremonial', ornament = false } = {}) {
+  // scroll: its words go into a .pp-content that scrolls if they must; what's marked .ob-nav (the way on) stays under it
+  function decorate(el, { variant = 'ceremonial', ornament = false, scroll = false } = {}) {
     version();
+    el.classList.remove('pp-ceremonial', 'pp-compact');
     el.classList.add('parchment-panel', `pp-${variant}`);
     if (!el.querySelector(':scope > .pp-paper')) {
       const frame = h('div', { className: 'pp-frame' }, ...['pp-top', 'pp-bottom', 'pp-left', 'pp-right', 'pp-tl', 'pp-tr', 'pp-bl', 'pp-br', 'pp-crest', 'pp-ornament']
@@ -2721,11 +2724,27 @@ const ParchmentPanel = (() => {
       frame.setAttribute('aria-hidden', 'true');
       el.prepend(h('div', { className: 'pp-paper' }), frame);
     }
+    if (scroll && !el.querySelector(':scope > .pp-content')) {
+      const content = h('div', { className: 'pp-content' });
+      const kids = [...el.children].filter(k => !k.matches('.pp-paper, .pp-frame'));
+      for (const k of kids) { if (k.matches('.ob-nav, .dialog-buttons')) k.classList.add('pp-foot'); else content.append(k); }
+      el.insertBefore(content, el.querySelector(':scope > .pp-foot'));
+      el.classList.add('pp-scroll');
+    }
     setOrnament(el, ornament);
     return el;
   }
+  // back to a plain window (the outfit window in the game keeps the game's look): its words where they were
+  function undecorate(el) {
+    const content = el.querySelector(':scope > .pp-content');
+    if (content) { el.insertBefore(content, el.querySelector(':scope > .pp-foot')); content.replaceWith(...content.children); }
+    el.querySelectorAll(':scope > .pp-paper, :scope > .pp-frame').forEach(k => k.remove());
+    el.querySelectorAll(':scope > .pp-foot').forEach(k => k.classList.remove('pp-foot'));
+    el.classList.remove('parchment-panel', 'pp-ceremonial', 'pp-compact', 'pp-ornate', 'pp-scroll');
+    return el;
+  }
   const setOrnament = (el, on) => el.classList.toggle('pp-ornate', !!on);
-  return { decorate, ornament: setOrnament };
+  return { decorate, undecorate, ornament: setOrnament };
 })();
 
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
@@ -2963,6 +2982,7 @@ function showCharacterCreation(onDone) {
   $('createMore').hidden = false;
   watchName(input, go);
   keepAboveKeyboard(input);
+  ParchmentPanel.decorate(dialog, { scroll: true });
   StoryBook.show(() => {
     templeScene(true);
     $('createAma').hidden = false;
@@ -2990,7 +3010,7 @@ function showCharacterCreation(onDone) {
 // A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your outfit
 function greetNewCharacter(onDone) {
   templeScene(true);
-  const win = $('amaGreet');
+  const win = ParchmentPanel.decorate($('amaGreet'), { scroll: true });
   amaSays(win.querySelector('.ob-speaker'), AMA_WAKE_ONLINE);
   win.hidden = false;
   let sent = false;
