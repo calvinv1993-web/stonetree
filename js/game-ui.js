@@ -2673,6 +2673,40 @@ function updateSoundButtons() {
 // and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
 function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) welcomeScene(false); }
 
+// ---- the parchment panel (css/parchment.css): a page of real paper in an antique gold frame, round any content ------
+// ParchmentPanel.decorate(el, { variant, ornament }) puts the paper and the frame under what el already holds (its
+// content stays as it is: words, buttons, fields); variant 'ceremonial' (the gold frame, the default) or 'compact' (a
+// thin gold line); ornament: the golden tree crowning it instead of the frame's crest. ParchmentPanel.ornament(el, on)
+// switches that later. Its pictures are fetched by their own version, once, for every panel.
+const ParchmentPanel = (() => {
+  const PICTURES = { paper: 'paper', tl: 'corner-tl', tr: 'corner-tr', bl: 'corner-bl', br: 'corner-br', top: 'edge-top', bottom: 'edge-bottom',
+    left: 'edge-left', right: 'edge-right', crest: 'crest', ornament: 'ornament' };
+  let versioned = false;
+  // (each picture's address with its version, on the page's root: every panel uses them; whole, so a stylesheet reads them right)
+  function version() {
+    if (versioned || typeof SPRITE_HASHES === 'undefined') return;
+    versioned = true;
+    for (const [key, file] of Object.entries(PICTURES)) {
+      const hash = SPRITE_HASHES[`ui/parchment/${file}.webp`], url = new URL(`sprites/ui/parchment/${file}.webp${hash ? `?h=${hash}` : ''}`, location.href).href;
+      document.documentElement.style.setProperty(`--pp-${key}`, `url("${url}")`);
+    }
+  }
+  function decorate(el, { variant = 'ceremonial', ornament = false } = {}) {
+    version();
+    el.classList.add('parchment-panel', `pp-${variant}`);
+    if (!el.querySelector(':scope > .pp-paper')) {
+      const frame = h('div', { className: 'pp-frame' }, ...['pp-top', 'pp-bottom', 'pp-left', 'pp-right', 'pp-tl', 'pp-tr', 'pp-bl', 'pp-br', 'pp-crest', 'pp-ornament']
+        .map(cls => h('i', { className: cls })));
+      frame.setAttribute('aria-hidden', 'true');
+      el.prepend(h('div', { className: 'pp-paper' }), frame);
+    }
+    setOrnament(el, ornament);
+    return el;
+  }
+  const setOrnament = (el, on) => el.classList.toggle('pp-ornate', !!on);
+  return { decorate, ornament: setOrnament };
+})();
+
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
 // Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.webp,
 // its own scene, painted upright; the PNG it was made from is in docs/onboarding-art/) and focus [x %, y %, how far in]:
@@ -2731,6 +2765,7 @@ const StoryBook = (() => {
     const page = STORY_PAGES[at], n = STORY_PAGES.length;
     picture(page, first);
     $('storyBook').classList.toggle('first', at === 0); // (the logo large on the first page, small after it)
+    ParchmentPanel.ornament($('sbPage'), at === 0); // (the golden tree crowns the opening chapter; the frame's crest the rest)
     $('sbTitle').textContent = page.title;
     words(page);
     $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
@@ -2775,6 +2810,7 @@ const StoryBook = (() => {
   }
   function setup() {
     const book = $('storyBook');
+    ParchmentPanel.decorate($('sbPage'), { variant: 'ceremonial' });
     $('sbNext').addEventListener('click', () => go(1));
     $('sbBack').addEventListener('click', () => go(-1));
     $('sbSkip').addEventListener('click', close);

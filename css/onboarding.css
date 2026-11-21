@@ -159,7 +159,9 @@ body.welcome #pathPick .path-ask p { color: var(--parch-red); font-family: var(-
 .sb-panel { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: 0; box-sizing: border-box;
   width: min(100%, var(--ob-w)); max-height: calc(100% - 96px - env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px;
   padding: 0 max(14px, env(safe-area-inset-left)) var(--ob-safe-bottom) max(14px, env(safe-area-inset-right)); }
-.sb-page { position: relative; overflow-y: auto; overscroll-behavior: contain; }
+/* (the page is a parchment panel, css/parchment.css: its words scroll inside it if they must, its frame never) */
+.sb-page { display: flex; flex-direction: column; min-height: 0; }
+.sb-page .sb-text { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
 .sb-text p { margin: 0 0 0.6em; font-size: clamp(15px, 4.3vw, 18px); line-height: 1.45; }
 .sb-text p:last-child { margin-bottom: 0; }
 

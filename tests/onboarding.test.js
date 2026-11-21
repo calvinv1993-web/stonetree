@@ -46,7 +46,7 @@ const fits = page => page.evaluate(() => {
     const page = await context.newPage();
     const errors = [], missing = [];
     page.on('pageerror', e => errors.push(e.message));
-    page.on('response', r => { if (/sprites\/ui\/story\//.test(r.url()) && r.status() >= 400) missing.push(r.url()); });
+    page.on('response', r => { if (/sprites\/ui\/(story|parchment)\//.test(r.url()) && r.status() >= 400) missing.push(r.url()); });
     const step = async (label) => {
       for (const problem of await fits(page)) check(false, `${name} ${label}: ${problem}`);
       if (shots) await page.screenshot({ path: path.join(shots, `${name}-${label}.png`) });
@@ -66,6 +66,8 @@ const fits = page => page.evaluate(() => {
       }
     }
     check(seen.join() === CHAPTERS.join(), `${name}: the five chapters, each its own picture (${seen})`);
+    check(await page.evaluate(() => { const p = sbPage, paper = p.querySelector('.pp-paper'), frame = p.querySelector('.pp-frame');
+      return p.classList.contains('parchment-panel') && !!paper && /parchment\/paper\.webp/.test(getComputedStyle(paper).backgroundImage) && frame.querySelectorAll('i').length === 10; }), `${name}: the story's page is a parchment panel: its paper and its frame`);
     check(await page.evaluate(() => sbNext.textContent === 'Begin' && sbSkip.hidden), `${name}: the last chapter's button is Begin`);
     for (let k = 0; k < 4 && await page.evaluate(() => !storyBook.hidden && !storyBook.classList.contains('leaving')); k++) { await page.evaluate(() => sbNext.click()); await page.waitForTimeout(300); }
     await page.waitForTimeout(1200);
