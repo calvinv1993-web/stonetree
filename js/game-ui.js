@@ -1403,7 +1403,14 @@ function askPath(onDone, onBack) {
       const dot = h('button', { type: 'button' }, h('span')); dot.setAttribute('aria-label', `Show ${vocName(v)}`); dot.onclick = () => show(i); return dot;
     }));
   }
-  function place() {} // (the cards keep their places by CSS: nothing to measure)
+  // the screen's shape: taller than the reference's 2:3 (a phone), the cards a little taller, the parchment's words larger
+  // and the hall's tall picture behind (its dark middle drawn out, its banners and candles where they were)
+  function place() {
+    const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
+    scene.style.setProperty('--kc', Math.min(1.25, Math.max(1, 1 + (ratio - 1.5) * 0.35)).toFixed(3));
+    scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3));
+    win.style.setProperty('--sv-hall', `url("${new URL(sortiaArt(ratio > 1.8 ? 'vocation-hall-tall.webp' : 'vocation-hall.webp'), location.href).href}")`);
+  }
   // the path left (step -1) or right (step 1) of the one in the middle
   const step = d => { const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(START_PATHS[pathAt]);
     show(START_PATHS.indexOf(ring[(r + d + ring.length) % ring.length])); };
@@ -1420,7 +1427,10 @@ function askPath(onDone, onBack) {
       c.tabIndex = j === pathAt ? 0 : -1;
     });
     [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
-    const kit = pathKit(v).map(({ id, n: count }) => {
+    // (three things it starts with, as in the reference: its own first, then what it fights with and its potions)
+    const rank = id => (ITEMS[id] && (ITEMS[id].weapon || ITEMS[id].ammo) ? 0 : /potion/.test(id) ? 1 : 2);
+    const kit = pathKit(v).map((it, k) => ({ ...it, k })).sort((a, b) => (a.k < (START_KITS[v] || []).length ? -1 : rank(a.id)) - (b.k < (START_KITS[v] || []).length ? -1 : rank(b.id)) || a.k - b.k)
+      .slice(0, 3).map(({ id, n: count }) => {
       const name = `${count > 1 ? `${count} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}`;
       const li = h('li', { title: name }, h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: name }), count > 1 ? h('small', {}, String(count)) : '');
       return li;
@@ -1485,6 +1495,7 @@ function askPath(onDone, onBack) {
   askPath.place = place;
   if (!document.body.classList.contains('welcome')) welcomeScene('paths'); // (a character from before the paths: the hall, too)
   win.hidden = false;
+  place();
   requestAnimationFrame(() => show(pathAt));
   show(pathAt);
 }
