@@ -37,7 +37,7 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-scene::before { content: ''; position: absolute; z-index: -1; inset: 0 -50vw; pointer-events: none;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.55)); }
 
-/* the top: banner, medallion, subtitle, the cards and the arrows (the reference's top 878 of its 1024 x 1536) */
+/* the top: banner, subtitle, the cards and the arrows (the reference's top 878 of its 1024 x 1536) */
 .sv-stage { --E: calc(85.74cqw * (var(--kc) - 1)); position: relative; flex: none; height: calc(82.24cqw * var(--kc)); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .sv-banner { position: absolute; left: 17.3%; top: 4.3cqw; width: 65.5%; height: 15.75cqw; margin: 0;
   background: var(--sv-banner, url(../sprites/ui/sortia/banner.webp)) center / 100% 100% no-repeat; }
@@ -75,7 +75,7 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-card:not([data-position="center"])::before { filter: brightness(0.7); }
 .sv-card:not([data-position="center"]) .sv-window { filter: brightness(0.77) saturate(0.82); }
 .sv-info { position: absolute; z-index: 2; left: 0; right: 0; bottom: 3.95%; display: grid; justify-items: center; color: #f6e5c7; text-shadow: 0 2px 3px #000; pointer-events: none; }
-.sv-medal { display: block; width: 6.15cqw; aspect-ratio: 1; margin: 0 auto 0.4cqw; object-fit: cover; border-radius: 50%; box-shadow: 0 0 0 0.11cqw #cfac74; }
+.sv-medal { display: block; width: 13.5cqw; aspect-ratio: 1; margin: 0 auto 0.2cqw; object-fit: contain; filter: drop-shadow(0 0.3cqw 0.5cqw rgba(0, 0, 0, 0.75)); } /* (the path's crest: sprites/ui/sortia/<path>-crest.webp, from docs/sortia/vocation-crests.png) */
 .sv-info strong { font: 600 clamp(15px, 4.4cqw, 46px) / 1.15 var(--sv-display); }
 .sv-info small { display: flex; align-items: center; gap: 1.1cqw; font: 600 clamp(7px, 1.68cqw, 17px) / 1.1 var(--sv-display); letter-spacing: 0.23em; text-transform: uppercase; }
 .sv-info small::before, .sv-info small::after { content: ''; width: 3.4cqw; height: 1px; background: linear-gradient(90deg, transparent, #b18d5b); }
@@ -152,7 +152,7 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
   #pathPick .sv-card[data-position="right"] { left: 85%; top: 38.5cqw; width: 35%; height: 65cqw; --edge: 0.55cqw; }
   #pathPick .sv-face { --cut: 2.9cqw; }
   #pathPick .sv-window { --cut: 2.6cqw; inset: 0.45cqw; }
-  #pathPick .sv-medal { width: 8.6cqw; margin-bottom: 0.6cqw; }
+  #pathPick .sv-medal { width: 19cqw; margin-bottom: 0; }
   #pathPick .sv-info strong { font-size: 6.2cqw; }
   #pathPick .sv-info small { font-size: 2.35cqw; }
   #pathPick .sv-info small::before, #pathPick .sv-info small::after { width: 5.5cqw; }

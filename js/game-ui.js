@@ -1391,7 +1391,7 @@ function askPath(onDone, onBack) {
       const card = h('button', { className: 'sv-card', type: 'button' },
         h('span', { className: 'sv-face' }, h('span', { className: 'sv-window' },
           h('img', { className: 'sv-portrait', src: sortiaArt(`${info.art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }))),
-        h('span', { className: 'sv-info' }, h('img', { className: 'sv-medal', src: sortiaArt(`${info.art}-medallion.webp`), alt: '', draggable: false }),
+        h('span', { className: 'sv-info' }, h('img', { className: 'sv-medal', src: sortiaArt(`${info.art}-crest.webp`), alt: '', draggable: false }),
           h('strong', {}, vocName(v)), h('small', {}, info.combat)));
       card.dataset.v = v;
       card.setAttribute('aria-label', `${vocName(v)}: ${info.combat}`);
