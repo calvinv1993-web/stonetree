@@ -55,21 +55,35 @@ const fits = page => page.evaluate(() => {
     await page.waitForSelector('#storyBook:not([hidden])', { timeout: 30000 });
 
     // the story: five chapters, each its own picture; Next shows a chapter's words, then turns
+    // (turning a page without buttons: a tap on the right of the screen goes on, on the left back; a sideways swipe too)
+    const W = device.viewport.width, H = device.viewport.height;
+    const tap = async x => { await page.mouse.click(x, H * 0.55); await page.waitForTimeout(250); };
+    const swipe = async (x0, x1) => { await page.mouse.move(x0, H * 0.4); await page.mouse.down(); await page.mouse.move((x0 + x1) / 2, H * 0.4); await page.mouse.move(x1, H * 0.41); await page.mouse.up(); await page.waitForTimeout(500); };
+    const title = () => page.evaluate(() => sbTitle.textContent);
+    check(await page.evaluate(() => !document.querySelector('#storyBook button.ob-btn, #sbNext, #sbBack')), `${name}: no Next or Back buttons on the story`);
+    check(await page.evaluate(() => { const art = sbPage.querySelector('.sb-sheet-art'); return art.complete && art.naturalWidth === 1199 && art.naturalHeight === 1312 && /story-panel\.webp/.test(art.src); }),
+      `${name}: the story's page is the parchment picture, at its own size`);
     const seen = [];
     for (let i = 0; i < CHAPTERS.length; i++) {
       await page.waitForTimeout(700);
       seen.push(await page.evaluate(() => (document.querySelector('.sb-shot.on').getAttribute('src').match(/ui\/story\/(\w+)\.webp/) || [])[1]));
+      check(await page.evaluate(() => { const w = document.querySelector('.sb-writing'); sbPage.classList.add('shown'); return w.scrollHeight <= w.clientHeight + 1; }), `${name}: chapter ${i + 1}'s words fit its page`);
       await step(`story${i + 1}`);
       if (i < CHAPTERS.length - 1) {
-        const title = await page.evaluate(() => sbTitle.textContent);
-        for (let k = 0; k < 4 && await page.evaluate(t => sbTitle.textContent === t, title); k++) { await page.click('#sbNext'); await page.waitForTimeout(250); }
+        const t = await title();
+        for (let k = 0; k < 4 && await title() === t; k++) await tap(W * 0.8);
       }
     }
     check(seen.join() === CHAPTERS.join(), `${name}: the five chapters, each its own picture (${seen})`);
-    check(await page.evaluate(() => { const p = sbPage, paper = p.querySelector('.pp-paper'), frame = p.querySelector('.pp-frame');
-      return p.classList.contains('parchment-panel') && !!paper && /parchment\/paper-torn\.webp/.test(getComputedStyle(paper, '::after').borderImageSource) && frame.querySelectorAll('i').length === 10; }), `${name}: the story's page is a parchment panel: its paper and its frame`);
-    check(await page.evaluate(() => sbNext.textContent === 'Begin' && sbSkip.hidden), `${name}: the last chapter's button is Begin`);
-    for (let k = 0; k < 4 && await page.evaluate(() => !storyBook.hidden && !storyBook.classList.contains('leaving')); k++) { await page.evaluate(() => sbNext.click()); await page.waitForTimeout(300); }
+    check(await page.evaluate(() => /Tap to begin/.test(sbHint.textContent) && sbSkip.hidden), `${name}: the last chapter: Tap to begin, no Skip`);
+    await tap(W * 0.15); check(await title() === 'And You', `${name}: a tap on the left goes back`);
+    await page.waitForTimeout(2600); // (its words all in: the next tap or swipe turns the page)
+    await swipe(W * 0.8, W * 0.2); check(await title() === 'Your Road', `${name}: a swipe to the left goes on`);
+    await swipe(W * 0.2, W * 0.8); check(await title() === 'And You', `${name}: a swipe to the right goes back`);
+    await page.waitForTimeout(2600);
+    await page.evaluate(() => { StoryBook.go(1); StoryBook.go(1); StoryBook.go(1); }); await page.waitForTimeout(500);
+    check(await title() === 'Your Road', `${name}: quick turns turn one page at a time`);
+    for (let k = 0; k < 4 && await page.evaluate(() => !storyBook.hidden && !storyBook.classList.contains('leaving')); k++) await tap(W * 0.6);
     await page.waitForTimeout(1200);
 
     // your name, before Sister Ama in the temple

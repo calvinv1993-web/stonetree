@@ -2805,15 +2805,14 @@ const StoryBook = (() => {
     const page = STORY_PAGES[at], n = STORY_PAGES.length;
     picture(page, first);
     $('storyBook').classList.toggle('first', at === 0); // (the logo large on the first page, small after it)
-    ParchmentPanel.ornament($('sbPage'), at === 0); // (the golden tree crowns the opening chapter; the frame's crest the rest)
     $('sbTitle').textContent = page.title;
     words(page);
     $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
     $('sbDots').setAttribute('aria-valuemax', n); $('sbDots').setAttribute('aria-valuenow', at + 1);
     $('sbDots').setAttribute('aria-label', `Page ${at + 1} of ${n}`);
-    $('sbBack').disabled = at === 0;
-    $('sbNext').textContent = at === n - 1 ? 'Begin' : 'Next';
     $('sbSkip').hidden = at === n - 1;
+    $('storyBook').classList.toggle('last', at === n - 1);
+    $('sbHint').textContent = at === n - 1 ? 'Tap to begin' : (at === 0 ? 'Tap or swipe to turn the page' : '');
     fetchAhead();
   }
   // (the book fades away into what comes next: the temple, behind it already)
@@ -2846,23 +2845,32 @@ const StoryBook = (() => {
     panel.classList.remove('opening'); void panel.offsetWidth; panel.classList.add('opening'); // (the page rises into place)
     $('storyBook').hidden = false;
     render(true);
-    $('sbNext').focus({ preventScroll: true });
+    $('storyBook').focus({ preventScroll: true });
   }
   function setup() {
     const book = $('storyBook');
-    ParchmentPanel.decorate($('sbPage'), { variant: 'ceremonial' });
-    $('sbNext').addEventListener('click', () => go(1));
-    $('sbBack').addEventListener('click', () => go(-1));
-    $('sbSkip').addEventListener('click', close);
-    $('sbPage').addEventListener('click', revealAll);
-    // (a sideways swipe turns the page; an upright one scrolls a long page's words)
-    book.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true });
-    book.addEventListener('touchend', e => {
-      if (startX === null) return;
-      const dx = e.changedTouches[0].clientX - startX, dy = e.changedTouches[0].clientY - startY;
-      startX = startY = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
-    }, { passive: true });
+    // (the page's picture by its version, fetched once)
+    { const hh = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/parchment/story-panel.webp']; if (hh) book.querySelector('.sb-sheet-art').src = `sprites/ui/parchment/story-panel.webp?h=${hh}`; }
+    book.tabIndex = -1;
+    $('sbSkip').addEventListener('click', e => { e.stopPropagation(); close(); });
+    // Turning the page, without buttons: a tap on the left third goes back, anywhere else on, a sideways swipe the same
+    // way a book turns; an upright drag (a long page's words scrolling) does neither. Touch, pen and mouse alike.
+    // (nothing on it can be dragged off as a picture: that would cut a swipe short)
+    book.addEventListener('dragstart', e => e.preventDefault());
+    book.querySelectorAll('img').forEach(img => { img.draggable = false; });
+    let down = null;
+    const end = (x, y, tapped) => {
+      if (!down) return;
+      const dx = x - down.x, dy = y - down.y, quick = performance.now() - down.t < 700;
+      down = null;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) { go(dx < 0 ? 1 : -1); return; } // a swipe
+      if (tapped && Math.abs(dx) < 12 && Math.abs(dy) < 12 && quick) go(x < innerWidth / 3 ? -1 : 1); // a tap
+    };
+    book.addEventListener('pointerdown', e => { if (e.target.closest('#sbSkip')) return; down = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now(), id: e.pointerId }; });
+    book.addEventListener('pointermove', e => { if (down && e.pointerId === down.id) { down.lx = e.clientX; down.ly = e.clientY; } });
+    book.addEventListener('pointerup', e => { if (down && e.pointerId === down.id) end(e.clientX, e.clientY, true); });
+    // (the browser may take the pointer over mid-swipe: then the swipe so far still counts, a tap doesn't)
+    book.addEventListener('pointercancel', e => { if (down && e.pointerId === down.id) end(down.lx, down.ly, false); });
     addEventListener('keydown', e => {
       if (book.hidden) return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') { go(1); e.preventDefault(); e.stopPropagation(); }
@@ -2871,7 +2879,7 @@ const StoryBook = (() => {
       else if (e.key === 'Enter' && document.activeElement && !book.contains(document.activeElement)) { go(1); e.preventDefault(); e.stopPropagation(); }
     }, true);
   }
-  return { show, setup, get open() { return !$('storyBook').hidden; } };
+  return { show, setup, go, get page() { return at; }, get open() { return !$('storyBook').hidden; } };
 })();
 
 // A new character after its outfit: its path (in the same book), then into the world

@@ -160,10 +160,10 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
 .sb-text p:last-child { margin-bottom: 0; }
 
 .sb-page .ob-title { margin-bottom: 8px; }
-.sb-page.enter .ob-title { animation: sb-text-in var(--ob-text-in) ease-out both; }
+.sb-page.enter .ob-title, .sb-page.enter .sb-title { animation: sb-text-in var(--ob-text-in) ease-out both; }
 /* (its paragraphs one after the other; a tap shows them all: .shown) */
 .sb-page.enter .sb-text p { animation: sb-text-in 600ms ease-out both; animation-delay: calc(300ms + var(--i, 0) * 650ms); }
-.sb-page.shown .sb-text p, .sb-page.shown .ob-title { animation: none; opacity: 1; transform: none; }
+.sb-page.shown .sb-text p, .sb-page.shown .ob-title, .sb-page.shown .sb-title { animation: none; opacity: 1; transform: none; }
 @keyframes sb-text-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 /* (the page rises into place as the book opens) */
 .sb-panel.opening { animation: sb-panel-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -190,7 +190,7 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
 @media (prefers-reduced-motion: reduce) {
   .sb-shot { transition-duration: 200ms; }
   .sb-shot.drift { animation: none; }
-  .sb-page.enter .ob-title, .sb-page.enter .sb-text p, .sb-panel.opening { animation: none; }
+  .sb-page.enter .ob-title, .sb-page.enter .sb-title, .sb-page.enter .sb-text p, .sb-panel.opening { animation: none; }
   .sb-logo { transition: none; }
   .sb-dots i, body.welcome .ob-panel button { transition: none; }
 }
@@ -390,3 +390,46 @@ body.welcome .ob-panel .outfit-name, body.welcome .ob-panel .ob-speaker small, .
 .cp-ask-card .cp-not-yet { font-size: 14px; white-space: nowrap; }
 html body.welcome #outfit .outfit-parts button { font-size: 12px !important; letter-spacing: -0.01em; }
 @media (min-width: 400px) { html body.welcome #outfit .outfit-parts button { font-size: 13px !important; } }
+
+/* ---- the story's page: the parchment picture as it was painted (sprites/ui/parchment/story-panel.webp, from
+   docs/parchment-ui/story-parchment.png: 1199 x 1312), never stretched or cut; its words real text over it, in its
+   writing area: clear of the gold corners, the torn edges and the wax seal (measured on the picture, in % of it). The
+   picture scales with the screen; the words with the picture (cqw: % of its width). No buttons: a tap or a swipe turns
+   the page (game-ui.js StoryBook), Skip in the top right corner, the page's marks and a word under the picture. ---- */
+.story-book { cursor: pointer; outline: none; }
+.sb-panel { padding: 0 8px var(--ob-safe-bottom) !important; gap: 6px !important; align-items: center; }
+.sb-sheet { position: relative; flex: none; width: min(calc(100vw - 16px), 540px, calc((100dvh - 150px - var(--ob-safe-top) - var(--ob-safe-bottom)) * 0.62 * 1199 / 1312));
+  aspect-ratio: 1199 / 1312; container-type: inline-size; overflow: visible; }
+.sb-sheet-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+/* (the writing area: below the top crest, inside the corner ornaments, above the seal and the cord) */
+.sb-writing { position: absolute; left: 15%; right: 15%; top: 13.5%; bottom: 30%; display: flex; flex-direction: column; justify-content: center; text-align: center; overflow: hidden; }
+.sb-title { margin: 0 0 0.45em; font: 700 clamp(14px, 6cqw, 30px) / 1.2 var(--ob-head); color: #5e1410; letter-spacing: 0.03em; }
+html body .story-book .sb-title { font-family: var(--ob-head) !important; }
+.sb-sheet .sb-text { overflow: visible; }
+.sb-sheet .sb-text p { margin: 0 0 0.55em; font-size: clamp(11.5px, 3.95cqw, 19px); line-height: 1.45; color: #3a2210; text-align: left; }
+.sb-sheet .sb-text p:last-child { margin-bottom: 0; }
+.sb-dots { margin-top: 2px; }
+/* a word under the picture: how to turn the page on the first, "Tap to begin" on the last */
+.sb-hint { min-height: 20px; font: italic 14px var(--ob-book); color: rgba(242, 230, 200, 0.82); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); text-align: center; }
+.story-book.last .sb-hint { animation: sb-hint 2.4s ease-in-out infinite; }
+@keyframes sb-hint { 50% { opacity: 0.45; } }
+/* Skip, quiet, in the top right corner */
+.sb-skip { position: absolute; z-index: 3; top: var(--ob-safe-top); right: max(10px, env(safe-area-inset-right)); min-width: 56px; min-height: 44px; padding: 0 12px;
+  font: 15px var(--ob-book); color: rgba(242, 230, 200, 0.85) !important; background: rgba(14, 10, 6, 0.35) !important; border: 1px solid rgba(224, 184, 96, 0.35) !important;
+  border-radius: 22px !important; box-shadow: none !important; text-shadow: 0 1px 2px #000; cursor: pointer; }
+.sb-skip[hidden] { display: none; }
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  .sb-panel { width: auto !important; }
+  .sb-sheet { width: min(clamp(380px, 36vw, 520px), calc((100dvh - 110px) * 1199 / 1312)); }
+}
+@media (prefers-reduced-motion: reduce) { .story-book.last .sb-hint { animation: none; } }
+/* (a short phone: the page takes more of the screen, the picture above it less; it never grows past the screen's width) */
+@media (max-height: 700px) and (max-aspect-ratio: 5/4) {
+  .sb-sheet { width: min(calc(100vw - 12px), 540px, calc((100dvh - 96px - var(--ob-safe-top) - var(--ob-safe-bottom)) * 0.86 * 1199 / 1312)); }
+  .sb-panel { padding: 0 6px var(--ob-safe-bottom) !important; gap: 2px !important; }
+  .sb-writing { left: 14%; right: 14%; top: 13%; bottom: 29%; }
+  .sb-hint { min-height: 16px; font-size: 12.5px; }
+}
+/* (a word too many for a small page: it scrolls inside the writing area, never over the gold) */
+.sb-writing { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.sb-writing::-webkit-scrollbar { display: none; }

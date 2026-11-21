@@ -196,15 +196,19 @@
         </div>
 
         <div id="storyBook" class="story-book" hidden role="dialog" aria-modal="true" aria-labelledby="sbTitle">
-          <div class="sb-stage" aria-hidden="true"><img class="sb-shot" alt=""><img class="sb-shot" alt=""></div>
+          <div class="sb-stage" aria-hidden="true"><img class="sb-shot" alt="" draggable="false"><img class="sb-shot" alt="" draggable="false"></div>
           <img class="sb-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures">
+          <button id="sbSkip" class="sb-skip" type="button" aria-label="Skip the story">Skip</button>
           <div class="sb-panel">
-            <div id="sbPage" class="sb-page parchment-panel pp-ceremonial" aria-live="polite">
-              <h2 id="sbTitle" class="ob-title pp-title"></h2>
-              <div id="sbText" class="sb-text"></div>
+            <div id="sbPage" class="sb-page sb-sheet" aria-live="polite">
+              <img class="sb-sheet-art" src="sprites/ui/parchment/story-panel.webp" alt="" draggable="false">
+              <div class="sb-writing">
+                <h2 id="sbTitle" class="sb-title"></h2>
+                <div id="sbText" class="sb-text"></div>
+              </div>
             </div>
             <div id="sbDots" class="sb-dots" role="progressbar" aria-valuemin="1"></div>
-            <div class="sb-nav ob-nav"><button id="sbBack" class="sb-back ob-icon-btn" aria-label="Previous page">&#8249;</button><button id="sbNext" class="sb-go ob-btn">Next</button><button id="sbSkip" class="sb-skip ob-link" aria-label="Skip the story">Skip</button></div>
+            <div id="sbHint" class="sb-hint" aria-live="polite"></div>
           </div>
         </div>
 
