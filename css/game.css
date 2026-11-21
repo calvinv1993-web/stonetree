@@ -207,15 +207,36 @@
 .mark-icons button.active { background: #7a5a24; outline: 2px solid #f0d090; }
 .mark-icons canvas { display: block; width: 24px; height: 24px; }
 #markLabel { width: 100%; box-sizing: border-box; margin-bottom: 6px; font-size: 16px; }
-.outfit-type { display: flex; gap: 4px; align-items: center; justify-content: center; margin: 4px 0; }
-.outfit-type b { min-width: 86px; text-align: center; }
-.outfit-addons { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 6px; font-size: 12px; }
+/* the outfit window (game-ui.js openOutfit): a big figure walking, turned with the arrows or a tap; then the outfit, its
+   cut and addons; then the colours: a part (its colour on its button), a hue, one of its shades */
+.outfit-stage { display: grid; grid-template-columns: 44px auto 44px; align-items: center; justify-content: center; gap: 4px 10px; margin: 2px 0 6px; }
+#outfitPreview { display: block; width: min(150px, 40vw, 22vh); height: auto; aspect-ratio: 1; image-rendering: pixelated; background: #2a2622; border-radius: 8px; cursor: pointer; }
+.outfit-turn { width: 44px; height: 44px; padding: 0; font-size: 22px; line-height: 1; border-radius: 50%; }
+.outfit-dirs { grid-column: 1 / -1; display: flex; justify-content: center; gap: 6px; }
+.outfit-dirs i { width: 6px; height: 6px; border-radius: 3px; background: rgba(200, 180, 140, 0.35); transition: width 0.2s; }
+.outfit-dirs i.on { width: 16px; background: #e8c060; }
+.outfit-sec { margin: 6px 0 0; }
+.outfit-sec-title { margin: 8px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; text-align: left; }
+.outfit-type { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.outfit-name { min-width: 110px; text-align: center; font-size: 16px; }
+.outfit-step { width: 44px; min-height: 40px; padding: 0; }
+.outfit-sex { display: flex; justify-content: center; gap: 6px; margin: 8px 0 4px; }
+.outfit-sex button { flex: 1; max-width: 140px; min-height: 40px; }
+.outfit-addons { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 0; font-size: 13px; }
+.outfit-addon { display: flex; align-items: center; gap: 8px; min-height: 32px; text-align: left; }
+.outfit-addon.locked { opacity: 0.62; }
+.outfit-lock { margin-left: auto; padding: 1px 8px; border-radius: 9px; font-size: 11px; font-weight: 700; background: rgba(0, 0, 0, 0.18); }
+.outfit-parts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.outfit-parts button { min-height: 40px; padding: 0 4px; font-size: 13px; white-space: nowrap; }
+.outfit-dot { display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45); }
+#outfit .outfit-hues { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin: 10px 0 8px; } /* (19: two rows, 10 and 9) */
+#outfit .outfit-hues .swatch-color { width: auto; height: 30px; border-radius: 6px; }
+#outfit .outfit-shades { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+#outfit .outfit-shades .swatch-color { width: auto; height: 40px; border-radius: 8px; }
+@media (max-width: 480px) { .outfit-parts { grid-template-columns: repeat(2, 1fr); } .outfit-parts button { font-size: 14px; } }
 .outfit-cosmetics { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0 0 6px; font-size: 12px; }
-.outfit-parts { margin-bottom: 4px; }
-.outfit-palette { display: grid; grid-template-columns: repeat(19, 15px); gap: 1px; justify-content: center; }
 .swatch-color { width: 15px; height: 15px; padding: 0; border: 1px solid #000; }
 .swatch-color.active { outline: 2px solid #fff; outline-offset: -1px; z-index: 1; }
-#outfitPreview { display: block; margin: 0 auto 6px; image-rendering: pixelated; background: #2a2622; }
 .worldmap { inset: 8px; display: flex; flex-direction: column; padding: 6px; }
 .worldmap header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
 #worldCanvas { flex: 1; min-height: 0; width: 100%; image-rendering: pixelated; cursor: crosshair; }

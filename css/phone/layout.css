@@ -2,7 +2,6 @@
    bar, the action bar, the sheets and windows sized for a thumb, upright and on its side. The phone's newer parts each
    have a file of their own beside it (action-slots, smart-button, chat-line, inventory-drawer), and theme.css comes
    last with the colours. See docs/mobile-ui.md. */
-body.touch-ui .outfit-palette { grid-template-columns: repeat(19, minmax(0, 1fr)); }
 body.touch-ui .swatch-color { width: auto; }
 /* ---- touch screens (js/touch.js) ---- */
 .touch { position: absolute; inset: 0; pointer-events: none; }
@@ -147,7 +146,6 @@ body.touch-ui .shop { z-index: 50; }
 @media (max-height: 500px) {
   body.touch-ui .toasts { top: 40px; width: min(50%, 360px); }
   body.touch-ui .swatch-color { height: 13px; }
-  body.touch-ui #outfitPreview canvas { max-height: 56px; }
 }
 /* ==== the phone layout: a status bar on top, five buttons along the bottom, the controls under your thumbs =====
    (the UI rework; earlier touch rules above still apply where these don't say otherwise) */

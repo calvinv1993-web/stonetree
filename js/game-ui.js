@@ -1525,17 +1525,33 @@ const OUTFIT_COLORS = (() => {
   });
   return colors;
 })();
-let outfitDraft = {}, outfitPart = 'body';
+let outfitDraft = {}, outfitPart = 'body', outfitHue = null, outfitDir = 0;
+// The colours are a grid: 7 shades (rows, light to dark) of 19 hues (columns: grey, then 18 round the wheel). They're
+// chosen in two steps: a hue, then one of its shades, with every one of the 133 still there.
+const HUES = 19, SHADES = OUTFIT_COLORS.length / HUES;
+const hueOf = color => { const i = OUTFIT_COLORS.indexOf(color); return i < 0 ? null : i % HUES; };
+// the preview turns through the four ways a figure faces: towards you, to one side, away, the other side
+const OUTFIT_TURN = [2, 1, 0, 3];
 
 function openOutfit(onDone) {
   document.body.classList.remove('panel-open'); // on a phone: the drawer makes way
   outfitDraft = { ...player.outfit }; // no type chosen: you wear your vocation's outfit
+  outfitHue = null; outfitDir = 0;
+  const making = document.body.classList.contains('welcome'); // (a new character, or the outfit window in the game)
+  $('outfitTitle').textContent = making ? 'Create your appearance' : 'Choose your outfit';
+  $('outfitDone').textContent = making ? 'Continue' : 'Done';
   renderOutfit();
+  let sent = false; // (once: a double tap goes on once)
   $('outfitDone').onclick = () => {
+    if (sent) return; sent = true;
     Actions.setOutfit(outfitDraft);
     $('outfit').hidden = true;
     if (onDone) onDone();
   };
+  const turn = d => { outfitDir = (outfitDir + d + 4) % 4; drawOutfitPreview(); };
+  $('outfitTurnL').onclick = () => turn(-1);
+  $('outfitTurnR').onclick = () => turn(1);
+  $('outfitPreview').onclick = () => turn(1);
   $('outfit').hidden = false;
 }
 
@@ -1554,30 +1570,37 @@ function renderOutfit() {
     if (text !== undefined) e.textContent = text;
     return e;
   };
-  // outfit and cut
+  const section = title => { const sec = el('section', 'outfit-sec'); sec.appendChild(el('h4', 'outfit-sec-title', title)); root.appendChild(sec); return sec; };
+  // the outfit and its cut
+  const look = section('Outfit');
   const row = el('div', 'outfit-type');
-  const prev = el('button', '', '◀'), next = el('button', '', '▶');
+  const prev = el('button', 'outfit-step', '◀'), next = el('button', 'outfit-step', '▶');
+  prev.setAttribute('aria-label', 'Previous outfit'); next.setAttribute('aria-label', 'Next outfit');
   prev.onclick = () => turn(-1);
   next.onclick = () => turn(1);
-  row.append(prev, el('b', '', OUTFITS[type].name), next);
+  row.append(prev, el('b', 'outfit-name', OUTFITS[type].name), next);
+  look.appendChild(row);
+  const sex = el('div', 'outfit-sex');
   for (const [female, label] of [[false, 'Male'], [true, 'Female']]) {
     const b = el('button', !!outfitDraft.female === female ? 'active' : '', label);
+    b.setAttribute('aria-pressed', !!outfitDraft.female === female ? 'true' : 'false');
     b.onclick = () => { outfitDraft.female = female; renderOutfit(); };
-    row.appendChild(b);
+    sex.appendChild(b);
   }
-  root.appendChild(row);
-  // addons
+  look.appendChild(sex);
+  // its addons: those your level allows can be ticked; the rest show the level they open at
   const addons = el('div', 'outfit-addons');
   OUTFITS[type].addons.forEach((name, i) => {
-    const bit = 1 << i, label = el('label', allowed & bit ? '' : 'muted'), box = el('input');
+    const bit = 1 << i, open = !!(allowed & bit), label = el('label', open ? 'outfit-addon' : 'outfit-addon locked'), box = el('input');
     box.type = 'checkbox';
-    box.disabled = !(allowed & bit);
-    box.checked = !!(outfitDraft.addons & bit) && !box.disabled;
+    box.disabled = !open;
+    box.checked = !!(outfitDraft.addons & bit) && open;
     box.onchange = () => { outfitDraft.addons = ((outfitDraft.addons | 0) & ~bit) | (box.checked ? bit : 0); drawOutfitPreview(); };
-    label.append(box, ` Addon ${i + 1}: ${name}${allowed & bit ? '' : ` (level ${ADDON_LEVELS[i]})`}`);
+    label.append(box, el('span', '', capitalize(name)));
+    if (!open) label.append(el('small', 'outfit-lock', `Level ${ADDON_LEVELS[i]}`));
     addons.appendChild(label);
   });
-  root.appendChild(addons);
+  look.appendChild(addons);
   // cosmetics you've bought from the watch's stores (Captain Osric, for watch marks): one feather and one cloak at a time
   const owned = (player.cosmetics || []).filter(id => COSMETICS[id]);
   if (owned.length) {
@@ -1593,41 +1616,60 @@ function renderOutfit() {
       label.appendChild(pick);
       row.appendChild(label);
     }
-    root.appendChild(row);
+    look.appendChild(row);
   }
-  // which part to colour, and the palette
-  const parts = el('div', 'tabs outfit-parts');
+  // colours: which part (its colour on its button), then a hue, then one of its shades
+  const colours = section('Colours');
+  const parts = el('div', 'outfit-parts');
   for (const [part, label] of OUTFIT_PARTS) {
-    const b = el('button', part === outfitPart ? 'active' : '', label);
-    b.style.borderBottom = `3px solid ${outfitDraft[part] || '#888'}`;
-    b.onclick = () => { outfitPart = part; renderOutfit(); };
+    const b = el('button', part === outfitPart ? 'active' : '');
+    b.setAttribute('aria-pressed', part === outfitPart ? 'true' : 'false');
+    const dot = el('i', 'outfit-dot'); dot.style.background = outfitDraft[part] || '#888';
+    b.append(dot, el('span', '', label));
+    b.onclick = () => { outfitPart = part; outfitHue = null; renderOutfit(); };
     parts.appendChild(b);
   }
-  root.appendChild(parts);
-  const palette = el('div', 'outfit-palette');
-  for (const color of OUTFIT_COLORS) {
-    const b = el('button', `swatch-color${outfitDraft[outfitPart] === color ? ' active' : ''}`);
+  colours.appendChild(parts);
+  const current = outfitDraft[outfitPart];
+  if (outfitHue === null) outfitHue = hueOf(current) ?? 0;
+  const hues = el('div', 'outfit-hues');
+  for (let c = 0; c < HUES; c++) {
+    const b = el('button', `swatch-color hue${c === outfitHue ? ' active' : ''}`);
+    b.style.background = OUTFIT_COLORS[3 * HUES + c]; // (each hue shown at its middle shade)
+    b.title = c === 0 ? 'Greys' : `Hue ${c}`;
+    b.setAttribute('aria-label', b.title);
+    b.onclick = () => { outfitHue = c; renderOutfit(); };
+    hues.appendChild(b);
+  }
+  colours.appendChild(hues);
+  const shades = el('div', 'outfit-shades');
+  for (let r = 0; r < SHADES; r++) {
+    const color = OUTFIT_COLORS[r * HUES + outfitHue];
+    const b = el('button', `swatch-color shade${current === color ? ' active' : ''}`);
     b.style.background = color;
     b.title = color;
+    b.setAttribute('aria-label', `Shade ${r + 1}${current === color ? ' (chosen)' : ''}`);
     b.onclick = () => { outfitDraft[outfitPart] = color; renderOutfit(); };
-    palette.appendChild(b);
+    shades.appendChild(b);
   }
-  root.appendChild(palette);
+  colours.appendChild(shades);
   drawOutfitPreview();
 }
 
-// The four directions, walking.
+// The preview: one big figure walking, facing the way it's turned (the arrows, or a tap on it), and the four ways as marks.
 let outfitTimer = null;
 function drawOutfitPreview() {
   const c = $('outfitPreview'), g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
   g.clearRect(0, 0, c.width, c.height);
-  const frame = [0, 1, 0, 2][Math.floor(performance.now() / 250) % 4];
-  [2, 1, 0, 3].forEach((dir, i) => { // (a tall figure's picture is two tiles square: show it whole, its feet on the bottom)
-    const img = Sprites.creature(Sprites.playerKey(player.vocation, outfitDraft), dir, frame), r = img.res || 1;
-    if (Sprites.w(img) > TILE) g.drawImage(img, TILE * r, 12 * r, TILE * r, 52 * r, i * 64 + 12, 0, 40, 64);
-    else g.drawImage(img, i * 64, 0, 64, 64);
-  });
+  const frame = [0, 1, 0, 2][Math.floor(performance.now() / 250) % 4], dir = OUTFIT_TURN[outfitDir];
+  const img = Sprites.creature(Sprites.playerKey(player.vocation, outfitDraft), dir, frame), r = img.res || 1;
+  // (a tall figure's picture is two tiles square: its own tile, feet on the bottom; a small one fills the frame)
+  if (Sprites.w(img) > TILE) { const s = Math.floor(c.height / 52); g.drawImage(img, TILE * r, 12 * r, TILE * r, 52 * r, (c.width - TILE * s) / 2, c.height - 52 * s, TILE * s, 52 * s); }
+  else { const s = Math.floor(c.width / TILE); g.drawImage(img, 0, 0, TILE * r, TILE * r, (c.width - TILE * s) / 2, c.height - TILE * s, TILE * s, TILE * s); }
+  const dirs = $('outfitDirs');
+  if (dirs.childElementCount !== 4) dirs.replaceChildren(...[0, 1, 2, 3].map(() => document.createElement('i')));
+  [...dirs.children].forEach((d, i) => d.classList.toggle('on', i === outfitDir));
   clearTimeout(outfitTimer);
   if (!$('outfit').hidden) outfitTimer = setTimeout(drawOutfitPreview, 250);
 }

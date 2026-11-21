@@ -153,8 +153,13 @@
         </div>
 
         <div id="outfit" class="window dialog book ob-panel ob-screen" hidden>
-          <header><b class="ob-title">Choose your outfit</b></header>
-          <canvas id="outfitPreview" width="256" height="64"></canvas>
+          <header><b class="ob-title" id="outfitTitle">Choose your outfit</b></header>
+          <div class="outfit-stage">
+            <button id="outfitTurnL" class="outfit-turn" aria-label="Turn left">&#8634;</button>
+            <canvas id="outfitPreview" width="192" height="192" aria-label="Your character"></canvas>
+            <button id="outfitTurnR" class="outfit-turn" aria-label="Turn right">&#8635;</button>
+            <div id="outfitDirs" class="outfit-dirs" aria-hidden="true"></div>
+          </div>
           <div id="outfitParts"></div>
           <div class="dialog-buttons"><button id="outfitDone" class="primary ob-btn">Done</button></div>
         </div>
