@@ -1378,6 +1378,19 @@ const SV_ICONS = {
   swords: '<path d="M3 3h4l12 12m2-12h-4L5 15m12-1 4 4m-7-1 4 4m-7-4-4 4m-4-3 4-4M3 3v4l10 10m8-14v4l-4 4M5 18l-2 3m16-3 2 3"/>',
   bag: '<path d="M9 7V5a3 3 0 0 1 6 0v2m-8 1h10l3 5v6l-3 2H7l-3-2v-6Z"/><path d="M8 14h8v4H8Z"/>',
 };
+// The title's letters on a gentle arc, as the banner bends (HTML letters, each lifted and turned by where it stands: an SVG
+// text path was cut short in Safari). Its letters are made once; set again when the screen changes size.
+function curveTitle(el) {
+  if (!el.querySelector('i')) el.replaceChildren(...[...el.textContent].map(ch => h('i', { className: ch === ' ' ? 'sp' : '' }, ch === ' ' ? '\u00a0' : ch)));
+  const letters = [...el.querySelectorAll('i')], box = el.getBoundingClientRect(), half = box.width / 2;
+  if (!half) return;
+  const sag = half * 0.13; // (how far the ends sit below the middle, as the banner's own curve)
+  for (const l of letters) {
+    l.style.transform = '';
+    const r = l.getBoundingClientRect(), u = (r.left + r.width / 2 - (box.left + half)) / half; // -1 .. 1 across the banner
+    l.style.transform = `translateY(${(sag * u * u).toFixed(2)}px) rotate(${(Math.atan(2 * sag * u / half) * 180 / Math.PI).toFixed(2)}deg)`;
+  }
+}
 const SV_RING = ['paladin', 'knight', 'sorcerer']; // (the cards' order round the middle, as in the reference)
 const svIcon = name => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true');
   s.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${SV_ICONS[name]}</g>`; return s; };
@@ -1407,6 +1420,7 @@ function askPath(onDone, onBack) {
   function place() {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
     const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
+    const title = win.querySelector('.sv-title'), curve = () => curveTitle(title);
     // the parchment as tall as the tallest path's words, for every path: nothing moves when you look at another
     const tallest = () => {
       paper.style.minHeight = '';
@@ -1426,6 +1440,8 @@ function askPath(onDone, onBack) {
         scene.style.width = `${Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1}px`; tallest();
       }
     }
+    curve();
+    if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
   }
   // what the parchment says of a path: its words, strengths, weakness and what it starts with
   function paperFor(v) {

@@ -129,7 +129,7 @@ const fits = page => page.evaluate(() => {
       for (let k = 0; k < 3; k++) { at.push(await page.evaluate(() => { const r = pathInfo.getBoundingClientRect(); return `${Math.round(r.top)},${Math.round(r.height)}`; })); await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150); }
       check(new Set(at).size === 1, `${name}: the parchment the same for every path (${at.join(' | ')})`);
       check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
-      check(await page.evaluate(() => { const t = document.querySelector('.sv-title text').getBBox(); return t.x >= 46 && t.x + t.width <= 624; }), `${name}: the title within its banner`);
+      check(await page.evaluate(() => { const b = document.querySelector('.sv-banner').getBoundingClientRect(), l = [...document.querySelectorAll('.sv-title i')].map(i => i.getBoundingClientRect()); return l.length === 16 && l[0].left >= b.left + b.width * 0.08 && l[15].right <= b.right - b.width * 0.08; }), `${name}: the title's letters all within its banner`);
       await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
     }
     check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('sv-paper') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.sv-items img').length >= 3; }),

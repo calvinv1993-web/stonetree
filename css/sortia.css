@@ -22,7 +22,7 @@
 #pathPick[hidden] { display: none; }
 #pathPick::-webkit-scrollbar { display: none; } /* (no scroll bar at the right edge: the screen fits a phone; a short one still scrolls) */
 html body #pathPick .sv-scene, html body #pathPick .sv-scene * { font-family: var(--sv-story) !important; }
-html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-cols h3, .sv-cta) { font-family: var(--sv-display) !important; }
+html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small, .sv-cols h3, .sv-cta) { font-family: var(--sv-display) !important; }
 #pathPick button { -webkit-appearance: none; appearance: none; margin: 0; padding: 0; font: inherit; color: inherit; cursor: pointer;
   background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; min-width: 0; min-height: 0; }
 #pathPick button:focus-visible { outline: 2px solid #e8cea1; outline-offset: 2px; }
@@ -41,8 +41,12 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-stage { --E: calc(85.74cqw * (var(--kc) - 1)); position: relative; flex: none; height: calc(82.24cqw * var(--kc)); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .sv-banner { position: absolute; left: 17.3%; top: 4.3cqw; width: 65.5%; height: 15.75cqw; margin: 0;
   background: var(--sv-banner, url(../sprites/ui/sortia/banner.webp)) center / 100% 100% no-repeat; }
-.sv-title { display: block; width: 100%; height: 100%; overflow: visible; }
-.sv-title text { fill: url(#svTitleGold); font-size: 41px; font-weight: 700; letter-spacing: 0.02em; /* (its curve runs past the banner's ends, the same arc drawn longer: Safari drops a letter that runs off a path's end) */ paint-order: stroke; stroke: #3a1a10; stroke-width: 1.4px; }
+.sv-title { position: absolute; inset: 0 0 14% 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  font-size: 4.05cqw; font-weight: 700; letter-spacing: 0.03em; line-height: 1; filter: drop-shadow(0 0.16cqw 0.1cqw rgba(20, 8, 4, 0.9)); }
+/* (the title is HTML, its letters set on a gentle arc by game-ui.js curveTitle: an SVG text path was cut short in Safari) */
+.sv-title i { display: inline-block; font-style: normal; color: #f1cf8e; background: linear-gradient(180deg, #fff3d2, #f1cf8e 50%, #c8955a);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; transform-origin: 50% 100%; }
+.sv-title i.sp { width: 0.32em; }
 .sv-rule { display: flex; align-items: center; justify-content: center; gap: 0.7cqw; pointer-events: none; color: #e1b77e; }
 .sv-rule::before, .sv-rule::after { content: ''; width: 8cqw; height: 1px; background: linear-gradient(90deg, transparent, currentColor); }
 .sv-rule::after { transform: scaleX(-1); }
@@ -144,6 +148,7 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 @media (max-width: 600px) and (max-aspect-ratio: 4/5) {
   #pathPick .sv-stage { height: 108.5cqw; }
   #pathPick .sv-banner { left: 4.9%; width: 90.2%; top: 2.9cqw; height: 21cqw; }
+  #pathPick .sv-title { font-size: 5.6cqw; }
   #pathPick .sv-title-rule { top: 21.6cqw; }
   #pathPick .sv-rule::before, #pathPick .sv-rule::after { width: 15cqw; }
   #pathPick .sv-sub { top: 23.5cqw; font-size: 3.4cqw; }
