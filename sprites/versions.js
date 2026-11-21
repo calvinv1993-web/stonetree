@@ -455,7 +455,7 @@ const SPRITE_HASHES = {
   "ui/parchment/edge-right.webp":"9b6a56ce7e",
   "ui/parchment/edge-top.webp":"6399ffe41a",
   "ui/parchment/ornament.webp":"f7a6a6d205",
-  "ui/parchment/paper-torn.webp":"a2935b6072",
+  "ui/parchment/paper-torn.webp":"08569066a0",
   "ui/story/01_the_beginning.webp":"ba5416ad65",
   "ui/story/02_the_hollow_host.webp":"8ec3a404c2",
   "ui/story/03_the_last_town.webp":"9f98f69cd9",

@@ -5,7 +5,7 @@ docs/parchment-ui/: the frame's pieces, the paper and the ornament, as WebP in s
 The supplied frame-* crops are exact cuts of parchment-border.png (checked: each matches it pixel for pixel at its
 place), so every piece is cut from parchment-border.png itself, at those same places: the gold bars then meet without
 a seam. The pale haze painted round the frame (nearly white, mostly see-through) is taken out: on the paper it would
-cloud the gold. The paper is parchment-torn.png (aged, torn edges), its black made see-through.
+cloud the gold. The paper is parchment-torn.png (aged, torn edges, on see-through), its fringe cleaned.
 Pieces are kept at half the original size (a panel shows them at a fifth to a third of it).
 
     python3 tests/parchment-kit.py        (then: node tests/sprite-versions.js)
@@ -55,13 +55,15 @@ def main():
     border = clean(Image.open(os.path.join(SRC, 'parchment-border.png')))
     for name, box in PIECES.items():
         print(name, box, '->', save(border.crop(box), name))
-    # the torn paper (parchment-torn.png: aged paper with torn, burnt edges on black): the black made see-through, so
-    # its own torn rim shows round the panel's paper (corners as painted, sides kept their thickness: border-image)
-    torn = np.array(Image.open(os.path.join(SRC, 'parchment-torn.png')).convert('RGB')).astype(np.float32)
-    tl = torn.mean(axis=2)
-    ta = np.clip((tl - 10) / 34, 0, 1)
-    rgba = np.dstack([torn, ta * 255]).astype(np.uint8)
-    print('paper-torn', save(Image.fromarray(rgba, 'RGBA'), 'paper-torn', 1024 / 1536))
+    # the torn paper (parchment-torn.png: aged paper with torn edges, on see-through): its fringe of half see-through
+    # pixels (red and orange from its cut-out) turned the brown of the paper's own edge, the faintest gone; shown round the
+    # panel's paper with its corners as painted and its torn rim at its own thickness (border-image)
+    torn = np.array(Image.open(os.path.join(SRC, 'parchment-torn.png')).convert('RGBA')).astype(np.float32)
+    a = torn[:, :, 3]
+    fringe = (a > 0) & (a < 200)
+    torn[fringe, 0], torn[fringe, 1], torn[fringe, 2] = 112, 78, 46
+    torn[a < 70, 3] = 0
+    print('paper-torn', save(Image.fromarray(torn.astype(np.uint8), 'RGBA'), 'paper-torn', 1024 / 1536))
     # the ornament: cut to what it shows, at 600 wide
     orn = Image.open(os.path.join(SRC, 'parchment-ornament.png')).convert('RGBA')
     orn = orn.crop(orn.getchannel('A').point(lambda v: 255 if v > 10 else 0).getbbox())

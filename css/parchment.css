@@ -72,7 +72,7 @@
 
 /* ---- the thin antique-gold line round the aged paper, for a small window ---- */
 .pp-compact { padding: 12px 16px; border-radius: 6px; }
-.pp-compact > .pp-paper { inset: 0; border-radius: inherit; overflow: hidden; background: #c99a55 var(--pp-torn) center / 150% auto no-repeat; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
+.pp-compact > .pp-paper { inset: 0; border-radius: inherit; overflow: hidden; background: #c8ad86 var(--pp-torn) center / 150% auto no-repeat; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
 .pp-compact .pp-frame, .pp-compact > .pp-paper::after { display: none; }
 
 /* ---- its words: a burgundy serif title, dark brown text ---- */
