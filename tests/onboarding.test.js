@@ -63,9 +63,10 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => !document.querySelector('#storyBook button.ob-btn, #sbNext, #sbBack')), `${name}: no Next or Back buttons on the story`);
     check(await page.evaluate(() => { const art = sbPage.querySelector('.sb-sheet-art'); return art.complete && art.naturalWidth === 1199 && art.naturalHeight === 1312 && /story-panel\.webp/.test(art.src); }),
       `${name}: the story's page is the parchment picture, at its own size`);
-    const seen = [];
+    const seen = [], spots = new Set();
     for (let i = 0; i < CHAPTERS.length; i++) {
       await page.waitForTimeout(700);
+      spots.add(await page.evaluate(() => { const r = sbPage.getBoundingClientRect(); return `${r.left.toFixed(1)},${r.top.toFixed(1)},${r.width.toFixed(1)}`; }));
       seen.push(await page.evaluate(() => (document.querySelector('.sb-shot.on').getAttribute('src').match(/ui\/story\/(\w+)\.webp/) || [])[1]));
       check(await page.evaluate(() => { const w = document.querySelector('.sb-writing'); sbPage.classList.add('shown'); return w.scrollHeight <= w.clientHeight + 1; }), `${name}: chapter ${i + 1}'s words fit its page`);
       await step(`story${i + 1}`);
@@ -74,6 +75,7 @@ const fits = page => page.evaluate(() => {
         for (let k = 0; k < 4 && await title() === t; k++) await tap(W * 0.8);
       }
     }
+    check(spots.size === 1, `${name}: the page stands in the same place on every chapter (${[...spots].join(' | ')})`);
     check(seen.join() === CHAPTERS.join(), `${name}: the five chapters, each its own picture (${seen})`);
     check(await page.evaluate(() => /Tap to begin/.test(sbHint.textContent) && sbSkip.hidden), `${name}: the last chapter: Tap to begin, no Skip`);
     await tap(W * 0.15); check(await title() === 'And You', `${name}: a tap on the left goes back`);

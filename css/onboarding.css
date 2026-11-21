@@ -433,3 +433,7 @@ html body .story-book .sb-title { font-family: var(--ob-head) !important; }
 /* (a word too many for a small page: it scrolls inside the writing area, never over the gold) */
 .sb-writing { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .sb-writing::-webkit-scrollbar { display: none; }
+/* (the word under the page always the same height, with or without words: the page above it never moves) */
+.sb-hint { height: 20px; min-height: 0; line-height: 20px; overflow: hidden; white-space: nowrap; }
+@media (max-height: 700px) and (max-aspect-ratio: 5/4) { .sb-hint { height: 16px; line-height: 16px; } }
+.sb-dots { flex: none; }
