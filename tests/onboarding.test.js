@@ -101,7 +101,7 @@ const fits = page => page.evaluate(() => {
       const art = create.querySelector('.ns-art'), r = create.getBoundingClientRect();
       return art && art.complete && art.naturalWidth === 1199 && Math.abs(r.width / r.height - 1199 / 1312) < 0.01 && !create.querySelector('.ob-title');
     }), `${name}: the name on the story's parchment, at its own shape, with no heading`);
-    check(await page.evaluate(() => { const a = createAma; return a.scrollHeight <= a.clientHeight + 1; }), `${name}: Sister Ama's words fit the parchment`);
+    check(await page.evaluate(() => { const a = create.querySelector('.ns-talk'); return a.scrollHeight <= a.clientHeight + 1; }), `${name}: Sister Ama's words fit the parchment`);
     check(await page.evaluate(() => { const w = create.querySelector('.ns-writing').getBoundingClientRect(), b = createStart.getBoundingClientRect(), f = createName.getBoundingClientRect();
       return b.bottom <= w.bottom + 0.5 && f.left >= w.left - 0.5 && f.right <= w.right + 0.5; }), `${name}: the field and the way on inside the parchment's writing area`);
     check(await page.evaluate(() => create.getBoundingClientRect().top > innerHeight * 0.2), `${name}: the temple in sight over the parchment`);

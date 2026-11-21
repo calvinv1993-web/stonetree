@@ -455,10 +455,11 @@ body.welcome #create.name-sheet {
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55)); }
 .name-sheet .ns-writing { position: absolute; left: 10%; right: 10%; top: 13%; bottom: 24.5%; display: flex; flex-direction: column; }
 /* Sister Ama: her face in a gold ring, her name in burgundy capitals (centred on the parchment) over a small rule, her words in italics round it */
-body.welcome #create.name-sheet #createAma { --ns-in: 3cqw; --ns-face: clamp(46px, 14cqw, 84px); --ns-gap: 3cqw; display: block; flex: 1 1 auto; min-height: 0; margin: 0; padding: 0 0 0 var(--ns-in); border: none; overflow-y: auto;
-  overscroll-behavior: contain; scrollbar-width: none; }
+/* (her words in the middle of the room over the field; at its top, scrolling, if there's too little) */
+.name-sheet .ns-talk { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.name-sheet .ns-talk::-webkit-scrollbar { display: none; }
+body.welcome #create.name-sheet #createAma { --ns-in: 3cqw; --ns-face: clamp(46px, 14cqw, 84px); --ns-gap: 3cqw; display: flow-root; flex: none; margin: auto 0; padding: 0 0 0 var(--ns-in); border: none; }
 body.welcome #create.name-sheet #createAma[hidden] { display: none; }
-body.welcome #create.name-sheet #createAma::-webkit-scrollbar { display: none; }
 body.welcome #create.name-sheet .ob-face { float: left; width: var(--ns-face); height: var(--ns-face); margin: 0 var(--ns-gap) 1cqw 0;
   box-shadow: 0 0 0 2px #e8c46a, 0 0 0 4px #8a5a1c, 0 0 0 5px #3a2610, 0 3px 8px rgba(0, 0, 0, 0.4); }
 html body.welcome #create.name-sheet #createAma small { display: flow-root; margin: 0 0 1cqw; font: 700 clamp(14px, 4.6cqw, 24px) / 1.15 var(--ob-head) !important;
@@ -496,7 +497,7 @@ html body.welcome #create.name-sheet button.ob-btn.ob-btn { min-width: 0; width:
   box-shadow: inset 0 1px 0 rgba(190, 240, 150, 0.45), inset 0 -2px 4px rgba(0, 0, 0, 0.35), 0 0 0 1px #5a3a10, 0 3px 8px rgba(40, 20, 0, 0.45) !important; }
 html body.welcome #create.name-sheet button.ob-btn.ob-btn:disabled { opacity: 0.6; filter: saturate(0.35) brightness(0.95); }
 /* (a short screen with the keyboard up: Sister Ama's words fold away meanwhile, the field and the way on stay) */
-@media (max-height: 760px) { html.ob-keyboard body.welcome #create.name-sheet #createAma { display: none; } html.ob-keyboard body.welcome #create.name-sheet .ns-form { margin-block: auto; } }
+@media (max-height: 760px) { html.ob-keyboard body.welcome #create.name-sheet .ns-talk { display: none; } html.ob-keyboard body.welcome #create.name-sheet .ns-form { margin-block: auto; } }
 /* (the narrowest phones: a little more room for her words) */
 @container (max-width: 330px) { .name-sheet .ns-writing { left: 9%; right: 9%; } body.welcome #create.name-sheet #createAma { --ns-in: 2cqw; --ns-face: 42px; --ns-gap: 2.5cqw; }
  }

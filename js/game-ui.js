@@ -2987,7 +2987,7 @@ function nameSheet(dialog) {
   const field = h('div', { className: 'ns-field' });
   const input = $('createName'); input.replaceWith(field); field.append(input);
   const talk = $('createAma'), form = h('div', { className: 'ns-form' }, field, $('createHint'), $('createMore'), dialog.querySelector('.ob-nav'));
-  dialog.append(art, h('div', { className: 'ns-writing' }, talk, form));
+  dialog.append(art, h('div', { className: 'ns-writing' }, h('div', { className: 'ns-talk' }, talk), form));
 }
 
 // A new character, offline: the story, the temple and Sister Ama, your name, your outfit, your path.
