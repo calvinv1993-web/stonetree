@@ -439,18 +439,27 @@ html body .story-book .sb-title { font-family: var(--ob-head) !important; }
 .sb-dots { flex: none; }
 
 /* ---- your name: a talk with Sister Ama on the story's parchment (game-ui.js nameSheet): the picture as it was painted
-   (story-panel.webp, 1199 x 1312: never stretched or cut), at the screen's foot under the temple and her statue; its
-   words, the field and the way on real HTML in the picture's writing area: clear of the gold corners, the torn edges and
-   the wax seal (measured on the picture, in % of it). The picture scales with the screen (its height: at most 62% of it,
-   less while a phone's keyboard is up, --ob-kb), the words with the picture (cqw), never below a readable size; if
-   they still don't fit, Sister Ama's words scroll, the field and the way on stay where they are. ---- */
+   (story-panel.webp, 1199 x 1312: never stretched or cut), the same size and in the same place as the story's page
+   (.sb-sheet: on a phone at the screen's foot, over where the story's marks were; on a wide screen at the right), under
+   the temple and her statue; it rises with a phone's keyboard (--ob-kb) and shrinks to fit over it. Its words, the field
+   and the way on are real HTML in the picture's writing area: clear of the gold corners, the torn edges and the wax seal
+   (measured on the picture, in % of it); the words scale with the picture (cqw), never below a readable size; if they
+   still don't fit, Sister Ama's words scroll, the field and the way on stay where they are. ---- */
 body.welcome #create.name-sheet {
-  --ns-h: min(calc(100dvh - var(--ob-kb, 0px) - var(--ob-safe-top) - var(--ob-safe-bottom) - 6px), max(62dvh, 360px));
-  width: min(calc(100vw - 8px), 600px, calc(var(--ns-h) * 1199 / 1312)) !important; aspect-ratio: 1199 / 1312; height: auto; max-height: none !important;
-  bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px)) !important; padding: 0 !important; overflow: visible !important; container-type: inline-size;
+  --ns-kb-fit: calc((100dvh - var(--ob-kb, 0px) - var(--ob-safe-top) - 12px) * 1199 / 1312);
+  width: min(calc(100vw - 16px), 540px, calc((100dvh - 150px - var(--ob-safe-top) - var(--ob-safe-bottom)) * 0.62 * 1199 / 1312), var(--ns-kb-fit)) !important;
+  aspect-ratio: 1199 / 1312; height: auto; max-height: none !important;
+  bottom: calc(var(--ob-safe-bottom) + 46px) !important; padding: 0 !important; overflow: visible !important; container-type: inline-size;
   background: none !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; color: #3a2210 !important; text-align: left;
   animation: sb-panel-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-@media (min-height: 760px) { body.welcome #create.name-sheet { bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px) + 2vh) !important; } }
+@media (max-height: 700px) and (max-aspect-ratio: 5/4) {
+  body.welcome #create.name-sheet { width: min(calc(100vw - 12px), 540px, calc((100dvh - 96px - var(--ob-safe-top) - var(--ob-safe-bottom)) * 0.86 * 1199 / 1312), var(--ns-kb-fit)) !important;
+    bottom: calc(var(--ob-safe-bottom) + 34px) !important; } }
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  body.welcome #create.name-sheet { width: min(clamp(380px, 36vw, 520px), calc((100dvh - 110px) * 1199 / 1312)) !important; left: auto !important;
+    right: calc(max(4vw, env(safe-area-inset-right)) + 8px) !important; top: 50% !important; bottom: auto !important; transform: translateY(calc(-50% - 29px)) !important; } }
+/* (a phone's keyboard up: just over it) */
+html.ob-keyboard body.welcome #create.name-sheet { bottom: calc(var(--ob-kb, 0px) + 6px) !important; }
 .name-sheet .ns-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55)); }
 .name-sheet .ns-writing { position: absolute; left: 10%; right: 10%; top: 13%; bottom: 24.5%; display: flex; flex-direction: column; }
@@ -500,6 +509,5 @@ html body.welcome #create.name-sheet button.ob-btn.ob-btn:disabled { opacity: 0.
 @media (max-height: 760px) { html.ob-keyboard body.welcome #create.name-sheet .ns-talk { display: none; } html.ob-keyboard body.welcome #create.name-sheet .ns-form { margin-block: auto; } }
 /* (the narrowest phones: a little more room for her words) */
 @container (max-width: 330px) { .name-sheet .ns-writing { left: 9%; right: 9%; } body.welcome #create.name-sheet #createAma { --ns-in: 2cqw; --ns-face: 42px; --ns-gap: 2.5cqw; }
- }
-@media (max-width: 340px) { body.welcome #create.name-sheet { width: min(calc(100vw - 2px), calc(var(--ns-h) * 1199 / 1312)) !important; } }
+  html body.welcome #create.name-sheet .ob-said p { font-size: 13px !important; line-height: 1.28 !important; } }
 @media (prefers-reduced-motion: reduce) { body.welcome #create.name-sheet { animation: none; } }

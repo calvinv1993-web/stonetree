@@ -104,7 +104,8 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => { const a = create.querySelector('.ns-talk'); return a.scrollHeight <= a.clientHeight + 1; }), `${name}: Sister Ama's words fit the parchment`);
     check(await page.evaluate(() => { const w = create.querySelector('.ns-writing').getBoundingClientRect(), b = createStart.getBoundingClientRect(), f = createName.getBoundingClientRect();
       return b.bottom <= w.bottom + 0.5 && f.left >= w.left - 0.5 && f.right <= w.right + 0.5; }), `${name}: the field and the way on inside the parchment's writing area`);
-    check(await page.evaluate(() => create.getBoundingClientRect().top > innerHeight * 0.2), `${name}: the temple in sight over the parchment`);
+    check(await page.evaluate(s => { const r = create.getBoundingClientRect(); return r.top > innerHeight * 0.1 && [r.left - s[0], r.top - s[1], r.width - s[2]].every(d => Math.abs(d) < 1.5); }, [...spots][0].split(',').map(Number)),
+      `${name}: the parchment the story's size, in its place, the temple in sight`);
     await step('name');
     await page.evaluate(() => { createStart.click(); createStart.click(); });
     await page.waitForTimeout(600);
