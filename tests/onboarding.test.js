@@ -116,7 +116,7 @@ const fits = page => page.evaluate(() => {
     // your path: one at a time, chosen only once confirmed
     check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.sv-card').length === 3 && document.querySelectorAll('.sv-card[data-position=center]').length === 1),
       `${name}: the path, in the hall of paths: three cards, one looked at`);
-    check(await page.evaluate(() => [...document.querySelectorAll('.sv-portrait, .sv-medal, .sv-brand')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    check(await page.evaluate(() => [...document.querySelectorAll('.sv-portrait, .sv-medal')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: the arrows (a phone), a dot, the arrow keys; the button names the path; nothing chosen
     if (await page.evaluate(() => getComputedStyle(pathNext).display !== 'none')) { await page.click('#pathNext'); check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember'), `${name}: the arrow: the path on the right`); }
     await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# Takes the old tree emblem (Oakvale's) out of SORTIA's vocation-screen paintings and, where it was a crest, puts the
-# SORTIA seal there instead, worked in the same gold: the hall's banners and the cloth on the chest (sprites/ui/sortia/
-# vocation-hall.webp, then its tall version), and Bastion's shield and breastplate (bastion-portrait.webp).
-# Each spot is a box on the painting: the tree's gold is found by its colour inside it, painted over from the cloth or
-# steel round it (OpenCV inpainting), and the seal laid on it, sized to the box, as embroidery or engraving.
+# Takes the old tree emblem (Oakvale's) out of SORTIA's vocation-screen paintings, leaving plain cloth and steel (the
+# owner's choice: no emblem at all): the hall's banners and the cloth on the chest (sprites/ui/sortia/vocation-hall.webp,
+# then its tall version), Bastion's shield and breastplate (bastion-portrait.webp), and the wax seal at the foot of the
+# story's parchment (sprites/ui/parchment/story-panel.webp, from docs/parchment-ui/story-parchment.png). Each spot is a box on the
+# painting: the tree's gold is found by its colour inside it and painted over from the cloth or steel round it (OpenCV
+# inpainting). A spot can still be given the SORTIA seal, worked in gold: (size, tint, alpha) in place of None.
 #   python3 -I tests/sortia-emblems.py <the seal: sortia-seal-native.png>
 # Run it once on the kit's originals (it reads and writes sprites/ui/sortia/); then node tests/sprite-versions.js.
 import sys
@@ -58,10 +59,10 @@ GOLD = (214, 168, 92)
 # the hall: the two banners up front, the far banner (dim), the cloth on the chest
 hall = Image.open(ROOT + 'vocation-hall.webp')
 hall = treat(hall, [
-    (68, 70, 152, 215, False, (64, GOLD, 0.78)),
-    (868, 52, 952, 198, False, (64, GOLD, 0.78)),
-    (470, 440, 554, 562, 'dim', (54, (120, 88, 50), 0.45)),
-    (56, 1326, 140, 1456, False, (60, GOLD, 0.72)),
+    (68, 70, 152, 215, False, None),
+    (868, 52, 952, 198, False, None),
+    (470, 440, 554, 562, 'dim', None),
+    (56, 1326, 140, 1456, False, None),
 ])
 hall.save(ROOT + 'vocation-hall.webp', 'WEBP', quality=86)
 # (its tall version for a tall phone: the dark middle drawn out, banners and candles as they are)
@@ -73,8 +74,20 @@ tall.save(ROOT + 'vocation-hall-tall.webp', 'WEBP', quality=82)
 # Bastion: the shield's crest and the breastplate's engraving
 bastion = Image.open(ROOT + 'bastion-portrait.webp')
 bastion = treat(bastion, [
-    (330, 245, 432, 448, False, (84, GOLD, 0.85)),
-    (148, 178, 218, 244, True, (48, (196, 160, 104), 0.62)),
+    (330, 245, 432, 448, False, None),
+    (148, 178, 218, 244, True, None),
 ])
 bastion.save(ROOT + 'bastion-portrait.webp', 'WEBP', quality=90)
+# the story's parchment (and the name screen's, the same picture): the tree on the wax seal at its foot; its alpha kept
+panel = Image.open('sprites/ui/parchment/story-panel.webp').convert('RGBA')
+alpha = panel.getchannel('A')
+panel = treat(panel, [(538, 1032, 662, 1140, False, None)]).convert('RGBA')
+# (the tree's shadow still shows in the wax: the seal's flat middle smoothed, its raised rim as it is)
+from PIL import ImageFilter, ImageDraw
+soft = panel.filter(ImageFilter.GaussianBlur(9))
+disc = Image.new('L', panel.size, 0)
+ImageDraw.Draw(disc).ellipse((600 - 50, 1084 - 50, 600 + 50, 1084 + 50), fill=255)
+panel = Image.composite(soft, panel, disc.filter(ImageFilter.GaussianBlur(6)))
+panel.putalpha(alpha)
+panel.save('sprites/ui/parchment/story-panel.webp', 'WEBP', lossless=True)
 print('done')

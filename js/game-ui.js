@@ -1386,7 +1386,6 @@ function askPath(onDone, onBack) {
   if (!track.childElementCount) { // (the cards, once: their pictures fetched as the screen opens)
     for (const [prop, file] of [['--sv-hall', 'vocation-hall.webp'], ['--sv-banner', 'banner.webp'], ['--sv-paper', 'parchment.webp'], ['--sv-button', 'button-ceremonial.webp']])
       win.style.setProperty(prop, `url("${new URL(sortiaArt(file), location.href).href}")`);
-    win.querySelector('.sv-brand').src = sortiaArt('title-medallion.webp');
     track.replaceChildren(...START_PATHS.map((v, i) => {
       const info = PATH_PICK[v];
       const card = h('button', { className: 'sv-card', type: 'button' },
