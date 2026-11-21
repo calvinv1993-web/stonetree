@@ -2718,6 +2718,7 @@ const StoryBook = (() => {
     if (!still()) next.classList.add('drift');
     next.classList.add('on'); if (!first) last.classList.remove('on');
     front = [...shots].indexOf(next);
+    $('storyBook').style.setProperty('--sb-ambient', `url("${new URL(src, location.href).href}")`); // (a wide screen: round the painting; whole, or the stylesheet's folder would be read)
   }
   // its words come in a paragraph at a time; a tap on them (or on Next) shows them all at once
   const REVEAL_STEP = 650;

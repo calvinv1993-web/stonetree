@@ -144,14 +144,16 @@ body.welcome #pathPick .path-ask p { color: var(--parch-red); font-family: var(-
    a page of parchment lies under it (on a wide screen: beside it, on the right), with the pages' marks and the way on ---- */
 .story-book { position: fixed; inset: 0; z-index: 40; overflow: hidden; background: var(--ob-bg); color: var(--ob-ink-light); font-family: var(--ob-serif); touch-action: pan-y; }
 .story-book[hidden] { display: none; }
-.sb-stage { position: absolute; inset: 0 0 38% 0; overflow: hidden; } /* (upright: the top of the screen, above the page, so what a page is about isn't under its words) */
+.sb-stage { position: absolute; inset: 0; overflow: hidden; } /* (the whole screen: the page lies over its foot) */
 .sb-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%);
   transform-origin: var(--fx, 50%) var(--fy, 50%); transform: scale(var(--zoom, 1)); opacity: 0; transition: opacity var(--ob-fade) ease; will-change: opacity, transform; }
 .sb-shot.on { opacity: 1; }
 .sb-shot.drift { animation: sb-drift 14s ease-out forwards; }
 @keyframes sb-drift { from { transform: scale(var(--zoom, 1)); } to { transform: scale(calc(var(--zoom, 1) * 1.08)); } }
 .sb-stage::after { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(10, 8, 6, 0.55) 0%, rgba(10, 8, 6, 0) 20%, rgba(10, 8, 6, 0) 70%, rgba(10, 8, 6, 0.75) 88%, var(--ob-bg) 100%); }
+  background: linear-gradient(180deg, rgba(10, 8, 6, 0.5) 0%, rgba(10, 8, 6, 0) 16%, rgba(10, 8, 6, 0) 46%, rgba(10, 8, 6, 0.55) 64%, rgba(10, 8, 6, 0.85) 100%); }
+/* (on a wide screen: the same picture, large and dark, all round the painting: no blur) */
+.sb-stage::before { content: none; }
 .sb-logo { position: absolute; z-index: 2; top: var(--ob-safe-top); left: 50%; transform: translateX(-50%);
   width: clamp(76px, 22vw, 116px); height: auto; opacity: 0.92; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none;
   transition: width var(--ob-fade) ease, opacity var(--ob-fade) ease; }
@@ -179,11 +181,12 @@ body.welcome #pathPick .path-ask p { color: var(--parch-red); font-family: var(-
 .sb-dots i.on { width: 24px; background: #f0c45a; box-shadow: 0 0 8px rgba(255, 196, 64, 0.6); }
 /* a wide screen (a tablet on its side, a computer): the page beside the picture, on the right */
 @media (min-aspect-ratio: 5/4) and (min-width: 700px) {
-  .sb-stage { inset: 0 26vw 0 0; }
-  .sb-stage::after { background: linear-gradient(90deg, rgba(10, 8, 6, 0) 0%, rgba(10, 8, 6, 0) 62%, rgba(10, 8, 6, 0.75) 86%, var(--ob-bg) 100%),
-    linear-gradient(180deg, rgba(10, 8, 6, 0.45) 0%, rgba(10, 8, 6, 0) 20%); }
-  .sb-logo { left: max(24px, env(safe-area-inset-left)); transform: none; width: clamp(110px, 10vw, 150px); }
-  .story-book.first .sb-logo { width: clamp(180px, 18vw, 260px); }
+  /* the painting whole, upright, to the left of the page; round it the same picture, large and dark */
+  .sb-stage::before { content: ''; position: absolute; inset: -4%; background: #0e0c0a var(--sb-ambient, none) center / cover no-repeat; filter: brightness(0.32) saturate(0.85); }
+  .sb-shot { object-fit: contain; object-position: 30% 50%; transform-origin: 30% 50%; filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.7)); }
+  .sb-stage::after { background: linear-gradient(90deg, rgba(10, 8, 6, 0) 55%, rgba(10, 8, 6, 0.55) 100%); }
+  .sb-logo { left: auto; right: calc(max(4vw, env(safe-area-inset-right)) + clamp(360px, 34vw, 460px) / 2); transform: translateX(50%); top: max(24px, env(safe-area-inset-top)); width: clamp(110px, 10vw, 150px); }
+  .story-book.first .sb-logo { width: clamp(170px, 16vw, 230px); }
   .sb-panel { left: auto; right: max(4vw, env(safe-area-inset-right)); top: 50%; bottom: auto; transform: translateY(-50%); width: clamp(360px, 34vw, 460px); max-height: calc(100% - 48px); padding: 0; }
 }
 /* a tablet or a computer: words a little bigger */
