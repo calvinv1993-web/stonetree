@@ -2540,7 +2540,7 @@ function updateSoundButtons() {
 
 // The welcome: while you name a character and choose its outfit (or log in), the game's controls stay out of sight
 // and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
-function welcome(on) { document.body.classList.toggle('welcome', !!on); }
+function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) templeScene(false); }
 
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
 // Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.jpg,
@@ -2614,10 +2614,15 @@ const StoryBook = (() => {
     $('sbSkip').hidden = at === n - 1;
     fetchAhead();
   }
+  // (the book fades away into what comes next: the temple, behind it already)
   const close = () => {
     if (!done && $('storyBook').hidden) return;
-    $('storyBook').hidden = true;
-    const d = done; done = null; if (d) d();
+    const d = done; done = null;
+    const book = $('storyBook');
+    if (d) d();
+    if (still()) { book.hidden = true; return; }
+    book.classList.add('leaving');
+    setTimeout(() => { book.hidden = true; book.classList.remove('leaving'); }, 700);
   };
   // a page on or back (not again while the last turn is still fading: a double tap turns one page). On, while the
   // words are still coming in: first they're all shown.
@@ -2672,28 +2677,122 @@ function newCharacterPath(onDone) {
   askPath(onDone);
 }
 
-// First visit: ask for a name, then an outfit.
+// ---- after the story: Oakvale's temple, and Sister Ama at your side -------------------------------------------------
+// The welcome's picture gives way to the temple (sprites/ui/story/temple.jpg: the real one, at dawn, out of focus), and
+// Sister Ama speaks, a line at a time (a tap shows them all), before you're asked your name (or, online, where you made
+// the character at the login, before you go on to your outfit).
+const AMA_WAKE = ['You\'re awake. We feared you wouldn\'t survive the night.', 'Tell me, traveller... what is your name?'];
+const AMA_WAKE_ONLINE = ['You\'re awake. We feared you wouldn\'t survive the night.', '$name... you said it over and over in your sleep. Rest a moment, and let us find you something to wear.'];
+const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function templeScene(on) {
+  const el = $('templeScene');
+  if (on) {
+    if (!el.hidden) return;
+    const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/story/temple.jpg'];
+    el.style.backgroundImage = `radial-gradient(ellipse at 50% 42%, rgba(255, 190, 110, 0.12), rgba(8, 6, 4, 0.78) 78%), url(sprites/ui/story/temple.jpg${h ? `?h=${h}` : ''})`;
+    el.hidden = false; void el.offsetWidth; el.classList.add('on');
+  }
+  else { el.classList.remove('on'); el.hidden = true; }
+}
+// Sister Ama's head and shoulders, as on her conversation card (her picture may still be on its way: tried again shortly)
+function amaFace(canvas, tries = 12) {
+  const ama = npcs.find(n => n.npcId === 'ama'), g = canvas.getContext('2d');
+  const again = () => { if (tries > 0) setTimeout(() => amaFace(canvas, tries - 1), 400); };
+  if (!ama || typeof Sprites === 'undefined') return again();
+  try {
+    const img = Sprites.creature(creatureKey(ama), 2, 0), r = img.res || 1, box = Sprites.faceBox(ama), big = Sprites.w(img) > TILE;
+    g.clearRect(0, 0, canvas.width, canvas.height); g.imageSmoothingEnabled = r > 1;
+    if (box) g.drawImage(img, box[0] * r, box[1] * r, box[2] * r, box[3] * r, 0, 0, canvas.width, canvas.height);
+    else g.drawImage(img, (big ? TILE + 4 : 4) * r, (big ? TILE - 4 : -4) * r, 24 * r, 24 * r, 0, 0, canvas.width, canvas.height);
+    if (!img.res && tries > 0) again(); // (the drawn stand-in: her own picture may come yet)
+  } catch (e) { again(); }
+}
+// her lines into a speaker block, one after the other; resolves when they're all shown (at once with a tap)
+function amaSays(block, lines) {
+  const said = block.querySelector('.ob-said');
+  amaFace(block.querySelector('.ob-face'));
+  said.classList.remove('shown', 'enter'); void said.offsetWidth;
+  said.replaceChildren(...lines.map((t, i) => h('p', { style: `--i: ${i}` }, t.replace(/\$name/g, player.name))));
+  if (stillMotion()) said.classList.add('shown'); else said.classList.add('enter');
+  block.onclick = () => said.classList.add('shown');
+}
+
+// A name as the server takes it (server.js login): letters, digits, spaces, ' and -, 2 to 20 of them. What's wrong
+// with one, in a word, or null; '' for nothing typed yet (no word: the way on just waits).
+function nameProblem(raw) {
+  const t = raw.trim();
+  if (!t) return '';
+  if (/[^\w '-]/.test(t)) return 'Only letters, numbers, spaces, \' and - can be used.';
+  if (t.replace(/[^\w '-]/g, '').slice(0, 20).length < 2) return 'At least 2 letters, please.';
+  return null;
+}
+// keeps the way on shut while the name won't do, and says why under the field
+function watchName(input, button) {
+  const check = () => {
+    const problem = nameProblem(input.value);
+    $('createHint').textContent = problem || '';
+    $('createHint').classList.toggle('bad', !!problem);
+    input.setAttribute('aria-invalid', problem ? 'true' : 'false');
+    button.disabled = problem !== null;
+  };
+  input.addEventListener('input', check);
+  check();
+  return check;
+}
+// (on a phone the keyboard rises: the field and the way on are brought into sight above it)
+function keepAboveKeyboard(input) {
+  input.addEventListener('focus', () => setTimeout(() => {
+    const win = input.closest('.ob-screen'); if (win) win.scrollTop = Math.max(0, input.offsetTop - 80);
+    input.scrollIntoView({ block: 'center' });
+  }, 300));
+}
+
+// A new character, offline: the story, the temple and Sister Ama, your name, your outfit, your path.
 function showCharacterCreation(onDone) {
   const dialog = $('create');
   welcome(true);
-  const input = $('createName');
-  StoryBook.show(() => { dialog.hidden = false; input.focus(); });
-  // for testing: start as a level 100 character with the best gear (see makeTestHero)
+  const input = $('createName'), go = $('createStart');
+  dialog.querySelector('.ob-title').textContent = 'What is your name?';
+  go.textContent = 'Continue';
+  // for testing: start as a level 100 character with the best gear (see makeTestHero), tucked away under "Other ways to start"
   const start = document.createElement('select');
   start.id = 'createTest';
   start.add(new Option('Normal start (level 1, with the guide)', ''));
   for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
-  input.after(start);
+  $('createMore').append(start);
+  $('createMore').hidden = false;
+  watchName(input, go);
+  keepAboveKeyboard(input);
+  StoryBook.show(() => {
+    templeScene(true);
+    $('createAma').hidden = false;
+    amaSays($('createAma'), AMA_WAKE);
+    dialog.hidden = false;
+    if (!touchScreen) input.focus(); // (a phone: not straight away, the keyboard would cover Sister Ama)
+  });
+  let sent = false; // (once: a double tap makes one character)
   const done = () => {
-    player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20) || 'Adventurer');
+    if (sent || nameProblem(input.value) !== null) return;
+    sent = true;
+    player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20));
     guideFolded = false; try { localStorage.setItem('tilequest.guideFolded', '0'); } catch (e) { /* no storage */ } // (a new character: the guide open)
     dialog.hidden = true;
     if (start.value) makeTestHero(start.value);
     openOutfit(() => newCharacterPath(() => { welcome(false); if (onDone) onDone(); }));
   };
-  $('createStart').addEventListener('click', done);
+  go.addEventListener('click', done);
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') done();
     e.stopPropagation();
   });
+}
+
+// A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your outfit
+function greetNewCharacter(onDone) {
+  templeScene(true);
+  const win = $('amaGreet');
+  amaSays(win.querySelector('.ob-speaker'), AMA_WAKE_ONLINE);
+  win.hidden = false;
+  let sent = false;
+  $('amaGreetGo').onclick = () => { if (sent) return; sent = true; win.hidden = true; onDone(); };
 }

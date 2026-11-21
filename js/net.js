@@ -40,7 +40,8 @@ const Net = (() => {
       pw.placeholder = 'Password (optional)';
       $('createName').after(pw);
       $('createStart').textContent = 'Play';
-      const go = () => connect({ name: $('createName').value, password: pw.value, vocation: $('createVocation') && $('createVocation').value });
+      watchName($('createName'), $('createStart')); keepAboveKeyboard($('createName'));
+      const go = () => nameProblem($('createName').value) === null && connect({ name: $('createName').value, password: pw.value, vocation: $('createVocation') && $('createVocation').value });
       $('createStart').addEventListener('click', go);
       for (const input of [$('createName'), pw]) input.addEventListener('keydown', e => {
         e.stopPropagation();
@@ -152,7 +153,7 @@ const Net = (() => {
     $('create').hidden = true;
     $('mapSource').textContent = 'Playing online';
     $('newChar').textContent = 'Log out';
-    if (msg.isNew) StoryBook.show(() => openOutfit(() => newCharacterPath(() => welcome(false)))); // (a new character: the story, its outfit, its path)
+    if (msg.isNew) StoryBook.show(() => greetNewCharacter(() => openOutfit(() => newCharacterPath(() => welcome(false))))); // (a new character: the story, Sister Ama, its outfit, its path)
     else welcome(false);
     importExplored(storage(() => JSON.parse(localStorage.getItem(exploredKey()))));
     uiDirty();

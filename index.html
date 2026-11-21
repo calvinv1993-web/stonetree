@@ -191,13 +191,21 @@
           </div>
         </div>
 
+        <div id="templeScene" class="ob-temple" hidden aria-hidden="true"></div>
+        <div id="amaGreet" class="window dialog book ob-panel ob-screen ob-narrow" hidden>
+          <div class="ob-speaker"><canvas class="ob-face" width="112" height="112"></canvas><div><small>Sister Ama</small><div class="ob-said"></div></div></div>
+          <div class="ob-nav"><button id="amaGreetGo" class="primary ob-btn">Continue</button></div>
+        </div>
         <div id="create" class="window create book ob-panel ob-screen ob-narrow" hidden>
           <h1><img class="create-logo" src="sprites/ui/loading/logo.png" alt="Lickii Adventures"></h1>
+          <div id="createAma" class="ob-speaker" hidden><canvas class="ob-face" width="112" height="112"></canvas><div><small>Sister Ama</small><div class="ob-said"></div></div></div>
           <p class="ob-title">Name your character</p>
-          <input id="createName" maxlength="20" placeholder="Adventurer" autocomplete="off">
-          <button id="createStart" class="primary ob-btn">Next</button>
-          <div id="versionCreate" class="version-tag"></div>
+          <input id="createName" maxlength="20" placeholder="Your name" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go" aria-describedby="createHint">
+          <div id="createHint" class="ob-hint" aria-live="polite"></div>
+          <details id="createMore" class="ob-more" hidden><summary>Other ways to start</summary></details>
+          <div class="ob-nav"><button id="createStart" class="primary ob-btn">Next</button></div>
         </div>
+        <div id="versionCreate" class="version-tag ob-version"></div>
       </div>
       <div id="hotbar" class="hotbar"></div>
       <div class="console">
