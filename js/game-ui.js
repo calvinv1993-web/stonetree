@@ -2984,10 +2984,9 @@ function nameSheet(dialog) {
   const hash = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/parchment/story-panel.webp'];
   const art = h('img', { className: 'ns-art', alt: '', draggable: false, src: `sprites/ui/parchment/story-panel.webp${hash ? `?h=${hash}` : ''}` });
   art.setAttribute('aria-hidden', 'true');
-  const rule = h('div', { className: 'ns-rule' }); rule.setAttribute('aria-hidden', 'true');
   const field = h('div', { className: 'ns-field' });
   const input = $('createName'); input.replaceWith(field); field.append(input);
-  const talk = $('createAma'), form = h('div', { className: 'ns-form' }, rule, field, $('createHint'), $('createMore'), dialog.querySelector('.ob-nav'));
+  const talk = $('createAma'), form = h('div', { className: 'ns-form' }, field, $('createHint'), $('createMore'), dialog.querySelector('.ob-nav'));
   dialog.append(art, h('div', { className: 'ns-writing' }, talk, form));
 }
 
