@@ -69,9 +69,10 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 .sv-window::after { position: absolute; content: ''; inset: 0; pointer-events: none;
   background: linear-gradient(0deg, #120d13 1%, rgba(22, 14, 22, 0.91) 12%, rgba(22, 14, 22, 0.4) 26%, transparent 43%); }
 .sv-portrait { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; pointer-events: none; }
-.sv-card[data-v="knight"] .sv-portrait { height: 85%; }
-.sv-card[data-v="paladin"] .sv-portrait { object-position: 57% 0; }
-.sv-card[data-v="sorcerer"] .sv-portrait { object-position: 61% 0; }
+/* (each portrait, 2:3, cropped round its face: docs/sortia/portraits/) */
+.sv-card[data-v="knight"] .sv-portrait { object-position: 54% 8%; }
+.sv-card[data-v="paladin"] .sv-portrait { object-position: 50% 10%; }
+.sv-card[data-v="sorcerer"] .sv-portrait { object-position: 42% 12%; }
 .sv-card:not([data-position="center"])::before { filter: brightness(0.7); }
 .sv-card:not([data-position="center"]) .sv-window { filter: brightness(0.77) saturate(0.82); }
 .sv-info { position: absolute; z-index: 2; left: 0; right: 0; bottom: 3.95%; display: grid; justify-items: center; color: #f6e5c7; text-shadow: 0 2px 3px #000; pointer-events: none; }
