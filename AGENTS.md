@@ -42,6 +42,7 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | The phone's smart button: what a press does, in the real world | `node tests/smart-button.test.js` |
 | The phone's interface on three iPhone sizes: every control in reach, each gesture doing one thing (needs Playwright) | `node tests/mobile-ui.test.js [screenshot-folder]` |
 | The phone's interface driving the game: walking, floors, talk, loot, spells, potions, the drawer, map, chat, turning (needs Playwright) | `node tests/mobile-regression.test.js` |
+| A new character's welcome, start to finish, on 320/375/390/430 px, a tablet and a computer: the story's five chapters and their pictures, Sister Ama and the name, the outfit, the path, then the game (nothing twice) and a reload (needs Playwright) | `node tests/onboarding.test.js [screenshot-folder]` |
 | Stylesheets: pictures and computed styles of ~60 interface states (desktop, phones, editors), to compare before and after a CSS change | `node tests/ui-snapshots.js <folder> [--compare <reference folder>]` |
 | Syntax check | `node --check js/<file>.js` |
 
