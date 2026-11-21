@@ -141,20 +141,26 @@ body.welcome #pathPick .path-pick-card .role, body.welcome #pathPick .path-pick-
 .sb-stage::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(10, 8, 6, 0.55) 0%, rgba(10, 8, 6, 0) 20%, rgba(10, 8, 6, 0) 70%, rgba(10, 8, 6, 0.75) 88%, var(--ob-bg) 100%); }
 .sb-logo { position: absolute; z-index: 2; top: var(--ob-safe-top); left: 50%; transform: translateX(-50%);
-  width: clamp(104px, 30vw, 170px); height: auto; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none; }
+  width: clamp(76px, 22vw, 116px); height: auto; opacity: 0.92; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)); pointer-events: none;
+  transition: width var(--ob-fade) ease, opacity var(--ob-fade) ease; }
+/* (large on the first page; after it, small, and the picture has the room) */
+.story-book.first .sb-logo { width: clamp(140px, 44vw, 230px); opacity: 1; }
 .sb-panel { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: 0; box-sizing: border-box;
   width: min(100%, var(--ob-w)); max-height: calc(100% - 96px - env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px;
   padding: 0 max(14px, env(safe-area-inset-left)) var(--ob-safe-bottom) max(14px, env(safe-area-inset-right)); }
 .sb-page { position: relative; overflow-y: auto; overscroll-behavior: contain; }
-.sb-rule { display: flex; align-items: center; gap: 8px; margin: 8px 14% 10px; }
-.sb-rule::before, .sb-rule::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #8a5a26); }
-.sb-rule::after { background: linear-gradient(90deg, #8a5a26, transparent); }
-.sb-rule span { width: 7px; height: 7px; transform: rotate(45deg); background: var(--parch-red); }
 .sb-text p { margin: 0 0 0.6em; font-size: clamp(15px, 4.3vw, 18px); line-height: 1.45; }
 .sb-text p:last-child { margin-bottom: 0; }
-.sb-page.enter > * { animation: sb-text-in var(--ob-text-in) ease-out both; }
-.sb-page.enter .sb-text { animation-delay: 90ms; }
+
+.sb-page .ob-title { margin-bottom: 10px; }
+.sb-page.enter .ob-title { animation: sb-text-in var(--ob-text-in) ease-out both; }
+/* (its paragraphs one after the other; a tap shows them all: .shown) */
+.sb-page.enter .sb-text p { animation: sb-text-in 600ms ease-out both; animation-delay: calc(300ms + var(--i, 0) * 650ms); }
+.sb-page.shown .sb-text p, .sb-page.shown .ob-title { animation: none; opacity: 1; transform: none; }
 @keyframes sb-text-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* (the page rises into place as the book opens) */
+.sb-panel.opening { animation: sb-panel-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes sb-panel-in { from { opacity: 0; translate: 0 40px; } to { opacity: 1; translate: 0 0; } }
 .sb-dots { display: flex; justify-content: center; align-items: center; gap: 7px; height: 12px; }
 .sb-dots i { width: 7px; height: 7px; border-radius: 4px; background: rgba(240, 220, 170, 0.32); transition: width 300ms ease, background-color 300ms ease; }
 .sb-dots i.past { background: rgba(240, 210, 140, 0.6); }
@@ -164,17 +170,19 @@ body.welcome #pathPick .path-pick-card .role, body.welcome #pathPick .path-pick-
   .sb-stage { inset: 0 26vw 0 0; }
   .sb-stage::after { background: linear-gradient(90deg, rgba(10, 8, 6, 0) 0%, rgba(10, 8, 6, 0) 62%, rgba(10, 8, 6, 0.75) 86%, var(--ob-bg) 100%),
     linear-gradient(180deg, rgba(10, 8, 6, 0.45) 0%, rgba(10, 8, 6, 0) 20%); }
-  .sb-logo { left: max(24px, env(safe-area-inset-left)); transform: none; width: clamp(150px, 15vw, 210px); }
+  .sb-logo { left: max(24px, env(safe-area-inset-left)); transform: none; width: clamp(110px, 10vw, 150px); }
+  .story-book.first .sb-logo { width: clamp(180px, 18vw, 260px); }
   .sb-panel { left: auto; right: max(4vw, env(safe-area-inset-right)); top: 50%; bottom: auto; transform: translateY(-50%); width: clamp(360px, 34vw, 460px); max-height: calc(100% - 48px); padding: 0; }
 }
 /* a tablet or a computer: words a little bigger */
 @media (min-width: 700px) { .sb-text p { font-size: 19px; } :root { --ob-title-size: 28px; } }
 /* a short screen: smaller words, a smaller logo */
-@media (max-height: 620px) { .sb-text p { font-size: 14.5px; line-height: 1.4; } :root { --ob-title-size: 20px; } .sb-logo { width: 96px; } }
+@media (max-height: 620px) { .sb-text p { font-size: 14.5px; line-height: 1.4; } :root { --ob-title-size: 20px; } .sb-logo { width: 76px; } .story-book.first .sb-logo { width: 120px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .sb-shot { transition-duration: 200ms; }
   .sb-shot.drift { animation: none; }
-  .sb-page.enter > * { animation: none; }
+  .sb-page.enter .ob-title, .sb-page.enter .sb-text p, .sb-panel.opening { animation: none; }
+  .sb-logo { transition: none; }
   .sb-dots i, body.welcome .ob-panel button { transition: none; }
 }

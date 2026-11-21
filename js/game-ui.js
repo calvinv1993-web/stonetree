@@ -2543,64 +2543,87 @@ function updateSoundButtons() {
 function welcome(on) { document.body.classList.toggle('welcome', !!on); }
 
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
-// Plain data, as many pages as there are: id, title, its paragraphs, its picture (sprites/ui/story/<image>.jpg) and
-// where on it the page looks: focus [x %, y %, how far in]; the picture slowly drifts in on that spot. Shown before a
-// new character is made (Skip skips only the story); browser tests skip it unless ?story.
+// Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.jpg,
+// its own scene; see docs/onboarding-art.md) and focus [x %, y %, how far in], the spot the picture slowly drifts in on.
+// Until a page's own picture is in sprites/ (and listed in sprites/versions.js), it shows `stand`: the one picture there
+// is, looking at the part of it closest to the scene. Shown before a new character is made (Skip skips only the story);
+// browser tests skip it unless ?story.
 const STORY_PAGES = [
-  { id: 'beginning', title: 'The Beginning', image: 'story-1', focus: [50, 50, 1],
+  { id: 'beginning', title: 'The Beginning', image: 'story-beginning', focus: [50, 50, 1], stand: { image: 'story-1', focus: [50, 50, 1] },
     paragraphs: ['For an age the land lay at peace: a hundred towns, their lights burning through every night, their roads open from sea to sea.',
       'Then, far in the north, an old and dark power woke again, and the towns at its edge fell silent one by one.'] },
-  { id: 'host', title: 'The Hollow Host', image: 'story-1', focus: [80, 16, 1.25],
+  { id: 'host', title: 'The Hollow Host', image: 'story-host', focus: [50, 40, 1], stand: { image: 'story-1', focus: [80, 16, 1.25] },
     paragraphs: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
       'Town after town went dark. Kingdoms fell in a single winter.'] },
-  { id: 'last-town', title: 'The Last Town', image: 'story-1', focus: [74, 60, 1.2],
+  { id: 'last-town', title: 'The Last Town', image: 'story-last-town', focus: [50, 50, 1], stand: { image: 'story-1', focus: [74, 60, 1.2] },
     paragraphs: ['Only Oakvale still stands, on its island behind its wall. Its bell still rings at dawn, and its gate still opens to anyone who reaches it alive.',
       'Most of its fighters lie dead beyond that wall. At night the Host\'s fires burn on the far shore, more every winter.'] },
-  { id: 'you', title: 'And You', image: 'story-1', focus: [20, 46, 1.1],
+  { id: 'you', title: 'And You', image: 'story-you', focus: [50, 55, 1], stand: { image: 'story-1', focus: [20, 46, 1.1] },
     paragraphs: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
       'That was you. You wake in Oakvale\'s temple with almost nothing. But you are alive, and you want to fight.'] },
-  { id: 'road', title: 'Your Road', image: 'story-1', focus: [56, 45, 1],
+  { id: 'road', title: 'Your Road', image: 'story-road', focus: [50, 45, 1], stand: { image: 'story-1', focus: [56, 45, 1] },
     paragraphs: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
       'At level 10 the oracle names you before the town. Then you sail for the world the Host has taken, to win it back.'] },
 ];
 const StoryBook = (() => {
-  let at = 0, done = null, front = 0, busyUntil = 0, startX = null, startY = null;
+  let at = 0, done = null, front = 0, busyUntil = 0, revealUntil = 0, startX = null, startY = null;
   const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const src = page => `sprites/ui/story/${page.image}.jpg`;
-  // (the pictures the book uses, each once, fetched as it opens: no wait between pages)
-  const preload = () => [...new Set(STORY_PAGES.map(src))].forEach(u => { new Image().src = u; });
+  const hashes = () => (typeof SPRITE_HASHES !== 'undefined' ? SPRITE_HASHES : {});
+  // a page's picture: its own scene once it's there, else its stand-in; by its version, as every picture is fetched
+  const shot = page => {
+    const own = hashes()[`ui/story/${page.image}.jpg`];
+    const use = own || !page.stand ? page : page.stand, h = hashes()[`ui/story/${use.image}.jpg`];
+    return { src: `sprites/ui/story/${use.image}.jpg${h ? `?h=${h}` : ''}`, focus: use.focus || [50, 50, 1] };
+  };
+  // (only the picture of the page after this one is fetched ahead: no wait when you turn, nothing more downloaded)
+  const fetchAhead = () => { const next = STORY_PAGES[at + 1]; if (next) new Image().src = shot(next).src; };
   // the page's picture: on the layer behind, drifting in on its spot, then faded over the one before
   function picture(page, first) {
-    const shots = $('storyBook').querySelectorAll('.sb-shot'), [fx, fy, zoom] = page.focus || [50, 50, 1];
+    const shots = $('storyBook').querySelectorAll('.sb-shot'), { src, focus: [fx, fy, zoom] } = shot(page);
     const next = shots[first ? front : 1 - front], last = shots[first ? 1 - front : front];
-    next.src = src(page);
+    next.src = src;
     next.style.setProperty('--fx', `${fx}%`); next.style.setProperty('--fy', `${fy}%`); next.style.setProperty('--zoom', zoom);
     next.classList.remove('drift'); void next.offsetWidth;
     if (!still()) next.classList.add('drift');
     next.classList.add('on'); if (!first) last.classList.remove('on');
     front = [...shots].indexOf(next);
   }
+  // its words come in a paragraph at a time; a tap on them (or on Next) shows them all at once
+  const REVEAL_STEP = 650;
+  function words(page) {
+    const box = $('sbPage');
+    box.classList.remove('enter', 'shown'); void box.offsetWidth;
+    $('sbText').replaceChildren(...page.paragraphs.map((t, i) => h('p', { style: `--i: ${i}` }, t)));
+    box.scrollTop = 0;
+    if (still()) { box.classList.add('shown'); revealUntil = 0; return; }
+    box.classList.add('enter');
+    revealUntil = performance.now() + 350 + page.paragraphs.length * REVEAL_STEP;
+  }
+  const revealAll = () => { if (performance.now() >= revealUntil) return false; $('sbPage').classList.add('shown'); revealUntil = 0; return true; };
   function render(first) {
     const page = STORY_PAGES[at], n = STORY_PAGES.length;
     picture(page, first);
+    $('storyBook').classList.toggle('first', at === 0); // (the logo large on the first page, small after it)
     $('sbTitle').textContent = page.title;
-    $('sbText').replaceChildren(...page.paragraphs.map(t => h('p', {}, t)));
-    const box = $('sbPage'); box.scrollTop = 0; box.classList.remove('enter'); void box.offsetWidth; box.classList.add('enter');
+    words(page);
     $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
     $('sbDots').setAttribute('aria-valuemax', n); $('sbDots').setAttribute('aria-valuenow', at + 1);
     $('sbDots').setAttribute('aria-label', `Page ${at + 1} of ${n}`);
     $('sbBack').disabled = at === 0;
     $('sbNext').textContent = at === n - 1 ? 'Begin' : 'Next';
     $('sbSkip').hidden = at === n - 1;
+    fetchAhead();
   }
   const close = () => {
     if (!done && $('storyBook').hidden) return;
     $('storyBook').hidden = true;
     const d = done; done = null; if (d) d();
   };
-  // a page on or back (not again while the last turn is still fading: a double tap turns one page)
+  // a page on or back (not again while the last turn is still fading: a double tap turns one page). On, while the
+  // words are still coming in: first they're all shown.
   function go(d) {
     if (performance.now() < busyUntil) return;
+    if (d > 0 && revealAll()) return;
     const n = at + d;
     if (n < 0) return;
     if (n >= STORY_PAGES.length) { close(); return; }
@@ -2612,7 +2635,8 @@ const StoryBook = (() => {
     if (!STORY_PAGES.length) { if (onDone) onDone(); return; }
     done = onDone; at = 0; busyUntil = 0;
     welcome(true);
-    preload();
+    const panel = $('storyBook').querySelector('.sb-panel');
+    panel.classList.remove('opening'); void panel.offsetWidth; panel.classList.add('opening'); // (the page rises into place)
     $('storyBook').hidden = false;
     render(true);
     $('sbNext').focus({ preventScroll: true });
@@ -2622,6 +2646,7 @@ const StoryBook = (() => {
     $('sbNext').addEventListener('click', () => go(1));
     $('sbBack').addEventListener('click', () => go(-1));
     $('sbSkip').addEventListener('click', close);
+    $('sbPage').addEventListener('click', revealAll);
     // (a sideways swipe turns the page; an upright one scrolls a long page's words)
     book.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true });
     book.addEventListener('touchend', e => {
