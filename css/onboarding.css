@@ -59,7 +59,6 @@ body.welcome .ob-screen { position: fixed !important; z-index: 30; left: 50% !im
   max-height: calc(100dvh - var(--ob-safe-top) - var(--ob-safe-bottom)) !important; overflow-y: auto; overscroll-behavior: contain; }
 body.welcome .ob-screen.ob-narrow { width: min(var(--ob-w-narrow), calc(100vw - 24px)) !important; }
 body.welcome .ob-screen.ob-wide { width: min(var(--ob-w-wide), calc(100vw - 24px)) !important; }
-body.welcome #pathPick.ob-screen { z-index: 41; }
 
 /* ---- parchment ---- */
 .story-book .ob-panel, body.welcome .ob-panel { color: var(--parch-ink) !important; font-family: var(--ob-serif); font-size: var(--ob-body-size); line-height: 1.45;
@@ -97,10 +96,10 @@ body.welcome .ob-panel .swatch-color { border: 1px solid rgba(60, 36, 12, 0.6); 
 body.welcome .ob-panel .swatch-color.active { outline: 2px solid #fff6d8; box-shadow: 0 0 0 4px #b8862c, 0 0 8px rgba(232, 180, 70, 0.8); z-index: 1; }
 
 /* ---- the way on, and the row it sits in ---- */
-.story-book .ob-btn, body.welcome .ob-panel button.ob-btn.ob-btn { min-height: var(--ob-touch) !important; padding: 0 22px; font: 700 clamp(18px, 5vw, 20px) var(--ob-serif) !important; color: #fff4d6 !important;
+.story-book .ob-btn, body.welcome .ob-panel button.ob-btn.ob-btn, .class-pick button.ob-btn.ob-btn { min-height: var(--ob-touch) !important; padding: 0 22px; font: 700 clamp(18px, 5vw, 20px) var(--ob-serif) !important; color: #fff4d6 !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55) !important; background: var(--ob-green) !important; border: 1px solid #e0b860 !important; border-radius: 10px !important;
   box-shadow: var(--ob-btn-shadow) !important; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.story-book .ob-btn:active, body.welcome .ob-panel button.ob-btn.ob-btn:active { transform: translateY(1px); filter: brightness(0.92); }
+.story-book .ob-btn:active, body.welcome .ob-panel button.ob-btn.ob-btn:active, .class-pick button.ob-btn.ob-btn:active { transform: translateY(1px); filter: brightness(0.92); }
 .story-book .ob-icon-btn { width: var(--ob-touch); height: var(--ob-touch); padding: 0; font: 28px / 1 var(--ob-serif); color: #f0c860 !important;
   background: rgba(28, 22, 18, 0.88) !important; border: 1px solid var(--parch-gold-dim) !important; border-radius: 10px !important; box-shadow: none !important; cursor: pointer; }
 .story-book .ob-icon-btn:disabled { visibility: hidden; }
@@ -127,15 +126,6 @@ body.welcome #outfit .outfit-name { font: 700 18px var(--ob-serif); color: var(-
 body.welcome #outfit .outfit-lock { background: rgba(110, 28, 18, 0.12); color: var(--parch-red); }
 body.welcome #outfit .swatch-color { border: 1px solid rgba(60, 36, 12, 0.55); }
 body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shadow: 0 0 0 4px #b8862c, 0 0 10px rgba(232, 180, 70, 0.8); }
-body.welcome #pathPick .path-head h3 { font: 700 26px var(--ob-serif); color: var(--parch-red); }
-body.welcome #pathPick .path-knight { --acc: #6a4aa8; } body.welcome #pathPick .path-paladin { --acc: #3c7a34; } body.welcome #pathPick .path-sorcerer { --acc: #c0501c; }
-body.welcome #pathPick .path-more h5, body.welcome #pathPick .path-facts small { color: var(--parch-red); opacity: 1; }
-body.welcome #pathPick .path-bad { color: #7a2a14; }
-body.welcome #pathPick .path-pic { background: radial-gradient(circle at 50% 62%, rgba(255, 236, 190, 0.95) 0%, rgba(214, 181, 124, 0.6) 45%, transparent 72%); box-shadow: 0 0 0 2px var(--parch-gold); }
-body.welcome #pathPick .path-tab { border-top-width: 3px !important; }
-body.welcome #pathPick .path-tab b { font-family: var(--ob-serif); }
-body.welcome #pathPick .path-turn { color: var(--parch-red) !important; }
-body.welcome #pathPick .path-ask p { color: var(--parch-red); font-family: var(--ob-serif); font-size: 17px; }
 
 /* ---- the story book (game-ui.js StoryBook): the picture fills the screen and slowly drifts in on what a page is about;
    a page of parchment lies under it (on a wide screen: beside it, on the right), with the pages' marks and the way on ---- */
@@ -276,10 +266,91 @@ body.welcome #outfit .outfit-sec-title { margin: 6px 0 4px; }
   body.welcome #outfit .dialog-buttons { margin-top: 4px; padding-top: 6px; }
 }
 
-/* ---- choosing your path, in the hall of paths: the window at the screen's foot, the hall's three armours standing over
-   it as far as the screen allows ---- */
+/* ---- choosing your path (game-ui.js askPath), in the hall of paths: the paths' cards in a row, the one looked at in
+   the middle, large and ringed in gold (a phone: its neighbours peek in at the sides; a wide screen: all three side by
+   side); under them, on parchment, what it is and starts with; at the foot Back and the one button, always there ---- */
 .ob-temple[data-scene="paths"] { background-position: center 38%; }
-body.welcome #pathPick.ob-screen { top: auto !important; bottom: calc(var(--ob-safe-bottom) + 8px) !important; transform: translateX(-50%) !important;
-  width: min(640px, calc(100vw - 24px)) !important; max-height: calc(100dvh - var(--ob-safe-top) - var(--ob-safe-bottom) - 16px) !important; }
-body.welcome #pathPick .path-desc { color: var(--parch-ink); }
-@media (max-height: 760px) { body.welcome #pathPick .path-pick-note { display: none; } }
+.class-pick { --cp-gold: #e0b860; --cp-h: clamp(210px, 44dvh, 440px); --cp-w: min(62vw, 270px, calc(var(--cp-h) * 0.7));
+  position: fixed; inset: 0; z-index: 41; display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.4dvh, 12px);
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
+  padding: var(--ob-safe-top) 0 0; font-family: var(--ob-serif); color: var(--ob-ink-light); }
+.class-pick[hidden] { display: none; }
+body:not(.welcome) .class-pick { background: rgba(10, 8, 6, 0.55); } /* (in the game: over the hall, the world under it) */
+.cp-head { text-align: center; padding: 0 16px; }
+.cp-title { margin: 0; font: 700 clamp(22px, 6.4vw, 30px) / 1.1 var(--ob-serif); color: #f6dfa2; letter-spacing: 0.02em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.6); }
+.cp-sub { margin: 4px 0 0; font-size: clamp(13px, 3.6vw, 15px); color: #ecdcb6; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+/* the row of cards */
+.cp-stage { position: relative; flex: none; width: 100%; height: var(--cp-h); overflow: hidden; touch-action: pan-y; }
+.cp-track { display: flex; align-items: center; gap: 14px; height: 100%; padding: 0 12px; box-sizing: border-box; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+.cp-card { --cp-tint: rgba(30, 22, 16, 0.94); position: relative; flex: 0 0 var(--cp-w); height: 92%; padding: 0; overflow: hidden; cursor: pointer;
+  border-radius: 12px !important; border: 1px solid #7a5a28 !important; background: #1a1410 !important; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6) !important;
+  transform: scale(0.9); opacity: 0.62; transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.4s ease, height 0.4s ease; -webkit-tap-highlight-color: transparent; }
+.cp-card.on { height: 100%; transform: none; opacity: 1; border-color: var(--cp-gold) !important;
+  box-shadow: 0 0 0 1px #3a2610, 0 0 0 3px rgba(224, 184, 96, 0.55), 0 0 18px rgba(232, 180, 70, 0.28), 0 12px 28px rgba(0, 0, 0, 0.7) !important; }
+.cp-card:focus-visible { outline: 3px solid #fff2c8; outline-offset: 3px; }
+.cp-knight { --cp-tint: rgba(74, 16, 18, 0.94); }   /* steel and burgundy */
+.cp-paladin { --cp-tint: rgba(24, 54, 28, 0.94); }  /* forest green and leather */
+.cp-sorcerer { --cp-tint: rgba(64, 12, 44, 0.94); } /* crimson and dark purple */
+.cp-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.cp-emblem { position: absolute; left: 50%; bottom: calc(18% + 4px); width: 34%; height: auto; aspect-ratio: 1; transform: translateX(-50%); z-index: 2; pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7)); }
+.cp-band { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  height: 34%; padding: 0 6px 8%; box-sizing: border-box; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--cp-tint) 46%); border-top: 0; }
+.cp-band b { font: 700 clamp(19px, 5.6vw, 26px) / 1.1 var(--ob-serif); color: #f6dfa2; text-shadow: 0 2px 3px rgba(0, 0, 0, 0.9); }
+.cp-band small { margin-top: 2px; font: 600 12px var(--ob-serif); letter-spacing: 0.14em; text-transform: uppercase; color: #ead6a8; }
+.cp-arrow { position: absolute; top: 50%; z-index: 3; width: 44px; height: 44px; padding: 0; transform: translateY(-50%); border-radius: 50% !important;
+  font: 700 28px / 1 var(--ob-serif); color: #f0c860 !important; background: rgba(20, 15, 10, 0.82) !important; border: 1px solid #a07830 !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important; }
+.cp-prev { left: 6px; } .cp-next { right: 6px; }
+/* the dots: one a path, 44px to tap, the one looked at long and gold */
+.cp-dots { display: flex; justify-content: center; gap: 2px; margin-top: -6px; }
+.cp-dot { width: 32px; height: 32px; padding: 0; background: none !important; border: none !important; box-shadow: none !important; cursor: pointer; }
+.cp-dot::before { content: ''; display: block; margin: auto; width: 8px; height: 8px; border-radius: 4px; background: rgba(240, 220, 170, 0.4); transition: width 0.3s; }
+.cp-dot.on::before { width: 22px; background: #f0c45a; }
+/* what it is and starts with, on parchment */
+.cp-info { width: min(560px, calc(100% - 24px)); flex: none; font-size: clamp(13.5px, 3.7vw, 15px); line-height: 1.4; }
+.cp-info.pp-compact { padding: 10px 14px; }
+.cp-role { margin: 0 0 6px; color: #3a2414; }
+.cp-role b { color: #6e1c12; font-size: 1.08em; }
+.cp-cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 2px 14px; }
+.cp-cols h5 { margin: 2px 0 2px; font: 700 11px var(--ob-serif); letter-spacing: 0.1em; text-transform: uppercase; color: #6e1c12; }
+.cp-good { margin: 0; padding-left: 16px; color: #3a2414; } .cp-good li { margin: 0 0 1px; }
+.cp-good li::marker { color: #9a6a20; }
+.cp-bad { margin: 0 0 4px; color: #7a2a14; }
+.cp-kit { display: flex; flex-wrap: wrap; gap: 4px; }
+.cp-item { position: relative; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; background: rgba(255, 248, 226, 0.6); border: 1px solid rgba(138, 90, 38, 0.45); }
+.cp-item img { width: 28px; height: 28px; image-rendering: pixelated; }
+.cp-item small { position: absolute; right: 1px; bottom: -1px; font: 700 10px var(--ob-serif); color: #3a2414; text-shadow: 0 0 2px #fff6e0, 0 0 2px #fff6e0; }
+/* the foot: Back, the one button, always in the same place */
+.cp-nav { position: sticky; bottom: 0; z-index: 4; display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; align-items: center; gap: 10px;
+  width: min(560px, 100%); box-sizing: border-box; margin-top: auto; padding: 8px 12px var(--ob-safe-bottom);
+  background: linear-gradient(180deg, rgba(10, 8, 6, 0), rgba(10, 8, 6, 0.75) 40%); }
+.cp-nav .ob-btn { width: 100%; }
+.cp-back { width: 48px; height: 48px; padding: 0; font: 700 28px / 1 var(--ob-serif); color: #f0c860 !important; background: rgba(20, 15, 10, 0.86) !important;
+  border: 1px solid #a07830 !important; border-radius: 10px !important; box-shadow: none !important; }
+.cp-back[hidden] { visibility: hidden; display: block; }
+/* the confirmation: a word on parchment over the hall */
+.cp-ask { position: fixed; inset: 0; z-index: 6; display: grid; place-items: center; padding: 16px; background: rgba(8, 6, 4, 0.62); }
+.cp-ask[hidden] { display: none; }
+.cp-ask-card { width: min(360px, 100%); text-align: center; }
+.cp-ask-card.pp-compact { padding: 16px 18px 14px; }
+.cp-ask-emblem { width: 76px; height: 76px; margin: -2px auto 4px; display: block; }
+.cp-ask-card p { margin: 6px 0 12px; color: #3a2414; }
+.cp-ask-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+.cp-not-yet { min-height: 48px; padding: 0 16px; font: 600 16px var(--ob-serif); color: #3a2414 !important; background: linear-gradient(180deg, #f6e6c0, #dcc290) !important;
+  border: 1px solid #8a6428 !important; border-radius: 10px !important; box-shadow: none !important; }
+/* a short screen: smaller cards, the strengths' title tight */
+@media (max-height: 620px) { .class-pick { --cp-h: clamp(190px, 40dvh, 260px); } .cp-sub { display: none; } .cp-info.pp-compact { padding: 8px 12px; } }
+/* a wide screen: all three side by side, standing still; the arrows away */
+@media (min-width: 900px) and (min-height: 600px) {
+  .class-pick { --cp-h: clamp(360px, 50dvh, 470px); --cp-w: min(25vw, 300px); padding-top: max(24px, env(safe-area-inset-top)); }
+  .cp-track { justify-content: center; gap: 22px; transform: none !important; }
+  .cp-card { transform: scale(0.95); opacity: 0.82; }
+  .cp-card:hover { opacity: 1; }
+  .cp-arrow { display: none; }
+  .cp-info { width: min(720px, calc(100% - 48px)); }
+  .cp-nav { width: min(720px, 100%); }
+}
+@media (prefers-reduced-motion: reduce) { .cp-track, .cp-card, .cp-dot::before { transition: none; } }
+/* (a tablet held upright: larger cards; the version's corner kept clear while the paths are shown) */
+@media (min-width: 700px) and (max-aspect-ratio: 1/1) { .class-pick { --cp-h: clamp(300px, 52dvh, 600px); --cp-w: min(44vw, 380px, calc(var(--cp-h) * 0.7)); } .cp-info, .cp-nav { width: min(620px, calc(100% - 32px)); } }
+body:has(#pathPick:not([hidden])) .ob-version { display: none; }

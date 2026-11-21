@@ -95,8 +95,23 @@ const fits = page => page.evaluate(() => {
     await page.waitForTimeout(1300);
 
     // your path: one at a time, chosen only once confirmed
-    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.pick-card.on').length === 1), `${name}: the path, in the hall of paths, one at a time`);
-    await page.click('.path-tab:nth-child(3)');
+    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.cp-card').length === 3 && document.querySelectorAll('.cp-card.on').length === 1),
+      `${name}: the path, in the hall of paths: three cards, one looked at`);
+    check(await page.evaluate(() => [...document.querySelectorAll('.cp-art, .cp-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    // looking: the arrows (a phone), a dot, the arrow keys; the button names the path; nothing chosen
+    if (await page.evaluate(() => getComputedStyle(pathNext).display !== 'none')) { await page.click('#pathNext'); check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk'), `${name}: the arrow: the next path`); }
+    await page.evaluate(() => document.querySelectorAll('.cp-dot')[0].click());
+    await page.keyboard.press('ArrowRight');
+    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
+    check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('parchment-panel') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.cp-item img').length >= 3; }),
+      `${name}: on parchment: strengths, weakness, the kit with the game's own item pictures`);
+    // Back: the appearance again, as left; then the paths again, the same one looked at
+    const looks = await page.evaluate(() => JSON.stringify(player.outfit));
+    await page.click('#pathBack'); await page.waitForTimeout(400);
+    check(await page.evaluate(l => !outfit.hidden && pathPick.hidden && JSON.stringify(outfitDraft) === l, looks), `${name}: Back: the appearance again, as it was`);
+    await page.evaluate(() => outfitDone.click()); await page.waitForTimeout(800);
+    check(await page.evaluate(() => !pathPick.hidden && pathChoose.textContent === 'Choose Hawk'), `${name}: and on again: the same path looked at`);
+    await page.evaluate(() => document.querySelectorAll('.cp-dot')[2].click());
     await step('path');
     await page.click('#pathChoose');
     check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden), `${name}: not chosen before it's confirmed`);

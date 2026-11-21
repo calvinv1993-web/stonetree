@@ -1337,20 +1337,25 @@ function showWindow(heading, body) {
 // ---- choosing a path, as a new character is made (game-core.js choosePath) ------------------------------------------
 // Bastion, Hawk or Ember, each a card: what it is, how it fights, and one button. Asked of anyone without a path once
 // their name and outfit are done (online too: the choice goes to the server), never in a trial or on Kestrel Isle.
-// How each path is shown when it's chosen, besides its own words in VOCATIONS (role, desc): how it fights, its weapons,
-// its strengths and weakness as those words and its numbers have them (health a level 15 / 10 / 5, mana 5 / 15 / 30), and
-// what it starts with (START_KITS). Nothing here that the game doesn't do.
+// How each path is shown when it's chosen. Its words are the game's own (VOCATIONS: role; START_KITS and newPlayer: what
+// it starts with); its strengths and weakness as those words and its numbers have them (health a level 15 / 10 / 5,
+// mana 5 / 15 / 30); nothing here that the game doesn't do. Its picture (sprites/ui/classes/<art>.webp: the path's
+// look, not the player's own) is cropped round art position; its emblem, its colour (tint) on its card.
 const PATH_PICK = {
-  knight: { combat: 'Melee', weapons: 'Swords, axes, clubs and shields',
-    strengths: ['The most health of all', 'Heavy blows up close', 'Takes the blows for friends'], weakness: 'Can\'t fight from afar',
-    starts: 'The temple\'s club and supplies' },
-  paladin: { combat: 'Ranged', weapons: 'Bows and crossbows',
-    strengths: ['Strikes from afar', 'Power Shot, volleys of arrows and a falcon', 'A little holy magic'], weakness: 'Vulnerable when enemies get close',
-    starts: 'A bow and 60 arrows, in hand' },
-  sorcerer: { combat: 'Magic', weapons: 'Wands and runes',
-    strengths: ['Fire and energy over whole packs', 'The most damage of all', 'The most mana'], weakness: 'Fragile, and done when the mana runs out',
-    starts: 'Two mana potions' },
+  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', weapons: 'Swords, axes, clubs and shields',
+    strengths: ['The most health of all', 'Heavy blows up close', 'Takes the blows for friends'], weakness: 'Can\'t fight from afar' },
+  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', weapons: 'Bows and crossbows',
+    strengths: ['Strikes from afar', 'Power Shot, volleys of arrows and a falcon', 'A little holy magic'], weakness: 'Vulnerable when enemies get close' },
+  sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', weapons: 'Wands and runes',
+    strengths: ['Fire and energy over whole packs', 'The most damage of all', 'The most mana'], weakness: 'Fragile, and done when the mana runs out' },
 };
+// what a path starts with: its own kit (START_KITS: in hand or in the bag), then what every new character has
+// (newPlayer: the temple's club, unless the kit puts another weapon in hand, five apples and two health potions)
+function pathKit(v) {
+  const own = (START_KITS[v] || []).map(([where, id, n]) => ({ id, n }));
+  const armed = (START_KITS[v] || []).some(([where]) => where === 'weapon');
+  return [...own, ...(armed ? [] : [{ id: 'wooden_club', n: 1 }]), { id: 'apple', n: 5 }, { id: 'health_potion', n: 2 }];
+}
 function maybeAskPath() {
   if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
   // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
@@ -1359,94 +1364,110 @@ function maybeAskPath() {
   if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
   askPath();
 }
-// The paths, one at a time: tabs (or, on a wide screen, three small cards) to pick one, the arrows or a swipe to go
-// through them, and one button that stays where it is: Choose this path, then a word to confirm (a path is for good).
-let pathAt = 0, pathTimer = null;
-function askPath(onDone) {
-  const win = $('pathPick');
-  const show = (i, from) => {
-    pathAt = (i + START_PATHS.length) % START_PATHS.length;
-    const v = START_PATHS[pathAt];
-    $('pathTabs').replaceChildren(...START_PATHS.map((w, j) => {
-      const t = h('button', { className: `path-tab path-${w}${j === pathAt ? ' active' : ''}`, role: 'tab' },
-        h('canvas', { className: 'path-tab-pic', width: 64, height: 64 }), h('b', {}, vocName(w)), h('small', {}, PATH_PICK[w].combat));
-      t.setAttribute('aria-selected', j === pathAt ? 'true' : 'false');
-      t.onclick = () => { if (j !== pathAt) show(j, j > pathAt ? 1 : -1); };
-      return t;
+// Choosing a path: the paths' cards in a row, the one looked at in the middle, large and ringed in gold (on a phone its
+// neighbours peek in at the sides; on a wide screen all three stand side by side); arrows, dots, a swipe or the arrow
+// keys go through them. Under them, on parchment, what the path is and starts with; at the foot one button that stays
+// where it is (Choose Bastion...) and Back. Looking chooses nothing: the choice is asked once more ("for good").
+let pathAt = 0;
+const pathWide = () => matchMedia('(min-width: 900px) and (min-height: 600px)').matches;
+const classArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/classes/${file}`]; return `sprites/ui/classes/${file}${h ? `?h=${h}` : ''}`; };
+function askPath(onDone, onBack) {
+  const win = $('pathPick'), track = $('pathTrack');
+  if (!track.childElementCount) { // (the cards, once: their pictures fetched as the screen opens)
+    track.replaceChildren(...START_PATHS.map((v, i) => {
+      const info = PATH_PICK[v];
+      const card = h('button', { className: `cp-card cp-${v}`, role: 'tab', type: 'button' },
+        h('img', { className: 'cp-art', src: classArt(`${info.art}.webp`), alt: '', decoding: 'async', draggable: false }),
+        h('img', { className: 'cp-emblem', src: classArt(`${info.art}-emblem.png`), alt: '', draggable: false }),
+        h('span', { className: 'cp-band' }, h('b', {}, vocName(v)), h('small', {}, info.combat)));
+      card.querySelector('.cp-art').style.objectPosition = info.pos;
+      card.setAttribute('aria-label', `${vocName(v)}: ${info.combat}`);
+      card.onclick = () => show(i);
+      return card;
     }));
-    // (all three cards in one place, one shown: the place is as tall as the tallest, so the button below never moves)
-    $('pathPickCards').replaceChildren(...START_PATHS.map((w, j) => pathCard(w, j === pathAt ? from : 0, j === pathAt)));
-    $('pathChoose').textContent = `Choose the ${vocName(v)}`;
+    $('pathDots').replaceChildren(...START_PATHS.map((v, i) => {
+      const dot = h('button', { className: 'cp-dot', role: 'tab', type: 'button' }); dot.setAttribute('aria-label', vocName(v)); dot.onclick = () => show(i); return dot;
+    }));
+    ParchmentPanel.decorate($('pathInfo'), { variant: 'compact' });
+  }
+  // the cards slide so the one looked at stands in the middle (a wide screen: they stand still, side by side)
+  function place() {
+    const cards = [...track.children], card = cards[pathAt];
+    if (pathWide() || !card) { track.style.transform = ''; return; }
+    const stage = $('pathStage').clientWidth;
+    track.style.transform = `translateX(${Math.round(stage / 2 - (card.offsetLeft + card.offsetWidth / 2))}px)`;
+  }
+  function show(i) {
+    pathAt = (i + START_PATHS.length) % START_PATHS.length;
+    const v = START_PATHS[pathAt], info = PATH_PICK[v];
+    [...track.children].forEach((c, j) => { c.classList.toggle('on', j === pathAt); c.setAttribute('aria-selected', j === pathAt ? 'true' : 'false'); c.tabIndex = j === pathAt ? 0 : -1; });
+    [...$('pathDots').children].forEach((d, j) => { d.classList.toggle('on', j === pathAt); d.setAttribute('aria-selected', j === pathAt ? 'true' : 'false'); });
+    place();
+    const kit = pathKit(v).map(({ id, n }) => {
+      const it = h('span', { className: 'cp-item', title: `${n > 1 ? `${n} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}` },
+        h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: '' }), n > 1 ? h('small', {}, String(n)) : '');
+      it.setAttribute('aria-label', it.title);
+      return it;
+    });
+    const content = h('div', { className: `cp-about cp-${v}` },
+      h('p', { className: 'cp-role' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
+      h('div', { className: 'cp-cols' },
+        h('div', {}, h('h5', {}, 'Strengths'), h('ul', { className: 'cp-good' }, ...info.strengths.map(t => h('li', {}, t)))),
+        h('div', {}, h('h5', {}, 'Weakness'), h('p', { className: 'cp-bad' }, info.weakness),
+          h('h5', {}, 'Starts with'), h('div', { className: 'cp-kit' }, ...kit))));
+    $('pathInfo').querySelectorAll(':scope > .cp-about').forEach(e => e.remove());
+    $('pathInfo').append(content);
+    $('pathChoose').textContent = `Choose ${vocName(v)}`;
     ask(false);
-    drawPathPictures();
-  };
+  }
   // the confirmation: a path is for good
-  const ask = on => {
-    const v = START_PATHS[pathAt];
-    $('pathAsk').hidden = !on;
-    $('pathChoose').hidden = on;
+  function ask(on) {
+    const v = START_PATHS[pathAt], box = $('pathAsk');
+    box.hidden = !on;
     if (!on) return;
-    const yes = h('button', { className: 'primary ob-btn' }, `Become ${aVoc(v)}`), no = h('button', { className: 'path-back' }, 'Not yet');
+    const yes = h('button', { className: 'ob-btn', type: 'button' }, `Become ${aVoc(v)}`), no = h('button', { className: 'cp-not-yet', type: 'button' }, 'Not yet');
     let sent = false;
     yes.onclick = () => {
       if (sent) return; sent = true;
-      Actions.choosePath(v); win.hidden = true; clearTimeout(pathTimer);
+      Actions.choosePath(v); box.hidden = true; win.hidden = true;
+      if (!document.body.classList.contains('welcome')) welcomeScene(false);
       if (onDone) onDone();
     };
     no.onclick = () => ask(false);
-    $('pathAsk').replaceChildren(h('p', {}, `Walk the path of ${aVoc(v)}? It is yours for good.`), h('div', { className: 'path-ask-row' }, no, yes));
+    const panel = h('div', { className: 'cp-ask-card' },
+      h('img', { className: 'cp-ask-emblem', src: classArt(`${PATH_PICK[v].art}-emblem.png`), alt: '' }),
+      h('h3', { id: 'pathAskTitle', className: 'pp-title' }, `Walk the path of ${aVoc(v)}?`), h('p', {}, 'It is yours for good: no one changes their path.'),
+      h('div', { className: 'cp-ask-row' }, no, yes));
+    ParchmentPanel.decorate(panel, { variant: 'compact' });
+    box.replaceChildren(panel);
     yes.focus({ preventScroll: true });
-  };
+  }
   $('pathChoose').onclick = () => ask(true);
-  $('pathPrev').onclick = () => show(pathAt - 1, -1);
-  $('pathNext').onclick = () => show(pathAt + 1, 1);
-  // (a sideways swipe on the card goes to the next path or the one before)
+  $('pathPrev').onclick = () => show(pathAt - 1);
+  $('pathNext').onclick = () => show(pathAt + 1);
+  $('pathBack').hidden = !onBack;
+  $('pathBack').onclick = () => { if (!onBack) return; win.hidden = true; $('pathAsk').hidden = true; onBack(); };
+  // (a sideways swipe on the cards goes to the next path or the one before)
   let sx = null, sy = null;
-  $('pathPickCards').ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
-  $('pathPickCards').ontouchend = e => {
+  $('pathStage').ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  $('pathStage').ontouchend = e => {
     if (sx === null) return;
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(pathAt + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) show(pathAt + (dx < 0 ? 1 : -1));
   };
-  win.onkeydown = e => {
-    if (e.key === 'ArrowRight') { show(pathAt + 1, 1); e.stopPropagation(); }
-    else if (e.key === 'ArrowLeft') { show(pathAt - 1, -1); e.stopPropagation(); }
+  // (the arrow keys go through the paths while they're shown, wherever the focus is; Escape takes back the question)
+  askPath.keys = e => {
+    if (!$('pathAsk').hidden) { if (e.key === 'Escape') { ask(false); e.stopPropagation(); } return; }
+    if (e.key === 'ArrowRight') { show(pathAt + 1); e.preventDefault(); e.stopPropagation(); }
+    else if (e.key === 'ArrowLeft') { show(pathAt - 1); e.preventDefault(); e.stopPropagation(); }
   };
+  if (!askPath.listening) { askPath.listening = true; addEventListener('keydown', e => { if (!$('pathPick').hidden && askPath.keys) askPath.keys(e); }, true); }
+  if (!askPath.placed) { askPath.placed = true; window.addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.place) askPath.place(); }); }
+  askPath.place = place;
+  if (!document.body.classList.contains('welcome')) welcomeScene('paths'); // (a character from before the paths: the hall, too)
   win.hidden = false;
-  show(pathAt, 0);
-}
-// one path's card (.pick-card; .path-card is the Book of Paths'): its figure, name, identity and three facts; its four marks; its strengths, weakness and kit
-function pathCard(v, from, on) {
-  const info = PATH_PICK[v], voc = VOCATIONS[v];
-  const card = h('div', { className: `pick-card path-${v}${on ? ' on' : ''}${on && from ? (from > 0 ? ' from-right' : ' from-left') : ''}` },
-    h('div', { className: 'path-hero' }, h('canvas', { className: 'path-pic', width: 192, height: 192 }),
-      h('div', { className: 'path-head' }, h('h3', {}, vocName(v)), h('p', { className: 'path-identity' }, `${capitalize(voc.role)}.`),
-        h('ul', { className: 'path-facts' }, h('li', {}, h('small', {}, 'Combat'), info.combat), h('li', {}, h('small', {}, 'Weapons'), info.weapons)))),
-    h('p', { className: 'path-desc' }, voc.desc),
-    h('div', { className: 'path-more' },
-      h('div', {}, h('h5', {}, 'Strengths'), h('ul', { className: 'path-good' }, ...info.strengths.map(t => h('li', {}, t)))),
-      h('div', {}, h('h5', {}, 'Weakness'), h('p', { className: 'path-bad' }, info.weakness),
-        h('h5', {}, 'Starts with'), h('p', {}, info.starts))));
-  if (!on) card.setAttribute('aria-hidden', 'true');
-  return card;
-}
-// each path's figure in its own outfit and your colours, walking towards you (the card's big, the tabs' small)
-function drawPathPictures() {
-  clearTimeout(pathTimer);
-  if ($('pathPick').hidden) return;
-  const frame = [0, 1, 0, 2][Math.floor(performance.now() / 250) % 4];
-  const draw = (c, v, f) => {
-    const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, c.width, c.height);
-    const img = Sprites.creature(Sprites.playerKey(v, { ...player.outfit, type: VOCATION_OUTFIT[v] }), 2, f), r = img.res || 1;
-    if (Sprites.w(img) > TILE) { const s = c.height / 52; g.drawImage(img, TILE * r, 12 * r, TILE * r, 52 * r, (c.width - TILE * s) / 2, c.height - 52 * s, TILE * s, 52 * s); }
-    else { const s = c.width / TILE; g.drawImage(img, 0, 0, TILE * r, TILE * r, 0, 0, TILE * s, TILE * s); }
-  };
-  try {
-    const big = $('pathPickCards').querySelector('.pick-card.on .path-pic');
-    if (big) draw(big, START_PATHS[pathAt], frame);
-    $('pathTabs').querySelectorAll('.path-tab-pic').forEach((c, j) => draw(c, START_PATHS[j], 0));
-  } catch (e) { /* the pictures not ready yet: next time */ }
-  pathTimer = setTimeout(drawPathPictures, 250);
+  requestAnimationFrame(() => show(pathAt));
+  show(pathAt);
 }
 
 // ---- the skill tree (creatures.js TREES, docs/skills-plan.md) ----------------------------------------------------------
@@ -2838,7 +2859,8 @@ const StoryBook = (() => {
 function newCharacterPath(onDone) {
   if (player.vocation !== 'none' || (navigator.webdriver && !/[?&]pickpath\b/.test(location.search))) { onDone(); return; }
   welcomeScene('paths');
-  askPath(onDone);
+  // (Back: your appearance again, as you left it, then the paths again, the one you looked at still in the middle)
+  askPath(onDone, () => { welcomeScene('temple'); openOutfit(() => newCharacterPath(onDone)); });
 }
 
 // ---- after the story: Oakvale's temple, and Sister Ama at your side -------------------------------------------------
