@@ -36,6 +36,7 @@
   <link rel="stylesheet" href="css/phone/theme.css?v=ui437">
   <link rel="stylesheet" href="css/parchment.css?v=ui437">
   <link rel="stylesheet" href="css/onboarding.css?v=ui437">
+  <link rel="stylesheet" href="css/sortia.css?v=ui437">
   <link rel="icon" type="image/png" sizes="32x32" href="sprites/ui/icon/icon-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="sprites/ui/icon/icon-180.png">
   <title>Lickii Adventures</title>
@@ -116,18 +117,20 @@
         </div>
 
         <div id="pathPick" class="class-pick" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-          <header class="cp-head"><h2 id="cpTitle" class="cp-title">Choose your path</h2><p class="cp-sub">How will you fight? Your path is yours for good.</p></header>
-          <div id="pathStage" class="cp-stage">
-            <button id="pathPrev" class="cp-arrow cp-prev" aria-label="Previous path">&#8249;</button>
-            <div id="pathTrack" class="cp-track" role="tablist" aria-label="Paths"></div>
-            <button id="pathNext" class="cp-arrow cp-next" aria-label="Next path">&#8250;</button>
-          </div>
-          <div id="pathDots" class="cp-dots" role="tablist" aria-label="Paths"></div>
-          <div id="pathInfo" class="cp-info" aria-live="polite"></div>
-          <div class="cp-nav">
-            <button id="pathBack" class="cp-back" aria-label="Back to your appearance">&#8249;</button>
-            <button id="pathChoose" class="ob-btn cp-choose">Choose Bastion</button>
-            <span class="cp-nav-gap" aria-hidden="true"></span>
+          <div class="sv-scene">
+            <div id="pathStage" class="sv-stage">
+              <h2 id="cpTitle" class="sv-banner" aria-label="Choose Your Path"><svg class="sv-title" viewBox="0 0 670 142" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><path id="svTitleArc" d="M46 97 Q335 53 624 97"/></defs><text text-anchor="middle"><textPath href="#svTitleArc" startOffset="50%">Choose Your Path</textPath></text></svg></h2>
+              <img class="sv-brand" alt="" draggable="false">
+              <div class="sv-rule sv-title-rule" aria-hidden="true"><span></span></div>
+              <p class="sv-sub">How will you fight? Your path is yours for good.</p>
+              <div id="pathTrack" class="sv-cards" role="group" aria-label="Paths"></div>
+              <button id="pathPrev" class="sv-arrow sv-left" type="button" aria-label="Previous path"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4-10 8 10 8-2-8z"/></svg></span></button>
+              <button id="pathNext" class="sv-arrow sv-right" type="button" aria-label="Next path"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 10 8-10 8 2-8z"/></svg></span></button>
+            </div>
+            <section id="pathInfo" class="sv-paper" aria-live="polite" aria-label="The path looked at"></section>
+            <button id="pathChoose" class="sv-cta" type="button">Choose Bastion</button>
+            <div id="pathDots" class="sv-dots" role="group" aria-label="Paths"></div>
+            <button id="pathBack" class="sv-back" type="button" aria-label="Back" hidden>&#8249;</button>
           </div>
           <div id="pathAsk" class="cp-ask" hidden role="alertdialog" aria-modal="true" aria-labelledby="pathAskTitle"></div>
         </div>

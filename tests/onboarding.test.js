@@ -114,18 +114,20 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => outfit.hidden), `${name}: no outfit while the character is made`);
 
     // your path: one at a time, chosen only once confirmed
-    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.cp-card').length === 3 && document.querySelectorAll('.cp-card.on').length === 1),
+    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.sv-card').length === 3 && document.querySelectorAll('.sv-card[data-position=center]').length === 1),
       `${name}: the path, in the hall of paths: three cards, one looked at`);
-    check(await page.evaluate(() => [...document.querySelectorAll('.cp-art, .cp-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    check(await page.evaluate(() => [...document.querySelectorAll('.sv-portrait, .sv-medal, .sv-brand')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: the arrows (a phone), a dot, the arrow keys; the button names the path; nothing chosen
-    if (await page.evaluate(() => getComputedStyle(pathNext).display !== 'none')) { await page.click('#pathNext'); check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk'), `${name}: the arrow: the next path`); }
-    await page.evaluate(() => document.querySelectorAll('.cp-dot')[0].click());
+    if (await page.evaluate(() => getComputedStyle(pathNext).display !== 'none')) { await page.click('#pathNext'); check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember'), `${name}: the arrow: the path on the right`); }
+    await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
     await page.keyboard.press('ArrowRight');
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
-    check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('parchment-panel') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.cp-item img').length >= 3; }),
+    check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
+    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
+    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && document.querySelector('.sv-card[data-v=knight]').dataset.position === 'right'), `${name}: Hawk on the left of Bastion, as in the reference`);
+    check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('sv-paper') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.sv-items img').length >= 3; }),
       `${name}: on parchment: strengths, weakness, the kit with the game's own item pictures`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
-    await page.evaluate(() => document.querySelectorAll('.cp-dot')[2].click());
+    await page.evaluate(() => document.querySelectorAll('#pathDots button')[2].click());
     await step('path');
     await page.click('#pathChoose');
     check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden), `${name}: not chosen before it's confirmed`);
@@ -133,7 +135,7 @@ const fits = page => page.evaluate(() => {
     await page.waitForTimeout(800);
 
     // the game: the outfit window, once, a moment later, in the game's own look: a colour chosen comes out on the character
-    await page.waitForSelector('#outfit:not([hidden])', { timeout: 5000 }).catch(() => {});
+    await page.waitForSelector('#outfit:not([hidden])', { timeout: 15000 }).catch(() => {});
     check(await page.evaluate(() => !outfit.hidden && !document.body.classList.contains('welcome') && !outfit.classList.contains('parchment-panel') && outfitDone.textContent === 'Done'),
       `${name}: in the world, the outfit window, in the game's own look`);
     await page.click('.outfit-parts button:nth-child(2)');

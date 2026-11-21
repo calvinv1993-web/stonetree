@@ -1364,59 +1364,77 @@ function maybeAskPath() {
   if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
   askPath();
 }
-// Choosing a path: the paths' cards in a row, the one looked at in the middle, large and ringed in gold (on a phone its
-// neighbours peek in at the sides; on a wide screen all three stand side by side); arrows, dots, a swipe or the arrow
-// keys go through them. Under them, on parchment, what the path is and starts with; at the foot one button that stays
-// where it is (Choose Bastion...) and Back. Looking chooses nothing: the choice is asked once more ("for good").
-let pathAt = 0;
-const pathWide = () => matchMedia('(min-width: 900px) and (min-height: 600px)').matches;
+// Choosing a path: SORTIA's vocation screen (css/sortia.css): the banner with the title on a curve, three portrait
+// cards, the one looked at large in the middle and the others lower at the sides; seal arrows beside it, dots under the
+// way on; a tap on a side card, a sideways swipe or the arrow keys go through them too. Under them, on parchment, what
+// the path is and starts with (the game's own words and items); at the foot one button (Choose Bastion...). Looking
+// chooses nothing: the choice is asked once more ("for good").
+let pathAt = 0, swipedAt = 0;
 const classArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/classes/${file}`]; return `sprites/ui/classes/${file}${h ? `?h=${h}` : ''}`; };
+const sortiaArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/sortia/${file}`]; return `sprites/ui/sortia/${file}${h ? `?h=${h}` : ''}`; };
+// (the icons of the parchment's headings: SORTIA's interface icons, 24 x 24, drawn in the text's colour)
+const SV_ICONS = {
+  shield: '<path d="M12 3c2 2 5 3 8 3v5c0 5-3 8-8 10-5-2-8-5-8-10V6c3 0 6-1 8-3Z"/><path d="M12 7v10m-4-5h8"/>',
+  swords: '<path d="M3 3h4l12 12m2-12h-4L5 15m12-1 4 4m-7-1 4 4m-7-4-4 4m-4-3 4-4M3 3v4l10 10m8-14v4l-4 4M5 18l-2 3m16-3 2 3"/>',
+  bag: '<path d="M9 7V5a3 3 0 0 1 6 0v2m-8 1h10l3 5v6l-3 2H7l-3-2v-6Z"/><path d="M8 14h8v4H8Z"/>',
+};
+const SV_RING = ['paladin', 'knight', 'sorcerer']; // (the cards' order round the middle, as in the reference)
+const svIcon = name => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true');
+  s.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${SV_ICONS[name]}</g>`; return s; };
 function askPath(onDone, onBack) {
   const win = $('pathPick'), track = $('pathTrack');
   if (!track.childElementCount) { // (the cards, once: their pictures fetched as the screen opens)
+    for (const [prop, file] of [['--sv-hall', 'vocation-hall.webp'], ['--sv-banner', 'banner.webp'], ['--sv-paper', 'parchment.webp'], ['--sv-button', 'button-ceremonial.webp']])
+      win.style.setProperty(prop, `url("${new URL(sortiaArt(file), location.href).href}")`);
+    win.querySelector('.sv-brand').src = sortiaArt('title-medallion.webp');
     track.replaceChildren(...START_PATHS.map((v, i) => {
       const info = PATH_PICK[v];
-      const card = h('button', { className: `cp-card cp-${v}`, role: 'tab', type: 'button' },
-        h('img', { className: 'cp-art', src: classArt(`${info.art}.webp`), alt: '', decoding: 'async', draggable: false }),
-        h('img', { className: 'cp-emblem', src: classArt(`${info.art}-emblem.png`), alt: '', draggable: false }),
-        h('span', { className: 'cp-band' }, h('b', {}, vocName(v)), h('small', {}, info.combat)));
-      card.querySelector('.cp-art').style.objectPosition = info.pos;
+      const card = h('button', { className: 'sv-card', type: 'button' },
+        h('span', { className: 'sv-face' }, h('span', { className: 'sv-window' },
+          h('img', { className: 'sv-portrait', src: sortiaArt(`${info.art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }))),
+        h('span', { className: 'sv-info' }, h('img', { className: 'sv-medal', src: sortiaArt(`${info.art}-medallion.webp`), alt: '', draggable: false }),
+          h('strong', {}, vocName(v)), h('small', {}, info.combat)));
+      card.dataset.v = v;
       card.setAttribute('aria-label', `${vocName(v)}: ${info.combat}`);
-      card.onclick = () => show(i);
+      card.onclick = () => { if (performance.now() > swipedAt + 300) show(i); };
       return card;
     }));
     $('pathDots').replaceChildren(...START_PATHS.map((v, i) => {
-      const dot = h('button', { className: 'cp-dot', role: 'tab', type: 'button' }); dot.setAttribute('aria-label', vocName(v)); dot.onclick = () => show(i); return dot;
+      const dot = h('button', { type: 'button' }, h('span')); dot.setAttribute('aria-label', `Show ${vocName(v)}`); dot.onclick = () => show(i); return dot;
     }));
-    ParchmentPanel.decorate($('pathInfo'), { variant: 'compact' });
   }
-  // the cards slide so the one looked at stands in the middle (a wide screen: they stand still, side by side)
-  function place() {
-    const cards = [...track.children], card = cards[pathAt];
-    if (pathWide() || !card) { track.style.transform = ''; return; }
-    const stage = $('pathStage').clientWidth;
-    track.style.transform = `translateX(${Math.round(stage / 2 - (card.offsetLeft + card.offsetWidth / 2))}px)`;
-  }
+  function place() {} // (the cards keep their places by CSS: nothing to measure)
+  // the path left (step -1) or right (step 1) of the one in the middle
+  const step = d => { const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(START_PATHS[pathAt]);
+    show(START_PATHS.indexOf(ring[(r + d + ring.length) % ring.length])); };
   function show(i) {
-    pathAt = (i + START_PATHS.length) % START_PATHS.length;
+    const n = START_PATHS.length;
+    pathAt = (i + n) % n;
     const v = START_PATHS[pathAt], info = PATH_PICK[v];
-    [...track.children].forEach((c, j) => { c.classList.toggle('on', j === pathAt); c.setAttribute('aria-selected', j === pathAt ? 'true' : 'false'); c.tabIndex = j === pathAt ? 0 : -1; });
-    [...$('pathDots').children].forEach((d, j) => { d.classList.toggle('on', j === pathAt); d.setAttribute('aria-selected', j === pathAt ? 'true' : 'false'); });
-    place();
-    const kit = pathKit(v).map(({ id, n }) => {
-      const it = h('span', { className: 'cp-item', title: `${n > 1 ? `${n} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}` },
-        h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: '' }), n > 1 ? h('small', {}, String(n)) : '');
-      it.setAttribute('aria-label', it.title);
-      return it;
+    // (round the middle in the reference's order: Hawk, Bastion, Ember; the one left of it is the one before it)
+    const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(v);
+    [...track.children].forEach((c, j) => {
+      const at = ring.indexOf(START_PATHS[j]);
+      c.dataset.position = at === r ? 'center' : at === (r + ring.length - 1) % ring.length ? 'left' : 'right';
+      c.setAttribute('aria-pressed', j === pathAt ? 'true' : 'false');
+      c.tabIndex = j === pathAt ? 0 : -1;
     });
-    const content = h('div', { className: `cp-about cp-${v}` },
-      h('p', { className: 'cp-role' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
-      h('div', { className: 'cp-cols' },
-        h('div', {}, h('h5', {}, 'Strengths'), h('ul', { className: 'cp-good' }, ...info.strengths.map(t => h('li', {}, t)))),
-        h('div', {}, h('h5', {}, 'Weakness'), h('p', { className: 'cp-bad' }, info.weakness),
-          h('h5', {}, 'Starts with'), h('div', { className: 'cp-kit' }, ...kit))));
-    $('pathInfo').querySelectorAll(':scope > .cp-about').forEach(e => e.remove());
-    $('pathInfo').append(content);
+    [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
+    const kit = pathKit(v).map(({ id, n: count }) => {
+      const name = `${count > 1 ? `${count} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}`;
+      const li = h('li', { title: name }, h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: name }), count > 1 ? h('small', {}, String(count)) : '');
+      return li;
+    });
+    const rule = () => { const r = h('div', { className: 'sv-rule' }, h('span')); r.setAttribute('aria-hidden', 'true'); return r; };
+    const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
+    $('pathInfo').replaceChildren(
+      rule(),
+      h('p', { className: 'sv-desc' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
+      rule(),
+      h('div', { className: 'sv-cols' },
+        h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
+        h('div', {}, h('h3', {}, svIcon('swords'), weak.length > 1 ? 'Weaknesses' : 'Weakness'), h('ul', { className: 'sv-list' }, ...weak.map(t => h('li', {}, t))),
+          h('h3', { className: 'sv-gear' }, svIcon('bag'), 'Starts with'), h('ul', { className: 'sv-items' }, ...kit))));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
     ask(false);
   }
@@ -1443,23 +1461,24 @@ function askPath(onDone, onBack) {
     yes.focus({ preventScroll: true });
   }
   $('pathChoose').onclick = () => ask(true);
-  $('pathPrev').onclick = () => show(pathAt - 1);
-  $('pathNext').onclick = () => show(pathAt + 1);
+  $('pathPrev').onclick = () => step(-1);
+  $('pathNext').onclick = () => step(1);
   $('pathBack').hidden = !onBack;
   $('pathBack').onclick = () => { if (!onBack) return; win.hidden = true; $('pathAsk').hidden = true; onBack(); };
-  // (a sideways swipe on the cards goes to the next path or the one before)
+  // (a sideways swipe on the cards goes to the next path or the one before; the tap that ends it doesn't pick a card)
   let sx = null, sy = null;
   $('pathStage').ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
   $('pathStage').ontouchend = e => {
     if (sx === null) return;
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) show(pathAt + (dx < 0 ? 1 : -1));
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) * 1.2) { swipedAt = performance.now(); step(dx < 0 ? 1 : -1); }
   };
+  $('pathStage').ondragstart = e => e.preventDefault();
   // (the arrow keys go through the paths while they're shown, wherever the focus is; Escape takes back the question)
   askPath.keys = e => {
     if (!$('pathAsk').hidden) { if (e.key === 'Escape') { ask(false); e.stopPropagation(); } return; }
-    if (e.key === 'ArrowRight') { show(pathAt + 1); e.preventDefault(); e.stopPropagation(); }
-    else if (e.key === 'ArrowLeft') { show(pathAt - 1); e.preventDefault(); e.stopPropagation(); }
+    if (e.key === 'ArrowRight') { step(1); e.preventDefault(); e.stopPropagation(); }
+    else if (e.key === 'ArrowLeft') { step(-1); e.preventDefault(); e.stopPropagation(); }
   };
   if (!askPath.listening) { askPath.listening = true; addEventListener('keydown', e => { if (!$('pathPick').hidden && askPath.keys) askPath.keys(e); }, true); }
   if (!askPath.placed) { askPath.placed = true; window.addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.place) askPath.place(); }); }
