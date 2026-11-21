@@ -4646,6 +4646,7 @@ const Sprites = (() => {
     bow,
     crossbow,
     arrow: g => missiles(g, 14, '#b8b8c0', '#c03030'),
+    rough_arrow: g => missiles(g, 13, '#8a6a42', '#b8a888'), // (a whittled point, plain grey feathers)
     bolt: g => missiles(g, 10, '#7a7a82', '#3a3a3a'),
     wand_sparks: g => wand(g, '#4a3a6a', '#c58cff'),
     wand_flames: g => wand(g, '#6a2a1a', '#ff7a1a'),

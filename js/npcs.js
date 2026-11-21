@@ -2228,8 +2228,8 @@ Object.assign(NPCS, {
     name: 'Smith Dunstan',
     look: { skin: '#d89868', hair: '#2a1a0a', beard: '#2a1a0a', body: '#5a3a1a', arms: '#d89868', legs: '#3a3a40', belt: '#2a1a0a' },
     greet: 'Welcome to the Dented Shield, $name. Weapons, bought and sold - want to {trade}?',
-    keywords: { job: 'I make weapons, and I buy the ones you find.', 'trophy|trophies|whetstone|core': { trophy: true }, 'spiked|club|best': 'A spiked club is the best I can make, and it is not cheap. They say the founders were buried with better arms - a longsword, a war axe and a mace - down in the crypt under Bone Rocks. Nobody who went to look came back with one.' },
-    trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8], ['spiked_club', 120], ['hawkeye_bow', 1200]], buys: ['gear', 'distance'] },
+    keywords: { job: 'I make weapons, and I buy the ones you find.', 'trophy|trophies|whetstone|core': { trophy: true }, 'arrow|arrows|quiver': 'Arrows, two gold apiece - I fletch them myself. A Hawk who can\'t pay whittles rough ones: they fly, but they don\'t bite like mine.', 'spiked|club|best': 'A spiked club is the best I can make, and it is not cheap. They say the founders were buried with better arms - a longsword, a war axe and a mace - down in the crypt under Bone Rocks. Nobody who went to look came back with one.' },
+    trade: { sells: [['wooden_club', 10], ['dagger', 18], ['hatchet', 30], ['short_sword', 45], ['spear', 8], ['arrow', 2], ['spiked_club', 120], ['hawkeye_bow', 1200]], buys: ['gear', 'distance'] },
   },
   oak_armourer: {
     name: 'Armourer Brenna',

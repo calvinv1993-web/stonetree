@@ -650,6 +650,7 @@ const SPELLS = {
   final_blaze:  { name: 'Final Blaze', words: 'ignis ultima', vocs: ['knight', 'paladin', 'sorcerer', 'druid'], level: 15, mana: 0, kind: 'selfdestruct', hidden: true, radius: 2, element: 'fire', power: { min: [3, 4, 0, 60], max: [5, 7, 0, 120] }, desc: 'Blow yourself up: heavy fire damage to everyone within 2 tiles - and you die.' },
 
   holy_bolt:    { name: 'Holy Bolt', words: 'sanctus', vocs: ['paladin'], level: 1, mana: 25, kind: 'bolt', element: 'holy', range: 5, power: { min: [0.5, 2, 0.4, 8], max: [0.8, 3, 0.6, 18] }, desc: 'Holy damage at range. Very strong against the undead.' },
+  fletch_arrows: { name: 'Fletch Arrows', words: 'forma virga', vocs: ['paladin'], level: 3, mana: 20, kind: 'conjure', item: 'rough_arrow', count: 10, desc: 'Whittles 10 rough arrows: weaker than bought ones, but free.' },
   conjure_arrows: { name: 'Conjure Arrows', words: 'forma sagitta', vocs: ['paladin'], level: 10, mana: 40, kind: 'conjure', item: 'arrow', count: 15, desc: 'Makes 15 arrows.' },
   greater_heal: { name: 'Greater Heal', words: 'vita major', vocs: ['paladin', 'druid'], level: 12, mana: 50, kind: 'heal', power: { min: [0.6, 4, 0, 40], max: [1, 6, 0, 70] }, desc: 'Heals a lot of hitpoints.' },
   conjure_bolts: { name: 'Conjure Bolts', words: 'forma sagitta gravis', vocs: ['paladin'], level: 15, mana: 60, kind: 'conjure', item: 'bolt', count: 10, desc: 'Makes 10 bolts.' },

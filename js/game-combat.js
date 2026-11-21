@@ -241,7 +241,14 @@ function useAmmo(w) {
     if (Math.random() >= w.thrown.breakChance) return;
     if (--eq.weapon.count <= 0) eq.weapon = null;
   } else if (--eq.ammo.count <= 0) {
+    const last = eq.ammo.id;
     eq.ammo = null;
+    // (the quiver empty: filled again from the bag, the same ammunition first, else any the weapon shoots)
+    const type = ITEMS[last].ammo.type, next = [last, ...Object.keys(ITEMS).filter(id => id !== last && ITEMS[id].ammo && ITEMS[id].ammo.type === type)].find(id => countItem(id) > 0);
+    if (next) {
+      const n = Math.min(MAX_STACK, bagItems().filter(i => i.id === next && !i.q).reduce((k, i) => k + i.count, 0));
+      if (n && removeItem(next, n)) { eq.ammo = makeItem(next, n); log(`You fill your quiver: ${itemName(next, n)}.`); }
+    }
   }
   uiDirty();
 }
@@ -830,7 +837,13 @@ function castSpell(id) {
     addSparkle(player, '#6080ff');
   } else if (s.kind === 'conjure') {
     if (s.blank) removeItem('blank_rune', 1);
-    giveItem(s.item, s.count);
+    const eq = player.equipment, ammo = ITEMS[s.item].ammo;
+    if (ammo && (!eq.ammo || (eq.ammo.id === s.item && !eq.ammo.q))) { // (ammunition goes straight into the ammo slot when it's empty or holds the same)
+      const n = Math.min(s.count, MAX_STACK - (eq.ammo ? eq.ammo.count : 0));
+      if (eq.ammo) eq.ammo.count += n; else eq.ammo = makeItem(s.item, n);
+      if (s.count > n) giveItem(s.item, s.count - n);
+      uiDirty();
+    } else giveItem(s.item, s.count);
     addSparkle(player, '#c58cff');
   } else if (s.kind === 'bolt') {
     addMissile(player, t, s.element);

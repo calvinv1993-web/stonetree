@@ -2003,6 +2003,30 @@ test('the triple shot: three quick arrows at your target, each hit on its own as
   assert(hits[2] - hits[0] >= 120 && hits[2] - hits[0] <= 400, `quick: ${hits}`);
 });
 
+test('a Hawk\'s arrows: rough ones whittled from level 3 into the quiver, weaker than bought; the quiver fills itself from the bag; the smith sells arrows', () => {
+  const game = quietGame();
+  const { ctx, state, messages } = game;
+  const p = state.player, A = state.Actions;
+  ctx.teleport({ x: 128, y: 172, z: 8 });
+  Object.assign(p, { vocation: 'paladin', home: 'main', level: 2, mana: 100, maxMana: 100 });
+  p.equipment.weapon = { id: 'bow', count: 1 }; p.equipment.ammo = null;
+  A.say('forma virga'); tick(game, 100);
+  assert(messages.some(m => /level 3/.test(m)) && !p.equipment.ammo, 'not before level 3');
+  p.level = 3; state.now += 3000;
+  A.say('forma virga'); tick(game, 100);
+  assert.strictEqual(JSON.stringify(p.equipment.ammo && [p.equipment.ammo.id, p.equipment.ammo.count]), JSON.stringify(['rough_arrow', 10]), 'ten rough arrows, in the quiver');
+  assert(state.ITEMS.rough_arrow.ammo.attack < state.ITEMS.arrow.ammo.attack, 'weaker than bought ones');
+  // the last one shot: the quiver fills from the bag, the same ammunition first, else any arrows
+  p.equipment.ammo.count = 1;
+  ctx.giveItem('arrow', 5);
+  const m = ctx.spawnMonster({ type: 'bear', x: p.x + 3, y: p.y, z: 8 }); m.hp = m.maxHp = 9999; state.monsters.push(m);
+  p.target = m; p.chase = false;
+  for (let t = 0; t < 3000 && p.equipment.ammo && p.equipment.ammo.id === 'rough_arrow'; t += 50) tick(game, 50);
+  assert(p.equipment.ammo && p.equipment.ammo.id === 'arrow' && p.equipment.ammo.count >= 4 && !state.findInBag(it => it.id === 'arrow'), 'the quiver filled with the arrows from the bag');
+  assert(messages.some(m => /fill your quiver/.test(m)), 'and it says so');
+  assert(state.NPCS.oak_smith.trade.sells.some(([id]) => id === 'arrow'), 'Smith Dunstan sells arrows');
+});
+
 test('the Hawk\'s skill tree: a point a level (and three from the oracle), ranks costing their tier, tiers opening by level and rank, one button a line', () => {
   const game = quietGame();
   const { ctx, state, messages } = game;

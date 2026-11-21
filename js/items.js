@@ -89,6 +89,7 @@ const ITEMS = {
   bow:           { name: 'bow', slot: 'weapon', weapon: { type: 'distance', attack: 2, range: 6, ammo: 'arrow', twoHanded: true }, value: 50, weight: 31 },
   crossbow:      { name: 'crossbow', slot: 'weapon', weapon: { type: 'distance', attack: 5, range: 6, ammo: 'bolt', twoHanded: true }, level: 15, vocations: ['paladin'], value: 150, weight: 40 },
   arrow:         { name: 'arrow', stack: true, slot: 'ammo', ammo: { type: 'arrow', attack: 20 }, value: 1, weight: 0.7 },
+  rough_arrow:   { name: 'rough arrow', stack: true, slot: 'ammo', ammo: { type: 'arrow', attack: 13 }, value: 0, weight: 0.6 }, // (a Hawk's own, whittled: Fletch Arrows)
   bolt:          { name: 'bolt', stack: true, slot: 'ammo', ammo: { type: 'bolt', attack: 28 }, value: 1, weight: 0.8 },
 
   wand_sparks:   { name: 'wand of sparks', slot: 'weapon', weapon: { type: 'wand', dmg: [10, 20], mana: 2, range: 4, element: 'energy' }, level: 10, vocations: ['sorcerer'], value: 100, weight: 22 },
