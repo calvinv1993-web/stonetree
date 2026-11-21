@@ -2700,7 +2700,7 @@ function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on 
 // thin gold line); ornament: the golden tree crowning it instead of the frame's crest. ParchmentPanel.ornament(el, on)
 // switches that later. Its pictures are fetched by their own version, once, for every panel.
 const ParchmentPanel = (() => {
-  const PICTURES = { paper: 'paper', edge: 'paper-edge', tl: 'corner-tl', tr: 'corner-tr', bl: 'corner-bl', br: 'corner-br', top: 'edge-top', bottom: 'edge-bottom',
+  const PICTURES = { torn: 'paper-torn', tl: 'corner-tl', tr: 'corner-tr', bl: 'corner-bl', br: 'corner-br', top: 'edge-top', bottom: 'edge-bottom',
     left: 'edge-left', right: 'edge-right', crest: 'crest', ornament: 'ornament' };
   let versioned = false;
   // (each picture's address with its version, on the page's root: every panel uses them; whole, so a stylesheet reads them right)

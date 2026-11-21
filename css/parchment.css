@@ -1,7 +1,6 @@
 /* The parchment panel (game-ui.js ParchmentPanel): a page of aged paper in an antique gold frame, round any content.
-   Layers under the content (which stays plain HTML): the paper (sprites/ui/parchment/paper.webp, at its own size, never
-   stretched), its aged and darkened rim (paper-edge.webp: the original's own cloudy rim), the frame, and an optional
-   ornament. Its pictures are cut from the supplied
+   Layers under the content (which stays plain HTML): the dark behind the frame, the paper on it (paper-torn.webp: aged
+   paper with torn, burnt edges), the frame, and an optional ornament. Its pictures are cut from the supplied
    originals by tests/parchment-kit.py (docs/parchment-ui/).
 
    Everything is measured in units of the original border (1536 x 1024), and a unit is the panel's own width / 1536
@@ -11,13 +10,13 @@
 
    Variants:
      .pp-ceremonial   the gold frame: its bannered top corners, the crest, the corners below (the default)
-     .pp-compact      a thin antique-gold line round the aged paper instead (small windows, where the frame would crowd)
+     .pp-compact      a thin antique-gold line round the paper's middle instead (small windows, where the frame would crowd)
    Options:
      .pp-ornate       the golden tree ornament crowning the panel, in place of the crest */
 
 .parchment-panel {
   /* (its pictures; set again with their versions by ParchmentPanel, so an update fetches only the ones that changed) */
-  --pp-paper: url(../sprites/ui/parchment/paper.webp); --pp-edge: url(../sprites/ui/parchment/paper-edge.webp);
+  --pp-torn: url(../sprites/ui/parchment/paper-torn.webp);
   --pp-tl: url(../sprites/ui/parchment/corner-tl.webp); --pp-tr: url(../sprites/ui/parchment/corner-tr.webp);
   --pp-bl: url(../sprites/ui/parchment/corner-bl.webp); --pp-br: url(../sprites/ui/parchment/corner-br.webp);
   --pp-top: url(../sprites/ui/parchment/edge-top.webp); --pp-bottom: url(../sprites/ui/parchment/edge-bottom.webp);
@@ -29,10 +28,11 @@
 /* one unit of the original, on the panel: read by its layers (they're inside it, so 100cqw is the panel's width) */
 .parchment-panel > .pp-paper, .parchment-panel > .pp-frame { --pp-u: min(calc(100cqw / 1536), 0.34px); }
 .pp-paper, .pp-frame, .pp-frame > i { position: absolute; pointer-events: none; }
-.pp-paper { z-index: -2; background: #e6cc98 var(--pp-paper) center / max(680px, 100%) auto repeat-y; }
-/* the aged rim: dark and cloudy at the edges, clear in the middle; over the whole paper (a panel's paper has nearly the
-   original's shape, so it's barely reshaped, and has no seam) */
-.pp-paper::after { content: ''; position: absolute; inset: 0; background: var(--pp-edge) center / 100% 100% no-repeat; }
+/* the paper: aged, with torn and burnt edges (paper-torn.webp), lying on the dark behind the frame; its corners as
+   painted, its torn rim kept at its own thickness along every side (border-image), only its middle sized to the panel */
+.pp-paper { z-index: -2; background: #1e1209; }
+.pp-paper::after { content: ''; position: absolute; inset: calc(12 * var(--pp-u)); box-sizing: border-box; border-style: solid;
+  border-width: calc(115 * var(--pp-u)); border-image: var(--pp-torn) 77 fill / calc(115 * var(--pp-u)) stretch; }
 .pp-frame { z-index: -1; inset: 0; }
 .pp-frame > i { display: block; background-repeat: no-repeat; background-size: 100% 100%; }
 
@@ -72,8 +72,8 @@
 
 /* ---- the thin antique-gold line round the aged paper, for a small window ---- */
 .pp-compact { padding: 12px 16px; border-radius: 6px; }
-.pp-compact > .pp-paper { inset: 0; border-radius: inherit; overflow: hidden; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
-.pp-compact .pp-frame { display: none; }
+.pp-compact > .pp-paper { inset: 0; border-radius: inherit; overflow: hidden; background: #c99a55 var(--pp-torn) center / 150% auto no-repeat; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
+.pp-compact .pp-frame, .pp-compact > .pp-paper::after { display: none; }
 
 /* ---- its words: a burgundy serif title, dark brown text ---- */
 .parchment-panel .pp-title { margin: 0; text-align: center; font: 700 clamp(18px, 5vw, 22px) / 1.15 var(--ob-serif, Georgia, serif); color: #6a1a10; letter-spacing: 0.01em;
