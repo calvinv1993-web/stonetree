@@ -317,7 +317,7 @@ function login(conn, msg) {
       const vocation = p.vocation !== 'none' ? p.vocation : Object.keys(TEST_KITS).includes(msg.vocation) ? msg.vocation : 'knight';
       W.testBoost(vocation, TEST_KITS[vocation]);
     }
-    W.log(`Welcome${account ? ' back' : ''}, ${p.name}! ${G.players.length - 1} other player${G.players.length === 2 ? ' is' : 's are'} online.`, 'quest');
+    W.log(`Welcome${account ? ' back' : ''}, ${p.name}! ${G.players.length - 1} other player${G.players.length === 2 ? ' is' : 's are'} online.`, 'welcome'); // (no pop-up on a phone: the log and the chat line)
   });
   if (!account) accounts[key] = { password: hashPassword(msg.password || ''), save: null };
   if (TEST) accounts[key].boosted = true;

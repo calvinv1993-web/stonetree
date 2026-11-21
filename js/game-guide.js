@@ -27,8 +27,9 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
   // using things (the cannons on the wall); skills and gear; then a real fight down a grate (a torch for the dark),
   // healing after it, the loot, what dying means, trading, the locker. After them, no arrow: the map's circles. ----
   {
-    text: 'The Hollow Host, an army of monsters, has swallowed every town and kingdom of the world. Oakvale is the last town standing. Most of its fighters lie dead beyond the wall, and outside it is death for anyone untrained. The watch carried you in at dawn with almost nothing. But you are not alone: others have come here too, and together you are stronger.',
-    touch: 'The Hollow Host, an army of monsters, has swallowed the world. Oakvale is the last town standing, and most of its fighters are dead. The watch carried you in at dawn with nothing. But others came here too.',
+    // (the story itself was told in the book before the character was made: here only where you are, and a word of hope)
+    text: 'You are in Oakvale\'s temple, in the last town standing. You have almost nothing yet, but you are not alone: others have come here too, and together you are stronger. This guide shows you the way, a step at a time.',
+    touch: 'Oakvale\'s temple, in the last town standing. You are not alone: others came here too. This guide shows the way, a step at a time.',
   },
   {
     text: 'First, walking: go to the temple\'s door, where the yellow arrow points. Click where you want to go, or walk with W A S D or the arrow keys.',

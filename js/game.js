@@ -1692,7 +1692,7 @@ function startOffline() {
   showCharacterCreation(() => {
     paused = false;
     saveGame();
-    log(`Welcome to ${typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? 'Kestrel Isle' : 'Oakvale Isle'}, ${player.name}!`, 'quest');
+    log(`Welcome to ${typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? 'Kestrel Isle' : 'Oakvale Isle'}, ${player.name}!`, 'welcome'); // (in the log and the chat line; it doesn't pop up over the guide)
     startWorld();
   });
 }

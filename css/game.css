@@ -13,7 +13,7 @@
 .log .damage { color: #ff7a7a; }
 .log .xp { color: #f4f4f4; }
 .log .level { color: #ffd84a; font-weight: bold; }
-.log .quest { color: #ffcf6a; }
+.log .quest, .log .welcome { color: #ffcf6a; }
 .log .npc { color: #8fd0ff; }
 .log .say { color: #e8e070; }
 .log .kw { color: #ffffff; text-decoration: underline; cursor: pointer; }
