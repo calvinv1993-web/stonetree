@@ -2974,12 +2974,29 @@ function keepAboveKeyboard(input) {
   }, 300));
 }
 
+// Your name, as a talk with Sister Ama on the story's parchment (sprites/ui/parchment/story-panel.webp, as it was painted,
+// never stretched): her face, name and words, then the field, other ways to start and the way on, all real HTML in the
+// picture's writing area (css/onboarding.css, .name-sheet). The login online keeps its own window (net.js).
+function nameSheet(dialog) {
+  if (dialog.classList.contains('name-sheet')) return;
+  dialog.classList.add('name-sheet');
+  dialog.querySelector('.ob-title').remove(); // (Sister Ama asks it herself)
+  const hash = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/parchment/story-panel.webp'];
+  const art = h('img', { className: 'ns-art', alt: '', draggable: false, src: `sprites/ui/parchment/story-panel.webp${hash ? `?h=${hash}` : ''}` });
+  art.setAttribute('aria-hidden', 'true');
+  const rule = h('div', { className: 'ns-rule' }); rule.setAttribute('aria-hidden', 'true');
+  const field = h('div', { className: 'ns-field' });
+  const input = $('createName'); input.replaceWith(field); field.append(input);
+  const talk = $('createAma'), form = h('div', { className: 'ns-form' }, rule, field, $('createHint'), $('createMore'), dialog.querySelector('.ob-nav'));
+  dialog.append(art, h('div', { className: 'ns-writing' }, talk, form));
+}
+
 // A new character, offline: the story, the temple and Sister Ama, your name, your outfit, your path.
 function showCharacterCreation(onDone) {
   const dialog = $('create');
   welcome(true);
   const input = $('createName'), go = $('createStart');
-  dialog.querySelector('.ob-title').textContent = 'What is your name?';
+  nameSheet(dialog);
   go.textContent = 'Continue';
   // for testing: start as a level 100 character with the best gear (see makeTestHero), tucked away under "Other ways to start"
   const start = document.createElement('select');
@@ -2990,7 +3007,6 @@ function showCharacterCreation(onDone) {
   $('createMore').hidden = false;
   watchName(input, go);
   keepAboveKeyboard(input);
-  ParchmentPanel.decorate(dialog, { scroll: true });
   StoryBook.show(() => {
     templeScene(true);
     $('createAma').hidden = false;

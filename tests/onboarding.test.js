@@ -95,6 +95,16 @@ const fits = page => page.evaluate(() => {
     await page.fill('#createName', 'x');
     check(await page.evaluate(() => createStart.disabled && !!createHint.textContent), `${name}: a name too short is refused, and says why`);
     await page.fill('#createName', 'lickii tester');
+    check(await page.evaluate(() => !createStart.disabled), `${name}: a good name opens the way on`);
+    // (the name's window: the story's parchment as painted, under the temple; no heading; Sister Ama's words all in sight)
+    check(await page.evaluate(() => {
+      const art = create.querySelector('.ns-art'), r = create.getBoundingClientRect();
+      return art && art.complete && art.naturalWidth === 1199 && Math.abs(r.width / r.height - 1199 / 1312) < 0.01 && !create.querySelector('.ob-title');
+    }), `${name}: the name on the story's parchment, at its own shape, with no heading`);
+    check(await page.evaluate(() => { const a = createAma; return a.scrollHeight <= a.clientHeight + 1; }), `${name}: Sister Ama's words fit the parchment`);
+    check(await page.evaluate(() => { const w = create.querySelector('.ns-writing').getBoundingClientRect(), b = createStart.getBoundingClientRect(), f = createName.getBoundingClientRect();
+      return b.bottom <= w.bottom + 0.5 && f.left >= w.left - 0.5 && f.right <= w.right + 0.5; }), `${name}: the field and the way on inside the parchment's writing area`);
+    check(await page.evaluate(() => create.getBoundingClientRect().top > innerHeight * 0.2), `${name}: the temple in sight over the parchment`);
     await step('name');
     await page.evaluate(() => { createStart.click(); createStart.click(); });
     await page.waitForTimeout(600);

@@ -437,3 +437,72 @@ html body .story-book .sb-title { font-family: var(--ob-head) !important; }
 .sb-hint { height: 20px; min-height: 0; line-height: 20px; overflow: hidden; white-space: nowrap; }
 @media (max-height: 700px) and (max-aspect-ratio: 5/4) { .sb-hint { height: 16px; line-height: 16px; } }
 .sb-dots { flex: none; }
+
+/* ---- your name: a talk with Sister Ama on the story's parchment (game-ui.js nameSheet): the picture as it was painted
+   (story-panel.webp, 1199 x 1312: never stretched or cut), at the screen's foot under the temple and her statue; its
+   words, the field and the way on real HTML in the picture's writing area: clear of the gold corners, the torn edges and
+   the wax seal (measured on the picture, in % of it). The picture scales with the screen (its height: at most 62% of it,
+   less while a phone's keyboard is up, --ob-kb), the words with the picture (cqw), never below a readable size; if
+   they still don't fit, Sister Ama's words scroll, the field and the way on stay where they are. ---- */
+body.welcome #create.name-sheet {
+  --ns-h: min(calc(100dvh - var(--ob-kb, 0px) - var(--ob-safe-top) - var(--ob-safe-bottom) - 6px), max(62dvh, 360px));
+  width: min(calc(100vw - 8px), 600px, calc(var(--ns-h) * 1199 / 1312)) !important; aspect-ratio: 1199 / 1312; height: auto; max-height: none !important;
+  bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px)) !important; padding: 0 !important; overflow: visible !important; container-type: inline-size;
+  background: none !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; color: #3a2210 !important; text-align: left;
+  animation: sb-panel-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@media (min-height: 760px) { body.welcome #create.name-sheet { bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px) + 2vh) !important; } }
+.name-sheet .ns-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55)); }
+.name-sheet .ns-writing { position: absolute; left: 10%; right: 10%; top: 13%; bottom: 24.5%; display: flex; flex-direction: column; }
+/* Sister Ama: her face in a gold ring, her name in burgundy capitals over a small rule, her words in italics round it */
+body.welcome #create.name-sheet #createAma { display: block; flex: 1 1 auto; min-height: 0; margin: 0; padding: 0 0 0 3cqw; border: none; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-width: none; }
+body.welcome #create.name-sheet #createAma[hidden] { display: none; }
+body.welcome #create.name-sheet #createAma::-webkit-scrollbar { display: none; }
+body.welcome #create.name-sheet .ob-face { float: left; width: clamp(46px, 14cqw, 84px); height: clamp(46px, 14cqw, 84px); margin: 0 3cqw 1cqw 0;
+  box-shadow: 0 0 0 2px #e8c46a, 0 0 0 4px #8a5a1c, 0 0 0 5px #3a2610, 0 3px 8px rgba(0, 0, 0, 0.4); }
+html body.welcome #create.name-sheet #createAma small { display: flow-root; margin: 0 0 1cqw; font: 700 clamp(14px, 4.6cqw, 24px) / 1.15 var(--ob-head) !important;
+  letter-spacing: 0.06em; color: #6e1c12; text-transform: uppercase; }
+.name-sheet #createAma small::after { content: '\25C6'; display: block; width: min(100%, 22em); margin-top: 0.15em; font: 0.4em / 1.2 var(--ob-serif); color: #6e1c12; text-align: center;
+  background: linear-gradient(90deg, transparent, #8a4a26 15%, #8a4a26 46%, transparent 46%, transparent 54%, #8a4a26 54%, #8a4a26 85%, transparent) center / 100% 1px no-repeat; }
+html body.welcome #create.name-sheet .ob-said p { margin: 0 0 0.35em; font: italic 400 clamp(13.5px, 3.95cqw, 20px) / 1.32 var(--ob-book) !important; color: #3a2210; }
+html body.welcome #create.name-sheet .ob-said p:last-child { margin: 0; text-align: center; clear: both; }
+/* the field, other ways to start, the way on: at the writing area's foot, under a rule with a burgundy diamond */
+.name-sheet .ns-form { flex: none; display: flex; flex-direction: column; }
+.name-sheet .ns-rule { height: clamp(10px, 3cqw, 16px); margin: 0.8cqw 0 1.4cqw; background: linear-gradient(90deg, transparent, #8a4a26 12%, #8a4a26 46%, transparent 46%,
+  transparent 54%, #8a4a26 54%, #8a4a26 88%, transparent) center / 100% 1px no-repeat; position: relative; }
+.name-sheet .ns-rule::after { content: ''; position: absolute; left: 50%; top: 50%; width: clamp(6px, 1.7cqw, 9px); aspect-ratio: 1; background: #7a1c12;
+  transform: translate(-50%, -50%) rotate(45deg); box-shadow: 0 0 0 1px rgba(255, 230, 180, 0.4); }
+.name-sheet .ns-field { position: relative; }
+/* (16px and up: an iPhone doesn't zoom in on it; a quill at its right) */
+html body.welcome #create.name-sheet input#createName { min-height: clamp(44px, 11.5cqw, 58px) !important; margin: 0; padding: 0 clamp(40px, 11cqw, 56px) 0 3.5cqw;
+  font: 400 max(16px, 4.4cqw) var(--ob-book) !important; color: #2e1a0a; border: 1.5px solid #c8963c; border-radius: 8px;
+  background: no-repeat right 3cqw center / clamp(22px, 6.5cqw, 32px) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M29 2.5C20 4 12 9.5 8.2 19.5L5 28.6l1.3.6 3.4-7.6c5.2-.9 9.8-3.7 12.6-8.2-2.6.7-5.2.9-7.3.8 3.7-1.7 7.1-4.7 8.7-8-1.9.6-3.9.9-5.8 1 4-1.6 8.1-3.3 11.1-4.7z' fill='%23c9a467' stroke='%236a4a1c' stroke-width='.9' stroke-linejoin='round'/%3E%3Cpath d='M26 5.5C19 9 13 14.5 7.5 25' fill='none' stroke='%236a4a1c' stroke-width='.8'/%3E%3C/svg%3E"),
+  linear-gradient(180deg, #fffaf0, #f4e6c8) !important;
+  box-shadow: inset 0 1px 3px rgba(80, 50, 20, 0.22), 0 0 0 1px rgba(255, 240, 200, 0.5), 0 1px 2px rgba(60, 36, 12, 0.3); }
+html body.welcome #create.name-sheet input#createName::placeholder { color: #8a7458; font-style: normal; }
+html body.welcome #create.name-sheet input#createName:focus { border-color: #b8862c; box-shadow: inset 0 1px 3px rgba(80, 50, 20, 0.22), 0 0 0 3px rgba(232, 180, 70, 0.45); }
+html body.welcome #create.name-sheet input#createName[aria-invalid=true] { border-color: #a0301e; }
+body.welcome #create.name-sheet .ob-hint { min-height: 0; margin: 0.8cqw 0 0; font-size: clamp(12.5px, 3.4cqw, 16px); text-align: center; }
+body.welcome #create.name-sheet .ob-hint:empty { display: none; }
+body.welcome #create.name-sheet .ob-more { margin: 0.6cqw 0 0; font-size: clamp(13px, 3.6cqw, 17px); color: #4a3018; }
+body.welcome #create.name-sheet .ob-more summary { min-height: 0; padding: 1cqw 0; list-style: none; display: flex; align-items: center; gap: 0.6em; }
+body.welcome #create.name-sheet .ob-more summary::-webkit-details-marker { display: none; }
+body.welcome #create.name-sheet .ob-more summary::before { content: ''; border: 0.36em solid transparent; border-left: 0.55em solid #3a2210; border-right-width: 0; transition: transform var(--ob-quick); }
+body.welcome #create.name-sheet .ob-more[open] summary::before { transform: rotate(90deg); }
+body.welcome #create.name-sheet .ob-more select { margin: 0 0 1cqw; min-height: 44px; }
+/* the way on: deep green in a gold rim, its word in gold */
+body.welcome #create.name-sheet .ob-nav { margin: 0.6cqw 0 0; }
+html body.welcome #create.name-sheet button.ob-btn.ob-btn { min-width: 0; width: min(64%, 100%); min-height: clamp(44px, 11.5cqw, 58px) !important; padding: 0 4cqw;
+  font: 700 clamp(15px, 4.6cqw, 23px) var(--ob-head) !important; letter-spacing: 0.06em; color: #f8dc8c !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) !important;
+  background: linear-gradient(180deg, #3f8a32, #23611d 55%, #174815) !important; border: 2px solid #e2bd62 !important; border-radius: 9px !important;
+  box-shadow: inset 0 1px 0 rgba(190, 240, 150, 0.45), inset 0 -2px 4px rgba(0, 0, 0, 0.35), 0 0 0 1px #5a3a10, 0 3px 8px rgba(40, 20, 0, 0.45) !important; }
+html body.welcome #create.name-sheet button.ob-btn.ob-btn:disabled { opacity: 0.6; filter: saturate(0.35) brightness(0.95); }
+/* (a short screen with the keyboard up: Sister Ama's words fold away meanwhile, the field and the way on stay) */
+@media (max-height: 760px) { html.ob-keyboard body.welcome #create.name-sheet #createAma { display: none; } html.ob-keyboard body.welcome #create.name-sheet .ns-form { margin-block: auto; } }
+/* (the narrowest phones: a little more room for her words) */
+@container (max-width: 330px) { .name-sheet .ns-writing { left: 9%; right: 9%; } body.welcome #create.name-sheet #createAma { padding-left: 2cqw; }
+  body.welcome #create.name-sheet .ob-face { width: 42px; height: 42px; margin-right: 2.5cqw; }
+  html body.welcome #create.name-sheet .ob-said p { font-size: 13px !important; line-height: 1.28 !important; } }
+@media (max-width: 340px) { body.welcome #create.name-sheet { width: min(calc(100vw - 2px), calc(var(--ns-h) * 1199 / 1312)) !important; } }
+@media (prefers-reduced-motion: reduce) { body.welcome #create.name-sheet { animation: none; } }
