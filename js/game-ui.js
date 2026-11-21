@@ -1337,22 +1337,20 @@ function showWindow(heading, body) {
 // ---- choosing a path, as a new character is made (game-core.js choosePath) ------------------------------------------
 // Bastion, Hawk or Ember, each a card: what it is, how it fights, and one button. Asked of anyone without a path once
 // their name and outfit are done (online too: the choice goes to the server), never in a trial or on Kestrel Isle.
-// How each path is shown when it's chosen: its identity in a line, three facts, its strengths and its weakness, what it
-// starts with (START_KITS), and four marks out of 3, read off how it plays: health a level (VOCATIONS: 15, 10, 5), how
-// far it fights from, how much it deals, and how much a new player has to mind (arrows, mana, keeping away).
+// How each path is shown when it's chosen, besides its own words in VOCATIONS (role, desc): how it fights, its weapons,
+// its strengths and weakness as those words and its numbers have them (health a level 15 / 10 / 5, mana 5 / 15 / 30), and
+// what it starts with (START_KITS). Nothing here that the game doesn't do.
 const PATH_PICK = {
-  knight: { identity: 'A defensive frontline warrior', combat: 'Melee', strength: 'High survivability', weapons: 'Swords, axes, clubs and shields',
-    strengths: ['The most health of all', 'Heavy blows up close', 'Holds the line for friends'], weakness: 'Can\'t fight from afar',
-    starts: 'The temple\'s club and supplies', marks: { damage: 2, defence: 3, range: 1, difficulty: 1 } },
-  paladin: { identity: 'A mobile ranged fighter', combat: 'Ranged', strength: 'Precision and distance', weapons: 'Bows and crossbows',
-    strengths: ['Strikes from afar', 'A skill tree of shots, volleys and a falcon', 'A little holy magic'], weakness: 'Vulnerable when enemies get close',
-    starts: 'A bow and 60 arrows, in hand', marks: { damage: 3, defence: 2, range: 3, difficulty: 2 } },
-  sorcerer: { identity: 'A high-damage elemental spellcaster', combat: 'Magic', strength: 'Powerful area damage', weapons: 'Wands and runes',
-    strengths: ['Fire and lightning over whole packs', 'The most damage of all', 'The most mana'], weakness: 'Little health, and done when the mana runs out',
-    starts: 'Two mana potions', marks: { damage: 3, defence: 1, range: 2, difficulty: 3 } },
+  knight: { combat: 'Melee', weapons: 'Swords, axes, clubs and shields',
+    strengths: ['The most health of all', 'Heavy blows up close', 'Takes the blows for friends'], weakness: 'Can\'t fight from afar',
+    starts: 'The temple\'s club and supplies' },
+  paladin: { combat: 'Ranged', weapons: 'Bows and crossbows',
+    strengths: ['Strikes from afar', 'Power Shot, volleys of arrows and a falcon', 'A little holy magic'], weakness: 'Vulnerable when enemies get close',
+    starts: 'A bow and 60 arrows, in hand' },
+  sorcerer: { combat: 'Magic', weapons: 'Wands and runes',
+    strengths: ['Fire and energy over whole packs', 'The most damage of all', 'The most mana'], weakness: 'Fragile, and done when the mana runs out',
+    starts: 'Two mana potions' },
 };
-const PATH_MARKS = [['damage', 'Damage'], ['defence', 'Defence'], ['range', 'Range'], ['difficulty', 'Difficulty']];
-const MARK_WORDS = ['', 'Low', 'Medium', 'High'];
 function maybeAskPath() {
   if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
   // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
@@ -1419,15 +1417,12 @@ function askPath(onDone) {
 }
 // one path's card (.pick-card; .path-card is the Book of Paths'): its figure, name, identity and three facts; its four marks; its strengths, weakness and kit
 function pathCard(v, from, on) {
-  const info = PATH_PICK[v];
-  const marks = h('div', { className: 'path-marks' }, ...PATH_MARKS.map(([k, label]) => h('div', { className: 'path-mark' },
-    h('span', {}, label), h('i', { className: `pips p${info.marks[k]}`, title: MARK_WORDS[info.marks[k]] }, h('b'), h('b'), h('b')), h('small', {}, MARK_WORDS[info.marks[k]]))));
+  const info = PATH_PICK[v], voc = VOCATIONS[v];
   const card = h('div', { className: `pick-card path-${v}${on ? ' on' : ''}${on && from ? (from > 0 ? ' from-right' : ' from-left') : ''}` },
     h('div', { className: 'path-hero' }, h('canvas', { className: 'path-pic', width: 192, height: 192 }),
-      h('div', { className: 'path-head' }, h('h3', {}, vocName(v)), h('p', { className: 'path-identity' }, `${info.identity}.`),
-        h('ul', { className: 'path-facts' }, h('li', {}, h('small', {}, 'Combat'), info.combat), h('li', {}, h('small', {}, 'Strength'), info.strength),
-          h('li', {}, h('small', {}, 'Weapons'), info.weapons)))),
-    marks,
+      h('div', { className: 'path-head' }, h('h3', {}, vocName(v)), h('p', { className: 'path-identity' }, `${capitalize(voc.role)}.`),
+        h('ul', { className: 'path-facts' }, h('li', {}, h('small', {}, 'Combat'), info.combat), h('li', {}, h('small', {}, 'Weapons'), info.weapons)))),
+    h('p', { className: 'path-desc' }, voc.desc),
     h('div', { className: 'path-more' },
       h('div', {}, h('h5', {}, 'Strengths'), h('ul', { className: 'path-good' }, ...info.strengths.map(t => h('li', {}, t)))),
       h('div', {}, h('h5', {}, 'Weakness'), h('p', { className: 'path-bad' }, info.weakness),
