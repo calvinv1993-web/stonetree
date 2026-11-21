@@ -232,7 +232,13 @@ body.welcome .ob-more select { margin: 4px 0 0; }
 .ob-version { display: none; }
 body.welcome .ob-version { display: block; position: fixed; z-index: 29; right: max(10px, env(safe-area-inset-right)); bottom: var(--ob-safe-bottom); opacity: 0.75; pointer-events: none; }
 /* a phone: the name's window high on the screen, so the keyboard rising under it doesn't cover the field or the way on */
-body.touch-ui.welcome #create.ob-screen { top: calc(var(--ob-safe-top) + 3vh) !important; transform: translateX(-50%) !important; max-height: calc(100dvh - var(--ob-safe-top) - var(--ob-safe-bottom) - 3vh) !important; }
+/* your name: the window at the screen's foot, so the temple and Sister Ama's statue stand over it; it rises with a phone's
+   keyboard (--ob-kb, game-ui.js keepAboveKeyboard) */
+body.welcome #create.ob-screen { top: auto !important; bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px) + 8px) !important; transform: translateX(-50%) !important;
+  max-height: calc(100dvh - var(--ob-kb, 0px) - var(--ob-safe-top) - var(--ob-safe-bottom) - 16px) !important; transition: bottom 0.2s ease; }
+body.welcome #create input#createName { min-height: var(--ob-touch) !important; font-size: 17px !important; }
+@media (max-height: 760px) { html.ob-keyboard body.welcome #createAma { display: none; } }
+@media (min-height: 760px) { body.welcome #create.ob-screen { bottom: calc(var(--ob-safe-bottom) + var(--ob-kb, 0px) + 4vh) !important; } }
 @media (prefers-reduced-motion: reduce) { .ob-temple, .story-book.leaving { transition: none; } body.welcome .ob-said.enter p { animation: none; } }
 /* (a window that scrolls on a small phone keeps its way on in sight, at its foot) */
 body.welcome .ob-screen .dialog-buttons, body.welcome .ob-screen > .ob-nav { position: sticky; bottom: calc(-1 * var(--ob-pad)); z-index: 2;

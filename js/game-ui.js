@@ -2814,7 +2814,7 @@ function newCharacterPath(onDone) {
 // The welcome's picture gives way to the temple (06_character_creation: Oakvale's temple, Sister Ama's statue), and
 // Sister Ama speaks, a line at a time (a tap shows them all), before you're asked your name (or, online, where you made
 // the character at the login, before you go on to your outfit).
-const AMA_WAKE = ['You\'re awake. We feared you wouldn\'t survive the night.', 'Tell me, traveller... what is your name?'];
+const AMA_WAKE = ['You\u2019re awake. We feared you wouldn\u2019t survive the night.', 'Tell me, traveler\u2026 what is your name?'];
 const AMA_WAKE_ONLINE = ['You\'re awake. We feared you wouldn\'t survive the night.', '$name... you said it over and over in your sleep. Rest a moment, and let us find you something to wear.'];
 const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // the picture behind the windows a character is made in: the temple (06, your name and your outfit), the hall of paths
@@ -2875,11 +2875,22 @@ function watchName(input, button) {
   check();
   return check;
 }
-// (on a phone the keyboard rises: the field and the way on are brought into sight above it)
+// (on a phone the keyboard rises: the window at the screen's foot rises with it, by --ob-kb, the keyboard's height as the
+// browser's visual viewport tells it; the field is kept in sight inside the window)
+let keyboardWatched = false;
 function keepAboveKeyboard(input) {
+  const vv = window.visualViewport;
+  if (vv && !keyboardWatched) {
+    keyboardWatched = true;
+    const fit = () => {
+      const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+      document.documentElement.style.setProperty('--ob-kb', `${kb}px`);
+      document.documentElement.classList.toggle('ob-keyboard', kb > 80); // (a short screen folds Sister Ama's words away meanwhile)
+    };
+    vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); fit();
+  }
   input.addEventListener('focus', () => setTimeout(() => {
-    const win = input.closest('.ob-screen'); if (win) win.scrollTop = Math.max(0, input.offsetTop - 80);
-    input.scrollIntoView({ block: 'center' });
+    const win = input.closest('.ob-screen'); if (win && win.scrollHeight > win.clientHeight) win.scrollTop = Math.max(0, input.offsetTop - 80);
   }, 300));
 }
 
