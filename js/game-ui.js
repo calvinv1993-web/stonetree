@@ -1384,7 +1384,7 @@ const svIcon = name => { const s = document.createElementNS('http://www.w3.org/2
 function askPath(onDone, onBack) {
   const win = $('pathPick'), track = $('pathTrack');
   if (!track.childElementCount) { // (the cards, once: their pictures fetched as the screen opens)
-    for (const [prop, file] of [['--sv-hall', 'vocation-hall.webp'], ['--sv-banner', 'banner.webp'], ['--sv-paper', 'parchment.webp'], ['--sv-button', 'button-ceremonial.webp']])
+    for (const [prop, file] of [['--sv-hall', 'vocation-terrace.webp'], ['--sv-banner', 'banner.webp'], ['--sv-paper', 'parchment.webp'], ['--sv-button', 'button-ceremonial.webp']])
       win.style.setProperty(prop, `url("${new URL(sortiaArt(file), location.href).href}")`);
     track.replaceChildren(...START_PATHS.map((v, i) => {
       const info = PATH_PICK[v];
@@ -1403,7 +1403,7 @@ function askPath(onDone, onBack) {
     }));
   }
   // the screen's shape: taller than the reference's 2:3 (a phone), the parchment's words larger (the cards keep their proportions)
-  // and the hall's tall picture behind (its dark middle drawn out, its banners and candles where they were)
+  // (the background, a terrace over the sea, is the same on every screen: css/sortia.css)
   function place() {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
     const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
@@ -1426,7 +1426,6 @@ function askPath(onDone, onBack) {
         scene.style.width = `${Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1}px`; tallest();
       }
     }
-    win.style.setProperty('--sv-hall', `url("${new URL(sortiaArt(ratio > 1.8 ? 'vocation-hall-tall.webp' : 'vocation-hall.webp'), location.href).href}")`);
   }
   // what the parchment says of a path: its words, strengths, weakness and what it starts with
   function paperFor(v) {

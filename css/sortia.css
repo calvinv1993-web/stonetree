@@ -1,6 +1,6 @@
 /* SORTIA's vocation screen: choosing your path (game-ui.js askPath), after the owner's reference
-   (docs/sortia/vocation-reference.jpg, 1024 x 1536) and the SORTIA UI kit (docs/sortia/componenten.md). A dark castle
-   hall; a burgundy banner with the title on a curved SVG text path; three portrait cards,
+   (docs/sortia/vocation-reference.jpg, 1024 x 1536) and the SORTIA UI kit (docs/sortia/componenten.md). A ruined
+   terrace over the sea at dusk; a burgundy banner with the title on a curved SVG text path; three portrait cards,
    the one looked at large in the middle, its neighbours lower at the sides, their outer edges cut by the screen; round
    seal arrows beside the middle card; under them aged parchment: the path's words over the full width, Strengths and
    Weaknesses side by side, Starts with under Weaknesses; the green ceremonial button overlapping the paper's foot, and
@@ -16,7 +16,7 @@
   --sv-ivory: #f1e2ca; --sv-ink: #322016; --sv-gold: #e0b77d;
   position: fixed; inset: 0; z-index: 41; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
   display: flex; flex-direction: column; align-items: center;
-  background: #111013 var(--sv-hall, url(../sprites/ui/sortia/vocation-hall.webp)) center top / cover no-repeat;
+  background: #0d1018 var(--sv-hall, url(../sprites/ui/sortia/vocation-terrace.webp)) center 58% / cover no-repeat; /* (a ruined terrace over the sea at dusk: docs/sortia/vocation-background.png) */
   color: var(--sv-ivory); -webkit-tap-highlight-color: transparent;
 }
 #pathPick[hidden] { display: none; }

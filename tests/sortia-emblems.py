@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Takes the old tree emblem (Oakvale's) out of SORTIA's vocation-screen paintings, leaving plain cloth and steel (the
-# owner's choice: no emblem at all): the hall's banners and the cloth on the chest (sprites/ui/sortia/vocation-hall.webp,
-# then its tall version), Bastion's shield and breastplate (bastion-portrait.webp), and the wax seal at the foot of the
+# owner's choice: no emblem at all): Bastion's shield and breastplate (bastion-portrait.webp), and the wax seal at the foot of the
 # story's parchment (sprites/ui/parchment/story-panel.webp, from docs/parchment-ui/story-parchment.png). Each spot is a box on the
 # painting: the tree's gold is found by its colour inside it and painted over from the cloth or steel round it (OpenCV
 # inpainting). A spot can still be given the SORTIA seal, worked in gold: (size, tint, alpha) in place of None.
@@ -56,21 +55,6 @@ def treat(img, spots):
     return out.convert('RGB')
 
 GOLD = (214, 168, 92)
-# the hall: the two banners up front, the far banner (dim), the cloth on the chest
-hall = Image.open(ROOT + 'vocation-hall.webp')
-hall = treat(hall, [
-    (68, 70, 152, 215, False, None),
-    (868, 52, 952, 198, False, None),
-    (470, 440, 554, 562, 'dim', None),
-    (56, 1326, 140, 1456, False, None),
-])
-hall.save(ROOT + 'vocation-hall.webp', 'WEBP', quality=86)
-# (its tall version for a tall phone: the dark middle drawn out, banners and candles as they are)
-W, H = hall.size
-top, mid, foot = hall.crop((0, 0, W, 620)), hall.crop((0, 620, W, 1040)), hall.crop((0, 1040, W, H))
-newH = 2220; midH = newH - 620 - (H - 1040)
-tall = Image.new('RGB', (W, newH)); tall.paste(top, (0, 0)); tall.paste(mid.resize((W, midH), Image.LANCZOS), (0, 620)); tall.paste(foot, (0, 620 + midH))
-tall.save(ROOT + 'vocation-hall-tall.webp', 'WEBP', quality=82)
 # Bastion: the shield's crest and the breastplate's engraving
 bastion = Image.open(ROOT + 'bastion-portrait.webp')
 bastion = treat(bastion, [
