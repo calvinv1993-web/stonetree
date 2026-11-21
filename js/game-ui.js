@@ -1406,14 +1406,49 @@ function askPath(onDone, onBack) {
   // and the hall's tall picture behind (its dark middle drawn out, its banners and candles where they were)
   function place() {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
-    const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches;
-    if (!phone) scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3));
+    const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
+    // the parchment as tall as the tallest path's words, for every path: nothing moves when you look at another
+    const tallest = () => {
+      paper.style.minHeight = '';
+      let most = 0;
+      for (const v of START_PATHS) { paper.replaceChildren(...paperFor(v)); most = Math.max(most, paper.offsetHeight); }
+      paper.style.minHeight = `${most}px`;
+      paper.replaceChildren(...paperFor(START_PATHS[pathAt]));
+    };
+    if (!phone) { scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3)); tallest(); }
     else { // (a phone: the parchment's words as large as the mock-up's, smaller until the whole screen fits its height)
       let pk = 1;
-      scene.style.setProperty('--pk', pk);
-      while (pk > 0.66 && scene.scrollHeight > win.clientHeight + 1) { pk -= 0.03; scene.style.setProperty('--pk', pk.toFixed(2)); }
+      scene.style.width = '';
+      scene.style.setProperty('--pk', pk); tallest();
+      while (pk > 0.8 && scene.scrollHeight > win.clientHeight + 1) { pk -= 0.03; scene.style.setProperty('--pk', pk.toFixed(2)); tallest(); }
+      // (a short phone: still too tall, the whole scene a little narrower, everything in it smaller alike, till it fits)
+      for (let k = 0; k < 6 && scene.scrollHeight > win.clientHeight + 1; k++) {
+        scene.style.width = `${Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1}px`; tallest();
+      }
     }
     win.style.setProperty('--sv-hall', `url("${new URL(sortiaArt(ratio > 1.8 ? 'vocation-hall-tall.webp' : 'vocation-hall.webp'), location.href).href}")`);
+  }
+  // what the parchment says of a path: its words, strengths, weakness and what it starts with
+  function paperFor(v) {
+    const info = PATH_PICK[v];
+    // (three things it starts with, as in the reference: its own first, then what it fights with and its potions)
+    const rank = id => (ITEMS[id] && (ITEMS[id].weapon || ITEMS[id].ammo) ? 0 : /potion/.test(id) ? 1 : 2);
+    const kit = pathKit(v).map((it, k) => ({ ...it, k })).sort((a, b) => (a.k < (START_KITS[v] || []).length ? -1 : rank(a.id)) - (b.k < (START_KITS[v] || []).length ? -1 : rank(b.id)) || a.k - b.k)
+      .slice(0, 3).map(({ id, n: count }) => {
+      const name = `${count > 1 ? `${count} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}`;
+      const li = h('li', { title: name }, h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: name }), count > 1 ? h('small', {}, String(count)) : '');
+      return li;
+    });
+    const rule = () => { const r = h('div', { className: 'sv-rule' }, h('span')); r.setAttribute('aria-hidden', 'true'); return r; };
+    const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
+    return [
+      rule(),
+      h('p', { className: 'sv-desc' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
+      rule(),
+      h('div', { className: 'sv-cols' },
+        h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
+        h('div', {}, h('h3', {}, svIcon('swords'), weak.length > 1 ? 'Weaknesses' : 'Weakness'), h('ul', { className: 'sv-list' }, ...weak.map(t => h('li', {}, t))),
+          h('h3', { className: 'sv-gear' }, svIcon('bag'), 'Starts with'), h('ul', { className: 'sv-items' }, ...kit)))];
   }
   // the path left (step -1) or right (step 1) of the one in the middle
   const step = d => { const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(START_PATHS[pathAt]);
@@ -1431,26 +1466,8 @@ function askPath(onDone, onBack) {
       c.tabIndex = j === pathAt ? 0 : -1;
     });
     [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
-    // (three things it starts with, as in the reference: its own first, then what it fights with and its potions)
-    const rank = id => (ITEMS[id] && (ITEMS[id].weapon || ITEMS[id].ammo) ? 0 : /potion/.test(id) ? 1 : 2);
-    const kit = pathKit(v).map((it, k) => ({ ...it, k })).sort((a, b) => (a.k < (START_KITS[v] || []).length ? -1 : rank(a.id)) - (b.k < (START_KITS[v] || []).length ? -1 : rank(b.id)) || a.k - b.k)
-      .slice(0, 3).map(({ id, n: count }) => {
-      const name = `${count > 1 ? `${count} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}`;
-      const li = h('li', { title: name }, h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: name }), count > 1 ? h('small', {}, String(count)) : '');
-      return li;
-    });
-    const rule = () => { const r = h('div', { className: 'sv-rule' }, h('span')); r.setAttribute('aria-hidden', 'true'); return r; };
-    const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
-    $('pathInfo').replaceChildren(
-      rule(),
-      h('p', { className: 'sv-desc' }, h('b', {}, `${vocName(v)}. `), `${capitalize(VOCATIONS[v].role)}: ${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
-      rule(),
-      h('div', { className: 'sv-cols' },
-        h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
-        h('div', {}, h('h3', {}, svIcon('swords'), weak.length > 1 ? 'Weaknesses' : 'Weakness'), h('ul', { className: 'sv-list' }, ...weak.map(t => h('li', {}, t))),
-          h('h3', { className: 'sv-gear' }, svIcon('bag'), 'Starts with'), h('ul', { className: 'sv-items' }, ...kit))));
+    $('pathInfo').replaceChildren(...paperFor(v));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
-    place(); // (another path's words: the parchment fitted again)
     ask(false);
   }
   // the confirmation: a path is for good

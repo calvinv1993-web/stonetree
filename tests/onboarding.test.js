@@ -124,6 +124,14 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
     await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
     check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && document.querySelector('.sv-card[data-v=knight]').dataset.position === 'right'), `${name}: Hawk on the left of Bastion, as in the reference`);
+    { // (the parchment and the way on stand still whichever path is looked at; the whole screen fits; the title inside its banner)
+      const at = [];
+      for (let k = 0; k < 3; k++) { at.push(await page.evaluate(() => { const r = pathInfo.getBoundingClientRect(); return `${Math.round(r.top)},${Math.round(r.height)}`; })); await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150); }
+      check(new Set(at).size === 1, `${name}: the parchment the same for every path (${at.join(' | ')})`);
+      check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+      check(await page.evaluate(() => { const t = document.querySelector('.sv-title text').getBBox(); return t.x >= 46 && t.x + t.width <= 624; }), `${name}: the title within its banner`);
+      await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
+    }
     check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('sv-paper') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.sv-items img').length >= 3; }),
       `${name}: on parchment: strengths, weakness, the kit with the game's own item pictures`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
