@@ -465,6 +465,10 @@ const MONSTERS = {
     loot: { gold: [300, 600], items: [['pearl', 1, 2, 5], ['plate_armor', 0.2], ['wand_flames', 0.15], ['rod_thorns', 0.15], ['crossbow', 0.15]] },
   },
 };
+// Every monster is this many times as tough as its hp above says (the owner's choice: longer fights, the same experience);
+// practice dummies (still) keep theirs. Rare kin are made from the tougher ones (rareDef).
+const MONSTER_HP_MULT = 5;
+for (const def of Object.values(MONSTERS)) if (!def.still) def.hp = Math.round(def.hp * MONSTER_HP_MULT);
 
 // Rare named kin: now and then (RARE_CHANCE of the times one comes back) a common beast of the isle returns as one with
 // a name, a bit tougher than the rest, and those near are told. It is still its kind (quests and the bestiary count it
