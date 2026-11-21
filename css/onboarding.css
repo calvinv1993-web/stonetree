@@ -200,7 +200,9 @@ body.welcome #pathPick .path-ask p { color: var(--parch-red); font-family: var(-
 }
 
 /* ---- after the story: the temple, and Sister Ama at your side (game-ui.js templeScene, amaSays) ---- */
-.ob-temple { position: fixed; inset: 0 0 -120px; z-index: 26; background: #0e0a06 center 40% / cover no-repeat; opacity: 0; transition: opacity 1.1s ease; }
+.ob-temple { position: fixed; inset: 0 0 -120px; z-index: 26; background: #0e0a06 center 30% / cover no-repeat; opacity: 0; transition: opacity 1.1s ease; }
+/* (the picture darkened a little at its edges and its foot, so the parchment over it reads well: no blur) */
+.ob-temple::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 38%, rgba(10, 6, 2, 0) 40%, rgba(10, 6, 2, 0.55) 100%); }
 .ob-temple.on { opacity: 1; }
 .story-book.leaving { opacity: 0; transition: opacity 700ms ease; pointer-events: none; }
 /* who speaks: their face in a gold ring, their name, their lines coming in one after the other */

@@ -2676,41 +2676,36 @@ function updateSoundButtons() {
 
 // The welcome: while you name a character and choose its outfit (or log in), the game's controls stay out of sight
 // and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
-function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) templeScene(false); }
+function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) welcomeScene(false); }
 
 // ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
-// Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.jpg,
-// its own scene; see docs/onboarding-art.md) and focus [x %, y %, how far in], the spot the picture slowly drifts in on.
-// Until a page's own picture is in sprites/ (and listed in sprites/versions.js), it shows `stand`: the one picture there
-// is, looking at the part of it closest to the scene. Shown before a new character is made (Skip skips only the story);
-// browser tests skip it unless ?story.
+// Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.webp,
+// its own scene, painted upright; the PNG it was made from is in docs/onboarding-art/) and focus [x %, y %, how far in]:
+// the spot the picture is cropped to and slowly drifts in on, whatever the shape of the screen. Shown before a new
+// character is made (Skip skips only the story); browser tests skip it unless ?story.
 const STORY_PAGES = [
-  { id: 'beginning', title: 'The Beginning', image: 'story-beginning', focus: [50, 50, 1], stand: { image: 'story-1', focus: [50, 50, 1] },
+  { id: 'beginning', title: 'The Beginning', image: '01_the_beginning', focus: [62, 48, 1],
     paragraphs: ['For an age the land lay at peace: a hundred towns, their lights burning through every night, their roads open from sea to sea.',
       'Then, far in the north, an old and dark power woke again, and the towns at its edge fell silent one by one.'] },
-  { id: 'host', title: 'The Hollow Host', image: 'story-host', focus: [50, 40, 1], stand: { image: 'story-1', focus: [80, 16, 1.25] },
+  { id: 'host', title: 'The Hollow Host', image: '02_the_hollow_host', focus: [55, 32, 1],
     paragraphs: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
       'Town after town went dark. Kingdoms fell in a single winter.'] },
-  { id: 'last-town', title: 'The Last Town', image: 'story-last-town', focus: [50, 50, 1], stand: { image: 'story-1', focus: [74, 60, 1.2] },
+  { id: 'last-town', title: 'The Last Town', image: '03_the_last_town', focus: [55, 44, 1],
     paragraphs: ['Only Oakvale still stands, on its island behind its wall. Its bell still rings at dawn, and its gate still opens to anyone who reaches it alive.',
       'Most of its fighters lie dead beyond that wall. At night the Host\'s fires burn on the far shore, more every winter.'] },
-  { id: 'you', title: 'And You', image: 'story-you', focus: [50, 55, 1], stand: { image: 'story-1', focus: [20, 46, 1.1] },
+  { id: 'you', title: 'And You', image: '04_and_you', focus: [45, 42, 1],
     paragraphs: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
       'That was you. You wake in Oakvale\'s temple with almost nothing. But you are alive, and you want to fight.'] },
-  { id: 'road', title: 'Your Road', image: 'story-road', focus: [50, 45, 1], stand: { image: 'story-1', focus: [56, 45, 1] },
+  { id: 'road', title: 'Your Road', image: '05_your_road', focus: [40, 46, 1],
     paragraphs: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
       'At level 10 the oracle names you before the town. Then you sail for the world the Host has taken, to win it back.'] },
 ];
+// a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
+const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 const StoryBook = (() => {
   let at = 0, done = null, front = 0, busyUntil = 0, revealUntil = 0, startX = null, startY = null;
   const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const hashes = () => (typeof SPRITE_HASHES !== 'undefined' ? SPRITE_HASHES : {});
-  // a page's picture: its own scene once it's there, else its stand-in; by its version, as every picture is fetched
-  const shot = page => {
-    const own = hashes()[`ui/story/${page.image}.jpg`];
-    const use = own || !page.stand ? page : page.stand, h = hashes()[`ui/story/${use.image}.jpg`];
-    return { src: `sprites/ui/story/${use.image}.jpg${h ? `?h=${h}` : ''}`, focus: use.focus || [50, 50, 1] };
-  };
+  const shot = page => ({ src: storyArt(page.image), focus: page.focus || [50, 50, 1] });
   // (only the picture of the page after this one is fetched ahead: no wait when you turn, nothing more downloaded)
   const fetchAhead = () => { const next = STORY_PAGES[at + 1]; if (next) new Image().src = shot(next).src; };
   // the page's picture: on the layer behind, drifting in on its spot, then faded over the one before
@@ -2810,26 +2805,30 @@ const StoryBook = (() => {
 // A new character after its outfit: its path (in the same book), then into the world
 function newCharacterPath(onDone) {
   if (player.vocation !== 'none' || (navigator.webdriver && !/[?&]pickpath\b/.test(location.search))) { onDone(); return; }
+  welcomeScene('paths');
   askPath(onDone);
 }
 
 // ---- after the story: Oakvale's temple, and Sister Ama at your side -------------------------------------------------
-// The welcome's picture gives way to the temple (sprites/ui/story/temple.jpg: the real one, at dawn, out of focus), and
+// The welcome's picture gives way to the temple (06_character_creation: Oakvale's temple, Sister Ama's statue), and
 // Sister Ama speaks, a line at a time (a tap shows them all), before you're asked your name (or, online, where you made
 // the character at the login, before you go on to your outfit).
 const AMA_WAKE = ['You\'re awake. We feared you wouldn\'t survive the night.', 'Tell me, traveller... what is your name?'];
 const AMA_WAKE_ONLINE = ['You\'re awake. We feared you wouldn\'t survive the night.', '$name... you said it over and over in your sleep. Rest a moment, and let us find you something to wear.'];
 const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-function templeScene(on) {
+// the picture behind the windows a character is made in: the temple (06, your name and your outfit), the hall of paths
+// (07, your path); false: none
+const SCENES = { temple: '06_character_creation', paths: '07_choose_your_path' };
+function welcomeScene(name) {
   const el = $('templeScene');
-  if (on) {
-    if (!el.hidden) return;
-    const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/story/temple.jpg'];
-    el.style.backgroundImage = `radial-gradient(ellipse at 50% 42%, rgba(255, 190, 110, 0.12), rgba(8, 6, 4, 0.78) 78%), url(sprites/ui/story/temple.jpg${h ? `?h=${h}` : ''})`;
-    el.hidden = false; void el.offsetWidth; el.classList.add('on');
-  }
-  else { el.classList.remove('on'); el.hidden = true; }
+  if (!name) { el.classList.remove('on'); el.hidden = true; el.dataset.scene = ''; return; }
+  if (el.dataset.scene === name && !el.hidden) return;
+  el.dataset.scene = name;
+  el.style.backgroundImage = `url(${storyArt(SCENES[name])})`;
+  if (el.hidden) { el.hidden = false; void el.offsetWidth; }
+  el.classList.add('on');
 }
+const templeScene = on => welcomeScene(on ? 'temple' : false);
 // Sister Ama's head and shoulders, as on her conversation card (her picture may still be on its way: tried again shortly)
 function amaFace(canvas, tries = 12) {
   const ama = npcs.find(n => n.npcId === 'ama'), g = canvas.getContext('2d');
