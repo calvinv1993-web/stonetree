@@ -503,6 +503,7 @@ html body.welcome #create.name-sheet button.ob-btn.ob-btn:disabled { opacity: 0.
 /* (the narrowest phones: a little more room for her words) */
 @container (max-width: 330px) { .name-sheet .ns-writing { left: 9%; right: 9%; } body.welcome #create.name-sheet #createAma { padding-left: 2cqw; }
   body.welcome #create.name-sheet .ob-face { width: 42px; height: 42px; margin-right: 2.5cqw; }
-  html body.welcome #create.name-sheet .ob-said p { font-size: 13px !important; line-height: 1.28 !important; } }
+  html body.welcome #create.name-sheet .ob-said p { font-size: 13px !important; line-height: 1.26 !important; }
+  html body.welcome #create.name-sheet #createAma small { font-size: 13.5px !important; margin-bottom: 0.6cqw; } .name-sheet .ns-rule { margin: 0.4cqw 0 1cqw; } }
 @media (max-width: 340px) { body.welcome #create.name-sheet { width: min(calc(100vw - 2px), calc(var(--ns-h) * 1199 / 1312)) !important; } }
 @media (prefers-reduced-motion: reduce) { body.welcome #create.name-sheet { animation: none; } }
