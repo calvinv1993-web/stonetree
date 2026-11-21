@@ -116,8 +116,17 @@
 
         <div id="pathPick" class="window dialog book ob-panel ob-screen ob-wide" hidden>
           <header><b class="ob-title">Choose your path</b></header>
-          <p class="path-pick-note ob-lede">How will you fight? You walk this path from the start; at level 10 the oracle names you before the town.</p>
-          <div id="pathPickCards" class="path-pick-cards"></div>
+          <p class="path-pick-note ob-lede">How will you fight? You walk this path from now on; at level 10 the oracle names you before the town.</p>
+          <div id="pathTabs" class="path-tabs" role="tablist" aria-label="Paths"></div>
+          <div class="path-stage">
+            <button id="pathPrev" class="path-turn" aria-label="Previous path">&#9664;</button>
+            <div id="pathPickCards" class="path-view" role="tabpanel" aria-live="polite"></div>
+            <button id="pathNext" class="path-turn" aria-label="Next path">&#9654;</button>
+          </div>
+          <div class="ob-nav path-nav">
+            <div id="pathAsk" class="path-ask" hidden></div>
+            <button id="pathChoose" class="primary ob-btn">Choose this path</button>
+          </div>
         </div>
 
         <div id="skillTree" class="window dialog" hidden>

@@ -144,16 +144,44 @@
 #paths { width: min(860px, 94vw); }
 /* choosing a path (game-ui.js maybeAskPath): three cards side by side, one button each */
 #pathPick { width: min(760px, 94vw); z-index: 70; }
+/* choosing a path (game-ui.js askPath): tabs (on a wide screen, three small cards with the figure), one path's card at a
+   time, gone through with the arrows or a swipe, and one button that stays put; then a word to confirm */
 .path-pick-note { margin: 0 0 10px; color: #b8ac90; font-size: 13px; }
-.path-pick-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.path-pick-card { display: flex; flex-direction: column; border: 1px solid #5a544b; border-top: 4px solid #c8a858; border-radius: 10px; padding: 10px 12px; background: #1c1a17; font-size: 13px; line-height: 1.45; }
-.path-pick-card.path-knight { border-top-color: #b07ad0; } .path-pick-card.path-paladin { border-top-color: #6ac070; } .path-pick-card.path-sorcerer { border-top-color: #e07a4a; }
-.path-pick-card h3 { margin: 0 0 2px; font-size: 18px; color: #f0e0b0; }
-.path-pick-card p { margin: 4px 0; }
-.path-pick-card .role { color: #b8ac90; font-style: italic; }
-.path-pick-how { color: #d8cca8; font-size: 12px; }
-.path-pick-go { margin-top: auto; min-height: 40px; font-weight: 600; }
-@media (max-width: 720px) { .path-pick-cards { grid-template-columns: 1fr; } }
+.path-knight { --acc: #9a7ad8; } .path-paladin { --acc: #5aa860; } .path-sorcerer { --acc: #e0703a; }
+.path-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 10px; }
+.path-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 48px; padding: 4px; border-top: 3px solid var(--acc) !important; }
+.path-tab b { font-size: 15px; } .path-tab small { font-size: 11px; opacity: 0.75; }
+.path-tab-pic { display: none; width: 56px; height: 56px; image-rendering: pixelated; }
+.path-stage { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; gap: 6px; }
+.path-turn { width: 34px; height: 56px; padding: 0; font-size: 14px; }
+.path-view { display: grid; min-width: 0; overflow: hidden; touch-action: pan-y; }
+.pick-card { grid-area: 1 / 1; min-width: 0; } .pick-card:not(.on) { visibility: hidden; }
+.pick-card.from-right { animation: path-in-r 0.32s ease-out; } .pick-card.from-left { animation: path-in-l 0.32s ease-out; }
+@keyframes path-in-r { from { opacity: 0; transform: translateX(28px); } } @keyframes path-in-l { from { opacity: 0; transform: translateX(-28px); } }
+.path-hero { display: flex; align-items: center; gap: 12px; }
+.path-pic { flex: none; width: 112px; height: 112px; image-rendering: pixelated; border-radius: 50%;
+  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--acc) 55%, transparent) 0%, transparent 70%); }
+.path-head { min-width: 0; text-align: left; }
+.path-head h3 { margin: 0; font-size: 24px; color: var(--acc); }
+.path-identity { margin: 1px 0 6px; font-style: italic; }
+.path-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13.5px; }
+.path-facts small { display: inline-block; width: 70px; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.path-marks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; margin: 10px 0; padding: 8px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.12); }
+.path-mark { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.path-mark span { flex: 1; text-align: left; }
+.path-mark small { width: 52px; text-align: right; font-size: 11.5px; opacity: 0.75; }
+.pips { display: flex; gap: 3px; } .pips b { width: 14px; height: 8px; border-radius: 2px; background: rgba(150, 120, 80, 0.3); }
+.pips.p1 b:nth-child(-n+1), .pips.p2 b:nth-child(-n+2), .pips.p3 b { background: var(--acc); }
+.path-more { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; text-align: left; font-size: 13.5px; }
+.path-more h5 { margin: 4px 0 2px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; }
+.path-more p { margin: 0 0 4px; } .path-good { margin: 0; padding-left: 18px; }
+.path-nav { display: flex; justify-content: center; }
+.path-ask { width: 100%; text-align: center; } .path-ask p { margin: 0 0 8px; font-weight: 600; }
+.path-ask-row { display: flex; justify-content: center; gap: 8px; } .path-back { min-height: 48px; padding: 0 16px; }
+@media (max-width: 480px) { .path-more { grid-template-columns: 1fr; } .path-pic { width: 88px; height: 88px; } .path-head h3 { font-size: 22px; }
+  .path-stage { grid-template-columns: minmax(0, 1fr); } .path-turn { display: none; } .path-mark small { display: none; } .path-marks { gap: 6px 12px; } } /* (a phone: the tabs and a swipe go through the paths) */
+@media (min-width: 760px) { .path-tab { min-height: 104px; } .path-tab-pic { display: block; } }
+@media (prefers-reduced-motion: reduce) { .pick-card.from-right, .pick-card.from-left { animation: none; } }
 /* the skill tree (game-ui.js openSkillTree): its lines, each a row of tier icons, and the card of the one picked */
 #skillTree { width: min(460px, 94vw); }
 #skillTree header { gap: 10px; }
