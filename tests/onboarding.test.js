@@ -109,16 +109,8 @@ const fits = page => page.evaluate(() => {
     await page.evaluate(() => { createStart.click(); createStart.click(); });
     await page.waitForTimeout(600);
 
-    // your appearance: a colour chosen comes out on the character
-    check(await scene() === 'temple' && await page.evaluate(() => !outfit.hidden), `${name}: the outfit, in the temple`);
-    await page.click('.outfit-parts button:nth-child(2)');
-    await page.click('.outfit-hues .swatch-color:nth-child(12)');
-    await page.click('.outfit-shades .swatch-color:nth-child(4)');
-    await page.click('text=Female');
-    const want = await page.evaluate(() => JSON.stringify(outfitDraft));
-    await step('outfit');
-    await page.evaluate(() => { outfitDone.click(); outfitDone.click(); });
-    await page.waitForTimeout(1300);
+    // (no appearance while the character is made: straight on to the path)
+    check(await page.evaluate(() => outfit.hidden), `${name}: no outfit while the character is made`);
 
     // your path: one at a time, chosen only once confirmed
     check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.cp-card').length === 3 && document.querySelectorAll('.cp-card.on').length === 1),
@@ -131,18 +123,28 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
     check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('parchment-panel') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.cp-item img').length >= 3; }),
       `${name}: on parchment: strengths, weakness, the kit with the game's own item pictures`);
-    // Back: the appearance again, as left; then the paths again, the same one looked at
-    const looks = await page.evaluate(() => JSON.stringify(player.outfit));
-    await page.click('#pathBack'); await page.waitForTimeout(400);
-    check(await page.evaluate(l => !outfit.hidden && pathPick.hidden && JSON.stringify(outfitDraft) === l, looks), `${name}: Back: the appearance again, as it was`);
-    await page.evaluate(() => outfitDone.click()); await page.waitForTimeout(800);
-    check(await page.evaluate(() => !pathPick.hidden && pathChoose.textContent === 'Choose Hawk'), `${name}: and on again: the same path looked at`);
+    check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
     await page.evaluate(() => document.querySelectorAll('.cp-dot')[2].click());
     await step('path');
     await page.click('#pathChoose');
     check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden), `${name}: not chosen before it's confirmed`);
     await page.evaluate(() => { const yes = pathAsk.querySelector('.ob-btn'); yes.click(); yes.click(); });
     await page.waitForTimeout(800);
+
+    // the game: the outfit window, once, a moment later, in the game's own look: a colour chosen comes out on the character
+    await page.waitForSelector('#outfit:not([hidden])', { timeout: 5000 }).catch(() => {});
+    check(await page.evaluate(() => !outfit.hidden && !document.body.classList.contains('welcome') && !outfit.classList.contains('parchment-panel') && outfitDone.textContent === 'Done'),
+      `${name}: in the world, the outfit window, in the game's own look`);
+    await page.click('.outfit-parts button:nth-child(2)');
+    await page.click('.outfit-hues .swatch-color:nth-child(12)');
+    await page.click('.outfit-shades .swatch-color:nth-child(4)');
+    await page.click('#outfit >> text=Female');
+    const want = await page.evaluate(() => JSON.stringify(outfitDraft));
+    if (shots) await page.screenshot({ path: path.join(shots, `${name}-outfit.png`) }); // (the game's own window: not the welcome's checks)
+    check(await page.evaluate(() => { const r = outfit.getBoundingClientRect(); return r.top >= -0.5 && r.bottom <= innerHeight + 0.5; }), `${name}: the outfit window on the screen`);
+    await page.evaluate(() => { outfitDone.click(); outfitDone.click(); });
+    await page.waitForTimeout(500);
+    check(await page.evaluate(() => outfit.hidden), `${name}: Done closes it`);
 
     // the game: as for any new character, nothing twice
     const game = await page.evaluate(() => ({

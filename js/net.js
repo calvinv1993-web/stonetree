@@ -154,7 +154,7 @@ const Net = (() => {
     $('create').hidden = true;
     $('mapSource').textContent = 'Playing online';
     $('newChar').textContent = 'Log out';
-    if (msg.isNew) StoryBook.show(() => greetNewCharacter(() => openOutfit(() => newCharacterPath(() => welcome(false))))); // (a new character: the story, Sister Ama, its outfit, its path)
+    if (msg.isNew) StoryBook.show(() => greetNewCharacter(() => newCharacterPath(newCharacterInWorld))); // (a new character: the story, Sister Ama, its path; its outfit in the world)
     else welcome(false);
     importExplored(storage(() => JSON.parse(localStorage.getItem(exploredKey()))));
     uiDirty();

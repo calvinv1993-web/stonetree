@@ -388,6 +388,8 @@ body.touch-ui .viewport { overflow: hidden; }
 /* ---- messages low on the map, the loot window under the status bar, labels in the quick buttons ------------------ */
 body.touch-ui .toasts { bottom: auto; width: min(calc(100% - 104px), 420px); gap: 4px; z-index: 60; } /* (clear of the map button in the top left corner; over the map's windows) */
 body.touch-ui .toast { padding: 4px 10px; font: 500 12.5px/1.35 var(--ui); border-radius: 8px; }
+/* (not over the outfit window: what they say is in the chat line too) */
+body.touch-ui:has(#outfit:not([hidden])) .toasts { display: none; }
 @media (orientation: landscape) {
   body.touch-ui .toasts { width: min(46%, 380px); }
 }

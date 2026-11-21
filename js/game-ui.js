@@ -2882,12 +2882,17 @@ const StoryBook = (() => {
   return { show, setup, go, get page() { return at; }, get open() { return !$('storyBook').hidden; } };
 })();
 
-// A new character after its outfit: its path (in the same book), then into the world
+// A new character after its name: its path (in the same book), then into the world
 function newCharacterPath(onDone) {
   if (player.vocation !== 'none' || (navigator.webdriver && !/[?&]pickpath\b/.test(location.search))) { onDone(); return; }
   welcomeScene('paths');
-  // (Back: your appearance again, as you left it, then the paths again, the one you looked at still in the middle)
-  askPath(onDone, () => { welcomeScene('temple'); openOutfit(() => newCharacterPath(onDone)); });
+  askPath(onDone);
+}
+// ...and in the world, its appearance: the outfit window, once, in the game's own look (its path's outfit to start
+// from), a moment after the world comes into sight
+function newCharacterInWorld() {
+  welcome(false);
+  setTimeout(() => { if ($('outfit').hidden && !document.body.classList.contains('welcome')) openOutfit(); }, 1200);
 }
 
 // ---- after the story: Oakvale's temple, and Sister Ama at your side -------------------------------------------------
@@ -2895,7 +2900,7 @@ function newCharacterPath(onDone) {
 // Sister Ama speaks, a line at a time (a tap shows them all), before you're asked your name (or, online, where you made
 // the character at the login, before you go on to your outfit).
 const AMA_WAKE = ['You\u2019re awake. We feared you wouldn\u2019t survive the night.', 'Tell me, traveler\u2026 what is your name?'];
-const AMA_WAKE_ONLINE = ['You\'re awake. We feared you wouldn\'t survive the night.', '$name... you said it over and over in your sleep. Rest a moment, and let us find you something to wear.'];
+const AMA_WAKE_ONLINE = ['You\'re awake. We feared you wouldn\'t survive the night.', '$name... you said it over and over in your sleep. Rest a moment; then tell me which path you will walk.'];
 const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // the picture behind the windows a character is made in: the temple (06, your name and your outfit), the hall of paths
 // (07, your path); false: none
@@ -2990,7 +2995,7 @@ function nameSheet(dialog) {
   dialog.append(art, h('div', { className: 'ns-writing' }, h('div', { className: 'ns-talk' }, talk), form));
 }
 
-// A new character, offline: the story, the temple and Sister Ama, your name, your outfit, your path.
+// A new character, offline: the story, the temple and Sister Ama, your name, your path; your outfit in the world.
 function showCharacterCreation(onDone) {
   const dialog = $('create');
   welcome(true);
@@ -3021,7 +3026,7 @@ function showCharacterCreation(onDone) {
     guideFolded = false; try { localStorage.setItem('tilequest.guideFolded', '0'); } catch (e) { /* no storage */ } // (a new character: the guide open)
     dialog.hidden = true;
     if (start.value) makeTestHero(start.value);
-    openOutfit(() => newCharacterPath(() => { welcome(false); if (onDone) onDone(); }));
+    newCharacterPath(() => { newCharacterInWorld(); if (onDone) onDone(); });
   };
   go.addEventListener('click', done);
   input.addEventListener('keydown', e => {
@@ -3030,7 +3035,7 @@ function showCharacterCreation(onDone) {
   });
 }
 
-// A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your outfit
+// A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your path
 function greetNewCharacter(onDone) {
   templeScene(true);
   const win = ParchmentPanel.decorate($('amaGreet'), { scroll: true });
