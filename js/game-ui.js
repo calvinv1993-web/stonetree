@@ -1407,7 +1407,13 @@ function askPath(onDone, onBack) {
   // and the hall's tall picture behind (its dark middle drawn out, its banners and candles where they were)
   function place() {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
-    scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3));
+    const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches;
+    if (!phone) scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3));
+    else { // (a phone: the parchment's words as large as the mock-up's, smaller until the whole screen fits its height)
+      let pk = 1;
+      scene.style.setProperty('--pk', pk);
+      while (pk > 0.66 && scene.scrollHeight > win.clientHeight + 1) { pk -= 0.03; scene.style.setProperty('--pk', pk.toFixed(2)); }
+    }
     win.style.setProperty('--sv-hall', `url("${new URL(sortiaArt(ratio > 1.8 ? 'vocation-hall-tall.webp' : 'vocation-hall.webp'), location.href).href}")`);
   }
   // the path left (step -1) or right (step 1) of the one in the middle
@@ -1445,6 +1451,7 @@ function askPath(onDone, onBack) {
         h('div', {}, h('h3', {}, svIcon('swords'), weak.length > 1 ? 'Weaknesses' : 'Weakness'), h('ul', { className: 'sv-list' }, ...weak.map(t => h('li', {}, t))),
           h('h3', { className: 'sv-gear' }, svIcon('bag'), 'Starts with'), h('ul', { className: 'sv-items' }, ...kit))));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
+    place(); // (another path's words: the parchment fitted again)
     ask(false);
   }
   // the confirmation: a path is for good

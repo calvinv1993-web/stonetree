@@ -138,3 +138,48 @@ html body #pathPick :is(.sv-title text, .sv-info strong, .sv-info small, .sv-col
 
 @media (max-width: 480px) { .sv-paper { width: 82%; padding-inline: 5.5%; } }
 @media (prefers-reduced-motion: reduce) { .sv-card { transition: none; } }
+
+/* ---- a phone held upright (after the owner's phone mock-up): everything larger. The banner near the screen's width, the
+   middle card large, its neighbours mostly past the screen's edges with only their inner strip showing, the arrows on that
+   strip; the parchment wide (game-ui.js askPath shrinks its words, --pk, until the whole screen fits the phone's height);
+   the button over its foot and the dots under it. Measured on the mock-up, in % of the screen's width (cqw). ---- */
+@media (max-width: 600px) and (max-aspect-ratio: 4/5) {
+  #pathPick .sv-stage { height: 118.5cqw; }
+  #pathPick .sv-brand { top: 5.2cqw; width: 10.8cqw; }
+  #pathPick .sv-banner { left: 4.9%; width: 90.2%; top: 10.9cqw; height: 21cqw; }
+  #pathPick .sv-title-rule { top: 30.1cqw; }
+  #pathPick .sv-rule::before, #pathPick .sv-rule::after { width: 15cqw; }
+  #pathPick .sv-sub { top: 32.1cqw; font-size: 3.4cqw; }
+  #pathPick .sv-card { --cut: 3.2cqw; --edge: 0.7cqw; left: 19.15%; top: 40.4cqw; width: 61.7%; height: 77.9cqw; }
+  #pathPick .sv-card[data-position="left"] { left: -20%; top: 48.5cqw; width: 35%; height: 65cqw; --edge: 0.55cqw; }
+  #pathPick .sv-card[data-position="right"] { left: 85%; top: 48.5cqw; width: 35%; height: 65cqw; --edge: 0.55cqw; }
+  #pathPick .sv-face { --cut: 2.9cqw; }
+  #pathPick .sv-window { --cut: 2.6cqw; inset: 0.45cqw; }
+  #pathPick .sv-medal { width: 8.6cqw; margin-bottom: 0.6cqw; }
+  #pathPick .sv-info strong { font-size: 6.2cqw; }
+  #pathPick .sv-info small { font-size: 2.35cqw; }
+  #pathPick .sv-info small::before, #pathPick .sv-info small::after { width: 5.5cqw; }
+  #pathPick .sv-card:not([data-position="center"]) .sv-info strong { font-size: 5cqw; }
+  #pathPick .sv-card:not([data-position="center"]) .sv-info small { font-size: 2cqw; }
+  #pathPick .sv-card[data-position="left"] .sv-info { left: 0; right: -8%; }
+  #pathPick .sv-card[data-position="right"] .sv-info { left: -8%; right: 0; }
+  #pathPick .sv-arrow { top: 75.5cqw; width: max(44px, 9.6cqw); height: max(44px, 9.6cqw); }
+  #pathPick .sv-arrow span { width: 9.2cqw; border-width: 0.3cqw; }
+  #pathPick .sv-arrow.sv-left { left: 14.1%; }
+  #pathPick .sv-arrow.sv-right { left: 85.9%; }
+  /* the parchment: wide, a little inside the screen's edges; its words in calc(.. * --pk) */
+  #pathPick .sv-paper { width: 94%; margin-top: 12px; padding: calc(3.4cqw * var(--pk)) 6.5% calc(8cqw * var(--pk)); }
+  #pathPick .sv-desc { font-size: calc(3.3cqw * var(--pk)); margin: calc(0.8cqw * var(--pk)) auto calc(1.4cqw * var(--pk)); }
+  #pathPick .sv-cols { margin-top: calc(1cqw * var(--pk)); }
+  #pathPick .sv-cols h3 { font-size: calc(2.45cqw * var(--pk)); gap: 1.4cqw; margin: calc(0.9cqw * var(--pk)) 0 calc(1.2cqw * var(--pk)); padding-bottom: calc(0.8cqw * var(--pk)); }
+  #pathPick .sv-cols h3 svg { width: calc(4.6cqw * var(--pk)); height: calc(4.6cqw * var(--pk)); }
+  #pathPick .sv-list li { font-size: calc(3cqw * var(--pk)); margin: calc(1.3cqw * var(--pk)) 0; padding-left: 3.6cqw; }
+  #pathPick .sv-list li::before { width: 1.2cqw; }
+  #pathPick .sv-cols h3.sv-gear { margin-top: calc(2.6cqw * var(--pk)); padding-top: calc(0.9cqw * var(--pk)); }
+  #pathPick .sv-items { gap: 2.2cqw; }
+  #pathPick .sv-items li { width: calc(10.2cqw * var(--pk)); }
+  #pathPick .sv-items small { font-size: 2.2cqw; }
+  #pathPick .sv-cta { width: 54%; height: 11.2cqw; margin-top: -4cqw !important; font-size: 4.1cqw !important; }
+  #pathPick .sv-dots { margin-top: 0; }
+  #pathPick .sv-dots button span { width: 2.4cqw; }
+}
