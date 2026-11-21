@@ -1,79 +1,81 @@
-/* The parchment panel (game-ui.js ParchmentPanel): a page of real paper in an antique gold frame, for any content.
-   Three layers under the content, which stays plain HTML: the paper (sprites/ui/parchment/paper.webp, cover, never
-   stretched), the frame, and an optional ornament. Its pictures are cut from the supplied originals by
-   tests/parchment-kit.py (docs/parchment-ui/).
+/* The parchment panel (game-ui.js ParchmentPanel): a page of aged paper in an antique gold frame, round any content.
+   Layers under the content (which stays plain HTML): the paper (sprites/ui/parchment/paper.webp, at its own size, never
+   stretched), its aged and darkened rim (paper-edge.webp: the original's own cloudy rim), the frame, and an optional
+   ornament. Its pictures are cut from the supplied
+   originals by tests/parchment-kit.py (docs/parchment-ui/).
 
-   The frame is built from pieces of the original border (1536 x 1024 units), each at its own place and drawn at
-   --pp-s pixels a unit: the four corners and the tree crest at their own shape, never stretched; only the straight bars
-   between them repeat. The bars lie 30-66 units in from the left and right, 77-109 from the top, 40-69 from the bottom.
+   Everything is measured in units of the original border (1536 x 1024), and a unit is the panel's own width / 1536
+   (--pp-u, from the panel as a size container): the frame, banners, ivy and crest keep the original's proportions to the
+   panel, whatever its height or the length of its words. Only the straight bars between the corners repeat.
+   The original's bars lie 30-66 units in from the sides, 77-109 from the top, 40-69 from the bottom.
 
    Variants:
-     .pp-ceremonial   the gold frame: its bannered top corners, the crest, the corners below
-     .pp-compact      a thin antique-gold line round the paper instead (for small windows, where the frame would crowd)
+     .pp-ceremonial   the gold frame: its bannered top corners, the crest, the corners below (the default)
+     .pp-compact      a thin antique-gold line round the aged paper instead (small windows, where the frame would crowd)
    Options:
-     .pp-ornate       the golden tree ornament crowning the panel, in place of the crest (a panel that opens something)
-     --pp-s           the frame's size (default 0.1 on a phone, more on a large screen)
-     --pp-pad         extra room round the content, inside the frame */
+     .pp-ornate       the golden tree ornament crowning the panel, in place of the crest */
 
 .parchment-panel {
-  --pp-s: 0.1;
-  --pp-pad: 10px;
   /* (its pictures; set again with their versions by ParchmentPanel, so an update fetches only the ones that changed) */
-  --pp-paper: url(../sprites/ui/parchment/paper.webp);
+  --pp-paper: url(../sprites/ui/parchment/paper.webp); --pp-edge: url(../sprites/ui/parchment/paper-edge.webp);
   --pp-tl: url(../sprites/ui/parchment/corner-tl.webp); --pp-tr: url(../sprites/ui/parchment/corner-tr.webp);
   --pp-bl: url(../sprites/ui/parchment/corner-bl.webp); --pp-br: url(../sprites/ui/parchment/corner-br.webp);
   --pp-top: url(../sprites/ui/parchment/edge-top.webp); --pp-bottom: url(../sprites/ui/parchment/edge-bottom.webp);
   --pp-left: url(../sprites/ui/parchment/edge-left.webp); --pp-right: url(../sprites/ui/parchment/edge-right.webp);
   --pp-crest: url(../sprites/ui/parchment/crest.webp); --pp-ornament: url(../sprites/ui/parchment/ornament.webp);
-  position: relative; isolation: isolate; box-sizing: border-box;
-  color: #3a2414; font-family: var(--ob-serif, Georgia, serif);
+  position: relative; isolation: isolate; box-sizing: border-box; container-type: inline-size;
+  color: #3b2412; font-family: var(--ob-serif, Georgia, serif);
 }
+/* one unit of the original, on the panel: read by its layers (they're inside it, so 100cqw is the panel's width) */
+.parchment-panel > .pp-paper, .parchment-panel > .pp-frame { --pp-u: min(calc(100cqw / 1536), 0.34px); }
 .pp-paper, .pp-frame, .pp-frame > i { position: absolute; pointer-events: none; }
-.pp-paper { z-index: -2; background: #ead7ad var(--pp-paper) center / cover no-repeat; }
+.pp-paper { z-index: -2; background: #e6cc98 var(--pp-paper) center / max(680px, 100%) auto repeat-y; }
+/* the aged rim: dark and cloudy at the edges, clear in the middle; over the whole paper (a panel's paper has nearly the
+   original's shape, so it's barely reshaped, and has no seam) */
+.pp-paper::after { content: ''; position: absolute; inset: 0; background: var(--pp-edge) center / 100% 100% no-repeat; }
 .pp-frame { z-index: -1; inset: 0; }
 .pp-frame > i { display: block; background-repeat: no-repeat; background-size: 100% 100%; }
 
 /* ---- the gold frame ---- */
 .pp-ceremonial {
-  min-height: calc(720px * var(--pp-s));
-  padding: calc(200px * var(--pp-s) + var(--pp-pad) * 0.4) calc(72px * var(--pp-s) + var(--pp-pad)) calc(72px * var(--pp-s) + var(--pp-pad));
+  /* (round the words: clear of the crest above, the banners at the sides and the corners below; in % of the panel's width) */
+  padding: min(12.4%, 64px) min(10.8%, 56px) min(6.6%, 34px);
+  min-height: 150px;
 }
-/* (the paper reaches to the middle of the bars: their outer half lies over the scene) */
-.pp-ceremonial .pp-paper { left: calc(48px * var(--pp-s)); right: calc(48px * var(--pp-s)); top: calc(93px * var(--pp-s)); bottom: calc(54px * var(--pp-s)); }
-.pp-tl, .pp-tr { top: 0; width: calc(320px * var(--pp-s)); height: calc(500px * var(--pp-s)); z-index: 1; }
+/* the paper reaches the middle of the bars: their outer half lies over the scene */
+.pp-ceremonial > .pp-paper { left: calc(48 * var(--pp-u)); right: calc(48 * var(--pp-u)); top: calc(93 * var(--pp-u)); bottom: calc(54 * var(--pp-u)); }
+.pp-tl, .pp-tr { top: 0; width: calc(320 * var(--pp-u)); height: calc(500 * var(--pp-u)); z-index: 1; }
 .pp-tl { left: 0; background-image: var(--pp-tl); }
 .pp-tr { right: 0; background-image: var(--pp-tr); }
-.pp-bl, .pp-br { bottom: 0; width: calc(320px * var(--pp-s)); height: calc(200px * var(--pp-s)); z-index: 1; }
+.pp-bl, .pp-br { bottom: 0; width: calc(320 * var(--pp-u)); height: calc(200 * var(--pp-u)); z-index: 1; }
 .pp-bl { left: 0; background-image: var(--pp-bl); }
 .pp-br { right: 0; background-image: var(--pp-br); }
-/* the straight bars: repeated along their length, at their own thickness */
-.parchment-panel .pp-frame > .pp-top { left: calc(318px * var(--pp-s)); right: calc(318px * var(--pp-s)); top: 0; height: calc(150px * var(--pp-s));
-  background: var(--pp-top) left top / calc(180px * var(--pp-s)) 100% repeat-x; }
-.parchment-panel .pp-frame > .pp-bottom { left: calc(318px * var(--pp-s)); right: calc(318px * var(--pp-s)); bottom: 0; height: calc(200px * var(--pp-s));
-  background: var(--pp-bottom) left bottom / calc(896px * var(--pp-s)) 100% repeat-x; }
-.parchment-panel .pp-frame > .pp-left { left: 0; top: calc(498px * var(--pp-s)); bottom: calc(198px * var(--pp-s)); width: calc(110px * var(--pp-s));
-  background: var(--pp-left) left top / 100% calc(324px * var(--pp-s)) repeat-y; }
-.parchment-panel .pp-frame > .pp-right { right: 0; top: calc(498px * var(--pp-s)); bottom: calc(198px * var(--pp-s)); width: calc(110px * var(--pp-s));
-  background: var(--pp-right) right top / 100% calc(324px * var(--pp-s)) repeat-y; }
+/* the straight bars: repeated along their length, at their own thickness (each a whole piece of the original's bar) */
+.parchment-panel .pp-frame > .pp-top { left: calc(318 * var(--pp-u)); right: calc(318 * var(--pp-u)); top: 0; height: calc(150 * var(--pp-u));
+  background: var(--pp-top) left top / calc(180 * var(--pp-u)) 100% repeat-x; }
+.parchment-panel .pp-frame > .pp-bottom { left: calc(318 * var(--pp-u)); right: calc(318 * var(--pp-u)); bottom: 0; height: calc(200 * var(--pp-u));
+  background: var(--pp-bottom) left bottom / calc(896 * var(--pp-u)) 100% repeat-x; }
+.parchment-panel .pp-frame > .pp-left { left: 0; top: calc(498 * var(--pp-u)); bottom: calc(198 * var(--pp-u)); width: calc(110 * var(--pp-u));
+  background: var(--pp-left) left top / 100% calc(324 * var(--pp-u)) repeat-y; }
+.parchment-panel .pp-frame > .pp-right { right: 0; top: calc(498 * var(--pp-u)); bottom: calc(198 * var(--pp-u)); width: calc(110 * var(--pp-u));
+  background: var(--pp-right) right top / 100% calc(324 * var(--pp-u)) repeat-y; }
 /* the crest: the tree medallion, centred on the top bar, at its own shape */
-.pp-crest { left: 50%; top: 0; width: calc(456px * var(--pp-s)); height: calc(200px * var(--pp-s)); transform: translateX(-50%); z-index: 2;
+.pp-crest { left: 50%; top: 0; width: calc(456 * var(--pp-u)); height: calc(200 * var(--pp-u)); transform: translateX(-50%); z-index: 2;
   background-image: var(--pp-crest); }
 
-/* ---- the golden tree ornament, crowning the panel in place of the crest (its own shape, over the top bar) ---- */
+/* ---- the golden tree ornament, crowning the panel in place of the crest ---- */
 .pp-ornament { display: none; }
 .pp-ornate .pp-crest { display: none; }
-.pp-ornate .pp-ornament { display: block; left: 50%; top: calc(-150px * var(--pp-s)); width: calc(1100px * var(--pp-s)); aspect-ratio: 600 / 294; height: auto;
+.pp-ornate .pp-ornament { display: block; left: 50%; top: calc(-170 * var(--pp-u)); width: calc(820 * var(--pp-u)); aspect-ratio: 600 / 294; height: auto;
   transform: translateX(-50%); z-index: 2; background-image: var(--pp-ornament); }
-.pp-ornate.pp-ceremonial { padding-top: calc(390px * var(--pp-s) + var(--pp-pad) * 0.4); }
+.pp-ornate.pp-ceremonial { padding-top: min(18.5%, 96px); }
 
-/* ---- the thin antique-gold line, for a small window ---- */
-.pp-compact { padding: calc(var(--pp-pad) + 6px) calc(var(--pp-pad) + 8px); border-radius: 6px; }
-.pp-compact .pp-paper { inset: 0; border-radius: inherit; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
+/* ---- the thin antique-gold line round the aged paper, for a small window ---- */
+.pp-compact { padding: 12px 16px; border-radius: 6px; }
+.pp-compact > .pp-paper { inset: 0; border-radius: inherit; overflow: hidden; box-shadow: 0 0 0 1px #6a4a1c, 0 0 0 3px #c8963c, 0 0 0 4px #6a4a1c, 0 8px 20px rgba(0, 0, 0, 0.5); }
 .pp-compact .pp-frame { display: none; }
 
 /* ---- its words: a burgundy serif title, dark brown text ---- */
-.parchment-panel .pp-title { margin: 0; text-align: center; font: 700 clamp(19px, 5.4vw, 25px) / 1.15 var(--ob-serif, Georgia, serif); color: #6e1c12; letter-spacing: 0.01em; }
-.parchment-panel p { color: #3a2414; }
-
-/* a larger screen: a larger frame */
-@media (min-width: 700px) { .parchment-panel { --pp-s: 0.13; --pp-pad: 14px; } }
+.parchment-panel .pp-title { margin: 0; text-align: center; font: 700 clamp(18px, 5vw, 22px) / 1.15 var(--ob-serif, Georgia, serif); color: #6a1a10; letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45); }
+.parchment-panel p { color: #3b2412; }

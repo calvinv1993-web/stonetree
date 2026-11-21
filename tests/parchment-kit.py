@@ -5,12 +5,13 @@ docs/parchment-ui/: the frame's pieces, the paper and the ornament, as WebP in s
 The supplied frame-* crops are exact cuts of parchment-border.png (checked: each matches it pixel for pixel at its
 place), so every piece is cut from parchment-border.png itself, at those same places: the gold bars then meet without
 a seam. The pale haze painted round the frame (nearly white, mostly see-through) is taken out: on the paper it would
-cloud the edge. Pieces are kept at half the original size (the panel shows them at a sixth to a fifth of it).
+cloud the gold. That haze is the original paper's darkened, cloudy rim: it becomes paper-edge.webp, laid over the paper.
+Pieces are kept at half the original size (a panel shows them at a fifth to a third of it).
 
     python3 tests/parchment-kit.py        (then: node tests/sprite-versions.js)
 """
 import os
-from PIL import Image
+from PIL import Image, ImageFilter
 import numpy as np
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -54,7 +55,30 @@ def main():
     border = clean(Image.open(os.path.join(SRC, 'parchment-border.png')))
     for name, box in PIECES.items():
         print(name, box, '->', save(border.crop(box), name))
-    # the paper: as supplied (it is only ever shown with background-size: cover)
+    # the paper's aged edge: the original's own cloudy band round the paper (the pale haze, read as how much of the
+    # paper's darkened rim shows there), as dark sepia over the paper, cut to the paper's place inside the frame
+    # (48-1488 x 93-970); laid over the whole paper (a panel's paper has nearly the original's shape)
+    raw = np.array(Image.open(os.path.join(SRC, 'parchment-border.png')).convert('RGBA')).astype(np.float32)
+    lum = (raw[:, :, 0] * 3 + raw[:, :, 1] * 6 + raw[:, :, 2]) / 10
+    band = np.where((raw[:, :, 3] < 110) & (lum > 190), raw[:, :, 3] / 109.0, 0.0)[93:970, 48:1488]
+    # (where the banners, the ivy and the crest stood over it, the band was never painted: filled from round about)
+    covered = (raw[:, :, 3] >= 110)[93:970, 48:1488]
+    small = Image.fromarray((band * 255).astype(np.uint8), 'L').resize((w0 := band.shape[1] // 8, band.shape[0] // 8), Image.BILINEAR)
+    grown = np.array(small.filter(ImageFilter.MaxFilter(9)).resize((band.shape[1], band.shape[0]), Image.BILINEAR)).astype(np.float32) / 255
+    near = np.array(Image.fromarray(covered.astype(np.uint8) * 255, 'L').filter(ImageFilter.MaxFilter(9))) > 0
+    band = np.where(near, np.maximum(band, grown * 0.9), band)
+    band_img = Image.fromarray((band * 255).astype(np.uint8), 'L').filter(ImageFilter.GaussianBlur(16))
+    band = np.array(band_img).astype(np.float32) / 255
+    h, w = band.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    rim = np.minimum.reduce([xx, w - 1 - xx, yy, h - 1 - yy]).astype(np.float32)
+    shade = np.clip(1 - rim / 26, 0, 1) ** 1.6  # (the paper darkest right under the gold: it lies inside the frame)
+    alpha = np.clip(band ** 0.8 * 0.68 + shade * 0.55, 0, 0.8)
+    edge = np.zeros((h, w, 4), np.uint8)
+    edge[:, :, 0], edge[:, :, 1], edge[:, :, 2] = 118, 72, 26
+    edge[:, :, 3] = (alpha * 255).astype(np.uint8)
+    print('paper-edge', save(Image.fromarray(edge, 'RGBA'), 'paper-edge'))
+    # the paper: as supplied (shown at its own size, never stretched)
     Image.open(os.path.join(SRC, 'parchment-texture.webp')).convert('RGB').save(os.path.join(OUT, 'paper.webp'), 'WEBP', quality=88, method=6)
     # the ornament: cut to what it shows, at 600 wide
     orn = Image.open(os.path.join(SRC, 'parchment-ornament.png')).convert('RGBA')

@@ -152,10 +152,12 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
 /* (the page is a parchment panel, css/parchment.css: its words scroll inside it if they must, its frame never) */
 .sb-page { display: flex; flex-direction: column; min-height: 0; }
 .sb-page .sb-text { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
-.sb-text p { margin: 0 0 0.6em; font-size: clamp(15px, 4.3vw, 18px); line-height: 1.45; }
+.sb-text p { margin: 0 0 0.55em; font-size: clamp(13px, 3.65vw, 15.5px); line-height: 1.48; }
+/* (the story's title on parchment: a little smaller than the windows', so the frame holds its own) */
+.story-book { --ob-title-size: clamp(18px, 5vw, 22px); }
 .sb-text p:last-child { margin-bottom: 0; }
 
-.sb-page .ob-title { margin-bottom: 10px; }
+.sb-page .ob-title { margin-bottom: 8px; }
 .sb-page.enter .ob-title { animation: sb-text-in var(--ob-text-in) ease-out both; }
 /* (its paragraphs one after the other; a tap shows them all: .shown) */
 .sb-page.enter .sb-text p { animation: sb-text-in 600ms ease-out both; animation-delay: calc(300ms + var(--i, 0) * 650ms); }
@@ -179,9 +181,9 @@ body.welcome #outfit .swatch-color.active { outline: 2px solid #fff6d8; box-shad
   .sb-panel { left: auto; right: max(4vw, env(safe-area-inset-right)); top: 50%; bottom: auto; transform: translateY(-50%); width: clamp(360px, 34vw, 460px); max-height: calc(100% - 48px); padding: 0; }
 }
 /* a tablet or a computer: words a little bigger */
-@media (min-width: 700px) { .sb-text p { font-size: 19px; } :root { --ob-title-size: 28px; } }
+@media (min-width: 700px) { .sb-text p { font-size: 16px; } :root { --ob-title-size: 28px; } .story-book { --ob-title-size: 24px; } }
 /* a short screen: smaller words, a smaller logo */
-@media (max-height: 620px) { .sb-text p { font-size: 14.5px; line-height: 1.4; } :root { --ob-title-size: 20px; } .sb-logo { width: 76px; } .story-book.first .sb-logo { width: 120px; } }
+@media (max-height: 620px) { .sb-text p { font-size: 13px; line-height: 1.42; } :root { --ob-title-size: 20px; } .story-book { --ob-title-size: 18px; } .sb-logo { width: 76px; } .story-book.first .sb-logo { width: 120px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .sb-shot { transition-duration: 200ms; }
