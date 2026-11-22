@@ -96,5 +96,18 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 .si-hint:empty { display: none; }
 .si-form .si-fwd { justify-self: end; }
 
+/* the dramatic opening (game-ui.js Intro: si-opening, OPENING_MS): black; the wordmark rises out of it; then the
+   panorama opens from the dark, settling as it comes (a slow pull back), the snow and lanterns with it; last the words
+   and the way on. The camera's drift along the story follows. Not with reduced motion. */
+.si-veil { position: absolute; inset: 0; z-index: -1; background: #000; opacity: 0; pointer-events: none; }
+#sortiaIntro.si-opening .si-veil { animation: si-unveil 4.6s 1.6s cubic-bezier(.45, 0, .2, 1) both; }
+#sortiaIntro.si-opening .si-art { animation: si-settle 10s 1.4s cubic-bezier(.2, .6, .2, 1) both; transform-origin: 50% 60%; }
+#sortiaIntro.si-opening .si-mark { animation: si-mark-in 2.4s .5s ease-out both; }
+#sortiaIntro.si-opening :is(.si-content, .si-skip) { animation: si-words-in 1.6s 5.4s ease-out both; }
+@keyframes si-unveil { from { opacity: 1; } to { opacity: 0; } }
+@keyframes si-settle { from { transform: scale(1.09); } to { transform: none; } }
+@keyframes si-mark-in { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes si-words-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
 @media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
-@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i, #sortiaIntro.si-opening * { animation: none; } }
