@@ -26,6 +26,11 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 .si-art { z-index: -2; object-fit: cover; object-position: var(--si-framing, 50%) center; }
 .si-art.enter { animation: si-appear .28s ease-out; }
 @keyframes si-appear { from { opacity: .64; } to { opacity: 1; } }
+/* (a slow pan across the scene, as a camera turns over a panorama, a little closer in; back again, and on. Only moving,
+   which a phone does on its graphics chip) */
+.si-art { will-change: transform; transform: scale(1.12); animation: si-pan 16s ease-in-out infinite alternate; }
+.si-art.enter { animation: si-appear .28s ease-out, si-pan 16s ease-in-out infinite alternate; }
+@keyframes si-pan { from { transform: translate3d(-4.5%, 0, 0) scale(1.12); } to { transform: translate3d(4.5%, -1%, 0) scale(1.12); } }
 .si-shade { z-index: -1; background: linear-gradient(#0b1219b0, transparent 19%), linear-gradient(180deg, transparent 59%, #0b12195e 68%, #0b1219ee 83%, var(--si-ground) 100%); }
 .si-col[data-screen="ama"] .si-shade { background: linear-gradient(#0b121999, transparent 18%), linear-gradient(180deg, transparent 49%, #0b12193d 57%, #0b1219e8 72%, var(--si-ground) 100%); }
 
@@ -67,4 +72,4 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 .si-form .si-fwd { justify-self: end; }
 
 @media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
-@media (prefers-reduced-motion: reduce) { .si-art.enter { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .si-art, .si-art.enter { animation: none; } }
