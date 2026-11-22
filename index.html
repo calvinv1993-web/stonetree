@@ -117,19 +117,29 @@
         </div>
 
         <div id="pathPick" class="class-pick" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-          <div class="sv-scene">
-            <div id="pathStage" class="sv-stage">
-              <h2 id="cpTitle" class="sv-banner" aria-label="Choose Your Path"><span class="sv-title" aria-hidden="true">CHOOSE YOUR PATH</span></h2>
-              <div class="sv-rule sv-title-rule" aria-hidden="true"><span></span></div>
-              <p class="sv-sub">How will you fight?</p>
-              <div id="pathTrack" class="sv-cards" role="group" aria-label="Paths"></div>
-              <button id="pathPrev" class="sv-arrow sv-left" type="button" aria-label="Previous path"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4-10 8 10 8-2-8z"/></svg></span></button>
-              <button id="pathNext" class="sv-arrow sv-right" type="button" aria-label="Next path"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 10 8-10 8 2-8z"/></svg></span></button>
+          <div class="vs-screen">
+            <div class="vs-top">
+              <div id="pathHero" class="vs-hero" aria-hidden="true"></div>
+              <header class="vs-head">
+                <div class="vs-rule" aria-hidden="true"><span></span></div>
+                <h2 id="cpTitle" class="vs-title">Choose Your Path</h2>
+                <p class="vs-sub">Select Your Vocation</p>
+              </header>
+              <div id="pathTrack" class="vs-cards" role="radiogroup" aria-label="Vocations"></div>
             </div>
-            <section id="pathInfo" class="sv-paper" aria-live="polite" aria-label="The path looked at"></section>
-            <button id="pathChoose" class="sv-cta" type="button">Choose Bastion</button>
-            <div id="pathDots" class="sv-dots" role="group" aria-label="Paths"></div>
-            <button id="pathBack" class="sv-back" type="button" aria-label="Back" hidden>&#8249;</button>
+            <section id="pathInfo" class="vs-info" aria-live="polite" aria-label="The vocation looked at">
+              <p id="pathRole" class="vs-role"></p>
+              <p id="pathIntro" class="vs-intro"></p>
+              <ul class="vs-traits">
+                <li class="vs-plus"><span class="vs-sign" aria-label="Strength"></span><span id="pathPlus"></span></li>
+                <li class="vs-minus"><span class="vs-sign" aria-label="Weakness"></span><span id="pathMinus"></span></li>
+              </ul>
+            </section>
+            <div class="vs-foot">
+              <p class="vs-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 10.5v6M12 7.2v.3"/></svg>Your choice is permanent.</p>
+              <button id="pathChoose" class="vs-btn vs-choose" type="button">Choose Path</button>
+            </div>
+            <button id="pathBack" class="vs-back" type="button" aria-label="Back" hidden>&#8249;</button>
           </div>
           <div id="pathAsk" class="cp-ask" hidden role="alertdialog" aria-modal="true" aria-labelledby="pathAskTitle"></div>
         </div>

@@ -1337,25 +1337,18 @@ function showWindow(heading, body) {
 // ---- choosing a path, as a new character is made (game-core.js choosePath) ------------------------------------------
 // Bastion, Hawk or Ember, each a card: what it is, how it fights, and one button. Asked of anyone without a path once
 // their name and outfit are done (online too: the choice goes to the server), never in a trial or on Kestrel Isle.
-// How each path is shown when it's chosen. Its words are the game's own (VOCATIONS: role; START_KITS and newPlayer: what
-// it starts with); its intro, strengths and weakness short, as those words and its numbers have them (health a level 15 / 10 / 5,
-// mana 5 / 15 / 30); nothing here that the game doesn't do. Its picture (sprites/ui/classes/<art>.webp: the path's
-// look, not the player's own) is cropped round art position; its emblem, its colour (tint) on its card.
+// How each path is shown when it's chosen: its kind of fighting and role, one line of how it plays, one of what it's best
+// at and one of its weakness, all as the game's own numbers have them (VOCATIONS; health a level 15 / 10 / 5, mana
+// 5 / 15 / 30; the Hawk's spells: Power Shot, volleys, its falcon, a little holy magic); nothing here the game doesn't do.
+// Its art: sprites/ui/sortia/<art>-portrait.webp (the large picture) and <art>-crest.webp (its emblem on its card).
 const PATH_PICK = {
-  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', intro: 'A frontline fighter who holds the line.',
-    strengths: ['Highest health', 'Heavy melee hits', 'Takes hits for allies'], weakness: 'Cannot attack from range' },
-  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', intro: 'An archer who calls on a falcon for support.',
-    strengths: ['Long-range attacks', 'Power Shot and volleys', 'Minor holy magic'], weakness: 'Vulnerable in melee' },
-  sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', intro: 'A spellcaster who burns whole packs.',
-    strengths: ['Fire and energy hit whole packs', 'Highest damage', 'Most mana'], weakness: 'Fragile and mana\u2011dependent' },
+  knight: { art: 'bastion', combat: 'Melee', role: 'Defender', intro: 'A durable frontline fighter who protects allies and holds the line.',
+    plus: 'The most health and heavy melee hits.', minus: 'Cannot attack from range.' },
+  paladin: { art: 'hawk', combat: 'Ranged', role: 'Archer', intro: 'An archer who strikes from afar, with a falcon at their side.',
+    plus: 'Long-range shots, Power Shot and volleys.', minus: 'Vulnerable in melee.' },
+  sorcerer: { art: 'ember', combat: 'Magic', role: 'Spellcaster', intro: 'A spellcaster who burns whole packs with fire and energy.',
+    plus: 'The most damage and the most mana.', minus: 'Fragile and mana‑dependent.' },
 };
-// what a path starts with: its own kit (START_KITS: in hand or in the bag), then what every new character has
-// (newPlayer: the temple's club, unless the kit puts another weapon in hand, five apples and two health potions)
-function pathKit(v) {
-  const own = (START_KITS[v] || []).map(([where, id, n]) => ({ id, n }));
-  const armed = (START_KITS[v] || []).some(([where]) => where === 'weapon');
-  return [...own, ...(armed ? [] : [{ id: 'wooden_club', n: 1 }]), { id: 'apple', n: 5 }, { id: 'health_potion', n: 2 }];
-}
 function maybeAskPath() {
   if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
   // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
@@ -1364,147 +1357,66 @@ function maybeAskPath() {
   if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
   askPath();
 }
-// Choosing a path: SORTIA's vocation screen (css/sortia.css): the banner with the title on a curve, three portrait
-// cards, the one looked at large in the middle and the others lower at the sides; seal arrows beside it, dots under the
-// way on; a tap on a side card, a sideways swipe or the arrow keys go through them too. Under them, on parchment, what
-// the path is and starts with (the game's own words and items); at the foot one button (Choose Bastion...). Looking
-// chooses nothing: the choice is asked once more ("for good").
-let pathAt = 0, swipedAt = 0;
+// Choosing a path: SORTIA's vocation screen (css/sortia.css), after the owner's reference (docs/sortia/vocation-select.png):
+// the title over a large picture of the path looked at, three cards under it (Hawk, Bastion, Ember: emblem and name),
+// what the path is in a few lines, "Your choice is permanent." and one button, Choose Path, that asks once more ("for
+// good"). A tap on a card, a sideways swipe on the picture or the arrow keys go through the paths; looking chooses nothing.
+let pathAt = 0;
 const classArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/classes/${file}`]; return `sprites/ui/classes/${file}${h ? `?h=${h}` : ''}`; };
 const sortiaArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/sortia/${file}`]; return `sprites/ui/sortia/${file}${h ? `?h=${h}` : ''}`; };
-// (the icons of the parchment's headings: SORTIA's interface icons, 24 x 24, drawn in the text's colour)
-const SV_ICONS = {
-  shield: '<path d="M12 3c2 2 5 3 8 3v5c0 5-3 8-8 10-5-2-8-5-8-10V6c3 0 6-1 8-3Z"/><path d="M12 7v10m-4-5h8"/>',
-  swords: '<path d="M3 3h4l12 12m2-12h-4L5 15m12-1 4 4m-7-1 4 4m-7-4-4 4m-4-3 4-4M3 3v4l10 10m8-14v4l-4 4M5 18l-2 3m16-3 2 3"/>',
-  bag: '<path d="M9 7V5a3 3 0 0 1 6 0v2m-8 1h10l3 5v6l-3 2H7l-3-2v-6Z"/><path d="M8 14h8v4H8Z"/>',
-};
-// The title's letters on a gentle arc, as the banner bends (HTML letters, each lifted and turned by where it stands: an SVG
-// text path was cut short in Safari). Its letters are made once; set again when the screen changes size.
-function curveTitle(el) {
-  if (!el.querySelector('i')) el.replaceChildren(...[...el.textContent].map(ch => h('i', { className: ch === ' ' ? 'sp' : '' }, ch === ' ' ? '\u00a0' : ch)));
-  const letters = [...el.querySelectorAll('i')], box = el.getBoundingClientRect(), half = box.width / 2;
-  if (!half) return;
-  const sag = el.parentElement.getBoundingClientRect().height * 0.1725; // (the banner's lower edge: its ends 17% of its height below its middle)
-  for (const l of letters) {
-    l.style.transform = '';
-    const r = l.getBoundingClientRect(), u = (r.left + r.width / 2 - (box.left + half)) / half; // -1 .. 1 across the banner
-    l.style.transform = `translateY(${(sag * u * u).toFixed(2)}px) rotate(${(Math.atan(2 * sag * u / half) * 180 / Math.PI).toFixed(2)}deg)`;
-  }
+const withData = (el, d) => (Object.assign(el.dataset, d), el);
+const SV_ORDER = ['paladin', 'knight', 'sorcerer']; // (the cards, left to right, as in the reference: Hawk, Bastion, Ember)
+// the three pictures fetched ahead, while the story is told (welcomeScene calls this), so the screen opens with them
+function preloadPathArt() {
+  if (preloadPathArt.done) return; preloadPathArt.done = true;
+  for (const v of SV_ORDER) for (const f of [`${PATH_PICK[v].art}-portrait.webp`, `${PATH_PICK[v].art}-crest.webp`]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
 }
-const SV_RING = ['knight', 'paladin', 'sorcerer']; // (the cards' order, left to right: Bastion, Hawk, Ember, as the dots and a swipe go)
-const svIcon = name => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true');
-  s.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${SV_ICONS[name]}</g>`; return s; };
 function askPath(onDone, onBack) {
-  const win = $('pathPick'), track = $('pathTrack');
-  if (!track.childElementCount) { // (the cards, once: their pictures fetched as the screen opens)
-    for (const [prop, file] of [['--sv-hall', 'vocation-terrace.webp'], ['--sv-banner', 'banner.webp'], ['--sv-paper', 'parchment.webp'], ['--sv-button', 'button-ceremonial.webp']])
-      win.style.setProperty(prop, `url("${new URL(sortiaArt(file), location.href).href}")`);
-    track.replaceChildren(...START_PATHS.map((v, i) => {
-      const info = PATH_PICK[v];
-      const card = h('button', { className: 'sv-card', type: 'button' },
-        h('span', { className: 'sv-face' }, h('span', { className: 'sv-window' },
-          h('img', { className: 'sv-portrait', src: sortiaArt(`${info.art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }))),
-        h('span', { className: 'sv-info' }, h('img', { className: 'sv-medal', src: sortiaArt(`${info.art}-crest.webp`), alt: '', draggable: false }),
-          h('strong', {}, vocName(v)), h('small', {}, info.combat)));
-      card.dataset.v = v;
-      card.setAttribute('aria-label', `${vocName(v)}: ${info.combat}`);
-      card.onclick = () => { if (performance.now() > swipedAt + 300) show(i); };
+  const win = $('pathPick'), track = $('pathTrack'), hero = $('pathHero');
+  const order = SV_ORDER.filter(v => START_PATHS.includes(v));
+  if (!track.childElementCount) { // (the pictures and the cards, once)
+    hero.replaceChildren(...order.map(v => withData(h('img', { className: 'vs-art', src: sortiaArt(`${PATH_PICK[v].art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }), { v })));
+    track.replaceChildren(...order.map(v => {
+      const card = withData(h('button', { className: 'vs-card', type: 'button' },
+        h('img', { className: 'vs-emblem', src: sortiaArt(`${PATH_PICK[v].art}-crest.webp`), alt: '', draggable: false }), h('span', { className: 'vs-name' }, vocName(v))), { v, art: PATH_PICK[v].art });
+      card.setAttribute('role', 'radio');
+      card.onclick = () => show(START_PATHS.indexOf(v));
       return card;
     }));
-    $('pathDots').replaceChildren(...START_PATHS.map((v, i) => {
-      const dot = h('button', { type: 'button' }, h('span')); dot.setAttribute('aria-label', `Show ${vocName(v)}`); dot.onclick = () => show(i); return dot;
-    }));
   }
-  // the screen's shape: taller than the reference's 2:3 (a phone), the parchment's words larger (the cards keep their proportions)
-  // (the background, a terrace over the sea, is the same on every screen: css/sortia.css)
-  function place() {
-    const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
-    const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
-    const title = win.querySelector('.sv-title'), curve = () => curveTitle(title);
-    // the parchment as tall as the tallest path's words at this width, for every path: the button and the dots stay put
-    const tallest = () => {
-      paper.style.minHeight = '';
-      let most = 0;
-      for (const v of START_PATHS) { paper.replaceChildren(...paperFor(v)); most = Math.max(most, paper.offsetHeight); }
-      paper.style.minHeight = `${most}px`;
-      paper.replaceChildren(...paperFor(START_PATHS[pathAt]));
-    };
-    if (!phone) { scene.style.setProperty('--pk', Math.min(1.3, Math.max(1, 1 + (ratio - 1.5) * 0.45)).toFixed(3)); tallest(); }
-    else { // (a phone: the parchment's words as large as the mock-up's, smaller until the whole screen fits its height)
-      let pk = 1;
-      scene.style.width = '';
-      scene.style.setProperty('--pk', pk); tallest();
-      while (pk > 0.8 && scene.scrollHeight > win.clientHeight + 1) { pk -= 0.03; scene.style.setProperty('--pk', pk.toFixed(2)); tallest(); }
-      // (a short phone: still too tall, the banner and the cards a little smaller, to two thirds of the screen's width at
-      // the least; the parchment keeps the screen's width, its words their size: what's left scrolls, up and down only)
-      const least = Math.floor(innerWidth * 0.66);
-      for (let k = 0; k < 6 && scene.scrollHeight > win.clientHeight + 1 && scene.clientWidth > least; k++) {
-        scene.style.width = `${Math.max(least, Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1)}px`; tallest();
-      }
-    }
-    curve(); fitSides();
-    if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
+  // the words as tall as the longest path's at this width: the cards and the button stay put when you look at another
+  function steady() {
+    const box = $('pathInfo'); box.style.minHeight = '';
+    let most = 0;
+    for (const v of order) { words(v); most = Math.max(most, box.offsetHeight); }
+    box.style.minHeight = `${most}px`;
+    words(START_PATHS[pathAt]);
   }
-  // a side card's crest, name and kind of fighting hidden when the screen's edge cuts them (its portrait still shows,
-  // a glimpse of the next path); measured where the cards come to rest, after their move
-  function fitSides() {
-    clearTimeout(fitSides.t);
-    fitSides.t = setTimeout(() => {
-      const W = document.documentElement.clientWidth;
-      for (const c of track.children) {
-        const cut = [...c.querySelectorAll('.sv-medal, .sv-info strong, .sv-info small')].some(e => { const r = e.getBoundingClientRect(); return r.left < 0 || r.right > W; });
-        c.classList.toggle('sv-cut', c.dataset.position !== 'center' && cut);
-      }
-    }, 450);
-  }
-  // what the parchment says of a path: its words, strengths, weakness and what it starts with
-  function paperFor(v) {
+  function words(v) {
     const info = PATH_PICK[v];
-    // (three things it starts with, as in the reference: its own first, then what it fights with and its potions)
-    const rank = id => (ITEMS[id] && (ITEMS[id].weapon || ITEMS[id].ammo) ? 0 : /potion/.test(id) ? 1 : 2);
-    const kit = pathKit(v).map((it, k) => ({ ...it, k })).sort((a, b) => (a.k < (START_KITS[v] || []).length ? -1 : rank(a.id)) - (b.k < (START_KITS[v] || []).length ? -1 : rank(b.id)) || a.k - b.k)
-      .slice(0, 3).map(({ id, n: count }) => {
-      const name = `${count > 1 ? `${count} ` : ''}${ITEMS[id] ? ITEMS[id].name : id}`;
-      const li = h('li', { title: name }, h('img', { src: typeof Sprites !== 'undefined' ? Sprites.itemURL(id) : '', alt: name }), count > 1 ? h('small', {}, String(count)) : '');
-      return li;
-    });
-    const rule = () => { const r = h('div', { className: 'sv-rule' }, h('span')); r.setAttribute('aria-hidden', 'true'); return r; };
-    const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
-    return [
-      h('p', { className: 'sv-desc' }, info.intro),
-      rule(),
-      h('div', { className: 'sv-cols' },
-        h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
-        h('div', {}, h('h3', {}, svIcon('swords'), weak.length > 1 ? 'Weaknesses' : 'Weakness'), h('ul', { className: 'sv-list' }, ...weak.map(t => h('li', {}, t))),
-          h('h3', { className: 'sv-gear' }, svIcon('bag'), 'Starts with'), h('ul', { className: 'sv-items' }, ...kit)))];
+    $('pathRole').textContent = `${info.combat} · ${info.role}`;
+    $('pathIntro').textContent = info.intro;
+    $('pathPlus').textContent = info.plus;
+    $('pathMinus').textContent = info.minus;
   }
-  // the path left (step -1) or right (step 1) of the one in the middle
-  const step = d => { const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(START_PATHS[pathAt]);
-    show(START_PATHS.indexOf(ring[(r + d + ring.length) % ring.length])); };
+  // the path looked at: its picture (a short cross-fade), its card lit, its words
   function show(i) {
     const n = START_PATHS.length;
     pathAt = (i + n) % n;
-    const v = START_PATHS[pathAt], info = PATH_PICK[v];
-    // (round the middle in one order, the dots' own: Bastion, Hawk, Ember; the one left of it is the one before it)
-    const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(v);
-    [...track.children].forEach((c, j) => {
-      const at = ring.indexOf(START_PATHS[j]);
-      c.dataset.position = at === r ? 'center' : at === (r + ring.length - 1) % ring.length ? 'left' : 'right';
-      c.setAttribute('aria-pressed', j === pathAt ? 'true' : 'false');
-      c.tabIndex = j === pathAt ? 0 : -1;
-    });
-    [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
-    $('pathInfo').replaceChildren(...paperFor(v));
-    $('pathChoose').textContent = `Choose ${vocName(v)}`;
-    fitSides();
+    const v = START_PATHS[pathAt];
+    for (const img of hero.children) img.classList.toggle('on', img.dataset.v === v);
+    for (const c of track.children) { const on = c.dataset.v === v; c.setAttribute('aria-checked', on ? 'true' : 'false'); c.tabIndex = on ? 0 : -1; }
+    words(v);
     ask(false);
   }
+  // the path left (step -1) or right (step 1) of the one looked at, in the cards' order
+  const step = d => { const r = order.indexOf(START_PATHS[pathAt]); show(START_PATHS.indexOf(order[(r + d + order.length) % order.length])); };
   // the confirmation: a path is for good
   function ask(on) {
     const v = START_PATHS[pathAt], box = $('pathAsk');
     box.hidden = !on;
     if (!on) return;
-    const yes = h('button', { className: 'ob-btn', type: 'button' }, `Become ${aVoc(v)}`), no = h('button', { className: 'cp-not-yet', type: 'button' }, 'Not yet');
+    const yes = h('button', { className: 'vs-btn', type: 'button' }, `Become ${aVoc(v)}`), no = h('button', { className: 'vs-ghost', type: 'button' }, 'Not yet');
     let sent = false;
     yes.onclick = () => {
       if (sent) return; sent = true;
@@ -1513,42 +1425,38 @@ function askPath(onDone, onBack) {
       if (onDone) onDone();
     };
     no.onclick = () => ask(false);
-    const panel = h('div', { className: 'cp-ask-card' },
-      h('img', { className: 'cp-ask-emblem', src: classArt(`${PATH_PICK[v].art}-emblem.png`), alt: '' }),
-      h('h3', { id: 'pathAskTitle', className: 'pp-title' }, `Walk the path of ${aVoc(v)}?`), h('p', {}, 'It is yours for good: no one changes their path.'),
-      h('div', { className: 'cp-ask-row' }, no, yes));
-    ParchmentPanel.decorate(panel, { variant: 'ceremonial' });
-    box.replaceChildren(panel);
+    box.replaceChildren(h('div', { className: 'vs-dialog' },
+      h('img', { className: 'vs-dialog-emblem', src: sortiaArt(`${PATH_PICK[v].art}-crest.webp`), alt: '' }),
+      h('h3', { id: 'pathAskTitle' }, `Become ${aVoc(v)}?`), h('p', {}, `Your path is permanent: once you choose ${vocName(v)}, it can't be changed.`),
+      h('div', { className: 'vs-dialog-row' }, no, yes)));
     yes.focus({ preventScroll: true });
   }
   $('pathChoose').onclick = () => ask(true);
-  $('pathPrev').onclick = () => step(-1);
-  $('pathNext').onclick = () => step(1);
   $('pathBack').hidden = !onBack;
   $('pathBack').onclick = () => { if (!onBack) return; win.hidden = true; $('pathAsk').hidden = true; onBack(); };
-  // (a sideways swipe on the cards goes to the next path or the one before; the tap that ends it doesn't pick a card)
+  // (a sideways swipe on the picture goes to the path beside it)
   let sx = null, sy = null;
-  $('pathStage').ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
-  $('pathStage').ontouchend = e => {
+  hero.parentElement.ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  hero.parentElement.ontouchend = e => {
     if (sx === null) return;
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
-    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) * 1.2) { swipedAt = performance.now(); step(dx < 0 ? 1 : -1); }
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) * 1.2) step(dx < 0 ? 1 : -1);
   };
-  $('pathStage').ondragstart = e => e.preventDefault();
   // (the arrow keys go through the paths while they're shown, wherever the focus is; Escape takes back the question)
   askPath.keys = e => {
     if (!$('pathAsk').hidden) { if (e.key === 'Escape') { ask(false); e.stopPropagation(); } return; }
     if (e.key === 'ArrowRight') { step(1); e.preventDefault(); e.stopPropagation(); }
     else if (e.key === 'ArrowLeft') { step(-1); e.preventDefault(); e.stopPropagation(); }
   };
+  askPath.step = step;
   if (!askPath.listening) { askPath.listening = true; addEventListener('keydown', e => { if (!$('pathPick').hidden && askPath.keys) askPath.keys(e); }, true); }
-  if (!askPath.placed) { askPath.placed = true; window.addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.place) askPath.place(); }); }
-  askPath.place = place;
   if (!document.body.classList.contains('welcome')) welcomeScene('paths'); // (a character from before the paths: the hall, too)
+  if (!askPath.sized) { askPath.sized = true; addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.steady) askPath.steady(); }); }
+  askPath.steady = steady;
   win.hidden = false;
-  place();
-  requestAnimationFrame(() => show(pathAt));
   show(pathAt);
+  steady();
+  if (document.fonts) document.fonts.ready.then(() => { if (!win.hidden) steady(); }); // (again once Inter is in)
 }
 
 // ---- the skill tree (creatures.js TREES, docs/skills-plan.md) ----------------------------------------------------------
@@ -2993,6 +2901,7 @@ const stillMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 // (07, your path); false: none
 const SCENES = { temple: '06_character_creation', paths: '07_choose_your_path' };
 function welcomeScene(name) {
+  preloadPathArt(); // (the vocation screen's pictures, ahead of it)
   const el = $('templeScene');
   if (!name) { el.classList.remove('on'); el.hidden = true; el.dataset.scene = ''; return; }
   if (el.dataset.scene === name && !el.hidden) return;

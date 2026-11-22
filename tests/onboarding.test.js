@@ -114,63 +114,39 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => outfit.hidden), `${name}: no outfit while the character is made`);
 
     // your path: one at a time, chosen only once confirmed
-    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.sv-card').length === 3 && document.querySelectorAll('.sv-card[data-position=center]').length === 1),
-      `${name}: the path, in the hall of paths: three cards, one looked at`);
-    check(await page.evaluate(() => [...document.querySelectorAll('.sv-portrait, .sv-medal')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
-    // looking: the arrows (a phone), a dot, the arrow keys; the button names the path; nothing chosen
-    await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
-    await page.keyboard.press('ArrowRight');
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
-    // (one order for the cards, a swipe and the dots: Bastion, Hawk, Ember)
-    check(await page.evaluate(() => { const at = v => document.querySelector(`.sv-card[data-v=${v}]`).dataset.position; return at('knight') === 'left' && at('paladin') === 'center' && at('sorcerer') === 'right'
-      && [...pathDots.children].map(d => d.getAttribute('aria-label')).join() === 'Show Bastion,Show Hawk,Show Ember' && pathDots.children[1].getAttribute('aria-current') === 'true'; }),
-      `${name}: Bastion left of Hawk, Ember right of it, the dots in that order`);
-    await page.keyboard.press('ArrowLeft');
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Bastion' && pathDots.children[0].getAttribute('aria-current') === 'true'), `${name}: to the left of Hawk: Bastion, its dot current`);
-    { // (the parchment and the way on stand still whichever path is looked at; the whole screen fits; the title inside its banner)
-      // (the parchment as tall as the longest path's at this width: the button and the dots in one place for every path, over its
-      // foot, 18 to 26px under the longest path's words; the dots 44px to tap, the one shown current)
-      const seen = [];
-      for (let k = 0; k < 3; k++) {
-        const g = await page.evaluate(() => {
-          const R = e => e.getBoundingClientRect(), p = R(pathInfo), b = R(pathChoose);
-          const last = Math.max(...[...pathInfo.querySelectorAll('.sv-desc, .sv-list li, .sv-items li')].map(e => R(e).bottom));
-          const dots = [...pathDots.children], cur = dots.findIndex(d => d.getAttribute('aria-current') === 'true');
-          return { gap: Math.round(b.top - last), at: `${Math.round(b.top)},${Math.round(R(pathDots).top)}`, over: b.top < p.bottom && b.bottom > p.bottom,
-            inside: last <= p.bottom, dots: dots.every(d => R(d).width >= 44 && R(d).height >= 44),
-            synced: START_PATHS[cur] === document.querySelector('.sv-card[data-position=center]').dataset.v, path: pathChoose.textContent };
-        });
-        seen.push(g);
-        check(g.gap >= 18 && g.over && g.inside && g.dots && g.synced, `${name}: ${g.path}: the button over the parchment's foot, under all its words; the dots to tap (${JSON.stringify(g)})`);
-        await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150);
-      }
-      check(seen.every(g => g.at.split(',').every((v, i) => Math.abs(v - seen[0].at.split(',')[i]) <= 1)) && Math.min(...seen.map(g => g.gap)) <= 26, `${name}: the button and the dots in one place for every path (${seen.map(g => `${g.at} ${g.gap}`).join(' | ')})`);
-      // (the whole screen fits from 375 x 667 up; the smallest phone, 320 x 568, scrolls up and down to the button, the words kept large)
-      if (name !== '320') check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
-      for (let k = 0; k < 3; k++) {
-        const g = await page.evaluate(() => {
-          const R = e => e.getBoundingClientRect(), hs = [...pathInfo.querySelectorAll('.sv-cols h3')].map(R), items = [...pathInfo.querySelectorAll('.sv-items li')].map(R);
-          const size = s => parseFloat(getComputedStyle(pathInfo.querySelector(s)).fontSize);
-          return { heads: Math.abs(hs[0].top - hs[1].top) < 1 && Math.abs(hs[0].bottom - hs[1].bottom) < 1, gear: Math.abs(hs[2].left - hs[1].left) < 1,
-            items: items.every(r => Math.abs(r.width - items[0].width) < 0.5) && Math.abs((items[1].left - items[0].right) - (items[2].left - items[1].right)) < 1,
-            words: size('.sv-desc') >= 13 && size('.sv-list li') >= 13, phone: matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches && size('.sv-desc') >= 14 && size('.sv-list li') >= 14,
-            path: pathChoose.textContent };
-        });
-        check(g.heads && g.gear && g.items, `${name}: ${g.path}: Strengths and Weakness on one line, Starts with under Weakness, the kit's boxes alike (${JSON.stringify(g)})`);
-        check(g.words && (g.phone || !/^(320|375|390|430)$/.test(name)), `${name}: ${g.path}: the parchment's words large enough to read`);
-        await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150);
-      }
-      check(await page.evaluate(() => { const b = document.querySelector('.sv-banner').getBoundingClientRect(), l = [...document.querySelectorAll('.sv-title i')].map(i => i.getBoundingClientRect()); return l.length === 16 && l[0].left >= b.left + b.width * 0.08 && l[15].right <= b.right - b.width * 0.08; }), `${name}: the title's letters all within its banner`);
-      await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
+    const looked = () => page.evaluate(() => document.querySelector('.vs-card[aria-checked=true]').dataset.v);
+    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.vs-card').length === 3 && document.querySelectorAll('.vs-card[aria-checked=true]').length === 1
+      && [...document.querySelectorAll('.vs-name')].map(n => n.textContent).join() === 'Hawk,Bastion,Ember'), `${name}: the vocation screen: Hawk, Bastion, Ember, one looked at`);
+    await page.waitForFunction(() => [...document.querySelectorAll('.vs-art, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
+    check(await page.evaluate(() => [...document.querySelectorAll('.vs-art, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    // looking: a card, the arrow keys; the picture and the words follow; nothing chosen
+    await page.click('.vs-card[data-v=paladin]');
+    check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
+      `${name}: a card shows its path: its picture and words; looking chooses nothing`);
+    await page.keyboard.press('ArrowRight'); check(await looked() === 'knight', `${name}: the arrow key: the card on the right`);
+    await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);
+    // (nothing moves when you look at another: the cards and the button stay put; every card the same size, 44px and more to tap;
+    // the words 16px; nothing past the screen's sides; the whole screen fits from 375 x 667 up)
+    const held = [];
+    for (const v of ['paladin', 'knight', 'sorcerer']) {
+      await page.click(`.vs-card[data-v=${v}]`); await page.waitForTimeout(250);
+      held.push(await page.evaluate(() => {
+        const R = e => e.getBoundingClientRect(), cards = [...document.querySelectorAll('.vs-card')].map(R), btn = R(pathChoose);
+        const words = [...pathInfo.querySelectorAll('p, li')].map(R), bottom = Math.max(...words.map(r => r.bottom));
+        return { at: `${Math.round(cards[0].top)},${Math.round(btn.top)}`, same: cards.every(r => Math.abs(r.width - cards[0].width) < 0.5 && Math.abs(r.height - cards[0].height) < 0.5 && r.height >= 44),
+          btn: btn.height >= 56, clear: bottom <= R(document.querySelector('.vs-note')).top, text: parseFloat(getComputedStyle(pathIntro).fontSize) >= 16,
+          sides: document.documentElement.scrollWidth <= innerWidth && [...document.querySelectorAll('.vs-card, #pathChoose, .vs-title')].every(e => R(e).left >= 0 && R(e).right <= innerWidth) };
+      }));
     }
-    check(await page.evaluate(() => { const i = pathInfo; return i.classList.contains('sv-paper') && /Strengths/.test(i.textContent) && /Weakness/.test(i.textContent) && i.querySelectorAll('.sv-items img').length >= 3; }),
-      `${name}: on parchment: strengths, weakness, the kit with the game's own item pictures`);
+    check(held.every(g => g.at === held[0].at), `${name}: the cards and the button stay put (${held.map(g => g.at).join(' | ')})`);
+    check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the cards alike, the button big, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
+    if (name !== '320') check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
-    await page.evaluate(() => document.querySelectorAll('#pathDots button')[2].click());
+    await page.click('.vs-card[data-v=sorcerer]');
     await step('path');
     await page.click('#pathChoose');
-    check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden), `${name}: not chosen before it's confirmed`);
-    await page.evaluate(() => { const yes = pathAsk.querySelector('.ob-btn'); yes.click(); yes.click(); });
+    check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden && /Ember/.test(pathAsk.textContent) && /permanent/.test(pathAsk.textContent)), `${name}: not chosen before it's confirmed, the path named`);
+    await page.evaluate(() => { const yes = pathAsk.querySelector('.vs-btn'); yes.click(); yes.click(); });
     await page.waitForTimeout(800);
 
     // the game: the outfit window, once, a moment later, in the game's own look: a colour chosen comes out on the character

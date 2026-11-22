@@ -1,209 +1,135 @@
 /* SORTIA's vocation screen: choosing your path (game-ui.js askPath), after the owner's reference
-   (docs/sortia/vocation-reference.jpg, 1024 x 1536) and the SORTIA UI kit (docs/sortia/componenten.md). A ruined
-   terrace over the sea at dusk; a burgundy banner with the title on a curved SVG text path; three portrait cards,
-   the one looked at large in the middle, its neighbours lower at the sides, their outer edges cut by the screen; round
-   seal arrows beside the middle card; under them aged parchment: the path's words over the full width, Strengths and
-   Weaknesses side by side, Starts with under Weaknesses; the green ceremonial button overlapping the paper's foot, and
-   the dots under it. Everything is laid out in % of the scene's width (cqw), so it keeps the reference's proportions on
-   any screen; it scrolls if the screen is too short. Its pictures: sprites/ui/sortia/ (from the kit). Its type:
-   Cinzel (titles, names, the way on), EB Garamond (the line under the banner) and Inter (the parchment's words, upright,
-   14 to 15px on a phone), in css/fonts (SIL Open Font License). */
+   (docs/sortia/vocation-select.png). Dark medieval fantasy, no parchment: the title at the top over a large picture of the
+   path looked at, which fades into the dark; three cards in a row under it (Hawk, Bastion, Ember: emblem and name, the one
+   looked at in gold on its own colour); its kind of fighting and role, one line of how it plays, a strength and a weakness;
+   "Your choice is permanent." and one green button, Choose Path, that asks once more in a dark window. A column as wide as
+   a phone (480px at most), laid out in the flow of the page: nothing placed by the reference's own pixels. Its pictures:
+   sprites/ui/sortia/<path>-portrait.webp and <path>-crest.webp. Its type: Cinzel (title, names, the button) and Inter
+   (everything else), in css/fonts (SIL Open Font License). Spacing in steps of 8px, a 20px margin at the sides. */
 
-@font-face { font-family: 'EB Garamond'; font-weight: 400 600; font-display: swap; src: url(fonts/eb-garamond-latin.woff2) format('woff2'); }
 @font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap; src: url(fonts/inter-latin-wght.woff2) format('woff2'); }
-@font-face { font-family: 'EB Garamond'; font-style: italic; font-weight: 400 600; font-display: swap; src: url(fonts/eb-garamond-italic-latin.woff2) format('woff2'); }
 
+/* the screen's tokens */
 #pathPick {
-  --sv-display: 'Cinzel', Georgia, serif; --sv-story: 'EB Garamond', Georgia, serif; --sv-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --sv-ivory: #f1e2ca; --sv-ink: #322016; --sv-gold: #e0b77d;
+  --vs-serif: 'Cinzel', Georgia, serif; --vs-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --vs-bg: #0b0f15; --vs-card: #131921; --vs-card-edge: rgba(186, 186, 186, 0.32);
+  --vs-gold: #d6ad69; --vs-gold-hi: #f6dea6; --vs-gold-lo: #9c6f32; --vs-text: #ece5d8; --vs-muted: #b3ab9d; --vs-line: rgba(214, 173, 105, 0.3);
+  --vs-green-hi: #275a40; --vs-green-lo: #0f2a1d; --vs-plus: #4f8a43; --vs-minus: #a33a2f;
+  --vs-side: 20px; --vs-cut: 10px; --vs-fade: 200ms;
   position: fixed; inset: 0; z-index: 41; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
-  display: flex; flex-direction: column; align-items: center;
-  background: #0d1018 var(--sv-hall, url(../sprites/ui/sortia/vocation-terrace.webp)) center 58% / cover no-repeat; /* (a ruined terrace over the sea at dusk: docs/sortia/vocation-background.png) */
-  color: var(--sv-ivory); -webkit-tap-highlight-color: transparent;
+  background: var(--vs-bg); color: var(--vs-text); -webkit-tap-highlight-color: transparent;
 }
 #pathPick[hidden] { display: none; }
-#pathPick::-webkit-scrollbar { display: none; } /* (no scroll bar at the right edge: the screen fits a phone; a short one still scrolls) */
-html body #pathPick .sv-scene, html body #pathPick .sv-scene * { font-family: var(--sv-story) !important; }
-/* (the parchment's words in Inter, upright, to read easily; Cinzel stays for the banner, the names and the button) */
-html body #pathPick .sv-paper :is(.sv-desc, .sv-list li, .sv-cols h3, .sv-items small) { font-family: var(--sv-ui) !important; }
-html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small, .sv-cols h3, .sv-cta) { font-family: var(--sv-display) !important; }
-#pathPick button { -webkit-appearance: none; appearance: none; margin: 0; padding: 0; font: inherit; color: inherit; cursor: pointer;
+#pathPick::-webkit-scrollbar { display: none; }
+#pathPick .vs-card[data-art="bastion"] { --vs-tint-hi: #8d2a22; --vs-tint-lo: #43100d; }
+#pathPick .vs-card[data-art="hawk"] { --vs-tint-hi: #2f5c35; --vs-tint-lo: #132a17; }
+#pathPick .vs-card[data-art="ember"] { --vs-tint-hi: #8b3c12; --vs-tint-lo: #3f1606; }
+
+/* (the game's own buttons and type left out: this screen draws its own) */
+#pathPick button { -webkit-appearance: none; appearance: none; margin: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-shadow: none;
   background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; min-width: 0; min-height: 0; }
-#pathPick button:focus-visible { outline: 2px solid #e8cea1; outline-offset: 2px; }
+#pathPick button:focus-visible { outline: 2px solid var(--vs-gold-hi); outline-offset: 3px; }
+html body #pathPick .vs-screen, html body #pathPick .vs-screen *, html body #pathPick .vs-dialog, html body #pathPick .vs-dialog * { font-family: var(--vs-sans) !important; }
+html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) { font-family: var(--vs-serif) !important; }
 
-/* the scene: the reference's width, as wide as the screen allows (and as tall: a wide screen shows it whole) */
-.sv-scene { --kc: 1; --pk: 1; position: relative; isolation: isolate; container-type: inline-size; flex: none; box-sizing: border-box;
-  width: min(100vw, 600px, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 0.64)); min-height: 100dvh;
-  display: flex; flex-direction: column; /* (top to bottom, close together, as in the reference; the height to spare under the dots) */
-  margin: 0 auto; padding: calc(env(safe-area-inset-top) + 6px) 0 max(2cqw, env(safe-area-inset-bottom)); }
-/* (the banner just under the safe area: 6px here, then its own top in the stage; the cards keep the reference's proportions;
-   a screen taller than its 2:3, a phone, gets the parchment's words larger: game-ui.js askPath sets --pk from its shape) */
-.sv-scene::before { content: ''; position: absolute; z-index: -1; inset: 0 -50vw; pointer-events: none;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.55)); }
+/* the column: top to bottom, the picture taking the height to spare */
+.vs-screen { position: relative; box-sizing: border-box; width: min(100%, 480px); min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column;
+  padding: env(safe-area-inset-top) 0 max(16px, calc(env(safe-area-inset-bottom) + 8px)); }
+.vs-top { position: relative; isolation: isolate; flex: 1 0 auto; min-height: 344px; display: flex; flex-direction: column; }
 
-/* the top: banner, subtitle, the cards and the arrows (the reference's top 878 of its 1024 x 1536) */
-.sv-stage { --E: calc(85.74cqw * (var(--kc) - 1)); position: relative; flex: none; height: calc(82.24cqw * var(--kc)); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-.sv-banner { position: absolute; left: 17.3%; top: 4.3cqw; width: 65.5%; height: 15.75cqw; margin: 0;
-  background: var(--sv-banner, url(../sprites/ui/sortia/banner.webp)) center / 100% 100% no-repeat; }
-.sv-title { position: absolute; inset: 0 0 31% 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
-  font-size: 4.05cqw; font-weight: 700; letter-spacing: 0.03em; line-height: 1; filter: drop-shadow(0 0.16cqw 0.1cqw rgba(20, 8, 4, 0.9)); }
-/* (the title is HTML, its letters set on a gentle arc by game-ui.js curveTitle: an SVG text path was cut short in Safari) */
-.sv-title i { display: inline-block; font-style: normal; color: #f1cf8e; background: linear-gradient(180deg, #fff3d2, #f1cf8e 50%, #c8955a);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; transform-origin: 50% 100%; }
-.sv-title i.sp { width: 0.32em; }
-.sv-rule { display: flex; align-items: center; justify-content: center; gap: 0.7cqw; pointer-events: none; color: #e1b77e; }
-.sv-rule::before, .sv-rule::after { content: ''; width: 8cqw; height: 1px; background: linear-gradient(90deg, transparent, currentColor); }
-.sv-rule::after { transform: scaleX(-1); }
-.sv-rule span { width: 1.03cqw; min-width: 5px; aspect-ratio: 1; background: currentColor; transform: rotate(45deg); box-shadow: 0 0 0 0.12cqw #5f3e20; }
-.sv-title-rule { position: absolute; top: 16.22cqw; left: 0; right: 0; }
-.sv-sub { position: absolute; top: 18.19cqw; left: 0; right: 0; margin: 0; text-align: center;
-  font: italic 400 clamp(11px, 2.55cqw, 27px) / 1.2 var(--sv-story); color: #f4e4c7; text-shadow: 0 1px 4px #000; }
+/* the picture of the path looked at: the column's width, no frame, fading into the dark under it and behind the title */
+.vs-hero { position: absolute; z-index: -1; inset: calc(-1 * env(safe-area-inset-top)) 0 0; overflow: hidden; pointer-events: none; }
+.vs-art { position: absolute; inset: 56px 0 0; width: 100%; height: calc(100% - 56px); object-fit: cover; object-position: 50% 8%; opacity: 0; transition: opacity var(--vs-fade) ease; }
+.vs-art.on { opacity: 1; }
+.vs-hero::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--vs-bg) 0, var(--vs-bg) 56px, rgba(11, 15, 21, 0.55) 22%, rgba(11, 15, 21, 0) 36%, rgba(11, 15, 21, 0) 52%, rgba(11, 15, 21, 0.72) 76%, var(--vs-bg) 96%),
+    linear-gradient(90deg, rgba(11, 15, 21, 0.45), rgba(11, 15, 21, 0) 18%, rgba(11, 15, 21, 0) 82%, rgba(11, 15, 21, 0.45)); }
 
-/* the cards: the one looked at in the middle; the others lower at the sides, darker, their outer edge cut by the screen */
-.sv-card { --cut: 2.4cqw; --edge: 0.52cqw; position: absolute; isolation: isolate; z-index: 2; text-align: center;
-  left: 27.54%; top: 23.65cqw; width: 44.92%; height: calc(56.76cqw + var(--E));
-  transition: left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.sv-card[data-position="left"] { left: 0; top: 29.9cqw; width: 25.4%; height: calc(47.24cqw + var(--E)); z-index: 1; --edge: 0.41cqw; }
-.sv-card[data-position="right"] { left: 74.6%; top: 29.9cqw; width: 25.4%; height: calc(47.24cqw + var(--E)); z-index: 1; --edge: 0.41cqw; }
-.sv-card::before, .sv-face, .sv-window { position: absolute; content: ''; inset: 0;
-  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); }
-.sv-card[data-position="left"]::before, .sv-card[data-position="left"] .sv-face, .sv-card[data-position="left"] .sv-window {
-  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%); }
-.sv-card[data-position="right"]::before, .sv-card[data-position="right"] .sv-face, .sv-card[data-position="right"] .sv-window {
-  clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); }
-.sv-card::before { background: linear-gradient(148deg, #d9b27a, #714821 23%, #efc692 48%, #6b432b 68%, #d9a96f 88%, #eccf9b); }
-.sv-face { inset: var(--edge); --cut: 2.15cqw; background: #27160f; }
-.sv-window { inset: 0.32cqw; --cut: 1.95cqw; background: #18151c; overflow: hidden; }
-.sv-window::after { position: absolute; content: ''; inset: 0; pointer-events: none;
-  background: linear-gradient(0deg, #120d13 1%, rgba(22, 14, 22, 0.91) 12%, rgba(22, 14, 22, 0.4) 26%, transparent 43%); }
-.sv-portrait { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; pointer-events: none; }
-/* (each portrait, 2:3, cropped round its face: docs/sortia/portraits/) */
-.sv-card[data-v="knight"] .sv-portrait { object-position: 54% 8%; }
-.sv-card[data-v="paladin"] .sv-portrait { object-position: 50% 10%; }
-.sv-card[data-v="sorcerer"] .sv-portrait { object-position: 42% 12%; }
-.sv-card:not([data-position="center"])::before { filter: brightness(0.7); }
-.sv-card:not([data-position="center"]) .sv-window { filter: brightness(0.77) saturate(0.82); }
-.sv-info { position: absolute; z-index: 2; left: 0; right: 0; bottom: 3.95%; display: grid; justify-items: center; color: #f6e5c7; text-shadow: 0 2px 3px #000; pointer-events: none; }
-.sv-medal { display: block; width: 13.5cqw; aspect-ratio: 1; margin: 0 auto 0.2cqw; object-fit: contain; filter: drop-shadow(0 0.3cqw 0.5cqw rgba(0, 0, 0, 0.75)); } /* (the path's crest: sprites/ui/sortia/<path>-crest.webp, from docs/sortia/vocation-crests.png) */
-.sv-info strong { font: 600 clamp(15px, 4.4cqw, 46px) / 1.15 var(--sv-display); }
-.sv-info small { display: flex; align-items: center; gap: 1.1cqw; font: 600 clamp(7px, 1.68cqw, 17px) / 1.1 var(--sv-display); letter-spacing: 0.23em; text-transform: uppercase; }
-.sv-info small::before, .sv-info small::after { content: ''; width: 3.4cqw; height: 1px; background: linear-gradient(90deg, transparent, #b18d5b); }
-.sv-info small::after { transform: scaleX(-1); }
-.sv-card:not([data-position="center"]) .sv-info { bottom: 5%; color: #d1c3aa; }
-.sv-card:not([data-position="center"]) .sv-info strong { font-size: clamp(12px, 3.03cqw, 31px); }
-.sv-card:not([data-position="center"]) .sv-info small { font-size: clamp(6.5px, 1.35cqw, 14px); }
-.sv-card.sv-cut .sv-info { visibility: hidden; } /* (a side card cut by the screen's edge: its portrait only; game-ui.js fitSides) */
-.sv-card[data-position="left"] .sv-info { left: -6%; }
-.sv-card[data-position="right"] .sv-info { right: -6%; }
+/* the title */
+.vs-head { padding: 16px var(--vs-side) 0; text-align: center; }
+.vs-rule { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--vs-gold); }
+.vs-rule::before, .vs-rule::after { content: ''; width: min(30vw, 136px); height: 1px; background: linear-gradient(90deg, transparent, currentColor); }
+.vs-rule::after { transform: scaleX(-1); }
+.vs-rule span { width: 7px; aspect-ratio: 1; background: currentColor; transform: rotate(45deg); box-shadow: 0 0 6px rgba(246, 222, 166, 0.45); }
+.vs-title { margin: 8px 0 0; font-weight: 700; font-size: min(7.3vw, 34px); line-height: 1.08; letter-spacing: 0.01em; text-transform: uppercase; white-space: nowrap;
+  color: var(--vs-gold); background: linear-gradient(180deg, var(--vs-gold-hi) 15%, var(--vs-gold) 55%, var(--vs-gold-lo)); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8)); }
+.vs-sub { margin: 8px 0 0; font-size: 12px; font-weight: 500; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: #e6dfd1; text-shadow: 0 1px 3px #000; }
 
-/* the arrows: round seals beside the middle card, 44px to tap at the least */
-#pathPick .sv-arrow { display: none !important; } /* (no arrows: a swipe or a tap on a side card goes through the paths, the arrow keys on a keyboard) */
-.sv-arrow { position: absolute; z-index: 3; top: calc(49.5cqw + var(--E) / 2); width: max(44px, 6.6cqw); height: max(44px, 6.6cqw); display: grid; place-items: center; transform: translate(-50%, -50%); }
-.sv-arrow.sv-left { left: 24.45%; }
-.sv-arrow.sv-right { left: 75.55%; }
-.sv-arrow span { display: grid; place-items: center; width: 6.6cqw; min-width: 26px; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 50% 0, #38241b, #100e12 70%); border: clamp(1px, 0.21cqw, 2.2px) solid #e0b77d; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); }
-.sv-arrow svg { width: 52%; height: 52%; fill: #f0ddba; }
-.sv-arrow:hover span { background: #392921; }
+/* the three cards: the same size always; emblem and name; the one looked at in gold, on its own colour */
+.vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: auto var(--vs-side) 0; padding-top: 16px; }
+.vs-card { position: relative; isolation: isolate; height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  transition: filter var(--vs-fade) ease; }
+.vs-card::before, .vs-card::after { content: ''; position: absolute; z-index: -1;
+  clip-path: polygon(var(--vs-cut) 0, calc(100% - var(--vs-cut)) 0, 100% var(--vs-cut), 100% calc(100% - var(--vs-cut)), calc(100% - var(--vs-cut)) 100%, var(--vs-cut) 100%, 0 calc(100% - var(--vs-cut)), 0 var(--vs-cut)); }
+.vs-card::before { inset: 0; background: var(--vs-card-edge); }
+.vs-card::after { inset: 1px; --vs-cut: 9.6px; background: linear-gradient(180deg, rgba(27, 34, 44, 0.94), rgba(14, 18, 24, 0.96)); }
+.vs-emblem { width: 44px; height: 44px; object-fit: contain; filter: saturate(0.75) brightness(0.85); transition: filter var(--vs-fade) ease; }
+.vs-name { font-weight: 600; font-size: 15px; line-height: 1.2; letter-spacing: 0.06em; text-transform: uppercase; color: #ddd6c9; }
+.vs-card[aria-checked="true"] { filter: drop-shadow(0 0 10px rgba(240, 190, 110, 0.32)); }
+.vs-card[aria-checked="true"]::before { background: linear-gradient(180deg, var(--vs-gold-hi), var(--vs-gold) 45%, var(--vs-gold-lo)); }
+.vs-card[aria-checked="true"]::after { inset: 2px; --vs-cut: 9.2px;
+  background: radial-gradient(120% 90% at 50% 20%, var(--vs-tint-hi), var(--vs-tint-lo) 75%); box-shadow: inset 0 0 0 1px rgba(255, 230, 180, 0.15); }
+.vs-card[aria-checked="true"] .vs-emblem { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }
+.vs-card[aria-checked="true"] .vs-name { color: #fbecc9; }
+.vs-card:not([aria-checked="true"]):hover .vs-emblem { filter: saturate(0.8) brightness(0.95); }
+.vs-card:active { filter: brightness(1.12); }
 
-/* the parchment: the path's words, Strengths and Weaknesses, what it starts with */
-.sv-paper { position: relative; isolation: isolate; box-sizing: border-box; width: 75.7%; margin: calc(12px - 1.83cqw) auto 0; /* (12px under the middle card's foot) */
-  padding: clamp(12px, calc(3.2cqw * var(--pk)), 34px) 6.7% calc(3.3cqw + 22px); color: var(--sv-ink); }
-.sv-paper::before { position: absolute; content: ''; inset: 0; z-index: -1; background: var(--sv-paper, url(../sprites/ui/sortia/parchment.webp)) center / 100% 100% no-repeat; }
-.sv-paper .sv-rule { color: #71503b; }
-.sv-desc { margin: 0.3cqw auto 0.9cqw; max-width: 34em; text-align: center; text-wrap: balance; color: #312018;
-  font: 500 clamp(13px, calc(1.9cqw * var(--pk)), 18px) / 1.45 var(--sv-ui); }
-/* (Strengths and Weakness side by side on one grid: the same headings, so their rules lie on one line; the words under them
-   hang from their own left edge, the bullet before it) */
-.sv-cols { display: grid; grid-template-columns: 1fr 1fr; margin-top: 0.9cqw; container-type: inline-size; }
-.sv-cols > div:first-child { padding-right: 2.6cqw; }
-.sv-cols > div:last-child { padding-left: 2.6cqw; border-left: 1px solid rgba(101, 71, 48, 0.41); }
-.sv-cols h3 { display: flex; align-items: center; gap: 0.8cqw; margin: 0 0 0.9cqw; padding-bottom: 0.6cqw; border-bottom: 1px solid rgba(115, 81, 58, 0.32);
-  white-space: nowrap; font: 600 clamp(11px, calc(1.35cqw * var(--pk)), 13px) / 1.2 var(--sv-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #312018; }
-.sv-cols h3 svg { width: clamp(15px, calc(2.4cqw * var(--pk)), 22px); height: clamp(15px, calc(2.4cqw * var(--pk)), 22px); flex: none; color: #402719; }
-.sv-cols ul { margin: 0; padding: 0; list-style: none; }
-.sv-list li { position: relative; margin: 0 0 0.75cqw; padding-left: 1.15em; color: #312018; font: 500 clamp(13px, calc(1.8cqw * var(--pk)), 17px) / 1.45 var(--sv-ui); }
-.sv-list li:last-child { margin-bottom: 0; }
-.sv-list li::before { position: absolute; left: 0.1em; top: calc(0.725em - 0.2em); content: ''; width: 0.4em; aspect-ratio: 1; background: #713d2b;
-  transform: rotate(45deg); box-shadow: 0 0 0 1px #492719; }
-.sv-cols h3.sv-gear { margin-top: 1.4cqw; padding-top: 0.7cqw; border-top: 1px solid rgba(115, 81, 58, 0.4); border-bottom: 0; }
-/* (what it starts with: three boxes the same size, evenly apart, from the column's left edge; a count at the foot right) */
-.sv-items { display: grid; grid-template-columns: repeat(3, max(36px, calc(6.4cqw * var(--pk)))); gap: max(6px, 1.1cqw); justify-content: start; }
-.sv-items li { position: relative; width: 100%; aspect-ratio: 1; display: grid; place-items: center; background: #201b18; border: 1px solid #7c4d27;
-  box-shadow: inset 0 0 0 1px #d6ab72; clip-path: polygon(9% 0, 91% 0, 100% 9%, 100% 91%, 91% 100%, 9% 100%, 0 91%, 0 9%); }
-.sv-items img { width: 86%; height: 86%; object-fit: contain; image-rendering: pixelated; }
-.sv-items small { position: absolute; right: 7%; bottom: 5%; font: 700 clamp(9px, 1.2cqw, 13px) / 1 var(--sv-ui); color: #f6e5c7; text-shadow: 0 0 2px #000, 0 0 2px #000; }
-/* (too narrow to read side by side: Strengths over Weakness) */
-@container (max-width: 250px) {
-  .sv-cols > div:first-child, .sv-cols > div:last-child { grid-column: 1 / -1; padding: 0; border: 0; }
-  .sv-cols > div:last-child { margin-top: 12px; }
+/* what the path is: kind of fighting and role, how it plays, a strength and a weakness */
+.vs-info { padding: 24px var(--vs-side) 0; text-align: center; }
+.vs-role { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0; font-weight: 600; font-size: 13px; line-height: 1.2;
+  letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; white-space: nowrap; color: var(--vs-gold); }
+.vs-role::before, .vs-role::after { content: ''; flex: 0 1 56px; min-width: 16px; height: 1px; background: linear-gradient(90deg, transparent, var(--vs-gold)); }
+.vs-role::after { transform: scaleX(-1); }
+.vs-intro { margin: 8px auto 16px; max-width: 34ch; font-size: 16px; line-height: 1.45; font-weight: 400; color: var(--vs-text); text-wrap: balance; }
+.vs-traits { list-style: none; margin: 0; padding: 16px 0; display: grid; justify-content: center; gap: 12px;
+  border-block: 1px solid transparent; border-image: linear-gradient(90deg, transparent, rgba(236, 229, 216, 0.28), transparent) 1; }
+.vs-traits li { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 16px; text-align: left; font-size: 16px; line-height: 1.4; color: var(--vs-text); }
+.vs-sign { position: relative; width: 24px; height: 24px; border-radius: 50%; }
+.vs-sign::before, .vs-sign::after { content: ''; position: absolute; left: 50%; top: 50%; width: 11px; height: 2.4px; border-radius: 1px; background: #fff; transform: translate(-50%, -50%); }
+.vs-plus .vs-sign { background: radial-gradient(circle at 40% 30%, #6aa65a, var(--vs-plus) 55%, #2c5426); box-shadow: inset 0 0 0 1px rgba(200, 240, 180, 0.35); }
+.vs-plus .vs-sign::after { transform: translate(-50%, -50%) rotate(90deg); }
+.vs-minus .vs-sign { background: radial-gradient(circle at 40% 30%, #c95a4c, var(--vs-minus) 55%, #5c1914); box-shadow: inset 0 0 0 1px rgba(255, 200, 190, 0.3); }
+.vs-minus .vs-sign::after { display: none; }
+
+/* the choice: a quiet note, then the button, in the thumb's reach */
+.vs-foot { padding: 16px var(--vs-side) 0; }
+.vs-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 16px; font-size: 14px; line-height: 1.3; color: var(--vs-muted); }
+.vs-note svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+#pathPick .vs-btn { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; height: 60px;
+  padding: 0 16px; font-weight: 700; font-size: 20px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: #f3dca8;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)); }
+#pathPick .vs-btn::before, #pathPick .vs-btn::after { content: ''; position: absolute; z-index: -1;
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%); }
+#pathPick .vs-btn::before { inset: 0; background: linear-gradient(180deg, var(--vs-gold-hi), var(--vs-gold) 40%, var(--vs-gold-lo)); }
+#pathPick .vs-btn::after { inset: 2px; clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 13px 100%, 0 50%);
+  background: linear-gradient(180deg, var(--vs-green-hi), var(--vs-green-lo)); box-shadow: inset 0 1px 0 rgba(200, 255, 220, 0.18); }
+#pathPick .vs-btn:hover { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)) brightness(1.1); }
+#pathPick .vs-btn:active { filter: brightness(0.88); }
+
+/* Back (only when there's something to go back to) */
+#pathPick .vs-back { position: absolute; z-index: 3; top: calc(env(safe-area-inset-top) + 8px); left: 8px; width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 50% !important; background: rgba(11, 15, 21, 0.7) !important; border: 1px solid var(--vs-line) !important; color: var(--vs-gold-hi); font: 700 26px / 1 Georgia, serif; }
+#pathPick .vs-back[hidden] { display: none; }
+
+/* the confirmation: dark, the path named, the way back and the way on */
+#pathPick .cp-ask { background: rgba(5, 7, 10, 0.78); }
+.vs-dialog { box-sizing: border-box; width: min(340px, calc(100vw - 2 * var(--vs-side))); padding: 24px 20px 20px; text-align: center; background: linear-gradient(180deg, #18202a, #0e131a);
+  border: 1px solid var(--vs-gold-lo); border-radius: 4px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 16px 40px rgba(0, 0, 0, 0.7); color: var(--vs-text); }
+.vs-dialog-emblem { display: block; width: 72px; height: 72px; margin: 0 auto 8px; object-fit: contain; }
+.vs-dialog h3 { margin: 0; font-weight: 700; font-size: 21px; line-height: 1.2; color: var(--vs-gold-hi); }
+.vs-dialog p { margin: 8px 0 24px; font-size: 15px; line-height: 1.45; color: var(--vs-muted); }
+.vs-dialog-row { display: grid; grid-template-columns: 1fr 1.7fr; gap: 12px; }
+#pathPick .vs-dialog .vs-btn { height: 52px; font-size: 14px; letter-spacing: 0.03em; padding: 0 16px; }
+#pathPick .vs-ghost { height: 52px; font-size: 15px; font-weight: 500; color: var(--vs-muted); border: 1px solid var(--vs-card-edge) !important; border-radius: 3px !important; }
+#pathPick .vs-ghost:hover { color: var(--vs-text); }
+
+/* a short phone: a little less air (the column still scrolls if it has to) */
+@media (max-height: 700px) {
+  .vs-top { min-height: 304px; }
+  .vs-head { padding-top: 8px; }
+  .vs-info { padding-top: 16px; }
+  .vs-intro { margin-bottom: 8px; }
+  .vs-traits { padding: 12px 0; gap: 8px; }
 }
-
-/* the way on: the green ceremonial button over the paper's foot; the dots under it */
-#pathPick .sv-cta { position: relative; z-index: 2; display: block !important; box-sizing: border-box; width: 40%; height: 9.5cqw; min-height: 44px; margin: -3.3cqw auto 0 !important;
-  padding-bottom: 0.8cqw !important; background: var(--sv-button, url(../sprites/ui/sortia/button-ceremonial.webp)) center / 100% 100% no-repeat !important;
-  font: 600 clamp(12px, 3.04cqw, 32px) / 1.12 var(--sv-display) !important; color: #fff2d8 !important; text-shadow: 0 2px 3px #12110f; white-space: nowrap; }
-.sv-cta:hover, .sv-cta:focus-visible { filter: brightness(1.13); }
-.sv-cta:active { filter: brightness(0.85); }
-.sv-dots { display: flex; justify-content: center; margin: -2px auto auto; } /* (the dots ~16px under the button: their buttons are 44px to tap) */
-#pathPick .sv-dots button { width: 44px; height: 44px; display: grid !important; place-items: center; }
-.sv-dots button span { width: 1.55cqw; min-width: 7px; aspect-ratio: 1; border-radius: 50%; border: 1px solid #9c876a; background: #54483d; }
-.sv-dots button[aria-current="true"] span { background: radial-gradient(circle at 40% 20%, #fff0c2, #be8a4e); border-color: #ecce9b; }
-/* Back (not shown when there's nothing to go back to) */
-#pathPick .sv-back { position: absolute; z-index: 4; top: max(8px, env(safe-area-inset-top)); left: 8px; width: 44px; height: 44px; display: grid !important; place-items: center;
-  border-radius: 50% !important; background: rgba(16, 14, 18, 0.85) !important; border: 1px solid #e0b77d !important; color: #f0ddba !important; font: 700 26px / 1 Georgia, serif !important; }
-#pathPick .sv-back[hidden] { display: none !important; }
-
-@media (max-width: 480px) { .sv-paper { width: 82%; padding-inline: 5.5%; } }
-@media (prefers-reduced-motion: reduce) { .sv-card { transition: none; } }
-
-/* ---- a phone held upright (after the owner's phone mock-up): everything larger. The banner near the screen's width, the
-   middle card large, its neighbours mostly past the screen's edges with only their inner strip showing, the arrows on that
-   strip; the parchment wide (game-ui.js askPath shrinks its words, --pk, until the whole screen fits the phone's height);
-   the button over its foot and the dots under it. Measured on the mock-up, in % of the screen's width (cqw). ---- */
-@media (max-width: 600px) and (max-aspect-ratio: 4/5) {
-  #pathPick .sv-stage { height: 108.5cqw; }
-  #pathPick .sv-banner { left: 4.9%; width: 90.2%; top: 2.9cqw; height: 21cqw; }
-  #pathPick .sv-title { font-size: 5.6cqw; }
-  #pathPick .sv-title-rule { top: 21.6cqw; }
-  #pathPick .sv-rule::before, #pathPick .sv-rule::after { width: 15cqw; }
-  #pathPick .sv-sub { top: 23.5cqw; font-size: 3.4cqw; }
-  #pathPick .sv-card { --cut: 3.2cqw; --edge: 0.7cqw; left: 19.15%; top: 30.4cqw; width: 61.7%; height: 77.9cqw; }
-  /* (the side cards run off the screen's edges, also when a short phone makes the scene narrower than the screen: then
-     wider, out to past the edge, by the margin beside the scene, --gut) */
-  #pathPick .sv-scene { --gut: calc((100vw - 100cqw) / 2); }
-  #pathPick .sv-card[data-position="left"] { left: calc(15% - max(35%, 25% + var(--gut))); top: 38.5cqw; width: max(35%, 25% + var(--gut)); height: 65cqw; --edge: 0.55cqw; }
-  #pathPick .sv-card[data-position="right"] { left: 85%; top: 38.5cqw; width: max(35%, 25% + var(--gut)); height: 65cqw; --edge: 0.55cqw; }
-  #pathPick .sv-face { --cut: 2.9cqw; }
-  #pathPick .sv-window { --cut: 2.6cqw; inset: 0.45cqw; }
-  #pathPick .sv-medal { width: 19cqw; margin-bottom: 0; }
-  #pathPick .sv-info strong { font-size: 6.2cqw; }
-  #pathPick .sv-info small { font-size: 2.35cqw; }
-  #pathPick .sv-info small::before, #pathPick .sv-info small::after { width: 5.5cqw; }
-  #pathPick .sv-card:not([data-position="center"]) .sv-info strong { font-size: 5cqw; }
-  #pathPick .sv-card:not([data-position="center"]) .sv-info small { font-size: 2cqw; }
-  #pathPick .sv-card[data-position="left"] .sv-info { left: auto; right: -2.8cqw; width: 37.8cqw; }
-  #pathPick .sv-card[data-position="right"] .sv-info { left: -2.8cqw; right: auto; width: 37.8cqw; }
-  #pathPick .sv-arrow { top: 65.5cqw; width: max(44px, 9.6cqw); height: max(44px, 9.6cqw); }
-  #pathPick .sv-arrow span { width: 9.2cqw; border-width: 0.3cqw; }
-  #pathPick .sv-arrow.sv-left { left: 14.1%; }
-  #pathPick .sv-arrow.sv-right { left: 85.9%; }
-  /* the parchment: wide, a little inside the screen's edges; its words in calc(.. * --pk) */
-  /* (the parchment as wide as the screen allows, even when a short phone makes the cards smaller: game-ui.js place) */
-  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: max(16px, calc(3.4cqw * var(--pk))) 6vw calc(4cqw + 22px); } /* (22px from the last line to the button over its foot) */
-  /* (the words 14 to 15px, the headings 11 to 12px, whatever the phone's width) */
-  #pathPick .sv-desc { font-size: clamp(14px, calc(15px * var(--pk)), 15px); margin: 0 auto 5px; }
-  #pathPick .sv-cols { margin-top: 6px; }
-  #pathPick .sv-cols > div:first-child { padding-right: 12px; }
-  #pathPick .sv-cols > div:last-child { padding-left: 12px; }
-  #pathPick .sv-cols h3 { font-size: clamp(11px, calc(12px * var(--pk)), 12px); gap: 7px; margin: 0 0 8px; padding-bottom: 6px; }
-  #pathPick .sv-cols h3 svg { width: 18px; height: 18px; }
-  #pathPick .sv-list li { font-size: clamp(14px, calc(15px * var(--pk)), 15px); margin-bottom: 7px; }
-  #pathPick .sv-list li:last-child { margin-bottom: 0; }
-  #pathPick .sv-cols h3.sv-gear { margin-top: 14px; padding-top: 8px; }
-  #pathPick .sv-items { grid-template-columns: repeat(3, minmax(0, 42px)); gap: 8px; }
-  #pathPick .sv-items small { font-size: 11px; }
-  #pathPick .sv-cta { width: 54%; height: 11.2cqw; margin-top: -4cqw !important; font-size: 4.1cqw !important; }
-  #pathPick .sv-dots { margin-top: 0; }
-  #pathPick .sv-dots button span { width: 2.4cqw; }
-}
+@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } }
