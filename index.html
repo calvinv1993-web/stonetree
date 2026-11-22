@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="css/parchment.css?v=ui464">
   <link rel="stylesheet" href="css/onboarding.css?v=ui464">
   <link rel="stylesheet" href="css/sortia.css?v=ui464">
+  <link rel="stylesheet" href="css/intro.css?v=ui464">
   <link rel="icon" type="image/png" sizes="32x32" href="sprites/ui/icon/icon-32.png?v=seal">
   <link rel="apple-touch-icon" sizes="180x180" href="sprites/ui/icon/icon-180.png?v=seal">
   <title>SORTIA: The Broken Seal</title>
@@ -206,20 +207,30 @@
           <canvas id="worldCanvas" width="640" height="480"></canvas>
         </div>
 
-        <div id="storyBook" class="story-book" hidden role="dialog" aria-modal="true" aria-labelledby="sbTitle">
-          <div class="sb-stage" aria-hidden="true"><img class="sb-shot" alt="" draggable="false"><img class="sb-shot" alt="" draggable="false"></div>
-          <img class="sb-logo" src="sprites/ui/loading/logo.png" alt="SORTIA: The Broken Seal">
-          <button id="sbSkip" class="sb-skip" type="button" aria-label="Skip the story">Skip</button>
-          <div class="sb-panel">
-            <div id="sbPage" class="sb-page sb-sheet" aria-live="polite">
-              <img class="sb-sheet-art" src="sprites/ui/parchment/story-panel.webp" alt="" draggable="false">
-              <div class="sb-writing">
-                <h2 id="sbTitle" class="sb-title"></h2>
-                <div id="sbText" class="sb-text"></div>
-              </div>
-            </div>
-            <div id="sbDots" class="sb-dots" role="progressbar" aria-valuemin="1"></div>
-            <div id="sbHint" class="sb-hint" aria-live="polite"></div>
+        <div id="sortiaIntro" class="si" hidden role="dialog" aria-modal="true" aria-labelledby="siTitle">
+          <div class="si-col" data-screen="story">
+            <img class="si-art" alt="" draggable="false">
+            <div class="si-shade" aria-hidden="true"></div>
+            <header class="si-head">
+              <img class="si-mark" src="sprites/ui/intro/sortia-wordmark.webp" width="2161" height="592" alt="SORTIA" draggable="false">
+              <button id="siSkip" class="si-act si-skip" type="button">Skip intro</button>
+            </header>
+            <section class="si-content">
+              <h2 id="siTitle" tabindex="-1"></h2>
+              <p id="siCopy" class="si-copy"></p>
+              <form id="siForm" class="si-form" hidden novalidate>
+                <label for="siName">Character name</label>
+                <input id="siName" name="name" type="text" maxlength="20" placeholder="Your name" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-describedby="siHint">
+                <p id="siHint" class="si-hint" aria-live="polite"></p>
+                <details id="siMore" class="si-more" hidden><summary>Other ways to start</summary></details>
+                <button class="si-act si-fwd" type="submit">Continue <span class="si-arrow" aria-hidden="true">&rarr;</span></button>
+              </form>
+              <nav id="siFoot" class="si-foot" aria-label="Story navigation">
+                <button id="siBack" class="si-act si-back" type="button" aria-label="Previous scene">&larr;</button>
+                <div id="siDots" class="si-dots" role="group" aria-label="Story progress"><span aria-label="Scene 1"></span><span aria-label="Scene 2"></span><span aria-label="Scene 3"></span><span aria-label="Scene 4"></span></div>
+                <button id="siNext" class="si-act si-fwd" type="button"><span id="siNextLabel">Continue</span> <span class="si-arrow" aria-hidden="true">&rarr;</span></button>
+              </nav>
+            </section>
           </div>
         </div>
 

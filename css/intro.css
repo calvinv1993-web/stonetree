@@ -1,0 +1,70 @@
+/* SORTIA's opening (game-ui.js Intro), after the owner's package (docs/sortia/intro: intro.css, intro.js): four story
+   cards (The Broken Seal, The Hollow Host, The Last Crossing, The False Signal), then Sister Ama: your name, and three
+   lines of talk before Choose Your Path. Each its own picture (sprites/ui/intro/<color|sketch>/<scene>.webp) over the
+   whole column, darkening to the ground at its foot, where its title (Cinzel), words (Inter) and way on are real HTML;
+   the SORTIA wordmark at the top. A column as wide as a phone (540px at most); a short screen scrolls up and down. */
+
+#sortiaIntro {
+  --si-ground: #0b1219; --si-gold: #efd09a; --si-paper: #f4eee3; --si-soft: #c2bbaf; --si-line: #d6b48147;
+  --si-serif: 'Cinzel', Georgia, serif; --si-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  position: fixed; inset: 0; z-index: 42; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: #090e13; color: var(--si-paper);
+  -webkit-tap-highlight-color: transparent;
+}
+#sortiaIntro[hidden] { display: none; }
+html body #sortiaIntro, html body #sortiaIntro * { font-family: var(--si-sans) !important; }
+html body #sortiaIntro :is(h2, .si-fwd, .si-fwd *) { font-family: var(--si-serif) !important; }
+html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
+#sortiaIntro *, #sortiaIntro *::before, #sortiaIntro *::after { box-sizing: border-box; }
+/* (the game's own buttons and fields left out: this screen draws its own) */
+#sortiaIntro button { -webkit-appearance: none; appearance: none; margin: 0; font: inherit; color: inherit; cursor: pointer; text-shadow: none;
+  background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; min-width: 0; }
+#sortiaIntro :is(button, input):focus-visible { outline: 2px solid #e5bc82; outline-offset: 4px; }
+
+.si-col { position: relative; isolation: isolate; overflow: hidden; width: min(100%, 540px); margin: 0 auto; display: grid; grid-template-rows: auto 1fr auto;
+  min-height: max(560px, 100vh); min-height: max(560px, 100svh); background: var(--si-ground); font: 400 15px / 1.52 var(--si-sans); touch-action: pan-y; }
+.si-art, .si-shade { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.si-art { z-index: -2; object-fit: cover; object-position: var(--si-framing, 50%) center; }
+.si-art.enter { animation: si-appear .28s ease-out; }
+@keyframes si-appear { from { opacity: .64; } to { opacity: 1; } }
+.si-shade { z-index: -1; background: linear-gradient(#0b1219b0, transparent 19%), linear-gradient(180deg, transparent 59%, #0b12195e 68%, #0b1219ee 83%, var(--si-ground) 100%); }
+.si-col[data-screen="ama"] .si-shade { background: linear-gradient(#0b121999, transparent 18%), linear-gradient(180deg, transparent 49%, #0b12193d 57%, #0b1219e8 72%, var(--si-ground) 100%); }
+
+.si-head { position: relative; display: grid; place-items: center; min-height: 76px;
+  padding: calc(22px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left)); }
+.si-mark { width: clamp(107px, 34vw, 143px); height: auto; }
+#sortiaIntro .si-act { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0; color: var(--si-soft); }
+#sortiaIntro .si-skip { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); font-size: 12px; color: #ece0ce; }
+
+.si-content { grid-row: 3; padding: 0 max(26px, env(safe-area-inset-right)) max(22px, calc(env(safe-area-inset-bottom) + 12px)) max(26px, env(safe-area-inset-left)); }
+.si-content::before { content: ''; display: block; width: 60px; height: 1px; margin-bottom: 13px; background: linear-gradient(90deg, #d8ae73, transparent); }
+#sortiaIntro h2 { margin: 0; color: var(--si-gold); font: 600 clamp(25px, 7.4vw, 34px) / 1.13 var(--si-serif); text-wrap: balance; }
+#sortiaIntro h2:focus { outline: none; }
+.si-copy { margin: 12px 0 18px; max-width: 42ch; line-height: 1.55; text-wrap: pretty; }
+.si-col[data-screen="story"] .si-copy { min-block-size: 9.3em; }
+.si-col[data-screen="ama"] .si-copy { white-space: pre-line; }
+.si-foot { border-top: 1px solid var(--si-line); padding-top: 9px; min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#sortiaIntro .si-back { min-width: 44px; margin-inline-start: -11px; color: #dec79e; }
+#sortiaIntro .si-back:disabled { visibility: hidden; }
+.si-dots { display: flex; align-items: center; justify-content: center; gap: 5px; flex: 1; }
+.si-dots span { width: 9px; height: 2px; background: #a995736b; }
+.si-dots span[aria-current="step"] { width: 20px; background: #e0ba7e; }
+#sortiaIntro .si-fwd { gap: 9px; color: var(--si-gold); font: 600 15px / 1.2 var(--si-serif); text-align: right; white-space: nowrap; }
+.si-arrow { font: 400 16px / 1 var(--si-sans); }
+.si-col[data-screen="ama"] .si-foot { justify-content: flex-end; }
+
+/* your name: a field with its label, what's wrong with it said right under it, and the way on */
+.si-form { display: grid; gap: 10px; margin-top: 1px; }
+.si-form label { font-size: 12px; color: var(--si-soft); }
+#sortiaIntro .si-form input { width: 100%; height: 48px; margin: 0; border: 1px solid #b8915d90; border-radius: 3px; background: #101b22dc; color: var(--si-paper);
+  font-size: 16px; padding: 0 13px; box-shadow: none; }
+#sortiaIntro .si-form input::placeholder { color: #b1a79d; }
+#sortiaIntro .si-form input[aria-invalid="true"] { border-color: #d0705c; }
+.si-hint { margin: -4px 0 0; font-size: 13px; color: #f0a594; }
+.si-hint:empty { display: none; }
+.si-more { font-size: 12px; color: var(--si-soft); }
+.si-more summary { min-height: 32px; display: flex; align-items: center; cursor: pointer; }
+.si-more select { margin-top: 4px; min-height: 44px; width: 100%; }
+.si-form .si-fwd { justify-self: end; }
+
+@media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
+@media (prefers-reduced-motion: reduce) { .si-art.enter { animation: none; } }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1219">
+<title>SORTIA · The Broken Seal</title>
+<link rel="stylesheet" href="intro.css">
+<script src="intro.js" defer></script>
+</head>
+<body>
+<main class="story" data-screen="story" aria-labelledby="heading">
+  <img class="art" alt="">
+  <div class="shade" aria-hidden="true"></div>
+  <header class="header">
+    <img class="mark" src="assets/shared/sortia-wordmark.webp" width="2161" height="592" alt="SORTIA">
+    <button type="button" class="text-action skip">Skip intro</button>
+  </header>
+  <section class="content">
+    <h1 id="heading" tabindex="-1"></h1>
+    <p class="copy"></p>
+    <form class="name-form" hidden>
+      <label for="character-name">Character name</label>
+      <input id="character-name" name="name" type="text" placeholder="Your name" autocomplete="off" autocapitalize="words" enterkeyhint="done" required>
+      <button type="submit" class="text-action forward">Continue <span class="arrow" aria-hidden="true">→</span></button>
+    </form>
+    <nav class="footer" aria-label="Story navigation">
+      <button type="button" class="text-action return" aria-label="Previous scene">←</button>
+      <div class="progress" role="group" aria-label="Story progress">
+        <span aria-label="Scene 1"></span><span aria-label="Scene 2"></span><span aria-label="Scene 3"></span><span aria-label="Scene 4"></span>
+      </div>
+      <button type="button" class="text-action forward"><span class="next-label">Continue</span><span class="arrow" aria-hidden="true">→</span></button>
+    </nav>
+  </section>
+</main>
+<main class="handoff" hidden aria-label="Choose Your Path design reference">
+  <button type="button" class="text-action restart" aria-label="Back to Sister Ama">←</button>
+  <img src="assets/shared/choose-your-path-reference.webp" alt="Choose Your Path. The next screen lets you choose between Hawk, Bastion and Ember.">
+</main>
+</body>
+</html>

@@ -1353,7 +1353,7 @@ function maybeAskPath() {
   if (!player || player.vocation !== 'none' || player.trial || map.trialRooms || !$('pathPick').hidden) return;
   // (browser tests drive a character without a path, as before, unless they ask for the choice: ?pickpath)
   if (navigator.webdriver && !/[?&]pickpath\b/.test(location.search)) return;
-  if (!$('create').hidden || !$('outfit').hidden || StoryBook.open || document.body.classList.contains('welcome')) return;
+  if (!$('create').hidden || !$('outfit').hidden || Intro.open || document.body.classList.contains('welcome')) return;
   if (typeof Preload !== 'undefined' && !Preload.ready) return; // (once the world is ready: not behind the loading screen)
   askPath();
 }
@@ -2681,7 +2681,7 @@ function initUI() {
   $('pathsClose').addEventListener('click', () => { $('paths').hidden = true; });
   $('treeClose').addEventListener('click', () => { $('skillTree').hidden = true; });
   setInterval(maybeAskPath, 500); // (a new character: its path, once its name and outfit are done)
-  StoryBook.setup();
+  Intro.setup();
   $('treeReset').addEventListener('click', () => {
     const cost = player.treeResets ? player.level * 50 : 0;
     if (confirm(`Start your skill tree over? All your points come back${cost ? `, for ${cost} gold` : ' (free the first time)'}.`)) Actions.resetTree();
@@ -2798,139 +2798,110 @@ const ParchmentPanel = (() => {
   return { decorate, undecorate, ornament: setOrnament };
 })();
 
-// ---- the story book: a new character's first pages (who you are, what has happened, what you're here to do) ----------
-// Plain data, as many pages as there are: id, title, its paragraphs, and its picture: image (sprites/ui/story/<image>.webp,
-// its own scene, painted upright; the PNG it was made from is in docs/onboarding-art/) and focus [x %, y %, how far in]:
-// the spot the picture is cropped to and slowly drifts in on, whatever the shape of the screen. Shown before a new
-// character is made (Skip skips only the story); browser tests skip it unless ?story.
-const STORY_PAGES = [
-  { id: 'beginning', title: 'The Beginning', image: '01_the_beginning', focus: [62, 48, 1],
-    paragraphs: ['For an age the land lay at peace: a hundred towns, their lights burning through every night, their roads open from sea to sea.',
-      'Then, far in the north, an old and dark power woke again, and the towns at its edge fell silent one by one.'] },
-  { id: 'host', title: 'The Hollow Host', image: '02_the_hollow_host', focus: [55, 32, 1],
-    paragraphs: ['Its shadow crept over the land. The monsters stopped fighting each other, and began to march together: a host that does not tire and does not fear.',
-      'Town after town went dark. Kingdoms fell in a single winter.'] },
-  { id: 'last-town', title: 'The Last Town', image: '03_the_last_town', focus: [55, 44, 1],
-    paragraphs: ['Only Oakvale still stands, on its island behind its wall. Its bell still rings at dawn, and its gate still opens to anyone who reaches it alive.',
-      'Most of its fighters lie dead beyond that wall. At night the Host\'s fires burn on the far shore, more every winter.'] },
-  { id: 'you', title: 'And You', image: '04_and_you', focus: [45, 42, 1],
-    paragraphs: ['On a frozen dawn the watch found someone on the north road, half dead with cold: the first to reach the gate in a month.',
-      'That was you. You wake in Oakvale\'s temple with almost nothing. But you are alive, and you want to fight.'] },
-  { id: 'road', title: 'Your Road', image: '05_your_road', focus: [40, 46, 1],
-    paragraphs: ['Become a fighter. Help the town hold its wall, and grow stronger beyond it.',
-      'At level 10 the oracle names you before the town. Then you sail for the world the Host has taken, to win it back.'] },
-];
 // a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
-const StoryBook = (() => {
-  let at = 0, done = null, front = 0, busyUntil = 0, revealUntil = 0, startX = null, startY = null;
-  const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const shot = page => ({ src: storyArt(page.image), focus: page.focus || [50, 50, 1] });
-  // (only the picture of the page after this one is fetched ahead: no wait when you turn, nothing more downloaded)
-  const fetchAhead = () => { const next = STORY_PAGES[at + 1]; if (next) new Image().src = shot(next).src; };
-  // the page's picture: on the layer behind, drifting in on its spot, then faded over the one before
-  function picture(page, first) {
-    const shots = $('storyBook').querySelectorAll('.sb-shot'), { src, focus: [fx, fy, zoom] } = shot(page);
-    const next = shots[first ? front : 1 - front], last = shots[first ? 1 - front : front];
-    next.src = src;
-    next.style.setProperty('--fx', `${fx}%`); next.style.setProperty('--fy', `${fy}%`); next.style.setProperty('--zoom', zoom);
-    next.classList.remove('drift'); void next.offsetWidth;
-    if (!still()) next.classList.add('drift');
-    next.classList.add('on'); if (!first) last.classList.remove('on');
-    front = [...shots].indexOf(next);
-    $('storyBook').style.setProperty('--sb-ambient', `url("${new URL(src, location.href).href}")`); // (a wide screen: round the painting; whole, or the stylesheet's folder would be read)
+// ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
+// Four story cards, each its own picture with its title and words (a swipe, the arrows, Continue and back go through
+// them; Skip intro goes to Sister Ama), then Sister Ama: your name (offline; online it's known from the login), and three
+// lines of talk ending in Choose Your Path, which opens the vocation screen. Its pictures: sprites/ui/intro/<art>/, the
+// painted ones (color) or the sketched (sketch), the same words either way: INTRO_ART, the project's choice (a page can
+// try the other with ?art=sketch or ?art=color). Browser tests go straight on unless they ask for it with ?story.
+const INTRO_ART = 'color';
+const INTRO_CARDS = [
+  ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal', '50%'],
+  ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host', '51%'],
+  ['The Last Crossing', 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.', 'the-last-crossing', '54%'],
+  ['The False Signal', 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.', 'the-false-signal', '46%'],
+];
+const INTRO_AMA = {
+  ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',
+  talk: [
+    '“$name, the guards who carried you in saw the signal again. Last night they turned back to help you. Now they’ve gone to look for whoever’s still out there.”',
+    'You tell Ama a goblin was holding the lantern.\n\n“They’re already across the bridge.” She turns to a temple attendant. “Run to the gate. Tell the watch it’s a trap.”',
+    '“Oakvale’s watch trains three kinds of defenders. Bastions hold the crossings so people can reach safety. Hawks scout the roads and fight with the bow. Embers use magic against threats that steel can’t stop.\n\n“If you want to help Oakvale, the watch can train you. Which path will you take?”',
+  ],
+};
+const introArtMode = () => { const q = new URLSearchParams(location.search).get('art'); return q === 'sketch' || q === 'color' ? q : INTRO_ART; };
+const introArt = scene => { const f = `ui/intro/${introArtMode()}/${scene}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
+const Intro = (() => {
+  // the steps: the four cards, the name (when asked), the three lines of talk
+  let at = 0, opts = null, name = '', touch = null;
+  const NAME = INTRO_CARDS.length;
+  const steps = () => opts && opts.askName ? NAME + 1 + INTRO_AMA.talk.length : NAME + INTRO_AMA.talk.length;
+  const kind = i => i < NAME ? 'card' : opts.askName && i === NAME ? 'name' : 'talk';
+  const talkLine = i => INTRO_AMA.talk[i - NAME - (opts.askName ? 1 : 0)];
+  function render(focus = true) {
+    const col = $('sortiaIntro').querySelector('.si-col'), art = col.querySelector('.si-art'), k = kind(at), card = INTRO_CARDS[at];
+    col.dataset.screen = k === 'card' ? 'story' : 'ama';
+    col.style.setProperty('--si-framing', card ? card[3] : '54%');
+    const src = introArt(card ? card[2] : 'sister-ama');
+    if (art.getAttribute('src') !== src) { art.src = src; art.classList.remove('enter'); requestAnimationFrame(() => art.classList.add('enter')); }
+    $('siTitle').textContent = card ? card[0] : 'Sister Ama';
+    $('siCopy').textContent = card ? card[1] : k === 'name' ? INTRO_AMA.ask : talkLine(at).replace(/\$name/g, name);
+    $('siForm').hidden = k !== 'name';
+    $('siFoot').hidden = k === 'name';
+    $('siSkip').hidden = k !== 'card';
+    $('siDots').hidden = $('siBack').hidden = k !== 'card';
+    $('siBack').disabled = at === 0;
+    $('siNextLabel').textContent = at === steps() - 1 ? 'Choose Your Path' : 'Continue';
+    [...$('siDots').children].forEach((d, i) => { if (i === at && k === 'card') d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current'); });
+    // (the next picture fetched ahead: no wait when you go on)
+    const next = INTRO_CARDS[at + 1]; new Image().src = introArt(next ? next[2] : 'sister-ama');
+    if (focus) (k === 'name' && !touchScreen ? $('siName') : $('siTitle')).focus({ preventScroll: true });
+    $('sortiaIntro').scrollTop = 0;
   }
-  // its words come in a paragraph at a time; a tap on them (or on Next) shows them all at once
-  const REVEAL_STEP = 650;
-  function words(page) {
-    const box = $('sbPage');
-    box.classList.remove('enter', 'shown'); void box.offsetWidth;
-    $('sbText').replaceChildren(...page.paragraphs.map((t, i) => h('p', { style: `--i: ${i}` }, t)));
-    box.scrollTop = 0;
-    if (still()) { box.classList.add('shown'); revealUntil = 0; return; }
-    box.classList.add('enter');
-    revealUntil = performance.now() + 350 + page.paragraphs.length * REVEAL_STEP;
+  function go(i) {
+    if (i < 0) return;
+    if (i >= steps()) { close(); return; }
+    at = i; render();
   }
-  const revealAll = () => { if (performance.now() >= revealUntil) return false; $('sbPage').classList.add('shown'); revealUntil = 0; return true; };
-  function render(first) {
-    const page = STORY_PAGES[at], n = STORY_PAGES.length;
-    picture(page, first);
-    $('storyBook').classList.toggle('first', at === 0); // (the logo large on the first page, small after it)
-    $('sbTitle').textContent = page.title;
-    words(page);
-    $('sbDots').replaceChildren(...STORY_PAGES.map((_, i) => h('i', { className: i === at ? 'on' : i < at ? 'past' : '' })));
-    $('sbDots').setAttribute('aria-valuemax', n); $('sbDots').setAttribute('aria-valuenow', at + 1);
-    $('sbDots').setAttribute('aria-label', `Page ${at + 1} of ${n}`);
-    $('sbSkip').hidden = at === n - 1;
-    $('storyBook').classList.toggle('last', at === n - 1);
-    $('sbHint').textContent = at === n - 1 ? 'Tap to begin' : (at === 0 ? 'Tap or swipe to turn the page' : '');
-    fetchAhead();
+  // (a card to the one beside it: only among the cards, and to the name or Ama's talk from the last)
+  const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); };
+  function close() {
+    const done = opts && opts.onDone; opts = null;
+    $('sortiaIntro').hidden = true;
+    if (done) done();
   }
-  // (the book fades away into what comes next: the temple, behind it already)
-  const close = () => {
-    if (!done && $('storyBook').hidden) return;
-    const d = done; done = null;
-    const book = $('storyBook');
-    if (d) d();
-    if (still()) { book.hidden = true; return; }
-    book.classList.add('leaving');
-    setTimeout(() => { book.hidden = true; book.classList.remove('leaving'); }, 700);
-  };
-  // a page on or back (not again while the last turn is still fading: a double tap turns one page). On, while the
-  // words are still coming in: first they're all shown.
-  function go(d) {
-    if (performance.now() < busyUntil) return;
-    if (d > 0 && revealAll()) return;
-    const n = at + d;
-    if (n < 0) return;
-    if (n >= STORY_PAGES.length) { close(); return; }
-    busyUntil = performance.now() + (still() ? 150 : 450);
-    at = n; render(false);
-  }
-  function show(onDone) {
-    if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (onDone) onDone(); return; } // (browser tests: straight on)
-    if (!STORY_PAGES.length) { if (onDone) onDone(); return; }
-    done = onDone; at = 0; busyUntil = 0;
+  function show(o) {
+    if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
+    opts = o; name = o.name || ''; at = 0;
     welcome(true);
-    const panel = $('storyBook').querySelector('.sb-panel');
-    panel.classList.remove('opening'); void panel.offsetWidth; panel.classList.add('opening'); // (the page rises into place)
-    $('storyBook').hidden = false;
-    render(true);
-    $('storyBook').focus({ preventScroll: true });
+    $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
+    $('sortiaIntro').hidden = false;
+    render(false);
   }
   function setup() {
-    const book = $('storyBook');
-    // (the page's picture by its version, fetched once)
-    { const hh = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/parchment/story-panel.webp']; if (hh) book.querySelector('.sb-sheet-art').src = `sprites/ui/parchment/story-panel.webp?h=${hh}`; }
-    book.tabIndex = -1;
-    $('sbSkip').addEventListener('click', e => { e.stopPropagation(); close(); });
-    // Turning the page, without buttons: a tap on the left third goes back, anywhere else on, a sideways swipe the same
-    // way a book turns; an upright drag (a long page's words scrolling) does neither. Touch, pen and mouse alike.
-    // (nothing on it can be dragged off as a picture: that would cut a swipe short)
-    book.addEventListener('dragstart', e => e.preventDefault());
-    book.querySelectorAll('img').forEach(img => { img.draggable = false; });
-    let down = null;
-    const end = (x, y, tapped) => {
-      if (!down) return;
-      const dx = x - down.x, dy = y - down.y, quick = performance.now() - down.t < 700;
-      down = null;
-      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) { go(dx < 0 ? 1 : -1); return; } // a swipe
-      if (tapped && Math.abs(dx) < 12 && Math.abs(dy) < 12 && quick) go(x < innerWidth / 3 ? -1 : 1); // a tap
-    };
-    book.addEventListener('pointerdown', e => { if (e.target.closest('#sbSkip')) return; down = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now(), id: e.pointerId }; });
-    book.addEventListener('pointermove', e => { if (down && e.pointerId === down.id) { down.lx = e.clientX; down.ly = e.clientY; } });
-    book.addEventListener('pointerup', e => { if (down && e.pointerId === down.id) end(e.clientX, e.clientY, true); });
-    // (the browser may take the pointer over mid-swipe: then the swipe so far still counts, a tap doesn't)
-    book.addEventListener('pointercancel', e => { if (down && e.pointerId === down.id) end(down.lx, down.ly, false); });
+    const box = $('sortiaIntro'), input = $('siName');
+    { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
+    $('siSkip').onclick = () => go(NAME);
+    $('siBack').onclick = () => turn(-1);
+    $('siNext').onclick = () => go(at + 1);
+    // your name: checked as the game always has (nameProblem), what's wrong said by the field; the field stays to fix
+    input.addEventListener('input', () => { $('siHint').textContent = ''; input.setAttribute('aria-invalid', 'false'); });
+    input.addEventListener('keydown', e => e.stopPropagation()); // (the game's keys don't fire while you type)
+    $('siForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const problem = nameProblem(input.value);
+      if (problem !== null) { $('siHint').textContent = problem || 'Enter a character name.'; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
+      name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20));
+      if (opts.onName) opts.onName(name);
+      go(at + 1);
+    });
+    // a swipe sideways on a card, and only a meant one: far enough and much more sideways than up or down (a short
+    // screen scrolls up and down)
+    box.addEventListener('touchstart', e => { touch = at < NAME && e.changedTouches.length === 1 ? [e.changedTouches[0].clientX, e.changedTouches[0].clientY] : null; }, { passive: true });
+    box.addEventListener('touchend', e => {
+      if (!touch) return;
+      const f = e.changedTouches[0], dx = f.clientX - touch[0], dy = f.clientY - touch[1]; touch = null;
+      if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
+    }, { passive: true });
+    box.addEventListener('touchcancel', () => { touch = null; }, { passive: true });
     addEventListener('keydown', e => {
-      if (book.hidden) return;
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') { go(1); e.preventDefault(); e.stopPropagation(); }
-      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(-1); e.preventDefault(); e.stopPropagation(); }
-      else if (e.key === 'Escape') { close(); e.stopPropagation(); }
-      else if (e.key === 'Enter' && document.activeElement && !book.contains(document.activeElement)) { go(1); e.preventDefault(); e.stopPropagation(); }
+      if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
     }, true);
   }
-  return { show, setup, go, get page() { return at; }, get open() { return !$('storyBook').hidden; } };
+  return { show, setup, go, get step() { return at; }, get open() { return !$('sortiaIntro').hidden; } };
 })();
 
 // A new character after its name: its path (in the same book), then into the world
@@ -3068,13 +3039,18 @@ function showCharacterCreation(onDone) {
   $('createMore').hidden = false;
   watchName(input, go);
   keepAboveKeyboard(input);
-  StoryBook.show(() => {
+  // the opening (Intro), your name in it; then your path. Browser tests without ?story: the plain name window, as before.
+  const quick = navigator.webdriver && !/[?&]story\b/.test(location.search);
+  if (quick) {
     templeScene(true);
     $('createAma').hidden = false;
     amaSays($('createAma'), AMA_WAKE);
     dialog.hidden = false;
-    if (!touchScreen) input.focus(); // (a phone: not straight away, the keyboard would cover Sister Ama)
-  });
+    if (!touchScreen) input.focus();
+  } else {
+    const more = $('siMore'); more.append(start); more.hidden = false; // (the test starts, under the name there)
+    Intro.show({ askName: true, onName: n => { input.value = n; }, onDone: () => done() });
+  }
   let sent = false; // (once: a double tap makes one character)
   const done = () => {
     if (sent || nameProblem(input.value) !== null) return;
