@@ -152,8 +152,9 @@ const fits = page => page.evaluate(() => {
     }
     check(held.every(g => g.at === held[0].at), `${name}: the cards and the button stay put (${held.map(g => g.at).join(' | ')})`);
     check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the cards alike, the button big enough, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
-    // (a tall phone shows it whole; a short one scrolls up and down to the button)
-    if (/^(390|430)$/.test(name)) check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+    // (it never scrolls, on any screen: it fits, the button in sight)
+    check(await page.evaluate(() => getComputedStyle(pathPick).overflowY === 'hidden' && document.querySelector('.vs-screen').offsetHeight <= pathPick.clientHeight + 1
+      && pathChoose.getBoundingClientRect().bottom <= innerHeight), `${name}: the vocation screen fits, and can't scroll`);
     // (Go back and Escape: the question gone, the focus back on the button, the same card looked at, nothing chosen)
     await page.click('.vs-card[data-v=paladin]'); await page.click('#pathChoose');
     check(await page.evaluate(() => !pathAsk.hidden && /Choose Hawk\?/.test(pathAsk.textContent) && document.activeElement && document.activeElement.closest('#pathAsk')), `${name}: Choose Hawk asks first`);

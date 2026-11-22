@@ -1419,6 +1419,22 @@ function askPath(onDone, onBack) {
     for (const v of order) { words(v); most = Math.max(most, box.offsetHeight); }
     box.style.minHeight = `${most}px`;
     words(START_PATHS[pathAt]);
+    fitPathScreen();
+  }
+  // the screen never scrolls: too tall for this phone, first its spacing tighter, then the cards come up over the figure
+  // (to 45% of the width under the title at most), and only then the whole column narrows, everything in it smaller alike
+  function fitPathScreen() {
+    const screen = win.querySelector('.vs-screen'), sel = win.querySelector('.vs-selection');
+    screen.style.width = ''; sel.style.removeProperty('--vs-gap'); screen.classList.remove('vs-tight');
+    const over = () => screen.offsetHeight - win.clientHeight;
+    if (over() <= 0) return;
+    screen.classList.add('vs-tight');
+    const gap = () => parseFloat(getComputedStyle(sel).marginTop);
+    if (over() > 0) sel.style.setProperty('--vs-gap', `${Math.max(screen.clientWidth * 0.45, gap() - over())}px`);
+    for (let k = 0; k < 4 && over() > 0; k++) {
+      screen.style.width = `${Math.max(240, Math.floor(screen.clientWidth - over() * 0.6))}px`;
+      sel.style.setProperty('--vs-gap', `${Math.max(screen.clientWidth * 0.45, gap() - over())}px`);
+    }
   }
   function words(v) {
     const info = PATH_PICK[v];

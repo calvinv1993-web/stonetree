@@ -13,7 +13,7 @@
 #pathPick {
   --vs-serif: 'Cinzel', Georgia, serif; --vs-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --vs-bg: #0e171f; --vs-gold: #edca94; --vs-gold-hi: #f1d6a6; --vs-text: #ece8de; --vs-fade: 200ms;
-  position: fixed; inset: 0; z-index: 41; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  position: fixed; inset: 0; z-index: 41; overflow: hidden; overscroll-behavior: none; touch-action: none; /* (it never scrolls: game-ui.js fitPathScreen makes it fit) */
   background: var(--vs-bg); color: var(--vs-text); -webkit-tap-highlight-color: transparent;
 }
 #pathPick[hidden] { display: none; }
@@ -52,7 +52,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 .vs-layered > :not(.vs-sun) { opacity: 0; transition: opacity var(--vs-fade) ease; }
 .vs-layered.on > :not(.vs-sun) { opacity: 1; }
 .vs-layered :is(.vs-depth, .vs-sun, .vs-figure, img) { position: absolute; pointer-events: none; }
-.vs-depth { inset: 0; z-index: -5; background: url(../sprites/ui/sortia/bastion-scene.webp) center top / cover no-repeat; transform: scale(1.025); transform-origin: 66% 21%; }
+.vs-depth { inset: 0; z-index: -5; background: url(../sprites/ui/sortia/bastion-scene.webp) center top / cover no-repeat; transform: scale(1.025); transform-origin: 66% 21%; filter: blur(2.5px); } /* (the land a little out of focus behind the figure) */
 .vs-depth::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #0e18217a, transparent 27%); } /* (a little shade behind the title) */
 .vs-sun { inset: 0; z-index: -4; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse 42% 24% at 91% 17%, #e5953532, transparent 100%); }
 .vs-figure { z-index: -2; left: -1%; width: 102%; top: calc(var(--portrait-top, 21.5cqw) + env(safe-area-inset-top)); aspect-ratio: 1120 / 1568;
@@ -84,7 +84,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 .vs-layered[data-art="ember"].play .vs-figure::after { animation: vs-kindle 5.9s ease-in-out both; }
 #pathPick[data-paused="true"] .vs-layered, #pathPick[data-paused="true"] .vs-layered * { animation-play-state: paused !important; }
 #pathPick[data-paused="true"] .vs-layered .vs-figure::after { animation-play-state: paused !important; }
-@keyframes vs-depth { from { transform: translate3d(-7px, -2.5px, 0) scale(1.065); } to { transform: translate3d(0, 0, 0) scale(1.025); } }
+@keyframes vs-depth { from { transform: translate3d(-7px, -2.5px, 0) scale(1.065); filter: blur(0); } to { transform: translate3d(0, 0, 0) scale(1.025); filter: blur(2.5px); } }
 @keyframes vs-settle { from { transform: translate3d(1.5px, 2px, 0) scale(.997); } to { transform: translate3d(0, 0, 0) scale(1); } }
 @keyframes vs-sun { 0%, 100% { opacity: 0; } 23% { opacity: .7; } 47% { opacity: .47; } 76% { opacity: .06; } }
 @keyframes vs-armour {
@@ -123,7 +123,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 
 /* the three cards: the same size; crest and name; the one looked at in gold on its own colour. Their corners cut by a fixed
    size, the inside's a little less, so the edge is as thick along the cuts as along the sides */
-.vs-selection { padding-inline: 5.45cqw; margin-top: calc(94cqw - env(safe-area-inset-top)); } /* (the notch's room taken back here: the cards where the reference has them) */
+.vs-selection { padding-inline: 5.45cqw; margin-top: var(--vs-gap, calc(94cqw - env(safe-area-inset-top))); } /* (the notch's room taken back here: the cards where the reference has them) */
 .vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.95cqw; align-items: center; }
 .vs-card { --c: clamp(8px, 2.6cqw, 13px); position: relative; display: block; width: 100%; aspect-ratio: 199 / 160; padding: 0 !important; color: #f4e5c6;
   font: 600 clamp(11px, 3.8cqw, 21px) / 1 var(--vs-serif); }
@@ -168,6 +168,14 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 #pathPick .vs-btn:hover { filter: brightness(1.06); }
 #pathPick .vs-btn:active { transform: translateY(1px); filter: brightness(0.88); }
 #pathPick .vs-btn:disabled { opacity: .6; cursor: default; }
+
+/* a short phone: the same, closer together (game-ui.js fitPathScreen, before it brings the cards up over the figure) */
+.vs-screen.vs-tight { padding-bottom: max(14px, calc(env(safe-area-inset-bottom) + 6px)); }
+.vs-tight .vs-head { padding-top: calc(4cqw + env(safe-area-inset-top)); }
+.vs-tight .vs-role { margin: 12px auto 8px; }
+.vs-tight .vs-intro { margin-bottom: 10px; }
+.vs-tight .vs-traits { padding: 8px 0; gap: 6px; }
+.vs-tight .vs-foot { margin-top: 12px; gap: 6px; }
 
 /* Back (only when there's something to go back to) */
 #pathPick .vs-back { position: absolute; z-index: 3; top: calc(env(safe-area-inset-top) + 8px); left: 8px; width: 44px; height: 44px; display: grid; place-items: center;
