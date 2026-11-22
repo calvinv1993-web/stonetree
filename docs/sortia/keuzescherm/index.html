@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SORTIA · Choose Your Path</title>
+  <link rel="stylesheet" href="vocation.css">
+  <script src="preview.js" defer></script>
+</head>
+<body class="sv-preview">
+  <main class="sv" data-vocation="bastion" aria-labelledby="sv-title">
+    <img class="sv__portrait" src="assets/bastion-character.png" width="1120" height="1568" alt="">
+    <header class="sv__header">
+      <div class="sv__ornament" aria-hidden="true"><span></span></div>
+      <h1 class="sv__title" id="sv-title">Choose Your Path</h1>
+    </header>
+    <section class="sv__selection" aria-label="Vocations">
+      <div class="sv__choices" role="group" aria-label="Preview a vocation">
+        <button class="sv__choice" type="button" data-choice="hawk" aria-pressed="false">
+          <span class="sv__card"><img src="assets/hawk-icon.webp" width="48" height="48" alt="">Hawk</span>
+        </button>
+        <button class="sv__choice" type="button" data-choice="bastion" aria-pressed="true">
+          <span class="sv__card"><img src="assets/bastion-icon.webp" width="48" height="48" alt="">Bastion</span>
+        </button>
+        <button class="sv__choice" type="button" data-choice="ember" aria-pressed="false">
+          <span class="sv__card"><img src="assets/ember-icon.webp" width="48" height="48" alt="">Ember</span>
+        </button>
+      </div>
+
+      <div class="sv__details" aria-live="polite" aria-atomic="true">
+        <h2 class="sv__role">Melee · Defender</h2>
+        <p class="sv__description">A durable frontline fighter who protects allies and holds the line.</p>
+        <ul class="sv__stats">
+          <li><span class="sv__stat sv__stat--positive" aria-hidden="true">+</span><span class="sv__sr-only">Strength:</span> <span data-stat="strength">High survivability and strong melee.</span></li>
+          <li><span class="sv__stat sv__stat--negative" aria-hidden="true">−</span><span class="sv__sr-only">Weakness:</span> <span data-stat="weakness">Slower movement and limited range.</span></li>
+        </ul>
+      </div>
+      <div class="sv__confirm">
+        <p class="sv__permanent" id="sv-warning"><span class="sv__lock" aria-hidden="true"></span>Your choice is permanent.</p>
+        <button class="sv__cta" type="button" aria-describedby="sv-warning" aria-haspopup="dialog">Choose Bastion</button>
+      </div>
+    </section>
+
+    <dialog class="sv__dialog" aria-labelledby="sv-dialog-title" aria-describedby="sv-dialog-description">
+      <form method="dialog">
+        <h2 id="sv-dialog-title">Choose Bastion?</h2>
+        <p id="sv-dialog-description">You won’t be able to change this character’s vocation after confirming.</p>
+        <div class="sv__dialog-actions">
+          <button class="sv__cta" value="confirm">Confirm Bastion</button>
+          <button class="sv__back" value="back" autofocus>Go back</button>
+        </div>
+      </form>
+    </dialog>
+    <p class="sv__sr-only sv__status" role="status"></p>
+  </main>
+</body>
+</html>

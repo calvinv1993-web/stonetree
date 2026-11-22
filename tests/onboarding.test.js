@@ -114,11 +114,11 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => outfit.hidden), `${name}: no outfit while the character is made`);
 
     // your path: one at a time, chosen only once confirmed
-    const looked = () => page.evaluate(() => document.querySelector('.vs-card[aria-checked=true]').dataset.v);
-    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.vs-card').length === 3 && document.querySelectorAll('.vs-card[aria-checked=true]').length === 1
+    const looked = () => page.evaluate(() => document.querySelector('.vs-card[aria-pressed=true]').dataset.v);
+    check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.vs-card').length === 3 && document.querySelectorAll('.vs-card[aria-pressed=true]').length === 1
       && [...document.querySelectorAll('.vs-name')].map(n => n.textContent).join() === 'Hawk,Bastion,Ember'), `${name}: the vocation screen: Hawk, Bastion, Ember, one looked at`);
-    await page.waitForFunction(() => [...document.querySelectorAll('.vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
-    check(await page.evaluate(() => [...document.querySelectorAll('.vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    await page.waitForFunction(() => [...document.querySelectorAll('.vs-hero-img, .vs-face img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
+    check(await page.evaluate(() => [...document.querySelectorAll('.vs-hero-img, .vs-face img')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: a card, the arrow keys; the picture and the words follow; nothing chosen
     await page.click('.vs-card[data-v=paladin]');
     check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
@@ -144,7 +144,7 @@ const fits = page => page.evaluate(() => {
       held.push(await page.evaluate(() => {
         const R = e => e.getBoundingClientRect(), cards = [...document.querySelectorAll('.vs-card')].map(R), btn = R(pathChoose);
         const words = [...pathInfo.querySelectorAll('p, li')].map(R), bottom = Math.max(...words.map(r => r.bottom));
-        const on = [...document.querySelectorAll('.vs-card')].findIndex(c => c.getAttribute('aria-checked') === 'true'), rest = cards.filter((r, i) => i !== on);
+        const on = [...document.querySelectorAll('.vs-card')].findIndex(c => c.getAttribute('aria-pressed') === 'true'), rest = cards.filter((r, i) => i !== on);
         return { at: `${Math.round(R(document.querySelector('.vs-cards')).bottom)},${Math.round(btn.top)}`, same: on >= 0 && cards.every(r => Math.abs(r.width - cards[0].width) < 0.5 && Math.abs(r.height - cards[0].height) < 0.5 && r.height >= 44),
           btn: btn.height >= 44, clear: bottom <= R(document.querySelector('.vs-note')).top, text: parseFloat(getComputedStyle(pathIntro).fontSize) >= 11,
           sides: document.documentElement.scrollWidth <= innerWidth && [...document.querySelectorAll('.vs-card, #pathChoose, .vs-title')].every(e => R(e).left >= 0 && R(e).right <= innerWidth) };
@@ -152,12 +152,20 @@ const fits = page => page.evaluate(() => {
     }
     check(held.every(g => g.at === held[0].at), `${name}: the cards and the button stay put (${held.map(g => g.at).join(' | ')})`);
     check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the cards alike, the button big enough, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
-    if (name !== '320') check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+    // (a tall phone shows it whole; a short one scrolls up and down to the button)
+    if (/^(390|430)$/.test(name)) check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+    // (Go back and Escape: the question gone, the focus back on the button, the same card looked at, nothing chosen)
+    await page.click('.vs-card[data-v=paladin]'); await page.click('#pathChoose');
+    check(await page.evaluate(() => !pathAsk.hidden && /Choose Hawk\?/.test(pathAsk.textContent) && document.activeElement && document.activeElement.closest('#pathAsk')), `${name}: Choose Hawk asks first`);
+    await page.evaluate(() => [...pathAsk.querySelectorAll('button')].find(b => b.textContent === 'Go back').click());
+    check(await page.evaluate(() => pathAsk.hidden && document.activeElement === pathChoose && player.vocation === 'none' && document.querySelector('.vs-card[aria-pressed=true]').dataset.v === 'paladin'), `${name}: Go back: the focus on the button, Hawk still looked at`);
+    await page.click('#pathChoose'); await page.keyboard.press('Escape');
+    check(await page.evaluate(() => pathAsk.hidden && document.activeElement === pathChoose && player.vocation === 'none'), `${name}: Escape: the same`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
     await page.click('.vs-card[data-v=sorcerer]');
     await step('path');
     await page.click('#pathChoose');
-    check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden && /Ember/.test(pathAsk.textContent) && /permanent/.test(pathAsk.textContent)), `${name}: not chosen before it's confirmed, the path named`);
+    check(await page.evaluate(() => player.vocation === 'none' && !pathAsk.hidden && /Choose Ember\?/.test(pathAsk.textContent) && /Confirm Ember/.test(pathAsk.textContent) && /change this character/.test(pathAsk.textContent)), `${name}: not chosen before it's confirmed, the path named`);
     await page.evaluate(() => { const yes = pathAsk.querySelector('.vs-btn'); yes.click(); yes.click(); });
     await page.waitForTimeout(800);
 

@@ -1340,7 +1340,7 @@ function showWindow(heading, body) {
 // How each path is shown when it's chosen: its kind of fighting and role, one line of how it plays, one of what it's best
 // at and one of its weakness, all as the game's own numbers have them (VOCATIONS; health a level 15 / 10 / 5, mana
 // 5 / 15 / 30; the Hawk's spells: Power Shot, volleys, its falcon, a little holy magic); nothing here the game doesn't do.
-// Its art: sprites/ui/sortia/<art>-portrait.webp (the large picture) and <art>-crest.webp (its emblem on its card).
+// Its art: sprites/ui/sortia/<art>-scene.webp, <art>-hero.webp (its land and its figure) and <art>-icon.webp (on its card).
 const PATH_PICK = {
   knight: { art: 'bastion', combat: 'Melee', role: 'Defender', intro: 'A durable frontline fighter who protects allies and holds the line.',
     plus: 'The most health and heavy melee hits.', minus: 'Cannot attack from range.' },
@@ -1369,7 +1369,7 @@ const SV_ORDER = ['paladin', 'knight', 'sorcerer']; // (the cards, left to right
 // the three pictures fetched ahead, while the story is told (welcomeScene calls this), so the screen opens with them
 function preloadPathArt() {
   if (preloadPathArt.done) return; preloadPathArt.done = true;
-  for (const f of [...Object.values(SV_SCENES).flatMap(s => [`${s.art}-scene.webp`, `${s.art}-hero.webp`]), ...SV_ORDER.map(v => `${PATH_PICK[v].art}-crest.webp`)]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
+  for (const f of [...Object.values(SV_SCENES).flatMap(s => [`${s.art}-scene.webp`, `${s.art}-hero.webp`]), ...SV_ORDER.map(v => `${PATH_PICK[v].art}-icon.webp`), 'button-primary.webp']) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
 }
 // The paths' pictures: in layers, after the owner's light study (docs/sortia/bastion-motion: its timing in css/sortia.css):
 // the land behind them (a fortress at dusk, a forest watchtower at sunset, a ruined observatory under the moon), drifting a
@@ -1377,27 +1377,12 @@ function preloadPathArt() {
 // brighter copy of it, seen only through a moving spot, so light runs once over it inside its outline (Bastion: warm, from
 // his right shoulder down to the lion on his shield; Hawk: the sunset's, from her hood over her shoulder to her hand on the
 // bow; Ember: cold and arcane, from the crystal on his staff down to his hand). Nothing in it takes a tap.
-// head: how far down the picture the figure's head starts; foot: what should stand just over the cards (Bastion: the
-// lion's foot; Hawk and Ember: about their belt), as fractions of the picture's height
-const SV_SCENES = { knight: { art: 'bastion', head: 0.03, foot: 0.6 }, paladin: { art: 'hawk', head: 0.07, foot: 0.64 }, sorcerer: { art: 'ember', head: 0.058, foot: 0.62 } };
+// (where each figure stands is css/sortia.css's, after the owner's package: --portrait-top)
+const SV_SCENES = { knight: { art: 'bastion' }, paladin: { art: 'hawk' }, sorcerer: { art: 'ember' } };
 function layeredScene(v) {
   const art = SV_SCENES[v].art, img = cls => h('img', { className: cls, src: sortiaArt(`${art}-hero.webp`), alt: '', decoding: 'async', draggable: false });
   return withData(h('div', { className: 'vs-art vs-layered' }, h('div', { className: 'vs-depth' }), h('div', { className: 'vs-sun' }),
     h('div', { className: 'vs-figure' }, img('vs-hero-img'), img('vs-hero-img vs-hero-light'))), { art });
-}
-// each figure's size and place on this screen: its head in front of the title, its foot mark just over the cards
-function placeLayered() {
-  const heroBox = $('pathHero');
-  if (!heroBox.offsetHeight) return;
-  // (the head starts at the title's middle: the figure stands in front of it)
-  const title = document.querySelector('.vs-title').getBoundingClientRect(), top = heroBox.getBoundingClientRect().top, sub = title.top + title.height / 2 - top + 10;
-  const cards = document.querySelector('.vs-card').getBoundingClientRect().top - top;
-  for (const scene of document.querySelectorAll('.vs-layered')) {
-    const { head, foot } = SV_SCENES[scene.dataset.v];
-    const tall = Math.max(200, (cards + 10 - (sub - 10)) / (foot - head));
-    scene.style.setProperty('--fig-h', `${Math.round(tall)}px`);
-    scene.style.setProperty('--fig-top', `${Math.round(sub - 10 - tall * head)}px`);
-  }
 }
 // a figure's light plays once each time it's looked at, once its pictures are in (not at all with reduced motion); it
 // waits while the page is hidden
@@ -1419,11 +1404,10 @@ function askPath(onDone, onBack) {
   const win = $('pathPick'), track = $('pathTrack'), hero = $('pathHero');
   const order = SV_ORDER.filter(v => START_PATHS.includes(v));
   if (!track.childElementCount) { // (the pictures and the cards, once)
-    hero.replaceChildren(...order.map(v => withData(SV_SCENES[v] ? layeredScene(v) : h('img', { className: 'vs-art', src: sortiaArt(`${PATH_PICK[v].art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }), { v })));
+    hero.replaceChildren(...order.map(v => withData(layeredScene(v), { v })));
     track.replaceChildren(...order.map(v => {
-      const card = withData(h('button', { className: 'vs-card', type: 'button' },
-        h('img', { className: 'vs-emblem', src: sortiaArt(`${PATH_PICK[v].art}-crest.webp`), alt: '', draggable: false }), h('span', { className: 'vs-name' }, vocName(v))), { v, art: PATH_PICK[v].art });
-      card.setAttribute('role', 'radio');
+      const art = PATH_PICK[v].art, card = withData(h('button', { className: 'vs-card', type: 'button' },
+        h('span', { className: 'vs-face' }, h('img', { src: sortiaArt(`${art}-icon.webp`), alt: '', width: 48, height: 48, draggable: false }), h('span', { className: 'vs-name' }, vocName(v)))), { v, art });
       card.onclick = () => show(START_PATHS.indexOf(v));
       return card;
     }));
@@ -1435,7 +1419,6 @@ function askPath(onDone, onBack) {
     for (const v of order) { words(v); most = Math.max(most, box.offsetHeight); }
     box.style.minHeight = `${most}px`;
     words(START_PATHS[pathAt]);
-    placeLayered();
   }
   function words(v) {
     const info = PATH_PICK[v];
@@ -1444,54 +1427,67 @@ function askPath(onDone, onBack) {
     $('pathPlus').textContent = info.plus;
     $('pathMinus').textContent = info.minus;
   }
-  // the path looked at: its picture (a short cross-fade), its card lit, its words
+  // the path looked at (a tap on a card only shows it): its picture (a short cross-fade), its card lit, its words, the button
   function show(i) {
     const n = START_PATHS.length;
     pathAt = (i + n) % n;
     const v = START_PATHS[pathAt], was = hero.querySelector('.vs-art.on');
-    for (const img of hero.children) img.classList.toggle('on', img.dataset.v === v);
+    for (const art of hero.children) art.classList.toggle('on', art.dataset.v === v);
     if (!was || was.dataset.v !== v) playLayered(v);
-    for (const c of track.children) { const on = c.dataset.v === v; c.setAttribute('aria-checked', on ? 'true' : 'false'); c.tabIndex = on ? 0 : -1; }
+    for (const c of track.children) c.setAttribute('aria-pressed', c.dataset.v === v ? 'true' : 'false');
     words(v);
     $('pathChoose').textContent = `Choose ${vocName(v)}`; // (the button names the path looked at)
     ask(false);
   }
   // the path left (step -1) or right (step 1) of the one looked at, in the cards' order
   const step = d => { const r = order.indexOf(START_PATHS[pathAt]); show(START_PATHS.indexOf(order[(r + d + order.length) % order.length])); };
-  // the confirmation: a path is for good
-  function ask(on) {
-    const v = START_PATHS[pathAt], box = $('pathAsk');
+  // the confirmation: Choose Bastion? ... Confirm Bastion (the game's own choosePath, once) or Go back (the focus back on
+  // the button, the card still looked at). Confirmed, it waits for the game to take the path (online, the server's word)
+  // before it goes on; if it doesn't come, it says so and the choice can be tried again.
+  function ask(on, back) {
+    const v = START_PATHS[pathAt], box = $('pathAsk'), was = !box.hidden;
     box.hidden = !on;
-    if (!on) return;
-    const yes = h('button', { className: 'vs-btn', type: 'button' }, `Become ${aVoc(v)}`), no = h('button', { className: 'vs-ghost', type: 'button' }, 'Not yet');
+    if (!on) { if (was && back) $('pathChoose').focus({ preventScroll: true }); return; }
+    const name = vocName(v), yes = h('button', { className: 'vs-btn', type: 'button' }, `Confirm ${name}`), no = h('button', { className: 'vs-ghost', type: 'button' }, 'Go back');
+    const err = h('p', { className: 'vs-error', hidden: true }, 'That didn’t go through. Please try again.');
     let sent = false;
     yes.onclick = () => {
-      if (sent) return; sent = true;
-      Actions.choosePath(v); box.hidden = true; win.hidden = true;
-      if (!document.body.classList.contains('welcome')) welcomeScene(false);
-      if (onDone) onDone();
+      if (sent) return; sent = true; yes.disabled = no.disabled = true; err.hidden = true;
+      Actions.choosePath(v);
+      const began = performance.now();
+      const done = () => {
+        box.hidden = true; win.hidden = true;
+        if (!document.body.classList.contains('welcome')) welcomeScene(false);
+        if (onDone) onDone();
+      };
+      (function wait() {
+        if (player.vocation === v) return done();
+        if (performance.now() - began > 8000) { sent = false; yes.disabled = no.disabled = false; err.hidden = false; return; }
+        setTimeout(wait, 100);
+      })();
     };
-    no.onclick = () => ask(false);
+    no.onclick = () => ask(false, true);
     box.replaceChildren(h('div', { className: 'vs-dialog' },
-      h('img', { className: 'vs-dialog-emblem', src: sortiaArt(`${PATH_PICK[v].art}-crest.webp`), alt: '' }),
-      h('h3', { id: 'pathAskTitle' }, `Become ${aVoc(v)}?`), h('p', {}, `Your path is permanent: once you choose ${vocName(v)}, it can't be changed.`),
-      h('div', { className: 'vs-dialog-row' }, no, yes)));
-    yes.focus({ preventScroll: true });
+      h('h3', { id: 'pathAskTitle' }, `Choose ${name}?`), h('p', { id: 'pathAskText' }, 'You won’t be able to change this character’s vocation after confirming.'), err,
+      h('div', { className: 'vs-dialog-row' }, yes, no)));
+    box.setAttribute('aria-describedby', 'pathAskText');
+    no.focus({ preventScroll: true });
   }
   $('pathChoose').onclick = () => ask(true);
   $('pathBack').hidden = !onBack;
   $('pathBack').onclick = () => { if (!onBack) return; win.hidden = true; $('pathAsk').hidden = true; onBack(); };
   // (a sideways swipe on the picture goes to the path beside it)
   let sx = null, sy = null;
-  hero.parentElement.ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
-  hero.parentElement.ontouchend = e => {
-    if (sx === null) return;
+  const screen = win.querySelector('.vs-screen');
+  screen.ontouchstart = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  screen.ontouchend = e => {
+    if (sx === null || e.target.closest('button')) { sx = null; return; }
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
     if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) * 1.2) step(dx < 0 ? 1 : -1);
   };
   // (the arrow keys go through the paths while they're shown, wherever the focus is; Escape takes back the question)
   askPath.keys = e => {
-    if (!$('pathAsk').hidden) { if (e.key === 'Escape') { ask(false); e.stopPropagation(); } return; }
+    if (!$('pathAsk').hidden) { if (e.key === 'Escape') { ask(false, true); e.stopPropagation(); } return; }
     if (e.key === 'ArrowRight') { step(1); e.preventDefault(); e.stopPropagation(); }
     else if (e.key === 'ArrowLeft') { step(-1); e.preventDefault(); e.stopPropagation(); }
   };

@@ -118,26 +118,26 @@
 
         <div id="pathPick" class="class-pick" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
           <div class="vs-screen">
-            <div class="vs-top">
-              <div id="pathHero" class="vs-hero" aria-hidden="true"></div>
-              <header class="vs-head">
-                <div class="vs-rule" aria-hidden="true"><span></span></div>
-                <h2 id="cpTitle" class="vs-title">Choose Your Path</h2>
-              </header>
-              <div id="pathTrack" class="vs-cards" role="radiogroup" aria-label="Vocations"></div>
-            </div>
-            <section id="pathInfo" class="vs-info" aria-live="polite" aria-label="The vocation looked at">
-              <p id="pathRole" class="vs-role"></p>
-              <p id="pathIntro" class="vs-intro"></p>
-              <ul class="vs-traits">
-                <li class="vs-plus"><span class="vs-sign" aria-label="Strength"></span><span id="pathPlus"></span></li>
-                <li class="vs-minus"><span class="vs-sign" aria-label="Weakness"></span><span id="pathMinus"></span></li>
-              </ul>
+            <div id="pathHero" class="vs-hero" aria-hidden="true"></div>
+            <header class="vs-head">
+              <div class="vs-rule" aria-hidden="true"><span></span></div>
+              <h2 id="cpTitle" class="vs-title">Choose Your Path</h2>
+            </header>
+            <section class="vs-selection" aria-label="Vocations">
+              <div id="pathTrack" class="vs-cards" role="group" aria-label="Preview a vocation"></div>
+              <div id="pathInfo" class="vs-info" aria-live="polite" aria-atomic="true">
+                <p id="pathRole" class="vs-role"></p>
+                <p id="pathIntro" class="vs-intro"></p>
+                <ul class="vs-traits">
+                  <li class="vs-plus"><span class="vs-sign" aria-hidden="true"></span><span class="vs-sr">Strength:</span> <span id="pathPlus"></span></li>
+                  <li class="vs-minus"><span class="vs-sign" aria-hidden="true"></span><span class="vs-sr">Weakness:</span> <span id="pathMinus"></span></li>
+                </ul>
+              </div>
+              <div class="vs-foot">
+                <p class="vs-note" id="pathWarn"><span class="vs-lock" aria-hidden="true"></span>Your choice is permanent.</p>
+                <button id="pathChoose" class="vs-btn vs-choose" type="button" aria-describedby="pathWarn" aria-haspopup="dialog">Choose Bastion</button>
+              </div>
             </section>
-            <div class="vs-foot">
-              <p class="vs-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 10.5v6M12 7.2v.3"/></svg>Your choice is permanent.</p>
-              <button id="pathChoose" class="vs-btn vs-choose" type="button">Choose Bastion</button>
-            </div>
             <button id="pathBack" class="vs-back" type="button" aria-label="Back" hidden>&#8249;</button>
           </div>
           <div id="pathAsk" class="cp-ask" hidden role="alertdialog" aria-modal="true" aria-labelledby="pathAskTitle"></div>
