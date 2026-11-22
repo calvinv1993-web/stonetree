@@ -12,12 +12,13 @@
 /* the screen's tokens */
 #pathPick {
   --vs-serif: 'Cinzel', Georgia, serif; --vs-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --vs-bg: #0b0f15; --vs-card: #131921; --vs-card-edge: rgba(186, 186, 186, 0.32);
+  --vs-bg: #0e191e; --vs-card: #131921; --vs-card-edge: rgba(186, 186, 186, 0.32);
   --vs-gold: #d6ad69; --vs-gold-hi: #f6dea6; --vs-gold-lo: #9c6f32; --vs-text: #ece5d8; --vs-muted: #b3ab9d; --vs-line: rgba(214, 173, 105, 0.3);
   --vs-green-hi: #275a40; --vs-green-lo: #0f2a1d; --vs-plus: #4f8a43; --vs-minus: #a33a2f;
   --vs-side: 20px; --vs-cut: 10px; --vs-fade: 200ms;
   position: fixed; inset: 0; z-index: 41; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
-  background: var(--vs-bg); color: var(--vs-text); -webkit-tap-highlight-color: transparent;
+  background: var(--vs-bg) url(../sprites/ui/sortia/vocation-ground.webp) center / cover no-repeat; /* (the owner's dark ground, its tone the same as --vs-bg) */
+  color: var(--vs-text); -webkit-tap-highlight-color: transparent;
 }
 #pathPick[hidden] { display: none; }
 #pathPick::-webkit-scrollbar { display: none; }
@@ -43,7 +44,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 .vs-art { position: absolute; inset: 56px 0 0; width: 100%; height: calc(100% - 56px); object-fit: cover; object-position: 50% 8%; opacity: 0; transition: opacity var(--vs-fade) ease; }
 .vs-art.on { opacity: 1; }
 .vs-hero::after { content: ''; position: absolute; z-index: 3; inset: 0;
-  background: linear-gradient(180deg, rgba(11, 15, 21, 0) 52%, rgba(11, 15, 21, 0.72) 76%, var(--vs-bg) 96%); }
+  background: linear-gradient(180deg, rgba(14, 25, 30, 0) 52%, rgba(14, 25, 30, 0.72) 76%, var(--vs-bg) 96%); }
 
 /* The paths' pictures in layers (game-ui.js layeredScene, after docs/sortia/bastion-motion): from the back, the
    land (drifting a little closer over 7s), a glow in its sky, the figure (settling over 1.6s as it comes) and a brighter

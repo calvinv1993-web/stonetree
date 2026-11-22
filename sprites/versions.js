@@ -472,6 +472,7 @@ const SPRITE_HASHES = {
   "ui/sortia/hawk-portrait.webp":"6eccacc156",
   "ui/sortia/hawk-scene.webp":"ccd802e316",
   "ui/sortia/parchment.webp":"de4851be05",
+  "ui/sortia/vocation-ground.webp":"9e7894ae9e",
   "ui/sortia/vocation-terrace.webp":"7413faf05a",
   "ui/story/01_the_beginning.webp":"ba5416ad65",
   "ui/story/02_the_hollow_host.webp":"8ec3a404c2",
