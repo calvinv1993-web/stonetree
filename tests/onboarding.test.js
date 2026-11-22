@@ -66,9 +66,15 @@ const fits = page => page.evaluate(() => {
     await page.fill('#sgName', 'lickii tester'); await page.fill('#sgPass', 'secret12'); await page.fill('#sgPass2', 'secret21'); await page.click('#sgGo');
     check(await page.evaluate(() => /aren't the same/.test(sgHint.textContent)), `${name}: two passwords not the same are refused`);
     await page.fill('#sgPass2', 'secret12'); await page.click('#sgGo');
+    // the character select: none yet, the new one's name offered (the account's); its story begins
+    await page.waitForSelector('#sgChars:not([hidden])', { timeout: 10000 });
+    check(await page.evaluate(() => sgCharList.hidden && !sgNoChars.hidden && !sgNewForm.hidden && sgNewName.value === 'Lickii tester' && sgAccountName.textContent === 'Lickii tester'),
+      `${name}: then the character select: no characters yet, a new one named`);
+    await step('characters');
+    await page.click('#sgNewGo');
     await page.waitForSelector('#sortiaIntro:not([hidden])', { timeout: 30000 });
-    check(await page.evaluate(() => JSON.parse(localStorage.getItem('tilequest.account')).name === 'Lickii tester' && !/secret12/.test(localStorage.getItem('tilequest.account'))),
-      `${name}: the account is kept, its password only as a hash`);
+    check(await page.evaluate(() => { const a = JSON.parse(localStorage.getItem('tilequest.account')); return a.name === 'Lickii tester' && a.characters.join() === 'Lickii tester' && !/secret12/.test(localStorage.getItem('tilequest.account')); }),
+      `${name}: the account is kept, with its character, its password only as a hash`);
 
     // the opening: four story cards, each its own picture; Continue and back, a sideways swipe and the arrow keys go
     // through them; nothing past the sides, the way on in sight (a short screen may scroll up and down to it)

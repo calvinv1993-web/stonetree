@@ -54,5 +54,6 @@ server/players.json
 server/world.json
 server/guilds.json
 server/town.json
+server/accounts.json
 server/map.json
 server/*.bak

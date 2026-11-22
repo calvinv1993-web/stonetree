@@ -2725,18 +2725,18 @@ function initUI() {
   setInterval(() => { if (player) $('testSpear').hidden = !(!Net.online && wantsTestSpear()); }, 1000);
   $('newChar').addEventListener('click', () => {
     if (online()) { // online: log out of this browser, so you can log in as someone else
-      if (!confirm('Log out? You can log in again with your name and password.')) return;
-      Net.forget();
+      if (!confirm('Log out? You go back to your characters.')) return;
+      Net.leave();
       return location.reload();
     }
-    if (stored(ACCOUNT_KEY)) { // with an account: log out; the gate makes another or logs back in
-      if (!confirm('Log out? You can log in again with your name and password.')) return;
-      saveGame(); stored(SESSION_KEY, null);
+    if (stored(ACCOUNT_KEY)) { // with an account: log out, to the character select
+      if (!confirm('Log out? You go back to your characters.')) return;
+      saveGame(); playing(null);
       window.onbeforeunload = null;
       return location.reload();
     }
     if (!confirm('Delete your character and start over?')) return;
-    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(saveKey());
     window.onbeforeunload = null;
     location.reload();
   });
@@ -3162,7 +3162,6 @@ const Gate = (() => {
     $('sgSwitchHint').textContent = create ? 'Already have an account?' : 'New to SORTIA?';
     $('sgSwitch').textContent = create ? 'Log in' : 'Create account';
     $('sgConfirmRow').hidden = !create;
-    $('sgMore').hidden = !create || !$('sgMore').querySelector('select');
     $('sgPass').autocomplete = create ? 'new-password' : 'current-password';
     $('sgPass').placeholder = create ? 'At least 6 characters' : 'Your password';
     $('sgPass').enterKeyHint = create ? 'next' : 'go';
@@ -3188,6 +3187,7 @@ const Gate = (() => {
   }
   // the way in: o = { tab: 'create'|'login', name, note, message, onSubmit({ tab, name, password }), onTab(tab) }
   function ask(o) {
+    if (chars) leaveCharacters();
     opts = o || {};
     const el = box();
     el.hidden = false; el.classList.remove('sg-out');
@@ -3223,9 +3223,83 @@ const Gate = (() => {
     hint(message || '');
     $('sgPass').value = ''; $('sgPass2').value = '';
   }
+  // After logging in: the account's characters (o = { account, characters: [{ name, level, vocation }], max, message,
+  // onPlay(name), onCreate(name), onLogout() }). A character is played with a tap; Create new character names one (its
+  // story begins); with none yet, that's open at once. Errors are said under it (refuseCharacter), and it can be tried again.
+  const EMBLEMS = { knight: 'bastion', paladin: 'hawk', sorcerer: 'ember' };
+  let chars = null;
+  function chooseCharacter(o) {
+    chars = o; opts = null;
+    const el = box();
+    el.hidden = false; el.classList.remove('sg-out'); el.classList.add('sg-leaving');
+    $('sgLoad').hidden = true; $('sgAuth').hidden = false;
+    $('sgAuth').dataset.authMode = 'characters';
+    $('sgHeading').textContent = 'Choose your character';
+    $('sgForm').hidden = true; $('sgNote').hidden = true;
+    $('sgAuth').querySelector('.sga-access > .sga-switch').hidden = true;
+    $('sgChars').hidden = false;
+    $('sgAccountName').textContent = o.account;
+    const list = $('sgCharList');
+    list.textContent = '';
+    for (const c of o.characters) {
+      const li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'sga-char'; b.dataset.name = c.name;
+      const path = EMBLEMS[c.vocation], img = document.createElement(path ? 'img' : 'span');
+      img.className = 'sga-char-emblem';
+      if (path) { img.src = hashed(`ui/sortia/${path}-emblem.png`); img.alt = ''; }
+      const who = document.createElement('span'); who.className = 'sga-char-who';
+      const nm = document.createElement('span'); nm.className = 'sga-char-name'; nm.textContent = c.name;
+      const what = document.createElement('span'); what.className = 'sga-char-what';
+      what.textContent = `Level ${c.level} · ${c.vocation && c.vocation !== 'none' ? vocName(c.vocation) : 'No path yet'}${c.online ? ' · in the world' : ''}`;
+      who.append(nm, what);
+      const go = document.createElement('span'); go.className = 'sga-char-go'; go.textContent = 'Play'; go.setAttribute('aria-hidden', 'true');
+      b.append(img, who, go);
+      b.setAttribute('aria-label', `Play ${c.name}, ${what.textContent}`);
+      b.onclick = () => { if (busy) return; charBusy(true, b); o.onPlay(c.name); };
+      li.append(b); list.append(li);
+    }
+    list.hidden = !o.characters.length;
+    $('sgNoChars').hidden = !!o.characters.length;
+    const full = o.max && o.characters.length >= o.max;
+    $('sgNewOpen').hidden = !o.characters.length || full;
+    newOpen(!o.characters.length);
+    if (!o.characters.length && !$('sgNewName').value) $('sgNewName').value = o.account;
+    $('sgMore').hidden = !$('sgMore').querySelector('select');
+    charBusy(false);
+    charHint(o.message || (full ? `This account holds ${o.max} characters, the most it can.` : ''));
+    $('sgAuth').scrollTop = 0;
+    if (!touchScreen) (o.characters.length ? list.querySelector('button') : $('sgNewName')).focus({ preventScroll: true });
+  }
+  function newOpen(on) {
+    $('sgNewForm').hidden = !on;
+    $('sgNewOpen').setAttribute('aria-expanded', String(on));
+    if (on && $('sgNewOpen').hidden === false) $('sgNewOpen').hidden = true;
+  }
+  const charHint = (text, warn) => { $('sgCharHint').textContent = text || ''; $('sgCharHint').classList.toggle('sg-warn', !!warn); $('sgNewName').setAttribute('aria-invalid', 'false'); };
+  function charBusy(on, button) {
+    busy = on;
+    for (const b of $('sgChars').querySelectorAll('button')) b.disabled = on;
+    $('sgNewGo').disabled = on;
+    $('sgNewLabel').textContent = on && !button ? 'One moment…' : 'Begin the story';
+    if (button) button.querySelector('.sga-char-go').textContent = on ? '…' : 'Play';
+  }
+  function refuseCharacter(message) {
+    if (!chars) return;
+    charBusy(false);
+    for (const g of $('sgCharList').querySelectorAll('.sga-char-go')) g.textContent = 'Play';
+    charHint(message);
+  }
+  // back from the characters to the login form (logging out of the account)
+  function leaveCharacters() {
+    chars = null;
+    $('sgChars').hidden = true; $('sgForm').hidden = false; $('sgNote').hidden = false;
+    $('sgAuth').querySelector('.sga-access > .sga-switch').hidden = false;
+    $('sgNewName').value = '';
+  }
   function close() {
     const el = box();
     if (el.hidden) return;
+    chars = null;
     opts = null; busy = false;
     el.classList.add('sg-out');
     setTimeout(() => { if (el.classList.contains('sg-out')) { el.hidden = true; el.classList.remove('sg-out', 'sg-in', 'sg-leaving'); } }, 450);
@@ -3241,6 +3315,20 @@ const Gate = (() => {
       $('sgHeading').focus({ preventScroll: true });
     };
     $('sgShow').onclick = () => showPassword($('sgPass').type === 'password');
+    $('sgNewOpen').onclick = () => { newOpen(true); $('sgNewName').focus(); };
+    $('sgNewName').addEventListener('keydown', e => e.stopPropagation());
+    $('sgNewName').addEventListener('input', () => charHint(''));
+    $('sgLogout').onclick = () => { if (busy || !chars) return; const o = chars; leaveCharacters(); o.onLogout(); };
+    $('sgNewForm').addEventListener('submit', e => {
+      e.preventDefault();
+      if (busy || !chars) return;
+      const raw = $('sgNewName').value, problem = nameProblem(raw);
+      if (problem !== null) { charHint(problem || 'Enter a character name.'); $('sgNewName').setAttribute('aria-invalid', 'true'); $('sgNewName').focus(); return; }
+      const name = capitalize(raw.trim().replace(/[^\w '-]/g, '').slice(0, 20));
+      if (chars.characters.some(c => c.name.toLowerCase() === name.toLowerCase())) { charHint('You have a character of that name already.'); return; }
+      charBusy(true);
+      chars.onCreate(name);
+    });
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES; // (the account page's pictures, by their own versions)
       if (h) { el.querySelector('.sga-art').src = hashed('ui/login/oakvale-login.webp'); el.querySelector('.sga-mark').src = hashed('ui/login/sortia-wordmark.webp'); } }
     for (const id of ['sgName', 'sgPass', 'sgPass2']) {
@@ -3264,7 +3352,7 @@ const Gate = (() => {
         .then(() => { if (!waiting && !box().classList.contains('sg-out')) { const h = $('sgHint').textContent, w = $('sgHint').classList.contains('sg-warn'); ready(); if (h) hint(h, w); } });
     });
   }
-  return { load, ask, wait, refuse, hint, close, setup, setTab, isOpen: () => !box().hidden, tab: () => tab };
+  return { load, ask, wait, refuse, hint, close, setup, setTab, chooseCharacter, refuseCharacter, leaveCharacters, isOpen: () => !box().hidden, asking: () => !!opts && !box().hidden, tab: () => tab };
 })();
 
 // A new character, offline: the story, the temple and Sister Ama, your name, your path; your outfit in the world.

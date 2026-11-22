@@ -231,8 +231,8 @@
                 <h1 id="sgHeading" class="sga-title" tabindex="-1">Create account</h1>
                 <form id="sgForm" class="sga-form" novalidate>
                   <div class="sga-field">
-                    <label for="sgName">Character name</label>
-                    <input id="sgName" name="username" type="text" maxlength="20" autocomplete="username" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Your name">
+                    <label for="sgName">Account name</label>
+                    <input id="sgName" name="username" type="text" maxlength="20" autocomplete="username" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Your account's name">
                   </div>
                   <div class="sga-field">
                     <label for="sgPass">Password</label>
@@ -247,13 +247,31 @@
                   </div>
                   <p id="sgHint" class="sga-status" role="status" aria-live="polite"></p>
                   <button id="sgGo" class="sga-primary" type="submit"><span id="sgGoLabel">Create account</span></button>
-                  <details id="sgMore" class="sga-more" hidden><summary>Other ways to start</summary></details>
                 </form>
                 <div class="sga-switch">
                   <span id="sgSwitchHint" class="sga-switch-hint">Already have an account?</span>
                   <button id="sgSwitch" type="button" class="sga-switch-action">Log in</button>
                 </div>
                 <p id="sgNote" class="sga-note"></p>
+                <!-- after logging in: the account's characters, and a new one -->
+                <div id="sgChars" class="sga-chars" hidden>
+                  <ul id="sgCharList" class="sga-list" aria-label="Your characters"></ul>
+                  <p id="sgNoChars" class="sga-empty" hidden>No characters yet. Name your first, and its story begins.</p>
+                  <button id="sgNewOpen" class="sga-new-open" type="button" aria-expanded="false" aria-controls="sgNewForm">+ Create new character</button>
+                  <form id="sgNewForm" class="sga-form sga-new" novalidate hidden>
+                    <div class="sga-field">
+                      <label for="sgNewName">Character name</label>
+                      <input id="sgNewName" name="character" type="text" maxlength="20" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="2 to 20 letters">
+                    </div>
+                    <details id="sgMore" class="sga-more" hidden><summary>Other ways to start</summary></details>
+                    <button id="sgNewGo" class="sga-primary" type="submit"><span id="sgNewLabel">Begin the story</span></button>
+                  </form>
+                  <p id="sgCharHint" class="sga-status" role="status" aria-live="polite"></p>
+                  <div class="sga-switch">
+                    <span class="sga-switch-hint">Logged in as <b id="sgAccountName"></b></span>
+                    <button id="sgLogout" type="button" class="sga-switch-action">Log out</button>
+                  </div>
+                </div>
               </section>
             </main>
           </div>

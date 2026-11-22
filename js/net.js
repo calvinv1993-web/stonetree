@@ -26,22 +26,29 @@ const Net = (() => {
   const savedLogin = () => storage(() => JSON.parse(localStorage.getItem(LOGIN_KEY)));
   const forget = () => storage(() => localStorage.removeItem(LOGIN_KEY));
 
-  // Logging in: SORTIA's gate (game-ui.js Gate), Create account or Log in. The server says what's wrong (a name taken,
-  // a wrong password), and that's said under the form. A test server also offers its level 20 starts.
-  let asked = false;
+  // Logging in: SORTIA's gate (game-ui.js Gate), Create account or Log in to an account, then its character select
+  // (the server's t: 'account'): play one, or make a new one. The server says what's wrong (a name taken, a wrong
+  // password), and that's said on the form. The account's token is kept (LOGIN_KEY), so a page opened again goes straight
+  // to the characters; the character played is kept for this tab (PLAYING_KEY), so a reload (an update, a lost
+  // connection) goes straight back into the world. A test server also offers its level 20 starts.
+  const PLAYING_KEY = 'tilequest.playing.online';
+  const playingNow = value => storage(() => { if (value === undefined) return sessionStorage.getItem(PLAYING_KEY); if (value === null) sessionStorage.removeItem(PLAYING_KEY); else sessionStorage.setItem(PLAYING_KEY, value); return null; });
+  const vocationWanted = () => ($('createVocation') ? $('createVocation').value : '');
   function showLogin(message) {
-    if (asked) return Gate.refuse(message);
-    asked = true;
+    if (Gate.asking()) return Gate.refuse(message); // (the form is up: what went wrong said on it, as it was)
     Gate.ask({
       tab: 'create', message,
       note: 'One account for every device you play on.',
       onSubmit: ({ tab, name, password }) => {
         Gate.wait(tab === 'create' ? 'Creating your account…' : 'Logging in…');
-        connect({ name, password, create: tab === 'create', vocation: $('createVocation') ? $('createVocation').value : '' });
+        connect({ account: name, password, create: tab === 'create' });
       },
     });
-    // A test server starts characters at level 20: let them pick a vocation - or start fresh on the isle, with the guide,
-    // like on a real server.
+    testStarts();
+  }
+  // A test server starts characters at level 20: let them pick a vocation - or start fresh on the isle, with the guide,
+  // like on a real server.
+  function testStarts() {
     fetch('/status').then(r => r.json()).then(status => {
       if (!status.test || $('createVocation')) return;
       const voc = document.createElement('select');
@@ -50,8 +57,22 @@ const Net = (() => {
       voc.add(new Option('Start fresh (level 1, with the guide)', 'none'));
       for (const v of START_PATHS) voc.add(new Option(`Test server: level 20 ${vocName(v)}`, v));
       $('sgMore').append(voc);
-      if (Gate.tab() === 'create') $('sgMore').hidden = false;
+      $('sgMore').hidden = false;
     }).catch(() => {});
+  }
+  // logged in: the character played before on this tab (a reload, a reconnect) straight away, else the character select
+  function showCharacters(msg) {
+    storage(() => localStorage.setItem(LOGIN_KEY, JSON.stringify({ account: msg.name, token: msg.token })));
+    const again = playingNow();
+    if (again && msg.characters.some(c => c.name.toLowerCase() === again.toLowerCase())) return send({ t: 'play', name: again, vocation: vocationWanted() });
+    if (Net.online) return; // (a reconnect whose character is gone: nothing to show over the world)
+    Gate.chooseCharacter({
+      account: msg.name, characters: msg.characters, max: msg.max,
+      onPlay: name => send({ t: 'play', name, vocation: vocationWanted() }),
+      onCreate: name => send({ t: 'newchar', name, vocation: vocationWanted() }),
+      onLogout: () => { forget(); playingNow(null); if (ws) { ws.onclose = null; ws.close(); } showLogin(); },
+    });
+    testStarts();
   }
 
   function connect(login) {
@@ -67,12 +88,17 @@ const Net = (() => {
       if (Net.online && !Net.reconnecting) log('Lost the connection to the server. Reconnecting...', 'damage');
       if (!Net.online && !Gate.isOpen()) Gate.load('Connecting to the server…');
       Net.reconnecting = true;
-      retry = setTimeout(() => connect(saved), 1000);
+      retry = setTimeout(() => connect(loginWith(saved)), 1000);
     };
   }
+  // what's kept of a login, sent again (an older page kept a character's name: its account has that name)
+  const loginWith = saved => ({ account: saved.account || saved.name, token: saved.token });
 
   function handle(msg) {
+    if (msg.t === 'error' && msg.keep) return Gate.refuseCharacter(msg.message); // (at the character select: still logged in)
+    if (msg.t === 'account') return showCharacters(msg);
     if (msg.t === 'error') {
+      if (msg.relogin) playingNow(null);
       ws.onclose = null;
       ws.close();
       if (msg.relogin) forget();
@@ -138,7 +164,7 @@ const Net = (() => {
     Net.online = true;
     if (Net.reconnecting) log('Reconnected.', 'quest');
     Net.reconnecting = false;
-    storage(() => localStorage.setItem(LOGIN_KEY, JSON.stringify({ name: msg.name, token: msg.token })));
+    playingNow(msg.name);
     if (version && msg.version !== version) showUpdate();
     version = version || msg.version;
     // From now on, every action goes to the server.
@@ -222,10 +248,11 @@ const Net = (() => {
     reconnecting: false,
     wanted,
     forget,
+    leave: () => playingNow(null), // (logging out of a character: back to the character select)
     start(onReady) {
       ready = onReady;
       const saved = savedLogin();
-      Gate.load().then(() => { if (saved) connect(saved); else showLogin(); }); // (logged in on this browser before: straight in)
+      Gate.load().then(() => { if (saved) connect(loginWith(saved)); else showLogin(); }); // (logged in on this browser before: its characters)
     },
     clock: () => performance.now() + offset,
   };

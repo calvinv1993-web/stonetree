@@ -23,7 +23,8 @@ const { acceptWebSocket } = require('./ws');
 const ROOT = path.join(__dirname, '..');
 const PORT = +process.argv.slice(2).find(a => /^\d+$/.test(a)) || +process.env.PORT || 8080;
 const TEST = process.argv.includes('--test');
-const SAVE_FILE = path.join(__dirname, 'players.json');
+const SAVE_FILE = path.join(__dirname, 'players.json'); // characters
+const OWNER_FILE = path.join(__dirname, 'accounts.json'); // accounts: a name and a password, holding characters
 const WORLD_FILE = path.join(__dirname, 'world.json'); // monsters and things on the ground, kept over a restart
 const GUILD_FILE = path.join(__dirname, 'guilds.json');
 const TOWN_FILE = path.join(__dirname, 'town.json'); // what the whole world remembers (the first to slay the Brood Queen)
@@ -223,6 +224,27 @@ function failedLogin(ip) {
   failures.set(ip, f);
 }
 
+// Accounts: a name and a password (and a login token), holding up to MAX_CHARACTERS characters; a character's record
+// in players.json names its account (owner). A character from before accounts held characters is its own account,
+// with its name and password: made so here, once.
+const owners = readSave(OWNER_FILE) || {};
+const MAX_CHARACTERS = 10;
+for (const [key, rec] of Object.entries(accounts)) {
+  if (rec.owner && owners[rec.owner]) continue;
+  let own = key;
+  while (owners[own] && !owners[own].characters.includes(key)) own += '_';
+  if (!owners[own]) owners[own] = { name: (rec.save && rec.save.name) || rec.name || key, password: rec.password || '', token: rec.token || '', characters: [] };
+  if (!owners[own].characters.includes(key)) owners[own].characters.push(key);
+  rec.owner = own;
+}
+const cleanName = text => asText(text).trim().replace(/[^\w '-]/g, '').slice(0, 20);
+// what the character select shows of an account's characters
+const characterList = owner => owner.characters.filter(k => accounts[k]).map(k => {
+  const rec = accounts[k], save = rec.save;
+  return { name: (save && save.name) || rec.name || k, level: (save && save.level) || 1, vocation: (save && save.vocation) || 'none', outfit: (save && save.outfit) || null,
+    online: G.players.some(p => p.name.toLowerCase() === k) };
+});
+
 // A character's save, plus what only matters while the server runs: a skull, a ride.
 function saveAccount(p) {
   const key = p.name.toLowerCase();
@@ -253,6 +275,7 @@ function persist() {
     for (const p of G.players) saveAccount(p);
     saveWorld();
     writeSave(SAVE_FILE, JSON.stringify(accounts));
+    writeSave(OWNER_FILE, JSON.stringify(owners));
     writeSave(GUILD_FILE, JSON.stringify(G.guilds));
     writeSave(TOWN_FILE, JSON.stringify(G.townRecord));
   } catch (e) {
@@ -273,24 +296,81 @@ const LINGER = 8000;
 
 const asText = v => (typeof v === 'string' ? v : ''); // what a page sends may be anything
 
+// Logging in, the gate's way (game-ui.js Gate, net.js): an account (create: true makes one) by its name and password, or
+// by its token (a page that logged in before); the answer is its characters (t: 'account'). Then the page plays one
+// (t: 'play') or makes a new one (t: 'newchar'). What's wrong is answered with an error the page shows; an error with
+// keep: true leaves the account logged in on this page (a name taken at the character select).
+function accountLogin(conn, msg) {
+  const name = cleanName(msg.account), password = asText(msg.password), token = asText(msg.token);
+  if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.' });
+  const key = name.toLowerCase();
+  let owner = owners[key];
+  if (tooManyTries(conn.ip)) return conn.reply({ t: 'error', message: 'Too many wrong passwords: wait a minute, then try again.' });
+  if (msg.create === true) {
+    if (owner || accounts[key]) return conn.reply({ t: 'error', message: 'That name is taken: choose another, or log in.' });
+    if (password.length < 6) return conn.reply({ t: 'error', message: 'Choose a password of at least 6 characters.' });
+    owner = owners[key] = { name: name[0].toUpperCase() + name.slice(1), password: hashPassword(password), token: '', characters: [] };
+  } else {
+    if (!owner) return conn.reply({ t: 'error', message: token ? 'Please log in again.' : 'No account with that name: check it, or create an account.', relogin: !!token });
+    const byToken = !!(token && owner.token && sameText(owner.token, token));
+    if (!byToken && !passwordMatches(owner, key, password)) {
+      failedLogin(conn.ip);
+      return conn.reply({ t: 'error', message: token ? 'Please log in again.' : 'Wrong password.', relogin: !!token });
+    }
+  }
+  if (!owner.token) owner.token = crypto.randomBytes(16).toString('hex');
+  conn.owner = key;
+  conn.reply({ t: 'account', name: owner.name, token: owner.token, characters: characterList(owner), max: MAX_CHARACTERS });
+}
+function playCharacter(conn, msg) {
+  const owner = conn.owner && owners[conn.owner], key = cleanName(msg.name).toLowerCase();
+  if (!owner) return conn.reply({ t: 'error', message: 'Please log in again.', relogin: true });
+  if (!owner.characters.includes(key) || !accounts[key]) return conn.reply({ t: 'error', message: 'That character isn\'t on this account.', keep: true });
+  enterCharacter(conn, key, asText(msg.vocation));
+}
+function newCharacter(conn, msg) {
+  const owner = conn.owner && owners[conn.owner], name = cleanName(msg.name), key = name.toLowerCase();
+  if (!owner) return conn.reply({ t: 'error', message: 'Please log in again.', relogin: true });
+  if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.', keep: true });
+  if (accounts[key] || (owners[key] && key !== conn.owner)) return conn.reply({ t: 'error', message: 'That name is taken: choose another.', keep: true });
+  if (owner.characters.length >= MAX_CHARACTERS) return conn.reply({ t: 'error', message: `An account holds ${MAX_CHARACTERS} characters at most.`, keep: true });
+  accounts[key] = { owner: conn.owner, name: name[0].toUpperCase() + name.slice(1), save: null };
+  owner.characters.push(key);
+  enterCharacter(conn, key, asText(msg.vocation));
+}
+
+// The older way in (a character's own name and password; still used by the online test and older pages): a new name
+// makes a character with its own account.
 function login(conn, msg) {
+  if (typeof msg.account === 'string') return accountLogin(conn, msg);
   msg = { ...msg, name: asText(msg.name), password: asText(msg.password), token: asText(msg.token), vocation: asText(msg.vocation) };
   const name = msg.name.trim().replace(/[^\w '-]/g, '').slice(0, 20);
   if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.' });
   const key = name.toLowerCase();
   const account = accounts[key];
   if (tooManyTries(conn.ip)) return conn.reply({ t: 'error', message: 'Too many wrong passwords: wait a minute, then try again.' });
-  // the gate's two ways in (create: true or false; an older page sends neither, and a new name is then made as before)
   if (msg.create === true && account) return conn.reply({ t: 'error', message: 'That name is taken: choose another, or log in.' });
   if (msg.create === true && msg.password.length < 6) return conn.reply({ t: 'error', message: 'Choose a password of at least 6 characters.' });
   if (msg.create === false && !account && !msg.token) return conn.reply({ t: 'error', message: 'No character with that name: check it, or create an account.' });
   const byToken = !!(account && msg.token && account.token && sameText(account.token, msg.token));
-  if (account && !byToken && !passwordMatches(account, key, msg.password || '')) {
+  const keeper = account && (account.password ? account : owners[account.owner]); // (its password: its own, or its account's)
+  if (account && !byToken && !(keeper && passwordMatches(keeper, keeper === account ? key : account.owner, msg.password || ''))) {
     failedLogin(conn.ip);
     return conn.reply({ t: 'error', message: msg.token ? 'Please log in again.' : 'Wrong password for this character.', relogin: !!msg.token });
   }
   if (!account && msg.token) return conn.reply({ t: 'error', message: 'Please log in again.', relogin: true });
+  if (!account) {
+    if (owners[key]) return conn.reply({ t: 'error', message: 'That name is taken: choose another, or log in.' });
+    accounts[key] = { password: hashPassword(msg.password || ''), owner: key, save: null };
+    owners[key] = { name: name[0].toUpperCase() + name.slice(1), password: accounts[key].password, token: '', characters: [key] };
+  }
+  enterCharacter(conn, key, msg.vocation);
+}
 
+// Into the world as a character (key) of this page's account: the one already in it taken over, or loaded from its
+// save, or a new one (no save yet: the story, isNew)
+function enterCharacter(conn, key, vocationWanted) {
+  const account = accounts[key], isNew = !account.save;
   const online = G.players.find(p => p.name.toLowerCase() === key);
   if (online) {
     clearTimeout(online.lingerTimer);
@@ -302,12 +382,12 @@ function login(conn, msg) {
     W.asPlayer(online, () => W.log(`Welcome back, ${online.name}!`, 'quest'));
     return enter(conn, online, false);
   }
-
+  const name = (account.save && account.save.name) || account.name || key;
   const p = W.newPlayer(name[0].toUpperCase() + name.slice(1));
   p.outbox = [];
   G.players.push(p);
   W.asPlayer(p, () => {
-    if (account && account.save) {
+    if (account.save) {
       W.applySave(account.save);
       if (account.save.skullUntil > G.now) p.skullUntil = account.save.skullUntil;
       if (account.save.redSkullUntil > G.now) p.redSkullUntil = account.save.redSkullUntil;
@@ -316,16 +396,15 @@ function login(conn, msg) {
       if (account.save.ride) p.ride = account.save.ride;
     } else W.teleport(G.map.start);
     // once per character: dying can take a character below 20 again, and that's how it stays
-    const boosted = account && (account.boosted || (account.save && account.save.level >= 20));
-    if (TEST && p.level < 20 && !boosted && msg.vocation !== 'none') { // 'none': start fresh on Brightwater Isle
-      const vocation = p.vocation !== 'none' ? p.vocation : Object.keys(TEST_KITS).includes(msg.vocation) ? msg.vocation : 'knight';
+    const boosted = account.boosted || (account.save && account.save.level >= 20);
+    if (TEST && p.level < 20 && !boosted && vocationWanted !== 'none') { // 'none': start fresh on Brightwater Isle
+      const vocation = p.vocation !== 'none' ? p.vocation : Object.keys(TEST_KITS).includes(vocationWanted) ? vocationWanted : 'knight';
       W.testBoost(vocation, TEST_KITS[vocation]);
     }
-    W.log(`Welcome${account ? ' back' : ''}, ${p.name}! ${G.players.length - 1} other player${G.players.length === 2 ? ' is' : 's are'} online.`, 'welcome'); // (no pop-up on a phone: the log and the chat line)
+    W.log(`Welcome${isNew ? '' : ' back'}, ${p.name}! ${G.players.length - 1} other player${G.players.length === 2 ? ' is' : 's are'} online.`, 'welcome'); // (no pop-up on a phone: the log and the chat line)
   });
-  if (!account) accounts[key] = { password: hashPassword(msg.password || ''), save: null };
-  if (TEST) accounts[key].boosted = true;
-  enter(conn, p, !account);
+  if (TEST) account.boosted = true;
+  enter(conn, p, isNew);
   for (const other of G.players) if (other !== p) W.asPlayer(other, () => W.log(`${p.name} has logged in.`));
 }
 
@@ -629,6 +708,8 @@ server.on('upgrade', (req, socket) => {
       const msg = JSON.parse(data);
       if (!msg || typeof msg !== 'object') return;
       if (msg.t === 'login' && !conn.player) login(conn, msg);
+      else if (msg.t === 'play' && !conn.player) playCharacter(conn, msg);
+      else if (msg.t === 'newchar' && !conn.player) newCharacter(conn, msg);
       else if (msg.t === 'act') act(conn, msg);
     } catch (e) {
       console.error('A message from a page failed:', e);

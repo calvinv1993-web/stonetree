@@ -10,6 +10,10 @@
 let VIEW_W = 15, VIEW_H = 11; // visible tiles (phones change this to fit their screen)
 const SCALE = 2;                 // canvas pixels per world pixel
 const SAVE_KEY = typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW ? `tilequest.save.preview.${WORLD_PREVIEW}` : 'tilequest.save.v3'; // (a preview of another world keeps its own save)
+// Playing alone, an account holds characters (game.js startOffline): each its own save, at saveKey() while it plays
+// (saveSlot, its name in small letters); '' is the one save of before (and of the tests)
+let saveSlot = '';
+const saveKey = () => (saveSlot ? `${SAVE_KEY}.c.${saveSlot}` : SAVE_KEY);
 
 // An editor map in this browser is played instead of the built-in world, but only one made from the built-in world
 // as it is now: one made from an older version would bring the old world back (the editor offers to update it).
@@ -1822,7 +1826,7 @@ function saveGame() {
     data.explored = typeof exportExplored === 'function' ? exportExplored() : null;
     data.guilds = guilds; // playing alone, your guild lives in your save
     data.townRecord = townRecord; // (and the world's records)
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    localStorage.setItem(saveKey(), JSON.stringify(data));
   } catch (e) {
     console.warn('Could not save the game:', e);
   }
@@ -1831,7 +1835,7 @@ function saveGame() {
 function loadGame() {
   let data;
   try {
-    data = JSON.parse(localStorage.getItem(SAVE_KEY));
+    data = JSON.parse(localStorage.getItem(saveKey()));
   } catch (e) {
     return false;
   }

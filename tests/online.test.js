@@ -13,6 +13,7 @@ const SAVES = path.join(__dirname, '..', 'server', 'players.json');
 const WORLD = path.join(__dirname, '..', 'server', 'world.json');
 const GUILDS = path.join(__dirname, '..', 'server', 'guilds.json');
 const TOWN = path.join(__dirname, '..', 'server', 'town.json');
+const OWNERS = path.join(__dirname, '..', 'server', 'accounts.json');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const waitFor = async (ready, ms = 5000) => {
   for (let t = 0; t < ms && !ready(); t += 100) await sleep(100);
@@ -37,6 +38,15 @@ function client(name, login = { password: 'secret' }) {
   return c;
 }
 
+// an account's page: logs in (or makes the account), then sends what it's asked (play, newchar); keeps every answer
+function accountPage(login) {
+  const ws = new WebSocket(`ws://localhost:${PORT}/ws`);
+  const c = { got: [], send: m => ws.send(JSON.stringify(m)), last: t => [...c.got].reverse().find(m => m.t === t), close: () => ws.close() };
+  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.t !== 'state') c.got.push(m); };
+  ws.onopen = () => c.send({ t: 'login', ...login });
+  return c;
+}
+
 function startServer() {
   const server = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js'), String(PORT)], { stdio: ['ignore', 'pipe', 'inherit', 'ipc'] });
   server.ready = new Promise((resolve, reject) => {
@@ -48,8 +58,8 @@ function startServer() {
 
 (async () => {
   const backup = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8');
-  const hadSaves = backup(SAVES), hadWorld = backup(WORLD), hadGuilds = backup(GUILDS), hadTown = backup(TOWN);
-  const SAVE_FILES = [SAVES, WORLD, GUILDS, TOWN], BAKS = SAVE_FILES.map(f => `${f}.bak`), hadBaks = BAKS.map(backup);
+  const hadSaves = backup(SAVES), hadWorld = backup(WORLD), hadGuilds = backup(GUILDS), hadTown = backup(TOWN), hadOwners = backup(OWNERS);
+  const SAVE_FILES = [SAVES, WORLD, GUILDS, TOWN, OWNERS], BAKS = SAVE_FILES.map(f => `${f}.bak`), hadBaks = BAKS.map(backup);
   let server = startServer();
   let failed = false;
   try {
@@ -148,6 +158,36 @@ function startServer() {
     assert(carol.welcome && carol.welcome.isNew, `a new account is made and in (${carol.error || 'no answer'})`);
     carol.close();
     console.log('  ok   create account and log in: names taken, short passwords and unknown names refused');
+    // An account holds characters: made with no character, it lists none; a new one goes into the story, and is listed
+    // next time; a name taken (by a character or an account) is refused there, and the page stays logged in
+    const acc = accountPage({ account: `Dana${tag}`, password: 'secret12', create: true });
+    await waitFor(() => acc.last('account') || acc.last('error'));
+    assert(acc.last('account') && acc.last('account').characters.length === 0, `a new account has no characters yet (${JSON.stringify(acc.got)})`);
+    acc.send({ t: 'newchar', name: `Bob${tag}` }); await waitFor(() => acc.last('error'));
+    assert(acc.last('error').keep && /taken/.test(acc.last('error').message), 'a character name that is taken is refused, the account kept');
+    acc.send({ t: 'newchar', name: `Dana${tag}` }); await waitFor(() => acc.last('welcome') || acc.got.filter(m => m.t === 'error').length > 1);
+    assert(acc.last('welcome') && acc.last('welcome').isNew, `a new character goes into the story (${JSON.stringify(acc.got.slice(-1))})`);
+    acc.send({ t: 'act', a: 'say', args: ['hello from Dana'] }); await sleep(300);
+    acc.close(); await sleep(300);
+    const acc2 = accountPage({ account: `dana${tag}`, password: 'secret12', create: false });
+    await waitFor(() => acc2.last('account') || acc2.last('error'));
+    assert(acc2.last('account') && acc2.last('account').characters.map(c => c.name).join() === `Dana${tag}`, `logging in again lists the character (${JSON.stringify(acc2.got)})`);
+    acc2.send({ t: 'newchar', name: `Eve${tag}` }); await waitFor(() => acc2.last('welcome'));
+    acc2.close(); await sleep(300);
+    const acc3 = accountPage({ account: `Dana${tag}`, token: acc2.last('account').token });
+    await waitFor(() => acc3.last('account') || acc3.last('error'));
+    assert(acc3.last('account') && acc3.last('account').characters.length === 2, `by its token, the account lists both characters (${JSON.stringify(acc3.got)})`);
+    acc3.send({ t: 'play', name: `Bob${tag}` }); await waitFor(() => acc3.last('error'));
+    assert(acc3.last('error').keep && !acc3.last('welcome'), 'another account\'s character can\'t be played');
+    acc3.send({ t: 'play', name: `Dana${tag}` }); await waitFor(() => acc3.last('welcome'));
+    assert(acc3.last('welcome').isNew === false && acc3.last('welcome').name === `Dana${tag}`, 'and one of its own is played, not new');
+    acc3.close();
+    const wrongAcc = accountPage({ account: `Dana${tag}`, password: 'nope1234', create: false }); await waitFor(() => wrongAcc.last('error') || wrongAcc.last('account'));
+    assert(wrongAcc.last('error') && !wrongAcc.last('account'), 'a wrong password lists nothing'); wrongAcc.close();
+    const oldAcc = accountPage({ account: `Old${tag}`, password: 'pw', create: false }); await waitFor(() => oldAcc.last('error') || oldAcc.last('account'));
+    assert(oldAcc.last('account') && oldAcc.last('account').characters.map(c => c.name.toLowerCase()).join() === `old${tag}`, `a character from before accounts is its own account (${JSON.stringify(oldAcc.got)})`);
+    oldAcc.close();
+    console.log('  ok   accounts hold characters: listed, made, played; names taken and other accounts\' characters refused');
     // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
     for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
     const right = client(`Old${tag}`, { password: 'pw' });
@@ -166,7 +206,7 @@ function startServer() {
     if (server.connected) server.send('stop');
     await new Promise(r => (server.exitCode !== null ? r() : server.on('exit', r)));
     // Don't leave the test characters behind in the real save file.
-    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld], [GUILDS, hadGuilds], [TOWN, hadTown], ...BAKS.map((f, i) => [f, hadBaks[i]])]) {
+    for (const [file, had] of [[SAVES, hadSaves], [WORLD, hadWorld], [GUILDS, hadGuilds], [TOWN, hadTown], [OWNERS, hadOwners], ...BAKS.map((f, i) => [f, hadBaks[i]])]) {
       if (had) fs.writeFileSync(file, had);
       else if (fs.existsSync(file)) fs.unlinkSync(file);
     }

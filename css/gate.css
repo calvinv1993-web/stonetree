@@ -125,6 +125,28 @@ html body #sortiaGate :is(.sga-primary, .sga-primary *, .sga-title, .sga-chapter
 .sga-note { margin: 6px 0 0; text-align: center; font-size: 12px; color: #b7b1a5a8; }
 .sga-note:empty { display: none; }
 
+/* the character select: a row each (its path's emblem, its name, level and path, Play), a new one under them */
+.sga-chars[hidden], .sga-list[hidden], .sga-empty[hidden], .sga-new[hidden] { display: none; }
+.sga-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+#sortiaGate .sga-char { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 14px 8px 10px;
+  text-align: left; border: 1px solid var(--sga-line); border-radius: 3px; background: linear-gradient(180deg, #13212b, #0f1a22); box-shadow: inset 0 1px 0 #ffffff08; }
+#sortiaGate .sga-char:hover { border-color: #d8b47a99; background: linear-gradient(180deg, #172833, #111e27); }
+#sortiaGate .sga-char:disabled { cursor: progress; opacity: .75; }
+.sga-char-emblem { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 3px #000a); }
+span.sga-char-emblem { border-radius: 50%; border: 1px solid #b4936166; background: radial-gradient(circle, #2a3a44, #121c24); }
+.sga-char-who { display: grid; min-width: 0; }
+#sortiaGate .sga-char-name { color: var(--sga-gold); font: 600 17px / 1.2 var(--sg-serif); letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sga-char-what { color: var(--sga-muted); font-size: 12.5px; }
+#sortiaGate .sga-char-go { color: #e3be83; font: 600 13px / 1 var(--sg-serif); letter-spacing: .08em; text-transform: uppercase; }
+html body #sortiaGate :is(.sga-char-name, .sga-char-go) { font-family: var(--sg-serif) !important; }
+.sga-empty { margin: 0 0 4px; text-align: center; color: var(--sga-muted); font-size: 14px; }
+#sortiaGate .sga-new-open { display: block; width: 100%; min-height: 48px; margin-top: 12px; border: 1px dashed #b4936180; border-radius: 3px; color: var(--sga-gold); font-weight: 600; }
+#sortiaGate .sga-new-open:hover { border-color: #d8b47a; background: #ffffff06; }
+#sortiaGate .sga-new-open[hidden] { display: none; }
+.sga-new { margin-top: 14px; }
+.sga-chars > .sga-status { margin-top: 12px; }
+.sga-switch-hint b { color: var(--sga-ivory); font-weight: 600; }
+
 @media (min-width: 780px) {
   #sortiaGate .sg-auth { grid-template: 1fr / minmax(0, 1.24fr) minmax(365px, .76fr); }
   .sga-scene { padding-top: max(70px, 12vh); min-height: 100%; align-items: flex-start; }

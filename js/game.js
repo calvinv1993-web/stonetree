@@ -1677,11 +1677,14 @@ function startWorldPreview() {
 }
 
 // Playing alone: the gate first (game-ui.js Gate). An account here is this browser's: a name and a password (kept as a
-// salted hash) for the one character it holds, until the game has a server of its own. Logged in once, a page opens
-// straight into the world (tilequest.session), until you log out (Menu). Browser tests without ?story or ?gate go
-// straight on, as before.
-const ACCOUNT_KEY = 'tilequest.account', SESSION_KEY = 'tilequest.session';
+// salted hash) holding up to MAX_CHARACTERS characters, each its own save (saveKey in game-core.js), until the game has
+// a server of its own. After logging in, the character select: play one, or make a new one (its story begins). Logged
+// in once, a page opens on the character select without the password (tilequest.session) until you log out there; a
+// page reloaded while playing (sessionStorage tilequest.playing) goes straight back into the world. Browser tests
+// without ?story or ?gate go straight on, as before.
+const ACCOUNT_KEY = 'tilequest.account', SESSION_KEY = 'tilequest.session', PLAYING_KEY = 'tilequest.playing', MAX_CHARACTERS = 10;
 const stored = (key, value) => { try { if (value === undefined) return JSON.parse(localStorage.getItem(key)); if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* no storage */ } return null; };
+const playing = value => { try { if (value === undefined) return sessionStorage.getItem(PLAYING_KEY); if (value === null) sessionStorage.removeItem(PLAYING_KEY); else sessionStorage.setItem(PLAYING_KEY, value); } catch (e) { /* no storage */ } return null; };
 async function passwordHash(password, salt) {
   const text = `sortia:${salt}:${password}`;
   if (window.crypto && crypto.subtle) {
@@ -1692,13 +1695,34 @@ async function passwordHash(password, salt) {
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
   return `f${(h >>> 0).toString(16)}`;
 }
-async function saveAccount(name, password) {
+async function saveAccount(name, password, characters) {
   const salt = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
-  stored(ACCOUNT_KEY, { name, salt, hash: await passwordHash(password, salt) });
+  const account = { name, salt, hash: await passwordHash(password, salt), characters };
+  stored(ACCOUNT_KEY, account);
   stored(SESSION_KEY, name);
+  return account;
 }
-const savedCharacter = () => { const save = stored(SAVE_KEY); return save && typeof save.name === 'string' ? save.name : null; };
 const sameName = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+const characterSaveKey = name => `${SAVE_KEY}.c.${name.toLowerCase()}`;
+// the one save of before accounts held characters: moved to its character's own place (once)
+function moveOldSave() {
+  const save = stored(SAVE_KEY);
+  if (!save || typeof save.name !== 'string') return null;
+  if (!stored(characterSaveKey(save.name))) stored(characterSaveKey(save.name), save);
+  stored(SAVE_KEY, null);
+  return save.name;
+}
+// this browser's account, as it is now (an account of before, with one character and no list, given its list)
+function offlineAccount() {
+  const account = stored(ACCOUNT_KEY);
+  if (!account || Array.isArray(account.characters)) return account;
+  const moved = moveOldSave();
+  account.characters = moved ? [moved] : [];
+  stored(ACCOUNT_KEY, account);
+  return account;
+}
+// what the character select shows of each
+const characterSummary = name => { const save = stored(characterSaveKey(name)) || {}; return { name, level: save.level || 1, vocation: save.vocation || 'none' }; };
 
 function startOffline() {
   now = performance.now();
@@ -1706,51 +1730,82 @@ function startOffline() {
   players.push(player);
   npcs = map.npcs.map(spawnNpc); // so the start position search avoids them
   if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) return enterOffline();
+  if (!$('createTest')) $('sgMore').append(testStarts()); // (for testing: other ways to start, with a new character)
   Gate.load().then(() => {
-    const account = stored(ACCOUNT_KEY), character = savedCharacter();
-    if (account && character && sameName(stored(SESSION_KEY), account.name) && sameName(account.name, character)) { Gate.close(); return enterOffline(); }
-    if (!$('createTest')) $('sgMore').append(testStarts()); // (for testing: other ways to start, with a new account)
-    let replacing = false; // (making an account over a character already here: said once, then done)
-    Gate.ask({
-      tab: character || account ? 'login' : 'create',
-      name: (account && account.name) || character || '',
-      note: 'Your account and character are kept in this browser.',
-      onTab: () => { replacing = false; },
-      onSubmit: async ({ tab, name, password }) => {
-        const held = account && account.name || character;
-        if (tab === 'create') {
-          if (held && !replacing) {
-            replacing = true;
-            return Gate.hint(`This browser already holds ${held}. A new account replaces ${held}: press Create account again to go on.`, true);
-          }
-          try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* no storage */ }
-          await saveAccount(name, password);
-          Gate.close();
-          return enterOffline(name);
-        }
-        if (!account) { // a character from before accounts: its name, and the password chosen now is its from here on
-          if (!sameName(name, character)) return Gate.refuse(character ? 'No account with that name in this browser.' : 'No account in this browser yet: create one.');
-          await saveAccount(character, password);
-        } else {
-          if (!sameName(name, account.name)) return Gate.refuse('No account with that name in this browser.');
-          if (await passwordHash(password, account.salt) !== account.hash) return Gate.refuse('Wrong password.');
-          stored(SESSION_KEY, account.name);
-        }
-        Gate.close();
-        enterOffline(character ? undefined : account.name); // (an account without its character yet: made now)
-      },
-    });
+    const account = offlineAccount();
+    if (account && sameName(stored(SESSION_KEY), account.name)) {
+      const again = playing();
+      if (again && account.characters.some(c => sameName(c, again))) { Gate.close(); return playOffline(again); }
+      return chooseOffline(account);
+    }
+    askOffline(account);
   });
 }
+// the login form: an account made, or logged into; then the character select
+function askOffline(account, message) {
+  const old = account ? null : (stored(SAVE_KEY) || {}).name; // (a character from before accounts)
+  let replacing = false; // (making an account over the one already here: said once, then done)
+  Gate.ask({
+    tab: account || old ? 'login' : 'create',
+    name: (account && account.name) || old || '',
+    message,
+    note: 'Your account and characters are kept in this browser.',
+    onTab: () => { replacing = false; },
+    onSubmit: async ({ tab, name, password }) => {
+      if (tab === 'create') {
+        const held = account ? account.name : old;
+        if (held && !replacing) {
+          replacing = true;
+          const many = account && account.characters.length > 1 ? `${held}'s ${account.characters.length} characters` : held;
+          return Gate.hint(`This browser already holds ${account ? `the account ${held}` : held}. A new account replaces ${many}: press Create account again to go on.`, true);
+        }
+        if (account) for (const c of account.characters) stored(characterSaveKey(c), null);
+        stored(SAVE_KEY, null);
+        return chooseOffline(await saveAccount(name, password, []));
+      }
+      if (!account) { // a character from before accounts: its name, and the password chosen now is its from here on
+        if (!sameName(name, old)) return Gate.refuse(old ? 'No account with that name in this browser.' : 'No account in this browser yet: create one.');
+        const moved = moveOldSave();
+        return chooseOffline(await saveAccount(moved, password, [moved]));
+      }
+      if (!sameName(name, account.name)) return Gate.refuse('No account with that name in this browser.');
+      if (await passwordHash(password, account.salt) !== account.hash) return Gate.refuse('Wrong password.');
+      stored(SESSION_KEY, account.name);
+      chooseOffline(account);
+    },
+  });
+}
+// the character select: one played, or a new one made (named here: its story begins)
+function chooseOffline(account, message) {
+  Gate.chooseCharacter({
+    account: account.name, characters: account.characters.map(characterSummary), max: MAX_CHARACTERS, message,
+    onPlay: name => { Gate.close(); playOffline(name); },
+    onCreate: name => {
+      if (stored(characterSaveKey(name))) return Gate.refuseCharacter('A character of that name is kept in this browser already.');
+      account.characters.push(name);
+      stored(ACCOUNT_KEY, account);
+      Gate.close();
+      playOffline(name);
+    },
+    onLogout: () => { stored(SESSION_KEY, null); askOffline(account); },
+  });
+}
+function playOffline(name) {
+  saveSlot = name.toLowerCase();
+  playing(name);
+  $('newChar').textContent = 'Log out';
+  enterOffline(name);
+}
+
 // into the world: the character in this browser, or a new one (named already with its account, or named in the opening)
 function enterOffline(name) {
-  if (stored(ACCOUNT_KEY)) $('newChar').textContent = 'Log out';
   if (loadGame()) {
     log(`Welcome back, ${player.name}!`);
     Sound.title.stop();
     startWorld();
     return;
   }
+  if (name) player.name = name; // (named already: so even a save made during its story is under its name)
   teleport(map.start);
   paused = true;
   startWorldPreview();
