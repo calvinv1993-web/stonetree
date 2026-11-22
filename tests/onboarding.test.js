@@ -175,7 +175,8 @@ const fits = page => page.evaluate(() => {
     }));
     check(!game.welcome && !game.scene && !game.paused, `${name}: into the world, the welcome gone`);
     check(game.name === 'Lickii tester' && game.vocation === 'sorcerer' && game.outfit === want, `${name}: the name, outfit and path as chosen`);
-    check(game.tutorial === 1 && game.quests === 0 && game.guide, `${name}: the guide at its first step, no quest begun twice (${game.tutorial}, ${game.quests})`);
+    // (its first step only explains, and passes by itself once it's had time to be read: on a slow machine it may have)
+    check(game.tutorial >= 1 && game.tutorial <= 2 && game.quests === 0 && game.guide, `${name}: the guide at its start, no quest begun twice (${game.tutorial}, ${game.quests})`);
     check(game.amas === 1 && Math.abs(game.at[0] - game.start[0]) <= 2 && Math.abs(game.at[1] - game.start[1]) <= 2 && game.at[2] === game.start[2], `${name}: in the temple where every character wakes, Sister Ama once`);
     await step('game');
 
