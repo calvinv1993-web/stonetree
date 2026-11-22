@@ -444,7 +444,7 @@ const SPRITE_HASHES = {
   "ui/icon/icon-192.png":"a84d3f154c",
   "ui/icon/icon-32.png":"d6642a4d9f",
   "ui/icon/icon-512.png":"be9e45fc99",
-  "ui/intro/layers/01-distant-sky-mountains.webp":"a551ba7f69",
+  "ui/intro/layers/01-distant-sky-mountains.webp":"42fbbb3abb",
   "ui/intro/layers/02-scene.webp":"f8b0d75c1b",
   "ui/intro/layers/03-seal.webp":"217f4cd76c",
   "ui/intro/layers/04-mill.webp":"57fd235ec2",
