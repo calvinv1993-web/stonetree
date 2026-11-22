@@ -216,11 +216,6 @@ body.welcome .ob-hint { min-height: 1.35em; margin: calc(var(--ob-gap) * -0.6) 0
 body.welcome .ob-hint.bad { color: #8a1c10; }
 body.welcome .ob-panel input[aria-invalid=true] { border-color: #a0301e; }
 body.welcome .ob-panel button.ob-btn.ob-btn:disabled { opacity: 0.5; filter: saturate(0.4); cursor: default; transform: none; }
-/* other ways to start (the test characters): folded away, out of the way of a new player */
-body.welcome .ob-more { margin: 2px 0 6px; text-align: left; font-size: var(--ob-small-size); color: var(--parch-ink-soft); }
-body.welcome .ob-more[hidden] { display: none; }
-body.welcome .ob-more summary { cursor: pointer; padding: 6px 0; min-height: 32px; list-style-position: inside; }
-body.welcome .ob-more select { margin: 4px 0 0; }
 /* the game's version: out of the window, small in the corner */
 .ob-version { display: none; }
 body.welcome .ob-version { display: block; position: fixed; z-index: 29; right: max(10px, env(safe-area-inset-right)); bottom: var(--ob-safe-bottom); opacity: 0.75; pointer-events: none; }
@@ -416,12 +411,6 @@ html body.welcome #create.name-sheet input#createName:focus { border-color: #b88
 html body.welcome #create.name-sheet input#createName[aria-invalid=true] { border-color: #a0301e; }
 body.welcome #create.name-sheet .ob-hint { min-height: 0; margin: 0.8cqw 0 0; font-size: clamp(12.5px, 3.4cqw, 16px); text-align: center; }
 body.welcome #create.name-sheet .ob-hint:empty { display: none; }
-body.welcome #create.name-sheet .ob-more { margin: 0.6cqw 0 0; font-size: clamp(13px, 3.6cqw, 17px); color: #4a3018; }
-body.welcome #create.name-sheet .ob-more summary { min-height: 0; padding: 1cqw 0; list-style: none; display: flex; align-items: center; gap: 0.6em; }
-body.welcome #create.name-sheet .ob-more summary::-webkit-details-marker { display: none; }
-body.welcome #create.name-sheet .ob-more summary::before { content: ''; border: 0.36em solid transparent; border-left: 0.55em solid #3a2210; border-right-width: 0; transition: transform var(--ob-quick); }
-body.welcome #create.name-sheet .ob-more[open] summary::before { transform: rotate(90deg); }
-body.welcome #create.name-sheet .ob-more select { margin: 0 0 1cqw; min-height: 44px; }
 /* the way on: deep green in a gold rim, its word in gold */
 body.welcome #create.name-sheet .ob-nav { margin: 0.6cqw 0 0; }
 html body.welcome #create.name-sheet button.ob-btn.ob-btn { min-width: 0; width: auto; min-width: 40%; min-height: 44px !important; height: clamp(44px, 10cqw, 50px); padding: 0 5cqw;

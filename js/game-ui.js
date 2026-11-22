@@ -2729,7 +2729,7 @@ function initUI() {
       Net.leave();
       return location.reload();
     }
-    if (stored(ACCOUNT_KEY)) { // with an account: log out, to the character select
+    if (saveSlot) { // a character of an account: log out, to the character select
       if (!confirm('Log out? You go back to your characters.')) return;
       saveGame(); playing(null);
       window.onbeforeunload = null;
@@ -3087,7 +3087,7 @@ function nameSheet(dialog) {
   art.setAttribute('aria-hidden', 'true');
   const field = h('div', { className: 'ns-field' });
   const input = $('createName'); input.replaceWith(field); field.append(input);
-  const talk = $('createAma'), form = h('div', { className: 'ns-form' }, field, $('createHint'), $('createMore'), dialog.querySelector('.ob-nav'));
+  const talk = $('createAma'), form = h('div', { className: 'ns-form' }, field, $('createHint'), dialog.querySelector('.ob-nav'));
   dialog.append(art, h('div', { className: 'ns-writing' }, h('div', { className: 'ns-talk' }, talk), form));
 }
 
@@ -3264,7 +3264,6 @@ const Gate = (() => {
     $('sgNewOpen').hidden = !o.characters.length || full;
     newOpen(!o.characters.length);
     if (!o.characters.length && !$('sgNewName').value) $('sgNewName').value = o.account;
-    $('sgMore').hidden = !$('sgMore').querySelector('select');
     charBusy(false);
     charHint(o.message || (full ? `This account holds ${o.max} characters, the most it can.` : ''));
     $('sgAuth').scrollTop = 0;
@@ -3362,8 +3361,6 @@ function showCharacterCreation(onDone, name) { // (name: already chosen, with th
   const input = $('createName'), go = $('createStart');
   nameSheet(dialog);
   go.textContent = 'Continue';
-  const start = $('createTest') || testStarts(); // (made already when the account was: chosen there)
-  if (!name) { $('createMore').append(start); $('createMore').hidden = false; }
   watchName(input, go);
   keepAboveKeyboard(input);
   // the opening (Intro), your name in it; then your path. Browser tests without ?story: the plain name window, as before.
@@ -3376,7 +3373,6 @@ function showCharacterCreation(onDone, name) { // (name: already chosen, with th
     if (!touchScreen) input.focus();
   } else {
     if (name) { input.value = name; Intro.show({ name, onDone: () => done() }); } else {
-      const more = $('siMore'); more.append(start); more.hidden = false; // (the test starts, under the name there)
       Intro.show({ askName: true, onName: n => { input.value = n; }, onDone: () => done() });
     }
   }
@@ -3387,7 +3383,6 @@ function showCharacterCreation(onDone, name) { // (name: already chosen, with th
     player.name = capitalize(input.value.trim().replace(/[^\w '-]/g, '').slice(0, 20));
     guideFolded = false; try { localStorage.setItem('tilequest.guideFolded', '0'); } catch (e) { /* no storage */ } // (a new character: the guide open)
     dialog.hidden = true;
-    if (start.value) makeTestHero(start.value);
     newCharacterPath(() => { newCharacterInWorld(); if (onDone) onDone(); });
   };
   go.addEventListener('click', done);
@@ -3395,16 +3390,6 @@ function showCharacterCreation(onDone, name) { // (name: already chosen, with th
     if (e.key === 'Enter') done();
     e.stopPropagation();
   });
-}
-
-// for testing: start as a level 100 character with the best gear (see makeTestHero), under "Other ways to start"
-function testStarts() {
-  const start = document.createElement('select');
-  start.id = 'createTest';
-  start.setAttribute('aria-label', 'How to start');
-  start.add(new Option('Normal start (level 1, with the guide)', ''));
-  for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
-  return start;
 }
 
 // A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your path

@@ -1712,6 +1712,32 @@ function moveOldSave() {
   stored(SAVE_KEY, null);
   return save.name;
 }
+// The test account: Lickii, with a level 100 character of each path (makeTestHero: the best gear, Clang at its level),
+// there in every browser (and on the server: server.js TEST_ACCOUNT). Its password is kept only as a hash. Its
+// characters are made the first time it logs in here, and then play on and are saved like any others.
+const TEST_ACCOUNT = { name: 'Lickii', salt: '261063dc8c937e7b', hash: 'e14d0cd499be2aa9f99871fa03b4d4c49ab4ffae86d6de172b53fee14cdd2700', builtin: true,
+  heroes: [['Lickii Bastion', 'knight'], ['Lickii Hawk', 'paladin'], ['Lickii Ember', 'sorcerer']] };
+const TEST_ACCOUNT_KEY = 'tilequest.account.lickii', TEST_SESSION = '#lickii';
+function testAccount() {
+  let account = stored(TEST_ACCOUNT_KEY);
+  if (account) return account;
+  account = { name: TEST_ACCOUNT.name, salt: TEST_ACCOUNT.salt, hash: TEST_ACCOUNT.hash, builtin: true, characters: [] };
+  const keep = player;
+  for (const [name, vocation] of TEST_ACCOUNT.heroes) {
+    if (!stored(characterSaveKey(name))) {
+      player = newPlayer(name);
+      teleport(map.start);
+      makeTestHero(vocation);
+      const slot = saveSlot; saveSlot = name.toLowerCase(); saveGame(); saveSlot = slot;
+    }
+    account.characters.push(name);
+  }
+  player = keep;
+  stored(TEST_ACCOUNT_KEY, account);
+  return account;
+}
+const accountKeyOf = account => (account.builtin ? TEST_ACCOUNT_KEY : ACCOUNT_KEY);
+
 // this browser's account, as it is now (an account of before, with one character and no list, given its list)
 function offlineAccount() {
   const account = stored(ACCOUNT_KEY);
@@ -1730,15 +1756,14 @@ function startOffline() {
   players.push(player);
   npcs = map.npcs.map(spawnNpc); // so the start position search avoids them
   if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) return enterOffline();
-  if (!$('createTest')) $('sgMore').append(testStarts()); // (for testing: other ways to start, with a new character)
   Gate.load().then(() => {
-    const account = offlineAccount();
-    if (account && sameName(stored(SESSION_KEY), account.name)) {
+    const session = stored(SESSION_KEY), account = session === TEST_SESSION ? testAccount() : offlineAccount();
+    if (account && (session === TEST_SESSION || (!account.builtin && sameName(session, account.name)))) {
       const again = playing();
       if (again && account.characters.some(c => sameName(c, again)) && !busyElsewhere()) { Gate.close(); return playOffline(again); }
       return chooseOffline(account);
     }
-    askOffline(account);
+    askOffline(account && account.builtin ? offlineAccount() : account);
   });
 }
 // the login form: an account made, or logged into; then the character select
@@ -1752,6 +1777,11 @@ function askOffline(account, message) {
     note: 'Your account and characters are kept in this browser.',
     onTab: () => { replacing = false; },
     onSubmit: async ({ tab, name, password }) => {
+      if (sameName(name, TEST_ACCOUNT.name)) { // (the test account: its own password, whatever this browser holds)
+        if (tab === 'create') return Gate.refuse('That name is taken: choose another, or log in.');
+        if (await passwordHash(password, TEST_ACCOUNT.salt) === TEST_ACCOUNT.hash) { stored(SESSION_KEY, TEST_SESSION); return chooseOffline(testAccount()); }
+        if (!account || !sameName(account.name, TEST_ACCOUNT.name)) return Gate.refuse('Wrong password.');
+      }
       if (tab === 'create') {
         const held = account ? account.name : old;
         if (held && !replacing) {
@@ -1785,11 +1815,11 @@ function chooseOffline(account, message) {
       const busy = busyElsewhere();
       if (busy) return Gate.refuseCharacter(busy);
       account.characters.push(name);
-      stored(ACCOUNT_KEY, account);
+      stored(accountKeyOf(account), account);
       Gate.close();
       playOffline(name);
     },
-    onLogout: () => { stored(SESSION_KEY, null); askOffline(account); },
+    onLogout: () => { stored(SESSION_KEY, null); askOffline(account.builtin ? offlineAccount() : account); },
   });
 }
 // one character of the account in the world at a time, in this browser too: a tab playing marks it (IN_WORLD_KEY, its

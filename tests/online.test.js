@@ -210,6 +210,15 @@ function startServer(...args) {
     assert(oldAcc.last('account') && oldAcc.last('account').characters.map(c => c.name.toLowerCase()).join() === `old${tag}`, `a character from before accounts is its own account (${JSON.stringify(oldAcc.got)})`);
     oldAcc.close();
     console.log('  ok   accounts hold characters: listed, made, played, one at a time; names taken and other accounts\' characters refused');
+    // The test account: Lickii, its three level 100 characters, one of each path
+    const lick = accountPage({ account: 'lickii', password: '008822', create: false }); await waitFor(() => lick.last('account') || lick.last('error'));
+    const heroes = lick.last('account') ? lick.last('account').characters : [];
+    assert(heroes.length === 3 && heroes.every(c => c.level === 100) && heroes.map(c => c.vocation).sort().join() === 'knight,paladin,sorcerer',
+      `the test account Lickii has a level 100 character of each path (${JSON.stringify(lick.got)})`);
+    lick.close();
+    const lickWrong = accountPage({ account: 'Lickii', password: '000000', create: false }); await waitFor(() => lickWrong.last('error') || lickWrong.last('account'));
+    assert(lickWrong.last('error') && !lickWrong.last('account'), 'and only its own password opens it'); lickWrong.close();
+    console.log('  ok   the test account Lickii: a level 100 character of each path');
     // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
     for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
     const right = client(`Old${tag}`, { password: 'pw' });

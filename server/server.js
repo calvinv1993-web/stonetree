@@ -245,6 +245,25 @@ const characterList = owner => owner.characters.filter(k => accounts[k]).map(k =
     online: G.players.some(p => p.name.toLowerCase() === k) };
 });
 
+// The test account (as in game.js TEST_ACCOUNT): Lickii, with a level 100 character of each path (makeTestHero), its
+// password kept only as a hash. Made once, when the server starts without it; then its characters play on like any.
+const TEST_ACCOUNT = { key: 'lickii', name: 'Lickii',
+  password: 'scrypt$4f0d58396d108b857381a4e09e98b5cb$08608433077ab204730fdb5f38a8d785b7a8397b4d500922a403e29276771581',
+  heroes: [['Lickii Bastion', 'knight'], ['Lickii Hawk', 'paladin'], ['Lickii Ember', 'sorcerer']] };
+function makeTestAccount() {
+  if (owners[TEST_ACCOUNT.key] || accounts[TEST_ACCOUNT.key]) return; // (made already, or the name taken by a character of before)
+  const owner = owners[TEST_ACCOUNT.key] = { name: TEST_ACCOUNT.name, password: TEST_ACCOUNT.password, token: '', characters: [] };
+  for (const [name, vocation] of TEST_ACCOUNT.heroes) {
+    const key = name.toLowerCase();
+    if (accounts[key]) continue;
+    const p = W.newPlayer(name);
+    p.outbox = [];
+    const save = W.asPlayer(p, () => { W.teleport(G.map.start); W.makeTestHero(vocation); return W.serializePlayer(p); });
+    accounts[key] = { owner: TEST_ACCOUNT.key, name, save, boosted: true };
+    owner.characters.push(key);
+  }
+}
+
 // A character's save, plus what only matters while the server runs: a skull, a ride.
 function saveAccount(p) {
   const key = p.name.toLowerCase();
@@ -282,6 +301,7 @@ function persist() {
     console.error('Saving failed (trying again in 10 seconds):', e.message);
   }
 }
+makeTestAccount();
 setInterval(persist, 10000);
 
 // ---- connections --------------------------------------------------------------------------

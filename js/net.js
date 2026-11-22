@@ -33,7 +33,6 @@ const Net = (() => {
   // connection) goes straight back into the world. A test server also offers its level 20 starts.
   const PLAYING_KEY = 'tilequest.playing.online';
   const playingNow = value => storage(() => { if (value === undefined) return sessionStorage.getItem(PLAYING_KEY); if (value === null) sessionStorage.removeItem(PLAYING_KEY); else sessionStorage.setItem(PLAYING_KEY, value); return null; });
-  const vocationWanted = () => ($('createVocation') ? $('createVocation').value : '');
   // this browser's id, kept: the server lets one character play from a browser at a time
   const device = storage(() => { let id = localStorage.getItem('tilequest.device'); if (!id) { id = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('tilequest.device', id); } return id; }) || '';
   function showLogin(message) {
@@ -46,35 +45,19 @@ const Net = (() => {
         connect({ account: name, password, create: tab === 'create' });
       },
     });
-    testStarts();
-  }
-  // A test server starts characters at level 20: let them pick a vocation - or start fresh on the isle, with the guide,
-  // like on a real server.
-  function testStarts() {
-    fetch('/status').then(r => r.json()).then(status => {
-      if (!status.test || $('createVocation')) return;
-      const voc = document.createElement('select');
-      voc.id = 'createVocation';
-      voc.setAttribute('aria-label', 'How to start');
-      voc.add(new Option('Start fresh (level 1, with the guide)', 'none'));
-      for (const v of START_PATHS) voc.add(new Option(`Test server: level 20 ${vocName(v)}`, v));
-      $('sgMore').append(voc);
-      $('sgMore').hidden = false;
-    }).catch(() => {});
   }
   // logged in: the character played before on this tab (a reload, a reconnect) straight away, else the character select
   function showCharacters(msg) {
     storage(() => localStorage.setItem(LOGIN_KEY, JSON.stringify({ account: msg.name, token: msg.token })));
     const again = playingNow();
-    if (again && msg.characters.some(c => c.name.toLowerCase() === again.toLowerCase())) return send({ t: 'play', name: again, vocation: vocationWanted(), device });
+    if (again && msg.characters.some(c => c.name.toLowerCase() === again.toLowerCase())) return send({ t: 'play', name: again, device });
     if (Net.online) return; // (a reconnect whose character is gone: nothing to show over the world)
     Gate.chooseCharacter({
       account: msg.name, characters: msg.characters, max: msg.max,
-      onPlay: name => send({ t: 'play', name, vocation: vocationWanted(), device }),
-      onCreate: name => send({ t: 'newchar', name, vocation: vocationWanted(), device }),
+      onPlay: name => send({ t: 'play', name, device }),
+      onCreate: name => send({ t: 'newchar', name, device }),
       onLogout: () => { forget(); playingNow(null); if (ws) { ws.onclose = null; ws.close(); } showLogin(); },
     });
-    testStarts();
   }
 
   function connect(login) {

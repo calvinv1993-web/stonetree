@@ -94,9 +94,6 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 #sortiaIntro .si-form input[aria-invalid="true"] { border-color: #d0705c; }
 .si-hint { margin: -4px 0 0; font-size: 13px; color: #f0a594; }
 .si-hint:empty { display: none; }
-.si-more { font-size: 12px; color: var(--si-soft); }
-.si-more summary { min-height: 32px; display: flex; align-items: center; cursor: pointer; }
-.si-more select { margin-top: 4px; min-height: 44px; width: 100%; }
 .si-form .si-fwd { justify-self: end; }
 
 @media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
