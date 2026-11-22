@@ -2808,28 +2808,32 @@ const ParchmentPanel = (() => {
 // a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
-// One panorama behind it all, built of layers (the owner's parallax scene, docs/sortia/parallax: sprites/ui/intro/layers/):
-// the sky and mountains, the river and land, the north's ruins and the mill, Oakvale and its bridge, the temple room, the
-// small groups of goblins and watchmen, the traveler, the wolf, the hidden goblin, Sister Ama and the foreground, each
-// placed on one 2172 x 724 canvas (INTRO_LAYERS, from its asset-manifest.json). They move together with the camera; each
-// shifts a few pixels more by its depth while you drag, or as the mouse moves over it, so the scene has depth without a
-// gate leaving its bridge. Its lanterns flicker; mist and snow drift in front, each at its own pace. Four story cards,
-// each its title and words over its part of the picture, then Sister Ama: your name (offline; online it's known from the
-// login), and three lines of talk ending in Choose Your Path, which opens the vocation screen. A swipe drags the picture
-// with the finger and lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight
-// to Sister Ama. The words stay where they are and change as the camera lands. Browser tests go straight on unless they
-// ask for it with ?story.
-// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left (the manifest's)
-const INTRO_SPOTS = [0.10, 0.33, 0.47, 0.70, 0.92];
+// One panorama behind it all, in layers (sprites/ui/intro/layers/): far back the sky and mountains, then the painted scene
+// (the seal, the mill, Oakvale and its bridge, the temple room with Sister Ama; its sky see-through), and in front the
+// traveler, the wolf and the hidden goblin as figures of their own (from the owner's parallax package, docs/sortia/parallax),
+// each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and between two scenes each by its
+// depth (the mountains fall behind, the figures run ahead); while you drag, or as the mouse moves, they lean a little.
+// The figures wait for a scene painted without them (INTRO_FIGURES): over this one they'd stand twice. Its lanterns
+// flicker (INTRO_GLOWS); mist and snow drift in front, each at its own pace. Four story cards, each its title and words
+// over its part of the picture, then Sister Ama: your name (offline; online it's known from the login), and three lines
+// of talk ending in Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and
+// lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
+// words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
+// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
+const INTRO_SPOTS = [0.10, 0.29, 0.49, 0.67, 0.90];
 const INTRO_CANVAS = [2172, 724];
-// [file, x, y, width, height, z, depth] on that canvas
+const INTRO_FIGURES = false;
+// [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures
 const INTRO_LAYERS = [
-  ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-river-terrain', 0, 0, 2172, 724, 10, -3],
-  ['03-northern-ruins-and-mill', 0, 0, 900, 650, 20, 0], ['04-oakvale-and-bridge', 715, 0, 1000, 660, 20, 0], ['05-temple-room', 1720, 0, 452, 640, 20, 0],
-  ['06-upstream-goblins-wolves', 660, 175, 245, 91, 22, 0], ['07-mill-gate-goblins', 655, 291, 185, 155, 23, 0],
-  ['08-bridge-watchmen', 1168, 275, 100, 115, 24, 0], ['09-gate-watchman', 1168, 85, 95, 135, 24, 0],
-  ['10-traveler', 845, 305, 350, 276.47, 35, 2], ['11-wolf', 1450, 225, 195, 200.44, 33, 1.5], ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5],
-  ['13-sister-ama', 1810, 115, 300, 413.07, 35, 1.5], ['14-foreground', 0, 0, 2172, 724, 45, 4],
+  ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
+  ['11-wolf', 1450, 225, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 845, 305, 350, 276.47, 35, 2, 'figure'],
+  ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5, 'figure'],
+].filter(l => INTRO_FIGURES || l[7] !== 'figure');
+// the lights: [x %, y %, size %, delay s, depth, kind] (the traveler's and the goblin's lanterns: in the scene, or held by
+// their figures)
+const INTRO_GLOWS = [
+  [26.5, 39.0, 4.2, -0.7, 0, 'dim'], [58.4, 21.6, 3.4, -0.3, 0], [86.1, 23.3, 3.0, -1.2, 0, 'candle'],
+  ...(INTRO_FIGURES ? [[51.6, 50.1, 4.4, -1.9, 2], [65.3, 60.2, 5.2, -2.6, 2.5]] : [[49.6, 50.3, 4.4, -1.9, 0], [65.2, 63.1, 5.2, -2.6, 0]]),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
@@ -3001,7 +3005,7 @@ const Intro = (() => {
   function setup() {
     const box = $('sortiaIntro'), input = $('siName');
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
-    { // the layers, in front of their glows' places (the lights sit over the figures, under the foreground)
+    { // the layers, then their lights (over the figures)
       const scene = box.querySelector('.si-scene'), [cw, ch] = INTRO_CANVAS, pc = (v, of) => `${(100 * v / of).toFixed(4)}%`;
       for (const [id, lx, ly, lw, lh, z, d] of INTRO_LAYERS) {
         const layer = document.createElement('div'), img = document.createElement('img');
@@ -3011,6 +3015,12 @@ const Intro = (() => {
         img.src = introLayerFile(id); img.alt = ''; img.draggable = false; img.decoding = 'async';
         layer.append(img);
         scene.append(layer);
+      }
+      for (const [gx, gy, gs, gd, d, kind] of INTRO_GLOWS) {
+        const glow = document.createElement('i');
+        glow.className = `si-glow${kind ? ` si-${kind}` : ''}`;
+        glow.style.cssText = `--gx: ${gx}%; --gy: ${gy}%; --gs: ${gs}%; --gd: ${gd}s; --d: ${d}`;
+        scene.append(glow);
       }
     }
     // the mouse over the picture: the layers lean with it a little (not on a phone: there a drag does it)

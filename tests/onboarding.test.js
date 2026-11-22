@@ -82,14 +82,14 @@ const fits = page => page.evaluate(() => {
     // (the words change once the camera has landed)
     const title = async () => { await page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 5000 }).catch(() => {}); return page.evaluate(() => siTitle.textContent); };
     const shown = () => page.evaluate(() => ({ art: siTitle.textContent, x: Math.round(parseFloat(document.querySelector('.si-world').style.getPropertyValue('--si-x'))),
-      pano: (() => { const imgs = [...document.querySelectorAll('.si-layer img')]; return imgs.length === 14 && imgs.every(i => i.complete && i.naturalWidth > 0); })(),
+      pano: (() => { const imgs = [...document.querySelectorAll('.si-layer img')]; return imgs.length >= 2 && imgs.every(i => i.complete && i.naturalWidth > 0); })(),
       sides: document.documentElement.scrollWidth <= innerWidth && sortiaIntro.scrollWidth <= sortiaIntro.clientWidth,
       way: (() => { const b = [...sortiaIntro.querySelectorAll('.si-fwd')].find(e => e.offsetParent); const r = b.getBoundingClientRect(); return r.height >= 44 && r.right <= innerWidth + 0.5; })() }));
     const seen = [], xs = [];
     await page.waitForFunction(() => [...document.querySelectorAll('.si-layer img')].every(i => i.complete), null, { timeout: 15000 }).catch(() => {});
     for (let i = 0; i < CARDS.length; i++) {
       const g = await shown(); seen.push(g.art); xs.push(g.x);
-      check(g.pano, `${name}: card ${i + 1}: the panorama's 14 layers behind it`);
+      check(g.pano, `${name}: card ${i + 1}: the panorama's layers behind it`);
       check(g.sides && g.way, `${name}: card ${i + 1}: nothing past the sides, the way on 44px (${JSON.stringify(g)})`);
       await step(`story${i + 1}`);
       if (i < CARDS.length - 1) { await page.click('#siNext'); await page.waitForFunction(t => siTitle.textContent !== t && !sortiaIntro.classList.contains('moving'), seen[i], { timeout: 5000 }).catch(() => {}); }
