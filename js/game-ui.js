@@ -2835,7 +2835,7 @@ const INTRO_LAYERS = [
   ['06-gate-watchman', 1204, 104, 81, 64, 22, 0], ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
   ['10-traveler', 850, 355, 350, 276.47, 35, 2, 'figure'],
-  ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 600, 2172, 124, 55, 3],
+  ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 560, 2172, 164, 55, 3],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
 // the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
 // the lanterns the traveler and the goblin hold
