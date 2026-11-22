@@ -2820,20 +2820,20 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
 // words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
 // INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.29, 0.44, 0.70, 0.90];
+const INTRO_SPOTS = [0.10, 0.29, 0.46, 0.70, 0.90];
 const INTRO_CANVAS = [2172, 724];
 const INTRO_FIGURES = true;
 // [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['11-wolf', 1460, 205, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 780, 330, 350, 276.47, 35, 2, 'figure'],
-  ['12-hidden-goblin', 1370, 335, 285, 306.2, 36, 2.5, 'figure'],
+  ['11-wolf', 1470, 200, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 800, 330, 350, 276.47, 35, 2, 'figure'],
+  ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5, 'figure'],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
 // the lights: [x %, y %, size %, delay s, depth, kind] (the traveler's and the goblin's lanterns: in the scene, or held by
 // their figures)
 const INTRO_GLOWS = [
-  [26.8, 37.6, 4.2, -0.7, 0, 'dim'], [57.5, 17.1, 3.4, -0.3, 0], [85.2, 24.2, 3.0, -1.2, 0, 'candle'],
-  ...(INTRO_FIGURES ? [[48.2, 56.9, 4.4, -1.9, 2], [64.4, 59.8, 5.2, -2.6, 2.5]] : []),
+  [27.0, 37.9, 4.2, -0.7, 0, 'dim'], [57.7, 17.8, 3.4, -0.3, 0], [85.7, 23.6, 3.0, -1.2, 0, 'candle'],
+  ...(INTRO_FIGURES ? [[49.1, 56.9, 4.4, -1.9, 2], [65.4, 60.5, 5.2, -2.6, 2.5]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
