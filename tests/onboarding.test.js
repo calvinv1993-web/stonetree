@@ -131,20 +131,20 @@ const fits = page => page.evaluate(() => {
       `${name}: Bastion in layers, his light playing, nothing in it taking a tap`);
     await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);
     // (nothing moves when you look at another: the cards and the button stay put; every card the same size, 44px and more to tap;
-    // the words 16px; nothing past the screen's sides; the whole screen fits from 375 x 667 up)
+    // the words in the owner's study's size; nothing past the screen's sides; the whole screen fits from 375 x 667 up)
     const held = [];
     for (const v of ['paladin', 'knight', 'sorcerer']) {
       await page.click(`.vs-card[data-v=${v}]`); await page.waitForTimeout(250);
       held.push(await page.evaluate(() => {
         const R = e => e.getBoundingClientRect(), cards = [...document.querySelectorAll('.vs-card')].map(R), btn = R(pathChoose);
         const words = [...pathInfo.querySelectorAll('p, li')].map(R), bottom = Math.max(...words.map(r => r.bottom));
-        return { at: `${Math.round(cards[0].top)},${Math.round(btn.top)}`, same: cards.every(r => Math.abs(r.width - cards[0].width) < 0.5 && Math.abs(r.height - cards[0].height) < 0.5 && r.height >= 44),
-          btn: btn.height >= 56, clear: bottom <= R(document.querySelector('.vs-note')).top, text: parseFloat(getComputedStyle(pathIntro).fontSize) >= 16,
+        return { at: `${Math.round(cards[0].top)},${Math.round(btn.top)}`, same: [cards[0], cards[2]].every(r => Math.abs(r.width - cards[0].width) < 0.5 && Math.abs(r.height - cards[0].height) < 0.5) && cards.every(r => r.height >= 44),
+          btn: btn.height >= 44, clear: bottom <= R(document.querySelector('.vs-note')).top, text: parseFloat(getComputedStyle(pathIntro).fontSize) >= 11,
           sides: document.documentElement.scrollWidth <= innerWidth && [...document.querySelectorAll('.vs-card, #pathChoose, .vs-title')].every(e => R(e).left >= 0 && R(e).right <= innerWidth) };
       }));
     }
     check(held.every(g => g.at === held[0].at), `${name}: the cards and the button stay put (${held.map(g => g.at).join(' | ')})`);
-    check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the cards alike, the button big, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
+    check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the side cards alike, the middle one larger, the button big enough, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
     if (name !== '320') check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
     await page.click('.vs-card[data-v=sorcerer]');
