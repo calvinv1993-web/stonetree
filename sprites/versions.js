@@ -269,6 +269,7 @@ const SPRITE_HASHES = {
   "monster-wolf.png":"6436059847",
   "mountain-own.png":"d119fe701f",
   "mushrooms@4x.png":"de723461e7",
+  "music/the-broken-seal.mp3":"f8a3522b0d",
   "music/the-shadowed-gate.mp3":"f1bbfd2ea0",
   "noticeboard@4x.png":"51f718040c",
   "npc-ama.png":"c5e9a7050c",

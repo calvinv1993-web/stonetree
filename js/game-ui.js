@@ -2914,6 +2914,7 @@ const Intro = (() => {
   function show(o) {
     if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
     opts = o; name = o.name || ''; at = 0; landing++;
+    Sound.title.start('story'); // (The Broken Seal, from the gate's music, until you're in the world)
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
@@ -3103,7 +3104,7 @@ const Gate = (() => {
   // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long)
   function load(text) {
     const el = box();
-    Sound.title.start(); // (SORTIA's title music, until you're in the world)
+    Sound.title.start('gate'); // (SORTIA's title music: The Shadowed Gate; the story has its own)
     el.hidden = false; el.classList.add('sg-in'); el.classList.remove('sg-out', 'sg-leaving');
     $('sgLoad').hidden = false; $('sgAuth').hidden = true;
     $('sgLoadText').textContent = text || 'Loading…';

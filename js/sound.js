@@ -1,8 +1,8 @@
 'use strict';
 // Sound effects, background music for each kind of place, and the sounds around you
 // (wind, waves, rain, crickets, a busy square, a fire), all synthesized with the Web
-// Audio API: no files. Except the title music (sprites/music/the-shadowed-gate.mp3: Sound.title), from the gate
-// through the opening and choosing your path.
+// Audio API: no files. Except the title music (sprites/music/: Sound.title): The Shadowed Gate at the gate, then The
+// Broken Seal from the opening's story through choosing your path.
 
 const Sound = (() => {
   let ctx = null, master = null, musicTimer = 0, mood = 'day', step = 0;
@@ -90,41 +90,57 @@ const Sound = (() => {
     cave: { scale: [196, 208, 247, 262, 311, 330], voice: 'sine', notes: 0.3, length: 2.2 },
     sea: { scale: [294, 330, 370, 440, 494, 587], voice: 'triangle', notes: 0.55, length: 1.2 },
   };
-  // The title music: from the gate (game-ui.js Gate) to the moment you're in the world (welcome(false)), over and over;
-  // then it fades out. A browser lets it start only once you've touched the page: tried at once, else at the first tap,
-  // click or key (on a phone the end of a touch is what counts, not its start). A plain audio element: it plays with a
-  // phone's ring switch on silent too (Web Audio wouldn't); an iPhone won't fade it, so there it stops at the end.
-  const title = { el: null, wanted: false, fading: 0 };
-  function titleFile() {
-    const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['music/the-shadowed-gate.mp3'];
-    return `sprites/music/the-shadowed-gate.mp3${h ? `?h=${h}` : ''}`;
+  // The title music: a track (TITLE_TRACKS) from the gate (game-ui.js Gate: The Shadowed Gate), another from the
+  // opening's story (Intro: The Broken Seal), each over and over, one fading into the next; it fades out once you're in
+  // the world (welcome(false)). A browser lets it start only once you've touched the page: tried at once, else at the
+  // first tap, click or key (on a phone the end of a touch is what counts, not its start). Plain audio elements: they
+  // play with a phone's ring switch on silent too (Web Audio wouldn't); an iPhone won't fade them, so there one stops
+  // at the end of its fade instead.
+  const TITLE_TRACKS = { gate: 'the-shadowed-gate', story: 'the-broken-seal' };
+  const title = { track: null, wanted: false, els: {}, fades: {} };
+  function titleFile(name) {
+    const file = `music/${TITLE_TRACKS[name]}.mp3`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[file];
+    return `sprites/${file}${h ? `?h=${h}` : ''}`;
   }
+  const titleEl = name => {
+    if (!title.els[name]) { const el = new Audio(titleFile(name)); el.loop = true; el.preload = 'auto'; title.els[name] = el; }
+    return title.els[name];
+  };
   function titlePlay() {
-    if (!title.wanted || !state.musicOn) return;
-    if (!title.el) {
-      title.el = new Audio(titleFile());
-      title.el.loop = true;
-      title.el.preload = 'auto';
-    }
-    clearInterval(title.fading);
-    title.el.volume = 0.6;
-    const tried = title.el.play();
+    if (!title.wanted || !state.musicOn || !title.track) return;
+    const el = titleEl(title.track);
+    clearInterval(title.fades[title.track]);
+    el.volume = 0.6;
+    const tried = el.play();
     if (tried && tried.catch) tried.catch(() => { /* not yet: after the first tap or key */ });
+  }
+  // a track fades out (ms) and stops, unless it's wanted again meanwhile
+  function titleFade(name, ms) {
+    const el = title.els[name];
+    if (!el || el.paused) return;
+    clearInterval(title.fades[name]);
+    const from = el.volume, t0 = performance.now();
+    title.fades[name] = setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      el.volume = from * (1 - k);
+      if (k >= 1) { clearInterval(title.fades[name]); if (!(title.wanted && title.track === name)) { el.pause(); el.currentTime = 0; } }
+    }, 50);
+  }
+  function titleStart(name = 'gate') {
+    if (navigator.webdriver && !/[?&]music\b/.test(location.search)) return;
+    if (!Object.hasOwn(TITLE_TRACKS, name)) return;
+    const before = title.track;
+    title.wanted = true; title.track = name;
+    if (before && before !== name) titleFade(before, 1800);
+    titlePlay();
   }
   function titleStop(ms = 2500) {
     title.wanted = false;
-    const el = title.el;
-    if (!el || el.paused) return;
-    clearInterval(title.fading);
-    const from = el.volume, t0 = performance.now();
-    title.fading = setInterval(() => {
-      const k = Math.min(1, (performance.now() - t0) / ms);
-      el.volume = from * (1 - k);
-      if (k >= 1) { clearInterval(title.fading); if (!title.wanted) el.pause(); }
-    }, 50);
+    for (const name of Object.keys(title.els)) titleFade(name, ms);
   }
+  const titleNow = () => title.track && title.els[title.track];
   for (const kind of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
-    window.addEventListener(kind, () => { if (title.wanted && (!title.el || title.el.paused)) titlePlay(); }, { capture: true, passive: true });
+    window.addEventListener(kind, () => { if (title.wanted && (!titleNow() || titleNow().paused)) titlePlay(); }, { capture: true, passive: true });
   }
 
   function musicTick() {
@@ -187,11 +203,11 @@ const Sound = (() => {
   return {
     get enabled() { return state.enabled; },
     get musicOn() { return state.musicOn; },
-    // the title music: start() (from the gate), stop() (in the world: it fades out)
+    // the title music: start('gate') at the gate, start('story') from the opening's story, stop() in the world (fading)
     title: {
-      start() { if (navigator.webdriver && !/[?&]music\b/.test(location.search)) return; title.wanted = true; titlePlay(); },
+      start: titleStart,
       stop: titleStop,
-      get playing() { return !!title.el && !title.el.paused; },
+      get playing() { return !!titleNow() && !titleNow().paused ? title.track : ''; },
     },
     play(name) {
       if (!state.enabled || !SOUNDS[name]) return;
@@ -208,7 +224,7 @@ const Sound = (() => {
     toggleMusic() {
       state.musicOn = !state.musicOn;
       if (state.musicOn) audio();
-      if (title.el) { if (!state.musicOn) title.el.pause(); else titlePlay(); }
+      if (!state.musicOn) for (const el of Object.values(title.els)) el.pause(); else titlePlay();
       persist();
     },
     setMood(m) {
