@@ -2812,7 +2812,8 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // (the cave, the river, Oakvale and its bridge, the temple room; its sky see-through), the seal and the mill with its
 // goblins at the gate, the gate's watchman with his lantern raised (his upper half, over the
 // parapet), Sister Ama rising from the bottom before her window, the wolf and the goblin hiding behind the old tree, the traveler on the
-// near bank before the bridge, and nearest the tree itself, blurred as if close to the camera (the figures from the owner's parallax
+// near bank before the bridge, then the tree itself, blurred as if close to the camera, and over all the dark ground at the
+// picture's foot (cut from the scene), so the figures sink into it (the figures from the owner's parallax
 // package, docs/sortia/parallax), each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and
 // between two scenes each by its depth (the mountains fall behind, the figures run ahead, the tree sweeps past); while
 // you drag, or as the mouse moves, they lean a little.
@@ -2834,7 +2835,7 @@ const INTRO_LAYERS = [
   ['06-gate-watchman', 1204, 104, 81, 64, 22, 0], ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
   ['10-traveler', 800, 355, 350, 276.47, 35, 2, 'figure'],
-  ['09-tree', 1049, 0, 1002, 696, 50, 8],
+  ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 600, 2172, 124, 55, 3],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
 // the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
 // the lanterns the traveler and the goblin hold

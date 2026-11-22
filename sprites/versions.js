@@ -450,6 +450,7 @@ const SPRITE_HASHES = {
   "ui/intro/layers/04-mill.webp":"e35a1ae471",
   "ui/intro/layers/05-sister-ama.webp":"c8f630cc15",
   "ui/intro/layers/06-gate-watchman.webp":"fc7adf8b16",
+  "ui/intro/layers/08-ground.webp":"b4c1292fdd",
   "ui/intro/layers/09-tree.webp":"86add9722b",
   "ui/intro/layers/10-traveler.webp":"a956ccd655",
   "ui/intro/layers/11-wolf.webp":"69789a81f6",
