@@ -1,7 +1,7 @@
 'use strict';
 // A new character's welcome from the first page to the world, in a real browser, on four phone widths, a tablet and a
-// computer: the opening (four story cards, each its own picture), Sister Ama, the name (its checks) and her talk, the
-// outfit (its colours), the
+// computer: the gate (loading, then Create account: its checks), the opening (four story cards, each its own picture),
+// Sister Ama, who knows the name, and her talk, the
 // path (one at a time, confirmed), then the game: the welcome gone, the guide and the first quest as for any new
 // character, nothing made twice; and after a reload the same character, as chosen, with no welcome again.
 //   node tests/onboarding.test.js [screenshot-folder]
@@ -53,7 +53,22 @@ const fits = page => page.evaluate(() => {
       if (shots) await page.screenshot({ path: path.join(shots, `${name}-${label}.png`) });
     };
     await page.goto(`${url}/index.html?story&pickpath${device.isMobile ? '&mobile' : ''}`);
+    // the gate: a moment of loading under the logo, then the way in; an account made (what's wrong said under the form)
+    await page.waitForSelector('#sortiaGate:not([hidden])', { timeout: 30000 });
+    check(await page.evaluate(() => !sgLoad.hidden && sgAuth.hidden), `${name}: the gate loads first`);
+    await page.waitForSelector('#sgAuth:not([hidden])', { timeout: 15000 });
+    await page.waitForTimeout(600);
+    check(await page.evaluate(() => Gate.tab() === 'create' && !sgConfirmRow.hidden && !!document.querySelector('label[for=sgName]') && !!document.querySelector('label[for=sgPass]')),
+      `${name}: then Create account: a name and a password, twice, with their labels`);
+    await step('gate');
+    await page.fill('#sgName', 'x'); await page.click('#sgGo');
+    check(await page.evaluate(() => !!sgHint.textContent && sgName.getAttribute('aria-invalid') === 'true'), `${name}: a name too short is refused, and says why`);
+    await page.fill('#sgName', 'lickii tester'); await page.fill('#sgPass', 'secret12'); await page.fill('#sgPass2', 'secret21'); await page.click('#sgGo');
+    check(await page.evaluate(() => /aren't the same/.test(sgHint.textContent)), `${name}: two passwords not the same are refused`);
+    await page.fill('#sgPass2', 'secret12'); await page.click('#sgGo');
     await page.waitForSelector('#sortiaIntro:not([hidden])', { timeout: 30000 });
+    check(await page.evaluate(() => JSON.parse(localStorage.getItem('tilequest.account')).name === 'Lickii tester' && !/secret12/.test(localStorage.getItem('tilequest.account'))),
+      `${name}: the account is kept, its password only as a hash`);
 
     // the opening: four story cards, each its own picture; Continue and back, a sideways swipe and the arrow keys go
     // through them; nothing past the sides, the way on in sight (a short screen may scroll up and down to it)
@@ -79,15 +94,9 @@ const fits = page => page.evaluate(() => {
     await page.keyboard.press('ArrowRight'); check(await title() === 'The False Signal', `${name}: the arrow key goes on`);
     await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); check(await title() === 'The Hollow Host', `${name}: and back`);
     await page.click('#siSkip'); await title();
-    check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && !siForm.hidden && /What should I call you/.test(siCopy.textContent) && !!document.querySelector('label[for=siName]')),
-      `${name}: Skip intro: Sister Ama asks your name, the field with its label`);
-    // your name: checked as the game always has; what's wrong said by the field, which stays
-    await page.fill('#siName', 'x'); await page.click('#siForm button[type=submit]');
-    check(await page.evaluate(() => !siForm.hidden && !!siHint.textContent && siName.getAttribute('aria-invalid') === 'true'), `${name}: a name too short is refused, and says why`);
-    await page.fill('#siName', 'lickii tester');
-    await step('name');
-    await page.evaluate(() => { siForm.requestSubmit(); });
-    check(await page.evaluate(() => /^“Lickii tester, the guards/.test(siCopy.textContent) && siForm.hidden), `${name}: Sister Ama talks, your name in her words`);
+    check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && siForm.hidden), `${name}: Skip intro: Sister Ama, who knows your name from the account`);
+    await step('ama1');
+    check(await page.evaluate(() => /^“Lickii tester, the guards/.test(siCopy.textContent)), `${name}: Sister Ama talks, your name in her words`);
     await page.click('#siNext'); check(await page.evaluate(() => /a goblin was holding the lantern/.test(siCopy.textContent)), `${name}: the second line`);
     await page.click('#siNext'); check(await page.evaluate(() => /three kinds of defenders/.test(siCopy.textContent) && siNextLabel.textContent === 'Choose Your Path'), `${name}: the third, and Choose Your Path`);
     await step('ama');
@@ -192,6 +201,7 @@ const fits = page => page.evaluate(() => {
     await page.waitForTimeout(1500);
     const again = await page.evaluate(() => ({ story: !sortiaIntro.hidden, welcome: document.body.classList.contains('welcome'), name: player.name, vocation: player.vocation, outfit: JSON.stringify(player.outfit) }));
     check(!again.story && !again.welcome && again.name === 'Lickii tester' && again.vocation === 'sorcerer' && again.outfit === want, `${name}: after a reload, the same character, no welcome`);
+    check(await page.evaluate(() => sortiaGate.hidden), `${name}: logged in already: no gate after the loading`);
 
     check(!missing.length, `${name}: every picture there (${missing})`);
     check(!errors.length, `${name}: no errors on the page (${errors})`);

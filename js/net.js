@@ -26,40 +26,32 @@ const Net = (() => {
   const savedLogin = () => storage(() => JSON.parse(localStorage.getItem(LOGIN_KEY)));
   const forget = () => storage(() => localStorage.removeItem(LOGIN_KEY));
 
-  // The login dialog is the character creation dialog plus a password.
+  // Logging in: SORTIA's gate (game-ui.js Gate), Create account or Log in. The server says what's wrong (a name taken,
+  // a wrong password), and that's said under the form. A test server also offers its level 20 starts.
+  let asked = false;
   function showLogin(message) {
-    const dialog = $('create');
-    dialog.hidden = false;
-    welcome(true);
-    dialog.querySelector('p').textContent = message || 'Log in or create a character';
-    let pw = $('createPassword');
-    if (!pw) {
-      pw = document.createElement('input');
-      pw.id = 'createPassword';
-      pw.type = 'password';
-      pw.placeholder = 'Password (optional)';
-      $('createName').after(pw);
-      $('createStart').textContent = 'Play';
-      watchName($('createName'), $('createStart')); keepAboveKeyboard($('createName'));
-      const go = () => nameProblem($('createName').value) === null && connect({ name: $('createName').value, password: pw.value, vocation: $('createVocation') && $('createVocation').value });
-      $('createStart').addEventListener('click', go);
-      for (const input of [$('createName'), pw]) input.addEventListener('keydown', e => {
-        e.stopPropagation();
-        if (e.key === 'Enter') go();
-      });
-      // A test server starts characters at level 20: let them pick a vocation - or start
-      // fresh on Brightwater Isle, with the guide, like on a real server.
-      fetch('/status').then(r => r.json()).then(status => {
-        if (!status.test) return;
-        const voc = document.createElement('select');
-        voc.id = 'createVocation';
-        voc.add(new Option('Start fresh on Brightwater Isle (level 1, with the guide)', 'none'));
-        for (const v of START_PATHS) voc.add(new Option(`Test server: level 20 ${vocName(v)}`, v));
-        pw.after(voc);
-      }).catch(() => {});
-    }
-    ParchmentPanel.decorate(dialog, { scroll: true });
-    $('createName').focus();
+    if (asked) return Gate.refuse(message);
+    asked = true;
+    Gate.ask({
+      tab: 'create', message,
+      note: 'One account for every device you play on.',
+      onSubmit: ({ tab, name, password }) => {
+        Gate.wait(tab === 'create' ? 'Creating your account…' : 'Logging in…');
+        connect({ name, password, create: tab === 'create', vocation: $('createVocation') ? $('createVocation').value : '' });
+      },
+    });
+    // A test server starts characters at level 20: let them pick a vocation - or start fresh on the isle, with the guide,
+    // like on a real server.
+    fetch('/status').then(r => r.json()).then(status => {
+      if (!status.test || $('createVocation')) return;
+      const voc = document.createElement('select');
+      voc.id = 'createVocation';
+      voc.setAttribute('aria-label', 'How to start');
+      voc.add(new Option('Start fresh (level 1, with the guide)', 'none'));
+      for (const v of START_PATHS) voc.add(new Option(`Test server: level 20 ${vocName(v)}`, v));
+      $('sgMore').append(voc);
+      if (Gate.tab() === 'create') $('sgMore').hidden = false;
+    }).catch(() => {});
   }
 
   function connect(login) {
@@ -73,7 +65,7 @@ const Net = (() => {
       if (!saved) return Net.online ? log('Disconnected from the server. Reload the page to reconnect.', 'damage') : showLogin('Could not connect to the server.');
       // The server is probably restarting: keep trying with the saved login.
       if (Net.online && !Net.reconnecting) log('Lost the connection to the server. Reconnecting...', 'damage');
-      if (!Net.online) showLogin('Connecting to the server...');
+      if (!Net.online && !Gate.isOpen()) Gate.load('Connecting to the server…');
       Net.reconnecting = true;
       retry = setTimeout(() => connect(saved), 1000);
     };
@@ -152,6 +144,7 @@ const Net = (() => {
     // From now on, every action goes to the server.
     for (const name of Object.keys(Actions)) Actions[name] = (...args) => send({ t: 'act', a: name, args });
     $('create').hidden = true;
+    Gate.close();
     $('mapSource').textContent = 'Playing online';
     $('newChar').textContent = 'Log out';
     if (msg.isNew) Intro.show({ name: player.name, onDone: () => newCharacterPath(newCharacterInWorld), skip: () => greetNewCharacter(() => newCharacterPath(newCharacterInWorld)) }); // (a new character: the opening and Sister Ama (who knows the name), its path; its outfit in the world)
@@ -232,8 +225,7 @@ const Net = (() => {
     start(onReady) {
       ready = onReady;
       const saved = savedLogin();
-      if (saved) connect(saved);
-      else showLogin();
+      Gate.load().then(() => { if (saved) connect(saved); else showLogin(); }); // (logged in on this browser before: straight in)
     },
     clock: () => performance.now() + offset,
   };

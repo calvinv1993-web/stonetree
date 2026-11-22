@@ -136,6 +136,18 @@ function startServer() {
     const heard = oldOne.log.filter(l => l.includes('spam')).length;
     assert(heard > 0 && heard <= 12, `a flood of chat is cut down (${heard} of 300 lines got through)`);
     assert(JSON.stringify(afterRestart.you.hotkeys) === JSON.stringify({ F1: { type: 'spell', id: 'light' } }), `hotkeys keep only what's real (${JSON.stringify(afterRestart.you.hotkeys)})`);
+    // The gate's two ways in: an account can't be made over a name that's taken, nor with a short password; logging in
+    // needs an account; a new one is made and in
+    const taken = client(`Bob${tag}`, { password: 'whatever1', create: true }); await waitFor(() => taken.welcome || taken.error); taken.close();
+    assert(taken.error && /taken/.test(taken.error), `a name that's taken can't be made again (${taken.error || 'it let it in'})`);
+    const short = client(`Carol${tag}`, { password: 'abc', create: true }); await waitFor(() => short.welcome || short.error); short.close();
+    assert(short.error && /6 characters/.test(short.error), `a short password is refused (${short.error || 'it let it in'})`);
+    const nobody = client(`Nobody${tag}`, { password: 'whatever1', create: false }); await waitFor(() => nobody.welcome || nobody.error); nobody.close();
+    assert(nobody.error && /No character/.test(nobody.error), `logging in needs an account (${nobody.error || 'it let it in'})`);
+    const carol = client(`Carol${tag}`, { password: 'secret12', create: true }); await waitFor(() => carol.welcome || carol.error);
+    assert(carol.welcome && carol.welcome.isNew, `a new account is made and in (${carol.error || 'no answer'})`);
+    carol.close();
+    console.log('  ok   create account and log in: names taken, short passwords and unknown names refused');
     // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
     for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
     const right = client(`Old${tag}`, { password: 'pw' });

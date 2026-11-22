@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="css/onboarding.css?v=ui470">
   <link rel="stylesheet" href="css/sortia.css?v=ui470">
   <link rel="stylesheet" href="css/intro.css?v=ui470">
+  <link rel="stylesheet" href="css/gate.css?v=ui470">
   <link rel="icon" type="image/png" sizes="32x32" href="sprites/ui/icon/icon-32.png?v=seal">
   <link rel="apple-touch-icon" sizes="180x180" href="sprites/ui/icon/icon-180.png?v=seal">
   <title>SORTIA: The Broken Seal</title>
@@ -205,6 +206,38 @@
             <span><button id="worldRide" title="Order a Hoofer cab: then click where it should take you">🐴 Ride</button> <button id="worldZoomIn" title="Zoom in">+</button> <button id="worldZoomOut" title="Zoom out">&minus;</button> <button id="worldUp">&#9650;</button> <button id="worldDown">&#9660;</button> <button id="worldClose">×</button></span>
           </header>
           <canvas id="worldCanvas" width="640" height="480"></canvas>
+        </div>
+
+        <div id="sortiaGate" class="sg" hidden role="dialog" aria-modal="true" aria-labelledby="sgHeading">
+          <div class="sg-col">
+            <div class="sg-back" aria-hidden="true"></div>
+            <img class="sg-logo" src="sprites/ui/loading/logo.png" alt="SORTIA: The Broken Seal" draggable="false">
+            <section class="sg-load" id="sgLoad" aria-live="polite">
+              <div class="sg-track"><i id="sgBar"></i></div>
+              <p id="sgLoadText" class="sg-small">Loading&hellip;</p>
+            </section>
+            <section class="sg-auth" id="sgAuth" hidden>
+              <h2 id="sgHeading" class="sg-sr">Log in or create an account</h2>
+              <div class="sg-tabs" role="tablist" aria-label="Account">
+                <button id="sgTabCreate" class="sg-tab" type="button" role="tab" aria-selected="true" aria-controls="sgForm">Create account</button>
+                <button id="sgTabLogin" class="sg-tab" type="button" role="tab" aria-selected="false" aria-controls="sgForm">Log in</button>
+              </div>
+              <form id="sgForm" class="sg-form" novalidate>
+                <label for="sgName">Character name</label>
+                <input id="sgName" name="username" type="text" maxlength="20" autocomplete="username" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Your name">
+                <label for="sgPass">Password</label>
+                <input id="sgPass" name="password" type="password" autocomplete="new-password" enterkeyhint="next" placeholder="At least 6 characters">
+                <div id="sgConfirmRow" class="sg-row">
+                  <label for="sgPass2">Repeat password</label>
+                  <input id="sgPass2" name="password2" type="password" autocomplete="new-password" enterkeyhint="go" placeholder="The same again">
+                </div>
+                <p id="sgHint" class="sg-hint" aria-live="polite"></p>
+                <button id="sgGo" class="sg-go" type="submit"><span id="sgGoLabel">Create account</span> <span aria-hidden="true">&rarr;</span></button>
+                <details id="sgMore" class="sg-more" hidden><summary>Other ways to start</summary></details>
+              </form>
+              <p id="sgNote" class="sg-small sg-note"></p>
+            </section>
+          </div>
         </div>
 
         <div id="sortiaIntro" class="si" hidden role="dialog" aria-modal="true" aria-labelledby="siTitle">

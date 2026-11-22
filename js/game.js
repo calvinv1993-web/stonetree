@@ -1676,11 +1676,75 @@ function startWorldPreview() {
   requestAnimationFrame(preview);
 }
 
+// Playing alone: the gate first (game-ui.js Gate). An account here is this browser's: a name and a password (kept as a
+// salted hash) for the one character it holds, until the game has a server of its own. Logged in once, a page opens
+// straight into the world (tilequest.session), until you log out (Menu). Browser tests without ?story or ?gate go
+// straight on, as before.
+const ACCOUNT_KEY = 'tilequest.account', SESSION_KEY = 'tilequest.session';
+const stored = (key, value) => { try { if (value === undefined) return JSON.parse(localStorage.getItem(key)); if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* no storage */ } return null; };
+async function passwordHash(password, salt) {
+  const text = `sortia:${salt}:${password}`;
+  if (window.crypto && crypto.subtle) {
+    const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
+    return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 2166136261; // (no crypto.subtle: an old browser or a page not served safely; still not the password itself)
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return `f${(h >>> 0).toString(16)}`;
+}
+async function saveAccount(name, password) {
+  const salt = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
+  stored(ACCOUNT_KEY, { name, salt, hash: await passwordHash(password, salt) });
+  stored(SESSION_KEY, name);
+}
+const savedCharacter = () => { const save = stored(SAVE_KEY); return save && typeof save.name === 'string' ? save.name : null; };
+const sameName = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+
 function startOffline() {
   now = performance.now();
   player = newPlayer('Adventurer');
   players.push(player);
   npcs = map.npcs.map(spawnNpc); // so the start position search avoids them
+  if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) return enterOffline();
+  Gate.load().then(() => {
+    const account = stored(ACCOUNT_KEY), character = savedCharacter();
+    if (account && character && sameName(stored(SESSION_KEY), account.name) && sameName(account.name, character)) { Gate.close(); return enterOffline(); }
+    if (!$('createTest')) $('sgMore').append(testStarts()); // (for testing: other ways to start, with a new account)
+    let replacing = false; // (making an account over a character already here: said once, then done)
+    Gate.ask({
+      tab: character || account ? 'login' : 'create',
+      name: (account && account.name) || character || '',
+      note: 'Your account and character are kept in this browser.',
+      onTab: () => { replacing = false; },
+      onSubmit: async ({ tab, name, password }) => {
+        const held = account && account.name || character;
+        if (tab === 'create') {
+          if (held && !replacing) {
+            replacing = true;
+            return Gate.hint(`This browser already holds ${held}. A new account replaces ${held}: press Create account again to go on.`, true);
+          }
+          try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* no storage */ }
+          await saveAccount(name, password);
+          Gate.close();
+          return enterOffline(name);
+        }
+        if (!account) { // a character from before accounts: its name, and the password chosen now is its from here on
+          if (!sameName(name, character)) return Gate.refuse(character ? 'No account with that name in this browser.' : 'No account in this browser yet: create one.');
+          await saveAccount(character, password);
+        } else {
+          if (!sameName(name, account.name)) return Gate.refuse('No account with that name in this browser.');
+          if (await passwordHash(password, account.salt) !== account.hash) return Gate.refuse('Wrong password.');
+          stored(SESSION_KEY, account.name);
+        }
+        Gate.close();
+        enterOffline(character ? undefined : account.name); // (an account without its character yet: made now)
+      },
+    });
+  });
+}
+// into the world: the character in this browser, or a new one (named already with its account, or named in the opening)
+function enterOffline(name) {
+  if (stored(ACCOUNT_KEY)) $('newChar').textContent = 'Log out';
   if (loadGame()) {
     log(`Welcome back, ${player.name}!`);
     startWorld();
@@ -1694,7 +1758,7 @@ function startOffline() {
     saveGame();
     log(`Welcome to ${typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? 'Kestrel Isle' : 'Oakvale Isle'}, ${player.name}!`, 'welcome'); // (in the log and the chat line; it doesn't pop up over the guide)
     startWorld();
-  });
+  }, name);
 }
 
 // ---- getting ready to play ------------------------------------------------------------------------------------

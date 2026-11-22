@@ -2682,6 +2682,7 @@ function initUI() {
   $('treeClose').addEventListener('click', () => { $('skillTree').hidden = true; });
   setInterval(maybeAskPath, 500); // (a new character: its path, once its name and outfit are done)
   Intro.setup();
+  Gate.setup();
   $('treeReset').addEventListener('click', () => {
     const cost = player.treeResets ? player.level * 50 : 0;
     if (confirm(`Start your skill tree over? All your points come back${cost ? `, for ${cost} gold` : ' (free the first time)'}.`)) Actions.resetTree();
@@ -2726,6 +2727,12 @@ function initUI() {
     if (online()) { // online: log out of this browser, so you can log in as someone else
       if (!confirm('Log out? You can log in again with your name and password.')) return;
       Net.forget();
+      return location.reload();
+    }
+    if (stored(ACCOUNT_KEY)) { // with an account: log out; the gate makes another or logs back in
+      if (!confirm('Log out? You can log in again with your name and password.')) return;
+      saveGame(); stored(SESSION_KEY, null);
+      window.onbeforeunload = null;
       return location.reload();
     }
     if (!confirm('Delete your character and start over?')) return;
@@ -2905,7 +2912,7 @@ const Intro = (() => {
     if (done) done();
   }
   function show(o) {
-    if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
+    if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
     opts = o; name = o.name || ''; at = 0; landing++;
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
@@ -3083,24 +3090,136 @@ function nameSheet(dialog) {
   dialog.append(art, h('div', { className: 'ns-writing' }, h('div', { className: 'ns-talk' }, talk), form));
 }
 
+// SORTIA's gate (index.html #sortiaGate, css/gate.css): the first thing a page shows. While the game gets ready (its
+// fonts and the opening's pictures) a gold line fills under the logo; then the way in: Create account or Log in. What
+// an account is depends on where the game runs (game.js startOffline, net.js): this only shows the screen, checks
+// what's typed and passes it on (ask's onSubmit), saying under the form what's wrong.
+const Gate = (() => {
+  let tab = 'create', opts = null, busy = false;
+  const box = () => $('sortiaGate');
+  const hashed = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[file]; return `sprites/${file}${h ? `?h=${h}` : ''}`; };
+  // a picture fetched now, so it's there when it's needed (done when it's in, or couldn't be)
+  const fetchPicture = src => new Promise(done => { const img = new Image(); img.onload = img.onerror = () => done(); img.src = src; });
+  // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long)
+  function load(text) {
+    const el = box();
+    el.hidden = false; el.classList.add('sg-in'); el.classList.remove('sg-out', 'sg-leaving');
+    $('sgLoad').hidden = false; $('sgAuth').hidden = true;
+    $('sgLoadText').textContent = text || 'Loading…';
+    const jobs = [
+      document.fonts && document.fonts.ready,
+      fetchPicture(el.querySelector('.sg-logo').src),
+      fetchPicture(hashed('ui/intro/panorama.webp')),
+      fetchPicture(hashed('ui/intro/sortia-wordmark.webp')),
+      new Promise(done => setTimeout(done, 900)),
+    ].map(p => Promise.resolve(p).catch(() => {}));
+    let finished = 0;
+    const bar = $('sgBar');
+    bar.style.width = '6%';
+    for (const job of jobs) job.then(() => { finished++; bar.style.width = `${Math.round(6 + 94 * finished / jobs.length)}%`; });
+    return Promise.race([Promise.all(jobs), new Promise(done => setTimeout(done, 6000))]).then(() => new Promise(done => setTimeout(done, 250)));
+  }
+  function setTab(t) {
+    tab = t;
+    const create = t === 'create';
+    $('sgTabCreate').setAttribute('aria-selected', String(create));
+    $('sgTabLogin').setAttribute('aria-selected', String(!create));
+    $('sgConfirmRow').hidden = !create;
+    $('sgMore').hidden = !create || !$('sgMore').querySelector('select');
+    $('sgPass').autocomplete = create ? 'new-password' : 'current-password';
+    $('sgPass').placeholder = create ? 'At least 6 characters' : 'Your password';
+    $('sgPass').enterKeyHint = create ? 'next' : 'go';
+    $('sgGoLabel').textContent = create ? 'Create account' : 'Log in';
+    hint('');
+    if (opts && opts.onTab) opts.onTab(t);
+  }
+  function hint(text, warn) {
+    $('sgHint').textContent = text || '';
+    $('sgHint').classList.toggle('sg-warn', !!warn);
+    for (const id of ['sgName', 'sgPass', 'sgPass2']) $(id).setAttribute('aria-invalid', 'false');
+  }
+  // what's wrong with one field: said under the form, the field marked and in focus
+  function wrong(field, text) {
+    hint(text);
+    $(field).setAttribute('aria-invalid', 'true');
+    $(field).focus();
+  }
+  // the way in: o = { tab: 'create'|'login', name, note, message, onSubmit({ tab, name, password }), onTab(tab) }
+  function ask(o) {
+    opts = o || {};
+    busy = false;
+    const el = box();
+    el.hidden = false; el.classList.remove('sg-out');
+    el.classList.add('sg-leaving');
+    $('sgLoad').hidden = true; $('sgAuth').hidden = false;
+    $('sgGo').disabled = false;
+    if (opts.name && !$('sgName').value) $('sgName').value = opts.name;
+    $('sgPass').value = ''; $('sgPass2').value = '';
+    $('sgNote').textContent = opts.note || '';
+    setTab(opts.tab || tab);
+    if (opts.message) hint(opts.message);
+    if (!touchScreen) ($('sgName').value ? $('sgPass') : $('sgName')).focus({ preventScroll: true });
+  }
+  // waiting for an answer (the server's): the button shut, saying so
+  function wait(text) {
+    busy = true;
+    $('sgGo').disabled = true;
+    $('sgGoLabel').textContent = text || 'One moment…';
+  }
+  // something went wrong after all: back to the form, saying what
+  function refuse(message) {
+    if (!opts) return ask({ message });
+    busy = false;
+    $('sgGo').disabled = false;
+    $('sgGoLabel').textContent = tab === 'create' ? 'Create account' : 'Log in';
+    hint(message || '');
+    $('sgPass').value = ''; $('sgPass2').value = '';
+  }
+  function close() {
+    const el = box();
+    if (el.hidden) return;
+    opts = null; busy = false;
+    el.classList.add('sg-out');
+    setTimeout(() => { if (el.classList.contains('sg-out')) { el.hidden = true; el.classList.remove('sg-out', 'sg-in', 'sg-leaving'); } }, 450);
+  }
+  function setup() {
+    const el = box();
+    if (!el) return;
+    el.querySelector('.sg-logo').src = hashed('ui/loading/logo.png');
+    $('sgTabCreate').onclick = () => setTab('create');
+    $('sgTabLogin').onclick = () => setTab('login');
+    for (const id of ['sgName', 'sgPass', 'sgPass2']) {
+      $(id).addEventListener('input', () => { if ($('sgHint').textContent && !$('sgHint').classList.contains('sg-warn')) hint(''); });
+      $(id).addEventListener('keydown', e => e.stopPropagation()); // (the game's keys don't fire while you type)
+    }
+    $('sgForm').addEventListener('submit', e => {
+      e.preventDefault();
+      if (busy || !opts) return;
+      const name = $('sgName').value, password = $('sgPass').value;
+      const problem = nameProblem(name);
+      if (problem !== null) return wrong('sgName', problem || 'Enter a character name.');
+      if (tab === 'create' && password.length < 6) return wrong('sgPass', 'Choose a password of at least 6 characters.');
+      if (tab === 'login' && !password) return wrong('sgPass', 'Enter your password.');
+      if (tab === 'create' && $('sgPass2').value !== password) return wrong('sgPass2', 'The two passwords aren\'t the same.');
+      if (opts.onSubmit) opts.onSubmit({ tab, name: capitalize(name.trim().replace(/[^\w '-]/g, '').slice(0, 20)), password });
+    });
+  }
+  return { load, ask, wait, refuse, hint, close, setup, setTab, isOpen: () => !box().hidden, tab: () => tab };
+})();
+
 // A new character, offline: the story, the temple and Sister Ama, your name, your path; your outfit in the world.
-function showCharacterCreation(onDone) {
+function showCharacterCreation(onDone, name) { // (name: already chosen, with the account; then the opening doesn't ask it)
   const dialog = $('create');
   welcome(true);
   const input = $('createName'), go = $('createStart');
   nameSheet(dialog);
   go.textContent = 'Continue';
-  // for testing: start as a level 100 character with the best gear (see makeTestHero), tucked away under "Other ways to start"
-  const start = document.createElement('select');
-  start.id = 'createTest';
-  start.add(new Option('Normal start (level 1, with the guide)', ''));
-  for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
-  $('createMore').append(start);
-  $('createMore').hidden = false;
+  const start = $('createTest') || testStarts(); // (made already when the account was: chosen there)
+  if (!name) { $('createMore').append(start); $('createMore').hidden = false; }
   watchName(input, go);
   keepAboveKeyboard(input);
   // the opening (Intro), your name in it; then your path. Browser tests without ?story: the plain name window, as before.
-  const quick = navigator.webdriver && !/[?&]story\b/.test(location.search);
+  const quick = navigator.webdriver && !/[?&](story|gate)\b/.test(location.search);
   if (quick) {
     templeScene(true);
     $('createAma').hidden = false;
@@ -3108,8 +3227,10 @@ function showCharacterCreation(onDone) {
     dialog.hidden = false;
     if (!touchScreen) input.focus();
   } else {
-    const more = $('siMore'); more.append(start); more.hidden = false; // (the test starts, under the name there)
-    Intro.show({ askName: true, onName: n => { input.value = n; }, onDone: () => done() });
+    if (name) { input.value = name; Intro.show({ name, onDone: () => done() }); } else {
+      const more = $('siMore'); more.append(start); more.hidden = false; // (the test starts, under the name there)
+      Intro.show({ askName: true, onName: n => { input.value = n; }, onDone: () => done() });
+    }
   }
   let sent = false; // (once: a double tap makes one character)
   const done = () => {
@@ -3126,6 +3247,16 @@ function showCharacterCreation(onDone) {
     if (e.key === 'Enter') done();
     e.stopPropagation();
   });
+}
+
+// for testing: start as a level 100 character with the best gear (see makeTestHero), under "Other ways to start"
+function testStarts() {
+  const start = document.createElement('select');
+  start.id = 'createTest';
+  start.setAttribute('aria-label', 'How to start');
+  start.add(new Option('Normal start (level 1, with the guide)', ''));
+  for (const v of Object.keys(TEST_HERO_SKILLS).filter(v => !VOCATIONS[v].retired)) start.add(new Option(`Test: level ${TEST_HERO_LEVEL} ${vocName(v)}, best gear`, v));
+  return start;
 }
 
 // A new character, online (made at the login): the story, the temple, Sister Ama knows your name; then your path

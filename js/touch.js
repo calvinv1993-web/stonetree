@@ -455,7 +455,7 @@ function renderMenu() {
       () => { giveTestClang(); log(`${player.pet.name} is at your side, at level ${player.level}.`, 'quest'); menuShown = ''; renderMenu(); })] : []),
     ...(!Net.online && wantsTestSpear() ? [row([player.vocation === 'paladin' ? 'Test: hawkeye bow and spear' : 'Test: spears (circle throw)', h('small', {}, player.vocation === 'paladin' ? 'Critical hits, and the circle throw' : 'Hold one, say "hasta orbis"')], h('span', {}, '›'),
       () => { giveTestSpear(); menuShown = ''; renderMenu(); })] : []),
-    row('New character', h('span', {}, '›'), () => $('newChar').click(), 'danger'),
+    row($('newChar').textContent, h('span', {}, '›'), () => $('newChar').click(), 'danger'),
     h('div', { className: 'menu-version' }, versionText()),
   );
 }

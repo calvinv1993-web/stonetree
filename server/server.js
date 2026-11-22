@@ -280,6 +280,10 @@ function login(conn, msg) {
   const key = name.toLowerCase();
   const account = accounts[key];
   if (tooManyTries(conn.ip)) return conn.reply({ t: 'error', message: 'Too many wrong passwords: wait a minute, then try again.' });
+  // the gate's two ways in (create: true or false; an older page sends neither, and a new name is then made as before)
+  if (msg.create === true && account) return conn.reply({ t: 'error', message: 'That name is taken: choose another, or log in.' });
+  if (msg.create === true && msg.password.length < 6) return conn.reply({ t: 'error', message: 'Choose a password of at least 6 characters.' });
+  if (msg.create === false && !account && !msg.token) return conn.reply({ t: 'error', message: 'No character with that name: check it, or create an account.' });
   const byToken = !!(account && msg.token && account.token && sameText(account.token, msg.token));
   if (account && !byToken && !passwordMatches(account, key, msg.password || '')) {
     failedLogin(conn.ip);
