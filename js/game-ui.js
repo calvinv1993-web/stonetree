@@ -2893,6 +2893,7 @@ const Intro = (() => {
   // to a step: the camera glides to its scene (if it's another), and the words change as it lands
   function go(i) {
     if (i < 0) return;
+    stopAuto();
     if (i >= steps()) { close(); return; }
     const from = Math.min(at, NAME), to = Math.min(i, NAME);
     at = i;
@@ -2903,9 +2904,38 @@ const Intro = (() => {
     $('sortiaIntro').classList.add('moving');
     glide(spot(to), ms, () => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); });
   }
+  // The story plays by itself: the camera drifts along the whole panorama in AUTO_MS, from the seal to Sister Ama (slowly
+  // setting off and slowing as it arrives), each scene's words coming in as the camera nears it; at Sister Ama it stops,
+  // and she speaks. Anything of your own (Continue, back, a swipe, the arrow keys, Skip intro) takes over from there.
+  // Not with reduced motion (nor in browser tests, unless ?autoplay).
+  const AUTO_MS = 60000, AUTO_WAIT = 2500, RAMP = 0.06;
+  let auto = 0, autoWait = 0;
+  const along = k => { const v = 1 / (1 - RAMP); return k < RAMP ? v * k * k / (2 * RAMP) : k > 1 - RAMP ? 1 - v * (1 - k) * (1 - k) / (2 * RAMP) : v * (k - RAMP / 2); };
+  function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; }
+  function autoplay() {
+    stopAuto();
+    if (still() || (navigator.webdriver && !/[?&]autoplay\b/.test(location.search))) return;
+    autoWait = setTimeout(() => {
+      const t0 = performance.now(), spots = Array.from({ length: NAME + 1 }, (_, i) => spot(i));
+      const frame = now => {
+        const k = Math.min(1, (now - t0) / AUTO_MS), u = along(k) * NAME, i = Math.min(NAME - 1, Math.floor(u));
+        place(spots[i] + (spots[i + 1] - spots[i]) * (u - i));
+        const scene = Math.min(NAME, Math.round(u));
+        if (scene !== at) { // (its words: a moment's fade, then the next scene's)
+          at = scene;
+          const box = $('sortiaIntro');
+          box.classList.add('moving');
+          setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
+        }
+        auto = k < 1 ? requestAnimationFrame(frame) : 0;
+      };
+      auto = requestAnimationFrame(frame);
+    }, AUTO_WAIT);
+  }
   // (a card to the one beside it: only among the cards, and on to Sister Ama from the last)
   const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
   function close() {
+    stopAuto();
     const done = opts && opts.onDone; opts = null;
     cancelAnimationFrame(glideFrame);
     $('sortiaIntro').hidden = true; $('sortiaIntro').classList.remove('moving');
@@ -2919,7 +2949,8 @@ const Intro = (() => {
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
     place(spot(0)); words(false);
-    if (!art().complete) art().addEventListener('load', () => place(spot(at)), { once: true });
+    if (!art().complete) art().addEventListener('load', () => { if (!auto) place(spot(at)); }, { once: true });
+    autoplay();
   }
   function setup() {
     const box = $('sortiaIntro'), input = $('siName');
@@ -2948,7 +2979,7 @@ const Intro = (() => {
     box.addEventListener('touchmove', e => {
       if (!drag) return;
       const dx = e.touches[0].clientX - drag.x0, dy = e.touches[0].clientY - drag.y0;
-      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; drag.base = x; landing++; cancelAnimationFrame(glideFrame); box.classList.remove('moving'); }
+      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } stopAuto(); drag.on = true; drag.base = x; landing++; cancelAnimationFrame(glideFrame); box.classList.remove('moving'); words(false); }
       const lo = spot(0), hi = spot(NAME); let to = drag.base - dx;
       if (to < lo) to = lo - (lo - to) * 0.35; else if (to > hi) to = hi + (to - hi) * 0.35; // (stiff past the ends)
       place(to);
@@ -2963,7 +2994,7 @@ const Intro = (() => {
     };
     box.addEventListener('touchend', e => release(e.changedTouches[0].clientX, false), { passive: true });
     box.addEventListener('touchcancel', () => release(drag ? drag.x0 : 0, true), { passive: true });
-    addEventListener('resize', () => { if (!box.hidden) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
+    addEventListener('resize', () => { if (!box.hidden && !auto) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
     addEventListener('keydown', e => {
       if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
