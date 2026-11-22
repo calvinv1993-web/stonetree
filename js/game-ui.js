@@ -2802,7 +2802,7 @@ const ParchmentPanel = (() => {
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
 // One panorama behind it all (sprites/ui/intro/panorama.webp: the seal, the mill, the crossing, the false signal, Sister
-// Ama, left to right), the camera moving along it: four story cards, each its title and words over its part of the
+// Ama, left to right; its lanterns flickering; mist and snow in front, each at its own pace), the camera moving along it: four story cards, each its title and words over its part of the
 // picture, then Sister Ama: your name (offline; online it's known from the login), and three lines of talk ending in
 // Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and lands on the next scene
 // (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The words stay where they
@@ -2834,13 +2834,33 @@ const Intro = (() => {
   const art = () => $('sortiaIntro').querySelector('.si-art');
   // the camera: the panorama's left edge, in pixels, for a scene (its spot in the middle of the column, never past an edge)
   function spot(i) {
-    const col = $('sortiaIntro').querySelector('.si-col'), w = art().getBoundingClientRect().width || col.clientHeight * 2172 / 724, view = col.clientWidth;
+    const col = $('sortiaIntro').querySelector('.si-col'), w = $('sortiaIntro').querySelector('.si-world').offsetWidth || col.clientHeight * 2172 / 724, view = col.clientWidth;
     return Math.max(0, Math.min(w - view, INTRO_SPOTS[Math.min(i, NAME)] * w - view / 2));
   }
-  function place(px, glide) {
-    const a = art(); x = px;
-    a.classList.toggle('glide', !!glide && !still());
-    a.style.setProperty('--si-x', px.toFixed(1));
+  // the camera at px: the panorama moved by it, the layers in front each by their own share of it (data-f), within one
+  // tile of their pattern (data-tile), so they never run out
+  let glideFrame = 0;
+  function place(px) {
+    x = px;
+    const box = $('sortiaIntro'), world = box.querySelector('.si-world');
+    world.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
+    world.style.setProperty('--si-x', px.toFixed(1));
+    for (const fx of box.querySelectorAll('.si-fx')) {
+      const tile = +fx.dataset.tile, off = (((px * +fx.dataset.f) % tile) + tile) % tile;
+      fx.style.transform = `translate3d(${(-off).toFixed(1)}px, 0, 0)`;
+    }
+  }
+  // a glide from where the camera is to px, in ms, slowing as it lands; then done()
+  function glide(px, ms, done) {
+    cancelAnimationFrame(glideFrame);
+    const from = x, t0 = performance.now();
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    const frame = now => {
+      const t = Math.min(1, (now - t0) / ms);
+      place(from + (px - from) * ease(t));
+      if (t < 1) glideFrame = requestAnimationFrame(frame); else if (done) done();
+    };
+    glideFrame = requestAnimationFrame(frame);
   }
   // the words and controls of the step now: changed once the camera has landed
   function words(focus) {
@@ -2867,16 +2887,15 @@ const Intro = (() => {
     const turn = ++landing;
     if (from === to && Math.abs(x - spot(to)) < 1) { words(true); return; }
     const far = Math.abs(spot(to) - x), ms = still() ? 0 : Math.round(Math.min(1100, 420 + far * 0.35));
-    art().style.setProperty('--si-glide', `${ms}ms`);
-    place(spot(to), true);
-    if (!ms) { words(true); return; }
+    if (!ms) { cancelAnimationFrame(glideFrame); place(spot(to)); words(true); return; }
     $('sortiaIntro').classList.add('moving');
-    setTimeout(() => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); }, ms);
+    glide(spot(to), ms, () => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); });
   }
   // (a card to the one beside it: only among the cards, and on to Sister Ama from the last)
   const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
   function close() {
     const done = opts && opts.onDone; opts = null;
+    cancelAnimationFrame(glideFrame);
     $('sortiaIntro').hidden = true; $('sortiaIntro').classList.remove('moving');
     if (done) done();
   }
@@ -2886,8 +2905,8 @@ const Intro = (() => {
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
-    place(spot(0), false); words(false);
-    if (!art().complete) art().addEventListener('load', () => place(spot(at), false), { once: true });
+    place(spot(0)); words(false);
+    if (!art().complete) art().addEventListener('load', () => place(spot(at)), { once: true });
   }
   function setup() {
     const box = $('sortiaIntro'), input = $('siName');
@@ -2916,10 +2935,10 @@ const Intro = (() => {
     box.addEventListener('touchmove', e => {
       if (!drag) return;
       const dx = e.touches[0].clientX - drag.x0, dy = e.touches[0].clientY - drag.y0;
-      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; landing++; box.classList.remove('moving'); }
+      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; drag.base = x; landing++; cancelAnimationFrame(glideFrame); box.classList.remove('moving'); }
       const lo = spot(0), hi = spot(NAME); let to = drag.base - dx;
       if (to < lo) to = lo - (lo - to) * 0.35; else if (to > hi) to = hi + (to - hi) * 0.35; // (stiff past the ends)
-      place(to, false);
+      place(to);
     }, { passive: true });
     const release = (cx, cancelled) => {
       if (!drag) return;
@@ -2931,7 +2950,7 @@ const Intro = (() => {
     };
     box.addEventListener('touchend', e => release(e.changedTouches[0].clientX, false), { passive: true });
     box.addEventListener('touchcancel', () => release(drag ? drag.x0 : 0, true), { passive: true });
-    addEventListener('resize', () => { if (!box.hidden) place(spot(at), false); });
+    addEventListener('resize', () => { if (!box.hidden) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
     addEventListener('keydown', e => {
       if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }

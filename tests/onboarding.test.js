@@ -60,7 +60,7 @@ const fits = page => page.evaluate(() => {
     const W = device.viewport.width, H = device.viewport.height;
     // (the words change once the camera has landed)
     const title = async () => { await page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 5000 }).catch(() => {}); return page.evaluate(() => siTitle.textContent); };
-    const shown = () => page.evaluate(() => ({ art: siTitle.textContent, x: Math.round(parseFloat(document.querySelector('.si-art').style.getPropertyValue('--si-x'))),
+    const shown = () => page.evaluate(() => ({ art: siTitle.textContent, x: Math.round(parseFloat(document.querySelector('.si-world').style.getPropertyValue('--si-x'))),
       pano: /panorama\.webp/.test(document.querySelector('.si-art').src) && document.querySelector('.si-art').complete && document.querySelector('.si-art').naturalWidth === 2172,
       sides: document.documentElement.scrollWidth <= innerWidth && sortiaIntro.scrollWidth <= sortiaIntro.clientWidth,
       way: (() => { const b = [...sortiaIntro.querySelectorAll('.si-fwd')].find(e => e.offsetParent); const r = b.getBoundingClientRect(); return r.height >= 44 && r.right <= innerWidth + 0.5; })() }));
