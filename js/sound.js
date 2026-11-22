@@ -91,10 +91,10 @@ const Sound = (() => {
     sea: { scale: [294, 330, 370, 440, 494, 587], voice: 'triangle', notes: 0.55, length: 1.2 },
   };
   // The title music: from the gate (game-ui.js Gate) to the moment you're in the world (welcome(false)), over and over;
-  // then it fades out. A browser lets it start only after a first tap or key: tried at once, else then. Through Web
-  // Audio where it can be, so it can fade on an iPhone too (which won't change an audio element's volume); not from a
-  // file:// page, where Web Audio would hear only silence.
-  const title = { el: null, gain: null, wanted: false, fading: 0 };
+  // then it fades out. A browser lets it start only once you've touched the page: tried at once, else at the first tap,
+  // click or key (on a phone the end of a touch is what counts, not its start). A plain audio element: it plays with a
+  // phone's ring switch on silent too (Web Audio wouldn't); an iPhone won't fade it, so there it stops at the end.
+  const title = { el: null, wanted: false, fading: 0 };
   function titleFile() {
     const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['music/the-shadowed-gate.mp3'];
     return `sprites/music/the-shadowed-gate.mp3${h ? `?h=${h}` : ''}`;
@@ -105,17 +105,9 @@ const Sound = (() => {
       title.el = new Audio(titleFile());
       title.el.loop = true;
       title.el.preload = 'auto';
-      if (location.protocol !== 'file:') try {
-        audio();
-        title.gain = ctx.createGain();
-        title.gain.gain.value = 0.6;
-        ctx.createMediaElementSource(title.el).connect(title.gain).connect(ctx.destination);
-      } catch (e) { title.gain = null; }
-      if (!title.gain) title.el.volume = 0.6;
     }
     clearInterval(title.fading);
-    if (title.gain) { title.gain.gain.cancelScheduledValues(0); title.gain.gain.value = 0.6; } else title.el.volume = 0.6;
-    if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+    title.el.volume = 0.6;
     const tried = title.el.play();
     if (tried && tried.catch) tried.catch(() => { /* not yet: after the first tap or key */ });
   }
@@ -124,21 +116,16 @@ const Sound = (() => {
     const el = title.el;
     if (!el || el.paused) return;
     clearInterval(title.fading);
-    if (title.gain) {
-      const t = ctx.currentTime;
-      title.gain.gain.setValueAtTime(title.gain.gain.value, t);
-      title.gain.gain.linearRampToValueAtTime(0, t + ms / 1000);
-      title.fading = setTimeout(() => { if (!title.wanted) el.pause(); }, ms + 50);
-    } else {
-      const from = el.volume, t0 = performance.now();
-      title.fading = setInterval(() => {
-        const k = Math.min(1, (performance.now() - t0) / ms);
-        el.volume = from * (1 - k);
-        if (k >= 1) { clearInterval(title.fading); if (!title.wanted) el.pause(); }
-      }, 50);
-    }
+    const from = el.volume, t0 = performance.now();
+    title.fading = setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      el.volume = from * (1 - k);
+      if (k >= 1) { clearInterval(title.fading); if (!title.wanted) el.pause(); }
+    }, 50);
   }
-  for (const kind of ['pointerdown', 'keydown']) window.addEventListener(kind, () => { if (title.wanted && (!title.el || title.el.paused)) titlePlay(); }, true);
+  for (const kind of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
+    window.addEventListener(kind, () => { if (title.wanted && (!title.el || title.el.paused)) titlePlay(); }, { capture: true, passive: true });
+  }
 
   function musicTick() {
     if (!state.musicOn || !ctx || title.wanted) return; // (the title music plays: no tunes of the places over it)
@@ -190,8 +177,10 @@ const Sound = (() => {
     if (ambience.fire && Math.random() < 0.6) noise(0.03, 0.12 * ambience.fire, 2500);
   }
 
-  window.addEventListener('pointerdown', () => { if (state.musicOn || state.enabled) audio(); }, { once: true });
-  window.addEventListener('keydown', () => { if (state.musicOn || state.enabled) audio(); }, { once: true });
+  // (until the sound has started: on a phone only the end of a touch lets it, so every kind of tap tries)
+  for (const kind of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
+    window.addEventListener(kind, () => { if ((state.musicOn || state.enabled) && (!ctx || ctx.state !== 'running')) audio(); }, { capture: true, passive: true });
+  }
   musicTimer = setInterval(musicTick, 600);
   ambienceTimer = setInterval(ambienceTick, 250);
 
