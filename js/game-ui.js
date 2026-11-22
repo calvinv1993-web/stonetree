@@ -2845,9 +2845,14 @@ const Intro = (() => {
     const box = $('sortiaIntro'), world = box.querySelector('.si-world');
     world.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
     world.style.setProperty('--si-x', px.toFixed(1));
+    // (no snow in the cave by the seal or indoors with Sister Ama: it comes in as the camera leaves the first scene and is gone
+    // by the last; no mist indoors either)
+    const clamp01 = v => Math.max(0, Math.min(1, v)), s0 = spot(0), s1 = spot(1), s3 = spot(NAME - 1), s4 = spot(NAME);
+    const outside = clamp01((s4 - px) / Math.max(1, s4 - s3)), snow = clamp01((px - s0) / Math.max(1, s1 - s0)) * outside;
     for (const fx of box.querySelectorAll('.si-fx')) {
       const tile = +fx.dataset.tile, off = (((px * +fx.dataset.f) % tile) + tile) % tile;
       fx.style.transform = `translate3d(${(-off).toFixed(1)}px, 0, 0)`;
+      fx.style.opacity = (fx.classList.contains('si-mist') ? outside : snow).toFixed(3);
     }
   }
   // a glide from where the camera is to px, in ms, slowing as it lands; then done()
