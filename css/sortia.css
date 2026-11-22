@@ -1,11 +1,11 @@
 /* SORTIA's vocation screen: choosing your path (game-ui.js askPath), after the owner's package
    (docs/sortia/keuzescherm: vocation.css gives the measures, colours and spacing; reference docs/sortia/vocation-select-2.png).
    From the top: the title (Choose Your Path) over the land of the path looked at; the figure under the title, large, fading
-   out over the cards; three cards in one row (Hawk, Bastion, Ember: icon and name, the one looked at in gold on its own
+   out over the cards; three cards in one row (Hawk, Bastion, Ember: crest and name, the one looked at in gold on its own
    colour); on the dark slate under them its kind of fighting and role, how it plays, a strength and a weakness; a small lock
    with "Your choice is permanent." and the green button (Choose Bastion...), which asks once more in a dark window. A column
    as wide as a phone (540px at most), measured in % of its width (cqw); a short screen scrolls up and down. Its pictures:
-   sprites/ui/sortia/ (<path>-scene, -hero, -icon, button-primary, vocation-ground). Its type: Cinzel and Inter, in css/fonts
+   sprites/ui/sortia/ (<path>-scene, -hero, -crest, button-primary, vocation-ground). Its type: Cinzel and Inter, in css/fonts
    (SIL Open Font License). */
 
 @font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap; src: url(fonts/inter-latin-wght.woff2) format('woff2'); }
@@ -121,7 +121,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 .vs-rule span { width: 6px; height: 6px; background: #cf9f62; transform: rotate(45deg); box-shadow: 0 0 0 1px #efd7aa; }
 .vs-title { margin: 0; color: #f1d6a6; font: 600 clamp(19px, 7.2cqw, 42px) / 1.05 var(--vs-serif); letter-spacing: .015em; text-shadow: 0 2px 2px #15110d; }
 
-/* the three cards: the same size; icon and name; the one looked at in gold on its own colour. Their corners cut by a fixed
+/* the three cards: the same size; crest and name; the one looked at in gold on its own colour. Their corners cut by a fixed
    size, the inside's a little less, so the edge is as thick along the cuts as along the sides */
 .vs-selection { padding-inline: 5.45cqw; margin-top: calc(94cqw - env(safe-area-inset-top)); } /* (the notch's room taken back here: the cards where the reference has them) */
 .vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.95cqw; align-items: center; }
@@ -133,7 +133,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
 .vs-face { --i: calc(var(--c) - 0.83px); position: absolute; inset: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
   clip-path: polygon(var(--i) 0, calc(100% - var(--i)) 0, 100% var(--i), 100% calc(100% - var(--i)), calc(100% - var(--i)) 100%, var(--i) 100%, 0 calc(100% - var(--i)), 0 var(--i));
   background: radial-gradient(ellipse at 42% 15%, #1e2a33, #0b1116 76%); text-shadow: 0 1px 3px #080a0c; }
-.vs-face img { width: clamp(39px, 13cqw, 70px); height: auto; }
+.vs-face img { width: clamp(42px, 14.5cqw, 76px); height: auto; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); } /* (the paths' crests: sprites/ui/sortia/<path>-crest.webp) */
 .vs-card[aria-pressed="true"] { filter: drop-shadow(0 1px 6px #cb792f59); }
 .vs-card[aria-pressed="true"]::before { background: linear-gradient(140deg, #e7ad64, #fff0c4 18%, #a36a38 55%, #ffd593 82%, #a96b32); }
 .vs-card[aria-pressed="true"] .vs-face { background: radial-gradient(ellipse at 50% 5%, var(--vs-tint-hi), var(--vs-tint-lo) 66%, #1a1210); }
