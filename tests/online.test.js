@@ -181,13 +181,24 @@ function startServer() {
     assert(acc3.last('error').keep && !acc3.last('welcome'), 'another account\'s character can\'t be played');
     acc3.send({ t: 'play', name: `Dana${tag}` }); await waitFor(() => acc3.last('welcome'));
     assert(acc3.last('welcome').isNew === false && acc3.last('welcome').name === `Dana${tag}`, 'and one of its own is played, not new');
-    acc3.close();
+    // one character of an account at a time: another page of it can't play its other character, nor make a new one
+    const acc4 = accountPage({ account: `Dana${tag}`, token: acc2.last('account').token });
+    await waitFor(() => acc4.last('account'));
+    acc4.send({ t: 'play', name: `Eve${tag}` }); await waitFor(() => acc4.last('error') || acc4.last('welcome'));
+    assert(acc4.last('error') && acc4.last('error').keep && /one character of an account at a time/.test(acc4.last('error').message) && !acc4.last('welcome'),
+      `a second character of the account is kept out while the first plays (${JSON.stringify(acc4.got.slice(-1))})`);
+    acc4.send({ t: 'newchar', name: `Fay${tag}` }); await waitFor(() => acc4.got.filter(m => m.t === 'error').length > 1 || acc4.last('welcome'));
+    assert(!acc4.last('welcome'), 'nor is a new one made then');
+    acc3.close(); await sleep(400);
+    acc4.send({ t: 'play', name: `Eve${tag}` }); await waitFor(() => acc4.last('welcome'));
+    assert(acc4.last('welcome') && acc4.last('welcome').name === `Eve${tag}`, 'once the first page has gone, the other character plays');
+    acc4.close();
     const wrongAcc = accountPage({ account: `Dana${tag}`, password: 'nope1234', create: false }); await waitFor(() => wrongAcc.last('error') || wrongAcc.last('account'));
     assert(wrongAcc.last('error') && !wrongAcc.last('account'), 'a wrong password lists nothing'); wrongAcc.close();
     const oldAcc = accountPage({ account: `Old${tag}`, password: 'pw', create: false }); await waitFor(() => oldAcc.last('error') || oldAcc.last('account'));
     assert(oldAcc.last('account') && oldAcc.last('account').characters.map(c => c.name.toLowerCase()).join() === `old${tag}`, `a character from before accounts is its own account (${JSON.stringify(oldAcc.got)})`);
     oldAcc.close();
-    console.log('  ok   accounts hold characters: listed, made, played; names taken and other accounts\' characters refused');
+    console.log('  ok   accounts hold characters: listed, made, played, one at a time; names taken and other accounts\' characters refused');
     // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
     for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
     const right = client(`Old${tag}`, { password: 'pw' });

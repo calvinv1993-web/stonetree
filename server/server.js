@@ -334,6 +334,8 @@ function newCharacter(conn, msg) {
   if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.', keep: true });
   if (accounts[key] || (owners[key] && key !== conn.owner)) return conn.reply({ t: 'error', message: 'That name is taken: choose another.', keep: true });
   if (owner.characters.length >= MAX_CHARACTERS) return conn.reply({ t: 'error', message: `An account holds ${MAX_CHARACTERS} characters at most.`, keep: true });
+  const busy = accountBusy(conn.owner, key);
+  if (busy) return conn.reply({ t: 'error', message: busy, keep: true });
   accounts[key] = { owner: conn.owner, name: name[0].toUpperCase() + name.slice(1), save: null };
   owner.characters.push(key);
   enterCharacter(conn, key, asText(msg.vocation));
@@ -367,10 +369,24 @@ function login(conn, msg) {
   enterCharacter(conn, key, msg.vocation);
 }
 
+// One character of an account in the world at a time: another of its characters, played on a page now, keeps this one
+// out (the error says which); one whose page has gone (lingering a moment) is logged out to make way
+function accountBusy(ownerKey, key) {
+  if (!ownerKey) return null;
+  const other = G.players.find(p => { const k = p.name.toLowerCase(); return k !== key && accounts[k] && accounts[k].owner === ownerKey; });
+  if (!other) return null;
+  if ([...conns].some(c => c.player === other)) return `${other.name} is in the world already: one character of an account at a time. Log out of ${other.name} first.`;
+  clearTimeout(other.lingerTimer);
+  logout(other);
+  return null;
+}
+
 // Into the world as a character (key) of this page's account: the one already in it taken over, or loaded from its
 // save, or a new one (no save yet: the story, isNew)
 function enterCharacter(conn, key, vocationWanted) {
   const account = accounts[key], isNew = !account.save;
+  const busy = accountBusy(account.owner, key);
+  if (busy) return conn.reply({ t: 'error', message: busy, keep: !!conn.owner });
   const online = G.players.find(p => p.name.toLowerCase() === key);
   if (online) {
     clearTimeout(online.lingerTimer);

@@ -1735,7 +1735,7 @@ function startOffline() {
     const account = offlineAccount();
     if (account && sameName(stored(SESSION_KEY), account.name)) {
       const again = playing();
-      if (again && account.characters.some(c => sameName(c, again))) { Gate.close(); return playOffline(again); }
+      if (again && account.characters.some(c => sameName(c, again)) && !busyElsewhere()) { Gate.close(); return playOffline(again); }
       return chooseOffline(account);
     }
     askOffline(account);
@@ -1779,9 +1779,11 @@ function askOffline(account, message) {
 function chooseOffline(account, message) {
   Gate.chooseCharacter({
     account: account.name, characters: account.characters.map(characterSummary), max: MAX_CHARACTERS, message,
-    onPlay: name => { Gate.close(); playOffline(name); },
+    onPlay: name => { const busy = busyElsewhere(); if (busy) return Gate.refuseCharacter(busy); Gate.close(); playOffline(name); },
     onCreate: name => {
       if (stored(characterSaveKey(name))) return Gate.refuseCharacter('A character of that name is kept in this browser already.');
+      const busy = busyElsewhere();
+      if (busy) return Gate.refuseCharacter(busy);
       account.characters.push(name);
       stored(ACCOUNT_KEY, account);
       Gate.close();
@@ -1790,7 +1792,24 @@ function chooseOffline(account, message) {
     onLogout: () => { stored(SESSION_KEY, null); askOffline(account); },
   });
 }
+// one character of the account in the world at a time, in this browser too: a tab playing marks it (IN_WORLD_KEY, its
+// tab and when, renewed every few seconds while it plays); another tab may not play then (busyElsewhere says who)
+const IN_WORLD_KEY = 'tilequest.inWorld';
+const tabId = (() => { try { let id = sessionStorage.getItem('tilequest.tab'); if (!id) { id = Math.random().toString(36).slice(2); sessionStorage.setItem('tilequest.tab', id); } return id; } catch (e) { return 'tab'; } })();
+function busyElsewhere() {
+  const mark = stored(IN_WORLD_KEY);
+  return mark && mark.tab !== tabId && Date.now() - mark.at < 12000 ? `${mark.name} is in the world in another tab: one character at a time. Close that tab first.` : null;
+}
+let inWorldTimer = 0;
+function markInWorld(name) {
+  const mark = () => stored(IN_WORLD_KEY, { tab: tabId, name, at: Date.now() });
+  mark();
+  clearInterval(inWorldTimer);
+  inWorldTimer = setInterval(mark, 4000);
+  addEventListener('pagehide', () => { const m = stored(IN_WORLD_KEY); if (m && m.tab === tabId) stored(IN_WORLD_KEY, null); });
+}
 function playOffline(name) {
+  markInWorld(name);
   saveSlot = name.toLowerCase();
   playing(name);
   $('newChar').textContent = 'Log out';
