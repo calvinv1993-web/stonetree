@@ -6,13 +6,15 @@
    Weaknesses side by side, Starts with under Weaknesses; the green ceremonial button overlapping the paper's foot, and
    the dots under it. Everything is laid out in % of the scene's width (cqw), so it keeps the reference's proportions on
    any screen; it scrolls if the screen is too short. Its pictures: sprites/ui/sortia/ (from the kit). Its type:
-   Cinzel (titles, names, the way on) and EB Garamond (words), in css/fonts (SIL Open Font License). */
+   Cinzel (titles, names, the way on), EB Garamond (the line under the banner) and Inter (the parchment's words, upright,
+   15 to 16px on a phone), in css/fonts (SIL Open Font License). */
 
 @font-face { font-family: 'EB Garamond'; font-weight: 400 600; font-display: swap; src: url(fonts/eb-garamond-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap; src: url(fonts/inter-latin-wght.woff2) format('woff2'); }
 @font-face { font-family: 'EB Garamond'; font-style: italic; font-weight: 400 600; font-display: swap; src: url(fonts/eb-garamond-italic-latin.woff2) format('woff2'); }
 
 #pathPick {
-  --sv-display: 'Cinzel', Georgia, serif; --sv-story: 'EB Garamond', Georgia, serif;
+  --sv-display: 'Cinzel', Georgia, serif; --sv-story: 'EB Garamond', Georgia, serif; --sv-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --sv-ivory: #f1e2ca; --sv-ink: #322016; --sv-gold: #e0b77d;
   position: fixed; inset: 0; z-index: 41; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
   display: flex; flex-direction: column; align-items: center;
@@ -22,6 +24,8 @@
 #pathPick[hidden] { display: none; }
 #pathPick::-webkit-scrollbar { display: none; } /* (no scroll bar at the right edge: the screen fits a phone; a short one still scrolls) */
 html body #pathPick .sv-scene, html body #pathPick .sv-scene * { font-family: var(--sv-story) !important; }
+/* (the parchment's words in Inter, upright, to read easily; Cinzel stays for the banner, the names and the button) */
+html body #pathPick .sv-paper :is(.sv-desc, .sv-list li, .sv-cols h3, .sv-items small) { font-family: var(--sv-ui) !important; }
 html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small, .sv-cols h3, .sv-cta) { font-family: var(--sv-display) !important; }
 #pathPick button { -webkit-appearance: none; appearance: none; margin: 0; padding: 0; font: inherit; color: inherit; cursor: pointer;
   background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; min-width: 0; min-height: 0; }
@@ -88,6 +92,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-card:not([data-position="center"]) .sv-info { bottom: 5%; color: #d1c3aa; }
 .sv-card:not([data-position="center"]) .sv-info strong { font-size: clamp(12px, 3.03cqw, 31px); }
 .sv-card:not([data-position="center"]) .sv-info small { font-size: clamp(6.5px, 1.35cqw, 14px); }
+.sv-card.sv-cut .sv-info :is(strong, small) { visibility: hidden; } /* (a side card's name only when all of it is on the screen: game-ui.js fitNames) */
 .sv-card[data-position="left"] .sv-info { left: -6%; }
 .sv-card[data-position="right"] .sv-info { right: -6%; }
 
@@ -106,23 +111,33 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
   padding: clamp(12px, calc(3.2cqw * var(--pk)), 34px) 6.7% clamp(28px, calc(7.4cqw * var(--pk)), 70px); color: var(--sv-ink); }
 .sv-paper::before { position: absolute; content: ''; inset: 0; z-index: -1; background: var(--sv-paper, url(../sprites/ui/sortia/parchment.webp)) center / 100% 100% no-repeat; }
 .sv-paper .sv-rule { color: #71503b; }
-.sv-desc { margin: 0.5cqw auto 1.05cqw; text-align: center; font: italic 500 clamp(12.5px, calc(2.55cqw * var(--pk)), 27px) / 1.17 var(--sv-story); }
-.sv-cols { display: grid; grid-template-columns: 1fr 1fr; margin-top: 0.75cqw; }
-.sv-cols > div:first-child { padding-right: 3cqw; }
-.sv-cols > div:last-child { padding-left: 3cqw; border-left: 1px solid rgba(101, 71, 48, 0.41); }
-.sv-cols h3 { display: flex; align-items: center; gap: 0.9cqw; margin: 0.6cqw 0 0.95cqw; padding-bottom: 0.54cqw; border-bottom: 1px solid rgba(115, 81, 58, 0.28);
-  font: 600 clamp(7.5px, calc(1.95cqw * var(--pk)), 20px) / 1.16 var(--sv-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--sv-ink); }
-.sv-cols h3 svg { width: calc(3.7cqw * var(--pk)); height: calc(3.7cqw * var(--pk)); min-width: 13px; min-height: 13px; flex: none; color: #402719; }
+.sv-desc { margin: 0.3cqw auto 0.9cqw; max-width: 34em; text-align: center; text-wrap: balance; color: #312018;
+  font: 500 clamp(13px, calc(1.9cqw * var(--pk)), 18px) / 1.45 var(--sv-ui); }
+/* (Strengths and Weakness side by side on one grid: the same headings, so their rules lie on one line; the words under them
+   hang from their own left edge, the bullet before it) */
+.sv-cols { display: grid; grid-template-columns: 1fr 1fr; margin-top: 0.9cqw; container-type: inline-size; }
+.sv-cols > div:first-child { padding-right: 2.6cqw; }
+.sv-cols > div:last-child { padding-left: 2.6cqw; border-left: 1px solid rgba(101, 71, 48, 0.41); }
+.sv-cols h3 { display: flex; align-items: center; gap: 0.8cqw; margin: 0 0 0.9cqw; padding-bottom: 0.6cqw; border-bottom: 1px solid rgba(115, 81, 58, 0.32);
+  white-space: nowrap; font: 600 clamp(11px, calc(1.35cqw * var(--pk)), 13px) / 1.2 var(--sv-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #312018; }
+.sv-cols h3 svg { width: clamp(15px, calc(2.4cqw * var(--pk)), 22px); height: clamp(15px, calc(2.4cqw * var(--pk)), 22px); flex: none; color: #402719; }
 .sv-cols ul { margin: 0; padding: 0; list-style: none; }
-.sv-list li { position: relative; margin: calc(1.1cqw * var(--pk)) 0; padding-left: 2.65cqw; font: 500 clamp(11.5px, calc(2.31cqw * var(--pk)), 24px) / 1.18 var(--sv-story); }
-.sv-list li::before { position: absolute; left: 0.25cqw; top: 0.38em; content: ''; width: 0.88cqw; min-width: 4px; aspect-ratio: 1; background: #713d2b;
+.sv-list li { position: relative; margin: 0 0 0.75cqw; padding-left: 1.15em; color: #312018; font: 500 clamp(13px, calc(1.8cqw * var(--pk)), 17px) / 1.45 var(--sv-ui); }
+.sv-list li:last-child { margin-bottom: 0; }
+.sv-list li::before { position: absolute; left: 0.1em; top: calc(0.725em - 0.2em); content: ''; width: 0.4em; aspect-ratio: 1; background: #713d2b;
   transform: rotate(45deg); box-shadow: 0 0 0 1px #492719; }
-.sv-cols h3.sv-gear { margin-top: 2cqw; padding-top: 0.55cqw; border-top: 1px solid rgba(115, 81, 58, 0.4); border-bottom: 0; }
-.sv-items { display: flex; flex-wrap: nowrap; gap: 1.6cqw; margin-top: 1cqw !important; align-items: center; }
-.sv-items li { position: relative; width: calc(8.6cqw * var(--pk)); min-width: 30px; aspect-ratio: 1; display: grid; place-items: center; background: #201b18; border: 1px solid #7c4d27;
+.sv-cols h3.sv-gear { margin-top: 1.4cqw; padding-top: 0.7cqw; border-top: 1px solid rgba(115, 81, 58, 0.4); border-bottom: 0; }
+/* (what it starts with: three boxes the same size, evenly apart, from the column's left edge; a count at the foot right) */
+.sv-items { display: grid; grid-template-columns: repeat(3, max(36px, calc(6.4cqw * var(--pk)))); gap: max(6px, 1.1cqw); justify-content: start; }
+.sv-items li { position: relative; width: 100%; aspect-ratio: 1; display: grid; place-items: center; background: #201b18; border: 1px solid #7c4d27;
   box-shadow: inset 0 0 0 1px #d6ab72; clip-path: polygon(9% 0, 91% 0, 100% 9%, 100% 91%, 91% 100%, 9% 100%, 0 91%, 0 9%); }
 .sv-items img { width: 86%; height: 86%; object-fit: contain; image-rendering: pixelated; }
-.sv-items small { position: absolute; right: 6%; bottom: 2%; font: 700 clamp(8px, 1.7cqw, 15px) / 1 var(--sv-story); color: #f6e5c7; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+.sv-items small { position: absolute; right: 7%; bottom: 5%; font: 700 clamp(9px, 1.2cqw, 13px) / 1 var(--sv-ui); color: #f6e5c7; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+/* (too narrow to read side by side: Strengths over Weakness) */
+@container (max-width: 250px) {
+  .sv-cols > div:first-child, .sv-cols > div:last-child { grid-column: 1 / -1; padding: 0; border: 0; }
+  .sv-cols > div:last-child { margin-top: 12px; }
+}
 
 /* the way on: the green ceremonial button over the paper's foot; the dots under it */
 #pathPick .sv-cta { position: relative; z-index: 2; display: block !important; box-sizing: border-box; width: 40%; height: 9.5cqw; min-height: 44px; margin: -3.3cqw auto 0 !important;
@@ -171,17 +186,20 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
   #pathPick .sv-arrow.sv-left { left: 14.1%; }
   #pathPick .sv-arrow.sv-right { left: 85.9%; }
   /* the parchment: wide, a little inside the screen's edges; its words in calc(.. * --pk) */
-  #pathPick .sv-paper { width: 94%; margin-top: 12px; padding: calc(3.4cqw * var(--pk)) 6.5% calc(8cqw * var(--pk)); }
-  #pathPick .sv-desc { font-size: calc(3.3cqw * var(--pk)); margin: calc(0.8cqw * var(--pk)) auto calc(1.4cqw * var(--pk)); }
-  #pathPick .sv-cols { margin-top: calc(1cqw * var(--pk)); }
-  #pathPick .sv-cols h3 { font-size: calc(2.45cqw * var(--pk)); gap: 1.4cqw; margin: calc(0.9cqw * var(--pk)) 0 calc(1.2cqw * var(--pk)); padding-bottom: calc(0.8cqw * var(--pk)); }
-  #pathPick .sv-cols h3 svg { width: calc(4.6cqw * var(--pk)); height: calc(4.6cqw * var(--pk)); }
-  #pathPick .sv-list li { font-size: calc(3cqw * var(--pk)); margin: calc(1.3cqw * var(--pk)) 0; padding-left: 3.6cqw; }
-  #pathPick .sv-list li::before { width: 1.2cqw; }
-  #pathPick .sv-cols h3.sv-gear { margin-top: calc(2.6cqw * var(--pk)); padding-top: calc(0.9cqw * var(--pk)); }
-  #pathPick .sv-items { gap: 2.2cqw; }
-  #pathPick .sv-items li { width: calc(10.2cqw * var(--pk)); }
-  #pathPick .sv-items small { font-size: 2.2cqw; }
+  /* (the parchment as wide as the screen allows, even when a short phone makes the cards smaller: game-ui.js place) */
+  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: calc(3.4cqw * var(--pk)) 6vw calc(4cqw + 18px); }
+  /* (the words 15 to 16px, the headings 12 to 13px, whatever the phone's width) */
+  #pathPick .sv-desc { font-size: clamp(15px, calc(16px * var(--pk)), 16px); margin: 4px auto 5px; }
+  #pathPick .sv-cols { margin-top: 6px; }
+  #pathPick .sv-cols > div:first-child { padding-right: 12px; }
+  #pathPick .sv-cols > div:last-child { padding-left: 12px; }
+  #pathPick .sv-cols h3 { font-size: clamp(12px, calc(13px * var(--pk)), 13px); gap: 7px; margin: 0 0 8px; padding-bottom: 6px; }
+  #pathPick .sv-cols h3 svg { width: 18px; height: 18px; }
+  #pathPick .sv-list li { font-size: clamp(15px, calc(16px * var(--pk)), 16px); margin-bottom: 7px; }
+  #pathPick .sv-list li:last-child { margin-bottom: 0; }
+  #pathPick .sv-cols h3.sv-gear { margin-top: 14px; padding-top: 8px; }
+  #pathPick .sv-items { grid-template-columns: repeat(3, minmax(0, 42px)); gap: 8px; }
+  #pathPick .sv-items small { font-size: 11px; }
   #pathPick .sv-cta { width: 54%; height: 11.2cqw; margin-top: -4cqw !important; font-size: 4.1cqw !important; }
   #pathPick .sv-dots { margin-top: 0; }
   #pathPick .sv-dots button span { width: 2.4cqw; }

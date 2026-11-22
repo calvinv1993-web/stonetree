@@ -128,7 +128,21 @@ const fits = page => page.evaluate(() => {
       const at = [];
       for (let k = 0; k < 3; k++) { at.push(await page.evaluate(() => { const r = pathInfo.getBoundingClientRect(); return `${Math.round(r.top)},${Math.round(r.height)}`; })); await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150); }
       check(new Set(at).size === 1, `${name}: the parchment the same for every path (${at.join(' | ')})`);
-      check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+      // (the whole screen fits from 375 x 667 up; the smallest phone, 320 x 568, scrolls up and down to the button, the words kept large)
+      if (name !== '320') check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
+      for (let k = 0; k < 3; k++) {
+        const g = await page.evaluate(() => {
+          const R = e => e.getBoundingClientRect(), hs = [...pathInfo.querySelectorAll('.sv-cols h3')].map(R), items = [...pathInfo.querySelectorAll('.sv-items li')].map(R);
+          const size = s => parseFloat(getComputedStyle(pathInfo.querySelector(s)).fontSize);
+          return { heads: Math.abs(hs[0].top - hs[1].top) < 1 && Math.abs(hs[0].bottom - hs[1].bottom) < 1, gear: Math.abs(hs[2].left - hs[1].left) < 1,
+            items: items.every(r => Math.abs(r.width - items[0].width) < 0.5) && Math.abs((items[1].left - items[0].right) - (items[2].left - items[1].right)) < 1,
+            words: size('.sv-desc') >= 13 && size('.sv-list li') >= 13, phone: matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches && size('.sv-desc') >= 15 && size('.sv-list li') >= 15,
+            path: pathChoose.textContent };
+        });
+        check(g.heads && g.gear && g.items, `${name}: ${g.path}: Strengths and Weakness on one line, Starts with under Weakness, the kit's boxes alike (${JSON.stringify(g)})`);
+        check(g.words && (g.phone || !/^(320|375|390|430)$/.test(name)), `${name}: ${g.path}: the parchment's words large enough to read`);
+        await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150);
+      }
       check(await page.evaluate(() => { const b = document.querySelector('.sv-banner').getBoundingClientRect(), l = [...document.querySelectorAll('.sv-title i')].map(i => i.getBoundingClientRect()); return l.length === 16 && l[0].left >= b.left + b.width * 0.08 && l[15].right <= b.right - b.width * 0.08; }), `${name}: the title's letters all within its banner`);
       await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
     }

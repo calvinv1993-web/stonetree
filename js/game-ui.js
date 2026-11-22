@@ -1338,16 +1338,16 @@ function showWindow(heading, body) {
 // Bastion, Hawk or Ember, each a card: what it is, how it fights, and one button. Asked of anyone without a path once
 // their name and outfit are done (online too: the choice goes to the server), never in a trial or on Kestrel Isle.
 // How each path is shown when it's chosen. Its words are the game's own (VOCATIONS: role; START_KITS and newPlayer: what
-// it starts with); its strengths and weakness as those words and its numbers have them (health a level 15 / 10 / 5,
+// it starts with); its intro, strengths and weakness short, as those words and its numbers have them (health a level 15 / 10 / 5,
 // mana 5 / 15 / 30); nothing here that the game doesn't do. Its picture (sprites/ui/classes/<art>.webp: the path's
 // look, not the player's own) is cropped round art position; its emblem, its colour (tint) on its card.
 const PATH_PICK = {
-  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', weapons: 'Swords, axes, clubs and shields',
-    strengths: ['The most health of all', 'Heavy blows up close', 'Takes the blows for friends'], weakness: 'Can\'t fight from afar' },
-  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', weapons: 'Bows and crossbows',
-    strengths: ['Strikes from afar', 'Power Shot, volleys of arrows and a falcon', 'A little holy magic'], weakness: 'Vulnerable when enemies get close' },
-  sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', weapons: 'Wands and runes',
-    strengths: ['Fire and energy over whole packs', 'The most damage of all', 'The most mana'], weakness: 'Fragile, and done when the mana runs out' },
+  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', intro: 'A frontline fighter who takes hits for allies.',
+    strengths: ['Highest health', 'Heavy melee hits', 'Takes hits for allies'], weakness: 'Cannot attack from range' },
+  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', intro: 'A bow fighter who strikes from a distance.',
+    strengths: ['Attacks from range', 'Power Shot, volleys and a falcon', 'A little holy magic'], weakness: 'Weak when enemies get close' },
+  sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', intro: 'A spellcaster who burns whole packs.',
+    strengths: ['Fire and energy hit whole packs', 'Highest damage', 'Most mana'], weakness: 'Fragile, and helpless without mana' },
 };
 // what a path starts with: its own kit (START_KITS: in hand or in the bag), then what every new character has
 // (newPlayer: the temple's club, unless the kit puts another weapon in hand, five apples and two health potions)
@@ -1435,13 +1435,26 @@ function askPath(onDone, onBack) {
       scene.style.width = '';
       scene.style.setProperty('--pk', pk); tallest();
       while (pk > 0.8 && scene.scrollHeight > win.clientHeight + 1) { pk -= 0.03; scene.style.setProperty('--pk', pk.toFixed(2)); tallest(); }
-      // (a short phone: still too tall, the whole scene a little narrower, everything in it smaller alike, till it fits)
-      for (let k = 0; k < 6 && scene.scrollHeight > win.clientHeight + 1; k++) {
-        scene.style.width = `${Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1}px`; tallest();
+      // (a short phone: still too tall, the banner and the cards a little smaller, to two thirds of the screen's width at
+      // the least; the parchment keeps the screen's width, its words their size: what's left scrolls, up and down only)
+      const least = Math.floor(innerWidth * 0.66);
+      for (let k = 0; k < 6 && scene.scrollHeight > win.clientHeight + 1 && scene.clientWidth > least; k++) {
+        scene.style.width = `${Math.max(least, Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1)}px`; tallest();
       }
     }
-    curve();
+    curve(); fitNames();
     if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
+  }
+  // a side card's name only when the whole of it is on the screen (a phone shows only the cards' inner strips); measured
+  // where the cards come to rest, after their move
+  function fitNames() {
+    clearTimeout(fitNames.t);
+    fitNames.t = setTimeout(() => {
+      for (const c of track.children) {
+        const name = c.querySelector('.sv-info strong'), r = name.getBoundingClientRect();
+        c.classList.toggle('sv-cut', c.dataset.position !== 'center' && (r.left < 0 || r.right > document.documentElement.clientWidth));
+      }
+    }, 450);
   }
   // what the parchment says of a path: its words, strengths, weakness and what it starts with
   function paperFor(v) {
@@ -1458,7 +1471,7 @@ function askPath(onDone, onBack) {
     const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
     return [
       rule(),
-      h('p', { className: 'sv-desc' }, `${capitalize(VOCATIONS[v].role)}:`, h('br'), `${info.combat.toLowerCase()}, with ${info.weapons.toLowerCase()}.`),
+      h('p', { className: 'sv-desc' }, info.intro),
       rule(),
       h('div', { className: 'sv-cols' },
         h('div', {}, h('h3', {}, svIcon('shield'), 'Strengths'), h('ul', { className: 'sv-list' }, ...info.strengths.map(t => h('li', {}, t)))),
@@ -1483,6 +1496,7 @@ function askPath(onDone, onBack) {
     [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
     $('pathInfo').replaceChildren(...paperFor(v));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
+    fitNames();
     ask(false);
   }
   // the confirmation: a path is for good
