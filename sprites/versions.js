@@ -371,6 +371,7 @@ const SPRITE_HASHES = {
   "sign-tools-front.png":"29b0987db4",
   "sign-weapons-front.png":"df719c3cc4",
   "signpost@4x.png":"414ae9b2f7",
+  "sounds/button-wood.wav":"93d6767d87",
   "stairs-down-stone@4x.png":"5522f3810a",
   "stairs-down-wood@4x.png":"7a22016b8a",
   "stairs-stone@4x.png":"9048aefcee",

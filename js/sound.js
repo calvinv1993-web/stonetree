@@ -1,6 +1,7 @@
 'use strict';
-// The game's music: SORTIA's title music only (sprites/music/: Sound.title): The Shadowed Gate at the gate, then The
-// Broken Seal from the opening's story through choosing your path. The game's own synthesized sounds and tunes (hits,
+// The game's sound: SORTIA's title music (sprites/music/: Sound.title): The Shadowed Gate at the gate, then The Broken
+// Seal from the opening's story through choosing your path; and a wooden knock when a button is tapped
+// (sprites/sounds/button-wood.wav: Sound: on/off in the menu). The game's own synthesized sounds and tunes (hits,
 // spells, the music of each place, wind and waves) were taken out: on an iPhone they played at odd moments and badly.
 // Sound.play, setMood and setAmbience stay, doing nothing, so the game can still say what it would sound like.
 
@@ -10,7 +11,7 @@ const Sound = (() => {
   try {
     saved = JSON.parse(localStorage.getItem('tilequest.sound')) || {};
   } catch (e) { /* defaults */ }
-  const state = { musicOn: saved.musicOn !== false };
+  const state = { musicOn: saved.musicOn !== false, enabled: saved.enabled !== false };
   const persist = () => {
     try {
       localStorage.setItem('tilequest.sound', JSON.stringify(state));
@@ -108,8 +109,39 @@ const Sound = (() => {
     window.addEventListener(kind, () => { if (title.wanted && (!titleNow() || titleNow().paused)) titlePlay(); }, { capture: true, passive: true });
   }
 
+  // The button knock: fetched and decoded once, played through Web Audio (at once, and over itself when tapped fast);
+  // from a page opened as a file (where it can't be fetched), an audio element instead. On the press itself (a finger
+  // down, a mouse down, Enter or Space on a button in focus), not its release, so it sounds with the touch.
+  const KNOCK = (() => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['sounds/button-wood.wav']; return `sprites/sounds/button-wood.wav${h ? `?h=${h}` : ''}`; })();
+  let knock = null, knockEl = null;
+  function loadKnock() {
+    if (knock || knockEl) return;
+    if (location.protocol === 'file:' || !window.fetch) { knockEl = new Audio(KNOCK); knockEl.preload = 'auto'; return; }
+    knock = 'loading';
+    fetch(KNOCK).then(r => r.arrayBuffer()).then(data => new Promise((done, fail) => audio().decodeAudioData(data, done, fail)))
+      .then(buffer => { knock = buffer; }, () => { knock = null; knockEl = new Audio(KNOCK); });
+  }
+  function playKnock() {
+    if (!state.enabled) return;
+    try {
+      if (knock && knock !== 'loading') {
+        const c = audio(), src = c.createBufferSource(), gain = c.createGain();
+        src.buffer = knock; gain.gain.value = 0.8;
+        src.connect(gain).connect(c.destination);
+        src.start();
+      } else if (knockEl) {
+        const el = knockEl.cloneNode(); el.volume = 0.8;
+        const tried = el.play(); if (tried && tried.catch) tried.catch(() => {});
+      }
+    } catch (e) { /* no sound this time */ }
+  }
+  const pressable = el => el && el.closest && el.closest('button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary');
+  window.addEventListener('pointerdown', e => { if (e.button === 0 && pressable(e.target)) playKnock(); }, { capture: true, passive: true });
+  window.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat && pressable(document.activeElement)) playKnock(); }, true);
+  if (!(navigator.webdriver && !/[?&]music\b/.test(location.search))) setTimeout(loadKnock, 0);
+
   return {
-    enabled: false, // (no sounds: see above)
+    get enabled() { return state.enabled; },
     get musicOn() { return state.musicOn; },
     // the title music: preload(track) while the gate loads, start('gate') at its first tap, start('story') from the
     // opening's story (crossfading), stop() in the world (fading)
@@ -120,8 +152,13 @@ const Sound = (() => {
       get levels() { return Object.fromEntries(Object.entries(title.tracks).map(([n, t]) => [n, t.el.paused ? 0 : +t.level.toFixed(2)])); }, // (for tests)
       get playing() { return !!titleNow() && !titleNow().paused ? title.track : ''; },
     },
-    play() { /* no sounds */ },
-    toggle() { /* no sounds */ },
+    play() { /* no game sounds */ },
+    knock: playKnock, // (the button knock, for a press that isn't a button)
+    toggle() {
+      state.enabled = !state.enabled;
+      if (state.enabled) loadKnock();
+      persist();
+    },
     toggleMusic() {
       state.musicOn = !state.musicOn;
       if (!state.musicOn) for (const t of Object.values(title.tracks)) t.el.pause(); else titlePlay();

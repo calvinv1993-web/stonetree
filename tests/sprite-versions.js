@@ -16,7 +16,7 @@ const OUT = path.join(SPRITES, 'versions.js');
 function versions() {
   const out = {};
   for (const rel of fs.readdirSync(SPRITES, { recursive: true }).map(String).sort()) {
-    if (!/\.(png|webp|jpe?g|mp3)$/i.test(rel)) continue; // (and the music)
+    if (!/\.(png|webp|jpe?g|mp3|wav)$/i.test(rel)) continue; // (and the music and sounds)
     const name = rel.split(path.sep).join('/');
     if (name.startsWith('templates/') || name === 'baked-ground.png') continue; // (guides for drawing; the baked ground has its own)
     out[name] = crypto.createHash('sha1').update(fs.readFileSync(path.join(SPRITES, rel))).digest('hex').slice(0, 10);
