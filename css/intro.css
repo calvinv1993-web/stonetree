@@ -29,10 +29,14 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
    far snow (a little slower) and near snow (faster). Only moving and fading, on the phone's graphics chip. */
 .si-world { position: absolute; z-index: -5; top: 0; left: 0; height: 100%; aspect-ratio: 2172 / 724; pointer-events: none; will-change: transform; }
 /* the scene's layers (game-ui.js INTRO_LAYERS: placed in percent of the canvas, so they keep together at any size); each
-   shifts by its depth (--d) times the drag or the mouse (--si-dx, --si-dy, -1 to 1) in canvas pixels at the column's
+   leans by its depth (--d) times the drag or the mouse (--si-dx, --si-dy, -1 to 1) in canvas pixels at the column's
    scale (--si-u) */
 .si-scene { position: absolute; inset: 0; }
-.si-layer, .si-glow { translate: calc(var(--si-dx, 0) * var(--d, 0) * var(--si-u, 1px)) calc(var(--si-dy, 0) * var(--d, 0) * .45 * var(--si-u, 1px)); transition: translate .18s ease-out; }
+/* and between two scenes, by its depth times the camera's way there (--si-p: 0 at a scene, 1 half way): the sky and
+   mountains (depth -8) fall 56 canvas pixels behind, the foreground (4) runs 28 ahead, the figures a little */
+.si-layer, .si-glow { translate: calc((var(--si-dx, 0) - var(--si-p, 0) * 7) * var(--d, 0) * var(--si-u, 1px)) calc(var(--si-dy, 0) * var(--d, 0) * .45 * var(--si-u, 1px));
+  transition: translate .18s ease-out; }
+#sortiaIntro.moving :is(.si-layer, .si-glow), .si-world.si-auto :is(.si-layer, .si-glow) { transition: none; }
 .si-layer { position: absolute; pointer-events: none; user-select: none; }
 .si-layer img { display: block; width: 100%; height: 100%; max-width: none; pointer-events: none; }
 .si-world.si-dragging :is(.si-layer, .si-glow) { transition: none; }

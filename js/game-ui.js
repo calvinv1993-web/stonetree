@@ -2868,6 +2868,15 @@ const Intro = (() => {
     const box = $('sortiaIntro'), world = box.querySelector('.si-world');
     world.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
     world.style.setProperty('--si-x', px.toFixed(1));
+    // parallax on the way between two scenes: the far layers fall behind and the near ones run ahead (--si-p, 0 at each
+    // scene, most half way), so at every scene the picture is just as it was painted
+    let p = 0;
+    if (!still()) for (let i = 0; i < NAME; i++) {
+      const a = spot(i), b = spot(i + 1);
+      if (b - a > 1 && px >= a && px <= b) { p = Math.sin(Math.PI * (px - a) / (b - a)); break; }
+    }
+    world.style.setProperty('--si-p', p.toFixed(4));
+    if (!world.style.getPropertyValue('--si-u')) world.style.setProperty('--si-u', `${(world.offsetHeight || INTRO_CANVAS[1]) / INTRO_CANVAS[1]}px`);
     // (no snow in the cave by the seal or indoors with Sister Ama: it comes in as the camera leaves the first scene and is gone
     // by the last; no mist indoors either)
     const clamp01 = v => Math.max(0, Math.min(1, v)), s0 = spot(0), s1 = spot(1), s3 = spot(NAME - 1), s4 = spot(NAME);
@@ -2878,7 +2887,7 @@ const Intro = (() => {
       fx.style.opacity = (fx.classList.contains('si-mist') ? outside : snow).toFixed(3);
     }
   }
-  // the layers' depth: dx, dy from -1 to 1 (a drag, the mouse); each layer shifts by its depth that many canvas pixels
+  // the layers' lean: dx, dy from -1 to 1 (a drag, the mouse); each layer shifts by its depth that many canvas pixels
   // (in the column's scale), a moment's ease unless dragging; 0, 0 puts them back
   function depth(dx, dy, now) {
     const world = $('sortiaIntro').querySelector('.si-world');
@@ -2945,7 +2954,7 @@ const Intro = (() => {
     if (on) openingTimer = setTimeout(() => opening(false), OPENING_MS);
   }
   const along = k => { const v = 1 / (1 - RAMP); return k < RAMP ? v * k * k / (2 * RAMP) : k > 1 - RAMP ? 1 - v * (1 - k) * (1 - k) / (2 * RAMP) : v * (k - RAMP / 2); };
-  function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; }
+  function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; $('sortiaIntro').querySelector('.si-world').classList.remove('si-auto'); }
   function autoplay() {
     stopAuto();
     if (!moving()) return;
@@ -2962,7 +2971,9 @@ const Intro = (() => {
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
         }
         auto = k < 1 ? requestAnimationFrame(frame) : 0;
+        if (!auto) $('sortiaIntro').querySelector('.si-world').classList.remove('si-auto');
       };
+      $('sortiaIntro').querySelector('.si-world').classList.add('si-auto'); // (the layers follow it frame by frame)
       auto = requestAnimationFrame(frame);
     }, $('sortiaIntro').classList.contains('si-opening') ? OPENING_MS : AUTO_WAIT);
   }
@@ -3049,7 +3060,7 @@ const Intro = (() => {
     };
     box.addEventListener('touchend', e => release(e.changedTouches[0].clientX, false), { passive: true });
     box.addEventListener('touchcancel', () => release(drag ? drag.x0 : 0, true), { passive: true });
-    addEventListener('resize', () => { if (!box.hidden && !auto) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
+    addEventListener('resize', () => { box.querySelector('.si-world').style.removeProperty('--si-u'); if (!box.hidden && !auto) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
     addEventListener('keydown', e => {
       if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
