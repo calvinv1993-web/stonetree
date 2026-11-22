@@ -92,6 +92,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-card:not([data-position="center"]) .sv-info { bottom: 5%; color: #d1c3aa; }
 .sv-card:not([data-position="center"]) .sv-info strong { font-size: clamp(12px, 3.03cqw, 31px); }
 .sv-card:not([data-position="center"]) .sv-info small { font-size: clamp(6.5px, 1.35cqw, 14px); }
+.sv-card.sv-cut .sv-info { visibility: hidden; } /* (a side card cut by the screen's edge: its portrait only; game-ui.js fitSides) */
 .sv-card[data-position="left"] .sv-info { left: -6%; }
 .sv-card[data-position="right"] .sv-info { right: -6%; }
 
@@ -107,7 +108,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 
 /* the parchment: the path's words, Strengths and Weaknesses, what it starts with */
 .sv-paper { position: relative; isolation: isolate; box-sizing: border-box; width: 75.7%; margin: calc(12px - 1.83cqw) auto 0; /* (12px under the middle card's foot) */
-  padding: clamp(12px, calc(3.2cqw * var(--pk)), 34px) 6.7% clamp(28px, calc(7.4cqw * var(--pk)), 70px); color: var(--sv-ink); }
+  padding: clamp(12px, calc(3.2cqw * var(--pk)), 34px) 6.7% calc(3.3cqw + 22px); color: var(--sv-ink); }
 .sv-paper::before { position: absolute; content: ''; inset: 0; z-index: -1; background: var(--sv-paper, url(../sprites/ui/sortia/parchment.webp)) center / 100% 100% no-repeat; }
 .sv-paper .sv-rule { color: #71503b; }
 .sv-desc { margin: 0.3cqw auto 0.9cqw; max-width: 34em; text-align: center; text-wrap: balance; color: #312018;
@@ -145,7 +146,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-cta:hover, .sv-cta:focus-visible { filter: brightness(1.13); }
 .sv-cta:active { filter: brightness(0.85); }
 .sv-dots { display: flex; justify-content: center; margin: -2px auto auto; } /* (the dots ~16px under the button: their buttons are 44px to tap) */
-#pathPick .sv-dots button { width: max(32px, 3.1cqw); height: 44px; display: grid !important; place-items: center; }
+#pathPick .sv-dots button { width: 44px; height: 44px; display: grid !important; place-items: center; }
 .sv-dots button span { width: 1.55cqw; min-width: 7px; aspect-ratio: 1; border-radius: 50%; border: 1px solid #9c876a; background: #54483d; }
 .sv-dots button[aria-current="true"] span { background: radial-gradient(circle at 40% 20%, #fff0c2, #be8a4e); border-color: #ecce9b; }
 /* Back (not shown when there's nothing to go back to) */
@@ -189,7 +190,7 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
   #pathPick .sv-arrow.sv-right { left: 85.9%; }
   /* the parchment: wide, a little inside the screen's edges; its words in calc(.. * --pk) */
   /* (the parchment as wide as the screen allows, even when a short phone makes the cards smaller: game-ui.js place) */
-  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: max(16px, calc(3.4cqw * var(--pk))) 6vw calc(4cqw + 18px); }
+  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: max(16px, calc(3.4cqw * var(--pk))) 6vw calc(4cqw + 22px); } /* (22px from the last line to the button over its foot) */
   /* (the words 14 to 15px, the headings 11 to 12px, whatever the phone's width) */
   #pathPick .sv-desc { font-size: clamp(14px, calc(15px * var(--pk)), 15px); margin: 0 auto 5px; }
   #pathPick .sv-cols { margin-top: 6px; }

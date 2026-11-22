@@ -1344,8 +1344,8 @@ function showWindow(heading, body) {
 const PATH_PICK = {
   knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', intro: 'A frontline fighter who takes hits for allies.',
     strengths: ['Highest health', 'Heavy melee hits', 'Takes hits for allies'], weakness: 'Cannot attack from range' },
-  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', intro: 'A bow fighter who strikes from a distance.',
-    strengths: ['Attacks from range', 'Power Shot, volleys and a falcon', 'A little holy magic'], weakness: 'Weak when enemies get close' },
+  paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', intro: 'An archer who calls on a falcon for support.',
+    strengths: ['Long-range attacks', 'Power Shot and volleys', 'Minor holy magic'], weakness: 'Vulnerable in melee' },
   sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', intro: 'A spellcaster who burns whole packs.',
     strengths: ['Fire and energy hit whole packs', 'Highest damage', 'Most mana'], weakness: 'Fragile, and helpless without mana' },
 };
@@ -1421,7 +1421,7 @@ function askPath(onDone, onBack) {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
     const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
     const title = win.querySelector('.sv-title'), curve = () => curveTitle(title);
-    // the parchment as tall as the tallest path's words, for every path: nothing moves when you look at another
+    // (while fitting the screen: the parchment as tall as the tallest path's words, so every path fits; then as tall as its own)
     const tallest = () => {
       paper.style.minHeight = '';
       let most = 0;
@@ -1442,8 +1442,21 @@ function askPath(onDone, onBack) {
         scene.style.width = `${Math.max(least, Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1)}px`; tallest();
       }
     }
-    curve();
+    paper.style.minHeight = '';
+    curve(); fitSides();
     if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
+  }
+  // a side card's crest, name and kind of fighting hidden when the screen's edge cuts them (its portrait still shows,
+  // a glimpse of the next path); measured where the cards come to rest, after their move
+  function fitSides() {
+    clearTimeout(fitSides.t);
+    fitSides.t = setTimeout(() => {
+      const W = document.documentElement.clientWidth;
+      for (const c of track.children) {
+        const cut = [...c.querySelectorAll('.sv-medal, .sv-info strong, .sv-info small')].some(e => { const r = e.getBoundingClientRect(); return r.left < 0 || r.right > W; });
+        c.classList.toggle('sv-cut', c.dataset.position !== 'center' && cut);
+      }
+    }, 450);
   }
   // what the parchment says of a path: its words, strengths, weakness and what it starts with
   function paperFor(v) {
@@ -1484,6 +1497,7 @@ function askPath(onDone, onBack) {
     [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
     $('pathInfo').replaceChildren(...paperFor(v));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
+    fitSides();
     ask(false);
   }
   // the confirmation: a path is for good

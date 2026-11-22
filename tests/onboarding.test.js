@@ -125,9 +125,18 @@ const fits = page => page.evaluate(() => {
     await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
     check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && document.querySelector('.sv-card[data-v=knight]').dataset.position === 'right'), `${name}: Hawk on the left of Bastion, as in the reference`);
     { // (the parchment and the way on stand still whichever path is looked at; the whole screen fits; the title inside its banner)
-      const at = [];
-      for (let k = 0; k < 3; k++) { at.push(await page.evaluate(() => { const r = pathInfo.getBoundingClientRect(); return `${Math.round(r.top)},${Math.round(r.height)}`; })); await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150); }
-      check(new Set(at).size === 1, `${name}: the parchment the same for every path (${at.join(' | ')})`);
+      // (the parchment as tall as its own path's words: 18 to 26px from its last line to the button over its foot; the dots 44px to tap, the one shown current)
+      for (let k = 0; k < 3; k++) {
+        const g = await page.evaluate(() => {
+          const R = e => e.getBoundingClientRect(), p = R(pathInfo), b = R(pathChoose);
+          const last = Math.max(...[...pathInfo.querySelectorAll('.sv-desc, .sv-list li, .sv-items li')].map(e => R(e).bottom));
+          const dots = [...pathDots.children], cur = dots.findIndex(d => d.getAttribute('aria-current') === 'true');
+          return { gap: Math.round(b.top - last), over: b.top < p.bottom && b.bottom > p.bottom, dots: dots.every(d => R(d).width >= 44 && R(d).height >= 44),
+            synced: START_PATHS[cur] === document.querySelector('.sv-card[data-position=center]').dataset.v, path: pathChoose.textContent };
+        });
+        check(g.gap >= 18 && g.gap <= 26 && g.over && g.dots && g.synced, `${name}: ${g.path}: the button over the parchment's foot, close under its words; the dots to tap (${JSON.stringify(g)})`);
+        await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150);
+      }
       // (the whole screen fits from 375 x 667 up; the smallest phone, 320 x 568, scrolls up and down to the button, the words kept large)
       if (name !== '320') check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
       for (let k = 0; k < 3; k++) {
