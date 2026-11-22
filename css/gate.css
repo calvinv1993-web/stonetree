@@ -141,6 +141,10 @@ html body #sortiaGate :is(.sga-char-name, .sga-char-go) { font-family: var(--sg-
 #sortiaGate .sga-new-open:hover { border-color: #d8b47a; background: #ffffff06; }
 #sortiaGate .sga-new-open[hidden] { display: none; }
 .sga-new { margin-top: 14px; }
+#sortiaGate .sga-cancel { justify-self: center; min-height: 44px; padding: 0 16px; color: var(--sga-muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: #b7b1a570; }
+#sortiaGate .sga-cancel:hover { color: var(--sga-ivory); }
+#sortiaGate .sga-cancel[hidden] { display: none; }
 .sga-chars > .sga-status { margin-top: 12px; }
 .sga-switch-hint b { color: var(--sga-ivory); font-weight: 600; }
 

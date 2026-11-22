@@ -3261,7 +3261,6 @@ const Gate = (() => {
     list.hidden = !o.characters.length;
     $('sgNoChars').hidden = !!o.characters.length;
     const full = o.max && o.characters.length >= o.max;
-    $('sgNewOpen').hidden = !o.characters.length || full;
     newOpen(!o.characters.length);
     if (!o.characters.length && !$('sgNewName').value) $('sgNewName').value = o.account;
     charBusy(false);
@@ -3269,10 +3268,21 @@ const Gate = (() => {
     $('sgAuth').scrollTop = 0;
     if (!touchScreen) (o.characters.length ? list.querySelector('button') : $('sgNewName')).focus({ preventScroll: true });
   }
+  // the new character's form: opened from + Create new character, and closed again (Cancel, Escape) without making one;
+  // with no characters yet it stays open (there's nothing to go back to)
   function newOpen(on) {
+    const none = !chars || !chars.characters.length, full = chars && chars.max && chars.characters.length >= chars.max;
     $('sgNewForm').hidden = !on;
     $('sgNewOpen').setAttribute('aria-expanded', String(on));
-    if (on && $('sgNewOpen').hidden === false) $('sgNewOpen').hidden = true;
+    $('sgNewOpen').hidden = on || none || full;
+    $('sgNewCancel').hidden = none;
+  }
+  function newCancel() {
+    if (busy || !chars || !chars.characters.length) return;
+    newOpen(false);
+    $('sgNewName').value = '';
+    charHint('');
+    $('sgNewOpen').focus({ preventScroll: true });
   }
   const charHint = (text, warn) => { $('sgCharHint').textContent = text || ''; $('sgCharHint').classList.toggle('sg-warn', !!warn); $('sgNewName').setAttribute('aria-invalid', 'false'); };
   function charBusy(on, button) {
@@ -3315,7 +3325,8 @@ const Gate = (() => {
     };
     $('sgShow').onclick = () => showPassword($('sgPass').type === 'password');
     $('sgNewOpen').onclick = () => { newOpen(true); $('sgNewName').focus(); };
-    $('sgNewName').addEventListener('keydown', e => e.stopPropagation());
+    $('sgNewName').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') newCancel(); });
+    $('sgNewCancel').onclick = newCancel;
     $('sgNewName').addEventListener('input', () => charHint(''));
     $('sgLogout').onclick = () => { if (busy || !chars) return; const o = chars; leaveCharacters(); o.onLogout(); };
     $('sgNewForm').addEventListener('submit', e => {
