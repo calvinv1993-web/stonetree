@@ -76,6 +76,15 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   const mm = await p.locator('#minimap').boundingBox();
   await p.tap('#minimap', { position: { x: mm.width / 2, y: mm.height / 2 + 12 } }); await p.waitForTimeout(400);
   check('11 a tap on the half-open map walks there, the drawer stays', await E(() => InventoryDrawer.stage() === 1));
+  // (an iPhone drops the click of a tap that wobbled a little, or after a finger it lost track of: the map walks anyway)
+  { const n0 = await E(() => { window.__w = 0; const w = Actions.walkTo; Actions.walkTo = (...a) => { window.__w++; return w(...a); }; return 0; });
+    const b = await p.locator('#minimap').boundingBox(), cx = b.x + b.width / 2 + 15, cy = b.y + b.height / 2;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: cx, y: cy, id: 1 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: cx + 10, y: cy + 3, id: 1 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(300);
+    await E(() => $('minimap').dispatchEvent(new PointerEvent('pointerdown', { pointerId: 99, pointerType: 'touch', isPrimary: true, clientX: 1, clientY: 1, bubbles: true })));
+    await p.tap('#minimap', { position: { x: b.width / 2 - 15, y: b.height / 2 } }); await p.waitForTimeout(300);
+    check('11 a tap that wobbles, and one after a lost finger, still walk (once each)', await E(() => window.__w === 2), String(await E(() => window.__w) - n0)); }
   await p.tap('#mmWorld'); await p.waitForTimeout(500);
   const whole = await p.locator('#minimap').boundingBox();
   await p.tap('#minimap', { position: { x: whole.width / 2, y: whole.height / 2 } }); await p.waitForTimeout(400);

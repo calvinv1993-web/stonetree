@@ -2450,13 +2450,21 @@ function initMaps() {
       z: minimap.viewZ ?? player.z,
     };
   };
-  c.addEventListener('click', e => {
+  const walkHere = e => {
     if ((minimap.viewZ ?? player.z) !== player.z || player.dead) return;
     const t = minimapTile(e);
     Actions.walkTo(t.x, t.y, 30000);
     // on a phone the map is in the drawer: half open it stays (the world shows above it, you walk on in sight); all
     // the way open (Full map, no world left to see) it folds away so you see where you walk
     if (c.closest('.inventory-drawer') && typeof InventoryDrawer !== 'undefined' && InventoryDrawer.stage() === 2) InventoryDrawer.close();
+  };
+  // A finger's tap walks on its own lifting (pointerup), not on the browser's click: an iPhone drops that click now
+  // and then (a finger that wobbled a little, a palm resting on the big screen, the drawer shifting under it), so the
+  // map seemed not to answer. The click that follows a tap is let go. The mouse still walks on its click.
+  let tapWalked = 0;
+  c.addEventListener('click', e => {
+    if (performance.now() - tapWalked < 700) return; // (the tap walked already)
+    walkHere(e);
   });
   markable(c, minimapTile, () => (minimap.view ? minimap.view.scale : minimap.zoom));
   // two fingers on the minimap zoom it in and out
@@ -2464,8 +2472,12 @@ function initMaps() {
   const mmFingers = new Map();
   let mmPinch = null, mmDrag = null, mmDragged = false;
   const mmSpread = () => { const [a, b] = [...mmFingers.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  let tapFrom = null;
   c.addEventListener('pointerdown', e => {
+    if (e.isPrimary) mmFingers.clear(); // (a first finger: none can still be down, whatever was missed)
     mmFingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { c.setPointerCapture(e.pointerId); } catch (err) { /* not this one */ }
+    tapFrom = e.pointerType === 'touch' && mmFingers.size === 1 ? { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() } : null;
     if (mmFingers.size === 2) { mmPinch = { from: mmSpread(), zoom: minimap.zoom }; mmDrag = null; }
     else if (mmFingers.size === 1 && e.button === 0) { mmDrag = { x: e.clientX, y: e.clientY, pan: { ...minimap.pan } }; mmDragged = false; }
   });
@@ -2481,7 +2493,19 @@ function initMaps() {
     minimap.pan = { x: mmDrag.pan.x - dx * k, y: mmDrag.pan.y - dy * k };
     drawMinimap();
   });
-  for (const ev of ['pointerup', 'pointercancel']) c.addEventListener(ev, e => { mmFingers.delete(e.pointerId); if (mmFingers.size < 2) mmPinch = null; if (!mmFingers.size) mmDrag = null; });
+  // a tap: one finger, barely moved, let go before a hold would mark the spot (600 ms), and not part of a pinch
+  c.addEventListener('pointerup', e => {
+    const t = tapFrom; tapFrom = null;
+    if (!t || t.id !== e.pointerId || mmPinch || mmFingers.size > 1) return;
+    if (Math.hypot(e.clientX - t.x, e.clientY - t.y) > 12 || performance.now() - t.t > 550) return;
+    tapWalked = performance.now();
+    mmDragged = false;
+    walkHere(e);
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) c.addEventListener(ev, e => {
+    mmFingers.delete(e.pointerId); if (ev !== 'pointerup' && tapFrom && tapFrom.id === e.pointerId) tapFrom = null;
+    if (mmFingers.size < 2) mmPinch = null; if (!mmFingers.size) mmDrag = null;
+  });
   c.addEventListener('click', e => { if (mmFingers.size || mmPinch || mmDragged) { e.stopImmediatePropagation(); mmDragged = false; } }, true);
   markable($('worldCanvas'), e => worldMapTile(e), () => worldMap.scale);
   $('markSave').addEventListener('click', () => closeMark(true));
