@@ -44,6 +44,14 @@ html body #sortiaGate :is(.sg-tab, .sg-go, .sg-go *) { font-family: var(--sg-ser
 .sg-track i { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #b97a1c, #ffe08a); box-shadow: 0 0 10px #f2b84acc; transition: width .3s ease; }
 .sg-small { margin: 10px 0 0; font-size: 12px; letter-spacing: .06em; color: #efe3cbcc; text-shadow: 0 1px 3px #000; }
 #sortiaGate.sg-leaving .sg-load { opacity: 0; }
+/* loaded: the line full and gone, "Tap to begin" in its place, breathing (the whole screen takes the tap) */
+#sortiaGate.sg-ready { cursor: pointer; }
+#sortiaGate.sg-ready .sg-track { opacity: 0; transition: opacity .4s ease; }
+#sortiaGate .sg-begin { display: block; margin: 14px auto 0; min-height: 44px; padding: 0 18px; color: var(--sg-gold); font: 600 15px / 1.2 var(--sg-serif);
+  letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 4px #000, 0 0 14px #000c; animation: sg-breathe 2.4s ease-in-out infinite; }
+#sortiaGate .sg-begin[hidden] { display: none; }
+html body #sortiaGate .sg-begin { font-family: var(--sg-serif) !important; }
+@keyframes sg-breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
 /* the way in: a card low on the screen */
 .sg-auth { margin-top: auto; width: min(100%, 400px); padding: 18px 20px 16px; border: 1px solid var(--sg-line); border-radius: 6px;

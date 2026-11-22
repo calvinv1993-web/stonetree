@@ -3102,24 +3102,55 @@ const Gate = (() => {
   // a picture fetched now, so it's there when it's needed (done when it's in, or couldn't be)
   const fetchPicture = src => new Promise(done => { const img = new Image(); img.onload = img.onerror = () => done(); img.src = src; });
   // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long)
+  // the first time, the way on waits for a tap or key once everything's in ("Tap to begin"): that's what lets a browser
+  // play sound, so the title music starts with it, from the first note
+  let begun = false;
+  const audioWait = () => Promise.race([Sound.title.preload('gate'), new Promise(done => setTimeout(done, 2500))]); // (a phone fetches music only once tapped)
+  const quick = () => navigator.webdriver && !/[?&]music\b/.test(location.search); // (browser tests: straight on)
+  function begin() {
+    if (begun || quick()) { begun = true; return Promise.resolve(); }
+    return new Promise(done => {
+      const prompt = $('sgBegin'), go = () => {
+        if (begun) return;
+        begun = true;
+        Sound.title.start('gate'); // (in the tap itself: SORTIA's title music, The Shadowed Gate; the story has its own)
+        removeEventListener('keydown', key, true);
+        prompt.hidden = true;
+        $('sortiaGate').classList.remove('sg-ready');
+        done();
+      };
+      const key = e => { if (!e.altKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); go(); } };
+      prompt.textContent = touchScreen ? 'Tap to begin' : 'Click or press any key to begin';
+      prompt.hidden = false;
+      $('sgLoadText').textContent = '';
+      $('sortiaGate').classList.add('sg-ready');
+      prompt.onclick = go;
+      $('sortiaGate').onpointerup = e => { if (!$('sgAuth').hidden || e.target.closest('input, select, summary')) return; go(); };
+      addEventListener('keydown', key, true);
+      if (!touchScreen) prompt.focus({ preventScroll: true });
+    });
+  }
+  // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long), and
+  // the first time once you've begun
   function load(text) {
     const el = box();
-    Sound.title.start('gate'); // (SORTIA's title music: The Shadowed Gate; the story has its own)
     el.hidden = false; el.classList.add('sg-in'); el.classList.remove('sg-out', 'sg-leaving');
-    $('sgLoad').hidden = false; $('sgAuth').hidden = true;
+    $('sgLoad').hidden = false; $('sgAuth').hidden = true; $('sgBegin').hidden = true;
     $('sgLoadText').textContent = text || 'Loading…';
     const jobs = [
       document.fonts && document.fonts.ready,
       fetchPicture(el.querySelector('.sg-logo').src),
       fetchPicture(hashed('ui/intro/panorama.webp')),
       fetchPicture(hashed('ui/intro/sortia-wordmark.webp')),
+      begun ? null : audioWait(),
       new Promise(done => setTimeout(done, 900)),
     ].map(p => Promise.resolve(p).catch(() => {}));
     let finished = 0;
     const bar = $('sgBar');
     bar.style.width = '6%';
     for (const job of jobs) job.then(() => { finished++; bar.style.width = `${Math.round(6 + 94 * finished / jobs.length)}%`; });
-    return Promise.race([Promise.all(jobs), new Promise(done => setTimeout(done, 6000))]).then(() => new Promise(done => setTimeout(done, 250)));
+    return Promise.race([Promise.all(jobs), new Promise(done => setTimeout(done, 6000))])
+      .then(() => new Promise(done => setTimeout(done, 250))).then(begin);
   }
   function setTab(t) {
     tab = t;
