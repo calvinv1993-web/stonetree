@@ -1,0 +1,23 @@
+@font-face{font-family:Cinzel;src:url("assets/cinzel-latin.woff2") format("woff2");font-weight:400 600;font-display:swap}
+@font-face{font-family:Inter;src:url("assets/inter-latin.woff2") format("woff2");font-weight:400 600;font-display:swap}
+*{box-sizing:border-box}
+body{margin:0;background:#0b141d;color:#eee8dc;font:400 14px/1.55 Inter,system-ui,sans-serif}
+.parallax{min-height:100svh;display:grid;grid-template-rows:minmax(360px,65svh) 1fr}
+.viewport{position:relative;isolation:isolate;overflow:hidden;background:#10202d;touch-action:pan-y;cursor:grab}
+.viewport:active{cursor:grabbing}
+.world{position:absolute;top:0;left:0;width:2172px;height:724px;transform-origin:0 0;will-change:transform}
+.layer{position:absolute;pointer-events:none;user-select:none;will-change:translate;transition:translate .18s ease-out}
+.viewport.is-dragging .layer{transition:none}
+.layer img{display:block;width:100%;height:100%;pointer-events:none}
+.vignette{position:absolute;inset:0;background:linear-gradient(transparent 72%,#0b141d);pointer-events:none}
+.caption{width:min(100%,650px);margin:0 auto;padding:8px 26px max(24px,env(safe-area-inset-bottom))}
+.chapter{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#b8a88e;margin:0 0 7px}
+h1{font:600 27px/1.2 Cinzel,Georgia,serif;color:#e5c78f;margin:0 0 10px}
+.copy{margin:0 0 20px;min-height:4.7em;max-width:47ch}
+nav{border-top:1px solid #b59a6038;display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:8px}
+button{min-height:44px;padding:0 6px;background:transparent;border:0;color:#e6c78e;cursor:pointer;font:600 14px/1.2 Cinzel,serif}
+button:focus-visible,.viewport:focus-visible{outline:2px solid #dcb878;outline-offset:-3px}
+button:disabled{opacity:.3;cursor:default}
+.count{font-size:11px;color:#a99e8d}
+@media(min-width:1100px){.parallax{grid-template-rows:minmax(400px,70svh) auto}.caption{width:650px;padding-top:0}}
+@media(prefers-reduced-motion:reduce){.world,.layer{will-change:auto}.layer{transition:none}}

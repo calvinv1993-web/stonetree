@@ -2808,14 +2808,30 @@ const ParchmentPanel = (() => {
 // a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
-// One panorama behind it all (sprites/ui/intro/panorama.webp: the seal, the mill, the crossing, the false signal, Sister
-// Ama, left to right; its lanterns flickering; mist and snow in front, each at its own pace), the camera moving along it: four story cards, each its title and words over its part of the
-// picture, then Sister Ama: your name (offline; online it's known from the login), and three lines of talk ending in
-// Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and lands on the next scene
-// (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The words stay where they
-// are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
-// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.29, 0.49, 0.67, 0.90];
+// One panorama behind it all, built of layers (the owner's parallax scene, docs/sortia/parallax: sprites/ui/intro/layers/):
+// the sky and mountains, the river and land, the north's ruins and the mill, Oakvale and its bridge, the temple room, the
+// small groups of goblins and watchmen, the traveler, the wolf, the hidden goblin, Sister Ama and the foreground, each
+// placed on one 2172 x 724 canvas (INTRO_LAYERS, from its asset-manifest.json). They move together with the camera; each
+// shifts a few pixels more by its depth while you drag, or as the mouse moves over it, so the scene has depth without a
+// gate leaving its bridge. Its lanterns flicker; mist and snow drift in front, each at its own pace. Four story cards,
+// each its title and words over its part of the picture, then Sister Ama: your name (offline; online it's known from the
+// login), and three lines of talk ending in Choose Your Path, which opens the vocation screen. A swipe drags the picture
+// with the finger and lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight
+// to Sister Ama. The words stay where they are and change as the camera lands. Browser tests go straight on unless they
+// ask for it with ?story.
+// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left (the manifest's)
+const INTRO_SPOTS = [0.10, 0.33, 0.47, 0.70, 0.92];
+const INTRO_CANVAS = [2172, 724];
+// [file, x, y, width, height, z, depth] on that canvas
+const INTRO_LAYERS = [
+  ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-river-terrain', 0, 0, 2172, 724, 10, -3],
+  ['03-northern-ruins-and-mill', 0, 0, 900, 650, 20, 0], ['04-oakvale-and-bridge', 715, 0, 1000, 660, 20, 0], ['05-temple-room', 1720, 0, 452, 640, 20, 0],
+  ['06-upstream-goblins-wolves', 660, 175, 245, 91, 22, 0], ['07-mill-gate-goblins', 655, 291, 185, 155, 23, 0],
+  ['08-bridge-watchmen', 1168, 275, 100, 115, 24, 0], ['09-gate-watchman', 1168, 85, 95, 135, 24, 0],
+  ['10-traveler', 845, 305, 350, 276.47, 35, 2], ['11-wolf', 1450, 225, 195, 200.44, 33, 1.5], ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5],
+  ['13-sister-ama', 1810, 115, 300, 413.07, 35, 1.5], ['14-foreground', 0, 0, 2172, 724, 45, 4],
+];
+const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
   ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal'],
   ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host'],
@@ -2838,10 +2854,10 @@ const Intro = (() => {
   const kind = i => i < NAME ? 'card' : opts.askName && i === NAME ? 'name' : 'talk';
   const talkLine = i => INTRO_AMA.talk[i - NAME - (opts.askName ? 1 : 0)];
   const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const art = () => $('sortiaIntro').querySelector('.si-art');
+  const art = () => $('sortiaIntro').querySelector('.si-layer img'); // (the sky: the first, the others with it)
   // the camera: the panorama's left edge, in pixels, for a scene (its spot in the middle of the column, never past an edge)
   function spot(i) {
-    const col = $('sortiaIntro').querySelector('.si-col'), w = $('sortiaIntro').querySelector('.si-world').offsetWidth || col.clientHeight * 2172 / 724, view = col.clientWidth;
+    const col = $('sortiaIntro').querySelector('.si-col'), w = $('sortiaIntro').querySelector('.si-world').offsetWidth || col.clientHeight * INTRO_CANVAS[0] / INTRO_CANVAS[1], view = col.clientWidth;
     return Math.max(0, Math.min(w - view, INTRO_SPOTS[Math.min(i, NAME)] * w - view / 2));
   }
   // the camera at px: the panorama moved by it, the layers in front each by their own share of it (data-f), within one
@@ -2861,6 +2877,16 @@ const Intro = (() => {
       fx.style.transform = `translate3d(${(-off).toFixed(1)}px, 0, 0)`;
       fx.style.opacity = (fx.classList.contains('si-mist') ? outside : snow).toFixed(3);
     }
+  }
+  // the layers' depth: dx, dy from -1 to 1 (a drag, the mouse); each layer shifts by its depth that many canvas pixels
+  // (in the column's scale), a moment's ease unless dragging; 0, 0 puts them back
+  function depth(dx, dy, now) {
+    const world = $('sortiaIntro').querySelector('.si-world');
+    if (still()) dx = dy = 0;
+    world.style.setProperty('--si-u', `${(world.offsetHeight || INTRO_CANVAS[1]) / INTRO_CANVAS[1]}px`);
+    world.style.setProperty('--si-dx', dx.toFixed(3));
+    world.style.setProperty('--si-dy', dy.toFixed(3));
+    world.classList.toggle('si-dragging', !!now);
   }
   // a glide from where the camera is to px, in ms, slowing as it lands; then done()
   function glide(px, ms, done) {
@@ -2899,7 +2925,7 @@ const Intro = (() => {
     at = i;
     const turn = ++landing;
     if (from === to && Math.abs(x - spot(to)) < 1) { words(true); return; }
-    const far = Math.abs(spot(to) - x), ms = still() ? 0 : Math.round(Math.min(1100, 420 + far * 0.35));
+    const far = Math.abs(spot(to) - x), ms = still() ? 0 : far > $('sortiaIntro').querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a scene beside it in 650 ms)
     if (!ms) { cancelAnimationFrame(glideFrame); place(spot(to)); words(true); return; }
     $('sortiaIntro').classList.add('moving');
     glide(spot(to), ms, () => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); });
@@ -2964,7 +2990,25 @@ const Intro = (() => {
   function setup() {
     const box = $('sortiaIntro'), input = $('siName');
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
-    { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/panorama.webp']; if (h) box.querySelector('.si-art').src = `sprites/ui/intro/panorama.webp?h=${h}`; }
+    { // the layers, in front of their glows' places (the lights sit over the figures, under the foreground)
+      const scene = box.querySelector('.si-scene'), [cw, ch] = INTRO_CANVAS, pc = (v, of) => `${(100 * v / of).toFixed(4)}%`;
+      for (const [id, lx, ly, lw, lh, z, d] of INTRO_LAYERS) {
+        const layer = document.createElement('div'), img = document.createElement('img');
+        layer.className = 'si-layer';
+        Object.assign(layer.style, { left: pc(lx, cw), top: pc(ly, ch), width: pc(lw, cw), height: pc(lh, ch), zIndex: z });
+        layer.style.setProperty('--d', d);
+        img.src = introLayerFile(id); img.alt = ''; img.draggable = false; img.decoding = 'async';
+        layer.append(img);
+        scene.append(layer);
+      }
+    }
+    // the mouse over the picture: the layers lean with it a little (not on a phone: there a drag does it)
+    box.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || box.hidden || drag) return;
+      const r = box.querySelector('.si-col').getBoundingClientRect();
+      depth(Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1)), Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1)));
+    });
+    box.addEventListener('pointerleave', () => depth(0, 0));
     $('siSkip').onclick = () => go(NAME);
     $('siBack').onclick = () => turn(-1);
     $('siNext').onclick = () => go(at + 1);
@@ -2992,11 +3036,13 @@ const Intro = (() => {
       const lo = spot(0), hi = spot(NAME); let to = drag.base - dx;
       if (to < lo) to = lo - (lo - to) * 0.35; else if (to > hi) to = hi + (to - hi) * 0.35; // (stiff past the ends)
       place(to);
+      depth(Math.max(-1, Math.min(1, dx / Math.max(1, box.clientWidth))), 0, true);
     }, { passive: true });
     const release = (cx, cancelled) => {
       if (!drag) return;
       const d = drag; drag = null;
       if (!d.on) return;
+      depth(0, 0);
       const dx = cx - d.x0, fast = Math.abs(dx) / Math.max(1, performance.now() - d.t) > 0.45;
       if (!cancelled && (Math.abs(dx) >= 55 || (fast && Math.abs(dx) > 20))) turn(dx < 0 ? 1 : -1);
       else go(at); // (back to where it was)
@@ -3140,7 +3186,7 @@ const Gate = (() => {
   const box = () => $('sortiaGate');
   const hashed = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[file]; return `sprites/${file}${h ? `?h=${h}` : ''}`; };
   // a picture fetched now, so it's there when it's needed (done when it's in, or couldn't be)
-  const fetchPicture = src => new Promise(done => { const img = new Image(); img.onload = img.onerror = () => done(); img.src = src; });
+  const fetchPicture = src => new Promise(done => { const img = new Image(); img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(done); img.onerror = () => done(); img.src = src; });
   // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long)
   // the first time, the way on waits for a tap or key once everything's in ("Tap to begin"): that's what lets a browser
   // play sound, so the title music starts with it, from the first note
@@ -3180,7 +3226,7 @@ const Gate = (() => {
     const jobs = [
       document.fonts && document.fonts.ready,
       fetchPicture(el.querySelector('.sg-logo').src),
-      fetchPicture(hashed('ui/intro/panorama.webp')),
+      ...INTRO_LAYERS.map(([id]) => fetchPicture(introLayerFile(id))), // (the opening's layers, decoded before they're seen)
       fetchPicture(hashed('ui/intro/sortia-wordmark.webp')),
       begun ? null : audioWait(),
       new Promise(done => setTimeout(done, 900)),

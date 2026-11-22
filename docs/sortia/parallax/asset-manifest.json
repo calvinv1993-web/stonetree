@@ -1,0 +1,177 @@
+{
+  "canvas": {
+    "width": 2172,
+    "height": 724
+  },
+  "cameraCenters": [
+    0.1,
+    0.33,
+    0.47,
+    0.7,
+    0.92
+  ],
+  "layers": [
+    {
+      "id": "01-distant-sky-mountains",
+      "file": "assets/01-distant-sky-mountains.webp",
+      "x": 0,
+      "y": 0,
+      "width": 2172,
+      "height": 724,
+      "z": 0,
+      "depth": -8,
+      "role": "Opaque clean plate with sky, mountains and distant forest."
+    },
+    {
+      "id": "02-river-terrain",
+      "file": "assets/02-river-terrain.png",
+      "x": 0,
+      "y": 0,
+      "width": 2172,
+      "height": 724,
+      "z": 10,
+      "depth": -3,
+      "role": "Restored river and terrain beneath buildings and characters."
+    },
+    {
+      "id": "03-northern-ruins-and-mill",
+      "file": "assets/03-northern-ruins-and-mill.png",
+      "x": 0,
+      "y": 0,
+      "width": 900,
+      "height": 650,
+      "z": 20,
+      "depth": 0,
+      "role": "Cave, seal, mill and attached gate bridge as a connected assembly."
+    },
+    {
+      "id": "04-oakvale-and-bridge",
+      "file": "assets/04-oakvale-and-bridge.png",
+      "x": 715,
+      "y": 0,
+      "width": 1000,
+      "height": 660,
+      "z": 20,
+      "depth": 0,
+      "role": "Town and its main timber bridge as a connected assembly."
+    },
+    {
+      "id": "05-temple-room",
+      "file": "assets/05-temple-room.png",
+      "x": 1720,
+      "y": 0,
+      "width": 452,
+      "height": 640,
+      "z": 20,
+      "depth": 0,
+      "role": "Temple architecture with a reconstructed empty ledge."
+    },
+    {
+      "id": "06-upstream-goblins-wolves",
+      "file": "assets/06-upstream-goblins-wolves.png",
+      "x": 660,
+      "y": 175,
+      "width": 245,
+      "height": 91,
+      "z": 22,
+      "depth": 0,
+      "role": "Independent small background figure group."
+    },
+    {
+      "id": "07-mill-gate-goblins",
+      "file": "assets/07-mill-gate-goblins.png",
+      "x": 655,
+      "y": 291,
+      "width": 185,
+      "height": 155,
+      "z": 23,
+      "depth": 0,
+      "role": "Independent small background figure group."
+    },
+    {
+      "id": "08-bridge-watchmen",
+      "file": "assets/08-bridge-watchmen.png",
+      "x": 1168,
+      "y": 275,
+      "width": 100,
+      "height": 115,
+      "z": 24,
+      "depth": 0,
+      "role": "Independent small background figure group."
+    },
+    {
+      "id": "09-gate-watchman",
+      "file": "assets/09-gate-watchman.png",
+      "x": 1168,
+      "y": 85,
+      "width": 95,
+      "height": 135,
+      "z": 24,
+      "depth": 0,
+      "role": "Independent small background figure group."
+    },
+    {
+      "id": "10-traveler",
+      "file": "assets/10-traveler.png",
+      "x": 845,
+      "y": 305,
+      "width": 350,
+      "height": 276.47,
+      "z": 35,
+      "depth": 2,
+      "role": "Complete isolated traveler with held lantern and pack."
+    },
+    {
+      "id": "11-wolf",
+      "file": "assets/11-wolf.png",
+      "x": 1450,
+      "y": 225,
+      "width": 195,
+      "height": 200.44,
+      "z": 33,
+      "depth": 1.5,
+      "role": "Alert gray wolf facing left, separate from goblin."
+    },
+    {
+      "id": "12-hidden-goblin",
+      "file": "assets/12-hidden-goblin.png",
+      "x": 1390,
+      "y": 340,
+      "width": 285,
+      "height": 306.2,
+      "z": 36,
+      "depth": 2.5,
+      "role": "Crouched goblin facing left with held lantern."
+    },
+    {
+      "id": "13-sister-ama",
+      "file": "assets/13-sister-ama.png",
+      "x": 1810,
+      "y": 115,
+      "width": 300,
+      "height": 413.07,
+      "z": 35,
+      "depth": 1.5,
+      "role": "Isolated Sister Ama with cup, portrait style matches vocations."
+    },
+    {
+      "id": "14-foreground",
+      "file": "assets/14-foreground.png",
+      "x": 0,
+      "y": 0,
+      "width": 2172,
+      "height": 724,
+      "z": 45,
+      "depth": 4,
+      "role": "Sparse foreground tree, reeds and low snowy rocks."
+    }
+  ],
+  "notes": [
+    "Reconstructed parallax scene. Native canvas 2172x724. Original composition is a reference, new layer silhouettes vary.",
+    "Sky, mountains and distant forest share one opaque plate.",
+    "North ruins plus mill and Oakvale plus bridge are architectural assemblies. Their parts move together.",
+    "Lanterns, candlelight, warm reflections and snow on surfaces are part of the painted assets. No animated effects are included.",
+    "All character motion in the demo is parallax only. Eye blinking, limb motion and speech need separate animation assets.",
+    "All sprites are PNG RGBA. Texture transparency was numerically checked. Pixel-level hair and fur matte remains subject to visual approval."
+  ]
+}
