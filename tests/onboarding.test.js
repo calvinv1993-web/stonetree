@@ -145,13 +145,13 @@ const fits = page => page.evaluate(() => {
         const R = e => e.getBoundingClientRect(), cards = [...document.querySelectorAll('.vs-card')].map(R), btn = R(pathChoose);
         const words = [...pathInfo.querySelectorAll('p, li')].map(R), bottom = Math.max(...words.map(r => r.bottom));
         const on = [...document.querySelectorAll('.vs-card')].findIndex(c => c.getAttribute('aria-checked') === 'true'), rest = cards.filter((r, i) => i !== on);
-        return { at: `${Math.round(R(document.querySelector('.vs-cards')).bottom)},${Math.round(btn.top)}`, same: rest.every(r => Math.abs(r.width - rest[0].width) < 0.5 && Math.abs(r.height - rest[0].height) < 0.5) && cards[on].height > rest[0].height + 4 && cards[on].width > rest[0].width && cards.every(r => r.height >= 44),
+        return { at: `${Math.round(R(document.querySelector('.vs-cards')).bottom)},${Math.round(btn.top)}`, same: on >= 0 && cards.every(r => Math.abs(r.width - cards[0].width) < 0.5 && Math.abs(r.height - cards[0].height) < 0.5 && r.height >= 44),
           btn: btn.height >= 44, clear: bottom <= R(document.querySelector('.vs-note')).top, text: parseFloat(getComputedStyle(pathIntro).fontSize) >= 11,
           sides: document.documentElement.scrollWidth <= innerWidth && [...document.querySelectorAll('.vs-card, #pathChoose, .vs-title')].every(e => R(e).left >= 0 && R(e).right <= innerWidth) };
       }));
     }
     check(held.every(g => g.at === held[0].at), `${name}: the cards and the button stay put (${held.map(g => g.at).join(' | ')})`);
-    check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the card looked at larger, the others alike, the button big enough, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
+    check(held.every(g => g.same && g.btn && g.clear && g.text && g.sides), `${name}: the cards alike, the button big enough, nothing overlapping or past the sides (${JSON.stringify(held[0])})`);
     if (name !== '320') check(await page.evaluate(() => pathPick.scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
     check(await page.evaluate(() => pathBack.hidden), `${name}: no Back from the paths (the name is given)`);
     await page.click('.vs-card[data-v=sorcerer]');
