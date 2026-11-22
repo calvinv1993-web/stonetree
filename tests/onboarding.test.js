@@ -59,7 +59,7 @@ const fits = page => page.evaluate(() => {
     // through them; nothing past the sides, the way on in sight (a short screen may scroll up and down to it)
     const W = device.viewport.width, H = device.viewport.height;
     const title = () => page.evaluate(() => siTitle.textContent);
-    const shown = () => page.evaluate(() => ({ art: (document.querySelector('.si-art').getAttribute('src').match(/ui\/intro\/color\/([\w-]+)\.webp/) || [])[1],
+    const shown = () => page.evaluate(() => ({ art: (document.querySelector('.si-art').getAttribute('src').match(/ui\/intro\/(?:color|sketch)\/([\w-]+)\.webp/) || [])[1],
       sides: document.documentElement.scrollWidth <= innerWidth && sortiaIntro.scrollWidth <= sortiaIntro.clientWidth,
       way: (() => { const b = [...sortiaIntro.querySelectorAll('.si-fwd')].find(e => e.offsetParent); const r = b.getBoundingClientRect(); return r.height >= 44 && r.right <= innerWidth + 0.5; })() }));
     const seen = [];

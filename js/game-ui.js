@@ -2804,9 +2804,9 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // Four story cards, each its own picture with its title and words (a swipe, the arrows, Continue and back go through
 // them; Skip intro goes to Sister Ama), then Sister Ama: your name (offline; online it's known from the login), and three
 // lines of talk ending in Choose Your Path, which opens the vocation screen. Its pictures: sprites/ui/intro/<art>/, the
-// painted ones (color) or the sketched (sketch), the same words either way: INTRO_ART, the project's choice (a page can
+// painted ones (color) or the sketched (sketch, the owner's choice), the same words either way: INTRO_ART (a page can
 // try the other with ?art=sketch or ?art=color). Browser tests go straight on unless they ask for it with ?story.
-const INTRO_ART = 'color';
+const INTRO_ART = 'sketch';
 const INTRO_CARDS = [
   ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal', '50%'],
   ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host', '51%'],
