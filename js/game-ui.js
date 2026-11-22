@@ -1389,13 +1389,13 @@ function playLayered(v) {
   const turn = playLayered.turn = (playLayered.turn || 0) + 1;
   const scene = document.querySelector(`.vs-layered[data-v="${v}"]`), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // (the one going keeps moving while it fades; its light stops once it's gone)
-  for (const other of document.querySelectorAll('.vs-layered')) if (other !== scene) {
-    other.classList.remove('enter');
-    setTimeout(() => { if (turn === playLayered.turn) other.classList.remove('play'); }, 520);
+  for (const other of document.querySelectorAll('.vs-layered')) if (other !== scene && other.classList.contains('play')) {
+    other.classList.remove('enter'); other.classList.add('leave'); // (its figure steps back while the whole of it fades)
+    setTimeout(() => { if (turn === playLayered.turn) other.classList.remove('play', 'leave'); }, 520);
   }
-  if (!scene || still) { if (scene) scene.classList.remove('play', 'enter'); return; }
+  if (!scene || still) { if (scene) scene.classList.remove('play', 'enter', 'leave'); return; }
   // (it starts at once, from its first frame: shown first and started after, it would jump)
-  scene.classList.remove('play', 'enter');
+  scene.classList.remove('play', 'enter', 'leave');
   void scene.offsetWidth; // (the animations start again from their beginning)
   scene.classList.add('play', 'enter');
 }
