@@ -45,27 +45,38 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
   background: linear-gradient(180deg, var(--vs-bg) 0, var(--vs-bg) 56px, rgba(11, 15, 21, 0.55) 22%, rgba(11, 15, 21, 0) 36%, rgba(11, 15, 21, 0) 52%, rgba(11, 15, 21, 0.72) 76%, var(--vs-bg) 96%),
     linear-gradient(90deg, rgba(11, 15, 21, 0.45), rgba(11, 15, 21, 0) 18%, rgba(11, 15, 21, 0) 82%, rgba(11, 15, 21, 0.45)); }
 
-/* Bastion's picture in layers (game-ui.js bastionScene, after docs/sortia/bastion-motion): from the back, the fortress
-   (drifting a little closer over 7s), a warm glow in its sky, Bastion (settling over 1.6s as he comes) and a brighter copy
-   of him seen through a moving spot (the light, once, 5.9s, from his right shoulder to the lion on his shield). Sized and
-   placed by placeBastion (--fig-h, --fig-top); without .play (reduced motion, or between plays) it stands as it ends. */
+/* Bastion's and Ember's pictures in layers (game-ui.js layeredScene, after docs/sortia/bastion-motion): from the back, the
+   land (drifting a little closer over 7s), a glow in its sky, the figure (settling over 1.6s as it comes) and a brighter
+   copy of it seen through a moving spot (the light, once, 5.9s: Bastion's warm, from his right shoulder to the lion on
+   his shield; Ember's cold, from the crystal on his staff down to his hand, the crystal kindling as it starts). Sized and
+   placed by placeLayered (--fig-h, --fig-top); without .play (reduced motion, or between plays) each stands as it ends. */
 @property --vs-light-x { syntax: '<percentage>'; inherits: false; initial-value: 83%; }
 @property --vs-light-y { syntax: '<percentage>'; inherits: false; initial-value: 58%; }
-.vs-bastion { inset: 0; height: 100%; overflow: hidden; isolation: isolate; pointer-events: none; }
-.vs-bastion :is(.vs-depth, .vs-sun, .vs-figure, img) { position: absolute; pointer-events: none; }
-.vs-depth { inset: 0; z-index: -5; background: var(--vs-bastion-scene, url(../sprites/ui/sortia/bastion-scene.webp)) center top / cover no-repeat;
-  transform: scale(1.025); transform-origin: 66% 21%; }
+.vs-layered { inset: 0; height: 100%; overflow: hidden; isolation: isolate; pointer-events: none; }
+.vs-layered :is(.vs-depth, .vs-sun, .vs-figure, img) { position: absolute; pointer-events: none; }
+.vs-depth { inset: 0; z-index: -5; background: url(../sprites/ui/sortia/bastion-scene.webp) center top / cover no-repeat; transform: scale(1.025); transform-origin: 66% 21%; }
 .vs-sun { inset: 0; z-index: -4; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse 42% 24% at 91% 17%, #e5953532, transparent 100%); }
 .vs-figure { z-index: -2; left: 50%; top: var(--fig-top, 64px); height: var(--fig-h, 480px); aspect-ratio: 1120 / 1568; transform: translateX(-51.5%); }
 .vs-figure img { inset: 0; width: 100%; height: 100%; }
 .vs-hero-light { opacity: 0; filter: brightness(1.38) saturate(1.16);
   -webkit-mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%);
   mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%); }
-.vs-bastion.play .vs-depth { animation: vs-depth 7s cubic-bezier(.18, .56, .26, 1) both; }
-.vs-bastion.play .vs-sun { animation: vs-sun 7s ease-in-out both; }
-.vs-bastion.play .vs-hero-img { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both; }
-.vs-bastion.play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-armour 5.9s ease-in-out both; }
-#pathPick[data-paused="true"] .vs-bastion * { animation-play-state: paused !important; }
+.vs-layered.play .vs-depth { animation: vs-depth 7s cubic-bezier(.18, .56, .26, 1) both; }
+.vs-layered.play .vs-sun { animation: vs-sun 7s ease-in-out both; }
+.vs-layered.play .vs-hero-img { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both; }
+.vs-layered.play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-armour 5.9s ease-in-out both; }
+/* (Ember: a ruined observatory under the moon; a cold glow round the moon; the light colder, down his staff; his crystal kindles) */
+.vs-layered[data-art="ember"] .vs-depth { background-image: url(../sprites/ui/sortia/ember-scene.webp); transform-origin: 72% 18%; }
+.vs-layered[data-art="ember"] .vs-sun { background: radial-gradient(ellipse 44% 22% at 90% 15%, #8fb4ff38, transparent 100%); }
+.vs-layered[data-art="ember"] .vs-hero-light { filter: brightness(1.5) saturate(1.25) contrast(1.05);
+  -webkit-mask-image: radial-gradient(ellipse 20% 13% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%);
+  mask-image: radial-gradient(ellipse 20% 13% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%); }
+.vs-layered[data-art="ember"].play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-arcane 5.9s ease-in-out both; }
+.vs-layered[data-art="ember"] .vs-figure::after { content: ''; position: absolute; left: 70%; top: 13%; width: 18%; aspect-ratio: 1; border-radius: 50%; opacity: .35;
+  mix-blend-mode: screen; background: radial-gradient(circle, #e8f4ff 0, #9cc8ff99 18%, #5d8cff33 45%, transparent 70%); }
+.vs-layered[data-art="ember"].play .vs-figure::after { animation: vs-kindle 5.9s ease-in-out both; }
+#pathPick[data-paused="true"] .vs-layered, #pathPick[data-paused="true"] .vs-layered * { animation-play-state: paused !important; }
+#pathPick[data-paused="true"] .vs-layered .vs-figure::after { animation-play-state: paused !important; }
 @keyframes vs-depth { from { transform: translate3d(-7px, -2.5px, 0) scale(1.065); } to { transform: translate3d(0, 0, 0) scale(1.025); } }
 @keyframes vs-settle { from { transform: translate3d(1.5px, 2px, 0) scale(.997); } to { transform: translate3d(0, 0, 0) scale(1); } }
 @keyframes vs-sun { 0%, 100% { opacity: 0; } 23% { opacity: .7; } 47% { opacity: .47; } 76% { opacity: .06; } }
@@ -76,6 +87,14 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
   76% { --vs-light-x: 78%; --vs-light-y: 49%; opacity: .36; }
   100% { --vs-light-x: 83%; --vs-light-y: 58%; opacity: 0; }
 }
+@keyframes vs-arcane {
+  0%, 10% { --vs-light-x: 79%; --vs-light-y: 17%; opacity: 0; }
+  32% { --vs-light-x: 77%; --vs-light-y: 27%; opacity: .7; }
+  57% { --vs-light-x: 73%; --vs-light-y: 40%; opacity: .72; }
+  76% { --vs-light-x: 70%; --vs-light-y: 51%; opacity: .36; }
+  100% { --vs-light-x: 67%; --vs-light-y: 62%; opacity: 0; }
+}
+@keyframes vs-kindle { 0% { opacity: 0; transform: scale(.6); } 18% { opacity: 1; transform: scale(1.12); } 45% { opacity: .62; transform: scale(1); } 100% { opacity: .35; transform: scale(1); } }
 
 /* the title, the cards, the words and the button: in the owner's study's own measures (docs/sortia/bastion-motion, a
    394px screen), in % of the column's width (cqw), so they keep its proportions on any phone */
@@ -160,4 +179,4 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 
 /* a short phone: a little less air (the column still scrolls if it has to) */
 @media (max-height: 700px) { .vs-top { min-height: 304px; } }
-@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } .vs-bastion * { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } .vs-layered, .vs-layered *, .vs-layered .vs-figure::after { animation: none !important; } }

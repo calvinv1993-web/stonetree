@@ -124,11 +124,16 @@ const fits = page => page.evaluate(() => {
     check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
       `${name}: a card shows its path: its picture and words; looking chooses nothing`);
     await page.keyboard.press('ArrowRight'); check(await looked() === 'knight', `${name}: the arrow key: the card on the right`);
-    // (Bastion's light: once each time he's looked at, the layers taking no taps; none with reduced motion)
-    check(await page.evaluate(() => { const s = document.querySelector('.vs-bastion'), r = document.querySelector('.vs-figure').getBoundingClientRect();
-      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.3);
-      return s.classList.contains('on') && !s.contains(hit) && (s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches || !document.querySelector('.vs-hero-img').complete); }),
-      `${name}: Bastion in layers, his light playing, nothing in it taking a tap`);
+    // (Bastion's and Ember's light: once each time they're looked at, the layers taking no taps; none with reduced motion)
+    for (const v of ['knight', 'sorcerer']) {
+      await page.click(`.vs-card[data-v=${v}]`);
+      await page.waitForFunction(v => { const s = document.querySelector(`.vs-layered[data-v=${v}]`); return s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches; }, v, { timeout: 8000 }).catch(() => {});
+      check(await page.evaluate(v => { const s = document.querySelector(`.vs-layered[data-v=${v}]`), r = s.querySelector('.vs-figure').getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.3);
+        return s.classList.contains('on') && !s.contains(hit) && (s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches)
+          && document.querySelectorAll('.vs-layered.play').length <= 1; }, v), `${name}: ${v === 'knight' ? 'Bastion' : 'Ember'} in layers, the light playing, nothing in it taking a tap`);
+    }
+    await page.click('.vs-card[data-v=knight]');
     await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);
     // (nothing moves when you look at another: the cards and the button stay put; every card the same size, 44px and more to tap;
     // the words in the owner's study's size; nothing past the screen's sides; the whole screen fits from 375 x 667 up)
