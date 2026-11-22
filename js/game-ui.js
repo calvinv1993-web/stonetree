@@ -1359,7 +1359,7 @@ function maybeAskPath() {
 }
 // Choosing a path: SORTIA's vocation screen (css/sortia.css), after the owner's reference (docs/sortia/vocation-select.png):
 // the title over a large picture of the path looked at, three cards under it (Hawk, Bastion, Ember: emblem and name),
-// what the path is in a few lines, "Your choice is permanent." and one button, Choose Path, that asks once more ("for
+// what the path is in a few lines, "Your choice is permanent." and one button, Choose Bastion (or Hawk, or Ember), that asks once more ("for
 // good"). A tap on a card, a sideways swipe on the picture or the arrow keys go through the paths; looking chooses nothing.
 let pathAt = 0;
 const classArt = file => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/classes/${file}`]; return `sprites/ui/classes/${file}${h ? `?h=${h}` : ''}`; };
@@ -1453,6 +1453,7 @@ function askPath(onDone, onBack) {
     if (!was || was.dataset.v !== v) playLayered(v);
     for (const c of track.children) { const on = c.dataset.v === v; c.setAttribute('aria-checked', on ? 'true' : 'false'); c.tabIndex = on ? 0 : -1; }
     words(v);
+    $('pathChoose').textContent = `Choose ${vocName(v)}`; // (the button names the path looked at)
     ask(false);
   }
   // the path left (step -1) or right (step 1) of the one looked at, in the cards' order

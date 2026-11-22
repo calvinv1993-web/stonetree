@@ -172,17 +172,21 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 .vs-note { display: flex; align-items: center; justify-content: center; gap: 2.2cqw; margin: 3.2cqw 0 4.1cqw; font-size: clamp(10px, 2.9cqw, 17px); line-height: 1.3; color: #ece8de; }
 .vs-note svg { width: 3.95cqw; height: 3.95cqw; min-width: 14px; min-height: 14px; flex: none; fill: none; stroke: #c7cbcc; stroke-width: 1.5; stroke-linecap: round; }
 #pathPick .vs-btn { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%;
-  aspect-ratio: 591 / 94; height: auto; min-height: 44px; padding: 0 16px; font-weight: 700; font-size: clamp(14px, 4.6cqw, 24px); letter-spacing: 0.1em; text-transform: uppercase;
-  white-space: nowrap; color: #f3dca8; text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
-  filter: drop-shadow(0 0 3px rgba(255, 190, 100, 0.35)) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.7)); }
+  aspect-ratio: 591 / 94; height: auto; min-height: 44px; padding: 0.12em 16px 0; font-weight: 600; font-size: clamp(14px, 4.6cqw, 24px); line-height: 1;
+  letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #f4e6c9; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 0 2px rgba(255, 196, 110, 0.2)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.65)); transition: transform 80ms ease, filter 80ms ease; }
+/* (an antique gold frame; inside it a dark seam and a fine gold line; deep green, lighter at the top, with a soft reflection along it) */
 #pathPick .vs-btn::before, #pathPick .vs-btn::after { content: ''; position: absolute; z-index: -1;
   clip-path: polygon(4.6% 0, 95.4% 0, 100% 25%, 100% 75%, 95.4% 100%, 4.6% 100%, 0 75%, 0 25%); }
-#pathPick .vs-btn::before { inset: 0; background: radial-gradient(ellipse 12% 12% at 50% 100%, #fff4d6, rgba(255, 220, 150, 0) 100%),
-  linear-gradient(180deg, #ffe2a2, var(--vs-gold) 45%, #f0c071); }
-#pathPick .vs-btn::after { inset: 2.5px; background: linear-gradient(180deg, var(--vs-green-hi), var(--vs-green-lo));
-  box-shadow: inset 0 0 0 1.5px rgba(8, 20, 14, 0.8), inset 0 0 0 2.5px rgba(214, 173, 105, 0.45), inset 0 1px 0 rgba(200, 255, 220, 0.18), inset 0 0 16px rgba(0, 0, 0, 0.4); }
-#pathPick .vs-btn:hover { filter: drop-shadow(0 0 3px rgba(255, 190, 100, 0.35)) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.7)) brightness(1.1); }
-#pathPick .vs-btn:active { filter: brightness(0.88); }
+#pathPick .vs-btn::before { inset: 0; background: radial-gradient(ellipse 10% 10% at 50% 100%, rgba(255, 238, 200, 0.85), rgba(255, 220, 150, 0) 100%),
+  linear-gradient(180deg, #f4d898 0%, #d0a058 38%, #8d612d 68%, #c99853 100%); }
+#pathPick .vs-btn::after { inset: 2.5px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03) 38%, rgba(255, 255, 255, 0) 50%),
+  linear-gradient(180deg, #2c6249 0%, #1b4331 50%, #0e281c 100%);
+  box-shadow: inset 0 0 0 1px rgba(6, 16, 11, 0.85), inset 0 0 0 2px rgba(224, 186, 114, 0.6), inset 0 3px 0 rgba(210, 255, 225, 0.08), inset 0 -8px 14px rgba(0, 0, 0, 0.35); }
+#pathPick .vs-btn:hover { filter: drop-shadow(0 0 2px rgba(255, 196, 110, 0.3)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.65)) brightness(1.06); }
+#pathPick .vs-btn:active { transform: translateY(1px); filter: drop-shadow(0 0 1px rgba(255, 196, 110, 0.15)) drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6)) brightness(0.9); }
+#pathPick .vs-btn:active::after { box-shadow: inset 0 0 0 1px rgba(6, 16, 11, 0.85), inset 0 0 0 2px rgba(224, 186, 114, 0.5), inset 0 4px 10px rgba(0, 0, 0, 0.45); }
+#pathPick .vs-btn:focus-visible { outline: 2px solid var(--vs-gold-hi); outline-offset: 4px; }
 
 /* Back (only when there's something to go back to) */
 #pathPick .vs-back { position: absolute; z-index: 3; top: calc(env(safe-area-inset-top) + 8px); left: 8px; width: 44px; height: 44px; display: grid; place-items: center;
