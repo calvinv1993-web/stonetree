@@ -1385,11 +1385,12 @@ function layeredScene(v) {
   return withData(h('div', { className: 'vs-art vs-layered' }, h('div', { className: 'vs-depth' }), h('div', { className: 'vs-sun' }),
     h('div', { className: 'vs-figure' }, img('vs-hero-img'), img('vs-hero-img vs-hero-light'))), { art });
 }
-// each figure's size and place on this screen: its head just under the title, its foot mark just over the cards
+// each figure's size and place on this screen: its head in front of the title, its foot mark just over the cards
 function placeLayered() {
   const heroBox = $('pathHero');
   if (!heroBox.offsetHeight) return;
-  const top = heroBox.getBoundingClientRect().top, sub = document.querySelector('.vs-sub').getBoundingClientRect().bottom - top;
+  // (the head starts at the title's middle: the figure stands in front of it)
+  const title = document.querySelector('.vs-title').getBoundingClientRect(), top = heroBox.getBoundingClientRect().top, sub = title.top + title.height / 2 - top + 10;
   const cards = document.querySelector('.vs-card').getBoundingClientRect().top - top;
   for (const scene of document.querySelectorAll('.vs-layered')) {
     const { head, foot } = SV_SCENES[scene.dataset.v];
