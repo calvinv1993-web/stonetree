@@ -450,7 +450,7 @@ const SPRITE_HASHES = {
   "ui/intro/snow-near.webp":"1bfa0f5a35",
   "ui/intro/sortia-wordmark.webp":"882c7a65a1",
   "ui/loading/background-desktop.jpg":"f0f58a2dae",
-  "ui/loading/background-phone.jpg":"add46e173d",
+  "ui/loading/background-phone.jpg":"6a0705c2c6",
   "ui/loading/background-tablet.jpg":"db35093bb2",
   "ui/loading/logo.png":"a9e60ae4fa",
   "ui/login/oakvale-login.webp":"d9266173de",
