@@ -12,7 +12,7 @@
 
 #pathPick {
   --vs-serif: 'Cinzel', Georgia, serif; --vs-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --vs-bg: #0e171f; --vs-gold: #edca94; --vs-gold-hi: #f1d6a6; --vs-text: #ece8de; --vs-fade: 200ms;
+  --vs-bg: #0e171f; --vs-gold: #edca94; --vs-gold-hi: #f1d6a6; --vs-text: #ece8de; --vs-fade: 480ms;
   position: fixed; inset: 0; z-index: 41; overflow: hidden; overscroll-behavior: none; touch-action: none; /* (it never scrolls: game-ui.js fitPathScreen makes it fit) */
   background: var(--vs-bg); color: var(--vs-text); -webkit-tap-highlight-color: transparent;
 }
@@ -51,6 +51,18 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 /* (a scene fades in layer by layer) */
 .vs-layered > :not(.vs-sun) { opacity: 0; transition: opacity var(--vs-fade) ease; }
 .vs-layered.on > :not(.vs-sun) { opacity: 1; }
+/* (a change of path: the old figure steps back and fades, the new one comes forward out of the dark as its land fades in) */
+/* (only moving and fading, which a phone does on its graphics chip; the layers stay there after, so nothing is redrawn and
+   nothing jumps when a move ends) */
+.vs-layered .vs-figure, .vs-layered .vs-hero-img, .vs-layered .vs-depth { will-change: transform, opacity; }
+.vs-layered .vs-figure { transform: translate3d(0, 0, 0); transition: opacity var(--vs-fade) ease, transform var(--vs-fade) ease; }
+.vs-layered:not(.on) .vs-figure { transform: translate3d(-3%, 0, 0) scale(.985); }
+.vs-layered.on.enter .vs-figure { animation: vs-figure-in 560ms cubic-bezier(.2, .7, .25, 1) both; }
+@keyframes vs-figure-in { from { opacity: 0; transform: translate3d(4%, 0, 0) scale(.985); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+#pathInfo.vs-swap > * { animation: vs-words-in 360ms ease both; }
+#pathInfo.vs-swap > :nth-child(2) { animation-delay: 50ms; }
+#pathInfo.vs-swap > :nth-child(3) { animation-delay: 100ms; }
+@keyframes vs-words-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .vs-layered :is(.vs-depth, .vs-sun, .vs-figure, img) { position: absolute; pointer-events: none; }
 .vs-depth { inset: 0; z-index: -5; background: url(../sprites/ui/sortia/bastion-scene.webp) center top / cover no-repeat; transform: scale(1.025); transform-origin: 66% 21%; filter: blur(2.5px); } /* (the land a little out of focus behind the figure) */
 .vs-depth::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #0e18217a, transparent 27%); } /* (a little shade behind the title) */
@@ -63,8 +75,8 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 .vs-hero-light { opacity: 0; filter: brightness(1.38) saturate(1.16);
   -webkit-mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%);
   mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%); }
-.vs-layered.play .vs-depth { animation: vs-depth 7s cubic-bezier(.18, .56, .26, 1) both; }
-.vs-layered.play .vs-sun { animation: vs-sun 7s ease-in-out both; }
+.vs-layered.play .vs-depth { animation: vs-depth 7s cubic-bezier(.3, .45, .3, 1) .35s both; } /* (after the change's fade: it would hide the start of the drift) */
+.vs-layered.play .vs-sun { animation: vs-sun 7s ease-in-out .35s both; }
 .vs-layered.play .vs-hero-img { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both; }
 .vs-layered.play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-armour 5.9s ease-in-out both; }
 /* (Hawk: a forest watchtower at sunset; the warm glow low over the mountains; the light from her hood over her shoulder to her bow hand) */
@@ -84,7 +96,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 .vs-layered[data-art="ember"].play .vs-figure::after { animation: vs-kindle 5.9s ease-in-out both; }
 #pathPick[data-paused="true"] .vs-layered, #pathPick[data-paused="true"] .vs-layered * { animation-play-state: paused !important; }
 #pathPick[data-paused="true"] .vs-layered .vs-figure::after { animation-play-state: paused !important; }
-@keyframes vs-depth { from { transform: translate3d(-7px, -2.5px, 0) scale(1.065); filter: blur(0); } to { transform: translate3d(0, 0, 0) scale(1.025); filter: blur(2.5px); } }
+@keyframes vs-depth { from { transform: translate3d(-12px, -4px, 0) scale(1.085); filter: blur(0); } to { transform: translate3d(0, 0, 0) scale(1.025); filter: blur(2.5px); } }
 @keyframes vs-settle { from { transform: translate3d(1.5px, 2px, 0) scale(.997); } to { transform: translate3d(0, 0, 0) scale(1); } }
 @keyframes vs-sun { 0%, 100% { opacity: 0; } 23% { opacity: .7; } 47% { opacity: .47; } 76% { opacity: .06; } }
 @keyframes vs-armour {
@@ -200,4 +212,4 @@ html body #pathPick .vs-go .vs-arrow { font: 400 15px / 1 var(--vs-sans) !import
 .vs-dialog-row { display: grid; justify-items: center; gap: 4px; }
 .vs-dialog .vs-error { margin: 0 0 12px; color: #e8a08f; font-size: 13px; }
 
-@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } .vs-layered, .vs-layered *, .vs-layered .vs-figure::after { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } .vs-layered, .vs-layered *, .vs-layered .vs-figure::after, #pathInfo.vs-swap > * { animation: none !important; } }

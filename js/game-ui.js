@@ -1384,20 +1384,20 @@ function layeredScene(v) {
   return withData(h('div', { className: 'vs-art vs-layered' }, h('div', { className: 'vs-depth' }), h('div', { className: 'vs-sun' }),
     h('div', { className: 'vs-figure' }, img('vs-hero-img'), img('vs-hero-img vs-hero-light'))), { art });
 }
-// a figure's light plays once each time it's looked at, once its pictures are in (not at all with reduced motion); it
-// waits while the page is hidden
+// a figure's light plays once each time it's looked at (not at all with reduced motion); it waits while the page is hidden
 function playLayered(v) {
   const turn = playLayered.turn = (playLayered.turn || 0) + 1;
-  for (const scene of document.querySelectorAll('.vs-layered')) scene.classList.remove('play');
-  const scene = document.querySelector(`.vs-layered[data-v="${v}"]`);
-  if (!scene || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const back = new Image(); back.src = sortiaArt(`${scene.dataset.art}-scene.webp`);
-  const ready = img => (img.decode ? img.decode() : Promise.resolve()).catch(() => {});
-  Promise.all([ready(scene.querySelector('.vs-hero-img')), ready(back)]).then(() => {
-    if (turn !== playLayered.turn) return; // (looked away meanwhile)
-    void scene.offsetWidth; // (the animations start again from their beginning)
-    scene.classList.add('play');
-  });
+  const scene = document.querySelector(`.vs-layered[data-v="${v}"]`), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // (the one going keeps moving while it fades; its light stops once it's gone)
+  for (const other of document.querySelectorAll('.vs-layered')) if (other !== scene) {
+    other.classList.remove('enter');
+    setTimeout(() => { if (turn === playLayered.turn) other.classList.remove('play'); }, 520);
+  }
+  if (!scene || still) { if (scene) scene.classList.remove('play', 'enter'); return; }
+  // (it starts at once, from its first frame: shown first and started after, it would jump)
+  scene.classList.remove('play', 'enter');
+  void scene.offsetWidth; // (the animations start again from their beginning)
+  scene.classList.add('play', 'enter');
 }
 if (typeof document !== 'undefined' && document.addEventListener) document.addEventListener('visibilitychange', () => { const p = $('pathPick'); if (p) p.dataset.paused = document.hidden ? 'true' : 'false'; });
 function askPath(onDone, onBack) {
@@ -1452,6 +1452,7 @@ function askPath(onDone, onBack) {
     if (!was || was.dataset.v !== v) playLayered(v);
     for (const c of track.children) c.setAttribute('aria-pressed', c.dataset.v === v ? 'true' : 'false');
     words(v);
+    const info = $('pathInfo'); if (was && was.dataset.v !== v) { info.classList.remove('vs-swap'); void info.offsetWidth; info.classList.add('vs-swap'); } // (the words come in again, a line after another)
     $('pathChoose').firstElementChild.textContent = `Choose ${vocName(v)}`; // (the way on names the path looked at)
     ask(false);
   }
