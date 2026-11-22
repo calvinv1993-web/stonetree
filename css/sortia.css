@@ -57,7 +57,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 .vs-layered .vs-figure, .vs-layered .vs-hero-img, .vs-layered .vs-depth { will-change: transform, opacity; }
 .vs-layered .vs-figure { transform: translate3d(0, 0, 0); transition: opacity var(--vs-fade) ease, transform var(--vs-fade) ease; }
 .vs-layered:not(.on) .vs-figure { transform: translate3d(-3%, 0, 0) scale(.985); }
-.vs-layered.on.enter .vs-figure { animation: vs-figure-in 560ms cubic-bezier(.2, .7, .25, 1) both; }
+.vs-layered.on.enter .vs-figure { animation: vs-figure-in 560ms cubic-bezier(.2, .7, .25, 1) both; transition: none; } /* (no transition under the animation: Safari starts it once the animation ends, from nothing, and the figure dips) */
 @keyframes vs-figure-in { from { opacity: 0; transform: translate3d(4%, 0, 0) scale(.985); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
 #pathInfo.vs-swap > * { animation: vs-words-in 360ms ease both; }
 #pathInfo.vs-swap > :nth-child(2) { animation-delay: 50ms; }
