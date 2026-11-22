@@ -408,9 +408,9 @@ function toggleSheet(kind) {
 let menuShown = '';
 function renderMenu() {
   if (document.body.dataset.seg !== 'settings') return;
-  const sound = $('soundBtn').textContent, music = $('musicBtn').textContent;
+  const music = $('musicBtn').textContent;
   const pet = player.pet, petState = pet ? `${pet.name}:${pet.home}:${!!pet.downUntil}` : ''; // (its row says where your companion is)
-  const key = `${sound}|${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}|${pet ? pet.level : 0}|${player.level}|${JSON.stringify(player.autoHeal || {})}`;
+  const key = `${music}|${speedMeter.on}|${quality}|${FRAME_INTERVAL}|${petState}|${pet ? pet.level : 0}|${player.level}|${JSON.stringify(player.autoHeal || {})}`;
   if (key === menuShown) return;
   menuShown = key;
   const root = $('menuSec'), h = (tag, props, ...kids) => { const el = Object.assign(document.createElement(tag), props || {}); el.append(...kids); return el; };
@@ -422,7 +422,6 @@ function renderMenu() {
   const toggle = on => h('span', { className: `toggle${on ? ' on' : ''}` });
   root.replaceChildren(
     h('div', { className: 'menu-head' }, 'Game'),
-    row('Sound', toggle(/on/i.test(sound)), () => $('soundBtn').click()),
     row('Music', toggle(/on/i.test(music)), () => $('musicBtn').click()),
     h('div', { className: 'menu-sub' }, h('span', {}, 'Quality ', h('small', {}, { high: 'everything', medium: 'no drifting clouds or weather, a little less sharp', low: 'the smoothest: also no ripples, coarser' }[quality]))),
     h('div', { className: 'seg' }, ...['low', 'medium', 'high'].map(q => {

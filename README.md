@@ -222,7 +222,7 @@ The old world, kept for when the mainland is built: these places and stories are
 - **Torchlight** (the Torchlight spell) lights up the night for everyone around you, not just you.
 - **Footprints** in snow and sand, dust on the roads, splashes in the fen; deep water is darker, and the sun glints on it.
 - **Arriving** somewhere, its name appears across the screen: towns, landmarks, islands.
-- **Sound:** music for each kind of place (towns, wilds, snow, desert, fen, jungle, volcano, caves, the sea, the night) and the sounds around you: wind, waves, rain, crickets, a busy square, a crackling fire, thunder. Switch them under the panel.
+- **Sound:** SORTIA's title music only (at the gate, in the opening and while you choose your path). The game's own sounds and tunes were taken out for now. Menu, Music on or off.
 - **The interface:** carved stone and wood, gold lettering, and gear and ore glow in the colour of their grade. What you look at shows in green over the game.
 
 ### Controls
