@@ -2831,7 +2831,7 @@ const INTRO_FIGURES = true;
 // without them); the tree, near the camera, comes blurred and runs far ahead
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['03-seal', -48, 109, 643, 538, 20, 0.5], ['04-mill', 415, 150, 560, 455, 20, 0.5],
+  ['03-seal', -48, 109, 643, 538, 20, 0.5], ['04-mill', 413.7, 146.1, 562, 459.2, 20, 0.5],
   ['06-gate-watchman', 1204, 104, 81, 64, 22, 0], ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
   ['10-traveler', 850, 355, 350, 276.47, 35, 2, 'figure'],
