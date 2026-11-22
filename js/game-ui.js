@@ -2809,10 +2809,12 @@ const ParchmentPanel = (() => {
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
 // One panorama behind it all, in layers (sprites/ui/intro/layers/): far back the sky and mountains, then the painted scene
-// (the seal, the mill, Oakvale and its bridge, the temple room with Sister Ama; its sky see-through), and in front the
-// traveler, the wolf and the hidden goblin as figures of their own (from the owner's parallax package, docs/sortia/parallax),
-// each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and between two scenes each by its
-// depth (the mountains fall behind, the figures run ahead); while you drag, or as the mouse moves, they lean a little.
+// (the cave, the river, Oakvale and its bridge, the temple room; its sky see-through), the seal and the mill with its
+// goblins at the gate, Sister Ama at her window, the wolf and the goblin hiding behind the old tree, the traveler at the
+// bridge's foot, and nearest the tree itself, blurred as if close to the camera (the figures from the owner's parallax
+// package, docs/sortia/parallax), each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and
+// between two scenes each by its depth (the mountains fall behind, the figures run ahead, the tree sweeps past); while
+// you drag, or as the mouse moves, they lean a little.
 // (INTRO_FIGURES: they need the scene painted without them, or they'd stand twice.) Its lanterns
 // flicker (INTRO_GLOWS); mist and snow drift in front, each at its own pace. Four story cards, each its title and words
 // over its part of the picture, then Sister Ama: your name (offline; online it's known from the login), and three lines
@@ -2820,20 +2822,24 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
 // words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
 // INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.29, 0.46, 0.70, 0.90];
+const INTRO_SPOTS = [0.10, 0.33, 0.56, 0.675, 0.90];
 const INTRO_CANVAS = [2172, 724];
 const INTRO_FIGURES = true;
-// [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures
+// [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures (the scene is painted
+// without them); the tree, near the camera, comes blurred and runs far ahead
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['11-wolf', 1470, 200, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 800, 330, 350, 276.47, 35, 2, 'figure'],
-  ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5, 'figure'],
+  ['03-seal', 22, 165, 427, 401, 20, 0.5], ['04-mill', 265, 6, 861, 700, 20, 0.5],
+  ['05-sister-ama', 1825, 60, 270, 371.76, 30, 1, 'figure'],
+  ['11-wolf', 1500, 205, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
+  ['10-traveler', 1075, 360, 350, 276.47, 35, 2, 'figure'],
+  ['09-tree', 1049, 0, 1002, 696, 50, 8],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
-// the lights: [x %, y %, size %, delay s, depth, kind] (the traveler's and the goblin's lanterns: in the scene, or held by
-// their figures)
+// the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
+// the lanterns the traveler and the goblin hold
 const INTRO_GLOWS = [
-  [27.0, 37.9, 4.2, -0.7, 0, 'dim'], [57.7, 17.8, 3.4, -0.3, 0], [85.7, 23.6, 3.0, -1.2, 0, 'candle'],
-  ...(INTRO_FIGURES ? [[49.1, 56.9, 4.4, -1.9, 2], [65.4, 60.5, 5.2, -2.6, 2.5]] : []),
+  [26.2, 35.7, 3.6, -0.7, 0.5, 'dim'], [30.9, 39.5, 3.6, -1.4, 0.5, 'dim'], [57.8, 24.2, 3.0, -0.3, 0], [85.3, 25.5, 3.0, -1.2, 0, 'candle'],
+  ...(INTRO_FIGURES ? [[61.8, 60.6, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
