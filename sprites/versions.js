@@ -452,6 +452,8 @@ const SPRITE_HASHES = {
   "ui/loading/background-phone.jpg":"add46e173d",
   "ui/loading/background-tablet.jpg":"db35093bb2",
   "ui/loading/logo.png":"a9e60ae4fa",
+  "ui/login/oakvale-login.webp":"d9266173de",
+  "ui/login/sortia-wordmark.webp":"f831464ee1",
   "ui/parchment/corner-bl.webp":"5c8e232b2c",
   "ui/parchment/corner-br.webp":"efafe80bf4",
   "ui/parchment/corner-tl.webp":"ec98855205",

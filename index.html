@@ -217,27 +217,45 @@
               <p id="sgLoadText" class="sg-small">Loading&hellip;</p>
               <button id="sgBegin" class="sg-begin" type="button" hidden>Tap to begin</button>
             </section>
-            <section class="sg-auth" id="sgAuth" hidden>
-              <h2 id="sgHeading" class="sg-sr">Log in or create an account</h2>
-              <div class="sg-tabs" role="tablist" aria-label="Account">
-                <button id="sgTabCreate" class="sg-tab" type="button" role="tab" aria-selected="true" aria-controls="sgForm">Create account</button>
-                <button id="sgTabLogin" class="sg-tab" type="button" role="tab" aria-selected="false" aria-controls="sgForm">Log in</button>
-              </div>
-              <form id="sgForm" class="sg-form" novalidate>
-                <label for="sgName">Character name</label>
-                <input id="sgName" name="username" type="text" maxlength="20" autocomplete="username" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Your name">
-                <label for="sgPass">Password</label>
-                <input id="sgPass" name="password" type="password" autocomplete="new-password" enterkeyhint="next" placeholder="At least 6 characters">
-                <div id="sgConfirmRow" class="sg-row">
-                  <label for="sgPass2">Repeat password</label>
-                  <input id="sgPass2" name="password2" type="password" autocomplete="new-password" enterkeyhint="go" placeholder="The same again">
+            <!-- the account page (after docs/sortia/login): Oakvale by night above the form on a phone, beside it on a computer -->
+            <main class="sg-auth" id="sgAuth" data-auth-mode="register" hidden>
+              <header class="sga-scene">
+                <img class="sga-art" src="sprites/ui/login/oakvale-login.webp" width="1536" height="1024" alt="" draggable="false">
+                <div class="sga-brand">
+                  <img class="sga-mark" src="sprites/ui/login/sortia-wordmark.webp" width="850" height="233" alt="SORTIA" draggable="false">
+                  <div class="sga-chapter">The Broken Seal</div>
                 </div>
-                <p id="sgHint" class="sg-hint" aria-live="polite"></p>
-                <button id="sgGo" class="sg-go" type="submit"><span id="sgGoLabel">Create account</span> <span aria-hidden="true">&rarr;</span></button>
-                <details id="sgMore" class="sg-more" hidden><summary>Other ways to start</summary></details>
-              </form>
-              <p id="sgNote" class="sg-small sg-note"></p>
-            </section>
+              </header>
+              <section class="sga-access" aria-labelledby="sgHeading">
+                <div class="sga-ornament" aria-hidden="true"><span></span></div>
+                <h1 id="sgHeading" class="sga-title" tabindex="-1">Create account</h1>
+                <form id="sgForm" class="sga-form" novalidate>
+                  <div class="sga-field">
+                    <label for="sgName">Character name</label>
+                    <input id="sgName" name="username" type="text" maxlength="20" autocomplete="username" autocapitalize="words" spellcheck="false" enterkeyhint="next" placeholder="Your name">
+                  </div>
+                  <div class="sga-field">
+                    <label for="sgPass">Password</label>
+                    <div class="sga-password">
+                      <input id="sgPass" name="password" type="password" autocomplete="new-password" enterkeyhint="next" placeholder="At least 6 characters">
+                      <button id="sgShow" class="sga-toggle" type="button" aria-controls="sgPass sgPass2" aria-label="Show password">Show</button>
+                    </div>
+                  </div>
+                  <div id="sgConfirmRow" class="sga-field">
+                    <label for="sgPass2">Repeat password</label>
+                    <input id="sgPass2" name="password2" type="password" autocomplete="new-password" enterkeyhint="go" placeholder="The same again">
+                  </div>
+                  <p id="sgHint" class="sga-status" role="status" aria-live="polite"></p>
+                  <button id="sgGo" class="sga-primary" type="submit"><span id="sgGoLabel">Create account</span></button>
+                  <details id="sgMore" class="sga-more" hidden><summary>Other ways to start</summary></details>
+                </form>
+                <div class="sga-switch">
+                  <span id="sgSwitchHint" class="sga-switch-hint">Already have an account?</span>
+                  <button id="sgSwitch" type="button" class="sga-switch-action">Log in</button>
+                </div>
+                <p id="sgNote" class="sga-note"></p>
+              </section>
+            </main>
           </div>
         </div>
 

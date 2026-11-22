@@ -3152,19 +3152,28 @@ const Gate = (() => {
     return Promise.race([Promise.all(jobs), new Promise(done => setTimeout(done, 6000))])
       .then(() => new Promise(done => setTimeout(done, 250))).then(begin);
   }
+  // Log in or Create account: one form, its title, button and the way to the other changing (after docs/sortia/login)
   function setTab(t) {
     tab = t;
-    const create = t === 'create';
-    $('sgTabCreate').setAttribute('aria-selected', String(create));
-    $('sgTabLogin').setAttribute('aria-selected', String(!create));
+    const create = t === 'create', title = create ? 'Create account' : 'Log in';
+    $('sgAuth').dataset.authMode = create ? 'register' : 'login';
+    $('sgHeading').textContent = title;
+    $('sgGoLabel').textContent = title;
+    $('sgSwitchHint').textContent = create ? 'Already have an account?' : 'New to SORTIA?';
+    $('sgSwitch').textContent = create ? 'Log in' : 'Create account';
     $('sgConfirmRow').hidden = !create;
     $('sgMore').hidden = !create || !$('sgMore').querySelector('select');
     $('sgPass').autocomplete = create ? 'new-password' : 'current-password';
     $('sgPass').placeholder = create ? 'At least 6 characters' : 'Your password';
     $('sgPass').enterKeyHint = create ? 'next' : 'go';
-    $('sgGoLabel').textContent = create ? 'Create account' : 'Log in';
+    showPassword(false);
     hint('');
     if (opts && opts.onTab) opts.onTab(t);
+  }
+  function showPassword(visible) {
+    for (const id of ['sgPass', 'sgPass2']) $(id).type = visible ? 'text' : 'password';
+    $('sgShow').textContent = visible ? 'Hide' : 'Show';
+    $('sgShow').setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
   }
   function hint(text, warn) {
     $('sgHint').textContent = text || '';
@@ -3180,12 +3189,11 @@ const Gate = (() => {
   // the way in: o = { tab: 'create'|'login', name, note, message, onSubmit({ tab, name, password }), onTab(tab) }
   function ask(o) {
     opts = o || {};
-    busy = false;
     const el = box();
     el.hidden = false; el.classList.remove('sg-out');
     el.classList.add('sg-leaving');
     $('sgLoad').hidden = true; $('sgAuth').hidden = false;
-    $('sgGo').disabled = false;
+    ready();
     if (opts.name && !$('sgName').value) $('sgName').value = opts.name;
     $('sgPass').value = ''; $('sgPass2').value = '';
     $('sgNote').textContent = opts.note || '';
@@ -3194,17 +3202,24 @@ const Gate = (() => {
     if (!touchScreen) ($('sgName').value ? $('sgPass') : $('sgName')).focus({ preventScroll: true });
   }
   // waiting for an answer (the server's): the button shut, saying so
+  let waiting = false;
   function wait(text) {
-    busy = true;
+    busy = true; waiting = true;
     $('sgGo').disabled = true;
+    $('sgForm').setAttribute('aria-busy', 'true');
     $('sgGoLabel').textContent = text || 'One moment…';
+  }
+  // the form open again (after an answer, or none needed)
+  function ready() {
+    busy = false; waiting = false;
+    $('sgGo').disabled = false;
+    $('sgForm').removeAttribute('aria-busy');
+    $('sgGoLabel').textContent = tab === 'create' ? 'Create account' : 'Log in';
   }
   // something went wrong after all: back to the form, saying what
   function refuse(message) {
     if (!opts) return ask({ message });
-    busy = false;
-    $('sgGo').disabled = false;
-    $('sgGoLabel').textContent = tab === 'create' ? 'Create account' : 'Log in';
+    ready();
     hint(message || '');
     $('sgPass').value = ''; $('sgPass2').value = '';
   }
@@ -3219,8 +3234,15 @@ const Gate = (() => {
     const el = box();
     if (!el) return;
     el.querySelector('.sg-logo').src = hashed('ui/loading/logo.png');
-    $('sgTabCreate').onclick = () => setTab('create');
-    $('sgTabLogin').onclick = () => setTab('login');
+    $('sgSwitch').onclick = () => {
+      if (busy) return;
+      setTab(tab === 'create' ? 'login' : 'create');
+      $('sgPass').value = ''; $('sgPass2').value = '';
+      $('sgHeading').focus({ preventScroll: true });
+    };
+    $('sgShow').onclick = () => showPassword($('sgPass').type === 'password');
+    { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES; // (the account page's pictures, by their own versions)
+      if (h) { el.querySelector('.sga-art').src = hashed('ui/login/oakvale-login.webp'); el.querySelector('.sga-mark').src = hashed('ui/login/sortia-wordmark.webp'); } }
     for (const id of ['sgName', 'sgPass', 'sgPass2']) {
       $(id).addEventListener('input', () => { if ($('sgHint').textContent && !$('sgHint').classList.contains('sg-warn')) hint(''); });
       $(id).addEventListener('keydown', e => e.stopPropagation()); // (the game's keys don't fire while you type)
@@ -3234,7 +3256,12 @@ const Gate = (() => {
       if (tab === 'create' && password.length < 6) return wrong('sgPass', 'Choose a password of at least 6 characters.');
       if (tab === 'login' && !password) return wrong('sgPass', 'Enter your password.');
       if (tab === 'create' && $('sgPass2').value !== password) return wrong('sgPass2', 'The two passwords aren\'t the same.');
-      if (opts.onSubmit) opts.onSubmit({ tab, name: capitalize(name.trim().replace(/[^\w '-]/g, '').slice(0, 20)), password });
+      if (!opts.onSubmit) return;
+      // one at a time: the form shut until this one is answered (by the server: wait(), then ask/refuse/close)
+      busy = true; $('sgGo').disabled = true;
+      Promise.resolve(opts.onSubmit({ tab, name: capitalize(name.trim().replace(/[^\w '-]/g, '').slice(0, 20)), password }))
+        .catch(() => hint('Something went wrong: try again.'))
+        .then(() => { if (!waiting && !box().classList.contains('sg-out')) { const h = $('sgHint').textContent, w = $('sgHint').classList.contains('sg-warn'); ready(); if (h) hint(h, w); } });
     });
   }
   return { load, ask, wait, refuse, hint, close, setup, setTab, isOpen: () => !box().hidden, tab: () => tab };

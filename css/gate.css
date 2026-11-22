@@ -1,8 +1,7 @@
 /* SORTIA's gate (game-ui.js Gate): the first thing a page shows. The painted valley at dusk (the loading screen's
    pictures), the logo high in the sky; low on the path first a thin gold bar while the game gets ready (its fonts and
-   pictures), then the way in: Create account or Log in, in a dark glass card with a gold edge. Titles in Cinzel, words
-   in Inter, as in the opening (css/intro.css). A phone upright, a tablet or a wide screen; never wider than a phone's
-   column for the card; a short screen scrolls. */
+   pictures and the title music), "Tap to begin", then the way in: SORTIA's account page (below). Titles in Cinzel, words
+   in Inter, as in the opening (css/intro.css). A phone upright, a tablet or a wide screen; a short screen scrolls. */
 
 #sortiaGate {
   --sg-gold: #efd09a; --sg-paper: #f4eee3; --sg-soft: #c9c0b0; --sg-line: #d6b48159; --sg-bad: #f0a594;
@@ -12,7 +11,6 @@
 }
 #sortiaGate[hidden] { display: none; }
 html body #sortiaGate, html body #sortiaGate * { font-family: var(--sg-sans) !important; }
-html body #sortiaGate :is(.sg-tab, .sg-go, .sg-go *) { font-family: var(--sg-serif) !important; }
 #sortiaGate *, #sortiaGate *::before, #sortiaGate *::after { box-sizing: border-box; }
 /* (the game's own buttons and fields left out: this screen draws its own) */
 #sortiaGate button { -webkit-appearance: none; appearance: none; margin: 0; font: inherit; color: inherit; cursor: pointer; text-shadow: none;
@@ -53,35 +51,90 @@ html body #sortiaGate :is(.sg-tab, .sg-go, .sg-go *) { font-family: var(--sg-ser
 html body #sortiaGate .sg-begin { font-family: var(--sg-serif) !important; }
 @keyframes sg-breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
-/* the way in: a card low on the screen */
-.sg-auth { margin-top: auto; width: min(100%, 400px); padding: 18px 20px 16px; border: 1px solid var(--sg-line); border-radius: 6px;
-  background: linear-gradient(#101a22e6, #0b1219f2); box-shadow: 0 18px 40px #000b, inset 0 1px 0 #ffffff0d; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.sg-auth[hidden] { display: none; }
-#sortiaGate .sg-auth:not([hidden]) { animation: sg-rise .5s cubic-bezier(.2, .7, .2, 1) both; }
-.sg-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.sg-tabs { display: grid; grid-template-columns: 1fr 1fr; margin: -4px 0 14px; border-bottom: 1px solid var(--sg-line); }
-#sortiaGate .sg-tab { min-height: 44px; color: var(--sg-soft); font: 600 14px / 1.2 var(--sg-serif); letter-spacing: .04em; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-#sortiaGate .sg-tab[aria-selected="true"] { color: var(--sg-gold); border-bottom-color: #e0ba7e; }
-.sg-form { display: grid; gap: 6px; }
-.sg-form label { margin-top: 4px; font-size: 12px; color: var(--sg-soft); }
-.sg-row { display: grid; gap: 6px; }
-.sg-row[hidden] { display: none; }
-#sortiaGate .sg-form :is(input, select) { width: 100%; height: 46px; margin: 0; border: 1px solid #b8915d90; border-radius: 3px; background: #0b1219cc; color: var(--sg-paper);
-  font-size: 16px; padding: 0 12px; box-shadow: none; }
-#sortiaGate .sg-form select { font-size: 14px; }
-#sortiaGate .sg-form input::placeholder { color: #9f968c; }
-#sortiaGate .sg-form input[aria-invalid="true"] { border-color: #d0705c; }
-.sg-hint { margin: 4px 0 0; font-size: 13px; color: var(--sg-bad); }
-.sg-hint:empty { display: none; }
-.sg-hint.sg-warn { color: #f2cf8f; }
-.sg-more { margin-top: 4px; font-size: 12px; color: var(--sg-soft); }
-.sg-more summary { min-height: 32px; display: flex; align-items: center; cursor: pointer; }
-#sortiaGate .sg-go { justify-self: stretch; display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; margin-top: 10px; border-radius: 3px;
-  color: #20160a; background: linear-gradient(#f5dca6, #d8ae6c); box-shadow: 0 2px 10px #0008, inset 0 1px 0 #fff6; font: 700 15px / 1.2 var(--sg-serif); letter-spacing: .04em; }
-#sortiaGate .sg-go:hover { background: linear-gradient(#f9e4b5, #e0b878); }
-#sortiaGate .sg-go:disabled { opacity: .6; cursor: default; }
-.sg-note { text-align: center; margin-top: 12px; color: #c9c0b0b8; text-shadow: none; letter-spacing: .02em; }
-.sg-note:empty { display: none; }
+/* the way in: SORTIA's account page (after docs/sortia/login: index.html, login.css). Over the loading screen, the whole
+   screen its own: Oakvale by night with the wordmark and "The Broken Seal" above the form on a phone, beside it on a
+   computer. Log in or Create account in one form; the button an arched gold frame round a dark green. Everything is
+   scoped to #sortiaGate .sg-auth (the demo's page-wide rules too). */
+#sortiaGate .sg-auth {
+  --sga-ground: #0c141b; --sga-gold: #e9c68e; --sga-ivory: #f1e7d5; --sga-muted: #b7b1a5; --sga-line: #b4936154;
+  --sga-arch: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  position: fixed; inset: 0; z-index: 2; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  display: grid; grid-template-rows: auto 1fr; min-height: 100%; isolation: isolate;
+  background: var(--sga-ground); color: var(--sga-ivory); font: 400 15px / 1.5 var(--sg-sans); color-scheme: dark; cursor: auto;
+}
+#sortiaGate .sg-auth[hidden] { display: none; }
+#sortiaGate .sg-auth:not([hidden]) { animation: sga-in .6s ease both; }
+@keyframes sga-in { from { opacity: 0; } to { opacity: 1; } }
+#sortiaGate .sg-auth :is(button, input) { font: inherit; }
+#sortiaGate .sg-auth :is(button, input, summary, select, h1):focus-visible { outline: 2px solid #edc98e; outline-offset: 4px; }
+#sortiaGate .sg-auth h1:focus:not(:focus-visible) { outline: none; }
+
+.sga-scene { position: relative; min-height: clamp(295px, 45svh, 505px); overflow: hidden; display: flex; justify-content: center; align-items: flex-start;
+  padding: calc(44px + env(safe-area-inset-top)) 18px 0; }
+.sga-art, .sga-scene::after { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sga-art { max-width: none; object-fit: cover; object-position: 48% 55%; z-index: -2; user-select: none; }
+.sga-scene::after { z-index: -1; content: ''; background: linear-gradient(180deg, #050b12ac 0%, #070e1652 32%, transparent 53%),
+  linear-gradient(0deg, var(--sga-ground) 0%, #0c141b73 19%, transparent 47%); }
+.sga-brand { width: min(72vw, 305px); text-align: center; }
+.sga-mark { display: block; width: 100%; height: auto; user-select: none; }
+#sortiaGate .sga-chapter { display: grid; grid-template-columns: minmax(10px, 1fr) auto minmax(10px, 1fr); align-items: center; gap: 9px; margin: 7px auto 0; width: 90%;
+  color: #e1c38e; font: 600 clamp(11px, 3.3vw, 14px) / 1.2 var(--sg-serif); letter-spacing: .16em; text-shadow: 0 2px 4px #071017; }
+.sga-chapter::before, .sga-chapter::after { content: ''; height: 1px; background: linear-gradient(90deg, transparent, #b996606e); }
+.sga-chapter::after { transform: rotate(180deg); }
+
+.sga-access { width: min(100%, 420px); margin: 0 auto;
+  padding: 0 max(24px, env(safe-area-inset-right)) max(26px, calc(env(safe-area-inset-bottom) + 14px)) max(24px, env(safe-area-inset-left)); }
+.sga-ornament { display: grid; grid-template-columns: 1fr 5px 1fr; align-items: center; gap: 8px; width: 104px; margin: 0 auto 13px; color: #c29a63; }
+.sga-ornament::before, .sga-ornament::after { content: ''; height: 1px; background: linear-gradient(90deg, transparent, #b89661a0); }
+.sga-ornament::after { transform: rotate(180deg); }
+.sga-ornament span { height: 5px; background: currentColor; transform: rotate(45deg); }
+#sortiaGate .sga-title { margin: 0 0 21px; text-align: center; color: var(--sga-gold); font: 600 clamp(25px, 7.7vw, 34px) / 1.12 var(--sg-serif); }
+
+.sga-form { display: grid; gap: 14px; }
+.sga-field { min-width: 0; display: grid; gap: 6px; }
+.sga-field[hidden] { display: none; }
+.sga-field label { font-size: 13px; color: #e1d7c6; }
+#sortiaGate .sga-field input { width: 100%; height: 48px; margin: 0; border: 1px solid var(--sga-line); border-radius: 3px; background: #111e27;
+  box-shadow: inset 0 1px 5px #04090e70; color: #f5f0e5; font-size: 16px; padding: 0 13px; }
+#sortiaGate .sga-field input::placeholder { color: #a29e95; }
+#sortiaGate .sga-field input[aria-invalid="true"] { border-color: #d0705c; }
+.sga-password { position: relative; }
+#sortiaGate .sga-password input { padding-inline-end: 74px; }
+#sortiaGate .sga-toggle { position: absolute; top: 2px; right: 4px; min-width: 55px; min-height: 44px; padding: 0 9px; color: #e3be83; font-size: 12px; }
+
+#sortiaGate .sga-primary { position: relative; isolation: isolate; display: grid; place-items: center; width: 100%; min-height: 50px; margin-top: 4px; padding: 8px 14px;
+  color: #f2e1bb; font: 600 15px / 1.15 var(--sg-serif); letter-spacing: .065em; text-shadow: 0 1px 2px #0a1913; }
+.sga-primary::before, .sga-primary::after { content: ''; position: absolute; clip-path: var(--sga-arch); z-index: -1; }
+.sga-primary::before { inset: 0; background: linear-gradient(135deg, #aa8150, #eac387 32%, #846442 60%, #c39b65); }
+.sga-primary::after { inset: 1px; background: linear-gradient(180deg, #214438, #112720); }
+.sga-primary:hover::after { background: linear-gradient(180deg, #2b5443, #18362b); }
+.sga-primary:active::after { background: linear-gradient(180deg, #152d25, #10211d); }
+#sortiaGate .sga-primary:disabled { cursor: progress; opacity: .8; }
+html body #sortiaGate :is(.sga-primary, .sga-primary *, .sga-title, .sga-chapter) { font-family: var(--sg-serif) !important; }
+
+.sga-status { margin: -2px 0 0; color: #f0a594; text-align: center; font-size: 13px; }
+.sga-status:empty { display: none; }
+.sga-status.sg-warn { color: #ead4ac; }
+.sga-more { font-size: 12px; color: var(--sga-muted); }
+.sga-more summary { min-height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+#sortiaGate .sga-more select { width: 100%; height: 44px; margin-top: 4px; border: 1px solid var(--sga-line); border-radius: 3px; background: #111e27; color: #f5f0e5; font-size: 14px; padding: 0 10px; }
+.sga-switch { display: flex; flex-wrap: wrap; gap: 0 7px; align-items: center; justify-content: center; border-top: 1px solid #b493612b; margin: 18px 0 0; padding-top: 7px;
+  color: var(--sga-muted); font-size: 13px; }
+#sortiaGate .sga-switch-action { min-height: 44px; padding: 0 3px; color: var(--sga-gold); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: #e9c68e70; }
+.sga-note { margin: 6px 0 0; text-align: center; font-size: 12px; color: #b7b1a5a8; }
+.sga-note:empty { display: none; }
+
+@media (min-width: 780px) {
+  #sortiaGate .sg-auth { grid-template: 1fr / minmax(0, 1.24fr) minmax(365px, .76fr); }
+  .sga-scene { padding-top: max(70px, 12vh); min-height: 100%; align-items: flex-start; }
+  .sga-art { object-position: 48% 57%; }
+  .sga-scene::after { background: linear-gradient(180deg, #050b128f 0%, transparent 50%, #0c141b70 100%), linear-gradient(270deg, var(--sga-ground) 0%, #0c141b15 30%, transparent 53%); }
+  .sga-brand { width: min(64%, 420px); }
+  #sortiaGate .sga-chapter { font-size: 15px; }
+  .sga-access { align-self: center; max-width: 460px; padding: 46px 43px 56px 29px; }
+}
+@media (max-width: 360px) { .sga-scene { padding-top: calc(33px + env(safe-area-inset-top)); } .sga-access { padding-inline: 21px; } }
 
 /* leaving: the whole gate fades over the game, the opening or the world */
 #sortiaGate.sg-out { animation: sg-out .45s ease both; pointer-events: none; }
