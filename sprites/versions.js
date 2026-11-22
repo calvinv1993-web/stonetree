@@ -446,6 +446,7 @@ const SPRITE_HASHES = {
   "ui/intro/color/the-false-signal.webp":"4e89f5fd27",
   "ui/intro/color/the-hollow-host.webp":"c16a2968a3",
   "ui/intro/color/the-last-crossing.webp":"8a4c63a049",
+  "ui/intro/panorama.webp":"cfb5ac9a43",
   "ui/intro/sketch/sister-ama.webp":"17d4ad2984",
   "ui/intro/sketch/the-broken-seal.webp":"d8328c6862",
   "ui/intro/sketch/the-false-signal.webp":"e6229ceafd",

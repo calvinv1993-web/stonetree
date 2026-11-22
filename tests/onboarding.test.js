@@ -21,7 +21,7 @@ const shots = process.argv[2];
 const phone = (width, height) => ({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 const SCREENS = [['320', phone(320, 568)], ['375', phone(375, 667)], ['390', phone(390, 844)], ['430', phone(430, 932)],
   ['tablet', phone(820, 1180)], ['desktop', { viewport: { width: 1440, height: 900 } }]];
-const CARDS = ['the-broken-seal', 'the-hollow-host', 'the-last-crossing', 'the-false-signal'];
+const CARDS = ['The Broken Seal', 'The Hollow Host', 'The Last Crossing', 'The False Signal'];
 let failed = 0, passed = 0;
 const check = (ok, what) => { if (ok) passed++; else { failed++; console.log(`  FAIL ${what}`); } };
 
@@ -58,22 +58,27 @@ const fits = page => page.evaluate(() => {
     // the opening: four story cards, each its own picture; Continue and back, a sideways swipe and the arrow keys go
     // through them; nothing past the sides, the way on in sight (a short screen may scroll up and down to it)
     const W = device.viewport.width, H = device.viewport.height;
-    const title = () => page.evaluate(() => siTitle.textContent);
-    const shown = () => page.evaluate(() => ({ art: (document.querySelector('.si-art').getAttribute('src').match(/ui\/intro\/(?:color|sketch)\/([\w-]+)\.webp/) || [])[1],
+    // (the words change once the camera has landed)
+    const title = async () => { await page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 5000 }).catch(() => {}); return page.evaluate(() => siTitle.textContent); };
+    const shown = () => page.evaluate(() => ({ art: siTitle.textContent, x: Math.round(parseFloat(document.querySelector('.si-art').style.getPropertyValue('--si-x'))),
+      pano: /panorama\.webp/.test(document.querySelector('.si-art').src) && document.querySelector('.si-art').complete && document.querySelector('.si-art').naturalWidth === 2172,
       sides: document.documentElement.scrollWidth <= innerWidth && sortiaIntro.scrollWidth <= sortiaIntro.clientWidth,
       way: (() => { const b = [...sortiaIntro.querySelectorAll('.si-fwd')].find(e => e.offsetParent); const r = b.getBoundingClientRect(); return r.height >= 44 && r.right <= innerWidth + 0.5; })() }));
-    const seen = [];
+    const seen = [], xs = [];
+    await page.waitForFunction(() => document.querySelector('.si-art').complete, null, { timeout: 10000 }).catch(() => {});
     for (let i = 0; i < CARDS.length; i++) {
-      const g = await shown(); seen.push(g.art);
+      const g = await shown(); seen.push(g.art); xs.push(g.x);
+      check(g.pano, `${name}: card ${i + 1}: the panorama behind it`);
       check(g.sides && g.way, `${name}: card ${i + 1}: nothing past the sides, the way on 44px (${JSON.stringify(g)})`);
       await step(`story${i + 1}`);
-      if (i < CARDS.length - 1) await page.click('#siNext');
+      if (i < CARDS.length - 1) { await page.click('#siNext'); await page.waitForFunction(t => siTitle.textContent !== t && !sortiaIntro.classList.contains('moving'), seen[i], { timeout: 5000 }).catch(() => {}); }
     }
-    check(seen.join() === CARDS.join(), `${name}: the four cards, each its own picture (${seen})`);
+    check(seen.join() === CARDS.join(), `${name}: the four cards in order (${seen})`);
+    check(xs.every((v, i) => i === 0 || v > xs[i - 1]), `${name}: the camera moves along the panorama, left to right (${xs})`);
     await page.click('#siBack'); check(await title() === 'The Last Crossing', `${name}: back goes back`);
     await page.keyboard.press('ArrowRight'); check(await title() === 'The False Signal', `${name}: the arrow key goes on`);
     await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); check(await title() === 'The Hollow Host', `${name}: and back`);
-    await page.click('#siSkip');
+    await page.click('#siSkip'); await title();
     check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && !siForm.hidden && /What should I call you/.test(siCopy.textContent) && !!document.querySelector('label[for=siName]')),
       `${name}: Skip intro: Sister Ama asks your name, the field with its label`);
     // your name: checked as the game always has; what's wrong said by the field, which stays

@@ -2801,17 +2801,19 @@ const ParchmentPanel = (() => {
 // a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
-// Four story cards, each its own picture with its title and words (a swipe, the arrows, Continue and back go through
-// them; Skip intro goes to Sister Ama), then Sister Ama: your name (offline; online it's known from the login), and three
-// lines of talk ending in Choose Your Path, which opens the vocation screen. Its pictures: sprites/ui/intro/<art>/, the
-// painted ones (color) or the sketched (sketch, the owner's choice), the same words either way: INTRO_ART (a page can
-// try the other with ?art=sketch or ?art=color). Browser tests go straight on unless they ask for it with ?story.
-const INTRO_ART = 'sketch';
+// One panorama behind it all (sprites/ui/intro/panorama.webp: the seal, the mill, the crossing, the false signal, Sister
+// Ama, left to right), the camera moving along it: four story cards, each its title and words over its part of the
+// picture, then Sister Ama: your name (offline; online it's known from the login), and three lines of talk ending in
+// Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and lands on the next scene
+// (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The words stay where they
+// are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
+// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
+const INTRO_SPOTS = [0.10, 0.29, 0.49, 0.67, 0.90];
 const INTRO_CARDS = [
-  ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal', '50%'],
-  ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host', '51%'],
-  ['The Last Crossing', 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.', 'the-last-crossing', '54%'],
-  ['The False Signal', 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.', 'the-false-signal', '46%'],
+  ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal'],
+  ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host'],
+  ['The Last Crossing', 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.', 'the-last-crossing'],
+  ['The False Signal', 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.', 'the-false-signal'],
 ];
 const INTRO_AMA = {
   ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',
@@ -2821,21 +2823,29 @@ const INTRO_AMA = {
     '“Oakvale’s watch trains three kinds of defenders. Bastions hold the crossings so people can reach safety. Hawks scout the roads and fight with the bow. Embers use magic against threats that steel can’t stop.\n\n“If you want to help Oakvale, the watch can train you. Which path will you take?”',
   ],
 };
-const introArtMode = () => { const q = new URLSearchParams(location.search).get('art'); return q === 'sketch' || q === 'color' ? q : INTRO_ART; };
-const introArt = scene => { const f = `ui/intro/${introArtMode()}/${scene}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const Intro = (() => {
   // the steps: the four cards, the name (when asked), the three lines of talk
-  let at = 0, opts = null, name = '', touch = null;
+  let at = 0, opts = null, name = '', drag = null, landing = 0, x = 0;
   const NAME = INTRO_CARDS.length;
   const steps = () => opts && opts.askName ? NAME + 1 + INTRO_AMA.talk.length : NAME + INTRO_AMA.talk.length;
   const kind = i => i < NAME ? 'card' : opts.askName && i === NAME ? 'name' : 'talk';
   const talkLine = i => INTRO_AMA.talk[i - NAME - (opts.askName ? 1 : 0)];
-  function render(focus = true) {
-    const col = $('sortiaIntro').querySelector('.si-col'), art = col.querySelector('.si-art'), k = kind(at), card = INTRO_CARDS[at];
+  const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const art = () => $('sortiaIntro').querySelector('.si-art');
+  // the camera: the panorama's left edge, in pixels, for a scene (its spot in the middle of the column, never past an edge)
+  function spot(i) {
+    const col = $('sortiaIntro').querySelector('.si-col'), w = art().getBoundingClientRect().width || col.clientHeight * 2172 / 724, view = col.clientWidth;
+    return Math.max(0, Math.min(w - view, INTRO_SPOTS[Math.min(i, NAME)] * w - view / 2));
+  }
+  function place(px, glide) {
+    const a = art(); x = px;
+    a.classList.toggle('glide', !!glide && !still());
+    a.style.setProperty('--si-x', px.toFixed(1));
+  }
+  // the words and controls of the step now: changed once the camera has landed
+  function words(focus) {
+    const col = $('sortiaIntro').querySelector('.si-col'), k = kind(at), card = INTRO_CARDS[at];
     col.dataset.screen = k === 'card' ? 'story' : 'ama';
-    col.style.setProperty('--si-framing', card ? card[3] : '54%');
-    const src = introArt(card ? card[2] : 'sister-ama');
-    if (art.getAttribute('src') !== src) { art.src = src; art.classList.remove('enter'); requestAnimationFrame(() => art.classList.add('enter')); }
     $('siTitle').textContent = card ? card[0] : 'Sister Ama';
     $('siCopy').textContent = card ? card[1] : k === 'name' ? INTRO_AMA.ask : talkLine(at).replace(/\$name/g, name);
     $('siForm').hidden = k !== 'name';
@@ -2845,34 +2855,44 @@ const Intro = (() => {
     $('siBack').disabled = at === 0;
     $('siNextLabel').textContent = at === steps() - 1 ? 'Choose Your Path' : 'Continue';
     [...$('siDots').children].forEach((d, i) => { if (i === at && k === 'card') d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current'); });
-    // (the next picture fetched ahead: no wait when you go on)
-    const next = INTRO_CARDS[at + 1]; new Image().src = introArt(next ? next[2] : 'sister-ama');
     if (focus) (k === 'name' && !touchScreen ? $('siName') : $('siTitle')).focus({ preventScroll: true });
     $('sortiaIntro').scrollTop = 0;
   }
+  // to a step: the camera glides to its scene (if it's another), and the words change as it lands
   function go(i) {
     if (i < 0) return;
     if (i >= steps()) { close(); return; }
-    at = i; render();
+    const from = Math.min(at, NAME), to = Math.min(i, NAME);
+    at = i;
+    const turn = ++landing;
+    if (from === to && Math.abs(x - spot(to)) < 1) { words(true); return; }
+    const far = Math.abs(spot(to) - x), ms = still() ? 0 : Math.round(Math.min(1100, 420 + far * 0.35));
+    art().style.setProperty('--si-glide', `${ms}ms`);
+    place(spot(to), true);
+    if (!ms) { words(true); return; }
+    $('sortiaIntro').classList.add('moving');
+    setTimeout(() => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); }, ms);
   }
-  // (a card to the one beside it: only among the cards, and to the name or Ama's talk from the last)
-  const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); };
+  // (a card to the one beside it: only among the cards, and on to Sister Ama from the last)
+  const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
   function close() {
     const done = opts && opts.onDone; opts = null;
-    $('sortiaIntro').hidden = true;
+    $('sortiaIntro').hidden = true; $('sortiaIntro').classList.remove('moving');
     if (done) done();
   }
   function show(o) {
     if (navigator.webdriver && !/[?&]story\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
-    opts = o; name = o.name || ''; at = 0;
+    opts = o; name = o.name || ''; at = 0; landing++;
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
-    render(false);
+    place(spot(0), false); words(false);
+    if (!art().complete) art().addEventListener('load', () => place(spot(at), false), { once: true });
   }
   function setup() {
     const box = $('sortiaIntro'), input = $('siName');
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
+    { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/panorama.webp']; if (h) box.querySelector('.si-art').src = `sprites/ui/intro/panorama.webp?h=${h}`; }
     $('siSkip').onclick = () => go(NAME);
     $('siBack').onclick = () => turn(-1);
     $('siNext').onclick = () => go(at + 1);
@@ -2887,15 +2907,31 @@ const Intro = (() => {
       if (opts.onName) opts.onName(name);
       go(at + 1);
     });
-    // a swipe sideways on a card, and only a meant one: far enough and much more sideways than up or down (a short
-    // screen scrolls up and down)
-    box.addEventListener('touchstart', e => { touch = at < NAME && e.changedTouches.length === 1 ? [e.changedTouches[0].clientX, e.changedTouches[0].clientY] : null; }, { passive: true });
-    box.addEventListener('touchend', e => {
-      if (!touch) return;
-      const f = e.changedTouches[0], dx = f.clientX - touch[0], dy = f.clientY - touch[1]; touch = null;
-      if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
+    // a swipe on a card: once it's clearly sideways the picture follows the finger (a little stiff past either end); let
+    // go far or fast enough and it lands on the next scene or the one before, else it slides back. Up and down scroll.
+    box.addEventListener('touchstart', e => {
+      drag = at < NAME && e.touches.length === 1 && !e.target.closest('input, button, select, summary')
+        ? { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t: performance.now(), base: x, on: false } : null;
     }, { passive: true });
-    box.addEventListener('touchcancel', () => { touch = null; }, { passive: true });
+    box.addEventListener('touchmove', e => {
+      if (!drag) return;
+      const dx = e.touches[0].clientX - drag.x0, dy = e.touches[0].clientY - drag.y0;
+      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } drag.on = true; landing++; box.classList.remove('moving'); }
+      const lo = spot(0), hi = spot(NAME); let to = drag.base - dx;
+      if (to < lo) to = lo - (lo - to) * 0.35; else if (to > hi) to = hi + (to - hi) * 0.35; // (stiff past the ends)
+      place(to, false);
+    }, { passive: true });
+    const release = (cx, cancelled) => {
+      if (!drag) return;
+      const d = drag; drag = null;
+      if (!d.on) return;
+      const dx = cx - d.x0, fast = Math.abs(dx) / Math.max(1, performance.now() - d.t) > 0.45;
+      if (!cancelled && (Math.abs(dx) >= 55 || (fast && Math.abs(dx) > 20))) turn(dx < 0 ? 1 : -1);
+      else go(at); // (back to where it was)
+    };
+    box.addEventListener('touchend', e => release(e.changedTouches[0].clientX, false), { passive: true });
+    box.addEventListener('touchcancel', () => release(drag ? drag.x0 : 0, true), { passive: true });
+    addEventListener('resize', () => { if (!box.hidden) place(spot(at), false); });
     addEventListener('keydown', e => {
       if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
