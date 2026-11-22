@@ -2813,27 +2813,27 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // traveler, the wolf and the hidden goblin as figures of their own (from the owner's parallax package, docs/sortia/parallax),
 // each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and between two scenes each by its
 // depth (the mountains fall behind, the figures run ahead); while you drag, or as the mouse moves, they lean a little.
-// The figures wait for a scene painted without them (INTRO_FIGURES): over this one they'd stand twice. Its lanterns
+// (INTRO_FIGURES: they need the scene painted without them, or they'd stand twice.) Its lanterns
 // flicker (INTRO_GLOWS); mist and snow drift in front, each at its own pace. Four story cards, each its title and words
 // over its part of the picture, then Sister Ama: your name (offline; online it's known from the login), and three lines
 // of talk ending in Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and
 // lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
 // words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
 // INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.29, 0.49, 0.67, 0.90];
+const INTRO_SPOTS = [0.10, 0.29, 0.44, 0.70, 0.90];
 const INTRO_CANVAS = [2172, 724];
-const INTRO_FIGURES = false;
+const INTRO_FIGURES = true;
 // [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['11-wolf', 1450, 225, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 845, 305, 350, 276.47, 35, 2, 'figure'],
-  ['12-hidden-goblin', 1390, 340, 285, 306.2, 36, 2.5, 'figure'],
+  ['11-wolf', 1460, 205, 195, 200.44, 33, 1.5, 'figure'], ['10-traveler', 780, 330, 350, 276.47, 35, 2, 'figure'],
+  ['12-hidden-goblin', 1370, 335, 285, 306.2, 36, 2.5, 'figure'],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
 // the lights: [x %, y %, size %, delay s, depth, kind] (the traveler's and the goblin's lanterns: in the scene, or held by
 // their figures)
 const INTRO_GLOWS = [
-  [26.5, 39.0, 4.2, -0.7, 0, 'dim'], [58.4, 21.6, 3.4, -0.3, 0], [86.1, 23.3, 3.0, -1.2, 0, 'candle'],
-  ...(INTRO_FIGURES ? [[51.6, 50.1, 4.4, -1.9, 2], [65.3, 60.2, 5.2, -2.6, 2.5]] : [[49.6, 50.3, 4.4, -1.9, 0], [65.2, 63.1, 5.2, -2.6, 0]]),
+  [26.8, 37.6, 4.2, -0.7, 0, 'dim'], [57.5, 17.1, 3.4, -0.3, 0], [85.2, 24.2, 3.0, -1.2, 0, 'candle'],
+  ...(INTRO_FIGURES ? [[48.2, 56.9, 4.4, -1.9, 2], [64.4, 59.8, 5.2, -2.6, 2.5]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
