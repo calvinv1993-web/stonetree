@@ -145,11 +145,11 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 
 /* what the path is: kind of fighting and role, how it plays, a strength and a weakness */
 .vs-role { width: 97%; margin: 24px auto 12px; gap: 3.5cqw; color: var(--vs-gold); font: 600 clamp(9px, 2.8cqw, 17px) / 1.15 var(--vs-serif);
-  letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
-.vs-intro { max-width: 29em; margin: 0 auto 16px; padding-inline: 4cqw; font-size: clamp(12px, 3.5cqw, 19px); line-height: 1.27; }
+  letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.vs-intro { max-width: 29em; margin: 0 auto 16px; padding-inline: 4cqw; font-size: clamp(12px, 3.5cqw, 19px); line-height: 1.45; text-wrap: balance; }
 .vs-traits { display: grid; gap: 12px; margin: 0; padding: 16px 0; border-block: 1px solid #afafb35e; list-style: none; }
-.vs-traits li { display: flex; align-items: center; gap: 2.8cqw; padding-inline: clamp(12px, 8.2cqw, 35px) 8px; text-align: left; font-size: clamp(12px, 3.34cqw, 18px); }
-.vs-sign { position: relative; flex: none; width: 5.35cqw; min-width: 16px; aspect-ratio: 1; border-radius: 50%; }
+.vs-traits li { display: flex; align-items: flex-start; gap: 2.8cqw; padding-inline: clamp(12px, 8.2cqw, 35px) 8px; text-align: left; font-size: clamp(12px, 3.34cqw, 18px); }
+.vs-sign { position: relative; flex: none; width: 5.35cqw; min-width: 16px; aspect-ratio: 1; border-radius: 50%; margin-top: calc((1.33em - max(16px, 5.35cqw)) / 2); } /* (centred on the first line; a second line starts under the words, not under the sign) */
 .vs-sign::before, .vs-sign::after { content: ''; position: absolute; left: 50%; top: 50%; width: 48%; height: 2px; border-radius: 1px; background: #fbefd9; transform: translate(-50%, -50%); }
 .vs-plus .vs-sign { background: #526940; }
 .vs-plus .vs-sign::after { transform: translate(-50%, -50%) rotate(90deg); }

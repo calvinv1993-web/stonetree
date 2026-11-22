@@ -1343,7 +1343,7 @@ function showWindow(heading, body) {
 // Its art: sprites/ui/sortia/<art>-scene.webp, <art>-hero.webp (its land and its figure) and <art>-emblem.png (its emblem, over its name plate).
 const PATH_PICK = {
   knight: { art: 'bastion', combat: 'Melee', role: 'Defender', intro: 'A durable frontline fighter who protects allies and holds the line.',
-    plus: 'The most health and heavy melee hits.', minus: 'Cannot attack from range.' },
+    plus: 'Highest health and strong melee attacks.', minus: 'No ranged attacks.' },
   paladin: { art: 'hawk', combat: 'Ranged', role: 'Archer', intro: 'An archer who strikes from afar, with a falcon at their side.',
     plus: 'Long-range shots, Power Shot and volleys.', minus: 'Vulnerable in melee.' },
   sorcerer: { art: 'ember', combat: 'Magic', role: 'Spellcaster', intro: 'A spellcaster who burns whole packs with fire and energy.',
