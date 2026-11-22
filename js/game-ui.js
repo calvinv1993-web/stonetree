@@ -3395,7 +3395,15 @@ const Gate = (() => {
       b.append(img, who, go);
       b.setAttribute('aria-label', `Play ${c.name}, ${what.textContent}`);
       b.onclick = () => { if (busy) return; charBusy(true, b); o.onPlay(c.name); };
-      li.append(b); list.append(li);
+      li.append(b);
+      if (o.onDelete && !c.online) { // (deleting one: asked once more, it can't be undone)
+        const del = document.createElement('button');
+        del.type = 'button'; del.className = 'sga-char-del'; del.textContent = '×';
+        del.title = `Delete ${c.name}`; del.setAttribute('aria-label', `Delete ${c.name}`);
+        del.onclick = () => { if (busy || !confirm(`Delete ${c.name} for good? This can't be undone.`)) return; o.onDelete(c.name); };
+        li.append(del);
+      }
+      list.append(li);
     }
     list.hidden = !o.characters.length;
     $('sgNoChars').hidden = !!o.characters.length;

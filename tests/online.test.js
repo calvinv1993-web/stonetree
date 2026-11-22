@@ -218,7 +218,16 @@ function startServer(...args) {
     lick.close();
     const lickWrong = accountPage({ account: 'Lickii', password: '000000', create: false }); await waitFor(() => lickWrong.last('error') || lickWrong.last('account'));
     assert(lickWrong.last('error') && !lickWrong.last('account'), 'and only its own password opens it'); lickWrong.close();
-    console.log('  ok   the test account Lickii: a level 100 character of each path');
+    // deleting a character: gone from the account's list (not one that's in the world)
+    const delAcc = accountPage({ account: `Dana${tag}`, password: 'secret12', create: false }); await waitFor(() => delAcc.last('account'));
+    const n = delAcc.last('account').characters.length;
+    delAcc.send({ t: 'delchar', name: `Eve${tag}` }); await waitFor(() => delAcc.last('error'));
+    assert(delAcc.last('error').keep && /in the world/.test(delAcc.last('error').message), 'a character still in the world isn\'t deleted');
+    await sleep(8600); // (its page gone, it lingers 8 s)
+    delAcc.send({ t: 'delchar', name: `Eve${tag}` }); await waitFor(() => delAcc.got.filter(m => m.t === 'account').length > 1);
+    assert(delAcc.last('account').characters.length === n - 1 && !delAcc.last('account').characters.some(c => c.name === `Eve${tag}`), `a deleted character leaves the list (${JSON.stringify(delAcc.last('account'))})`);
+    delAcc.close();
+    console.log('  ok   the test account Lickii: a level 100 character of each path; a character deleted');
     // Wrong passwords: after a few, that address waits a minute (even the right one is refused meanwhile)
     for (let i = 0; i < 9; i++) { const w = client(`Bob${tag}`, { password: `wrong${i}` }); await waitFor(() => w.error); w.close(); }
     const right = client(`Old${tag}`, { password: 'pw' });

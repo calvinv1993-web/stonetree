@@ -125,6 +125,10 @@ html body #sortiaGate :is(.sga-primary, .sga-primary *, .sga-title, .sga-chapter
 /* the character select: a row each (its path's emblem, its name, level and path, Play), a new one under them */
 .sga-chars[hidden], .sga-list[hidden], .sga-empty[hidden], .sga-new[hidden] { display: none; }
 .sga-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.sga-list li { display: flex; align-items: stretch; gap: 6px; }
+.sga-list li .sga-char { flex: 1; min-width: 0; }
+#sortiaGate .sga-char-del { flex: none; width: 44px; border: 1px solid var(--sga-line); border-radius: 3px; color: var(--sga-muted); font-size: 22px; line-height: 1; background: #0f1a22; }
+#sortiaGate .sga-char-del:hover { color: #f0a594; border-color: #d0705c99; }
 #sortiaGate .sga-char { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 14px 8px 10px;
   text-align: left; border: 1px solid var(--sga-line); border-radius: 3px; background: linear-gradient(180deg, #13212b, #0f1a22); box-shadow: inset 0 1px 0 #ffffff08; }
 #sortiaGate .sga-char:hover { border-color: #d8b47a99; background: linear-gradient(180deg, #172833, #111e27); }

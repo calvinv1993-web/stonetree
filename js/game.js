@@ -1720,6 +1720,13 @@ const TEST_ACCOUNT = { name: 'Lickii', salt: '261063dc8c937e7b', hash: 'e14d0cd4
 const TEST_ACCOUNT_KEY = 'tilequest.account.lickii', TEST_SESSION = '#lickii';
 function testAccount() {
   let account = stored(TEST_ACCOUNT_KEY);
+  if (account && !stored(TEST_ACCOUNT_KEY + '.tidied')) { // (once, as the owner asked: only its level 100 characters stay)
+    const heroes = TEST_ACCOUNT.heroes.map(([n]) => n.toLowerCase());
+    for (const c of account.characters) if (!heroes.includes(c.toLowerCase())) stored(characterSaveKey(c), null);
+    account.characters = account.characters.filter(c => heroes.includes(c.toLowerCase()));
+    stored(TEST_ACCOUNT_KEY, account);
+    stored(TEST_ACCOUNT_KEY + '.tidied', 1);
+  }
   if (account) return account;
   account = { name: TEST_ACCOUNT.name, salt: TEST_ACCOUNT.salt, hash: TEST_ACCOUNT.hash, builtin: true, characters: [] };
   const keep = player;
@@ -1820,6 +1827,12 @@ function chooseOffline(account, message) {
       playOffline(name);
     },
     onLogout: () => { stored(SESSION_KEY, null); askOffline(account.builtin ? offlineAccount() : account); },
+    onDelete: name => {
+      stored(characterSaveKey(name), null);
+      account.characters = account.characters.filter(c => !sameName(c, name));
+      stored(accountKeyOf(account), account);
+      chooseOffline(account, `${name} was deleted.`);
+    },
   });
 }
 // one character of the account in the world at a time, in this browser too: a tab playing marks it (IN_WORLD_KEY, its

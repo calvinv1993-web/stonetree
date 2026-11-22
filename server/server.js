@@ -361,6 +361,18 @@ function newCharacter(conn, msg) {
   enterCharacter(conn, key, asText(msg.vocation));
 }
 
+// A character of this page's account deleted (not while it's in the world); the account's list answered again
+function deleteCharacter(conn, msg) {
+  const owner = conn.owner && owners[conn.owner], key = cleanName(msg.name).toLowerCase();
+  if (!owner) return conn.reply({ t: 'error', message: 'Please log in again.', relogin: true });
+  if (!owner.characters.includes(key)) return conn.reply({ t: 'error', message: 'That character isn\'t on this account.', keep: true });
+  if (G.players.some(p => p.name.toLowerCase() === key)) return conn.reply({ t: 'error', message: 'That character is in the world: log out of it first.', keep: true });
+  owner.characters = owner.characters.filter(k => k !== key);
+  delete accounts[key];
+  persist();
+  conn.reply({ t: 'account', name: owner.name, token: owner.token, characters: characterList(owner), max: MAX_CHARACTERS });
+}
+
 // The older way in (a character's own name and password; still used by the online test and older pages): a new name
 // makes a character with its own account.
 function login(conn, msg) {
@@ -760,6 +772,7 @@ server.on('upgrade', (req, socket) => {
       if (msg.t === 'login' && !conn.player) login(conn, msg);
       else if (msg.t === 'play' && !conn.player) playCharacter(conn, msg);
       else if (msg.t === 'newchar' && !conn.player) newCharacter(conn, msg);
+      else if (msg.t === 'delchar' && !conn.player) deleteCharacter(conn, msg);
       else if (msg.t === 'act') act(conn, msg);
     } catch (e) {
       console.error('A message from a page failed:', e);

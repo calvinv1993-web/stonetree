@@ -57,6 +57,7 @@ const Net = (() => {
       onPlay: name => send({ t: 'play', name, device }),
       onCreate: name => send({ t: 'newchar', name, device }),
       onLogout: () => { forget(); playingNow(null); if (ws) { ws.onclose = null; ws.close(); } showLogin(); },
+      onDelete: name => send({ t: 'delchar', name }),
     });
   }
 
