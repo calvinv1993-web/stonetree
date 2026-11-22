@@ -2824,7 +2824,7 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
 // words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
 // INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.33, 0.465, 0.675, 0.90];
+const INTRO_SPOTS = [0.10, 0.33, 0.475, 0.675, 0.90];
 const INTRO_CANVAS = [2172, 724];
 const INTRO_FIGURES = true;
 // [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures (the scene is painted
@@ -2834,14 +2834,14 @@ const INTRO_LAYERS = [
   ['03-seal', 22, 165, 427, 401, 20, 0.5], ['04-mill', 415, 150, 560, 455, 20, 0.5],
   ['06-gate-watchman', 1204, 104, 81, 64, 22, 0], ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
-  ['10-traveler', 800, 355, 350, 276.47, 35, 2, 'figure'],
+  ['10-traveler', 850, 355, 350, 276.47, 35, 2, 'figure'],
   ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 600, 2172, 124, 55, 3],
 ].filter(l => INTRO_FIGURES || l[7] !== 'figure');
 // the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
 // the lanterns the traveler and the goblin hold
 const INTRO_GLOWS = [
   [28.2, 43.3, 2.4, -0.7, 0.5, 'dim'], [31.3, 45.9, 2.4, -1.4, 0.5, 'dim'], [58.2, 19.3, 3.0, -0.3, 0], [85.3, 25.5, 3.0, -1.2, 0, 'candle'],
-  ...(INTRO_FIGURES ? [[49.1, 59.9, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
+  ...(INTRO_FIGURES ? [[51.4, 59.9, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
 const INTRO_CARDS = [
