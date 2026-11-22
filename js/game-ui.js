@@ -2829,7 +2829,7 @@ const INTRO_FIGURES = true;
 // without them); the tree, near the camera, comes blurred and runs far ahead
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['03-seal', 22, 165, 427, 401, 20, 0.5], ['04-mill', 415, 251, 560, 455, 20, 0.5],
+  ['03-seal', 22, 165, 427, 401, 20, 0.5], ['04-mill', 415, 150, 560, 455, 20, 0.5],
   ['05-sister-ama', 1826, 110, 330, 372, 30, 1, 'figure'],
   ['11-wolf', 1500, 205, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
   ['10-traveler', 1075, 360, 350, 276.47, 35, 2, 'figure'],
@@ -2838,7 +2838,7 @@ const INTRO_LAYERS = [
 // the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
 // the lanterns the traveler and the goblin hold
 const INTRO_GLOWS = [
-  [28.2, 57.3, 2.4, -0.7, 0.5, 'dim'], [31.3, 59.8, 2.4, -1.4, 0.5, 'dim'], [57.8, 24.2, 3.0, -0.3, 0], [85.3, 25.5, 3.0, -1.2, 0, 'candle'],
+  [28.2, 43.3, 2.4, -0.7, 0.5, 'dim'], [31.3, 45.9, 2.4, -1.4, 0.5, 'dim'], [57.8, 24.2, 3.0, -0.3, 0], [85.3, 25.5, 3.0, -1.2, 0, 'candle'],
   ...(INTRO_FIGURES ? [[61.8, 60.6, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
