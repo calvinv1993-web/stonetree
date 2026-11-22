@@ -136,7 +136,7 @@ const fits = page => page.evaluate(() => {
           const size = s => parseFloat(getComputedStyle(pathInfo.querySelector(s)).fontSize);
           return { heads: Math.abs(hs[0].top - hs[1].top) < 1 && Math.abs(hs[0].bottom - hs[1].bottom) < 1, gear: Math.abs(hs[2].left - hs[1].left) < 1,
             items: items.every(r => Math.abs(r.width - items[0].width) < 0.5) && Math.abs((items[1].left - items[0].right) - (items[2].left - items[1].right)) < 1,
-            words: size('.sv-desc') >= 13 && size('.sv-list li') >= 13, phone: matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches && size('.sv-desc') >= 15 && size('.sv-list li') >= 15,
+            words: size('.sv-desc') >= 13 && size('.sv-list li') >= 13, phone: matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches && size('.sv-desc') >= 14 && size('.sv-list li') >= 14,
             path: pathChoose.textContent };
         });
         check(g.heads && g.gear && g.items, `${name}: ${g.path}: Strengths and Weakness on one line, Starts with under Weakness, the kit's boxes alike (${JSON.stringify(g)})`);

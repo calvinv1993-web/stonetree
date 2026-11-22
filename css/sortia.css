@@ -7,7 +7,7 @@
    the dots under it. Everything is laid out in % of the scene's width (cqw), so it keeps the reference's proportions on
    any screen; it scrolls if the screen is too short. Its pictures: sprites/ui/sortia/ (from the kit). Its type:
    Cinzel (titles, names, the way on), EB Garamond (the line under the banner) and Inter (the parchment's words, upright,
-   15 to 16px on a phone), in css/fonts (SIL Open Font License). */
+   14 to 15px on a phone), in css/fonts (SIL Open Font License). */
 
 @font-face { font-family: 'EB Garamond'; font-weight: 400 600; font-display: swap; src: url(fonts/eb-garamond-latin.woff2) format('woff2'); }
 @font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap; src: url(fonts/inter-latin-wght.woff2) format('woff2'); }
@@ -92,7 +92,6 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
 .sv-card:not([data-position="center"]) .sv-info { bottom: 5%; color: #d1c3aa; }
 .sv-card:not([data-position="center"]) .sv-info strong { font-size: clamp(12px, 3.03cqw, 31px); }
 .sv-card:not([data-position="center"]) .sv-info small { font-size: clamp(6.5px, 1.35cqw, 14px); }
-.sv-card.sv-cut .sv-info :is(strong, small) { visibility: hidden; } /* (a side card's name only when all of it is on the screen: game-ui.js fitNames) */
 .sv-card[data-position="left"] .sv-info { left: -6%; }
 .sv-card[data-position="right"] .sv-info { right: -6%; }
 
@@ -169,8 +168,11 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
   #pathPick .sv-rule::before, #pathPick .sv-rule::after { width: 15cqw; }
   #pathPick .sv-sub { top: 23.5cqw; font-size: 3.4cqw; }
   #pathPick .sv-card { --cut: 3.2cqw; --edge: 0.7cqw; left: 19.15%; top: 30.4cqw; width: 61.7%; height: 77.9cqw; }
-  #pathPick .sv-card[data-position="left"] { left: -20%; top: 38.5cqw; width: 35%; height: 65cqw; --edge: 0.55cqw; }
-  #pathPick .sv-card[data-position="right"] { left: 85%; top: 38.5cqw; width: 35%; height: 65cqw; --edge: 0.55cqw; }
+  /* (the side cards run off the screen's edges, also when a short phone makes the scene narrower than the screen: then
+     wider, out to past the edge, by the margin beside the scene, --gut) */
+  #pathPick .sv-scene { --gut: calc((100vw - 100cqw) / 2); }
+  #pathPick .sv-card[data-position="left"] { left: calc(15% - max(35%, 25% + var(--gut))); top: 38.5cqw; width: max(35%, 25% + var(--gut)); height: 65cqw; --edge: 0.55cqw; }
+  #pathPick .sv-card[data-position="right"] { left: 85%; top: 38.5cqw; width: max(35%, 25% + var(--gut)); height: 65cqw; --edge: 0.55cqw; }
   #pathPick .sv-face { --cut: 2.9cqw; }
   #pathPick .sv-window { --cut: 2.6cqw; inset: 0.45cqw; }
   #pathPick .sv-medal { width: 19cqw; margin-bottom: 0; }
@@ -179,23 +181,23 @@ html body #pathPick :is(.sv-title, .sv-title i, .sv-info strong, .sv-info small,
   #pathPick .sv-info small::before, #pathPick .sv-info small::after { width: 5.5cqw; }
   #pathPick .sv-card:not([data-position="center"]) .sv-info strong { font-size: 5cqw; }
   #pathPick .sv-card:not([data-position="center"]) .sv-info small { font-size: 2cqw; }
-  #pathPick .sv-card[data-position="left"] .sv-info { left: 0; right: -8%; }
-  #pathPick .sv-card[data-position="right"] .sv-info { left: -8%; right: 0; }
+  #pathPick .sv-card[data-position="left"] .sv-info { left: auto; right: -2.8cqw; width: 37.8cqw; }
+  #pathPick .sv-card[data-position="right"] .sv-info { left: -2.8cqw; right: auto; width: 37.8cqw; }
   #pathPick .sv-arrow { top: 65.5cqw; width: max(44px, 9.6cqw); height: max(44px, 9.6cqw); }
   #pathPick .sv-arrow span { width: 9.2cqw; border-width: 0.3cqw; }
   #pathPick .sv-arrow.sv-left { left: 14.1%; }
   #pathPick .sv-arrow.sv-right { left: 85.9%; }
   /* the parchment: wide, a little inside the screen's edges; its words in calc(.. * --pk) */
   /* (the parchment as wide as the screen allows, even when a short phone makes the cards smaller: game-ui.js place) */
-  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: calc(3.4cqw * var(--pk)) 6vw calc(4cqw + 18px); }
-  /* (the words 15 to 16px, the headings 12 to 13px, whatever the phone's width) */
-  #pathPick .sv-desc { font-size: clamp(15px, calc(16px * var(--pk)), 16px); margin: 4px auto 5px; }
+  #pathPick .sv-paper { width: 94vw; margin: 12px calc((100% - 94vw) / 2) 0; padding: max(16px, calc(3.4cqw * var(--pk))) 6vw calc(4cqw + 18px); }
+  /* (the words 14 to 15px, the headings 11 to 12px, whatever the phone's width) */
+  #pathPick .sv-desc { font-size: clamp(14px, calc(15px * var(--pk)), 15px); margin: 0 auto 5px; }
   #pathPick .sv-cols { margin-top: 6px; }
   #pathPick .sv-cols > div:first-child { padding-right: 12px; }
   #pathPick .sv-cols > div:last-child { padding-left: 12px; }
-  #pathPick .sv-cols h3 { font-size: clamp(12px, calc(13px * var(--pk)), 13px); gap: 7px; margin: 0 0 8px; padding-bottom: 6px; }
+  #pathPick .sv-cols h3 { font-size: clamp(11px, calc(12px * var(--pk)), 12px); gap: 7px; margin: 0 0 8px; padding-bottom: 6px; }
   #pathPick .sv-cols h3 svg { width: 18px; height: 18px; }
-  #pathPick .sv-list li { font-size: clamp(15px, calc(16px * var(--pk)), 16px); margin-bottom: 7px; }
+  #pathPick .sv-list li { font-size: clamp(14px, calc(15px * var(--pk)), 15px); margin-bottom: 7px; }
   #pathPick .sv-list li:last-child { margin-bottom: 0; }
   #pathPick .sv-cols h3.sv-gear { margin-top: 14px; padding-top: 8px; }
   #pathPick .sv-items { grid-template-columns: repeat(3, minmax(0, 42px)); gap: 8px; }

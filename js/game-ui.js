@@ -1442,19 +1442,8 @@ function askPath(onDone, onBack) {
         scene.style.width = `${Math.max(least, Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1)}px`; tallest();
       }
     }
-    curve(); fitNames();
+    curve();
     if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
-  }
-  // a side card's name only when the whole of it is on the screen (a phone shows only the cards' inner strips); measured
-  // where the cards come to rest, after their move
-  function fitNames() {
-    clearTimeout(fitNames.t);
-    fitNames.t = setTimeout(() => {
-      for (const c of track.children) {
-        const name = c.querySelector('.sv-info strong'), r = name.getBoundingClientRect();
-        c.classList.toggle('sv-cut', c.dataset.position !== 'center' && (r.left < 0 || r.right > document.documentElement.clientWidth));
-      }
-    }, 450);
   }
   // what the parchment says of a path: its words, strengths, weakness and what it starts with
   function paperFor(v) {
@@ -1470,7 +1459,6 @@ function askPath(onDone, onBack) {
     const rule = () => { const r = h('div', { className: 'sv-rule' }, h('span')); r.setAttribute('aria-hidden', 'true'); return r; };
     const weak = Array.isArray(info.weakness) ? info.weakness : [info.weakness];
     return [
-      rule(),
       h('p', { className: 'sv-desc' }, info.intro),
       rule(),
       h('div', { className: 'sv-cols' },
@@ -1496,7 +1484,6 @@ function askPath(onDone, onBack) {
     [...$('pathDots').children].forEach((d, j) => d.setAttribute('aria-current', j === pathAt ? 'true' : 'false'));
     $('pathInfo').replaceChildren(...paperFor(v));
     $('pathChoose').textContent = `Choose ${vocName(v)}`;
-    fitNames();
     ask(false);
   }
   // the confirmation: a path is for good
