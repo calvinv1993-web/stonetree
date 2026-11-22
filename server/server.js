@@ -334,7 +334,7 @@ function newCharacter(conn, msg) {
   if (name.length < 2) return conn.reply({ t: 'error', message: 'Choose a name of at least 2 letters.', keep: true });
   if (accounts[key] || (owners[key] && key !== conn.owner)) return conn.reply({ t: 'error', message: 'That name is taken: choose another.', keep: true });
   if (owner.characters.length >= MAX_CHARACTERS) return conn.reply({ t: 'error', message: `An account holds ${MAX_CHARACTERS} characters at most.`, keep: true });
-  const busy = accountBusy(conn.owner, key);
+  const busy = deviceOrIpFull(conn, key) || accountBusy(conn.owner, key);
   if (busy) return conn.reply({ t: 'error', message: busy, keep: true });
   accounts[key] = { owner: conn.owner, name: name[0].toUpperCase() + name.slice(1), save: null };
   owner.characters.push(key);
@@ -371,6 +371,19 @@ function login(conn, msg) {
 
 // One character of an account in the world at a time: another of its characters, played on a page now, keeps this one
 // out (the error says which); one whose page has gone (lingering a moment) is logged out to make way
+// And to keep one person from playing many accounts at once: one character in the world from a browser at a time (its
+// device: a random id it keeps, sent with play and newchar), and at most PER_IP characters from one internet address (a
+// family on one wifi still plays together). This computer (the server's own) isn't counted, unless --ip-limit-local.
+const PER_IP = 4, LIMIT_LOCAL = process.argv.includes('--ip-limit-local');
+const LOCAL = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+function deviceOrIpFull(conn, key) {
+  const others = [...conns].filter(c => c !== conn && c.player && c.player.name.toLowerCase() !== key);
+  const sameDevice = conn.device && others.find(c => c.device === conn.device);
+  if (sameDevice) return `${sameDevice.player.name} is in the world from this browser already: one character at a time. Log out of ${sameDevice.player.name} first.`;
+  if (LOCAL.includes(conn.ip) && !LIMIT_LOCAL) return null;
+  if (others.filter(c => c.ip === conn.ip).length >= PER_IP) return `${PER_IP} characters are in the world from your internet connection already: that's the most at a time.`;
+  return null;
+}
 function accountBusy(ownerKey, key) {
   if (!ownerKey) return null;
   const other = G.players.find(p => { const k = p.name.toLowerCase(); return k !== key && accounts[k] && accounts[k].owner === ownerKey; });
@@ -385,7 +398,7 @@ function accountBusy(ownerKey, key) {
 // save, or a new one (no save yet: the story, isNew)
 function enterCharacter(conn, key, vocationWanted) {
   const account = accounts[key], isNew = !account.save;
-  const busy = accountBusy(account.owner, key);
+  const busy = deviceOrIpFull(conn, key) || accountBusy(account.owner, key);
   if (busy) return conn.reply({ t: 'error', message: busy, keep: !!conn.owner });
   const online = G.players.find(p => p.name.toLowerCase() === key);
   if (online) {
@@ -723,6 +736,7 @@ server.on('upgrade', (req, socket) => {
     try { // nothing a page sends may take the server down
       const msg = JSON.parse(data);
       if (!msg || typeof msg !== 'object') return;
+      if (typeof msg.device === 'string' && /^[\w-]{8,64}$/.test(msg.device)) conn.device = msg.device; // (this browser's id: see deviceOrIpFull)
       if (msg.t === 'login' && !conn.player) login(conn, msg);
       else if (msg.t === 'play' && !conn.player) playCharacter(conn, msg);
       else if (msg.t === 'newchar' && !conn.player) newCharacter(conn, msg);

@@ -34,6 +34,8 @@ const Net = (() => {
   const PLAYING_KEY = 'tilequest.playing.online';
   const playingNow = value => storage(() => { if (value === undefined) return sessionStorage.getItem(PLAYING_KEY); if (value === null) sessionStorage.removeItem(PLAYING_KEY); else sessionStorage.setItem(PLAYING_KEY, value); return null; });
   const vocationWanted = () => ($('createVocation') ? $('createVocation').value : '');
+  // this browser's id, kept: the server lets one character play from a browser at a time
+  const device = storage(() => { let id = localStorage.getItem('tilequest.device'); if (!id) { id = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('tilequest.device', id); } return id; }) || '';
   function showLogin(message) {
     if (Gate.asking()) return Gate.refuse(message); // (the form is up: what went wrong said on it, as it was)
     Gate.ask({
@@ -64,12 +66,12 @@ const Net = (() => {
   function showCharacters(msg) {
     storage(() => localStorage.setItem(LOGIN_KEY, JSON.stringify({ account: msg.name, token: msg.token })));
     const again = playingNow();
-    if (again && msg.characters.some(c => c.name.toLowerCase() === again.toLowerCase())) return send({ t: 'play', name: again, vocation: vocationWanted() });
+    if (again && msg.characters.some(c => c.name.toLowerCase() === again.toLowerCase())) return send({ t: 'play', name: again, vocation: vocationWanted(), device });
     if (Net.online) return; // (a reconnect whose character is gone: nothing to show over the world)
     Gate.chooseCharacter({
       account: msg.name, characters: msg.characters, max: msg.max,
-      onPlay: name => send({ t: 'play', name, vocation: vocationWanted() }),
-      onCreate: name => send({ t: 'newchar', name, vocation: vocationWanted() }),
+      onPlay: name => send({ t: 'play', name, vocation: vocationWanted(), device }),
+      onCreate: name => send({ t: 'newchar', name, vocation: vocationWanted(), device }),
       onLogout: () => { forget(); playingNow(null); if (ws) { ws.onclose = null; ws.close(); } showLogin(); },
     });
     testStarts();

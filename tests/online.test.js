@@ -47,8 +47,8 @@ function accountPage(login) {
   return c;
 }
 
-function startServer() {
-  const server = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js'), String(PORT)], { stdio: ['ignore', 'pipe', 'inherit', 'ipc'] });
+function startServer(...args) {
+  const server = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js'), String(PORT), ...args], { stdio: ['ignore', 'pipe', 'inherit', 'ipc'] });
   server.ready = new Promise((resolve, reject) => {
     server.stdout.on('data', d => String(d).includes('running') && resolve());
     server.on('exit', code => reject(new Error(`server exited with ${code}`)));
@@ -192,7 +192,18 @@ function startServer() {
     acc3.close(); await sleep(400);
     acc4.send({ t: 'play', name: `Eve${tag}` }); await waitFor(() => acc4.last('welcome'));
     assert(acc4.last('welcome') && acc4.last('welcome').name === `Eve${tag}`, 'once the first page has gone, the other character plays');
-    acc4.close();
+    acc4.close(); await sleep(300);
+    // one character from a browser at a time, whatever the account: another account's character from the same browser waits
+    const dev = 'device-test-' + tag;
+    const g1 = accountPage({ account: `Gil${tag}`, password: 'secret12', create: true }); await waitFor(() => g1.last('account'));
+    g1.send({ t: 'newchar', name: `Gil${tag}`, device: dev }); await waitFor(() => g1.last('welcome'));
+    const h1 = accountPage({ account: `Hal${tag}`, password: 'secret12', create: true }); await waitFor(() => h1.last('account'));
+    h1.send({ t: 'newchar', name: `Hal${tag}`, device: dev }); await waitFor(() => h1.last('error') || h1.last('welcome'));
+    assert(h1.last('error') && h1.last('error').keep && /from this browser already/.test(h1.last('error').message) && !h1.last('welcome'),
+      `another account's character from the same browser waits (${JSON.stringify(h1.got.slice(-1))})`);
+    h1.send({ t: 'newchar', name: `Hal${tag}`, device: 'another-browser-' + tag }); await waitFor(() => h1.last('welcome'));
+    assert(h1.last('welcome'), 'from another browser it plays');
+    g1.close(); h1.close(); await sleep(300);
     const wrongAcc = accountPage({ account: `Dana${tag}`, password: 'nope1234', create: false }); await waitFor(() => wrongAcc.last('error') || wrongAcc.last('account'));
     assert(wrongAcc.last('error') && !wrongAcc.last('account'), 'a wrong password lists nothing'); wrongAcc.close();
     const oldAcc = accountPage({ account: `Old${tag}`, password: 'pw', create: false }); await waitFor(() => oldAcc.last('error') || oldAcc.last('account'));
@@ -210,6 +221,29 @@ function startServer() {
     assert(accounts[`alice${tag}`].password.startsWith('scrypt$') && accounts[old].password.startsWith('scrypt$'), 'passwords are saved salted, the old one turned');
     assert(fs.existsSync(`${SAVES}.bak`), 'the save before it is kept as players.json.bak');
     console.log('  ok   salted passwords, old ones turned; junk, floods and password guessing held off');
+
+    // At most 4 characters in the world from one internet address (counted here with --ip-limit-local: this computer
+    // isn't, otherwise)
+    server = startServer('--ip-limit-local');
+    await server.ready;
+    const many = [];
+    for (let i = 0; i < 5; i++) {
+      const pg = accountPage({ account: `Ipa${i}${tag}`, password: 'secret12', create: true });
+      await waitFor(() => pg.last('account') || pg.last('error'));
+      pg.send({ t: 'newchar', name: `Ipa${i}${tag}`, device: `ip-test-${i}-${tag}` });
+      await waitFor(() => pg.last('welcome') || pg.last('error') && pg.got.filter(m => m.t === 'error').length);
+      many.push(pg);
+    }
+    assert(many.slice(0, 4).every(pg => pg.last('welcome')), 'four characters from one address play');
+    assert(!many[4].last('welcome') && many[4].last('error') && /4 characters are in the world from your internet connection/.test(many[4].last('error').message),
+      `the fifth is kept out (${JSON.stringify(many[4].got.slice(-1))})`);
+    many[0].close(); await sleep(400);
+    many[4].send({ t: 'newchar', name: `Ipa4${tag}`, device: `ip-test-4-${tag}` }); await waitFor(() => many[4].last('welcome'));
+    assert(many[4].last('welcome'), 'once one has gone, it plays');
+    for (const pg of many) pg.close();
+    server.send('stop');
+    await new Promise(r => server.on('exit', r));
+    console.log('  ok   one character from a browser at a time, and at most 4 from one internet address');
   } catch (err) {
     failed = true;
     console.log(`  FAIL ${err.stack}`);
