@@ -1747,6 +1747,7 @@ function enterOffline(name) {
   if (stored(ACCOUNT_KEY)) $('newChar').textContent = 'Log out';
   if (loadGame()) {
     log(`Welcome back, ${player.name}!`);
+    Sound.title.stop();
     startWorld();
     return;
   }

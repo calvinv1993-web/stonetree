@@ -491,7 +491,7 @@ for (const dir of CLIENT_DIRS) fs.watch(path.join(ROOT, dir), { recursive: true 
 fs.watch(ROOT, (event, file) => file && /\.(html|json)$/.test(file) && changed());
 
 // ---- HTTP: the game files, and the WebSocket ------------------------------------------------
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.json': 'application/json', '.md': 'text/plain' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.json': 'application/json', '.md': 'text/plain' };
 
 const server = http.createServer((req, res) => {
   let url, file;
@@ -538,7 +538,16 @@ const server = http.createServer((req, res) => {
         res.writeHead(404);
         return res.end('Not found');
       }
-      res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', ETag: etag });
+      const type = TYPES[path.extname(file)] || 'application/octet-stream';
+      // (a part of it, when asked: Safari plays music only from a server that sends parts)
+      const part = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ''));
+      if (part && (part[1] || part[2])) {
+        let from = part[1] ? +part[1] : Math.max(0, data.length - +part[2]), to = part[1] && part[2] ? Math.min(+part[2], data.length - 1) : data.length - 1;
+        if (from >= data.length || from > to) { res.writeHead(416, { 'Content-Range': `bytes */${data.length}` }); return res.end(); }
+        res.writeHead(206, { 'Content-Type': type, 'Cache-Control': 'no-cache', ETag: etag, 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${from}-${to}/${data.length}` });
+        return res.end(data.subarray(from, to + 1));
+      }
+      res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-cache', ETag: etag, 'Accept-Ranges': 'bytes' });
       res.end(data);
     });
   });

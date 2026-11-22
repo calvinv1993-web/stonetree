@@ -12,11 +12,11 @@ const path = require('path');
 const SPRITES = path.join(__dirname, '..', 'sprites');
 const OUT = path.join(SPRITES, 'versions.js');
 
-// every picture under sprites/, by its path from there with forward slashes (as the game names them)
+// every picture (and piece of music) under sprites/, by its path from there with forward slashes (as the game names them)
 function versions() {
   const out = {};
   for (const rel of fs.readdirSync(SPRITES, { recursive: true }).map(String).sort()) {
-    if (!/\.(png|webp|jpe?g)$/i.test(rel)) continue;
+    if (!/\.(png|webp|jpe?g|mp3)$/i.test(rel)) continue; // (and the music)
     const name = rel.split(path.sep).join('/');
     if (name.startsWith('templates/') || name === 'baked-ground.png') continue; // (guides for drawing; the baked ground has its own)
     out[name] = crypto.createHash('sha1').update(fs.readFileSync(path.join(SPRITES, rel))).digest('hex').slice(0, 10);

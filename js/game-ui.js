@@ -2751,7 +2751,7 @@ function updateSoundButtons() {
 
 // The welcome: while you name a character and choose its outfit (or log in), the game's controls stay out of sight
 // and the loading screen's picture is behind the windows, a title screen rather than the game behind glass
-function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) welcomeScene(false); }
+function welcome(on) { document.body.classList.toggle('welcome', !!on); if (!on && $('templeScene')) welcomeScene(false); if (!on) Sound.title.stop(); }
 
 // ---- the parchment panel (css/parchment.css): a page of real paper in an antique gold frame, round any content ------
 // ParchmentPanel.decorate(el, { variant, ornament }) puts the paper and the frame under what el already holds (its
@@ -3103,6 +3103,7 @@ const Gate = (() => {
   // getting ready: shown at once; done once everything's in (but shown for a moment at least, and never kept long)
   function load(text) {
     const el = box();
+    Sound.title.start(); // (SORTIA's title music, until you're in the world)
     el.hidden = false; el.classList.add('sg-in'); el.classList.remove('sg-out', 'sg-leaving');
     $('sgLoad').hidden = false; $('sgAuth').hidden = true;
     $('sgLoadText').textContent = text || 'Loading…';
