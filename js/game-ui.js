@@ -1369,13 +1369,43 @@ const SV_ORDER = ['paladin', 'knight', 'sorcerer']; // (the cards, left to right
 // the three pictures fetched ahead, while the story is told (welcomeScene calls this), so the screen opens with them
 function preloadPathArt() {
   if (preloadPathArt.done) return; preloadPathArt.done = true;
-  for (const v of SV_ORDER) for (const f of [`${PATH_PICK[v].art}-portrait.webp`, `${PATH_PICK[v].art}-crest.webp`]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
+  for (const f of ['bastion-scene.webp', 'bastion-hero.webp', 'hawk-portrait.webp', 'ember-portrait.webp', ...SV_ORDER.map(v => `${PATH_PICK[v].art}-crest.webp`)]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
 }
+// Bastion's picture: in layers, after the owner's light study (docs/sortia/bastion-motion: its timing in css/sortia.css):
+// the fortress and its land behind him, drifting a little closer; a warm glow in the sky; Bastion himself (a picture
+// with no background), settling once as he comes; and a brighter copy of him, seen only through a moving spot, so warm
+// light runs once from his right shoulder down to the lion on his shield, inside his outline. Nothing in it takes a tap.
+function bastionScene() {
+  const img = cls => h('img', { className: cls, src: sortiaArt('bastion-hero.webp'), alt: '', decoding: 'async', draggable: false });
+  return h('div', { className: 'vs-art vs-bastion' }, h('div', { className: 'vs-depth' }), h('div', { className: 'vs-sun' }),
+    h('div', { className: 'vs-figure' }, img('vs-hero-img'), img('vs-hero-img vs-hero-light')));
+}
+// Bastion's size and place on this screen: his head just under the title, the lion on his shield just over the cards
+function placeBastion() {
+  const scene = document.querySelector('.vs-bastion'), heroBox = $('pathHero');
+  if (!scene || !heroBox.offsetHeight) return;
+  const top = heroBox.getBoundingClientRect().top, sub = document.querySelector('.vs-sub').getBoundingClientRect().bottom - top;
+  const cards = document.querySelector('.vs-card').getBoundingClientRect().top - top;
+  // (in the picture his hair starts 3% down and the lion ends 60% down)
+  const tall = Math.max(200, (cards + 10 - (sub - 10)) / 0.57);
+  scene.style.setProperty('--fig-h', `${Math.round(tall)}px`);
+  scene.style.setProperty('--fig-top', `${Math.round(sub - 10 - tall * 0.03)}px`);
+}
+// Bastion's light plays once each time he's looked at (not at all with reduced motion), and waits while the page is hidden
+function playBastion(on) {
+  const scene = document.querySelector('.vs-bastion');
+  if (!scene) return;
+  scene.classList.remove('play');
+  if (!on || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  void scene.offsetWidth; // (the animations start again from their beginning)
+  scene.classList.add('play');
+}
+if (typeof document !== 'undefined' && document.addEventListener) document.addEventListener('visibilitychange', () => { const p = $('pathPick'); if (p) p.dataset.paused = document.hidden ? 'true' : 'false'; });
 function askPath(onDone, onBack) {
   const win = $('pathPick'), track = $('pathTrack'), hero = $('pathHero');
   const order = SV_ORDER.filter(v => START_PATHS.includes(v));
   if (!track.childElementCount) { // (the pictures and the cards, once)
-    hero.replaceChildren(...order.map(v => withData(h('img', { className: 'vs-art', src: sortiaArt(`${PATH_PICK[v].art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }), { v })));
+    hero.replaceChildren(...order.map(v => withData(v === 'knight' ? bastionScene() : h('img', { className: 'vs-art', src: sortiaArt(`${PATH_PICK[v].art}-portrait.webp`), alt: '', decoding: 'async', draggable: false }), { v })));
     track.replaceChildren(...order.map(v => {
       const card = withData(h('button', { className: 'vs-card', type: 'button' },
         h('img', { className: 'vs-emblem', src: sortiaArt(`${PATH_PICK[v].art}-crest.webp`), alt: '', draggable: false }), h('span', { className: 'vs-name' }, vocName(v))), { v, art: PATH_PICK[v].art });
@@ -1391,6 +1421,7 @@ function askPath(onDone, onBack) {
     for (const v of order) { words(v); most = Math.max(most, box.offsetHeight); }
     box.style.minHeight = `${most}px`;
     words(START_PATHS[pathAt]);
+    placeBastion();
   }
   function words(v) {
     const info = PATH_PICK[v];
@@ -1403,8 +1434,9 @@ function askPath(onDone, onBack) {
   function show(i) {
     const n = START_PATHS.length;
     pathAt = (i + n) % n;
-    const v = START_PATHS[pathAt];
+    const v = START_PATHS[pathAt], was = hero.querySelector('.vs-art.on');
     for (const img of hero.children) img.classList.toggle('on', img.dataset.v === v);
+    if (!was || was.dataset.v !== v) playBastion(v === 'knight');
     for (const c of track.children) { const on = c.dataset.v === v; c.setAttribute('aria-checked', on ? 'true' : 'false'); c.tabIndex = on ? 0 : -1; }
     words(v);
     ask(false);
@@ -1454,6 +1486,7 @@ function askPath(onDone, onBack) {
   if (!askPath.sized) { askPath.sized = true; addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.steady) askPath.steady(); }); }
   askPath.steady = steady;
   win.hidden = false;
+  for (const art of hero.children) art.classList.remove('on'); // (Bastion's light plays again each time the screen opens on him)
   show(pathAt);
   steady();
   if (document.fonts) document.fonts.ready.then(() => { if (!win.hidden) steady(); }); // (again once Inter is in)

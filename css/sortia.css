@@ -45,6 +45,38 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
   background: linear-gradient(180deg, var(--vs-bg) 0, var(--vs-bg) 56px, rgba(11, 15, 21, 0.55) 22%, rgba(11, 15, 21, 0) 36%, rgba(11, 15, 21, 0) 52%, rgba(11, 15, 21, 0.72) 76%, var(--vs-bg) 96%),
     linear-gradient(90deg, rgba(11, 15, 21, 0.45), rgba(11, 15, 21, 0) 18%, rgba(11, 15, 21, 0) 82%, rgba(11, 15, 21, 0.45)); }
 
+/* Bastion's picture in layers (game-ui.js bastionScene, after docs/sortia/bastion-motion): from the back, the fortress
+   (drifting a little closer over 7s), a warm glow in its sky, Bastion (settling over 1.6s as he comes) and a brighter copy
+   of him seen through a moving spot (the light, once, 5.9s, from his right shoulder to the lion on his shield). Sized and
+   placed by placeBastion (--fig-h, --fig-top); without .play (reduced motion, or between plays) it stands as it ends. */
+@property --vs-light-x { syntax: '<percentage>'; inherits: false; initial-value: 83%; }
+@property --vs-light-y { syntax: '<percentage>'; inherits: false; initial-value: 58%; }
+.vs-bastion { inset: 0; height: 100%; overflow: hidden; isolation: isolate; pointer-events: none; }
+.vs-bastion :is(.vs-depth, .vs-sun, .vs-figure, img) { position: absolute; pointer-events: none; }
+.vs-depth { inset: 0; z-index: -5; background: var(--vs-bastion-scene, url(../sprites/ui/sortia/bastion-scene.webp)) center top / cover no-repeat;
+  transform: scale(1.025); transform-origin: 66% 21%; }
+.vs-sun { inset: 0; z-index: -4; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse 42% 24% at 91% 17%, #e5953532, transparent 100%); }
+.vs-figure { z-index: -2; left: 50%; top: var(--fig-top, 64px); height: var(--fig-h, 480px); aspect-ratio: 1120 / 1568; transform: translateX(-51.5%); }
+.vs-figure img { inset: 0; width: 100%; height: 100%; }
+.vs-hero-light { opacity: 0; filter: brightness(1.38) saturate(1.16);
+  -webkit-mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%);
+  mask-image: radial-gradient(ellipse 25% 15% at var(--vs-light-x) var(--vs-light-y), #000 3%, #000d 26%, #0005 63%, transparent 100%); }
+.vs-bastion.play .vs-depth { animation: vs-depth 7s cubic-bezier(.18, .56, .26, 1) both; }
+.vs-bastion.play .vs-sun { animation: vs-sun 7s ease-in-out both; }
+.vs-bastion.play .vs-hero-img { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both; }
+.vs-bastion.play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-armour 5.9s ease-in-out both; }
+#pathPick[data-paused="true"] .vs-bastion * { animation-play-state: paused !important; }
+@keyframes vs-depth { from { transform: translate3d(-7px, -2.5px, 0) scale(1.065); } to { transform: translate3d(0, 0, 0) scale(1.025); } }
+@keyframes vs-settle { from { transform: translate3d(1.5px, 2px, 0) scale(.997); } to { transform: translate3d(0, 0, 0) scale(1); } }
+@keyframes vs-sun { 0%, 100% { opacity: 0; } 23% { opacity: .7; } 47% { opacity: .47; } 76% { opacity: .06; } }
+@keyframes vs-armour {
+  0%, 10% { --vs-light-x: 84%; --vs-light-y: 11%; opacity: 0; }
+  32% { --vs-light-x: 73%; --vs-light-y: 21%; opacity: .66; }
+  57% { --vs-light-x: 74%; --vs-light-y: 34%; opacity: .7; }
+  76% { --vs-light-x: 78%; --vs-light-y: 49%; opacity: .36; }
+  100% { --vs-light-x: 83%; --vs-light-y: 58%; opacity: 0; }
+}
+
 /* the title */
 .vs-head { padding: 16px var(--vs-side) 0; text-align: center; }
 .vs-rule { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--vs-gold); }
@@ -76,13 +108,13 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 .vs-card:active { filter: brightness(1.12); }
 
 /* what the path is: kind of fighting and role, how it plays, a strength and a weakness */
-.vs-info { padding: 24px var(--vs-side) 0; text-align: center; }
+.vs-info { padding: 16px var(--vs-side) 0; text-align: center; }
 .vs-role { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0; font-weight: 600; font-size: 13px; line-height: 1.2;
   letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; white-space: nowrap; color: var(--vs-gold); }
 .vs-role::before, .vs-role::after { content: ''; flex: 0 1 56px; min-width: 16px; height: 1px; background: linear-gradient(90deg, transparent, var(--vs-gold)); }
 .vs-role::after { transform: scaleX(-1); }
-.vs-intro { margin: 8px auto 16px; max-width: 34ch; font-size: 16px; line-height: 1.45; font-weight: 400; color: var(--vs-text); text-wrap: balance; }
-.vs-traits { list-style: none; margin: 0; padding: 16px 0; display: grid; justify-content: center; gap: 12px;
+.vs-intro { margin: 8px auto 12px; max-width: 34ch; font-size: 16px; line-height: 1.45; font-weight: 400; color: var(--vs-text); text-wrap: balance; }
+.vs-traits { list-style: none; margin: 0; padding: 12px 0; display: grid; justify-content: center; gap: 8px;
   border-block: 1px solid transparent; border-image: linear-gradient(90deg, transparent, rgba(236, 229, 216, 0.28), transparent) 1; }
 .vs-traits li { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 16px; text-align: left; font-size: 16px; line-height: 1.4; color: var(--vs-text); }
 .vs-sign { position: relative; width: 24px; height: 24px; border-radius: 50%; }
@@ -94,9 +126,9 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 
 /* the choice: a quiet note, then the button, in the thumb's reach */
 .vs-foot { padding: 16px var(--vs-side) 0; }
-.vs-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 16px; font-size: 14px; line-height: 1.3; color: var(--vs-muted); }
+.vs-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 12px; font-size: 14px; line-height: 1.3; color: var(--vs-muted); }
 .vs-note svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
-#pathPick .vs-btn { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; height: 60px;
+#pathPick .vs-btn { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; height: 56px;
   padding: 0 16px; font-weight: 700; font-size: 20px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: #f3dca8;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)); }
 #pathPick .vs-btn::before, #pathPick .vs-btn::after { content: ''; position: absolute; z-index: -1;
@@ -128,8 +160,6 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 @media (max-height: 700px) {
   .vs-top { min-height: 304px; }
   .vs-head { padding-top: 8px; }
-  .vs-info { padding-top: 16px; }
   .vs-intro { margin-bottom: 8px; }
-  .vs-traits { padding: 12px 0; gap: 8px; }
 }
-@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } }
+@media (prefers-reduced-motion: reduce) { #pathPick { --vs-fade: 0ms; } .vs-bastion * { animation: none !important; } }

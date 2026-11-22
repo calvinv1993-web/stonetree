@@ -1,0 +1,51 @@
+@property --light-x {syntax:"<percentage>";inherits:false;initial-value:83%}
+@property --light-y {syntax:"<percentage>";inherits:false;initial-value:13%}
+.screen{background:#101923}
+.scene-depth,.scene-sun {position:absolute;inset:0;pointer-events:none}
+.scene-depth{
+  z-index:-5;background:var(--castle-art) center top/cover no-repeat;
+  transform:scale(1.025);transform-origin:66% 21%;
+  animation:depth-reveal 7s cubic-bezier(.18,.56,.26,1) both;
+}
+.scene-sun{
+  z-index:-4;
+  background:radial-gradient(ellipse 42% 24% at 91% 17%,#e5953532,transparent 100%);
+  mix-blend-mode:screen;opacity:0;
+  animation:sun-reveal 7s ease-in-out both;
+}
+.screen::before{z-index:-3}
+.hero{z-index:-2;animation:hero-settle 1.6s cubic-bezier(.16,.7,.27,1) both}
+.hero-light{
+  z-index:-1;opacity:0;pointer-events:none;
+  filter:brightness(1.38) saturate(1.16);
+  mask-image:radial-gradient(ellipse 25% 15% at var(--light-x) var(--light-y),#000 3%,#000d 26%,#0005 63%,transparent 100%);
+  animation:hero-settle 1.6s cubic-bezier(.16,.7,.27,1) both, armour-reveal 5.9s ease-in-out both;
+}
+header,.selection{z-index:2}
+@keyframes depth-reveal{
+ from{transform:translate3d(-7px,-2.5px,0) scale(1.065)}
+ to{transform:translate3d(0,0,0) scale(1.025)}
+}
+@keyframes hero-settle{
+ from{transform:translate3d(1.5px,2px,0) scale(.997)}
+ to{transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes sun-reveal{
+ 0%,100%{opacity:0} 23%{opacity:.7} 47%{opacity:.47} 76%{opacity:.06}
+}
+@keyframes armour-reveal{
+ 0%,10%{--light-x:84%;--light-y:11%;opacity:0}
+ 32%{--light-x:73%;--light-y:21%;opacity:.66}
+ 57%{--light-x:74%;--light-y:34%;opacity:.7}
+ 76%{--light-x:78%;--light-y:49%;opacity:.36}
+ 100%{--light-x:83%;--light-y:58%;opacity:0}
+}
+.screen[data-motion="paused"] :is(.scene-depth,.scene-sun,.hero){animation-play-state:paused}
+.motion-control {
+ position:absolute;z-index:3;bottom:max(0px,env(safe-area-inset-bottom));right:5.4cqw;min-height:44px;
+ padding:0 .45rem;border:0;background:none;color:#c2c7cb;cursor:pointer;-webkit-tap-highlight-color:transparent;font:500 11px Inter,system-ui,sans-serif
+}
+.motion-control:focus-visible {outline:2px solid #e8cea1;outline-offset:-4px}
+@media(prefers-reduced-motion:reduce){
+ .screen:not([data-motion="playing"]) :is(.scene-depth,.scene-sun,.hero){animation:none}
+}

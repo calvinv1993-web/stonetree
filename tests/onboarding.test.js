@@ -117,13 +117,18 @@ const fits = page => page.evaluate(() => {
     const looked = () => page.evaluate(() => document.querySelector('.vs-card[aria-checked=true]').dataset.v);
     check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.vs-card').length === 3 && document.querySelectorAll('.vs-card[aria-checked=true]').length === 1
       && [...document.querySelectorAll('.vs-name')].map(n => n.textContent).join() === 'Hawk,Bastion,Ember'), `${name}: the vocation screen: Hawk, Bastion, Ember, one looked at`);
-    await page.waitForFunction(() => [...document.querySelectorAll('.vs-art, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
-    check(await page.evaluate(() => [...document.querySelectorAll('.vs-art, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    await page.waitForFunction(() => [...document.querySelectorAll('img.vs-art, .vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
+    check(await page.evaluate(() => [...document.querySelectorAll('img.vs-art, .vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: a card, the arrow keys; the picture and the words follow; nothing chosen
     await page.click('.vs-card[data-v=paladin]');
     check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
       `${name}: a card shows its path: its picture and words; looking chooses nothing`);
     await page.keyboard.press('ArrowRight'); check(await looked() === 'knight', `${name}: the arrow key: the card on the right`);
+    // (Bastion's light: once each time he's looked at, the layers taking no taps; none with reduced motion)
+    check(await page.evaluate(() => { const s = document.querySelector('.vs-bastion'), r = document.querySelector('.vs-figure').getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.3);
+      return s.classList.contains('on') && !s.contains(hit) && (s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches || !document.querySelector('.vs-hero-img').complete); }),
+      `${name}: Bastion in layers, his light playing, nothing in it taking a tap`);
     await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);
     // (nothing moves when you look at another: the cards and the button stay put; every card the same size, 44px and more to tap;
     // the words 16px; nothing past the screen's sides; the whole screen fits from 375 x 667 up)
