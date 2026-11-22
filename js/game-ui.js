@@ -1369,17 +1369,17 @@ const SV_ORDER = ['paladin', 'knight', 'sorcerer']; // (the cards, left to right
 // the three pictures fetched ahead, while the story is told (welcomeScene calls this), so the screen opens with them
 function preloadPathArt() {
   if (preloadPathArt.done) return; preloadPathArt.done = true;
-  for (const f of ['bastion-scene.webp', 'bastion-hero.webp', 'ember-scene.webp', 'ember-hero.webp', 'hawk-portrait.webp', ...SV_ORDER.map(v => `${PATH_PICK[v].art}-crest.webp`)]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
+  for (const f of [...Object.values(SV_SCENES).flatMap(s => [`${s.art}-scene.webp`, `${s.art}-hero.webp`]), ...SV_ORDER.map(v => `${PATH_PICK[v].art}-crest.webp`)]) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
 }
-// Bastion's and Ember's pictures: in layers, after the owner's light study (docs/sortia/bastion-motion: its timing in
-// css/sortia.css): the land behind them (a fortress at dusk, a ruined observatory under the moon), drifting a little
-// closer; a glow in its sky; the figure itself (a picture with no background), settling once as it comes; and a brighter
-// copy of it, seen only through a moving spot, so light runs once over it inside its outline (Bastion: warm, from his
-// right shoulder down to the lion on his shield; Ember: cold and arcane, from the crystal on his staff down to his
-// hand). Nothing in it takes a tap. Hawk keeps her painted portrait.
+// The paths' pictures: in layers, after the owner's light study (docs/sortia/bastion-motion: its timing in css/sortia.css):
+// the land behind them (a fortress at dusk, a forest watchtower at sunset, a ruined observatory under the moon), drifting a
+// little closer; a glow in its sky; the figure itself (a picture with no background), settling once as it comes; and a
+// brighter copy of it, seen only through a moving spot, so light runs once over it inside its outline (Bastion: warm, from
+// his right shoulder down to the lion on his shield; Hawk: the sunset's, from her hood over her shoulder to her hand on the
+// bow; Ember: cold and arcane, from the crystal on his staff down to his hand). Nothing in it takes a tap.
 // head: how far down the picture the figure's head starts; foot: what should stand just over the cards (Bastion: the
-// lion's foot; Ember: his pouch at the belt), as fractions of the picture's height
-const SV_SCENES = { knight: { art: 'bastion', head: 0.03, foot: 0.6 }, sorcerer: { art: 'ember', head: 0.058, foot: 0.62 } };
+// lion's foot; Hawk and Ember: about their belt), as fractions of the picture's height
+const SV_SCENES = { knight: { art: 'bastion', head: 0.03, foot: 0.6 }, paladin: { art: 'hawk', head: 0.07, foot: 0.64 }, sorcerer: { art: 'ember', head: 0.058, foot: 0.62 } };
 function layeredScene(v) {
   const art = SV_SCENES[v].art, img = cls => h('img', { className: cls, src: sortiaArt(`${art}-hero.webp`), alt: '', decoding: 'async', draggable: false });
   return withData(h('div', { className: 'vs-art vs-layered' }, h('div', { className: 'vs-depth' }), h('div', { className: 'vs-sun' }),

@@ -117,21 +117,21 @@ const fits = page => page.evaluate(() => {
     const looked = () => page.evaluate(() => document.querySelector('.vs-card[aria-checked=true]').dataset.v);
     check(await scene() === 'paths' && await page.evaluate(() => !pathPick.hidden && document.querySelectorAll('.vs-card').length === 3 && document.querySelectorAll('.vs-card[aria-checked=true]').length === 1
       && [...document.querySelectorAll('.vs-name')].map(n => n.textContent).join() === 'Hawk,Bastion,Ember'), `${name}: the vocation screen: Hawk, Bastion, Ember, one looked at`);
-    await page.waitForFunction(() => [...document.querySelectorAll('img.vs-art, .vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
-    check(await page.evaluate(() => [...document.querySelectorAll('img.vs-art, .vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
+    await page.waitForFunction(() => [...document.querySelectorAll('.vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 10000 }).catch(() => {});
+    check(await page.evaluate(() => [...document.querySelectorAll('.vs-hero-img, .vs-emblem')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: a card, the arrow keys; the picture and the words follow; nothing chosen
     await page.click('.vs-card[data-v=paladin]');
     check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
       `${name}: a card shows its path: its picture and words; looking chooses nothing`);
     await page.keyboard.press('ArrowRight'); check(await looked() === 'knight', `${name}: the arrow key: the card on the right`);
-    // (Bastion's and Ember's light: once each time they're looked at, the layers taking no taps; none with reduced motion)
-    for (const v of ['knight', 'sorcerer']) {
+    // (each path's light: once each time they're looked at, the layers taking no taps; none with reduced motion)
+    for (const v of ['knight', 'paladin', 'sorcerer']) {
       await page.click(`.vs-card[data-v=${v}]`);
       await page.waitForFunction(v => { const s = document.querySelector(`.vs-layered[data-v=${v}]`); return s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches; }, v, { timeout: 8000 }).catch(() => {});
       check(await page.evaluate(v => { const s = document.querySelector(`.vs-layered[data-v=${v}]`), r = s.querySelector('.vs-figure').getBoundingClientRect();
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.3);
         return s.classList.contains('on') && !s.contains(hit) && (s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches)
-          && document.querySelectorAll('.vs-layered.play').length <= 1; }, v), `${name}: ${v === 'knight' ? 'Bastion' : 'Ember'} in layers, the light playing, nothing in it taking a tap`);
+          && document.querySelectorAll('.vs-layered.play').length <= 1; }, v), `${name}: ${({ knight: 'Bastion', paladin: 'Hawk', sorcerer: 'Ember' })[v]} in layers, the light playing, nothing in it taking a tap`);
     }
     await page.click('.vs-card[data-v=knight]');
     await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);

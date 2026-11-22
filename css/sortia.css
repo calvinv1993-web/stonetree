@@ -45,10 +45,10 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
   background: linear-gradient(180deg, var(--vs-bg) 0, var(--vs-bg) 56px, rgba(11, 15, 21, 0.55) 22%, rgba(11, 15, 21, 0) 36%, rgba(11, 15, 21, 0) 52%, rgba(11, 15, 21, 0.72) 76%, var(--vs-bg) 96%),
     linear-gradient(90deg, rgba(11, 15, 21, 0.45), rgba(11, 15, 21, 0) 18%, rgba(11, 15, 21, 0) 82%, rgba(11, 15, 21, 0.45)); }
 
-/* Bastion's and Ember's pictures in layers (game-ui.js layeredScene, after docs/sortia/bastion-motion): from the back, the
+/* The paths' pictures in layers (game-ui.js layeredScene, after docs/sortia/bastion-motion): from the back, the
    land (drifting a little closer over 7s), a glow in its sky, the figure (settling over 1.6s as it comes) and a brighter
    copy of it seen through a moving spot (the light, once, 5.9s: Bastion's warm, from his right shoulder to the lion on
-   his shield; Ember's cold, from the crystal on his staff down to his hand, the crystal kindling as it starts). Sized and
+   his shield; Hawk's the sunset's, from her hood to her bow hand; Ember's cold, from the crystal on his staff down to his hand, the crystal kindling as it starts). Sized and
    placed by placeLayered (--fig-h, --fig-top); without .play (reduced motion, or between plays) each stands as it ends. */
 @property --vs-light-x { syntax: '<percentage>'; inherits: false; initial-value: 83%; }
 @property --vs-light-y { syntax: '<percentage>'; inherits: false; initial-value: 58%; }
@@ -65,6 +65,11 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 .vs-layered.play .vs-sun { animation: vs-sun 7s ease-in-out both; }
 .vs-layered.play .vs-hero-img { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both; }
 .vs-layered.play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-armour 5.9s ease-in-out both; }
+/* (Hawk: a forest watchtower at sunset; the warm glow low over the mountains; the light from her hood over her shoulder to her bow hand) */
+.vs-layered[data-art="hawk"] .vs-depth { background-image: url(../sprites/ui/sortia/hawk-scene.webp); transform-origin: 30% 20%; }
+.vs-layered[data-art="hawk"] .vs-sun { background: radial-gradient(ellipse 46% 22% at 92% 15%, #f0a04a3a, transparent 100%); }
+.vs-layered[data-art="hawk"] .vs-hero-light { filter: brightness(1.36) saturate(1.2) sepia(.12); }
+.vs-layered[data-art="hawk"].play .vs-hero-light { animation: vs-settle 1.6s cubic-bezier(.16, .7, .27, 1) both, vs-sunset 5.9s ease-in-out both; }
 /* (Ember: a ruined observatory under the moon; a cold glow round the moon; the light colder, down his staff; his crystal kindles) */
 .vs-layered[data-art="ember"] .vs-depth { background-image: url(../sprites/ui/sortia/ember-scene.webp); transform-origin: 72% 18%; }
 .vs-layered[data-art="ember"] .vs-sun { background: radial-gradient(ellipse 44% 22% at 90% 15%, #8fb4ff38, transparent 100%); }
@@ -86,6 +91,13 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
   57% { --vs-light-x: 74%; --vs-light-y: 34%; opacity: .7; }
   76% { --vs-light-x: 78%; --vs-light-y: 49%; opacity: .36; }
   100% { --vs-light-x: 83%; --vs-light-y: 58%; opacity: 0; }
+}
+@keyframes vs-sunset {
+  0%, 10% { --vs-light-x: 66%; --vs-light-y: 14%; opacity: 0; }
+  32% { --vs-light-x: 58%; --vs-light-y: 24%; opacity: .66; }
+  57% { --vs-light-x: 47%; --vs-light-y: 38%; opacity: .7; }
+  76% { --vs-light-x: 40%; --vs-light-y: 52%; opacity: .36; }
+  100% { --vs-light-x: 36%; --vs-light-y: 64%; opacity: 0; }
 }
 @keyframes vs-arcane {
   0%, 10% { --vs-light-x: 79%; --vs-light-y: 17%; opacity: 0; }
