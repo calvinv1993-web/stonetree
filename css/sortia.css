@@ -122,8 +122,6 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-dialog h3) {
 .vs-title { margin: 0; font-weight: 600; font-size: clamp(19px, 7.2cqw, 42px); line-height: 1.05; letter-spacing: 0.015em; text-transform: uppercase; white-space: nowrap;
   color: #f1d6a6; background: linear-gradient(180deg, var(--vs-gold-hi) 15%, #f1d6a6 55%, var(--vs-gold)); -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 2px #15110d); }
-.vs-sub { margin: 1.4cqw 0 0; font-size: clamp(9px, 2.8cqw, 16px); line-height: 1.2; font-weight: 500; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase;
-  color: #f0e9d9; text-shadow: 0 1px 3px #000; }
 
 /* the three cards: the one looked at a little larger, as the study's middle one, in gold on its own colour; emblem and
    name (the row keeps its height, so nothing under it moves) */
