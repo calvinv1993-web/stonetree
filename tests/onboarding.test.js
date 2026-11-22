@@ -132,7 +132,7 @@ const fits = page => page.evaluate(() => {
       check(await page.evaluate(v => { const s = document.querySelector(`.vs-layered[data-v=${v}]`), r = s.querySelector('.vs-figure').getBoundingClientRect();
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.3);
         return s.classList.contains('on') && !s.contains(hit) && (s.classList.contains('play') || matchMedia('(prefers-reduced-motion: reduce)').matches)
-          && document.querySelectorAll('.vs-layered.play').length <= 1; }, v), `${name}: ${({ knight: 'Bastion', paladin: 'Hawk', sorcerer: 'Ember' })[v]} in layers, the light playing, nothing in it taking a tap`);
+          && document.querySelectorAll('.vs-layered.on').length === 1; }, v), `${name}: ${({ knight: 'Bastion', paladin: 'Hawk', sorcerer: 'Ember' })[v]} in layers, the light playing, nothing in it taking a tap`);
     }
     await page.click('.vs-card[data-v=knight]');
     await page.keyboard.press('ArrowLeft'); check(await looked() === 'paladin', `${name}: and back`);
