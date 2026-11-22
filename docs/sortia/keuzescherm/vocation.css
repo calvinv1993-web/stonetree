@@ -22,8 +22,8 @@
   --gold: #edca94;
   --ink: #0e171f;
   --vocation-scene: url("assets/bastion-background.webp");
-  --active-card: #641f15;
-  --active-top: #a13c25;
+  --active-card: #3e1f1d;
+  --active-top: #763324;
   --portrait-top: 21.5cqw;
   position: relative;
   isolation: isolate;
@@ -124,68 +124,79 @@
   text-shadow: 0 2px 2px #15110d;
 }
 
-.sv__selection { padding-inline: 5.45cqw; margin-top: 94cqw; }
+.sv__selection { padding-inline: 5.45cqw; margin-top: 90cqw; }
 
 .sv__choices {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.95cqw;
+  gap: 10px;
   align-items: center;
 }
 
 .sv__choice {
-  --cut: polygon(9% 0, 91% 0, 100% 10%, 100% 90%, 91% 100%, 9% 100%, 0 90%, 0 10%);
-  display: block;
+  --emblem-overlap: 19px;
+  --cut: polygon(9% 0, 91% 0, 100% 15%, 100% 85%, 91% 100%, 9% 100%, 0 85%, 0 15%);
   position: relative;
-  aspect-ratio: 199 / 160;
-  padding: 2px;
+  isolation: isolate;
+  display: block;
+  height: calc(62px + var(--emblem-overlap));
+  padding: var(--emblem-overlap) 1px 1px;
   border: 0;
   background: transparent;
   color: #f4e5c6;
-  font: 600 clamp(11px, 3.8cqw, 21px)/1 Cinzel, Georgia, serif;
+  font: 600 clamp(12px, 3.8cqw, 17px)/1 Cinzel, Georgia, serif;
   cursor: pointer;
 }
 
-.sv__choice::before {
+.sv__choice::before, .sv__choice::after {
   content: "";
   position: absolute;
-  inset: 0;
   z-index: -1;
   clip-path: var(--cut);
-  background: linear-gradient(155deg, #8b969b, #455054 42%, #8b969b);
+}
+
+.sv__choice::before {
+  inset: var(--emblem-overlap) 0 0;
+  background: linear-gradient(155deg, #748087, #39484e 52%, #626e72);
+}
+
+.sv__choice::after {
+  inset: calc(var(--emblem-overlap) + 1px) 1px 1px;
+  background: radial-gradient(ellipse at 50% 0%, #21303a, #0d181e 78%);
+}
+
+.sv__choice[aria-pressed="true"]::before {
+  background: linear-gradient(150deg, #c38d52, #f5d3a0 24%, #997144 58%, #dfae73);
+}
+
+.sv__choice[aria-pressed="true"]::after {
+  background: radial-gradient(ellipse at 50% 8%, var(--active-top), var(--active-card) 75%, #30201e);
 }
 
 .sv__card {
   display: flex;
   height: 100%;
-  flex-direction: column;
+  align-items: flex-end;
   justify-content: center;
-  align-items: center;
-  gap: 5px;
-  clip-path: var(--cut);
-  background: radial-gradient(ellipse at 42% 15%, #1e2a33, #0b1116 76%);
+  padding-bottom: 8px;
   text-shadow: 0 1px 3px #080a0c;
 }
 
-.sv__card img { width: clamp(39px, 13cqw, 70px); height: auto; }
-
-.sv__choice[aria-pressed="true"] {
-  aspect-ratio: 204 / 180;
-  padding: 3px;
-  filter: drop-shadow(0 1px 6px #cb792f59);
-}
-
-.sv__choice[aria-pressed="true"]::before {
-  background: linear-gradient(140deg, #e7ad64, #fff0c4 18%, #a36a38 55%, #ffd593 82%, #a96b32);
-}
-
-.sv__choice[aria-pressed="true"] .sv__card {
-  background: radial-gradient(ellipse at 50% 5%, var(--active-top), var(--active-card) 66%, #1a1210);
+.sv__card img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 59px;
+  max-width: 75%;
+  height: 59px;
+  object-fit: contain;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 3px 3px #000b);
 }
 
 .sv__role {
   width: 97%;
-  margin: clamp(16px, 5.1cqw, 20px) auto 11px;
+  margin: 24px auto 12px;
   gap: 3.5cqw;
   color: var(--gold);
   font: 600 clamp(9px, 2.8cqw, 17px)/1.15 Cinzel, Georgia, serif;
@@ -194,7 +205,7 @@
 
 .sv__description {
   max-width: 29em;
-  margin: 0 auto 17px;
+  margin: 0 auto 16px;
   padding-inline: 4cqw;
   font-size: clamp(12px, 3.5cqw, 19px);
   line-height: 1.27;
@@ -202,9 +213,9 @@
 
 .sv__stats {
   display: grid;
-  gap: 9px;
+  gap: 12px;
   margin: 0;
-  padding: 3.2cqw 0;
+  padding: 16px 0;
   border-block: 1px solid #afafb35e;
   list-style: none;
 }
@@ -232,7 +243,7 @@
 .sv__stat--positive { background: #526940; }
 .sv__stat--negative { background: #8d3a2b; }
 
-.sv__confirm { display: grid; justify-items: center; gap: 10px; margin-top: 20px; }
+.sv__confirm { display: grid; justify-items: center; gap: 5px; margin-top: 20px; }
 
 .sv__permanent {
   display: flex;
@@ -266,7 +277,7 @@
   border-radius: 4px 4px 0 0;
 }
 
-.sv__cta, .sv__back {
+.sv__cta, .sv__back, .sv__choose {
   min-height: 48px;
   padding: 0 12px;
   color: #f4e5c6;
@@ -282,6 +293,21 @@
   text-shadow: 0 1px 2px #08160f;
 }
 
+.sv__choose {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #e3c18b;
+  font-size: 17px;
+  line-height: 1;
+  text-shadow: 0 1px 2px #0b1014;
+}
+
+.sv__arrow { font: 400 15px/1 Inter, sans-serif; letter-spacing: 0; }
+
 .sv button:focus-visible { outline: 2px solid #f1d6a6; outline-offset: 3px; }
 .sv button:disabled { opacity: .6; cursor: default; }
 
@@ -290,7 +316,9 @@
   padding: 24px 20px 20px;
   border: 1px solid #b99455;
   border-radius: 6px;
-  background: #121b22;
+  background:
+    linear-gradient(#111a2255, #111a2277),
+    #121b22 url("assets/sortia-info-texture.webp") center / cover;
   color: #ece8de;
   text-align: center;
 }
@@ -308,8 +336,10 @@
 
 .sv__back {
   width: min(214px, 100%);
-  border: 1px solid #76674e;
-  background: #172127;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #dedbd4;
 }
 
 .sv__sr-only {

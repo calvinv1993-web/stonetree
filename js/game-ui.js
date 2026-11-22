@@ -1340,7 +1340,7 @@ function showWindow(heading, body) {
 // How each path is shown when it's chosen: its kind of fighting and role, one line of how it plays, one of what it's best
 // at and one of its weakness, all as the game's own numbers have them (VOCATIONS; health a level 15 / 10 / 5, mana
 // 5 / 15 / 30; the Hawk's spells: Power Shot, volleys, its falcon, a little holy magic); nothing here the game doesn't do.
-// Its art: sprites/ui/sortia/<art>-scene.webp, <art>-hero.webp (its land and its figure) and <art>-crest.webp (its crest, on its card).
+// Its art: sprites/ui/sortia/<art>-scene.webp, <art>-hero.webp (its land and its figure) and <art>-emblem.png (its emblem, over its name plate).
 const PATH_PICK = {
   knight: { art: 'bastion', combat: 'Melee', role: 'Defender', intro: 'A durable frontline fighter who protects allies and holds the line.',
     plus: 'The most health and heavy melee hits.', minus: 'Cannot attack from range.' },
@@ -1369,7 +1369,7 @@ const SV_ORDER = ['paladin', 'knight', 'sorcerer']; // (the cards, left to right
 // the three pictures fetched ahead, while the story is told (welcomeScene calls this), so the screen opens with them
 function preloadPathArt() {
   if (preloadPathArt.done) return; preloadPathArt.done = true;
-  for (const f of [...Object.values(SV_SCENES).flatMap(s => [`${s.art}-scene.webp`, `${s.art}-hero.webp`]), ...SV_ORDER.map(v => `${PATH_PICK[v].art}-crest.webp`), 'button-primary.webp']) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
+  for (const f of [...Object.values(SV_SCENES).flatMap(s => [`${s.art}-scene.webp`, `${s.art}-hero.webp`]), ...SV_ORDER.map(v => `${PATH_PICK[v].art}-emblem.png`), 'button-primary.webp']) { const i = new Image(); i.decoding = 'async'; i.src = sortiaArt(f); }
 }
 // The paths' pictures: in layers, after the owner's light study (docs/sortia/bastion-motion: its timing in css/sortia.css):
 // the land behind them (a fortress at dusk, a forest watchtower at sunset, a ruined observatory under the moon), drifting a
@@ -1407,7 +1407,7 @@ function askPath(onDone, onBack) {
     hero.replaceChildren(...order.map(v => withData(layeredScene(v), { v })));
     track.replaceChildren(...order.map(v => {
       const art = PATH_PICK[v].art, card = withData(h('button', { className: 'vs-card', type: 'button' },
-        h('span', { className: 'vs-face' }, h('img', { src: sortiaArt(`${art}-crest.webp`), alt: '', width: 48, height: 48, draggable: false }), h('span', { className: 'vs-name' }, vocName(v)))), { v, art });
+        h('span', { className: 'vs-face' }, h('img', { src: sortiaArt(`${art}-emblem.png`), alt: '', width: 59, height: 59, draggable: false }), h('span', { className: 'vs-name' }, vocName(v)))), { v, art });
       card.onclick = () => show(START_PATHS.indexOf(v));
       return card;
     }));

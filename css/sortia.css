@@ -1,11 +1,11 @@
 /* SORTIA's vocation screen: choosing your path (game-ui.js askPath), after the owner's package
    (docs/sortia/keuzescherm: vocation.css gives the measures, colours and spacing; reference docs/sortia/vocation-select-2.png).
    From the top: the title (Choose Your Path) over the land of the path looked at; the figure under the title, large, fading
-   out over the cards; three cards in one row (Hawk, Bastion, Ember: crest and name, the one looked at in gold on its own
+   out over the cards; three name plates in one row (Hawk, Bastion, Ember: emblem over the plate and name, the one looked at in gold on its own
    colour); on the dark slate under them its kind of fighting and role, how it plays, a strength and a weakness; a small lock
    with "Your choice is permanent." and the green button (Choose Bastion...), which asks once more in a dark window. A column
    as wide as a phone (540px at most), measured in % of its width (cqw); a short screen scrolls up and down. Its pictures:
-   sprites/ui/sortia/ (<path>-scene, -hero, -crest, button-primary, vocation-ground). Its type: Cinzel and Inter, in css/fonts
+   sprites/ui/sortia/ (<path>-scene, -hero, -emblem, button-primary, vocation-ground). Its type: Cinzel and Inter, in css/fonts
    (SIL Open Font License). */
 
 @font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap; src: url(fonts/inter-latin-wght.woff2) format('woff2'); }
@@ -121,34 +121,33 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 .vs-rule span { width: 6px; height: 6px; background: #cf9f62; transform: rotate(45deg); box-shadow: 0 0 0 1px #efd7aa; }
 .vs-title { margin: 0; color: #f1d6a6; font: 600 clamp(19px, 7.2cqw, 42px) / 1.05 var(--vs-serif); letter-spacing: .015em; text-shadow: 0 2px 2px #15110d; }
 
-/* the three cards: the same size; crest and name; the one looked at in gold on its own colour. Their corners cut by a fixed
-   size, the inside's a little less, so the edge is as thick along the cuts as along the sides */
-.vs-selection { padding-inline: 5.45cqw; margin-top: var(--vs-gap, calc(94cqw - env(safe-area-inset-top) - 14px)); } /* (the notch's room taken back here: the cards where the reference has them) */
-.vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.95cqw; align-items: center; }
-.vs-card { --c: clamp(8px, 2.6cqw, 13px); position: relative; display: block; width: 100%; aspect-ratio: 199 / 160; padding: 0 !important; color: #f4e5c6;
-  font: 600 clamp(11px, 3.8cqw, 21px) / 1 var(--vs-serif); }
-.vs-card::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(155deg, #8b969b, #455054 42%, #8b969b);
+/* the three name plates (docs/sortia/keuzescherm: 62px high, the same for all three), each with its path's emblem standing
+   19px over its top edge; the whole of it, emblem too, to tap. The one looked at: a thin gold edge on its own colour. The
+   corners cut by a fixed size, the inside's a little less, so the edge is as thick along the cuts as along the sides */
+.vs-selection { padding-inline: 5.45cqw; margin-top: var(--vs-gap, calc(90cqw - env(safe-area-inset-top))); } /* (the notch's room taken back here) */
+.vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.vs-card { --lift: 19px; --c: 9px; position: relative; isolation: isolate; display: block; width: 100%; height: calc(62px + var(--lift)); padding: 0 !important; color: #f4e5c6;
+  font: 600 clamp(12px, 3.8cqw, 17px) / 1 var(--vs-serif); }
+.vs-card::before, .vs-card::after { content: ''; position: absolute; z-index: -1;
   clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
-/* (the inside set 2px within the edge on every side, not sized by the button: Safari let it run over the edge's foot) */
-.vs-face { --i: calc(var(--c) - 0.83px); position: absolute; inset: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
-  clip-path: polygon(var(--i) 0, calc(100% - var(--i)) 0, 100% var(--i), 100% calc(100% - var(--i)), calc(100% - var(--i)) 100%, var(--i) 100%, 0 calc(100% - var(--i)), 0 var(--i));
-  background: radial-gradient(ellipse at 42% 15%, #1e2a33, #0b1116 76%); text-shadow: 0 1px 3px #080a0c; }
-.vs-face img { width: clamp(42px, 14.5cqw, 76px); height: auto; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); } /* (the paths' crests: sprites/ui/sortia/<path>-crest.webp) */
-.vs-card[aria-pressed="true"] { filter: drop-shadow(0 1px 6px #cb792f59); }
-.vs-card[aria-pressed="true"]::before { background: linear-gradient(140deg, #e7ad64, #fff0c4 18%, #a36a38 55%, #ffd593 82%, #a96b32); }
-.vs-card[aria-pressed="true"] .vs-face { background: radial-gradient(ellipse at 50% 5%, var(--vs-tint-hi), var(--vs-tint-lo) 66%, #1a1210); }
-.vs-card[data-art="bastion"] { --vs-tint-hi: #a13c25; --vs-tint-lo: #641f15; }
+.vs-card::before { inset: var(--lift) 0 0; background: linear-gradient(155deg, #748087, #39484e 52%, #626e72); }
+.vs-card::after { --c: 8.6px; inset: calc(var(--lift) + 1px) 1px 1px; background: radial-gradient(ellipse at 50% 0%, #21303a, #0d181e 78%); }
+.vs-face { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; text-shadow: 0 1px 3px #080a0c; }
+.vs-face img { position: absolute; top: 0; left: 50%; width: 59px; max-width: 75%; height: 59px; object-fit: contain; transform: translateX(-50%); filter: drop-shadow(0 3px 3px #000b); }
+.vs-card[aria-pressed="true"]::before { background: linear-gradient(150deg, #c38d52, #f5d3a0 24%, #997144 58%, #dfae73); }
+.vs-card[aria-pressed="true"]::after { background: radial-gradient(ellipse at 50% 8%, var(--vs-tint-hi), var(--vs-tint-lo) 75%, #30201e); }
+.vs-card[data-art="bastion"] { --vs-tint-hi: #763324; --vs-tint-lo: #3e1f1d; }
 .vs-card[data-art="hawk"] { --vs-tint-hi: #285b39; --vs-tint-lo: #153522; }
 .vs-card[data-art="ember"] { --vs-tint-hi: #93501d; --vs-tint-lo: #663009; }
 .vs-card:active { filter: brightness(1.12); }
 #pathPick .vs-card:focus { outline: none; }
-#pathPick .vs-card:focus-visible::before { background: var(--vs-gold-hi); } /* (a key's focus lights the card's own edge) */
+#pathPick .vs-card:focus-visible::before { background: var(--vs-gold-hi); } /* (a key's focus lights the plate's own edge) */
 
 /* what the path is: kind of fighting and role, how it plays, a strength and a weakness */
-.vs-role { width: 97%; margin: 23px auto 12px; gap: 3.5cqw; color: var(--vs-gold); font: 600 clamp(9px, 2.8cqw, 17px) / 1.15 var(--vs-serif);
+.vs-role { width: 97%; margin: 24px auto 12px; gap: 3.5cqw; color: var(--vs-gold); font: 600 clamp(9px, 2.8cqw, 17px) / 1.15 var(--vs-serif);
   letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
 .vs-intro { max-width: 29em; margin: 0 auto 16px; padding-inline: 4cqw; font-size: clamp(12px, 3.5cqw, 19px); line-height: 1.27; }
-.vs-traits { display: grid; gap: 12px; margin: 0; padding: 15px 0; border-block: 1px solid #afafb35e; list-style: none; }
+.vs-traits { display: grid; gap: 12px; margin: 0; padding: 16px 0; border-block: 1px solid #afafb35e; list-style: none; }
 .vs-traits li { display: flex; align-items: center; gap: 2.8cqw; padding-inline: clamp(12px, 8.2cqw, 35px) 8px; text-align: left; font-size: clamp(12px, 3.34cqw, 18px); }
 .vs-sign { position: relative; flex: none; width: 5.35cqw; min-width: 16px; aspect-ratio: 1; border-radius: 50%; }
 .vs-sign::before, .vs-sign::after { content: ''; position: absolute; left: 50%; top: 50%; width: 48%; height: 2px; border-radius: 1px; background: #fbefd9; transform: translate(-50%, -50%); }
@@ -158,7 +157,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 .vs-minus .vs-sign::after { display: none; }
 
 /* the choice: the lock and its note right over the button */
-.vs-foot { display: grid; justify-items: center; gap: 2px; margin-top: 20px; } /* (the note and the way on together) */
+.vs-foot { display: grid; justify-items: center; gap: 5px; margin-top: 20px; } /* (the note and the way on together) */
 .vs-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 0; color: #dedbd4; font-size: clamp(11px, 2.9cqw, 16px); }
 .vs-lock { position: relative; flex: none; width: 10px; height: 8px; margin-top: 4px; border: 1px solid #c8bca9; border-radius: 2px; }
 .vs-lock::before { content: ''; position: absolute; left: 1px; right: 1px; bottom: 100%; height: 5px; border: 1px solid #c8bca9; border-bottom: 0; border-radius: 4px 4px 0 0; }
@@ -169,14 +168,14 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 #pathPick .vs-btn:active { transform: translateY(1px); filter: brightness(0.88); }
 #pathPick .vs-btn:disabled { opacity: .6; cursor: default; }
 /* the way on: words, not a slab (Choose Bastion ->), in soft antique gold; 44px to tap; a clear ring for a key's focus */
-#pathPick .vs-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; color: #e3c48c;
-  font: 600 clamp(15px, 4.4cqw, 19px) / 1.2 var(--vs-serif); letter-spacing: .06em; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); transition: color 120ms ease, transform 120ms ease; }
-#pathPick .vs-go .vs-arrow { font-size: .82em; transform: translateY(-.04em); transition: transform 160ms ease; }
+#pathPick .vs-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; color: #e3c18b;
+  font: 600 17px / 1 var(--vs-serif); letter-spacing: .04em; text-shadow: 0 1px 2px #0b1014; transition: color 120ms ease, transform 120ms ease; }
+html body #pathPick .vs-go .vs-arrow { font: 400 15px / 1 var(--vs-sans) !important; letter-spacing: 0; transform: translateY(-.04em); transition: transform 160ms ease; }
 #pathPick .vs-go:hover, #pathPick .vs-go:active { color: #f6deaa; }
 #pathPick .vs-go:hover .vs-arrow, #pathPick .vs-go:active .vs-arrow { transform: translate(3px, -.04em); }
 #pathPick .vs-go:focus-visible { outline: 2px solid var(--vs-gold-hi); outline-offset: 2px; border-radius: 4px !important; }
 #pathPick .vs-go:disabled { opacity: .5; cursor: default; }
-#pathPick .vs-go.vs-quiet { color: #c9c2b4; font-size: 15px; letter-spacing: .04em; }
+#pathPick .vs-go.vs-quiet { color: #dedbd4; font-size: 15px; }
 
 /* a short phone: the same, closer together (game-ui.js fitPathScreen, before it brings the cards up over the figure) */
 .vs-screen.vs-tight { padding-bottom: max(14px, calc(env(safe-area-inset-bottom) + 6px)); }
@@ -194,7 +193,7 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-go, .vs-go *
 /* the confirmation: Choose Bastion? ... Confirm Bastion, Go back */
 #pathPick .cp-ask { background: #070a0dd9; }
 .vs-dialog { box-sizing: border-box; width: min(360px, calc(100vw - 32px)); padding: 24px 20px 12px; border: 1px solid #b9945599; border-radius: 6px;
-  background: #121b22 url(../sprites/ui/sortia/vocation-ground.webp) center / cover; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(237, 202, 148, 0.08);
+  background: linear-gradient(#111a2255, #111a2277), #121b22 url(../sprites/ui/sortia/vocation-ground.webp) center / cover; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(237, 202, 148, 0.08);
   color: var(--vs-text); text-align: center; }
 .vs-dialog h3 { margin: 0; color: #f1d6a6; font: 600 22px / 1.25 var(--vs-serif); }
 .vs-dialog p { margin: 12px 0 20px; font-size: 14px; line-height: 1.4; }

@@ -2,7 +2,8 @@
 const screen = document.querySelector(".sv");
 const cards = [...screen.querySelectorAll("[data-choice]")];
 const portrait = screen.querySelector(".sv__portrait");
-const choose = screen.querySelector(".sv__confirm button");
+const choose = screen.querySelector(".sv__choose");
+const chooseLabel = choose.querySelector("[data-choice-label]");
 const dialog = screen.querySelector(".sv__dialog");
 const confirm = dialog.querySelector('[value="confirm"]');
 const status = screen.querySelector(".sv__status");
@@ -19,8 +20,8 @@ const vocations = {
     name: "Bastion",
     role: "Melee · Defender",
     description: "A durable frontline fighter who protects allies and holds the line.",
-    strength: "High survivability and strong melee.",
-    weakness: "Slower movement and limited range.",
+    strength: "The most health and heavy melee hits.",
+    weakness: "Cannot attack from range.",
   },
   ember: {
     name: "Ember",
@@ -42,7 +43,7 @@ function previewVocation(id) {
   screen.querySelector(".sv__description").textContent = vocation.description;
   screen.querySelector('[data-stat="strength"]').textContent = vocation.strength;
   screen.querySelector('[data-stat="weakness"]').textContent = vocation.weakness;
-  choose.textContent = `Choose ${vocation.name}`;
+  chooseLabel.textContent = `Choose ${vocation.name}`;
   status.textContent = "";
 }
 
