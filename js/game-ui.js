@@ -1452,7 +1452,7 @@ function askPath(onDone, onBack) {
     if (!was || was.dataset.v !== v) playLayered(v);
     for (const c of track.children) c.setAttribute('aria-pressed', c.dataset.v === v ? 'true' : 'false');
     words(v);
-    $('pathChoose').textContent = `Choose ${vocName(v)}`; // (the button names the path looked at)
+    $('pathChoose').firstElementChild.textContent = `Choose ${vocName(v)}`; // (the way on names the path looked at)
     ask(false);
   }
   // the path left (step -1) or right (step 1) of the one looked at, in the cards' order
@@ -1464,7 +1464,7 @@ function askPath(onDone, onBack) {
     const v = START_PATHS[pathAt], box = $('pathAsk'), was = !box.hidden;
     box.hidden = !on;
     if (!on) { if (was && back) $('pathChoose').focus({ preventScroll: true }); return; }
-    const name = vocName(v), yes = h('button', { className: 'vs-btn', type: 'button' }, `Confirm ${name}`), no = h('button', { className: 'vs-ghost', type: 'button' }, 'Go back');
+    const name = vocName(v), yes = h('button', { className: 'vs-btn', type: 'button' }, `Confirm ${name}`), no = h('button', { className: 'vs-go vs-quiet', type: 'button' }, 'Go back');
     const err = h('p', { className: 'vs-error', hidden: true }, 'That didn’t go through. Please try again.');
     let sent = false;
     yes.onclick = () => {

@@ -124,7 +124,7 @@ const fits = page => page.evaluate(() => {
     check(await looked() === 'paladin' && await page.evaluate(() => document.querySelector('.vs-art.on').dataset.v === 'paladin' && /archer/i.test(pathInfo.textContent) && player.vocation === 'none'),
       `${name}: a card shows its path: its picture and words; looking chooses nothing`);
     await page.keyboard.press('ArrowRight'); check(await looked() === 'knight', `${name}: the arrow key: the card on the right`);
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Bastion'), `${name}: the button names the path looked at`);
+    check(await page.evaluate(() => pathChoose.textContent.startsWith('Choose Bastion')), `${name}: the button names the path looked at`);
     // (each path's light: once each time they're looked at, the layers taking no taps; none with reduced motion)
     for (const v of ['knight', 'paladin', 'sorcerer']) {
       await page.click(`.vs-card[data-v=${v}]`);
