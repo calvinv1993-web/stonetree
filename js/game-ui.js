@@ -1342,12 +1342,12 @@ function showWindow(heading, body) {
 // mana 5 / 15 / 30); nothing here that the game doesn't do. Its picture (sprites/ui/classes/<art>.webp: the path's
 // look, not the player's own) is cropped round art position; its emblem, its colour (tint) on its card.
 const PATH_PICK = {
-  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', intro: 'A frontline fighter who takes hits for allies.',
+  knight: { art: 'bastion', pos: '50% 18%', combat: 'Melee', intro: 'A frontline fighter who holds the line.',
     strengths: ['Highest health', 'Heavy melee hits', 'Takes hits for allies'], weakness: 'Cannot attack from range' },
   paladin: { art: 'hawk', pos: '50% 14%', combat: 'Ranged', intro: 'An archer who calls on a falcon for support.',
     strengths: ['Long-range attacks', 'Power Shot and volleys', 'Minor holy magic'], weakness: 'Vulnerable in melee' },
   sorcerer: { art: 'ember', pos: '50% 14%', combat: 'Magic', intro: 'A spellcaster who burns whole packs.',
-    strengths: ['Fire and energy hit whole packs', 'Highest damage', 'Most mana'], weakness: 'Fragile, and helpless without mana' },
+    strengths: ['Fire and energy hit whole packs', 'Highest damage', 'Most mana'], weakness: 'Fragile and mana\u2011dependent' },
 };
 // what a path starts with: its own kit (START_KITS: in hand or in the bag), then what every new character has
 // (newPlayer: the temple's club, unless the kit puts another weapon in hand, five apples and two health potions)
@@ -1391,7 +1391,7 @@ function curveTitle(el) {
     l.style.transform = `translateY(${(sag * u * u).toFixed(2)}px) rotate(${(Math.atan(2 * sag * u / half) * 180 / Math.PI).toFixed(2)}deg)`;
   }
 }
-const SV_RING = ['paladin', 'knight', 'sorcerer']; // (the cards' order round the middle, as in the reference)
+const SV_RING = ['knight', 'paladin', 'sorcerer']; // (the cards' order, left to right: Bastion, Hawk, Ember, as the dots and a swipe go)
 const svIcon = name => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true');
   s.innerHTML = `<g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${SV_ICONS[name]}</g>`; return s; };
 function askPath(onDone, onBack) {
@@ -1421,7 +1421,7 @@ function askPath(onDone, onBack) {
     const scene = win.querySelector('.sv-scene'), ratio = innerHeight / Math.max(1, scene.clientWidth || innerWidth);
     const phone = matchMedia('(max-width: 600px) and (max-aspect-ratio: 4/5)').matches, paper = $('pathInfo');
     const title = win.querySelector('.sv-title'), curve = () => curveTitle(title);
-    // (while fitting the screen: the parchment as tall as the tallest path's words, so every path fits; then as tall as its own)
+    // the parchment as tall as the tallest path's words at this width, for every path: the button and the dots stay put
     const tallest = () => {
       paper.style.minHeight = '';
       let most = 0;
@@ -1442,7 +1442,6 @@ function askPath(onDone, onBack) {
         scene.style.width = `${Math.max(least, Math.floor(scene.clientWidth * (win.clientHeight / scene.scrollHeight)) - 1)}px`; tallest();
       }
     }
-    paper.style.minHeight = '';
     curve(); fitSides();
     if (document.fonts && !place.fontsWatched) { place.fontsWatched = true; document.fonts.ready.then(curve); } // (again once Cinzel is in)
   }
@@ -1486,7 +1485,7 @@ function askPath(onDone, onBack) {
     const n = START_PATHS.length;
     pathAt = (i + n) % n;
     const v = START_PATHS[pathAt], info = PATH_PICK[v];
-    // (round the middle in the reference's order: Hawk, Bastion, Ember; the one left of it is the one before it)
+    // (round the middle in one order, the dots' own: Bastion, Hawk, Ember; the one left of it is the one before it)
     const ring = SV_RING.filter(p => START_PATHS.includes(p)), r = ring.indexOf(v);
     [...track.children].forEach((c, j) => {
       const at = ring.indexOf(START_PATHS[j]);

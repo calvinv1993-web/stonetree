@@ -118,25 +118,33 @@ const fits = page => page.evaluate(() => {
       `${name}: the path, in the hall of paths: three cards, one looked at`);
     check(await page.evaluate(() => [...document.querySelectorAll('.sv-portrait, .sv-medal')].every(i => i.complete && i.naturalWidth > 0)), `${name}: the paths' pictures and emblems there`);
     // looking: the arrows (a phone), a dot, the arrow keys; the button names the path; nothing chosen
-    if (await page.evaluate(() => getComputedStyle(pathNext).display !== 'none')) { await page.click('#pathNext'); check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember'), `${name}: the arrow: the path on the right`); }
     await page.evaluate(() => document.querySelectorAll('#pathDots button')[0].click());
     await page.keyboard.press('ArrowRight');
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Ember' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
-    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
-    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && document.querySelector('.sv-card[data-v=knight]').dataset.position === 'right'), `${name}: Hawk on the left of Bastion, as in the reference`);
+    check(await page.evaluate(() => pathChoose.textContent === 'Choose Hawk' && player.vocation === 'none'), `${name}: a dot and the arrow keys; looking chooses nothing`);
+    // (one order for the cards, a swipe and the dots: Bastion, Hawk, Ember)
+    check(await page.evaluate(() => { const at = v => document.querySelector(`.sv-card[data-v=${v}]`).dataset.position; return at('knight') === 'left' && at('paladin') === 'center' && at('sorcerer') === 'right'
+      && [...pathDots.children].map(d => d.getAttribute('aria-label')).join() === 'Show Bastion,Show Hawk,Show Ember' && pathDots.children[1].getAttribute('aria-current') === 'true'; }),
+      `${name}: Bastion left of Hawk, Ember right of it, the dots in that order`);
+    await page.keyboard.press('ArrowLeft');
+    check(await page.evaluate(() => pathChoose.textContent === 'Choose Bastion' && pathDots.children[0].getAttribute('aria-current') === 'true'), `${name}: to the left of Hawk: Bastion, its dot current`);
     { // (the parchment and the way on stand still whichever path is looked at; the whole screen fits; the title inside its banner)
-      // (the parchment as tall as its own path's words: 18 to 26px from its last line to the button over its foot; the dots 44px to tap, the one shown current)
+      // (the parchment as tall as the longest path's at this width: the button and the dots in one place for every path, over its
+      // foot, 18 to 26px under the longest path's words; the dots 44px to tap, the one shown current)
+      const seen = [];
       for (let k = 0; k < 3; k++) {
         const g = await page.evaluate(() => {
           const R = e => e.getBoundingClientRect(), p = R(pathInfo), b = R(pathChoose);
           const last = Math.max(...[...pathInfo.querySelectorAll('.sv-desc, .sv-list li, .sv-items li')].map(e => R(e).bottom));
           const dots = [...pathDots.children], cur = dots.findIndex(d => d.getAttribute('aria-current') === 'true');
-          return { gap: Math.round(b.top - last), over: b.top < p.bottom && b.bottom > p.bottom, dots: dots.every(d => R(d).width >= 44 && R(d).height >= 44),
+          return { gap: Math.round(b.top - last), at: `${Math.round(b.top)},${Math.round(R(pathDots).top)}`, over: b.top < p.bottom && b.bottom > p.bottom,
+            inside: last <= p.bottom, dots: dots.every(d => R(d).width >= 44 && R(d).height >= 44),
             synced: START_PATHS[cur] === document.querySelector('.sv-card[data-position=center]').dataset.v, path: pathChoose.textContent };
         });
-        check(g.gap >= 18 && g.gap <= 26 && g.over && g.dots && g.synced, `${name}: ${g.path}: the button over the parchment's foot, close under its words; the dots to tap (${JSON.stringify(g)})`);
+        seen.push(g);
+        check(g.gap >= 18 && g.over && g.inside && g.dots && g.synced, `${name}: ${g.path}: the button over the parchment's foot, under all its words; the dots to tap (${JSON.stringify(g)})`);
         await page.evaluate(() => pathNext.click()); await page.waitForTimeout(150);
       }
+      check(seen.every(g => g.at.split(',').every((v, i) => Math.abs(v - seen[0].at.split(',')[i]) <= 1)) && Math.min(...seen.map(g => g.gap)) <= 26, `${name}: the button and the dots in one place for every path (${seen.map(g => `${g.at} ${g.gap}`).join(' | ')})`);
       // (the whole screen fits from 375 x 667 up; the smallest phone, 320 x 568, scrolls up and down to the button, the words kept large)
       if (name !== '320') check(await page.evaluate(() => document.querySelector('.sv-scene').scrollHeight <= pathPick.clientHeight + 1), `${name}: the vocation screen fits without scrolling`);
       for (let k = 0; k < 3; k++) {
