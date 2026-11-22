@@ -125,11 +125,12 @@ html body #pathPick :is(.vs-title, .vs-name, .vs-role, .vs-btn, .vs-ghost, .vs-d
    size, the inside's a little less, so the edge is as thick along the cuts as along the sides */
 .vs-selection { padding-inline: 5.45cqw; margin-top: calc(94cqw - env(safe-area-inset-top)); } /* (the notch's room taken back here: the cards where the reference has them) */
 .vs-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.95cqw; align-items: center; }
-.vs-card { --c: clamp(8px, 2.6cqw, 13px); position: relative; display: block; aspect-ratio: 199 / 160; padding: 2px !important; color: #f4e5c6;
+.vs-card { --c: clamp(8px, 2.6cqw, 13px); position: relative; display: block; width: 100%; aspect-ratio: 199 / 160; padding: 0 !important; color: #f4e5c6;
   font: 600 clamp(11px, 3.8cqw, 21px) / 1 var(--vs-serif); }
 .vs-card::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(155deg, #8b969b, #455054 42%, #8b969b);
   clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
-.vs-face { --i: calc(var(--c) - 0.83px); display: flex; height: 100%; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+/* (the inside set 2px within the edge on every side, not sized by the button: Safari let it run over the edge's foot) */
+.vs-face { --i: calc(var(--c) - 0.83px); position: absolute; inset: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
   clip-path: polygon(var(--i) 0, calc(100% - var(--i)) 0, 100% var(--i), 100% calc(100% - var(--i)), calc(100% - var(--i)) 100%, var(--i) 100%, 0 calc(100% - var(--i)), 0 var(--i));
   background: radial-gradient(ellipse at 42% 15%, #1e2a33, #0b1116 76%); text-shadow: 0 1px 3px #080a0c; }
 .vs-face img { width: clamp(39px, 13cqw, 70px); height: auto; }
