@@ -2824,7 +2824,7 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
 // words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
 // INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.33, 0.475, 0.675, 0.90];
+const INTRO_SPOTS = [0.10, 0.33, 0.505, 0.665, 0.90];
 const INTRO_CANVAS = [2172, 724];
 const INTRO_FIGURES = true;
 // [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures (the scene is painted
