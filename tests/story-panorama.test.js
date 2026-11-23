@@ -40,9 +40,10 @@ let URL;
   for (const [name, device] of SCREENS) for (const query of ['', '&storydemo']) {
     const { context, page, errors } = await openStory(browser, device, query);
     const label = `${name}${query || ' (story)'}`;
-    const info = await page.evaluate(() => ({ gaps: Intro.panorama.gaps().length, count: Intro.panorama.count, depths: [...document.querySelectorAll('.sp-layer')].map(l => l.dataset.depth), want: ['background', 'main', 'foreground'].filter(d => (location.search.includes('storydemo') ? STORY_DEMO.manifest : STORY_MANIFEST).layers[d]), dots: siDots.children.length }));
+    const info = await page.evaluate(() => ({ gaps: Intro.panorama.gaps().length, count: Intro.panorama.count, depths: [...document.querySelectorAll('.sp-layer')].map(l => l.dataset.depth), dots: siDots.children.length }));
     check(info.gaps === 0, `${label}: no bare spot anywhere the camera can go (${info.gaps})`);
-    check(info.depths.join() === info.want.join(), `${label}: the manifest's depths, back to front (${info.depths})`);
+    // (the story: the far mountains a depth of their own behind the main one, as the owner's packages ask; the demo: three)
+    check(info.depths.join() === (query ? 'background,main,foreground' : 'background,main'), `${label}: its depths, back to front (${info.depths})`);
     check(info.dots === info.count - 1, `${label}: a dot for every card (${info.dots} for ${info.count} stops)`);
     check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();
@@ -208,6 +209,74 @@ let URL;
     check(lcAgain[0] === 0 && lcAgain[1] === 1 && lcAgain[2] === 1 && await page.evaluate(() => siTitle.textContent) === 'The Last Crossing', `${label}: back to The Last Crossing: only the false signal gone (${lcAgain})`);
     await page.click('#siBack'); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
     check((await op()).every(v => v === 0), `${label}: back at the mill, the rescue gone`);
+    check(errors.length === 0, `${label}: no errors (${errors})`);
+    await context.close();
+  }
+
+  // the far mountains move apart from the main depth (their own depth, one offset for all four tiles), while the rescue,
+  // the watchman and the false signal move exactly with the main depth's tiles: laid over the refugees' place wherever
+  // the camera is
+  {
+    const { context, page } = await openStory(browser, SCREENS[0][1], '');
+    const r = await page.evaluate(() => {
+      const p = Intro.panorama, el = id => document.querySelector(`[data-id="${id}"]`), depth = id => el(id).closest('.sp-layer').dataset.depth;
+      const world = (id, ref) => (el(id).getBoundingClientRect().left - el(ref).getBoundingClientRect().left) / p.scale;
+      const back = [...document.querySelectorAll('.sp-background [data-id]')].map(e => e.dataset.id).sort();
+      const over = ['opening-rescue', 'opening-watchman', 'opening-false-signal'];
+      const xs = [p.stop(2).x, (p.stop(2).x + p.stop(3).x) / 2, p.stop(3).x - 60, p.stop(3).x, p.stop(3).x + 40], rel = [], sky = [];
+      for (const x of xs) { p.place(p.atX(x)); if (over.every(id => el(id).style.display !== 'none')) rel.push(over.map(id => world(id, 'opening-refugees'))); sky.push(world('opening-sky-d', 'opening-refugees')); } // (where they're drawn: near the refugees)
+      p.place(p.stop(0));
+      return { back, depths: over.map(depth), rel, sky };
+    });
+    check(r.back.join() === 'opening-sky-a,opening-sky-b,opening-sky-c,opening-sky-d', `the far mountains, and only they, are the background depth (${r.back})`);
+    check(r.depths.every(d => d === 'main'), `the rescue, the watchman and the false signal are in the main depth (${r.depths})`);
+    const want = [1160.66 - 1334.42, 1495.06 - 1334.42, 1160.66 - 1334.42];
+    check(r.rel.length >= 3 && r.rel.every(row => row.every((v, i) => Math.abs(v - want[i]) < 0.6)), `they keep their place on the refugees' tile wherever the camera is (${r.rel.map(row => row.map(v => v.toFixed(1)).join('/'))})`);
+    const placed = 1334.42 - 1334.42;
+    check(Math.abs(r.sky[0] - placed) < 0.6 && Math.abs(r.sky[3] - placed) < 0.6 && Math.abs(r.sky[1] - placed) > 2 && Math.abs(r.sky[1] - placed) <= 7.3,
+      `the mountains sit as placed at the mill and the refugees and move apart from the main depth between them (${r.sky.map(v => v.toFixed(2))})`);
+    await context.close();
+  }
+
+  // to Sister Ama through black: the picture fades out, the camera and the scene change while it's black, her room fades
+  // in; the camera never seen gliding across the landscape's end; the same going back; at once with reduced motion; a
+  // swipe towards her doesn't move the camera
+  for (const rm of ['no-preference', 'reduce']) {
+    const { context, page, errors } = await openStory(browser, SCREENS[0][1], '', { reducedMotion: rm });
+    const label = `to Sister Ama${rm === 'reduce' ? ' (reduced motion)' : ''}`;
+    const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
+    await page.evaluate(() => Intro.go(4)); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    const [fsX, amaX] = await page.evaluate(() => [Intro.panorama.stop(4).x, Intro.panorama.stop(5).x]);
+    const watch = async () => {
+      const seen = [];
+      for (let i = 0; i < 60; i++) {
+        seen.push(await page.evaluate(() => ({ x: Intro.panorama.camera.x, veil: +getComputedStyle(document.querySelector('.si-veil')).opacity, moving: sortiaIntro.classList.contains('moving'), title: siTitle.textContent })));
+        if (i > 2 && !seen[i].moving) break;
+        await page.waitForTimeout(rm === 'reduce' ? 10 : 40);
+      }
+      return seen;
+    };
+    const judge = (seen, a, b, to, what) => {
+      const onlyTwo = seen.every(v => Math.abs(v.x - a) < 0.5 || Math.abs(v.x - b) < 0.5), first = seen.findIndex(v => Math.abs(v.x - b) < 0.5), end = seen[seen.length - 1];
+      check(onlyTwo, `${label}: ${what}: the camera is never between the two places (${[...new Set(seen.map(v => v.x.toFixed(0)))]})`);
+      if (rm === 'reduce') check(seen.every(v => v.veil < 0.01) && first === 0, `${label}: ${what}: at once, no black`);
+      else check(first > 0 && seen[first].veil > 0.9 && seen[first - 1].veil > 0.97 && seen.slice(0, first).some(v => v.veil > 0.05 && v.veil < 0.95) && seen.slice(first).some(v => v.veil > 0.05 && v.veil < 0.95),
+        `${label}: ${what}: fades to black, changes while black, fades in (${seen.map(v => v.veil.toFixed(2)).join(' ')})`);
+      check(end.veil < 0.01 && end.title === to && Math.abs(end.x - b) < 0.5, `${label}: ${what}: landed at ${to}, nothing dark left (${end.veil})`);
+    };
+    await page.click('#siNext'); judge(await watch(), fsX, amaX, 'Sister Ama', 'on');
+    await page.waitForTimeout(300);
+    await page.click('#siBack'); judge(await watch(), amaX, fsX, 'The False Signal', 'back');
+    // a swipe towards her: the camera stays where it is while the finger moves; letting go goes through black
+    const drag = await page.evaluate(async () => {
+      const box = sortiaIntro, target = box.querySelector('.si-copy'), xs = [];
+      const t = (type, x) => box.dispatchEvent(new TouchEvent(type, { bubbles: true, touches: type === 'touchend' ? [] : [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })], changedTouches: [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })] }));
+      t('touchstart', 320); for (const x of [300, 260, 200, 140]) { t('touchmove', x); xs.push(Intro.panorama.camera.x); }
+      t('touchend', 140);
+      return xs;
+    });
+    check(drag.every(x => Math.abs(x - fsX) < 0.5), `${label}: a swipe towards Sister Ama doesn't move the camera (${drag.map(v => v.toFixed(0))})`);
+    judge(await watch(), fsX, amaX, 'Sister Ama', 'by a swipe');
     check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();
   }

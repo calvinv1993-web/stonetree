@@ -114,6 +114,12 @@ the words.
 Two stops with the same camera are two states of one place: Continue, back or a swipe between them don't move the
 camera; the pictures of the next state are decoded first, then fade in (`fromStop`) as the words change.
 
+A stop can have `cut: true`: it's reached (and left) through black instead of a glide. The picture fades to black
+(550 ms), holds a moment, the camera and the scene change while it's black, and the new place fades in (750 ms); with
+reduced motion it changes at once. A swipe towards it doesn't move the camera, and the story playing by itself glides only
+up to the stop before it, then goes on through black. Sister Ama's room uses it: from the bridge the camera never glides
+across the landscape's end into her temple (losing consciousness, waking).
+
 Every stop but the last is a card (a dot each in the progress row). `snow` and `mist` say what weather is drawn in front
 at that stop; between stops it fades from one to the other.
 
@@ -123,9 +129,11 @@ at that stop; between stops it fades from one to the other.
 parts), their PNGs unchanged: one world of 7087 x 3200 of their pixels, placed at 724 / 3200 = 0.22625 world units a
 pixel against the world's left edge (x 0 to 1603.43). Five tiles meet edge to edge, see-through only in their sky:
 `02-zegel-links` (the seal), `04-overgang` (the way between), `09-molen-midden` (the mill), `10-overgang-molen-vluchtelingen`
-(the road on) and `11-vluchtelingen-rechts` (the refugees, Oakvale beyond). Behind them four sky tiles (`12` to `15`), one
-continuous sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift
-(`drift.between: [0, 2, 3]`): none at the seal, the mill or the refugees, at most 7.24 x 5.43 world units between them.
+(the road on) and `11-vluchtelingen-rechts` (the refugees, Oakvale beyond). Behind them, in a depth of their own (`background`, factor 1:
+the main camera's pace and scale, as the package asks), the far mountains: four sky tiles (`12` to `15`), one continuous
+sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift (`drift.between: [0, 2, 3]`):
+none at the seal, the mill or the refugees (and so none at The Last Crossing and The False Signal), at most 7.24 x 5.43
+world units between them. Everything else of the landscape, the state patches included, is the main depth.
 The seal broken is two patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
 
 Stops: The Seal and The Broken Seal share one camera (`at` x 189.94, the package focus; `keep` the ring; `below` 200 with
@@ -144,8 +152,8 @@ The Last Crossing, only it fades out.
 
 The whole outside world is this one landscape: the seal, the mill, the refugees and Oakvale. The old night scene (the
 blue bridge, the traveler, the old goblin and wolf, the tree, the mountains behind it) is no longer in the story; Sister
-Ama's room follows straight after it (x 1603.43), so the world is 2010.91 wide. The way from Oakvale into her temple
-isn't made yet (a hard edge there, seen only while the camera glides to her).
+Ama's room follows straight after it (x 1603.43), so the world is 2010.91 wide. The way from Oakvale into her temple is
+through black (her stop's `cut`), so the hard edge where the landscape ends is never seen.
 
 ## A scene of its own: Sister Ama's room
 

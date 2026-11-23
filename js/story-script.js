@@ -14,6 +14,8 @@
 //   frame: [x, y, w, h] (world units): a scene of its own, which the view must stay inside: the camera comes in close
 //          enough for it to fill the screen, and at is held within it
 //   snow, mist: the weather drawn in front at this stop (true / false); between stops it fades from one to the other
+//   cut:   true: reached (and left) through black instead of a glide: the picture fades out, the camera and the scene
+//          change unseen, the new one fades in (for a scene of its own across a hard edge)
 // opening: the dramatic start: zoom (closer at first, settling back), ms, delay
 // ama: Sister Ama's words: ask (for your name) and talk (her lines; $name is yours)
 const STORY_SCRIPT = {
@@ -35,8 +37,9 @@ const STORY_SCRIPT = {
     // (the same place again, the camera still: the false signal fading in over the rescue)
     { title: 'The False Signal', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'After the guards brought the wounded man inside, the lantern above the gate went up again. From the reeds came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran for the gate. Halfway across the bridge, your legs gave way.' },
-    // (her temple room fills the screen, held at its top: Ama and the window above the words)
-    { title: 'Sister Ama', at: [1807.17, 0], frame: [1603.43, 0, 407.48, 724], snow: false, mist: false },
+    // (her temple room fills the screen, held at its top: Ama and the window above the words; reached through black, the
+    // camera never gliding across the landscape's end: losing consciousness on the bridge, waking in the temple)
+    { title: 'Sister Ama', cut: true, at: [1807.17, 0], frame: [1603.43, 0, 407.48, 724], snow: false, mist: false },
   ],
   ama: {
     ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',

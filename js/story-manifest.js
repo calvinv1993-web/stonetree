@@ -32,15 +32,12 @@ const STORY_MANIFEST = {
   view: 724,
   parallax: 'stops',
   layers: {
-    main: { factor: 1, planes: [
-      // the opening: the seal (whole, then broken: the story's first two stops), the mill (The Hollow Host) and the
-      // refugees on the road to Oakvale (The Last Crossing) as one joined block (sprites/ui/story/opening: the owner's
-      // packages sortia-opening and sortia-oakvale-aanvulling, 7087 x 3200 of their pixels placed at 724 / 3200 = 0.22625
-      // world units a pixel against the world's left edge, so x 0 to 1603.43). Five tiles meet edge to edge (the seal, the way
-      // between, the mill, the road on, the refugees), see-through only in their sky; behind them four sky tiles, one
-      // continuous sky, mountains and forest (its package place -64, -64, 7215 x 1228), all four drifting together by one
-      // offset, at most 32 x 24 of its pixels (7.24 x 5.43 world units), none at the seal, the mill or the refugees; over
-      // them, from the second stop on, the broken seal fading in, both of its patches together
+    // the far mountains and sky behind the opening (the owner's far-background: one continuous picture in four tiles,
+    // its package place -64, -64, 7215 x 1228 of its pixels): a depth of its own, keeping the main camera's pace and
+    // scale (factor 1, as the package asks: no speed of its own), moving apart from the main depth only by one offset
+    // shared by all four tiles, at most 32 x 24 of its pixels (7.24 x 5.43 world units): none at the seal, the mill or
+    // the refugees (and so none at The Last Crossing and The False Signal, at the refugees' place), most half way between
+    background: { factor: 1, planes: [
       { id: 'opening-sky-a', src: 'ui/story/opening/12-achtergrond-a.png', x: -14.48, y: -14.48, w: 442.77, h: 277.84, z: 1,
         cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
       { id: 'opening-sky-b', src: 'ui/story/opening/13-achtergrond-b.png', x: 428.29, y: -14.48, w: 435.53, h: 277.84, z: 1,
@@ -49,6 +46,14 @@ const STORY_MANIFEST = {
         cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
       { id: 'opening-sky-d', src: 'ui/story/opening/15-achtergrond-d.png', x: 1334.42, y: -14.48, w: 283.49, h: 277.84, z: 1,
         cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
+    ] },
+    main: { factor: 1, planes: [
+      // the opening: the seal (whole, then broken: the story's first two stops), the mill (The Hollow Host) and the
+      // refugees on the road to Oakvale (The Last Crossing) as one joined block (sprites/ui/story/opening: the owner's
+      // packages sortia-opening and sortia-oakvale-aanvulling, 7087 x 3200 of their pixels placed at 724 / 3200 = 0.22625
+      // world units a pixel against the world's left edge, so x 0 to 1603.43). Five tiles meet edge to edge (the seal, the way
+      // between, the mill, the road on, the refugees), see-through only in their sky, where the background depth's
+      // mountains show through; over them, from the second stop on, the broken seal fading in, both of its patches together
       { id: 'opening-seal', src: 'ui/story/opening/02-zegel-links.png', x: 0.0, y: 0, w: 269.01, h: 724, z: 2, cover: [0.0, 248.42, 269.01, 475.58] },
       { id: 'opening-way', src: 'ui/story/opening/04-overgang.png', x: 269.01, y: 0, w: 470.6, h: 724, z: 2, cover: [269.01, 248.42, 470.6, 475.58] },
       { id: 'opening-mill', src: 'ui/story/opening/09-molen-midden.png', x: 739.61, y: 0, w: 124.21, h: 724, z: 2, cover: [739.61, 248.42, 124.21, 475.58] },
@@ -71,7 +76,7 @@ const STORY_MANIFEST = {
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2130.91, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
       // Sister Ama's temple room (sprites/ui/story/ama: the owner's package sortia-ama-parallax-v1, its own scene of
       // 1801 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel against the world's right edge, straight after
-      // Oakvale; the way from the outside world into it isn't made yet): the room with Ama, her candles and the window's stone frame, see-through only in the window's panes; behind it the view through the
+      // Oakvale, reached through black (its stop's cut)): the room with Ama, her candles and the window's stone frame, see-through only in the window's panes; behind it the view through the
       // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
       // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
       { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 1886.47, y: -13.58, w: 135.75, h: 298.65, z: 1,

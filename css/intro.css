@@ -117,10 +117,16 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
    moves or is drawn again) while the vocation screen slides in over it (css/sortia.css) */
 #sortiaIntro.si-leaving { pointer-events: none; }
 #sortiaIntro.si-leaving .si-veil { animation: si-leave 800ms ease-out both; }
+/* to and from a scene reached through black (Intro: the script's cut, CUT_OUT and CUT_IN): the picture fades to black,
+   the camera and the scene change unseen, then it fades in */
+.si-veil { transition: opacity 750ms ease-out; }
+#sortiaIntro.si-cut .si-veil { opacity: 1; transition: opacity 550ms ease-in; }
+#sortiaIntro.si-cut .si-fx { opacity: 0 !important; transition: opacity 550ms ease-in; } /* (the weather in front goes dark too) */
+#sortiaIntro.si-waking .si-fx { transition: opacity 750ms ease-out; }
 @keyframes si-leave { from { opacity: 0; } to { opacity: .6; } }
 @keyframes si-unveil { from { opacity: 1; } to { opacity: 0; } }
 @keyframes si-mark-in { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes si-words-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 @media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
-@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i, #sortiaIntro.si-opening *, #sortiaIntro.si-leaving .si-veil { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i, #sortiaIntro.si-opening *, #sortiaIntro.si-leaving .si-veil { animation: none; } .si-veil, .si-fx { transition: none !important; } }

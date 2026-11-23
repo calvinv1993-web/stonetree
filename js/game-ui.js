@@ -2857,6 +2857,11 @@ const Intro = (() => {
   const talkLine = i => ama().talk[i - NAME - (opts.askName ? 1 : 0)];
   const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const spot = i => pano.stop(Math.min(i, NAME));
+  // a stop reached through black (the script's cut), and how long the picture takes to fade out and in (css/intro.css:
+  // 550 and 750 ms)
+  const cutAt = i => !!pick().script.stops[Math.min(i, NAME)].cut, CUT_OUT = 550 + 200, CUT_IN = 750; // (out, then a moment all black)
+  // the last stop the camera may glide to from the start, the stop before the first cut (autoplay goes on from it by one)
+  const glideEnd = () => { const k = pick().script.stops.findIndex((st, i) => i > 0 && st.cut); return k > 0 ? k - 1 : NAME; };
   // the weather in front as the camera moves: each stop's snow and mist (shown or not), faded between stops by where the
   // camera is across; the snow and mist tiles drift with the camera, each at its own share of it (data-f), within one
   // tile of their pattern (data-tile), so they never run out
@@ -2920,6 +2925,7 @@ const Intro = (() => {
     at = i;
     const turn = ++landing;
     pano.halt();
+    box.classList.remove('si-cut', 'si-waking');
     if (from === to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) { words(true); return; }
     const land = () => { if (turn !== landing) return; box.classList.remove('moving'); pano.state(to, true); words(true); pano.prepare(to, 0); };
     // (another state of the same place, as the seal whole and broken: the camera stays, its picture fades to the other
@@ -2927,6 +2933,23 @@ const Intro = (() => {
     if (from !== to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) {
       box.classList.add('moving');
       pano.prepare(to).then(() => { if (turn !== landing) return; pano.state(to); setTimeout(land, still() ? 0 : 320); });
+      return;
+    }
+    // (into or out of a scene of its own across a hard edge, as Sister Ama's room: no glide; the picture fades to black,
+    // the camera and the scene change while it's black, the new one fades in: losing consciousness and waking)
+    if (from !== to && (cutAt(from) || cutAt(to))) {
+      box.classList.add('moving');
+      if (still()) { pano.place(target); pano.state(to); land(); return; }
+      pano.prepare(to).then(() => {
+        if (turn !== landing) return;
+        box.classList.add('si-cut');
+        setTimeout(() => {
+          if (turn !== landing) return;
+          pano.place(target); pano.state(to, true); words(false);
+          box.classList.add('si-waking'); box.classList.remove('si-cut');
+          setTimeout(() => { box.classList.remove('si-waking'); land(); }, CUT_IN);
+        }, CUT_OUT);
+      });
       return;
     }
     const far = Math.abs(target.x - cam.x) * pano.scale, ms = still() ? 0 : far > box.querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a stop beside it in 650 ms)
@@ -2944,13 +2967,13 @@ const Intro = (() => {
     stopAuto();
     if (!moving()) return;
     autoWait = setTimeout(() => {
-      const t0 = performance.now();
+      const t0 = performance.now(), end = glideEnd(), span = AUTO_MS * end / NAME;
       let fetched = -1;
       const frame = now => {
-        const k = Math.min(1, (now - t0) / AUTO_MS), u = along(k) * NAME;
+        const k = Math.min(1, (now - t0) / span), u = along(k) * end;
         pano.place(pano.along(u));
         if (Math.floor(u) !== fetched) { fetched = Math.floor(u); pano.prepare(Math.min(NAME, fetched + 1), 0); }
-        const scene = Math.min(NAME, Math.round(u));
+        const scene = Math.min(end, Math.round(u));
         if (scene !== at) { // (its words: a moment's fade, then the next stop's)
           at = scene;
           pano.state(scene, true);
@@ -2959,6 +2982,7 @@ const Intro = (() => {
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
         }
         auto = k < 1 ? requestAnimationFrame(frame) : 0;
+        if (!auto && end < NAME) autoWait = setTimeout(() => go(end + 1), AUTO_WAIT); // (on through black, after a moment)
       };
       auto = requestAnimationFrame(frame);
     }, $('sortiaIntro').classList.contains('si-opening') ? OPENING_MS : AUTO_WAIT);
@@ -2973,7 +2997,7 @@ const Intro = (() => {
     const done = opts && opts.onDone, box = $('sortiaIntro'); opts = null;
     pano.halt();
     clearTimeout(leaveTimer);
-    box.classList.remove('moving');
+    box.classList.remove('moving', 'si-cut', 'si-waking');
     if (onward && !still()) {
       leavingUntil = performance.now() + LEAVE_MS;
       box.classList.add('si-leaving');
@@ -3038,6 +3062,7 @@ const Intro = (() => {
       // (towards another state of the same place: the camera stays; letting go turns to it)
       const next = at + (dx < 0 ? 1 : -1), here = spot(at);
       if (next >= 0 && next <= NAME && Math.abs(spot(next).x - here.x) < 0.5 && Math.abs(spot(next).y - here.y) < 0.5) return;
+      if (next >= 0 && next <= NAME && (cutAt(next) || cutAt(at))) return; // (nor towards a scene reached through black)
       const s = pano.scale, lo = Math.min(spot(0).x, spot(NAME).x), hi = Math.max(spot(0).x, spot(NAME).x), most = OVERSCROLL / s;
       let to = drag.base - dx / s;
       if (to < lo) to = lo - Math.min(most, (lo - to) * 0.35); else if (to > hi) to = hi + Math.min(most, (to - hi) * 0.35); // (stiff past the ends)
