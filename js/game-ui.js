@@ -2863,7 +2863,7 @@ const INTRO_LAYERS = [
 // the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
 // the lanterns the traveler and the goblin hold
 const INTRO_GLOWS = [
-  [29.0, 42.1, 2.4, -0.7, 0.5, 'dim'], [32.2, 44.9, 2.6, -1.4, 0.5, 'dim'], [58.2, 19.3, 3.0, -0.3, 0], [85.3, 25.5, 3.0, -1.2, 0, 'candle'],
+  [29.0, 42.1, 2.4, -0.7, 0.5, 'dim'], [32.2, 44.9, 2.6, -1.4, 0.5, 'dim'], [58.2, 19.3, 3.0, -0.3, 0], [84.5, 29.7, 3.0, -1.2, 0, 'candle'],
   ...(INTRO_FIGURES ? [[51.4, 59.9, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
 ];
 const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
