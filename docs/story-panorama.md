@@ -132,18 +132,19 @@ pixel against the world's left edge (x 0 to 1603.43). Five tiles meet edge to ed
 (the road on) and `11-vluchtelingen-rechts` (the refugees, Oakvale beyond). Behind them, in a depth of their own (`background`, factor 1:
 the main camera's pace and scale, as the package asks), the far mountains: four sky tiles (`12` to `15`), one continuous
 sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift (`drift.between: [0, 2, 3]`):
-none at the seal, the mill or the refugees (and so none at The Last Crossing and The False Signal), at most 7.24 x 5.43
+none at the seal, the mill or the refugees (and so none at The Last Crossing and The False Signal, at the refugees' place too), at most 7.24 x 5.43
 world units between them. Everything else of the landscape, the state patches included, is the main depth.
 The seal broken is two patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
 
 Stops: The Seal and The Broken Seal share one camera (`at` x 189.94, the package focus; `keep` the ring; `below` 200 with
 the dark fill `seal-foot`); The Hollow Host centres on the mill (x 841.32: the package camera x 2979 plus half its view);
-The Last Crossing on the refugees (x 1379.56: the package camera x 5358 plus half its view). All are framed by the block.
+The Road to Oakvale on the refugees walking there (x 1379.56: the package camera x 5358 plus half its view). All are
+framed by the block.
 
-The Last Crossing has a second state at the same place (the owner's sortia-last-crossing-aanvulling): the rescue,
-`01-reddingsmoment` (1957 x 1500 at 5130, 800 of the block's pixels) and the far watchman `02-wachter` (48 x 43 at 6608,
-574), over the walking refugees in the main depth, fading in together (900 ms) once the camera has landed there and
-holds still (`after: true` on the planes), gone again going back.
+The Last Crossing is a second state at the refugees' place (the owner's sortia-last-crossing-aanvulling), the camera
+still: the rescue, `01-reddingsmoment` (1957 x 1500 at 5130, 800 of the block's pixels) and the far watchman
+`02-wachter` (48 x 43 at 6608, 574), over the walking refugees in the main depth, fading in together (900 ms), gone
+again going back to The Road to Oakvale.
 
 The False Signal is a third state at that place (the owner's sortia-false-signal-aanvulling): `01-vals-signaal`
 (1957 x 1500 at the same 5130, 800), the goblin with the lantern and the wolf behind him, over the rescue (which stays

@@ -21,7 +21,7 @@ const shots = process.argv[2];
 const phone = (width, height) => ({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 const SCREENS = [['320', phone(320, 568)], ['375', phone(375, 667)], ['390', phone(390, 844)], ['430', phone(430, 932)],
   ['tablet', phone(820, 1180)], ['desktop', { viewport: { width: 1440, height: 900 } }]];
-const CARDS = ['The Seal', 'The Broken Seal', 'The Hollow Host', 'The Last Crossing', 'The False Signal'];
+const CARDS = ['The Seal', 'The Broken Seal', 'The Hollow Host', 'The Road to Oakvale', 'The Last Crossing', 'The False Signal'];
 let failed = 0, passed = 0;
 const check = (ok, what) => { if (ok) passed++; else { failed++; console.log(`  FAIL ${what}`); } };
 
@@ -76,7 +76,7 @@ const fits = page => page.evaluate(() => {
     check(await page.evaluate(() => { const a = JSON.parse(localStorage.getItem('tilequest.account')); return a.name === 'Lickii tester' && a.characters.join() === 'Lickii tester' && !/secret12/.test(localStorage.getItem('tilequest.account')); }),
       `${name}: the account is kept, with its character, its password only as a hash`);
 
-    // the opening: four story cards, each its own picture; Continue and back, a sideways swipe and the arrow keys go
+    // the opening: the story cards, each its own picture; Continue and back, a sideways swipe and the arrow keys go
     // through them; nothing past the sides, the way on in sight (a short screen may scroll up and down to it)
     const W = device.viewport.width, H = device.viewport.height;
     // (the words change once the camera has landed)
@@ -94,11 +94,11 @@ const fits = page => page.evaluate(() => {
       await step(`story${i + 1}`);
       if (i < CARDS.length - 1) { await page.click('#siNext'); await page.waitForFunction(t => siTitle.textContent !== t && !sortiaIntro.classList.contains('moving'), seen[i], { timeout: 5000 }).catch(() => {}); }
     }
-    check(seen.join() === CARDS.join(), `${name}: the four cards in order (${seen})`);
+    check(seen.join() === CARDS.join(), `${name}: the cards in order (${seen})`);
     check(xs.every((v, i) => i === 0 || v >= xs[i - 1]) && xs[xs.length - 1] > xs[0], `${name}: the camera moves along the panorama, left to right (${xs})`);
     await page.click('#siBack'); check(await title() === 'The Last Crossing', `${name}: back goes back`);
     await page.keyboard.press('ArrowRight'); check(await title() === 'The False Signal', `${name}: the arrow key goes on`);
-    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); check(await title() === 'The Hollow Host', `${name}: and back`);
+    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); check(await title() === 'The Road to Oakvale', `${name}: and back`);
     await page.click('#siSkip'); await title();
     check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && siForm.hidden), `${name}: Skip intro: Sister Ama, who knows your name from the account`);
     await step('ama1');

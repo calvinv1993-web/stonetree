@@ -63,14 +63,14 @@ const STORY_MANIFEST = {
       { id: 'opening-way-broken', src: 'ui/story/opening/05-overgang-breuk.png', x: 269.01, y: 226.25, w: 144.8, h: 294.12, z: 3, fromStop: 1 },
       // the rescue at the refugees' place (the owner's sortia-last-crossing-aanvulling, its PNGs unchanged): the wounded
       // man by the road, the two guards crossing the bridge to him (over the walking refugees, which it hides) and, far off
-      // behind the battlements, the watchman with his lantern raised; both in the main depth, fading in together once the
-      // camera has landed at The Last Crossing (after: the camera holds still for it), and out again going back
-      { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 3, after: true },
-      { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 3, after: true },
+      // behind the battlements, the watchman with his lantern raised; both in the main depth, fading in together at The
+      // Last Crossing, the camera still at the refugees' place (The Road to Oakvale before it), and out again going back
+      { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 4 },
+      { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 4 },
       // the false signal at the same place (the owner's sortia-false-signal-aanvulling, its PNG unchanged): the goblin with
       // the lantern raised and the wolf behind him, where the rescue was; over the rescue, which stays shown beneath it (so
       // the walking refugees never show through), fading in as The False Signal's words come, the camera still
-      { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 4 },
+      { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 5 },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2130.91, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
@@ -80,7 +80,7 @@ const STORY_MANIFEST = {
       // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
       // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
       { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 1886.47, y: -13.58, w: 135.75, h: 298.65, z: 1,
-        cover: true, drift: { x: 5.43, y: 3.62, stop: 5 } },
+        cover: true, drift: { x: 5.43, y: 3.62, stop: 6 } },
       { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 1603.43, y: 0, w: 407.48, h: 724, z: 2,
         cover: [[1603.43, 0, 343, 724], [1946.43, 246.61, 64.48, 477.39], [1946.43, 0, 64.48, 27.83]] },
     ] },

@@ -30,10 +30,13 @@ const STORY_SCRIPT = {
     // (the mill at the opening's right end: its package camera x 2979 of a 1479 px wide view, centred at 3718.5 of its pixels)
     { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
-    // (the refugees on the road at the opening's right end: its package camera x 5358, centred at 6097.5 of its pixels; once
-    // landed, the rescue there fades in)
+    // (the refugees on the road at the opening's right end, walking to Oakvale: its package camera x 5358, centred at 6097.5
+    // of its pixels)
+    { title: 'The Road to Oakvale', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
+      text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor.' },
+    // (the same place, the camera still: the rescue fading in over the walking refugees)
     { title: 'The Last Crossing', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
-      text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Above the gate, a watchman raised his lantern once. A wounded man beside the road lifted his twice. Two guards crossed the bridge to help him.' },
+      text: 'Above the gate, a watchman raised his lantern once. A wounded man beside the road lifted his twice. Two guards crossed the bridge to help him.' },
     // (the same place again, the camera still: the false signal fading in over the rescue)
     { title: 'The False Signal', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'After the guards brought the wounded man inside, the lantern above the gate went up again. From the reeds came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran for the gate. Halfway across the bridge, your legs gave way.' },
