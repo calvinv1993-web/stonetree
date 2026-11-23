@@ -49,7 +49,7 @@ const StoryPanorama = (() => {
         if (p.id && ids.has(p.id)) out.push(`${where}: the id is used twice`);
         ids.add(p.id);
         if (p.kind === 'glow') { if (![p.x, p.y, p.size].every(Number.isFinite)) out.push(`${where}: a glow needs x, y and size`); return; }
-        if (!p.src) out.push(`${where}: src is missing`);
+        if (!p.src && p.kind !== 'fill') out.push(`${where}: src is missing`);
         if (![p.x, p.y, p.w, p.h].every(Number.isFinite) || !(p.w > 0) || !(p.h > 0)) out.push(`${where}: x, y, w and h must be numbers, w and h above 0`);
       });
     }
@@ -58,15 +58,42 @@ const StoryPanorama = (() => {
 
   // The camera's stop positions for a column of colW x colH css px: each stop's focus (its at, or the world's middle),
   // held so the view never shows past the world's edges
-  function stopCams(m, stops, colW, colH) {
+  function stopCams(m, stops, colW, colH, band) {
     const [W, H] = m.world, s0 = colH / m.view;
     return stops.map(st => {
       // frame: [x, y, w, h], the world the view must stay inside at this stop (a scene of its own): close enough in for
       // it to fill the screen, and held within it
       const [fx, fy, fw, fh] = st.frame || [0, 0, W, H];
-      const zoom = Math.max(st.zoom > 0 ? st.zoom : 1, st.frame ? Math.max(colW / (s0 * fw), colH / (s0 * fh)) : 0);
-      const hw = colW / (2 * s0 * zoom), hh = colH / (2 * s0 * zoom), at = st.at || [fx + fw / 2, fy + fh / 2];
-      return { x: fw >= 2 * hw ? clamp(at[0], fx + hw, fx + fw - hw) : fx + fw / 2, y: fh >= 2 * hh ? clamp(at[1], fy + hh, fy + fh - hh) : fy + fh / 2, zoom };
+      let zoom = Math.max(st.zoom > 0 ? st.zoom : 1, st.frame ? Math.max(colW / (s0 * fw), colH / (s0 * fh)) : 0);
+      const at = st.at || [fx + fw / 2, fy + fh / 2];
+      // below: how far (world units) the view may reach under the frame, where the words' dark shade covers the screen
+      // and the scene's fill (a plane) carries its picture's dark foot on
+      const below = st.below || 0, held = (z, x, y) => {
+        const hw = colW / (2 * s0 * z), hh = colH / (2 * s0 * z);
+        return { x: fw >= 2 * hw ? clamp(x, fx + hw, fx + fw - hw) : fx + fw / 2, y: fh + below >= 2 * hh ? clamp(y, fy + hh, fy + fh + below - hh) : fy + fh / 2, zoom: z };
+      };
+      // keep: [x, y, w, h], what must be seen whole in the part of the screen the words leave free (band: [top, bottom]
+      // css px, given by the story): the view moved from where it would be no more than needed for that (down into the
+      // room below the frame if it must), the camera coming a little closer if the frame allows no room
+      if (st.keep && band) {
+        const [kx, ky, kw, kh] = st.keep, [bt, bb] = band;
+        const place = z => {
+          const s = s0 * z, hw = colW / (2 * s), c = held(z, at[0], at[1]);
+          let y = c.y;
+          const top = (ky - y) * s + colH / 2, foot = (ky + kh - y) * s + colH / 2;
+          if (kh * s > bb - bt) y = ky + kh - (bb - colH / 2) / s; // (too tall for the free part: its foot kept clear of the words)
+          else if (foot > bb) y += (foot - bb) / s;
+          else if (top < bt) y -= (bt - top) / s;
+          return { want: y, got: held(z, clamp(c.x, kx + kw - hw, kx + hw), y) };
+        };
+        let best = place(zoom);
+        for (let z = zoom * 1.01; Math.abs(best.got.y - best.want) > 0.5 && z < zoom * 2.5; z *= 1.01) {
+          if (kh * s0 * z > bb - bt || kw * s0 * z > colW) break; // (closer would no longer fit)
+          best = place(z);
+        }
+        return best.got;
+      }
+      return held(zoom, at[0], at[1]);
     });
   }
   // Where a depth's own camera is when the main one is at cam. 'stops' (the default): at every stop each depth shows its
@@ -106,7 +133,7 @@ const StoryPanorama = (() => {
     return { ...byX[byX.length - 1], x };
   }
   // The planes a depth needs to show around a frame (a margin of a quarter frame, so a move never starts on a blank)
-  const planesIn = (layer, r) => (layer.planes || []).filter(p => p.kind !== 'glow' && hit({ x: p.x, y: p.y, w: p.w, h: p.h }, grow(r, r.w / 4)));
+  const planesIn = (layer, r) => (layer.planes || []).filter(p => !p.kind && hit({ x: p.x, y: p.y, w: p.w, h: p.h }, grow(r, r.w / 4)));
 
   // The pictures to fetch ahead for the first stops, without a page laid out yet (the gate loads these while it waits)
   function pictures(m, stops, upTo = 1) {
@@ -125,8 +152,8 @@ const StoryPanorama = (() => {
   // edges) and in the opening's zoom.
   // A point is covered when a plane marked cover (all of it opaque, or the [x, y, w, h] part of it that is) of any
   // depth lies under it. Returns the points left bare, with the camera that sees them.
-  function gaps(m, stops, colW, colH, { overscroll = 48, opening = 1 } = {}) {
-    const cams = stopCams(m, stops, colW, colH), s0 = colH / m.view, byX = cams.slice().sort((a, b) => a.x - b.x);
+  function gaps(m, stops, colW, colH, { overscroll = 48, opening = 1, band } = {}) {
+    const cams = stopCams(m, stops, colW, colH, band), s0 = colH / m.view, byX = cams.slice().sort((a, b) => a.x - b.x);
     const covers = [];
     for (const depth of DEPTHS) {
       const layer = m.layers[depth];
@@ -163,6 +190,7 @@ const StoryPanorama = (() => {
     const m = manifest, depths = DEPTHS.filter(d => m.layers && m.layers[d]);
     let colW = 0, colH = 0, s0 = 1, dpr = 1, cams = [], cam = null, extra = 1, glideReq = 0, devOn = false, canvas = null, hud = null;
     let zoomReq = 0, zoomTimer = 0;
+    let state = 0; // the stop the story is at: planes with fromStop / untilStop show only around it
     let lz = 1; // the zoom the planes are laid out at: at rest the camera's own, so no depth is scaled by a transform
     const still = () => (opts.still ? opts.still() : matchMedia('(prefers-reduced-motion: reduce)').matches);
     const layers = depths.map((depth, i) => {
@@ -179,9 +207,12 @@ const StoryPanorama = (() => {
           el.append(box);
           return { def, el: box, glow: true };
         }
-        box.className = 'sp-plane si-layer';
+        box.className = def.kind === 'fill' ? 'sp-plane sp-fill' : 'sp-plane si-layer';
         box.dataset.id = def.id || `${depth}-${n + 1}`;
         if (Number.isFinite(def.z)) box.style.zIndex = String(def.z);
+        // a fill: no picture, only a colour or gradient (fill, css) where the view may reach past a scene's picture
+        if (def.kind === 'fill') { box.style.background = def.fill; el.append(box); return { def, el: box, id: box.dataset.id, solid: true }; }
+        if (Number.isFinite(def.fromStop) || Number.isFinite(def.untilStop)) box.classList.add('sp-state');
         const img = document.createElement('img');
         img.alt = ''; img.draggable = false; img.decoding = 'async';
         box.append(img);
@@ -205,7 +236,7 @@ const StoryPanorama = (() => {
       const jobs = [];
       for (const L of layers) {
         const wanted = new Set(list.flatMap(c => planesIn(m.layers[L.depth], frame(m, cams, L.factor, c, colW, colH))));
-        for (const p of L.planes) if (!p.glow && wanted.has(p.def)) jobs.push(load(p));
+        for (const p of L.planes) if (p.img && wanted.has(p.def)) jobs.push(load(p));
       }
       return Promise.race([Promise.all(jobs), new Promise(done => setTimeout(done, wait))]);
     }
@@ -222,7 +253,7 @@ const StoryPanorama = (() => {
       colW = host.clientWidth || 1; colH = host.clientHeight || 1; dpr = devicePixelRatio || 1;
       s0 = colH / m.view;
       const at = cam && cams.length ? cams.indexOf(cam) : -1;
-      cams = stopCams(m, stops, colW, colH);
+      cams = stopCams(m, stops, colW, colH, opts.band && opts.band());
       if (cam) cam = at >= 0 ? cams[at] : { ...cam };
       lay(cam ? cam.zoom * extra : 1);
       if (canvas) { canvas.width = Math.round(colW * dpr); canvas.height = Math.round(colH * dpr); }
@@ -327,7 +358,7 @@ const StoryPanorama = (() => {
     // planes overlap, the camera's frame at every stop, the world's edge, and where the screen shows nothing now; a
     // panel with the numbers. On a canvas over the pictures, drawn as the camera moves.
     const overlapsOf = L => {
-      const out = [], ps = L.planes.filter(p => !p.glow);
+      const out = [], ps = L.planes.filter(p => p.img);
       for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
         const a = ps[i].def, b = ps[j].def;
         if (hit(a, b)) out.push(meet(a, b));
@@ -355,7 +386,7 @@ const StoryPanorama = (() => {
         for (const o of overlapsOf(L)) { const r = toScreen(L, o); g.fillRect(r.x, r.y, r.w, r.h); g.strokeStyle = `${color}aa`; g.setLineDash([2, 3]); g.strokeRect(r.x, r.y, r.w, r.h); }
         g.restore();
         for (const p of L.planes) {
-          if (p.glow) continue;
+          if (!p.img) continue;
           const r = toScreen(L, p.def), seen = r.x < colW && r.x + r.w > 0 && r.y < colH && r.y + r.h > 0;
           g.strokeStyle = color; g.lineWidth = p.def.cover ? 2 : 1; g.setLineDash(p.def.cover ? [] : [6, 4]);
           g.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
@@ -384,7 +415,7 @@ const StoryPanorama = (() => {
         const ok = covers.some(({ L, r }) => { const c = depthCam(m, cams, L.factor, cam); return inRect(r, c.x + (sx - colW / 2) / s, c.y + (sy - colH / 2) / s); });
         if (!ok) g.fillRect(gx * colW / N, gy * colH / N, colW / N, colH / N);
       }
-      if (!pathGaps) pathGaps = gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom });
+      if (!pathGaps) pathGaps = gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom, band: opts.band && opts.band() });
       const worst = pathGaps.reduce((a, b) => (b.bare > (a ? a.bare : 0) ? b : a), null);
       hud.textContent = [
         `STORY PANORAMA · dev`,
@@ -414,7 +445,7 @@ const StoryPanorama = (() => {
 
     layout();
     if (opts.dev) dev(true);
-    return {
+    const api = {
       get camera() { return cam; },
       get scale() { return s0 * (cam ? cam.zoom : 1) * extra; },
       get count() { return cams.length; },
@@ -424,15 +455,27 @@ const StoryPanorama = (() => {
       // how far across the camera may go at this zoom without the view passing the world's edges
       range(zoom = 1) { const hw = colW / (2 * s0 * zoom); return m.world[0] >= 2 * hw ? [hw, m.world[0] - hw] : [m.world[0] / 2, m.world[0] / 2]; },
       relayout() { layout(); pathGaps = null; render(); },
+      // the story at stop i: the planes of a state (fromStop, untilStop) fade in or out (at once with reduced motion;
+      // the camera doesn't move for it)
+      state(i) {
+        state = i;
+        for (const L of layers) for (const p of L.planes) {
+          const d = p.def;
+          if (!(Number.isFinite(d.fromStop) || Number.isFinite(d.untilStop))) continue;
+          p.el.style.opacity = (!Number.isFinite(d.fromStop) || i >= d.fromStop) && (!Number.isFinite(d.untilStop) || i <= d.untilStop) ? '1' : '0';
+        }
+      },
       // the pictures let go (once the story is over): fetched again if it's shown again
       release() { for (const L of layers) for (const p of L.planes) if (p.img) { p.img.onload = p.img.onerror = null; p.img.removeAttribute('src'); p.ready = null; } },
       place, glide, halt, prepare, openingZoom, dev,
       get devOn() { return devOn; },
-      gaps: () => gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom }),
+      gaps: () => gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom, band: opts.band && opts.band() }),
       // the planes (ids) a stop shows, in every depth
-      needed: i => layers.flatMap(L => { const ps = planesIn(m.layers[L.depth], frame(m, cams, L.factor, cams[clamp(i, 0, cams.length - 1)], colW, colH)); return L.planes.filter(p => !p.glow && ps.includes(p.def)).map(p => p.id); }),
-      planes: () => layers.flatMap(L => L.planes.filter(p => !p.glow).map(p => ({ depth: L.depth, id: p.id, src: p.def.src, loaded: !!(p.img.complete && p.img.naturalWidth), file: [p.img.naturalWidth, p.img.naturalHeight], magnification: cam && p.img.naturalWidth ? magOf(p) : null }))),
+      needed: i => layers.flatMap(L => { const ps = planesIn(m.layers[L.depth], frame(m, cams, L.factor, cams[clamp(i, 0, cams.length - 1)], colW, colH)); return L.planes.filter(p => p.img && ps.includes(p.def)).map(p => p.id); }),
+      planes: () => layers.flatMap(L => L.planes.filter(p => p.img).map(p => ({ depth: L.depth, id: p.id, src: p.def.src, loaded: !!(p.img.complete && p.img.naturalWidth), file: [p.img.naturalWidth, p.img.naturalHeight], magnification: cam && p.img.naturalWidth ? magOf(p) : null }))),
     };
+    api.state(0);
+    return api;
   }
   return { create, check, pictures, gaps, pictureUrl, DEPTHS };
 })();

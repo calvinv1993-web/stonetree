@@ -18,9 +18,12 @@
 //     cover: true if it's opaque all over, or [x, y, w, h] (or a list of those), the parts that are (world units): the
 //            gap check uses these
 //     clip:  [x, y, w, h], the part of it shown (world units): cut away where a scene of its own lies over it
+//     fromStop, untilStop: a plane of one state of a scene (stop indices): shown only while the story is at those stops
+//            or past / before them, fading in and out where it lies (the camera doesn't move for it)
 //     drift: { x, y, stop, reach }: a small shift of its own, at most x and y world units, none at that stop (its index),
 //            growing smoothly as the camera moves away and full from reach world units on (default: the nearest other
 //            stop); never with reduced motion. For a view through a window: the window's frame stays, the view behind moves
+//   or a fill: { kind: 'fill', id, x, y, w, h, z, cover, fill: a css colour or gradient } (no picture)
 //   or a light: { kind: 'glow', x, y (its middle), size (world units), delay (s, its flicker), tone: 'dim' | 'candle' }
 const STORY_MANIFEST = {
   world: [2172, 724],
@@ -33,7 +36,14 @@ const STORY_MANIFEST = {
     main: { factor: 1, planes: [
       // the cave, the river, Oakvale and its bridge, the temple room; its sky see-through (opaque below row 256)
       { id: 'scene', src: 'ui/intro/layers/02-scene.webp', x: 0, y: 0, w: 2172, h: 724, cover: [0, 256, 2172, 468] },
-      { id: 'seal', src: 'ui/intro/layers/03-seal.webp', x: -48, y: 109, w: 643, h: 538 },
+      // the seal in its two states, the story's first two stops (sprites/ui/story/zegel: the owner's package
+      // sortia-zegel-twee-toestanden-v1, one scene of 1829 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel
+      // against the world's left edge): whole, then broken over it, fading in from the second stop on
+      { id: 'seal-closed', src: 'ui/story/zegel/01-zegel-gesloten.png', x: 0, y: 0, w: 413.81, h: 724, z: 1, cover: true },
+      { id: 'seal-broken', src: 'ui/story/zegel/02-zegel-gebroken.png', x: 0, y: 0, w: 413.81, h: 724, z: 2, cover: true, fromStop: 1 },
+      // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
+      // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
+      { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2292, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
       { id: 'mill', src: 'ui/intro/layers/04-mill.webp', x: 413.7, y: 135.1, w: 562, h: 470.2 },
       { id: 'wolf', src: 'ui/intro/layers/11-wolf.webp', x: 1400, y: 200, w: 195, h: 200.44 },
       { id: 'goblin', src: 'ui/intro/layers/12-hidden-goblin.webp', x: 1450, y: 345, w: 285, h: 306.2 },
@@ -50,14 +60,14 @@ const STORY_MANIFEST = {
       // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
       // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
       { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 2047.56, y: -13.58, w: 135.75, h: 298.65, z: 1,
-        cover: true, drift: { x: 5.43, y: 3.62, stop: 4 } },
+        cover: true, drift: { x: 5.43, y: 3.62, stop: 5 } },
       { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 1764.52, y: 0, w: 407.48, h: 724, z: 2,
         cover: [[1764.52, 0, 343, 724], [2107.52, 246.61, 64.48, 477.39], [2107.52, 0, 64.48, 27.83]] },
     ] },
     foreground: { factor: 1.25, planes: [
       // the old tree close to the camera (blurred in its file), and the dark ground over the picture's foot
       { id: 'tree', src: 'ui/intro/layers/09-tree.webp', x: 1049, y: 0, w: 1002, h: 696 },
-      { id: 'ground', src: 'ui/intro/layers/08-ground.webp', x: 0, y: 560, w: 2172, h: 164, clip: [0, 560, 1764.52, 164] }, // (not over Ama's room)
+      { id: 'ground', src: 'ui/intro/layers/08-ground.webp', x: 0, y: 560, w: 2172, h: 164, clip: [413.81, 560, 1350.71, 164] }, // (not over the seal's scene or Ama's room)
     ] },
   },
 };

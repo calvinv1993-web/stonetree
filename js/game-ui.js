@@ -2921,11 +2921,18 @@ const Intro = (() => {
     const turn = ++landing;
     pano.halt();
     if (from === to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) { words(true); return; }
-    const far = Math.abs(target.x - cam.x) * pano.scale, ms = still() ? 0 : far > box.querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a stop beside it in 650 ms)
     const land = () => { if (turn !== landing) return; box.classList.remove('moving'); words(true); pano.prepare(to, 0); };
-    if (!ms) { pano.place(target); land(); return; }
+    // (another state of the same place, as the seal whole and broken: the camera stays, its picture fades to the other
+    // (decoded first) while the words change)
+    if (from !== to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) {
+      box.classList.add('moving');
+      pano.prepare(to).then(() => { if (turn !== landing) return; pano.state(to); setTimeout(land, still() ? 0 : 320); });
+      return;
+    }
+    const far = Math.abs(target.x - cam.x) * pano.scale, ms = still() ? 0 : far > box.querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a stop beside it in 650 ms)
+    if (!ms) { pano.place(target); pano.state(to); land(); return; }
     box.classList.add('moving');
-    pano.prepare(to).then(() => { if (turn === landing) pano.glide(target, ms).then(ok => { if (ok) land(); }); });
+    pano.prepare(to).then(() => { if (turn === landing) { pano.state(to); pano.glide(target, ms).then(ok => { if (ok) land(); }); } });
   }
   // The story plays by itself: the camera drifts along all the stops in AUTO_MS (slowly setting off and slowing as it
   // arrives), each stop's words coming in as the camera nears it, the next stop's pictures fetched on the way; at the
@@ -2946,6 +2953,7 @@ const Intro = (() => {
         const scene = Math.min(NAME, Math.round(u));
         if (scene !== at) { // (its words: a moment's fade, then the next stop's)
           at = scene;
+          pano.state(scene);
           const box = $('sortiaIntro');
           box.classList.add('moving');
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
@@ -2982,10 +2990,11 @@ const Intro = (() => {
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
+    words(false); // (first: the camera keeps what must be seen above the words)
     pano.relayout(); // (laid out now it can be measured)
+    pano.state(0);
     pano.place(spot(0));
     opening(moving());
-    words(false);
     pano.prepare(0, 0);
     autoplay();
   }
@@ -2995,7 +3004,10 @@ const Intro = (() => {
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
     // the panorama, and a dot for every card
     pano = StoryPanorama.create(box.querySelector('.si-world'), manifest, script.stops, {
-      onFrame: weather, overscroll: OVERSCROLL, openingZoom: script.opening ? script.opening.zoom : 1, dev: /[?&]storydev\b/.test(location.search),
+      onFrame: weather, overscroll: OVERSCROLL,
+      // (the part of the screen the words leave free: from under the wordmark to above the title)
+      band: () => { const top = box.querySelector('.si-col').getBoundingClientRect().top, mark = box.querySelector('.si-mark').getBoundingClientRect(), title = $('siTitle').getBoundingClientRect();
+        return mark.height && title.height ? [mark.bottom - top + 8, title.top - top - 16] : null; }, openingZoom: script.opening ? script.opening.zoom : 1, dev: /[?&]storydev\b/.test(location.search),
     });
     $('siDots').replaceChildren(...script.stops.slice(0, NAME).map((_, i) => { const d = document.createElement('span'); d.setAttribute('aria-label', `Scene ${i + 1}`); return d; }));
     $('siSkip').onclick = () => go(NAME);
@@ -3023,6 +3035,9 @@ const Intro = (() => {
       if (!drag) return;
       const dx = e.touches[0].clientX - drag.x0, dy = e.touches[0].clientY - drag.y0;
       if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } stopAuto(); opening(false); drag.on = true; drag.base = pano.camera.x; landing++; pano.halt(); box.classList.remove('moving'); words(false); }
+      // (towards another state of the same place: the camera stays; letting go turns to it)
+      const next = at + (dx < 0 ? 1 : -1), here = spot(at);
+      if (next >= 0 && next <= NAME && Math.abs(spot(next).x - here.x) < 0.5 && Math.abs(spot(next).y - here.y) < 0.5) return;
       const s = pano.scale, lo = Math.min(spot(0).x, spot(NAME).x), hi = Math.max(spot(0).x, spot(NAME).x), most = OVERSCROLL / s;
       let to = drag.base - dx / s;
       if (to < lo) to = lo - Math.min(most, (lo - to) * 0.35); else if (to > hi) to = hi + Math.min(most, (to - hi) * 0.35); // (stiff past the ends)

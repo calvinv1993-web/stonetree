@@ -31,6 +31,9 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 .sp-plane { position: absolute; pointer-events: none; user-select: none; }
 .sp-plane img { display: block; width: 100%; height: 100%; max-width: none; max-height: none; pointer-events: none; image-rendering: auto; }
 .sp-plane img:not([src]) { visibility: hidden; }
+/* (a plane of one state of a scene, e.g. the seal whole or broken: it fades in and out where it lies) */
+.sp-plane.sp-state { transition: opacity 900ms ease; }
+@media (prefers-reduced-motion: reduce) { .sp-plane.sp-state { transition: none; } }
 /* the development view (?storydev, or Shift+D): the planes' edges and magnification, the stops' frames, bare spots */
 .sp-dev { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
 .sp-hud { position: absolute; z-index: 4; left: 8px; top: calc(70px + env(safe-area-inset-top)); max-width: calc(100% - 16px); max-height: 46%; overflow: hidden; margin: 0;

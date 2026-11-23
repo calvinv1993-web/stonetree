@@ -69,7 +69,11 @@ A plane:
 | `z` | order among the depth's planes (higher in front; default: the order listed) |
 | `cover` | `true` if it's opaque all over, or `[x, y, w, h]` (or a list of those) for the parts that are (world units); the gap check uses these |
 | `clip` | `[x, y, w, h]`: only this part of the plane is shown (world units), e.g. where a scene of its own lies over it |
+| `fromStop`, `untilStop` | a plane of one state of a scene (stop indices): shown only from / up to that stop of the story, fading in and out where it lies (none with reduced motion); the camera doesn't move for it |
 | `drift` | `{ x, y, stop, reach }`: a small shift of its own, at most `x` and `y` world units: none at that stop (its index), growing smoothly as the camera moves away, full from `reach` units on (default: the nearest other stop), never more wherever the camera goes; none with reduced motion. For a view through a window: the frame stays, the view behind moves |
+
+A fill: `{ kind: 'fill', id, x, y, w, h, z, cover, fill }` (no picture: a css colour or gradient), for where the view may
+reach past a scene's picture.
 
 A light: `{ kind: 'glow', x, y, size, delay, tone }` (x, y its middle; `tone`: `'dim'` or `'candle'`, or none).
 
@@ -100,8 +104,28 @@ A stop can have a `frame: [x, y, w, h]` (world units): a scene of its own that t
 comes in just close enough for it to fill the screen on any shape of screen, and `at` is held within it (Sister Ama's
 room uses this, held at its top so she stands above the words).
 
+A stop can have a `keep: [x, y, w, h]` (world units): what must be seen whole above the words. The story gives the
+panorama the part of the screen the words leave free (from under the wordmark to above the title); the view moves from
+where it would be no more than needed to hold `keep` in it, and the camera comes a little closer if the frame allows no
+room. `below` lets the view reach that many world units under its frame, where the words' dark shade covers the screen
+(a fill plane carries the picture's dark foot on there). On a screen too short for it all, `keep`'s foot stays clear of
+the words.
+
+Two stops with the same camera are two states of one place: Continue, back or a swipe between them don't move the
+camera; the pictures of the next state are decoded first, then fade in (`fromStop`) as the words change.
+
 Every stop but the last is a card (a dot each in the progress row). `snow` and `mist` say what weather is drawn in front
 at that stop; between stops it fades from one to the other.
+
+## The seal, whole and broken: the first two stops
+
+`sprites/ui/story/zegel/` holds the owner's package (sortia-zegel-twee-toestanden-v1): `01-zegel-gesloten.png` and
+`02-zegel-gebroken.png`, both 1829 x 3200, one place in two states. In the world: 724 / 3200 = 0.22625 world units a
+pixel against the world's left edge (x 0, 413.81 x 724), the broken one over the whole one from the second stop on.
+Both stops: `frame` the scene, `at` its package focus (0.459 of its width: world x 189.94), `keep` the ring
+(x 120 to 1480, y 1000 to 2300 of its pixels), `below` 200 with the dark fill `seal-foot` under the whole world. The
+ground strip in front starts where the scene ends. Kept as the package's PNGs (no recompression); no parallax layers
+of its own yet (they'll come cut from both states with one mask).
 
 ## A scene of its own: Sister Ama's room
 

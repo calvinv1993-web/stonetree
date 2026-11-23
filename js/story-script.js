@@ -7,6 +7,10 @@
 //   title, text: its card (the last stop's title heads Sister Ama's talk; its text isn't shown)
 //   at:    [x, y] the world point the camera centres on (world units; held so the view never shows past the world)
 //   zoom:  1 shows the manifest's view height; above 1 closer
+//   keep:  [x, y, w, h] (world units): what must be seen whole above the words (the camera centres it in the part of the
+//          screen they leave free, coming a little closer if the frame allows no room)
+//   below: how far (world units) the view may reach under the frame, where the words' shade covers the screen (a fill
+//          plane in the manifest carries the picture on there)
 //   frame: [x, y, w, h] (world units): a scene of its own, which the view must stay inside: the camera comes in close
 //          enough for it to fill the screen, and at is held within it
 //   snow, mist: the weather drawn in front at this stop (true / false); between stops it fades from one to the other
@@ -15,8 +19,12 @@
 const STORY_SCRIPT = {
   opening: { zoom: 1.09, ms: 10000, delay: 1400 },
   stops: [
-    { title: 'The Broken Seal', at: [217, 362], snow: false, mist: true,
-      text: 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.' },
+    // the seal, whole and then broken: one place, one camera (its scene: the frame), the picture fading from one state
+    // to the other as the words change; the whole ring kept above the words
+    { title: 'The Seal', at: [189.94, 362], frame: [0, 0, 413.81, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+      text: 'Long ago, something beneath the northern mountains bent wolves and goblins to its will. The people of the north sealed the stairway. The stone closed the passage; the ring held its influence below.' },
+    { title: 'The Broken Seal', at: [189.94, 362], frame: [0, 0, 413.81, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+      text: 'For years, the river washed earth from beneath the seal. During the winter flood, its support gave way. The ring fractured and the heavy stone shifted. When the water fell, the stairway lay open.' },
     { title: 'The Hollow Host', at: [717, 362], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
     { title: 'The Last Crossing', at: [1097, 362], snow: true, mist: true,
