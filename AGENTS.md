@@ -44,6 +44,8 @@ This is a guide for AI agents (and developers) who continue the project: how the
 | The phone's interface on three iPhone sizes: every control in reach, each gesture doing one thing (needs Playwright) | `node tests/mobile-ui.test.js [screenshot-folder]` |
 | The phone's interface driving the game: walking, floors, talk, loot, spells, potions, the drawer, map, chat, turning (needs Playwright) | `node tests/mobile-regression.test.js` |
 | A new character's welcome, start to finish, on 320/375/390/430 px, a tablet and a computer: the gate (loading, Create account), the story's cards and their pictures, Sister Ama, who knows the name, the path, then the game and its outfit window (nothing twice) and a reload (needs Playwright) | `node tests/onboarding.test.js [screenshot-folder]` |
+| The story panorama in a real browser: both panoramas on four screens (no bare spot anywhere the camera goes), Continue and swipe, pictures decoded first, reduced motion, the development view, on to Choose Your Path (needs Playwright) | `node tests/story-panorama.test.js` |
+| The story demo's placeholder pictures (`sprites/ui/story/demo/`, then run `tests/sprite-versions.js`) | `python3 tests/story-placeholders.py` |
 | Stylesheets: pictures and computed styles of ~60 interface states (desktop, phones, editors), to compare before and after a CSS change | `node tests/ui-snapshots.js <folder> [--compare <reference folder>]` |
 | Syntax check | `node --check js/<file>.js` |
 
@@ -64,7 +66,7 @@ The **logic files** have no DOM code:
 `defs, items, creatures, npcs, data, map, world-kestrel, default-map, game-core, game-combat, game-npc, game-social, game-forge, game-guide, game-paths, game-tales, game-gates, game-siege, game-update`.
 
 The same files run in three places:
-- **Browser**: `index.html` loads them as plain `<script>` tags, which share one global scope. After them come the browser-only files: `sprites, render, sound, fx, game-ui, net, game, touch`.
+- **Browser**: `index.html` loads them as plain `<script>` tags, which share one global scope. After them come the browser-only files: `sprites, render, sound, fx, story-panorama, story-manifest, story-script, story-demo, game-ui, net, game, touch`.
 - **Server**: `server/server.js` loads them into one `vm` sandbox and calls `updateWorld()` every 50 ms.
 - **Tests**: `tests/harness.js` loads them into a `vm` sandbox, with `Math.random` seeded.
 
@@ -171,6 +173,7 @@ Some details of the online client:
 | `game.js` | Input, the frame loop and canvas overlays: names, bars, frames, the guide arrow, banners. |
 | `game-ui.js` | DOM panels and windows, the log, minimap and world map. |
 | `touch.js` | Phone controls. |
+| `story-panorama.js` | The story's panorama: one world, up to three depths of picture planes, one camera moving from stop to stop. Its pictures are in `story-manifest.js`, its stops and words in `story-script.js`, a placeholder demonstration in `story-demo.js` (`?storydemo`; `?storydev` or Shift+D: the development view). `Intro` in `game-ui.js` tells it. See `docs/story-panorama.md`. |
 | `sound.js` | Synthesized sounds and music. Sound names are used by `addSound`. |
 
 - **The stylesheets**: `css/base.css` for every page; the game adds `css/game.css` and then the phone's files in `css/phone/` (`layout.css`, one per phone module, `theme.css` last); the editors add `css/editor.css`; `css/onboarding.css` is the welcome's own look (the story book and the windows a character is made in: tokens and `.ob-*` parts, documented at its top). `css/parchment.css` is the parchment panel (`ParchmentPanel` in `game-ui.js`: torn, aged paper in an antique gold frame round any content): its pictures in `sprites/ui/parchment/` are cut from the originals in `docs/parchment-ui/` by `python3 tests/parchment-kit.py`; every window of the welcome is one (but your name, offline, is a talk with Sister Ama on the story's own parchment picture: `nameSheet` in `game-ui.js`, `.name-sheet` in `css/onboarding.css`), and the welcome's type is Cinzel (titles) and Literata (words), kept in `css/fonts/` (SIL Open Font License). `css/gate.css` is SORTIA's gate (`Gate` in `game-ui.js`: the loading line, Tap to begin, then the account page after `docs/sortia/login/` (its pictures in `sprites/ui/login/`), Create account or Log in, then the character select (`Gate.chooseCharacter`); offline the account is the browser's, `tilequest.account` with its `characters`, each saved at `tilequest.save.v3.c.<name>` (`saveSlot`/`saveKey()` in `game-core.js`), in `game.js` `startOffline`; online `net.js` logs into an account (`{ t: 'login', account, password, create }` or its token), gets `{ t: 'account', characters }`, then sends `play` or `newchar`; the server keeps accounts in `server/accounts.json`, each character in `players.json` naming its `owner`). `css/sortia.css`, last, is SORTIA's vocation screen (choosing your path), after the owner's reference (`docs/sortia/vocation-reference.jpg`), with its pictures in `sprites/ui/sortia/`. Check a CSS change with `tests/ui-snapshots.js`.

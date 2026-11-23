@@ -1,0 +1,123 @@
+// The story panorama (js/story-panorama.js) in a real browser: the story as it is (js/story-manifest.js) and the
+// placeholder demonstration (?storydemo): its depths and planes, no bare spot anywhere the camera can go on four screens,
+// Continue and a swipe moving the same camera from stop to stop with the next pictures decoded first, the pictures at
+// their files' own size, reduced motion, the development view, and on to Choose Your Path.
+// Run: node tests/story-panorama.test.js   (needs Playwright, as the other browser tests)
+'use strict';
+const path = require('path');
+const pw = require(process.env.PLAYWRIGHT_CORE || 'playwright');
+const { serve } = require(path.join(__dirname, 'serve.js'));
+let passed = 0, failed = 0;
+const check = (ok, what) => { if (ok) passed++; else { failed++; console.log('FAIL', what); } };
+const SCREENS = [
+  ['iPhone 13 Pro Max', { ...pw.devices['iPhone 13 Pro Max'] }],
+  ['320 px', { viewport: { width: 320, height: 568 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }],
+  ['tablet', { viewport: { width: 834, height: 1194 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }],
+  ['desktop', { viewport: { width: 1440, height: 900 } }],
+];
+async function openStory(browser, device, query, extra = {}) {
+  const context = await browser.newContext({ ...device, ...extra });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', m => { if (/Story panorama/.test(m.text())) errors.push(m.text()); });
+  await page.goto(`${URL}/index.html?story${query}`);
+  await page.waitForSelector('#sgAuth:not([hidden])', { timeout: 30000 });
+  await page.waitForTimeout(300);
+  await page.fill('#sgName', 'Pano tester'); await page.fill('#sgPass', 'secret12'); await page.fill('#sgPass2', 'secret12'); await page.click('#sgGo');
+  await page.waitForSelector('#sgChars:not([hidden])'); await page.click('#sgNewGo');
+  await page.waitForSelector('#sortiaIntro:not([hidden])', { timeout: 30000 });
+  await page.waitForFunction(() => Intro.panorama.needed(0).every(id => Intro.panorama.planes().find(p => p.id === id).loaded), null, { timeout: 15000 });
+  return { context, page, errors };
+}
+const cam = page => page.evaluate(() => ({ ...Intro.panorama.camera }));
+let URL;
+(async () => {
+  URL = await serve();
+  const browser = await pw.chromium.launch();
+
+  // every screen, both panoramas: no bare spot anywhere the camera can go, and every stop reachable
+  for (const [name, device] of SCREENS) for (const query of ['', '&storydemo']) {
+    const { context, page, errors } = await openStory(browser, device, query);
+    const label = `${name}${query || ' (story)'}`;
+    const info = await page.evaluate(() => ({ gaps: Intro.panorama.gaps().length, count: Intro.panorama.count, depths: [...document.querySelectorAll('.sp-layer')].map(l => l.dataset.depth), dots: siDots.children.length }));
+    check(info.gaps === 0, `${label}: no bare spot anywhere the camera can go (${info.gaps})`);
+    check(info.depths.join() === 'background,main,foreground', `${label}: three depths, back to front (${info.depths})`);
+    check(info.dots === info.count - 1, `${label}: a dot for every card (${info.dots} for ${info.count} stops)`);
+    check(errors.length === 0, `${label}: no errors (${errors})`);
+    await context.close();
+  }
+
+  // the demonstration: its planes, overlaps both ways, Continue and a swipe
+  {
+    const { context, page, errors } = await openStory(browser, SCREENS[0][1], '&storydemo');
+    const planes = await page.evaluate(() => Intro.panorama.planes());
+    check(planes.length === 13 && ['background', 'main', 'foreground'].every(d => planes.some(p => p.depth === d)), `demo: 13 planes in three depths (${planes.length})`);
+    const m = await page.evaluate(() => STORY_DEMO.manifest.layers.main.planes.filter(p => p.src));
+    const meets = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    check(m.some((a, i) => m.some((b, j) => i < j && meets(a, b) && a.y === b.y)), 'demo: main planes overlap side by side');
+    check(m.some((a, i) => m.some((b, j) => i < j && meets(a, b) && a.x === b.x)), 'demo: main planes overlap one above another');
+    check(await page.evaluate(() => STORY_DEMO.manifest.world.join() === '3000,1000'), 'demo: overlapping planes leave the world its own size');
+    // Continue: the next stop's pictures decoded before the camera sets off
+    const start = await cam(page);
+    await page.click('#siNext');
+    await page.waitForFunction(x => Intro.panorama.camera.x !== x, start.x, { timeout: 5000 });
+    check(await page.evaluate(() => Intro.panorama.needed(1).every(id => Intro.panorama.planes().find(p => p.id === id).loaded)), 'Continue: the next stop\'s pictures are in before the camera moves');
+    await page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 5000 });
+    const two = await cam(page), stop2 = await page.evaluate(() => Intro.panorama.stop(1));
+    check(Math.abs(two.x - stop2.x) < 0.5 && Math.abs(two.y - stop2.y) < 0.5 && await page.evaluate(() => siTitle.textContent) === 'Placeholder 2', `Continue: on stop 2, its words (${JSON.stringify(two)})`);
+    // a swipe to the left: the same camera on to stop 3 (closer in, higher up)
+    await page.evaluate(async () => {
+      const box = sortiaIntro, target = box.querySelector('.si-copy');
+      const t = (type, x) => box.dispatchEvent(new TouchEvent(type, { bubbles: true, touches: type === 'touchend' ? [] : [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })], changedTouches: [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })] }));
+      t('touchstart', 320); t('touchmove', 300); t('touchmove', 220); t('touchmove', 160); t('touchend', 160);
+    });
+    await page.waitForTimeout(150);
+    await page.waitForFunction(() => !sortiaIntro.classList.contains('moving') && siTitle.textContent === 'Placeholder 3', null, { timeout: 5000 }).catch(() => {});
+    const three = await cam(page), stop3 = await page.evaluate(() => Intro.panorama.stop(2));
+    check(await page.evaluate(() => siTitle.textContent) === 'Placeholder 3' && Math.abs(three.zoom - stop3.zoom) < 1e-6 && Math.abs(three.y - stop3.y) < 0.5, `a swipe: on to stop 3, its height and zoom (${JSON.stringify(three)})`);
+    // the depths follow the camera at their own pace: half way between two stops they've drifted apart, at a stop not
+    const drift = await page.evaluate(() => {
+      const p = Intro.panorama, a = p.stop(2), b = p.stop(3), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, zoom: (a.zoom + b.zoom) / 2 };
+      const t = () => [...document.querySelectorAll('.sp-layer')].map(l => new DOMMatrix(getComputedStyle(l).transform).m41);
+      p.place(mid); const m = t(); p.place(a); const s = t();
+      return { mid: m, stop: s };
+    });
+    check(drift.mid[0] !== drift.mid[1] && drift.mid[2] !== drift.mid[1], `between stops the depths drift apart (${drift.mid.map(v => v.toFixed(1))})`);
+    // the pictures drawn at their files' own size: no plane in view stretched past 1.05x on a phone at 3x (the placeholders' main planes are drawn for it)
+    const mags = await page.evaluate(() => Intro.panorama.planes().filter(p => p.depth === 'main' && p.magnification).map(p => p.magnification));
+    check(mags.length && mags.every(v => v <= 1.05), `demo: the main depth's pictures at 3x are never stretched (${mags.map(v => v.toFixed(2))})`);
+    // the development view
+    await page.keyboard.press('Shift+D');
+    await page.waitForTimeout(200);
+    const dev = await page.evaluate(() => ({ canvas: !!document.querySelector('.sp-dev:not([hidden])'), hud: (document.querySelector('.sp-hud') || {}).textContent || '' }));
+    check(dev.canvas && /gaps on the way: none/.test(dev.hud) && /magnification/.test(dev.hud), 'Shift+D: the development view, its numbers and no gaps');
+    check(errors.length === 0, `demo: no errors (${errors})`);
+    await context.close();
+  }
+
+  // reduced motion: no glide (the camera is there at once), no snow, no opening zoom
+  {
+    const { context, page } = await openStory(browser, SCREENS[0][1], '&storydemo', { reducedMotion: 'reduce' });
+    await page.click('#siNext');
+    await page.waitForTimeout(60);
+    const at = await cam(page), stop2 = await page.evaluate(() => Intro.panorama.stop(1));
+    check(Math.abs(at.x - stop2.x) < 0.5, `reduced motion: Continue goes straight to the next stop (${at.x} vs ${stop2.x})`);
+    check(await page.evaluate(() => +getComputedStyle(document.querySelector('.si-snow-far')).opacity === 0), 'reduced motion: no snow');
+    await context.close();
+  }
+
+  // the story still ends in Choose Your Path
+  {
+    const { context, page } = await openStory(browser, SCREENS[0][1], '&pickpath&mobile');
+    await page.click('#siSkip'); await page.waitForTimeout(900);
+    for (let i = 0; i < 3; i++) { await page.click('#siNext'); await page.waitForTimeout(400); }
+    await page.waitForSelector('#pathPick:not([hidden])', { timeout: 30000 }).catch(() => {});
+    check(await page.evaluate(() => !pathPick.hidden), 'after Sister Ama: Choose Your Path');
+    await context.close();
+  }
+
+  await browser.close();
+  console.log(failed ? `${failed} failed, ${passed} passed` : `all ${passed} passed`);
+  process.exit(failed ? 1 : 0);
+})();

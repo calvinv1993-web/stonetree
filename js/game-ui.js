@@ -2832,124 +2832,66 @@ const ParchmentPanel = (() => {
 // a story picture's address, by its own version (only the pictures that changed are fetched again after an update)
 const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[`ui/story/${image}.webp`]; return `sprites/ui/story/${image}.webp${h ? `?h=${h}` : ''}`; };
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
-// One panorama behind it all, in layers (sprites/ui/intro/layers/): far back the sky and mountains, then the painted scene
-// (the cave, the river, Oakvale and its bridge, the temple room; its sky see-through), the seal and the mill with its
-// goblins at the gate, Sister Ama rising from the bottom before her window, the wolf and the goblin hiding behind the old tree, the traveler on the
-// near bank before the bridge, then the tree itself, blurred as if close to the camera, and over all the dark ground at the
-// picture's foot (cut from the scene), so the figures sink into it (the figures from the owner's parallax
-// package, docs/sortia/parallax), each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and
-// between two scenes each by its depth (the mountains fall behind, the figures run ahead, the tree sweeps past); while
-// you drag, or as the mouse moves, they lean a little.
-// (INTRO_FIGURES: they need the scene painted without them, or they'd stand twice.) Its lanterns
-// flicker (INTRO_GLOWS); mist and snow drift in front, each at its own pace. Four story cards, each its title and words
-// over its part of the picture, then Sister Ama: your name (offline; online it's known from the login), and three lines
-// of talk ending in Choose Your Path, which opens the vocation screen. A swipe drags the picture with the finger and
-// lands on the next scene (or back); Continue and the arrow keys do the same; Skip intro goes straight to Sister Ama. The
-// words stay where they are and change as the camera lands. Browser tests go straight on unless they ask for it with ?story.
-// INTRO_SPOTS: where the camera looks for each scene, as fractions of the panorama's width from the left
-const INTRO_SPOTS = [0.10, 0.33, 0.505, 0.665, 0.90];
-const INTRO_CANVAS = [2172, 724];
-const INTRO_FIGURES = true;
-// [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures (the scene is painted
-// without them); the tree, near the camera, comes blurred and runs far ahead
-const INTRO_LAYERS = [
-  ['01-distant-sky-mountains', 0, -170, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
-  ['03-seal', -48, 109, 643, 538, 20, 0.5], ['04-mill', 413.7, 135.1, 562, 470.2, 20, 0.5],
-  ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
-  ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
-  ['10-traveler', 850, 355, 350, 276.47, 35, 2, 'figure'],
-  ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 560, 2172, 164, 55, 3],
-].filter(l => INTRO_FIGURES || l[7] !== 'figure');
-// the lights: [x %, y %, size %, delay s, depth, kind]: the mill's windows, the gate's watchman, Sister Ama's candle, and
-// the lanterns the traveler and the goblin hold
-const INTRO_GLOWS = [
-  [29.0, 42.1, 2.4, -0.7, 0.5, 'dim'], [32.2, 44.9, 2.6, -1.4, 0.5, 'dim'], [58.2, 19.3, 3.0, -0.3, 0], [84.5, 29.7, 3.0, -1.2, 0, 'candle'],
-  ...(INTRO_FIGURES ? [[51.4, 59.9, 4.4, -1.9, 2], [68.1, 61.2, 5.2, -2.6, 2]] : []),
-];
-const introLayerFile = id => { const f = `ui/intro/layers/${id}.webp`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[f]; return `sprites/${f}${h ? `?h=${h}` : ''}`; };
-const INTRO_CARDS = [
-  ['The Broken Seal', 'Long ago, something beneath the northern mountain made the creatures above obey its commands. The people of the north sealed the stairway so no creature would hear those commands again. Then the river flooded. When the water receded, the seal lay broken.', 'the-broken-seal'],
-  ['The Hollow Host', 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.', 'the-hollow-host'],
-  ['The Last Crossing', 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.', 'the-last-crossing'],
-  ['The False Signal', 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.', 'the-false-signal'],
-];
-const INTRO_AMA = {
-  ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',
-  talk: [
-    '“$name, the guards who carried you in saw the signal again. Last night they turned back to help you. Now they’ve gone to look for whoever’s still out there.”',
-    'You tell Ama a goblin was holding the lantern.\n\n“They’re already across the bridge.” She turns to a temple attendant. “Run to the gate. Tell the watch it’s a trap.”',
-    '“Oakvale’s watch trains three kinds of defenders. Bastions hold the crossings so people can reach safety. Hawks scout the roads and fight with the bow. Embers use magic against threats that steel can’t stop.\n\n“If you want to help Oakvale, the watch can train you. Which path will you take?”',
-  ],
-};
+// One panorama behind it all (js/story-panorama.js; its pictures in js/story-manifest.js, its stops, titles and words in
+// js/story-script.js; ?storydemo shows the placeholder demonstration of js/story-demo.js, ?storydev the development view,
+// also Shift+D while the story is open). The camera goes from stop to stop; at each, its card's title and words over
+// its part of the picture, then at the last stop Sister Ama: your name (offline; online it's known from the login), and
+// her lines ending in Choose Your Path, which opens the vocation screen. A swipe drags the camera with the finger and
+// lands on the next stop (or back); Continue and the arrow keys glide the same camera; Skip intro goes straight to Sister
+// Ama. The words stay where they are and change as the camera lands. Its lanterns flicker (glows in the manifest); mist
+// and snow drift in front, each at its own pace, as each stop asks. Browser tests go straight on unless they ask for it
+// with ?story.
+const storyPicked = () => (/[?&]storydemo\b/.test(location.search) && typeof STORY_DEMO !== 'undefined') ? STORY_DEMO : { manifest: STORY_MANIFEST, script: STORY_SCRIPT };
 const Intro = (() => {
-  // the steps: the four cards, the name (when asked), the three lines of talk
-  let at = 0, opts = null, name = '', drag = null, landing = 0, x = 0;
-  const NAME = INTRO_CARDS.length;
-  const steps = () => opts && opts.askName ? NAME + 1 + INTRO_AMA.talk.length : NAME + INTRO_AMA.talk.length;
+  // the steps: a card for every stop but the last, the name (when asked), Sister Ama's lines
+  let at = 0, opts = null, name = '', drag = null, landing = 0, pano = null, story = null, NAME = 0;
+  const OVERSCROLL = 48; // css px: how far a drag may pull past either end (the panorama keeps that much room)
+  const pick = () => story || (story = storyPicked());
+  const ama = () => pick().script.ama;
+  const steps = () => opts && opts.askName ? NAME + 1 + ama().talk.length : NAME + ama().talk.length;
   const kind = i => i < NAME ? 'card' : opts.askName && i === NAME ? 'name' : 'talk';
-  const talkLine = i => INTRO_AMA.talk[i - NAME - (opts.askName ? 1 : 0)];
+  const talkLine = i => ama().talk[i - NAME - (opts.askName ? 1 : 0)];
   const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const art = () => $('sortiaIntro').querySelector('.si-layer img'); // (the sky: the first, the others with it)
-  // the camera: the panorama's left edge, in pixels, for a scene (its spot in the middle of the column, never past an edge)
-  function spot(i) {
-    const col = $('sortiaIntro').querySelector('.si-col'), w = $('sortiaIntro').querySelector('.si-world').offsetWidth || col.clientHeight * INTRO_CANVAS[0] / INTRO_CANVAS[1], view = col.clientWidth;
-    return Math.max(0, Math.min(w - view, INTRO_SPOTS[Math.min(i, NAME)] * w - view / 2));
-  }
-  // the camera at px: the panorama moved by it, the layers in front each by their own share of it (data-f), within one
+  const spot = i => pano.stop(Math.min(i, NAME));
+  // the weather in front as the camera moves: each stop's snow and mist (shown or not), faded between stops by where the
+  // camera is across; the snow and mist tiles drift with the camera, each at its own share of it (data-f), within one
   // tile of their pattern (data-tile), so they never run out
-  let glideFrame = 0;
-  function place(px) {
-    x = px;
-    const box = $('sortiaIntro'), world = box.querySelector('.si-world');
-    world.style.transform = `translate3d(${(-px).toFixed(1)}px, 0, 0)`;
-    world.style.setProperty('--si-x', px.toFixed(1));
-    // parallax on the way between two scenes: the far layers fall behind and the near ones run ahead (--si-p, 0 at each
-    // scene, most half way), so at every scene the picture is just as it was painted
-    let p = 0;
-    if (!still()) for (let i = 0; i < NAME; i++) {
-      const a = spot(i), b = spot(i + 1);
-      if (b - a > 1 && px >= a && px <= b) { p = Math.sin(Math.PI * (px - a) / (b - a)); break; }
-    }
-    world.style.setProperty('--si-p', p.toFixed(4));
-    if (!world.style.getPropertyValue('--si-u')) world.style.setProperty('--si-u', `${(world.offsetHeight || INTRO_CANVAS[1]) / INTRO_CANVAS[1]}px`);
-    // (no snow in the cave by the seal or indoors with Sister Ama: it comes in as the camera leaves the first scene and is gone
-    // by the last; no mist indoors either)
-    const clamp01 = v => Math.max(0, Math.min(1, v)), s0 = spot(0), s1 = spot(1), s3 = spot(NAME - 1), s4 = spot(NAME);
-    const outside = clamp01((s4 - px) / Math.max(1, s4 - s3)), snow = clamp01((px - s0) / Math.max(1, s1 - s0)) * outside;
+  const weather = (cam, scale) => {
+    const stops = pick().script.stops, xs = stops.map((_, i) => pano.stop(i).x), box = $('sortiaIntro'), px = cam.x * scale;
+    const level = key => {
+      const order = xs.map((x, i) => i).sort((a, b) => xs[a] - xs[b]), v = i => (stops[i][key] === false ? 0 : 1);
+      if (cam.x <= xs[order[0]]) return v(order[0]);
+      for (let k = 0; k + 1 < order.length; k++) {
+        const a = order[k], b = order[k + 1];
+        if (cam.x <= xs[b]) return xs[b] > xs[a] ? v(a) + (v(b) - v(a)) * (cam.x - xs[a]) / (xs[b] - xs[a]) : v(b);
+      }
+      return v(order[order.length - 1]);
+    };
+    const snow = still() ? 0 : level('snow'), mist = level('mist');
     for (const fx of box.querySelectorAll('.si-fx')) {
       const tile = +fx.dataset.tile, off = (((px * +fx.dataset.f) % tile) + tile) % tile;
       fx.style.transform = `translate3d(${(-off).toFixed(1)}px, 0, 0)`;
-      fx.style.opacity = (fx.classList.contains('si-mist') ? outside : snow).toFixed(3);
+      fx.style.opacity = (fx.classList.contains('si-mist') ? mist : snow).toFixed(3);
     }
-  }
-  // the layers' lean: dx, dy from -1 to 1 (a drag, the mouse); each layer shifts by its depth that many canvas pixels
-  // (in the column's scale), a moment's ease unless dragging; 0, 0 puts them back
-  function depth(dx, dy, now) {
-    const world = $('sortiaIntro').querySelector('.si-world');
-    if (still()) dx = dy = 0;
-    world.style.setProperty('--si-u', `${(world.offsetHeight || INTRO_CANVAS[1]) / INTRO_CANVAS[1]}px`);
-    world.style.setProperty('--si-dx', dx.toFixed(3));
-    world.style.setProperty('--si-dy', dy.toFixed(3));
-    world.classList.toggle('si-dragging', !!now);
-  }
-  // a glide from where the camera is to px, in ms, slowing as it lands; then done()
-  function glide(px, ms, done) {
-    cancelAnimationFrame(glideFrame);
-    const from = x, t0 = performance.now();
-    const ease = t => 1 - Math.pow(1 - t, 3);
-    const frame = now => {
-      const t = Math.min(1, (now - t0) / ms);
-      place(from + (px - from) * ease(t));
-      if (t < 1) glideFrame = requestAnimationFrame(frame); else if (done) done();
-    };
-    glideFrame = requestAnimationFrame(frame);
+  };
+  // the dramatic opening (css/intro.css si-opening): out of black, the wordmark, then the panorama settling back from a
+  // little closer (the script's opening zoom), then the words; anything of your own shows everything at once
+  const AUTO_MS = 60000, AUTO_WAIT = 2500, OPENING_MS = 7000, RAMP = 0.06;
+  let auto = 0, autoWait = 0, openingTimer = 0;
+  const moving = () => !still() && !(navigator.webdriver && !/[?&]autoplay\b/.test(location.search));
+  function opening(on, settling) {
+    clearTimeout(openingTimer);
+    $('sortiaIntro').classList.toggle('si-opening', on);
+    const o = pick().script.opening;
+    if (!settling) pano.openingZoom(on && o && o.zoom ? o.zoom : 1, o ? o.ms : 0, o ? o.delay : 0); // (the zoom settles on by itself)
+    if (on) openingTimer = setTimeout(() => opening(false, true), OPENING_MS);
   }
   // the words and controls of the step now: changed once the camera has landed
   function words(focus) {
-    const col = $('sortiaIntro').querySelector('.si-col'), k = kind(at), card = INTRO_CARDS[at];
+    const col = $('sortiaIntro').querySelector('.si-col'), k = kind(at), stops = pick().script.stops, card = k === 'card' && stops[at];
     col.dataset.screen = k === 'card' ? 'story' : 'ama';
-    $('siTitle').textContent = card ? card[0] : 'Sister Ama';
-    $('siCopy').textContent = card ? card[1] : k === 'name' ? INTRO_AMA.ask : talkLine(at).replace(/\$name/g, name);
+    $('siTitle').textContent = card ? card.title : stops[NAME].title || 'Sister Ama';
+    $('siCopy').textContent = card ? card.text : k === 'name' ? ama().ask : talkLine(at).replace(/\$name/g, name);
     $('siForm').hidden = k !== 'name';
     $('siFoot').hidden = k === 'name';
     $('siSkip').hidden = k !== 'card';
@@ -2960,55 +2902,48 @@ const Intro = (() => {
     if (focus) (k === 'name' && !touchScreen ? $('siName') : $('siTitle')).focus({ preventScroll: true });
     $('sortiaIntro').scrollTop = 0;
   }
-  // to a step: the camera glides to its scene (if it's another), and the words change as it lands
+  // to a step: its stop's pictures fetched and decoded first (a moment at most), then the camera glides there (if it's
+  // another), and the words change as it lands; the stops beside it are fetched while it rests
   function go(i) {
     if (i < 0) return;
     stopAuto(); opening(false);
     if (i >= steps()) { close(); return; }
-    const from = Math.min(at, NAME), to = Math.min(i, NAME);
+    const from = Math.min(at, NAME), to = Math.min(i, NAME), target = spot(to), cam = pano.camera, box = $('sortiaIntro');
     at = i;
     const turn = ++landing;
-    if (from === to && Math.abs(x - spot(to)) < 1) { words(true); return; }
-    const far = Math.abs(spot(to) - x), ms = still() ? 0 : far > $('sortiaIntro').querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a scene beside it in 650 ms)
-    if (!ms) { cancelAnimationFrame(glideFrame); place(spot(to)); words(true); return; }
-    $('sortiaIntro').classList.add('moving');
-    glide(spot(to), ms, () => { if (turn !== landing) return; $('sortiaIntro').classList.remove('moving'); words(true); });
+    pano.halt();
+    if (from === to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) { words(true); return; }
+    const far = Math.abs(target.x - cam.x) * pano.scale, ms = still() ? 0 : far > box.querySelector('.si-col').clientWidth * 1.6 ? 1000 : 650; // (a stop beside it in 650 ms)
+    const land = () => { if (turn !== landing) return; box.classList.remove('moving'); words(true); pano.prepare(to, 0); };
+    if (!ms) { pano.place(target); land(); return; }
+    box.classList.add('moving');
+    pano.prepare(to).then(() => { if (turn === landing) pano.glide(target, ms).then(ok => { if (ok) land(); }); });
   }
-  // The story plays by itself: the camera drifts along the whole panorama in AUTO_MS, from the seal to Sister Ama (slowly
-  // setting off and slowing as it arrives), each scene's words coming in as the camera nears it; at Sister Ama it stops,
-  // and she speaks. Anything of your own (Continue, back, a swipe, the arrow keys, Skip intro) takes over from there.
-  // Not with reduced motion (nor in browser tests, unless ?autoplay).
-  const AUTO_MS = 60000, AUTO_WAIT = 2500, OPENING_MS = 7000, RAMP = 0.06;
-  let auto = 0, autoWait = 0, openingTimer = 0;
-  const moving = () => !still() && !(navigator.webdriver && !/[?&]autoplay\b/.test(location.search));
-  // the dramatic opening (css/intro.css si-opening): out of black, the wordmark, then the panorama, then the words;
-  // anything of your own shows everything at once
-  function opening(on) {
-    clearTimeout(openingTimer);
-    $('sortiaIntro').classList.toggle('si-opening', on);
-    if (on) openingTimer = setTimeout(() => opening(false), OPENING_MS);
-  }
+  // The story plays by itself: the camera drifts along all the stops in AUTO_MS (slowly setting off and slowing as it
+  // arrives), each stop's words coming in as the camera nears it, the next stop's pictures fetched on the way; at the
+  // last it stops, and Sister Ama speaks. Anything of your own (Continue, back, a swipe, the arrow keys, Skip intro)
+  // takes over from there. Not with reduced motion (nor in browser tests, unless ?autoplay).
   const along = k => { const v = 1 / (1 - RAMP); return k < RAMP ? v * k * k / (2 * RAMP) : k > 1 - RAMP ? 1 - v * (1 - k) * (1 - k) / (2 * RAMP) : v * (k - RAMP / 2); };
-  function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; $('sortiaIntro').querySelector('.si-world').classList.remove('si-auto'); }
+  function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; }
   function autoplay() {
     stopAuto();
     if (!moving()) return;
     autoWait = setTimeout(() => {
-      const t0 = performance.now(), spots = Array.from({ length: NAME + 1 }, (_, i) => spot(i));
+      const t0 = performance.now();
+      let fetched = -1;
       const frame = now => {
-        const k = Math.min(1, (now - t0) / AUTO_MS), u = along(k) * NAME, i = Math.min(NAME - 1, Math.floor(u));
-        place(spots[i] + (spots[i + 1] - spots[i]) * (u - i));
+        const k = Math.min(1, (now - t0) / AUTO_MS), u = along(k) * NAME;
+        pano.place(pano.along(u));
+        if (Math.floor(u) !== fetched) { fetched = Math.floor(u); pano.prepare(Math.min(NAME, fetched + 1), 0); }
         const scene = Math.min(NAME, Math.round(u));
-        if (scene !== at) { // (its words: a moment's fade, then the next scene's)
+        if (scene !== at) { // (its words: a moment's fade, then the next stop's)
           at = scene;
           const box = $('sortiaIntro');
           box.classList.add('moving');
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
         }
         auto = k < 1 ? requestAnimationFrame(frame) : 0;
-        if (!auto) $('sortiaIntro').querySelector('.si-world').classList.remove('si-auto');
       };
-      $('sortiaIntro').querySelector('.si-world').classList.add('si-auto'); // (the layers follow it frame by frame)
       auto = requestAnimationFrame(frame);
     }, $('sortiaIntro').classList.contains('si-opening') ? OPENING_MS : AUTO_WAIT);
   }
@@ -3017,7 +2952,7 @@ const Intro = (() => {
   function close() {
     stopAuto(); opening(false);
     const done = opts && opts.onDone; opts = null;
-    cancelAnimationFrame(glideFrame);
+    pano.halt();
     $('sortiaIntro').hidden = true; $('sortiaIntro').classList.remove('moving');
     if (done) done();
   }
@@ -3028,39 +2963,22 @@ const Intro = (() => {
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
     $('sortiaIntro').hidden = false;
+    pano.relayout(); // (laid out now it can be measured)
+    pano.place(spot(0));
     opening(moving());
-    place(spot(0)); words(false);
-    if (!art().complete) art().addEventListener('load', () => { if (!auto) place(spot(at)); }, { once: true });
+    words(false);
+    pano.prepare(0, 0);
     autoplay();
   }
   function setup() {
-    const box = $('sortiaIntro'), input = $('siName');
+    const box = $('sortiaIntro'), input = $('siName'), { manifest, script } = pick();
+    NAME = script.stops.length - 1;
     { const h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES['ui/intro/sortia-wordmark.webp']; if (h) box.querySelector('.si-mark').src = `sprites/ui/intro/sortia-wordmark.webp?h=${h}`; }
-    { // the layers, then their lights (over the figures)
-      const scene = box.querySelector('.si-scene'), [cw, ch] = INTRO_CANVAS, pc = (v, of) => `${(100 * v / of).toFixed(4)}%`;
-      for (const [id, lx, ly, lw, lh, z, d] of INTRO_LAYERS) {
-        const layer = document.createElement('div'), img = document.createElement('img');
-        layer.className = 'si-layer';
-        Object.assign(layer.style, { left: pc(lx, cw), top: pc(ly, ch), width: pc(lw, cw), height: pc(lh, ch), zIndex: z });
-        layer.style.setProperty('--d', d);
-        img.src = introLayerFile(id); img.alt = ''; img.draggable = false; img.decoding = 'async';
-        layer.append(img);
-        scene.append(layer);
-      }
-      for (const [gx, gy, gs, gd, d, kind] of INTRO_GLOWS) {
-        const glow = document.createElement('i');
-        glow.className = `si-glow${kind ? ` si-${kind}` : ''}`;
-        glow.style.cssText = `--gx: ${gx}%; --gy: ${gy}%; --gs: ${gs}%; --gd: ${gd}s; --d: ${d}`;
-        scene.append(glow);
-      }
-    }
-    // the mouse over the picture: the layers lean with it a little (not on a phone: there a drag does it)
-    box.addEventListener('pointermove', e => {
-      if (e.pointerType !== 'mouse' || box.hidden || drag) return;
-      const r = box.querySelector('.si-col').getBoundingClientRect();
-      depth(Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1)), Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1)));
+    // the panorama, and a dot for every card
+    pano = StoryPanorama.create(box.querySelector('.si-world'), manifest, script.stops, {
+      onFrame: weather, overscroll: OVERSCROLL, openingZoom: script.opening ? script.opening.zoom : 1, dev: /[?&]storydev\b/.test(location.search),
     });
-    box.addEventListener('pointerleave', () => depth(0, 0));
+    $('siDots').replaceChildren(...script.stops.slice(0, NAME).map((_, i) => { const d = document.createElement('span'); d.setAttribute('aria-label', `Scene ${i + 1}`); return d; }));
     $('siSkip').onclick = () => go(NAME);
     $('siBack').onclick = () => turn(-1);
     $('siNext').onclick = () => go(at + 1);
@@ -3075,39 +2993,44 @@ const Intro = (() => {
       if (opts.onName) opts.onName(name);
       go(at + 1);
     });
-    // a swipe on a card: once it's clearly sideways the picture follows the finger (a little stiff past either end); let
-    // go far or fast enough and it lands on the next scene or the one before, else it slides back. Up and down scroll.
+    // a swipe on a card: once it's clearly sideways the camera follows the finger (a little stiff past either end, at
+    // most OVERSCROLL); let go far or fast enough and it lands on the next stop or the one before, else it glides back.
+    // Up and down scroll.
     box.addEventListener('touchstart', e => {
       drag = at < NAME && e.touches.length === 1 && !e.target.closest('input, button, select, summary')
-        ? { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t: performance.now(), base: x, on: false } : null;
+        ? { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t: performance.now(), base: 0, on: false } : null;
     }, { passive: true });
     box.addEventListener('touchmove', e => {
       if (!drag) return;
       const dx = e.touches[0].clientX - drag.x0, dy = e.touches[0].clientY - drag.y0;
-      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } stopAuto(); opening(false); drag.on = true; drag.base = x; landing++; cancelAnimationFrame(glideFrame); box.classList.remove('moving'); words(false); }
-      const lo = spot(0), hi = spot(NAME); let to = drag.base - dx;
-      if (to < lo) to = lo - (lo - to) * 0.35; else if (to > hi) to = hi + (to - hi) * 0.35; // (stiff past the ends)
-      place(to);
-      depth(Math.max(-1, Math.min(1, dx / Math.max(1, box.clientWidth))), 0, true);
+      if (!drag.on) { if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 12) drag = null; return; } stopAuto(); opening(false); drag.on = true; drag.base = pano.camera.x; landing++; pano.halt(); box.classList.remove('moving'); words(false); }
+      const s = pano.scale, lo = Math.min(spot(0).x, spot(NAME).x), hi = Math.max(spot(0).x, spot(NAME).x), most = OVERSCROLL / s;
+      let to = drag.base - dx / s;
+      if (to < lo) to = lo - Math.min(most, (lo - to) * 0.35); else if (to > hi) to = hi + Math.min(most, (to - hi) * 0.35); // (stiff past the ends)
+      const cam = pano.atX(to), [min, max] = pano.range(cam.zoom); // (never past the world's edges)
+      pano.place({ ...cam, x: Math.max(Math.min(min, lo), Math.min(Math.max(max, hi), cam.x)) });
     }, { passive: true });
     const release = (cx, cancelled) => {
       if (!drag) return;
       const d = drag; drag = null;
       if (!d.on) return;
-      depth(0, 0);
       const dx = cx - d.x0, fast = Math.abs(dx) / Math.max(1, performance.now() - d.t) > 0.45;
       if (!cancelled && (Math.abs(dx) >= 55 || (fast && Math.abs(dx) > 20))) turn(dx < 0 ? 1 : -1);
       else go(at); // (back to where it was)
     };
     box.addEventListener('touchend', e => release(e.changedTouches[0].clientX, false), { passive: true });
     box.addEventListener('touchcancel', () => release(drag ? drag.x0 : 0, true), { passive: true });
-    addEventListener('resize', () => { box.querySelector('.si-world').style.removeProperty('--si-u'); if (!box.hidden && !auto) { cancelAnimationFrame(glideFrame); place(spot(at)); } });
+    addEventListener('resize', () => { if (box.hidden) return; pano.relayout(); if (!auto && !drag) { pano.halt(); pano.place(spot(at)); } });
     addEventListener('keydown', e => {
-      if (box.hidden || at >= NAME || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (box.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'D' && e.shiftKey && !e.target.closest('input, textarea')) { pano.dev(!pano.devOn); e.preventDefault(); return; } // (the development view)
+      if (at >= NAME) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
     }, true);
   }
-  return { show, setup, go, get step() { return at; }, get open() { return !$('sortiaIntro').hidden; } };
+  // the pictures to fetch ahead (the gate does, while it loads): those of the first two stops
+  const pictures = () => StoryPanorama.pictures(pick().manifest, pick().script.stops, 1);
+  return { show, setup, go, pictures, get panorama() { return pano; }, get step() { return at; }, get open() { return !$('sortiaIntro').hidden; } };
 })();
 
 // A new character after its name: its path (in the same book), then into the world
@@ -3278,7 +3201,7 @@ const Gate = (() => {
     const jobs = [
       document.fonts && document.fonts.ready,
       fetchPicture(el.querySelector('.sg-logo').src),
-      ...INTRO_LAYERS.map(([id]) => fetchPicture(introLayerFile(id))), // (the opening's layers, decoded before they're seen)
+      ...Intro.pictures().map(fetchPicture), // (the story's first pictures, decoded before they're seen)
       fetchPicture(hashed('ui/intro/sortia-wordmark.webp')),
       begun ? null : audioWait(),
       new Promise(done => setTimeout(done, 900)),
