@@ -1,6 +1,6 @@
 'use strict';
 // The story's pictures (js/story-panorama.js draws them; docs/story-panorama.md has the format and how to check a new
-// set). This is the panorama the story shows now, the Oakvale night in its 2172 x 724 layers. The placeholders that show
+// set). This is the panorama the story shows now: one landscape, the seal, the mill, the refugees and Oakvale, then Sister Ama's room. The placeholders that show
 // every feature are in js/story-demo.js (the story with ?storydemo).
 //
 // world:    [width, height] of the world, in world units: the one coordinate system of every plane and camera stop.
@@ -28,13 +28,10 @@
 //   or a fill: { kind: 'fill', id, x, y, w, h, z, cover, fill: a css colour or gradient } (no picture)
 //   or a light: { kind: 'glow', x, y (its middle), size (world units), delay (s, its flicker), tone: 'dim' | 'candle' }
 const STORY_MANIFEST = {
-  world: [2925.43, 724],
+  world: [2010.91, 724],
   view: 724,
   parallax: 'stops',
   layers: {
-    background: { factor: 0.85, planes: [
-      { id: 'mountains', src: 'ui/intro/layers/01-distant-sky-mountains.webp', x: 753.43, y: -170, w: 2172, h: 724, cover: true },
-    ] },
     main: { factor: 1, planes: [
       // the opening: the seal (whole, then broken: the story's first two stops), the mill (The Hollow Host) and the
       // refugees on the road to Oakvale (The Last Crossing) as one joined block (sprites/ui/story/opening: the owner's
@@ -71,31 +68,16 @@ const STORY_MANIFEST = {
       { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 4 },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
-      { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 3045.43, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
-      // the story after the opening, as it was, moved right by 753.43 world units so it starts where the opening ends (its
-      // part from x 850, the bridge on): the night scene (Oakvale, its bridge and gate, the temple room; its sky see-through),
-      // the wolf and the goblin behind the tree, the traveler on the near bank, their lanterns and the gate's watchman
-      { id: 'scene', src: 'ui/intro/layers/02-scene.webp', x: 753.43, y: 0, w: 2172, h: 724, cover: [1603.43, 256, 1322, 468] },
-      { id: 'wolf', src: 'ui/intro/layers/11-wolf.webp', x: 2153.43, y: 200, w: 195, h: 200.44 },
-      { id: 'goblin', src: 'ui/intro/layers/12-hidden-goblin.webp', x: 2203.43, y: 345, w: 285, h: 306.2 },
-      { id: 'traveler', src: 'ui/intro/layers/10-traveler.webp', x: 1603.43, y: 355, w: 350, h: 276.47 },
-      { kind: 'glow', x: 2017.43, y: 140, size: 65, delay: -0.3 },
-      { kind: 'glow', x: 1869.43, y: 434, size: 96, delay: -1.9 },
-      { kind: 'glow', x: 2232.43, y: 443, size: 113, delay: -2.6 },
+      { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2130.91, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
       // Sister Ama's temple room (sprites/ui/story/ama: the owner's package sortia-ama-parallax-v1, its own scene of
-      // 1801 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel against the world's right edge): the room with Ama,
-      // her candles and the window's stone frame, see-through only in the window's panes; behind it the view through the
+      // 1801 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel against the world's right edge, straight after
+      // Oakvale; the way from the outside world into it isn't made yet): the room with Ama, her candles and the window's stone frame, see-through only in the window's panes; behind it the view through the
       // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
       // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
-      { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 2800.99, y: -13.58, w: 135.75, h: 298.65, z: 1,
+      { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 1886.47, y: -13.58, w: 135.75, h: 298.65, z: 1,
         cover: true, drift: { x: 5.43, y: 3.62, stop: 5 } },
-      { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 2517.95, y: 0, w: 407.48, h: 724, z: 2,
-        cover: [[2517.95, 0, 343, 724], [2860.95, 246.61, 64.48, 477.39], [2860.95, 0, 64.48, 27.83]] },
-    ] },
-    foreground: { factor: 1.25, planes: [
-      // the old tree close to the camera (blurred in its file), and the dark ground over the picture's foot
-      { id: 'tree', src: 'ui/intro/layers/09-tree.webp', x: 1802.43, y: 0, w: 1002, h: 696 },
-      { id: 'ground', src: 'ui/intro/layers/08-ground.webp', x: 753.43, y: 560, w: 2172, h: 164, clip: [1603.43, 560, 914.52, 164] }, // (not over the opening or Ama's room)
+      { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 1603.43, y: 0, w: 407.48, h: 724, z: 2,
+        cover: [[1603.43, 0, 343, 724], [1946.43, 246.61, 64.48, 477.39], [1946.43, 0, 64.48, 27.83]] },
     ] },
   },
 };

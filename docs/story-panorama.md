@@ -142,17 +142,18 @@ The False Signal is a third state at that place (the owner's sortia-false-signal
 shown beneath it, so the walking refugees never show through), fading in as its words come, the camera still; back to
 The Last Crossing, only it fades out.
 
-The story after it (the old night scene with the bridge and the traveler, Ama's room) is as it was, moved right by 753.43
-world units so its part from the bridge on starts where the block ends; the world is 2925.43 wide. The join from the
-refugees to it isn't made yet (a hard edge at x 1603.43).
+The whole outside world is this one landscape: the seal, the mill, the refugees and Oakvale. The old night scene (the
+blue bridge, the traveler, the old goblin and wolf, the tree, the mountains behind it) is no longer in the story; Sister
+Ama's room follows straight after it (x 1603.43), so the world is 2010.91 wide. The way from Oakvale into her temple
+isn't made yet (a hard edge there, seen only while the camera glides to her).
 
 ## A scene of its own: Sister Ama's room
 
 `sprites/ui/story/ama/` holds the owner's two-layer package (sortia-ama-parallax-v1): `02-ama-tempel.png` (1801 x 3200,
 see-through only in the window's panes) and `01-raamuitzicht.png` (the view through the window, 846 x 1860, placed in
 the package at x 1251, y -60, 600 x 1320 of the room's pixels). In the world the room is scaled to the panorama's
-height (724 / 3200 = 0.22625 world units a pixel) against its right edge, so: room x 1764.52, y 0, 407.48 x 724; view
-x 2047.56, y -13.58, 135.75 x 298.65, behind the room (z), drifting at most 24 x 16 of the room's pixels (5.43 x 3.62
+height (724 / 3200 = 0.22625 world units a pixel) against its right edge, so: room x 1603.43, y 0, 407.48 x 724; view
+x 1886.47, y -13.58, 135.75 x 298.65, behind the room (z), drifting at most 24 x 16 of the room's pixels (5.43 x 3.62
 world units). Both are kept as the package's PNGs (no recompression). The room's `cover` lists its opaque parts (all but
 the window), the ground strip in front is clipped where the room begins, and Ama's stop has the room as its `frame`.
 

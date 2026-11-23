@@ -40,9 +40,9 @@ let URL;
   for (const [name, device] of SCREENS) for (const query of ['', '&storydemo']) {
     const { context, page, errors } = await openStory(browser, device, query);
     const label = `${name}${query || ' (story)'}`;
-    const info = await page.evaluate(() => ({ gaps: Intro.panorama.gaps().length, count: Intro.panorama.count, depths: [...document.querySelectorAll('.sp-layer')].map(l => l.dataset.depth), dots: siDots.children.length }));
+    const info = await page.evaluate(() => ({ gaps: Intro.panorama.gaps().length, count: Intro.panorama.count, depths: [...document.querySelectorAll('.sp-layer')].map(l => l.dataset.depth), want: ['background', 'main', 'foreground'].filter(d => (location.search.includes('storydemo') ? STORY_DEMO.manifest : STORY_MANIFEST).layers[d]), dots: siDots.children.length }));
     check(info.gaps === 0, `${label}: no bare spot anywhere the camera can go (${info.gaps})`);
-    check(info.depths.join() === 'background,main,foreground', `${label}: three depths, back to front (${info.depths})`);
+    check(info.depths.join() === info.want.join(), `${label}: the manifest's depths, back to front (${info.depths})`);
     check(info.dots === info.count - 1, `${label}: a dot for every card (${info.dots} for ${info.count} stops)`);
     check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();
