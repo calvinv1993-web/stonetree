@@ -168,6 +168,35 @@ let URL;
     await context.close();
   }
 
+  // The Last Crossing: the refugees' place as the camera arrives, then (the camera still) the rescue fading in over it:
+  // the wounded man, the guards, the watchman; going back, gone again; at once with reduced motion
+  for (const rm of ['no-preference', 'reduce']) {
+    const { context, page, errors } = await openStory(browser, SCREENS[0][1], '', { reducedMotion: rm });
+    const label = `The Last Crossing${rm === 'reduce' ? ' (reduced motion)' : ''}`;
+    const op = () => page.evaluate(() => ['opening-rescue', 'opening-watchman'].map(id => +getComputedStyle(document.querySelector(`[data-id="${id}"]`)).opacity));
+    const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
+    await page.evaluate(() => Intro.go(2)); await settled(); await page.waitForTimeout(300);
+    check((await op()).every(v => v === 0), `${label}: at the mill, no rescue yet`);
+    await page.click('#siNext');
+    const during = [];
+    for (let i = 0; i < 4; i++) { await page.waitForTimeout(120); during.push({ op: await op(), moving: await page.evaluate(() => sortiaIntro.classList.contains('moving')) }); }
+    await settled();
+    const cam = await page.evaluate(() => ({ ...Intro.panorama.camera }));
+    const fading = [];
+    for (let i = 0; i < 5; i++) { await page.waitForTimeout(rm === 'reduce' ? 20 : 150); fading.push({ op: await op(), cam: await page.evaluate(() => ({ ...Intro.panorama.camera })) }); }
+    await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    const after = await op();
+    if (rm !== 'reduce') check(during.filter(d => d.moving).every(d => d.op.every(v => v === 0)), `${label}: no rescue while the camera moves there`);
+    check(after.every(v => v === 1) && await page.evaluate(() => siTitle.textContent) === 'The Last Crossing', `${label}: landed, the rescue shown (${after})`);
+    check(fading.every(f => Math.abs(f.cam.x - cam.x) < 0.01), `${label}: the camera holds still while it fades in`);
+    if (rm === 'reduce') check(fading[0].op.every(v => v === 1), `${label}: at once`);
+    else check(fading.some(f => f.op[0] > 0.05 && f.op[0] < 0.95) && fading.every(f => Math.abs(f.op[0] - f.op[1]) < 0.05), `${label}: both fade in together (${fading.map(f => f.op[0].toFixed(2))})`);
+    await page.click('#siBack'); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    check((await op()).every(v => v === 0), `${label}: back at the mill, the rescue gone`);
+    check(errors.length === 0, `${label}: no errors (${errors})`);
+    await context.close();
+  }
+
   // Sister Ama's room (sprites/ui/story/ama): the temple fills the screen at her stop, both pictures sharp (never
   // stretched), no filters, the window's view drifting no more than its 5.43 x 3.62 world units anywhere on the way
   // (none at her stop, none with reduced motion), and no bare spot

@@ -2921,7 +2921,7 @@ const Intro = (() => {
     const turn = ++landing;
     pano.halt();
     if (from === to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) { words(true); return; }
-    const land = () => { if (turn !== landing) return; box.classList.remove('moving'); words(true); pano.prepare(to, 0); };
+    const land = () => { if (turn !== landing) return; box.classList.remove('moving'); pano.state(to, true); words(true); pano.prepare(to, 0); };
     // (another state of the same place, as the seal whole and broken: the camera stays, its picture fades to the other
     // (decoded first) while the words change)
     if (from !== to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) {
@@ -2953,7 +2953,7 @@ const Intro = (() => {
         const scene = Math.min(NAME, Math.round(u));
         if (scene !== at) { // (its words: a moment's fade, then the next stop's)
           at = scene;
-          pano.state(scene);
+          pano.state(scene, true);
           const box = $('sortiaIntro');
           box.classList.add('moving');
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);

@@ -19,7 +19,8 @@
 //            gap check uses these
 //     clip:  [x, y, w, h], the part of it shown (world units): cut away where a scene of its own lies over it
 //     fromStop, untilStop: a plane of one state of a scene (stop indices): shown only while the story is at those stops
-//            or past / before them, fading in and out where it lies (the camera doesn't move for it)
+//            or past / before them, fading in and out where it lies (the camera doesn't move for it); after: true fades
+//            it in only once the camera has landed at its stop, the camera holding still for it
 //     drift: { x, y, stop, reach }: a small shift of its own, at most x and y world units, none at that stop (its index),
 //            growing smoothly as the camera moves away and full from reach world units on (default: the nearest other
 //            stop); never with reduced motion. Or { x, y, between: [a, b, ...] }: none at each of those stops, most half way
@@ -58,6 +59,12 @@ const STORY_MANIFEST = {
       { id: 'opening-refugees', src: 'ui/story/opening/11-vluchtelingen-rechts.png', x: 1334.42, y: 0, w: 269.01, h: 724, z: 2, cover: [1334.42, 248.42, 269.01, 475.58] },
       { id: 'opening-seal-broken', src: 'ui/story/opening/03-zegel-breuk-links.png', x: 0, y: 226.25, w: 269.01, h: 294.12, z: 3, fromStop: 1 },
       { id: 'opening-way-broken', src: 'ui/story/opening/05-overgang-breuk.png', x: 269.01, y: 226.25, w: 144.8, h: 294.12, z: 3, fromStop: 1 },
+      // the rescue at the refugees' place (the owner's sortia-last-crossing-aanvulling, its PNGs unchanged): the wounded
+      // man by the road, the two guards crossing the bridge to him (over the walking refugees, which it hides) and, far off
+      // behind the battlements, the watchman with his lantern raised; both in the main depth, fading in together once the
+      // camera has landed at The Last Crossing (after: the camera holds still for it), and out again going back
+      { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 3, after: true },
+      { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 3, after: true },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 3045.43, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },

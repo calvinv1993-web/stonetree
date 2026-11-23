@@ -132,6 +132,11 @@ Stops: The Seal and The Broken Seal share one camera (`at` x 189.94, the package
 the dark fill `seal-foot`); The Hollow Host centres on the mill (x 841.32: the package camera x 2979 plus half its view);
 The Last Crossing on the refugees (x 1379.56: the package camera x 5358 plus half its view). All are framed by the block.
 
+The Last Crossing has a second state at the same place (the owner's sortia-last-crossing-aanvulling): the rescue,
+`01-reddingsmoment` (1957 x 1500 at 5130, 800 of the block's pixels) and the far watchman `02-wachter` (48 x 43 at 6608,
+574), over the walking refugees in the main depth, fading in together (900 ms) once the camera has landed there and
+holds still (`after: true` on the planes), gone again going back.
+
 The story after it (the bridge and the traveler, The False Signal, Ama's room) is as it was, moved right by 753.43
 world units so its part from the bridge on starts where the block ends; the world is 2925.43 wide. The join from the
 refugees to it isn't made yet (a hard edge at x 1603.43).

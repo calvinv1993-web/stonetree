@@ -470,12 +470,14 @@ const StoryPanorama = (() => {
       relayout() { layout(); pathGaps = null; render(); },
       // the story at stop i: the planes of a state (fromStop, untilStop) fade in or out (at once with reduced motion;
       // the camera doesn't move for it)
-      state(i) {
+      // (landed: the camera is at stop i, still; a plane marked after shows only then, and stays while the story is on)
+      state(i, landed) {
         state = i;
         for (const L of layers) for (const p of L.planes) {
           const d = p.def;
           if (!(Number.isFinite(d.fromStop) || Number.isFinite(d.untilStop))) continue;
-          p.el.style.opacity = (!Number.isFinite(d.fromStop) || i >= d.fromStop) && (!Number.isFinite(d.untilStop) || i <= d.untilStop) ? '1' : '0';
+          const on = (!Number.isFinite(d.fromStop) || i >= d.fromStop) && (!Number.isFinite(d.untilStop) || i <= d.untilStop);
+          p.el.style.opacity = on && (!d.after || landed || p.el.style.opacity === '1') ? '1' : '0';
         }
       },
       // the pictures let go (once the story is over): fetched again if it's shown again

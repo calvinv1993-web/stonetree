@@ -519,6 +519,8 @@ const SPRITE_HASHES = {
   "ui/story/demo/main-2-top.png":"9e6054ea84",
   "ui/story/demo/main-3-low.png":"00d7000ef8",
   "ui/story/demo/main-3-top.png":"89ed1b2ad8",
+  "ui/story/opening/01-reddingsmoment.png":"796480cdf1",
+  "ui/story/opening/02-wachter.png":"a460ee73c9",
   "ui/story/opening/02-zegel-links.png":"a9bfd5437c",
   "ui/story/opening/03-zegel-breuk-links.png":"8ec6a1dabf",
   "ui/story/opening/04-overgang.png":"86c0a35b3d",

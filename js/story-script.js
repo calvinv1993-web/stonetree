@@ -28,9 +28,10 @@ const STORY_SCRIPT = {
     // (the mill at the opening's right end: its package camera x 2979 of a 1479 px wide view, centred at 3718.5 of its pixels)
     { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
-    // (the refugees on the road at the opening's right end: its package camera x 5358, centred at 6097.5 of its pixels)
+    // (the refugees on the road at the opening's right end: its package camera x 5358, centred at 6097.5 of its pixels; once
+    // landed, the rescue there fades in)
     { title: 'The Last Crossing', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
-      text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.' },
+      text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Above the gate, a watchman raised his lantern once. A wounded man beside the road lifted his twice. Two guards crossed the bridge to help him.' },
     { title: 'The False Signal', at: [2197.43, 362], snow: true, mist: true,
       text: 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.' },
     // (her temple room fills the screen, held at its top: Ama and the window above the words)
