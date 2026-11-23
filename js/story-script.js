@@ -32,8 +32,9 @@ const STORY_SCRIPT = {
     // landed, the rescue there fades in)
     { title: 'The Last Crossing', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Above the gate, a watchman raised his lantern once. A wounded man beside the road lifted his twice. Two guards crossed the bridge to help him.' },
-    { title: 'The False Signal', at: [2197.43, 362], snow: true, mist: true,
-      text: 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.' },
+    // (the same place again, the camera still: the false signal fading in over the rescue)
+    { title: 'The False Signal', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
+      text: 'After the guards brought the wounded man inside, the lantern above the gate went up again. From the reeds came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran for the gate. Halfway across the bridge, your legs gave way.' },
     // (her temple room fills the screen, held at its top: Ama and the window above the words)
     { title: 'Sister Ama', at: [2721.69, 0], frame: [2517.95, 0, 407.48, 724], snow: false, mist: false },
   ],

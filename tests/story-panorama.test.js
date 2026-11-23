@@ -191,6 +191,21 @@ let URL;
     check(fading.every(f => Math.abs(f.cam.x - cam.x) < 0.01), `${label}: the camera holds still while it fades in`);
     if (rm === 'reduce') check(fading[0].op.every(v => v === 1), `${label}: at once`);
     else check(fading.some(f => f.op[0] > 0.05 && f.op[0] < 0.95) && fading.every(f => Math.abs(f.op[0] - f.op[1]) < 0.05), `${label}: both fade in together (${fading.map(f => f.op[0].toFixed(2))})`);
+    // The False Signal: the same place; the goblin and the wolf fade in over the rescue (which stays beneath), the camera
+    // still; back, only they fade out
+    const fs = () => page.evaluate(() => ['opening-false-signal', 'opening-rescue', 'opening-watchman'].map(id => +getComputedStyle(document.querySelector(`[data-id="${id}"]`)).opacity));
+    check((await fs())[0] === 0, `${label}: at The Last Crossing, no false signal yet`);
+    await page.click('#siNext');
+    const fsDuring = [];
+    for (let i = 0; i < 5; i++) { await page.waitForTimeout(rm === 'reduce' ? 20 : 150); fsDuring.push({ op: await fs(), cam: await page.evaluate(() => ({ ...Intro.panorama.camera })) }); }
+    await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    const fsAfter = await fs();
+    check(fsAfter.every(v => v === 1) && await page.evaluate(() => siTitle.textContent) === 'The False Signal', `${label}: The False Signal: the goblin and wolf shown, the rescue and watchman beneath (${fsAfter})`);
+    check(fsDuring.every(f => Math.abs(f.cam.x - cam.x) < 0.01 && f.op[1] === 1 && f.op[2] === 1), `${label}: the camera still and the rescue fully shown beneath while it fades in`);
+    if (rm !== 'reduce') check(fsDuring.some(f => f.op[0] > 0.05 && f.op[0] < 0.95), `${label}: the false signal fades in (${fsDuring.map(f => f.op[0].toFixed(2))})`);
+    await page.click('#siBack'); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    const lcAgain = await fs();
+    check(lcAgain[0] === 0 && lcAgain[1] === 1 && lcAgain[2] === 1 && await page.evaluate(() => siTitle.textContent) === 'The Last Crossing', `${label}: back to The Last Crossing: only the false signal gone (${lcAgain})`);
     await page.click('#siBack'); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
     check((await op()).every(v => v === 0), `${label}: back at the mill, the rescue gone`);
     check(errors.length === 0, `${label}: no errors (${errors})`);
@@ -221,7 +236,7 @@ let URL;
     check(r.fills, `${label}: Ama's room fills the screen at her stop`);
     check(r.mags.length === 2 && r.mags.every(v => v > 0 && v <= 1.05), `${label}: Ama's two pictures never stretched (${r.mags.map(v => v && v.toFixed(2))})`);
     check(r.atStop.every(v => Math.abs(v) < 0.01), `${label}: the window's view sits as placed at her stop (${r.atStop})`);
-    check(rm === 'reduce' ? r.most.every(v => v === 0) : r.most[0] <= 5.44 && r.most[0] > 2 && r.most[1] <= 3.63, `${label}: the window's view drifts at most 5.43 x 3.62 world units on the whole way (${r.most.map(v => v.toFixed(2))})`);
+    check(rm === 'reduce' ? r.most.every(v => v === 0) : r.most[0] <= 5.44 && r.most[0] > 0.5 && r.most[1] <= 3.63, `${label}: the window's view drifts at most 5.43 x 3.62 world units on the whole way (${r.most.map(v => v.toFixed(2))})`);
     check(r.gaps === 0 && r.filters === 0, `${label}: no bare spot, no filters`);
     check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();

@@ -65,6 +65,10 @@ const STORY_MANIFEST = {
       // camera has landed at The Last Crossing (after: the camera holds still for it), and out again going back
       { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 3, after: true },
       { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 3, after: true },
+      // the false signal at the same place (the owner's sortia-false-signal-aanvulling, its PNG unchanged): the goblin with
+      // the lantern raised and the wolf behind him, where the rescue was; over the rescue, which stays shown beneath it (so
+      // the walking refugees never show through), fading in as The False Signal's words come, the camera still
+      { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 4 },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 3045.43, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },

@@ -137,7 +137,12 @@ The Last Crossing has a second state at the same place (the owner's sortia-last-
 574), over the walking refugees in the main depth, fading in together (900 ms) once the camera has landed there and
 holds still (`after: true` on the planes), gone again going back.
 
-The story after it (the bridge and the traveler, The False Signal, Ama's room) is as it was, moved right by 753.43
+The False Signal is a third state at that place (the owner's sortia-false-signal-aanvulling): `01-vals-signaal`
+(1957 x 1500 at the same 5130, 800), the goblin with the lantern and the wolf behind him, over the rescue (which stays
+shown beneath it, so the walking refugees never show through), fading in as its words come, the camera still; back to
+The Last Crossing, only it fades out.
+
+The story after it (the old night scene with the bridge and the traveler, Ama's room) is as it was, moved right by 753.43
 world units so its part from the bridge on starts where the block ends; the world is 2925.43 wide. The join from the
 refugees to it isn't made yet (a hard edge at x 1603.43).
 
