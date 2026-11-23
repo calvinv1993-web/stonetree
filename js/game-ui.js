@@ -1514,6 +1514,10 @@ function askPath(onDone, onBack) {
   if (!askPath.sized) { askPath.sized = true; addEventListener('resize', () => { if (!$('pathPick').hidden && askPath.steady) askPath.steady(); }); }
   askPath.steady = steady;
   win.hidden = false;
+  if (Intro.leaving) { // (straight from the story: sliding in over it from the right)
+    win.classList.remove('vs-slide-in'); void win.offsetWidth; win.classList.add('vs-slide-in');
+    setTimeout(() => win.classList.remove('vs-slide-in'), 950);
+  }
   for (const art of hero.children) art.classList.remove('on'); // (the light plays again each time the screen opens)
   show(pathAt);
   steady();
@@ -2909,7 +2913,7 @@ const Intro = (() => {
   function go(i) {
     if (i < 0) return;
     stopAuto(); opening(false);
-    if (i >= steps()) { close(); return; }
+    if (i >= steps()) { close(true); return; }
     const from = Math.min(at, NAME), to = Math.min(i, NAME), target = spot(to), cam = pano.camera, box = $('sortiaIntro');
     at = i;
     const turn = ++landing;
@@ -2951,16 +2955,27 @@ const Intro = (() => {
   }
   // (a card to the one beside it: only among the cards, on to Sister Ama from the last, and back from her first words)
   const turn = d => { if (at <= NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
-  function close() {
+  // the end: on with what comes next at once; leaving by Choose Your Path, the story slides away to the left a moment
+  // while the vocation screen slides in over it from the right (askPath, css/sortia.css vs-slide-in), as one move
+  let leaveTimer = 0, leavingUntil = 0;
+  function close(onward) {
     stopAuto(); opening(false);
-    const done = opts && opts.onDone; opts = null;
+    const done = opts && opts.onDone, box = $('sortiaIntro'); opts = null;
     pano.halt();
-    $('sortiaIntro').hidden = true; $('sortiaIntro').classList.remove('moving');
+    clearTimeout(leaveTimer);
+    box.classList.remove('moving');
+    if (onward && !still()) {
+      leavingUntil = performance.now() + LEAVE_MS;
+      box.classList.add('si-leaving');
+      leaveTimer = setTimeout(() => { box.hidden = true; box.classList.remove('si-leaving'); }, LEAVE_MS);
+    } else box.hidden = true;
     if (done) done();
   }
+  const LEAVE_MS = 800;
   function show(o) {
     if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) { if (o.skip) o.skip(); else if (o.onDone) o.onDone(); return; } // (browser tests: straight on)
     opts = o; name = o.name || ''; at = 0; landing++;
+    clearTimeout(leaveTimer); leavingUntil = 0; $('sortiaIntro').classList.remove('si-leaving');
     Sound.title.start('story'); // (The Broken Seal, from the gate's music, until you're in the world)
     welcome(true);
     $('siName').value = ''; $('siHint').textContent = ''; $('siName').setAttribute('aria-invalid', 'false');
@@ -3032,7 +3047,8 @@ const Intro = (() => {
   }
   // the pictures to fetch ahead (the gate does, while it loads): those of the first two stops
   const pictures = () => StoryPanorama.pictures(pick().manifest, pick().script.stops, 1);
-  return { show, setup, go, pictures, get panorama() { return pano; }, get step() { return at; }, get open() { return !$('sortiaIntro').hidden; } };
+  return { show, setup, go, pictures, get panorama() { return pano; }, get step() { return at; }, get open() { return !$('sortiaIntro').hidden; },
+    get leaving() { return performance.now() < leavingUntil; } };
 })();
 
 // A new character after its name: its path (in the same book), then into the world

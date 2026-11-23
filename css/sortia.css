@@ -17,6 +17,11 @@
   background: var(--vs-bg); color: var(--vs-text); -webkit-tap-highlight-color: transparent;
 }
 #pathPick[hidden] { display: none; }
+/* (straight from the story, game-ui.js Intro and askPath: the screen slides in over it from the right, a shade along its
+   leading edge; the story drifts away beneath it) */
+#pathPick.vs-slide-in { z-index: 43; animation: vs-slide-in 800ms cubic-bezier(.22, .72, .2, 1) both; box-shadow: -28px 0 44px #000000b0; }
+@keyframes vs-slide-in { from { transform: translate3d(100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+@media (prefers-reduced-motion: reduce) { #pathPick.vs-slide-in { animation: none; } }
 #pathPick::-webkit-scrollbar { display: none; }
 
 /* (the game's own buttons and type left out: this screen draws its own) */
