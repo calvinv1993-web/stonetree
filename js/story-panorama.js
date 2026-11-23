@@ -269,7 +269,15 @@ const StoryPanorama = (() => {
         let tx = colW / 2 - c.x * s, ty = colH / 2 - c.y * s;
         if (Math.abs(k - 1) < 1e-6) { tx = Math.round(tx * dpr) / dpr; ty = Math.round(ty * dpr) / dpr; } // (at rest on whole device pixels: no shimmer)
         L.el.style.transform = `translate3d(${tx}px, ${ty}px, 0)${Math.abs(k - 1) < 1e-6 ? '' : ` scale(${k})`}`;
-        for (const p of L.planes) if (p.def.drift) { const [dx, dy] = drift(p.def.drift); p.el.style.translate = `${dx * s0 * lz}px ${dy * s0 * lz}px`; }
+        // only the planes in or near the view are drawn at all (a phone keeps nothing in memory for the others); the
+        // rest wait, hidden, until the camera comes near
+        const near = grow({ x: c.x - colW / 2 / s, y: c.y - colH / 2 / s, w: colW / s, h: colH / s }, colW / s / 2);
+        for (const p of L.planes) {
+          if (p.glow) continue;
+          const on = hit({ x: p.def.x - 8, y: p.def.y - 8, w: p.def.w + 16, h: p.def.h + 16 }, near);
+          if (on !== p.shown) { p.shown = on; p.el.style.display = on ? '' : 'none'; }
+          if (p.def.drift && on) { const [dx, dy] = drift(p.def.drift); p.el.style.translate = `${dx * s0 * lz}px ${dy * s0 * lz}px`; }
+        }
       }
       host.style.setProperty('--si-x', cam.x.toFixed(1));
       if (opts.onFrame) opts.onFrame(cam, s0 * cam.zoom * extra);
@@ -416,6 +424,8 @@ const StoryPanorama = (() => {
       // how far across the camera may go at this zoom without the view passing the world's edges
       range(zoom = 1) { const hw = colW / (2 * s0 * zoom); return m.world[0] >= 2 * hw ? [hw, m.world[0] - hw] : [m.world[0] / 2, m.world[0] / 2]; },
       relayout() { layout(); pathGaps = null; render(); },
+      // the pictures let go (once the story is over): fetched again if it's shown again
+      release() { for (const L of layers) for (const p of L.planes) if (p.img) { p.img.onload = p.img.onerror = null; p.img.removeAttribute('src'); p.ready = null; } },
       place, glide, halt, prepare, openingZoom, dev,
       get devOn() { return devOn; },
       gaps: () => gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom }),

@@ -2875,7 +2875,9 @@ const Intro = (() => {
     for (const fx of box.querySelectorAll('.si-fx')) {
       const tile = +fx.dataset.tile, off = (((px * +fx.dataset.f) % tile) + tile) % tile;
       fx.style.transform = `translate3d(${(-off).toFixed(1)}px, 0, 0)`;
-      fx.style.opacity = (fx.classList.contains('si-mist') ? mist : snow).toFixed(3);
+      const o = fx.classList.contains('si-mist') ? mist : snow;
+      fx.style.opacity = o.toFixed(3);
+      fx.style.display = o < 0.005 ? 'none' : ''; // (none at all where there's none: nothing left moving unseen)
     }
   };
   // the dramatic opening (css/intro.css si-opening): out of black, the wordmark, then the panorama settling back from a
@@ -2967,8 +2969,8 @@ const Intro = (() => {
     if (onward && !still()) {
       leavingUntil = performance.now() + LEAVE_MS;
       box.classList.add('si-leaving');
-      leaveTimer = setTimeout(() => { box.hidden = true; box.classList.remove('si-leaving'); }, LEAVE_MS);
-    } else box.hidden = true;
+      leaveTimer = setTimeout(() => { box.hidden = true; box.classList.remove('si-leaving'); pano.release(); }, LEAVE_MS);
+    } else { box.hidden = true; pano.release(); } // (its pictures let go: the game has the phone's memory to itself)
     if (done) done();
   }
   const LEAVE_MS = 800;

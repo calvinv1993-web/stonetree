@@ -131,7 +131,7 @@ let URL;
     check(r.fills, `${label}: Ama's room fills the screen at her stop`);
     check(r.mags.length === 2 && r.mags.every(v => v > 0 && v <= 1.05), `${label}: Ama's two pictures never stretched (${r.mags.map(v => v && v.toFixed(2))})`);
     check(r.atStop.every(v => Math.abs(v) < 0.01), `${label}: the window's view sits as placed at her stop (${r.atStop})`);
-    check(rm === 'reduce' ? r.most.every(v => v === 0) : r.most[0] <= 5.44 && r.most[0] > 5 && r.most[1] <= 3.63, `${label}: the window's view drifts at most 5.43 x 3.62 world units on the whole way (${r.most.map(v => v.toFixed(2))})`);
+    check(rm === 'reduce' ? r.most.every(v => v === 0) : r.most[0] <= 5.44 && r.most[0] > 2 && r.most[1] <= 3.63, `${label}: the window's view drifts at most 5.43 x 3.62 world units on the whole way (${r.most.map(v => v.toFixed(2))})`);
     check(r.gaps === 0 && r.filters === 0, `${label}: no bare spot, no filters`);
     check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();

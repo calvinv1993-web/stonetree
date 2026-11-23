@@ -110,13 +110,14 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 #sortiaIntro.si-opening .si-veil { animation: si-unveil 4.6s 1.6s cubic-bezier(.45, 0, .2, 1) both; }
 #sortiaIntro.si-opening .si-mark { animation: si-mark-in 2.4s .5s ease-out both; }
 #sortiaIntro.si-opening :is(.si-content, .si-skip) { animation: si-words-in 1.6s 5.4s ease-out both; }
-/* leaving by Choose Your Path: the story drifts left and dims while the vocation screen slides in over it (css/sortia.css) */
+/* leaving by Choose Your Path: the story stays still and darkens (only a thin veil fading in: nothing of the panorama
+   moves or is drawn again) while the vocation screen slides in over it (css/sortia.css) */
 #sortiaIntro.si-leaving { pointer-events: none; }
-#sortiaIntro.si-leaving .si-col { animation: si-leave 800ms cubic-bezier(.22, .72, .2, 1) both; }
-@keyframes si-leave { to { transform: translate3d(-28%, 0, 0); opacity: .5; } }
+#sortiaIntro.si-leaving .si-veil { animation: si-leave 800ms ease-out both; }
+@keyframes si-leave { from { opacity: 0; } to { opacity: .6; } }
 @keyframes si-unveil { from { opacity: 1; } to { opacity: 0; } }
 @keyframes si-mark-in { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes si-words-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 @media (min-height: 800px) { .si-content { padding-bottom: max(26px, calc(env(safe-area-inset-bottom) + 15px)); } }
-@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i, #sortiaIntro.si-opening *, #sortiaIntro.si-leaving .si-col { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #siCopy, #siTitle { transition: none; } .si-glow, .si-fx > i, #sortiaIntro.si-opening *, #sortiaIntro.si-leaving .si-veil { animation: none; } }
