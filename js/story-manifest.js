@@ -37,10 +37,16 @@ const STORY_MANIFEST = {
       // the cave, the river, Oakvale and its bridge, the temple room; its sky see-through (opaque below row 256)
       { id: 'scene', src: 'ui/intro/layers/02-scene.webp', x: 0, y: 0, w: 2172, h: 724, cover: [0, 256, 2172, 468] },
       // the seal in its two states, the story's first two stops (sprites/ui/story/zegel: the owner's package
-      // sortia-zegel-twee-toestanden-v1, one scene of 1829 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel
-      // against the world's left edge): whole, then broken over it, fading in from the second stop on
-      { id: 'seal-closed', src: 'ui/story/zegel/01-zegel-gesloten.png', x: 0, y: 0, w: 413.81, h: 724, z: 1, cover: true },
-      { id: 'seal-broken', src: 'ui/story/zegel/02-zegel-gebroken.png', x: 0, y: 0, w: 413.81, h: 724, z: 2, cover: true, fromStop: 1 },
+      // sortia-zegel-parallax, one scene of 1829 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel against the
+      // world's left edge): the sky, mountains and forest behind (its package place -64, -64, 1957 x 1228 of the scene's
+      // pixels), drifting at most 32 x 24 of them (7.24 x 5.43 world units) as the camera leaves the seal, none at it;
+      // in front the ruin, the stair, the ground and the seal whole (see-through only in the sky), and over it, from the
+      // second stop on, the broken seal fading in (the package's state overlay at 0, 1000, 1829 x 1300: nothing else
+      // changes, so nothing behind it flickers)
+      { id: 'seal-sky', src: 'ui/story/zegel/01-lucht-bergen-bos.png', x: -14.48, y: -14.48, w: 442.77, h: 277.84, z: 1,
+        cover: true, drift: { x: 7.24, y: 5.43, stop: 0 } },
+      { id: 'seal-closed', src: 'ui/story/zegel/02-zegel-gesloten.png', x: 0, y: 0, w: 413.81, h: 724, z: 2, cover: [0, 226.25, 413.81, 497.75] },
+      { id: 'seal-broken', src: 'ui/story/zegel/04-breuk-toestand-overlay.png', x: 0, y: 226.25, w: 413.81, h: 294.12, z: 3, fromStop: 1 },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2292, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },

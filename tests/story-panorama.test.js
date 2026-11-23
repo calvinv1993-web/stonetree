@@ -129,6 +129,18 @@ let URL;
     check((roomy ? a.ring.top >= a.markBottom - 1 : a.ring.top >= 0) && a.ring.bottom <= a.titleTop + 1 && a.ring.left >= -1 && a.ring.right <= a.width + 1,
       `${label}: the whole ring above the words (${Math.round(a.ring.top)}-${Math.round(a.ring.bottom)} between ${Math.round(a.markBottom)} and ${Math.round(a.titleTop)}, ${Math.round(a.ring.left)}-${Math.round(a.ring.right)} of ${a.width})`);
     check(a.mags.every(v => v > 0 && v <= 1.05), `${label}: the seal's pictures never stretched (${a.mags.map(v => v.toFixed(2))})`);
+    // the sky behind the seal: as placed at its stop, drifting at most 7.24 x 5.43 world units anywhere on the way (none
+    // with reduced motion)
+    const sky = await page.evaluate(() => {
+      const p = Intro.panorama, el = document.querySelector('[data-id="seal-sky"]'), shift = () => { const t = getComputedStyle(el).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
+      const home = p.camera, at = shift();
+      let most = [0, 0];
+      for (let x = p.stop(0).x; x <= p.stop(p.count - 1).x; x += 4) { p.place(p.atX(x)); const [dx, dy] = shift(), k = new DOMMatrix(getComputedStyle(el.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; }
+      p.place(home);
+      return { at, most };
+    });
+    check(sky.at.every(v => Math.abs(v) < 0.01) && (rm === 'reduce' ? sky.most.every(v => v === 0) : sky.most[0] <= 7.25 && sky.most[0] > 2 && sky.most[1] <= 5.44),
+      `${label}: the sky behind the seal sits as placed at its stop, drifting at most 7.24 x 5.43 (${sky.most.map(v => v.toFixed(2))})`);
     await page.click('#siNext');
     const during = [];
     for (let i = 0; i < 6; i++) { await page.waitForTimeout(120); during.push(await look()); }
