@@ -117,9 +117,9 @@ let URL;
       const op = id => +getComputedStyle(document.querySelector(`[data-id="${id}"]`)).opacity, col = document.querySelector('.si-col').getBoundingClientRect();
       const p = Intro.panorama, cam = p.camera, s = p.scale, k = STORY_SCRIPT.stops[0].keep;
       const ring = { top: (k[1] - cam.y) * s + col.height / 2, bottom: (k[1] + k[3] - cam.y) * s + col.height / 2, left: (k[0] - cam.x) * s + col.width / 2, right: (k[0] + k[2] - cam.x) * s + col.width / 2 };
-      return { closed: op('seal-closed'), broken: op('seal-broken'), cam: { ...cam }, title: siTitle.textContent, ring, titleTop: siTitle.getBoundingClientRect().top - col.top,
+      return { closed: op('opening-seal'), broken: op('opening-seal-broken'), broken2: op('opening-way-broken'), cam: { ...cam }, title: siTitle.textContent, ring, titleTop: siTitle.getBoundingClientRect().top - col.top,
         markBottom: document.querySelector('.si-mark').getBoundingClientRect().bottom - col.top, width: col.width,
-        loaded: ['seal-closed', 'seal-broken'].every(id => p.planes().find(x => x.id === id).loaded), mags: p.planes().filter(x => /^seal-/.test(x.id)).map(x => x.magnification) };
+        loaded: ['opening-seal', 'opening-way', 'opening-seal-broken', 'opening-way-broken'].every(id => p.planes().find(x => x.id === id).loaded), mags: p.planes().filter(x => /^opening-/.test(x.id) && x.magnification).map(x => x.magnification) };
     });
     const a = await look();
     check(a.title === 'The Seal' && a.closed === 1 && a.broken === 0 && a.loaded, `${label}: the first stop: the seal whole, both pictures decoded (${a.closed}/${a.broken}/${a.loaded})`);
@@ -132,15 +132,16 @@ let URL;
     // the sky behind the seal: as placed at its stop, drifting at most 7.24 x 5.43 world units anywhere on the way (none
     // with reduced motion)
     const sky = await page.evaluate(() => {
-      const p = Intro.panorama, el = document.querySelector('[data-id="seal-sky"]'), shift = () => { const t = getComputedStyle(el).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
+      const p = Intro.panorama, el = document.querySelector('[data-id="opening-sky"]'), shift = () => { const t = getComputedStyle(el).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
       const home = p.camera, at = shift();
       let most = [0, 0];
       for (let x = p.stop(0).x; x <= p.stop(p.count - 1).x; x += 4) { p.place(p.atX(x)); const [dx, dy] = shift(), k = new DOMMatrix(getComputedStyle(el.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; }
+      p.place(p.stop(2)); const atMill = shift();
       p.place(home);
-      return { at, most };
+      return { at, most, atMill };
     });
-    check(sky.at.every(v => Math.abs(v) < 0.01) && (rm === 'reduce' ? sky.most.every(v => v === 0) : sky.most[0] <= 7.25 && sky.most[0] > 2 && sky.most[1] <= 5.44),
-      `${label}: the sky behind the seal sits as placed at its stop, drifting at most 7.24 x 5.43 (${sky.most.map(v => v.toFixed(2))})`);
+    check(sky.at.every(v => Math.abs(v) < 0.01) && (rm === 'reduce' ? sky.most.every(v => v === 0) : sky.most[0] <= 7.25 && sky.most[0] > 2 && sky.most[1] <= 5.44) && sky.atMill.every(v => Math.abs(v) < 0.01),
+      `${label}: the opening's sky sits as placed at the seal and at the mill, drifting at most 7.24 x 5.43 between (${sky.most.map(v => v.toFixed(2))})`);
     await page.click('#siNext');
     const during = [];
     for (let i = 0; i < 6; i++) { await page.waitForTimeout(120); during.push(await look()); }
@@ -148,7 +149,8 @@ let URL;
     await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
     const b = await look();
     check(during.every(d => Math.abs(d.cam.x - a.cam.x) < 0.01 && Math.abs(d.cam.y - a.cam.y) < 0.01 && Math.abs(d.cam.zoom - a.cam.zoom) < 1e-6), `${label}: Continue: the camera stays still`);
-    check(b.title === 'The Broken Seal' && b.broken === 1 && b.closed === 1, `${label}: the second stop: the broken seal over it, its words (${b.broken})`);
+    check(b.title === 'The Broken Seal' && b.broken === 1 && b.broken2 === 1 && b.closed === 1, `${label}: the second stop: the broken seal over it, both patches, its words (${b.broken}/${b.broken2})`);
+    check(during.every(d => Math.abs(d.broken - d.broken2) < 0.02), `${label}: both patches fade together`);
     if (rm === 'reduce') check(during[0].broken === 1, `${label}: with reduced motion, at once`);
     else check(during.some(d => d.broken > 0.05 && d.broken < 0.95), `${label}: the broken seal fades in (${during.map(d => d.broken.toFixed(2))})`);
     await page.click('#siBack');

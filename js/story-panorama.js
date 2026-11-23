@@ -287,6 +287,12 @@ const StoryPanorama = (() => {
     // reduced motion
     function drift(d) {
       if (still() || !cam) return [0, 0];
+      if (d.between) { // (one drift shared by a block of scenes: none at either end stop, most half way)
+        const [a, b] = d.between.map(i => cams[clamp(i, 0, cams.length - 1)]), t = b.x - a.x > 1 ? (cam.x - a.x) / (b.x - a.x) : -1;
+        if (t <= 0 || t >= 1) return [0, 0];
+        const e = Math.sin(Math.PI * t);
+        return [(d.x || 0) * e, (d.y || 0) * e];
+      }
       const home = cams[clamp(d.stop, 0, cams.length - 1)], others = cams.filter(c => c !== home).map(c => Math.abs(c.x - home.x)).filter(v => v > 1);
       const reach = d.reach || (others.length ? Math.min(...others) : colW / s0), ease = u => Math.sin(clamp(u, -1, 1) * Math.PI / 2);
       return [(d.x || 0) * ease((cam.x - home.x) / reach), (d.y || 0) * ease((cam.y - home.y) / (d.reach || m.view / 2))];

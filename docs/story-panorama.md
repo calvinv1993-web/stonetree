@@ -117,18 +117,20 @@ camera; the pictures of the next state are decoded first, then fade in (`fromSto
 Every stop but the last is a card (a dot each in the progress row). `snow` and `mist` say what weather is drawn in front
 at that stop; between stops it fades from one to the other.
 
-## The seal, whole and broken: the first two stops
+## The opening: the seal and the mill, one joined block
 
-`sprites/ui/story/zegel/` holds the owner's package (sortia-zegel-parallax): `01-lucht-bergen-bos.png` (the sky,
-mountains and forest, 1957 x 1228), `02-zegel-gesloten.png` (1829 x 3200: the ruin, the stair, the ground and the seal
-whole, see-through only in the sky) and `04-breuk-toestand-overlay.png` (1829 x 1300: the seal broken, the only part
-that changes). In the world the scene is 724 / 3200 = 0.22625 world units a pixel against the world's left edge
-(x 0, 413.81 x 724): the sky at -14.48, -14.48, 442.77 x 277.84 behind it, drifting at most 7.24 x 5.43 world units
-(32 x 24 of its pixels) as the camera leaves the seal, none at it; the overlay at 0, 226.25, 413.81 x 294.12, fading in
-from the second stop on, so nothing behind it changes or flickers. Both stops: `frame` the scene, `at` its package focus
-(0.459 of its width: world x 189.94), `keep` the ring (x 120 to 1480, y 1000 to 2300 of its pixels), `below` 200 with
-the dark fill `seal-foot` under the whole world. The ground strip in front starts where the scene ends. Kept as the
-package's PNGs (no recompression).
+`sprites/ui/story/opening/` holds the owner's package (sortia-opening, parts 1 and 2), its PNGs unchanged: one world of
+4458 x 3200 of its pixels, placed at 724 / 3200 = 0.22625 world units a pixel against the world's left edge (x 0 to
+1008.62). Three tiles meet edge to edge, see-through only in their sky: `02-zegel-links` (the seal, 0 to 269.01),
+`04-overgang` (the way between, to 739.61) and `06-molen-rechts` (the mill, to 1008.62). Behind them one shared
+`01-gedeelde-achtergrond` (its package place -64, -64, 4586 x 1228 of its pixels), with one drift for the whole block
+(`drift.between: [0, 2]`): none at the seal or the mill, at most 7.24 x 5.43 world units half way. The seal broken is two
+patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
+
+Stops: The Seal and The Broken Seal share one camera (`at` x 189.94, the package focus; `keep` the ring; `below` 200 with
+the dark fill `seal-foot`); The Hollow Host centres on the mill (x 841.32: the package camera x 2979 plus half its view).
+All three are framed by the block, so no view shows past it. The scenes after it (the crossing, the false signal, Ama)
+are as they were; the join from the mill to them isn't made yet.
 
 ## A scene of its own: Sister Ama's room
 

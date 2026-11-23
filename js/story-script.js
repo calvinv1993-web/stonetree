@@ -19,13 +19,14 @@
 const STORY_SCRIPT = {
   opening: { zoom: 1.09, ms: 10000, delay: 1400 },
   stops: [
-    // the seal, whole and then broken: one place, one camera (its scene: the frame), the picture fading from one state
-    // to the other as the words change; the whole ring kept above the words
-    { title: 'The Seal', at: [189.94, 362], frame: [0, 0, 413.81, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+    // the seal, whole and then broken: one place, one camera (the opening block its frame), the picture fading from one
+    // state to the other as the words change; the whole ring kept above the words
+    { title: 'The Seal', at: [189.94, 362], frame: [0, 0, 1008.62, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
       text: 'Long ago, something beneath the northern mountains bent wolves and goblins to its will. The people of the north sealed the stairway. The stone closed the passage; the ring held its influence below.' },
-    { title: 'The Broken Seal', at: [189.94, 362], frame: [0, 0, 413.81, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+    { title: 'The Broken Seal', at: [189.94, 362], frame: [0, 0, 1008.62, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
       text: 'For years, the river washed earth from beneath the seal. During the winter flood, its support gave way. The ring fractured and the heavy stone shifted. When the water fell, the stairway lay open.' },
-    { title: 'The Hollow Host', at: [717, 362], snow: true, mist: true,
+    // (the mill at the opening's right end: its package camera x 2979 of a 1479 px wide view, centred at 3718.5 of its pixels)
+    { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1008.62, 724], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
     { title: 'The Last Crossing', at: [1097, 362], snow: true, mist: true,
       text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.' },
