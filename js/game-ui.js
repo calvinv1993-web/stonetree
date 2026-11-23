@@ -2834,8 +2834,7 @@ const storyArt = image => { const h = typeof SPRITE_HASHES !== 'undefined' && SP
 // ---- the opening: SORTIA's story, then Sister Ama (docs/sortia/intro: the owner's package, intro.js its words) ------------
 // One panorama behind it all, in layers (sprites/ui/intro/layers/): far back the sky and mountains, then the painted scene
 // (the cave, the river, Oakvale and its bridge, the temple room; its sky see-through), the seal and the mill with its
-// goblins at the gate, the gate's watchman with his lantern raised (his upper half, over the
-// parapet), Sister Ama rising from the bottom before her window, the wolf and the goblin hiding behind the old tree, the traveler on the
+// goblins at the gate, Sister Ama rising from the bottom before her window, the wolf and the goblin hiding behind the old tree, the traveler on the
 // near bank before the bridge, then the tree itself, blurred as if close to the camera, and over all the dark ground at the
 // picture's foot (cut from the scene), so the figures sink into it (the figures from the owner's parallax
 // package, docs/sortia/parallax), each placed on one 2172 x 724 canvas (INTRO_LAYERS). They move with the camera, and
@@ -2856,7 +2855,7 @@ const INTRO_FIGURES = true;
 const INTRO_LAYERS = [
   ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
   ['03-seal', -48, 109, 643, 538, 20, 0.5], ['04-mill', 413.7, 135.1, 562, 470.2, 20, 0.5],
-  ['06-gate-watchman', 1204, 104, 81, 64, 22, 0], ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
+  ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
   ['10-traveler', 850, 355, 350, 276.47, 35, 2, 'figure'],
   ['09-tree', 1049, 0, 1002, 696, 50, 8], ['08-ground', 0, 560, 2172, 164, 55, 3],
