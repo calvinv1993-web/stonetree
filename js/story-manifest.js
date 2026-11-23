@@ -15,7 +15,12 @@
 //     src:   the file under sprites/ (PNG with transparency, WebP or JPEG), shown at its own resolution
 //     x, y, w, h: where it lies and how big, in world units (in its depth's own place: see parallax)
 //     z:     order among the depth's planes (higher in front; default: the order here)
-//     cover: true if it's opaque all over, or [x, y, w, h], the part of it that is (world units): the gap check uses these
+//     cover: true if it's opaque all over, or [x, y, w, h] (or a list of those), the parts that are (world units): the
+//            gap check uses these
+//     clip:  [x, y, w, h], the part of it shown (world units): cut away where a scene of its own lies over it
+//     drift: { x, y, stop, reach }: a small shift of its own, at most x and y world units, none at that stop (its index),
+//            growing smoothly as the camera moves away and full from reach world units on (default: the nearest other
+//            stop); never with reduced motion. For a view through a window: the window's frame stays, the view behind moves
 //   or a light: { kind: 'glow', x, y (its middle), size (world units), delay (s, its flicker), tone: 'dim' | 'candle' }
 const STORY_MANIFEST = {
   world: [2172, 724],
@@ -30,22 +35,29 @@ const STORY_MANIFEST = {
       { id: 'scene', src: 'ui/intro/layers/02-scene.webp', x: 0, y: 0, w: 2172, h: 724, cover: [0, 256, 2172, 468] },
       { id: 'seal', src: 'ui/intro/layers/03-seal.webp', x: -48, y: 109, w: 643, h: 538 },
       { id: 'mill', src: 'ui/intro/layers/04-mill.webp', x: 413.7, y: 135.1, w: 562, h: 470.2 },
-      { id: 'sister-ama', src: 'ui/intro/layers/05-sister-ama.webp', x: 1800, y: 214, w: 370, h: 509.6 },
       { id: 'wolf', src: 'ui/intro/layers/11-wolf.webp', x: 1400, y: 200, w: 195, h: 200.44 },
       { id: 'goblin', src: 'ui/intro/layers/12-hidden-goblin.webp', x: 1450, y: 345, w: 285, h: 306.2 },
       { id: 'traveler', src: 'ui/intro/layers/10-traveler.webp', x: 850, y: 355, w: 350, h: 276.47 },
-      // the lights: the mill's windows, the gate's watchman, Sister Ama's candle, the traveler's and the goblin's lanterns
+      // the lights: the mill's windows, the gate's watchman, the traveler's and the goblin's lanterns
       { kind: 'glow', x: 630, y: 305, size: 52, delay: -0.7, tone: 'dim' },
       { kind: 'glow', x: 699, y: 325, size: 56, delay: -1.4, tone: 'dim' },
       { kind: 'glow', x: 1264, y: 140, size: 65, delay: -0.3 },
-      { kind: 'glow', x: 1835, y: 215, size: 65, delay: -1.2, tone: 'candle' },
       { kind: 'glow', x: 1116, y: 434, size: 96, delay: -1.9 },
       { kind: 'glow', x: 1479, y: 443, size: 113, delay: -2.6 },
+      // Sister Ama's temple room (sprites/ui/story/ama: the owner's package sortia-ama-parallax-v1, its own scene of
+      // 1801 x 3200 placed at 724 / 3200 = 0.22625 world units a pixel against the world's right edge): the room with Ama,
+      // her candles and the window's stone frame, see-through only in the window's panes; behind it the view through the
+      // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
+      // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
+      { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 2047.56, y: -13.58, w: 135.75, h: 298.65, z: 1,
+        cover: true, drift: { x: 5.43, y: 3.62, stop: 4 } },
+      { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 1764.52, y: 0, w: 407.48, h: 724, z: 2,
+        cover: [[1764.52, 0, 343, 724], [2107.52, 246.61, 64.48, 477.39], [2107.52, 0, 64.48, 27.83]] },
     ] },
     foreground: { factor: 1.25, planes: [
       // the old tree close to the camera (blurred in its file), and the dark ground over the picture's foot
       { id: 'tree', src: 'ui/intro/layers/09-tree.webp', x: 1049, y: 0, w: 1002, h: 696 },
-      { id: 'ground', src: 'ui/intro/layers/08-ground.webp', x: 0, y: 560, w: 2172, h: 164 },
+      { id: 'ground', src: 'ui/intro/layers/08-ground.webp', x: 0, y: 560, w: 2172, h: 164, clip: [0, 560, 1764.52, 164] }, // (not over Ama's room)
     ] },
   },
 };

@@ -1,7 +1,7 @@
 // The story panorama (js/story-panorama.js) in a real browser: the story as it is (js/story-manifest.js) and the
 // placeholder demonstration (?storydemo): its depths and planes, no bare spot anywhere the camera can go on four screens,
 // Continue and a swipe moving the same camera from stop to stop with the next pictures decoded first, the pictures at
-// their files' own size, reduced motion, the development view, and on to Choose Your Path.
+// their files' own size, reduced motion, the development view, Sister Ama's room with its window, and on to Choose Your Path.
 // Run: node tests/story-panorama.test.js   (needs Playwright, as the other browser tests)
 'use strict';
 const path = require('path');
@@ -104,6 +104,36 @@ let URL;
     const at = await cam(page), stop2 = await page.evaluate(() => Intro.panorama.stop(1));
     check(Math.abs(at.x - stop2.x) < 0.5, `reduced motion: Continue goes straight to the next stop (${at.x} vs ${stop2.x})`);
     check(await page.evaluate(() => +getComputedStyle(document.querySelector('.si-snow-far')).opacity === 0), 'reduced motion: no snow');
+    await context.close();
+  }
+
+  // Sister Ama's room (sprites/ui/story/ama): the temple fills the screen at her stop, both pictures sharp (never
+  // stretched), no filters, the window's view drifting no more than its 5.43 x 3.62 world units anywhere on the way
+  // (none at her stop, none with reduced motion), and no bare spot
+  for (const [name, device] of SCREENS) for (const rm of ['no-preference', 'reduce']) {
+    if (rm === 'reduce' && name !== 'iPhone 13 Pro Max') continue;
+    const { context, page, errors } = await openStory(browser, device, '', { reducedMotion: rm });
+    await page.click('#siSkip');
+    await page.waitForFunction(() => Intro.panorama.needed(4).every(id => Intro.panorama.planes().find(p => p.id === id).loaded), null, { timeout: 20000 });
+    await page.waitForFunction(() => !sortiaIntro.classList.contains('moving') && siTitle.textContent === 'Sister Ama', null, { timeout: 10000 });
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(() => {
+      const p = Intro.panorama, win = document.querySelector('[data-id="ama-window-view"]'), tem = document.querySelector('[data-id="ama-temple"]');
+      const tb = tem.getBoundingClientRect(), col = document.querySelector('.si-col').getBoundingClientRect(), shift = el => { const t = getComputedStyle(el).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
+      const atStop = shift(win), mags = p.planes().filter(x => /^ama-/.test(x.id)).map(x => x.magnification);
+      let most = [0, 0];
+      for (let x = p.stop(0).x; x <= p.stop(4).x; x += 4) { p.place(p.atX(x)); const [dx, dy] = shift(win), k = new DOMMatrix(getComputedStyle(win.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; } // (the drift is in the depth's own px: the depth's scale turns it to world units)
+      p.place(p.stop(4));
+      return { fills: tb.left <= col.left + 0.5 && tb.right >= col.right - 0.5 && tb.top <= col.top + 0.5 && tb.bottom >= col.bottom - 0.5, atStop, most, mags, gaps: p.gaps().length,
+        filters: [win, tem, tem.parentElement].map(el => getComputedStyle(el).filter).filter(f => f !== 'none').length };
+    });
+    const label = `${name}${rm === 'reduce' ? ' (reduced motion)' : ''}`;
+    check(r.fills, `${label}: Ama's room fills the screen at her stop`);
+    check(r.mags.length === 2 && r.mags.every(v => v > 0 && v <= 1.05), `${label}: Ama's two pictures never stretched (${r.mags.map(v => v && v.toFixed(2))})`);
+    check(r.atStop.every(v => Math.abs(v) < 0.01), `${label}: the window's view sits as placed at her stop (${r.atStop})`);
+    check(rm === 'reduce' ? r.most.every(v => v === 0) : r.most[0] <= 5.44 && r.most[0] > 5 && r.most[1] <= 3.63, `${label}: the window's view drifts at most 5.43 x 3.62 world units on the whole way (${r.most.map(v => v.toFixed(2))})`);
+    check(r.gaps === 0 && r.filters === 0, `${label}: no bare spot, no filters`);
+    check(errors.length === 0, `${label}: no errors (${errors})`);
     await context.close();
   }
 

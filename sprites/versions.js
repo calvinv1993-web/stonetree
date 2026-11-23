@@ -504,6 +504,8 @@ const SPRITE_HASHES = {
   "ui/story/05_your_road.webp":"2bcb774a61",
   "ui/story/06_character_creation.webp":"4a3b9bd11f",
   "ui/story/07_choose_your_path.webp":"35d83e4239",
+  "ui/story/ama/01-raamuitzicht.png":"18b57b8b39",
+  "ui/story/ama/02-ama-tempel.png":"8f92817d6d",
   "ui/story/demo/bg-1.png":"e1719de457",
   "ui/story/demo/bg-2.png":"a4ff92b715",
   "ui/story/demo/fg-banner.png":"66cc10736a",

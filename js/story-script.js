@@ -7,6 +7,8 @@
 //   title, text: its card (the last stop's title heads Sister Ama's talk; its text isn't shown)
 //   at:    [x, y] the world point the camera centres on (world units; held so the view never shows past the world)
 //   zoom:  1 shows the manifest's view height; above 1 closer
+//   frame: [x, y, w, h] (world units): a scene of its own, which the view must stay inside: the camera comes in close
+//          enough for it to fill the screen, and at is held within it
 //   snow, mist: the weather drawn in front at this stop (true / false); between stops it fades from one to the other
 // opening: the dramatic start: zoom (closer at first, settling back), ms, delay
 // ama: Sister Ama's words: ask (for your name) and talk (her lines; $name is yours)
@@ -21,7 +23,8 @@ const STORY_SCRIPT = {
       text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.' },
     { title: 'The False Signal', at: [1444, 362], snow: true, mist: true,
       text: 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.' },
-    { title: 'Sister Ama', at: [1955, 362], snow: false, mist: false },
+    // (her temple room fills the screen, held at its top: Ama and the window above the words)
+    { title: 'Sister Ama', at: [1968.26, 0], frame: [1764.52, 0, 407.48, 724], snow: false, mist: false },
   ],
   ama: {
     ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',

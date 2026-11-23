@@ -18,6 +18,14 @@ const StoryPanorama = (() => {
   const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   const meet = (a, b) => { const x = Math.max(a.x, b.x), y = Math.max(a.y, b.y); return { x, y, w: Math.min(a.x + a.w, b.x + b.w) - x, h: Math.min(a.y + a.h, b.y + b.h) - y }; };
   const grow = (r, m) => ({ x: r.x - m, y: r.y - m, w: r.w + 2 * m, h: r.h + 2 * m });
+  // the parts of a plane that are opaque: cover true (all of it), [x, y, w, h] or a list of those; a plane that drifts
+  // (drift) counts only what stays covered wherever it drifts to
+  const coverRects = p => {
+    if (!p.cover) return [];
+    const list = p.cover === true ? [[p.x, p.y, p.w, p.h]] : Array.isArray(p.cover[0]) ? p.cover : [p.cover], dx = p.drift ? p.drift.x || 0 : 0, dy = p.drift ? p.drift.y || 0 : 0;
+    return list.map(([x, y, w, h]) => ({ x: x + dx, y: y + dy, w: w - 2 * dx, h: h - 2 * dy })).filter(r => r.w > 0 && r.h > 0);
+  };
+  const inRect = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
   // a picture's address: a path under sprites/ gets its own version (sprites/versions.js), as every picture in the game
   const pictureUrl = src => {
     if (/^(https?:|data:|blob:|\/|\.)/.test(src)) return src;
@@ -53,9 +61,12 @@ const StoryPanorama = (() => {
   function stopCams(m, stops, colW, colH) {
     const [W, H] = m.world, s0 = colH / m.view;
     return stops.map(st => {
-      const zoom = st.zoom > 0 ? st.zoom : 1, hw = colW / (2 * s0 * zoom), hh = colH / (2 * s0 * zoom);
-      const at = st.at || [W / 2, H / 2];
-      return { x: W >= 2 * hw ? clamp(at[0], hw, W - hw) : W / 2, y: H >= 2 * hh ? clamp(at[1], hh, H - hh) : H / 2, zoom };
+      // frame: [x, y, w, h], the world the view must stay inside at this stop (a scene of its own): close enough in for
+      // it to fill the screen, and held within it
+      const [fx, fy, fw, fh] = st.frame || [0, 0, W, H];
+      const zoom = Math.max(st.zoom > 0 ? st.zoom : 1, st.frame ? Math.max(colW / (s0 * fw), colH / (s0 * fh)) : 0);
+      const hw = colW / (2 * s0 * zoom), hh = colH / (2 * s0 * zoom), at = st.at || [fx + fw / 2, fy + fh / 2];
+      return { x: fw >= 2 * hw ? clamp(at[0], fx + hw, fx + fw - hw) : fx + fw / 2, y: fh >= 2 * hh ? clamp(at[1], fy + hh, fy + fh - hh) : fy + fh / 2, zoom };
     });
   }
   // Where a depth's own camera is when the main one is at cam. 'stops' (the default): at every stop each depth shows its
@@ -121,8 +132,7 @@ const StoryPanorama = (() => {
       const layer = m.layers[depth];
       if (!layer) continue;
       for (const p of layer.planes || []) {
-        if (!p.cover) continue;
-        covers.push({ depth, factor: layer.factor, r: Array.isArray(p.cover) ? { x: p.cover[0], y: p.cover[1], w: p.cover[2], h: p.cover[3] } : { x: p.x, y: p.y, w: p.w, h: p.h } });
+        for (const r of coverRects(p)) covers.push({ depth, factor: layer.factor, r });
       }
     }
     const samples = [];
@@ -137,7 +147,7 @@ const StoryPanorama = (() => {
         let bare = 0;
         for (let gy = 0; gy <= N; gy++) for (let gx = 0; gx <= N; gx++) {
           const sx = (gx / N - 0.5) * colW, sy = (gy / N - 0.5) * colH, s = s0 * cam.zoom * extra;
-          const covered = covers.some(c => { const dc = depthCam(m, cams, c.factor, cam), px = dc.x + sx / s, py = dc.y + sy / s; return px >= c.r.x && px <= c.r.x + c.r.w && py >= c.r.y && py <= c.r.y + c.r.h; });
+          const covered = covers.some(c => { const dc = depthCam(m, cams, c.factor, cam); return inRect(c.r, dc.x + sx / s, dc.y + sy / s); });
           if (!covered) bare++;
         }
         if (bare) out.push({ cam, extra, bare: bare / ((N + 1) * (N + 1)) });
@@ -151,7 +161,10 @@ const StoryPanorama = (() => {
     const problems = check(manifest);
     if (problems.length) console.warn('Story panorama manifest:', problems.join('; '));
     const m = manifest, depths = DEPTHS.filter(d => m.layers && m.layers[d]);
-    let colW = 0, colH = 0, s0 = 1, dpr = 1, cams = [], cam = null, extra = 1, frameReq = 0, glideReq = 0, devOn = false, canvas = null, hud = null;
+    let colW = 0, colH = 0, s0 = 1, dpr = 1, cams = [], cam = null, extra = 1, glideReq = 0, devOn = false, canvas = null, hud = null;
+    let zoomReq = 0, zoomTimer = 0;
+    let lz = 1; // the zoom the planes are laid out at: at rest the camera's own, so no depth is scaled by a transform
+    const still = () => (opts.still ? opts.still() : matchMedia('(prefers-reduced-motion: reduce)').matches);
     const layers = depths.map((depth, i) => {
       const el = document.createElement('div');
       el.className = `sp-layer sp-${depth}`;
@@ -208,32 +221,61 @@ const StoryPanorama = (() => {
     function layout() {
       colW = host.clientWidth || 1; colH = host.clientHeight || 1; dpr = devicePixelRatio || 1;
       s0 = colH / m.view;
-      const snap = v => v * dpr, lo = v => Math.floor(snap(v) + 1e-6) / dpr, hi = v => Math.ceil(snap(v) - 1e-6) / dpr;
-      for (const L of layers) for (const p of L.planes) {
-        const d = p.def;
-        if (p.glow) { Object.assign(p.el.style, { left: `${d.x * s0}px`, top: `${d.y * s0}px`, width: `${d.size * s0}px` }); continue; }
-        const x0 = lo(d.x * s0), y0 = lo(d.y * s0), x1 = hi((d.x + d.w) * s0), y1 = hi((d.y + d.h) * s0);
-        Object.assign(p.el.style, { left: `${x0}px`, top: `${y0}px`, width: `${x1 - x0}px`, height: `${y1 - y0}px` });
-      }
       const at = cam && cams.length ? cams.indexOf(cam) : -1;
       cams = stopCams(m, stops, colW, colH);
       if (cam) cam = at >= 0 ? cams[at] : { ...cam };
+      lay(cam ? cam.zoom * extra : 1);
       if (canvas) { canvas.width = Math.round(colW * dpr); canvas.height = Math.round(colH * dpr); }
+    }
+    // the planes laid out at zoom z (css px per world unit: s0 * z)
+    function lay(z) {
+      lz = z;
+      const sl = s0 * z, lo = v => Math.floor(v * dpr + 1e-6) / dpr, hi = v => Math.ceil(v * dpr - 1e-6) / dpr;
+      for (const L of layers) for (const p of L.planes) {
+        const d = p.def;
+        if (p.glow) { Object.assign(p.el.style, { left: `${d.x * sl}px`, top: `${d.y * sl}px`, width: `${d.size * sl}px` }); continue; }
+        const x0 = lo(d.x * sl), y0 = lo(d.y * sl), x1 = hi((d.x + d.w) * sl), y1 = hi((d.y + d.h) * sl);
+        Object.assign(p.el.style, { left: `${x0}px`, top: `${y0}px`, width: `${x1 - x0}px`, height: `${y1 - y0}px` });
+        // clip: [x, y, w, h], the part of the plane shown (world units), cut where a scene of its own lies over it
+        if (d.clip) {
+          const [cx, cy, cw, ch] = d.clip, t = Math.max(0, cy - d.y) * sl, l = Math.max(0, cx - d.x) * sl;
+          const r = Math.max(0, d.x + d.w - (cx + cw)) * sl, b = Math.max(0, d.y + d.h - (cy + ch)) * sl;
+          p.el.style.clipPath = `inset(${t}px ${r}px ${b}px ${l}px)`;
+        }
+      }
+    }
+    // at rest, laid out again at the camera's zoom (a scaled depth would be drawn from a scaled copy, a little soft)
+    // (a moment after it stops moving: never while a drag or the story's drift moves it frame by frame)
+    let settleTimer = 0;
+    function settle() {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => { if (!zoomReq && cam && Math.abs(cam.zoom * extra - lz) > 1e-4) { lay(cam.zoom * extra); render(); } }, 150);
+    }
+    // a plane's own small drift (drift: { x, y, stop, reach }): at its stop none; as the camera moves away it shifts,
+    // smoothly, never more than x and y world units (as a view through a window, far behind its frame); not with
+    // reduced motion
+    function drift(d) {
+      if (still() || !cam) return [0, 0];
+      const home = cams[clamp(d.stop, 0, cams.length - 1)], others = cams.filter(c => c !== home).map(c => Math.abs(c.x - home.x)).filter(v => v > 1);
+      const reach = d.reach || (others.length ? Math.min(...others) : colW / s0), ease = u => Math.sin(clamp(u, -1, 1) * Math.PI / 2);
+      return [(d.x || 0) * ease((cam.x - home.x) / reach), (d.y || 0) * ease((cam.y - home.y) / (d.reach || m.view / 2))];
     }
     // the camera drawn: each depth moved (and zoomed) by one transform
     function render() {
       if (!cam) return;
+      const z = cam.zoom * extra, s = s0 * z, k = z / lz;
       for (const L of layers) {
-        const c = depthCam(m, cams, L.factor, cam), z = cam.zoom * extra, s = s0 * z;
+        const c = depthCam(m, cams, L.factor, cam);
         let tx = colW / 2 - c.x * s, ty = colH / 2 - c.y * s;
-        if (z === 1) { tx = Math.round(tx * dpr) / dpr; ty = Math.round(ty * dpr) / dpr; } // (at rest on whole device pixels: no shimmer)
-        L.el.style.transform = `translate3d(${tx}px, ${ty}px, 0)${z === 1 ? '' : ` scale(${z})`}`;
+        if (Math.abs(k - 1) < 1e-6) { tx = Math.round(tx * dpr) / dpr; ty = Math.round(ty * dpr) / dpr; } // (at rest on whole device pixels: no shimmer)
+        L.el.style.transform = `translate3d(${tx}px, ${ty}px, 0)${Math.abs(k - 1) < 1e-6 ? '' : ` scale(${k})`}`;
+        for (const p of L.planes) if (p.def.drift) { const [dx, dy] = drift(p.def.drift); p.el.style.translate = `${dx * s0 * lz}px ${dy * s0 * lz}px`; }
       }
       host.style.setProperty('--si-x', cam.x.toFixed(1));
       if (opts.onFrame) opts.onFrame(cam, s0 * cam.zoom * extra);
       if (devOn) drawDev();
     }
-    function place(c) { cam = c; cancelAnimationFrame(glideReq); render(); }
+    function place(c) { cam = c; cancelAnimationFrame(glideReq); render(); if (!zoomReq) settle(); }
     // a glide from where the camera is to c in ms, slowing as it lands; resolves true when there, false if another move
     // took over
     let glideId = 0;
@@ -248,23 +290,27 @@ const StoryPanorama = (() => {
           const t = Math.min(1, (now - t0) / ms);
           cam = t < 1 ? lerpCam(from, c, ease(t)) : c;
           render();
-          if (t < 1) glideReq = requestAnimationFrame(step); else done(true);
+          if (t < 1) glideReq = requestAnimationFrame(step); else { if (!zoomReq) settle(); done(true); }
         };
         glideReq = requestAnimationFrame(step);
       });
     }
     const halt = () => { glideId++; cancelAnimationFrame(glideReq); };
     // the opening's zoom: from z down to the camera's own over ms, after delay (0 ms: at once); not with reduced motion
-    let zoomReq = 0, zoomTimer = 0;
     function openingZoom(z, ms = 0, delay = 0) {
-      cancelAnimationFrame(zoomReq); clearTimeout(zoomTimer);
+      cancelAnimationFrame(zoomReq); clearTimeout(zoomTimer); zoomReq = 0;
       extra = z;
       render();
-      if (z === 1) return;
+      if (z === 1) { settle(); return; }
       const ease = t => 1 - Math.pow(1 - t, 2.4);
+      zoomReq = -1; // (busy: the planes stay laid out as they are until it ends)
       zoomTimer = setTimeout(() => {
         const t0 = performance.now();
-        const step = now => { const t = Math.min(1, (now - t0) / ms); extra = z + (1 - z) * ease(t); render(); if (t < 1) zoomReq = requestAnimationFrame(step); };
+        const step = now => {
+          const t = Math.min(1, (now - t0) / ms);
+          extra = z + (1 - z) * ease(t); render();
+          if (t < 1) zoomReq = requestAnimationFrame(step); else { zoomReq = 0; settle(); }
+        };
         zoomReq = requestAnimationFrame(step);
       }, delay);
     }
@@ -322,12 +368,12 @@ const StoryPanorama = (() => {
         label(`stop ${i + 1}`, clamp(r.x + 6, 2, colW - 60), clamp(r.y + r.h - 20, 2, colH - 16), '#ffffff');
       });
       // where the screen shows nothing at this moment
-      const covers = layers.flatMap(L => L.planes.filter(p => p.def.cover && !p.glow).map(p => ({ L, r: Array.isArray(p.def.cover) ? { x: p.def.cover[0], y: p.def.cover[1], w: p.def.cover[2], h: p.def.cover[3] } : p.def })));
+      const covers = layers.flatMap(L => L.planes.filter(p => !p.glow).flatMap(p => coverRects(p.def).map(r => ({ L, r }))));
       g.fillStyle = '#ff2d2d66';
       const N = 32;
       for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
         const sx = (gx + 0.5) * colW / N, sy = (gy + 0.5) * colH / N, s = s0 * cam.zoom * extra;
-        const ok = covers.some(({ L, r }) => { const c = depthCam(m, cams, L.factor, cam), px = c.x + (sx - colW / 2) / s, py = c.y + (sy - colH / 2) / s; return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h; });
+        const ok = covers.some(({ L, r }) => { const c = depthCam(m, cams, L.factor, cam); return inRect(r, c.x + (sx - colW / 2) / s, c.y + (sy - colH / 2) / s); });
         if (!ok) g.fillRect(gx * colW / N, gy * colH / N, colW / N, colH / N);
       }
       if (!pathGaps) pathGaps = gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom });

@@ -67,7 +67,9 @@ A plane:
 | `src` | the file under `sprites/` (PNG with transparency, WebP or JPEG) |
 | `x, y, w, h` | where it lies and how big, in world units, in its depth's own place |
 | `z` | order among the depth's planes (higher in front; default: the order listed) |
-| `cover` | `true` if it's opaque all over, or `[x, y, w, h]` for the part that is (world units); the gap check uses these |
+| `cover` | `true` if it's opaque all over, or `[x, y, w, h]` (or a list of those) for the parts that are (world units); the gap check uses these |
+| `clip` | `[x, y, w, h]`: only this part of the plane is shown (world units), e.g. where a scene of its own lies over it |
+| `drift` | `{ x, y, stop, reach }`: a small shift of its own, at most `x` and `y` world units: none at that stop (its index), growing smoothly as the camera moves away, full from `reach` units on (default: the nearest other stop), never more wherever the camera goes; none with reduced motion. For a view through a window: the frame stays, the view behind moves |
 
 A light: `{ kind: 'glow', x, y, size, delay, tone }` (x, y its middle; `tone`: `'dim'` or `'candle'`, or none).
 
@@ -94,8 +96,22 @@ const STORY_SCRIPT = {
 };
 ```
 
+A stop can have a `frame: [x, y, w, h]` (world units): a scene of its own that the view must stay inside. The camera
+comes in just close enough for it to fill the screen on any shape of screen, and `at` is held within it (Sister Ama's
+room uses this, held at its top so she stands above the words).
+
 Every stop but the last is a card (a dot each in the progress row). `snow` and `mist` say what weather is drawn in front
 at that stop; between stops it fades from one to the other.
+
+## A scene of its own: Sister Ama's room
+
+`sprites/ui/story/ama/` holds the owner's two-layer package (sortia-ama-parallax-v1): `02-ama-tempel.png` (1801 x 3200,
+see-through only in the window's panes) and `01-raamuitzicht.png` (the view through the window, 846 x 1860, placed in
+the package at x 1251, y -60, 600 x 1320 of the room's pixels). In the world the room is scaled to the panorama's
+height (724 / 3200 = 0.22625 world units a pixel) against its right edge, so: room x 1764.52, y 0, 407.48 x 724; view
+x 2047.56, y -13.58, 135.75 x 298.65, behind the room (z), drifting at most 24 x 16 of the room's pixels (5.43 x 3.62
+world units). Both are kept as the package's PNGs (no recompression). The room's `cover` lists its opaque parts (all but
+the window), the ground strip in front is clipped where the room begins, and Ama's stop has the room as its `frame`.
 
 ## Pictures fetched ahead
 
