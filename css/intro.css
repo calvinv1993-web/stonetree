@@ -62,9 +62,9 @@ html body #sortiaIntro .si-arrow { font-family: var(--si-sans) !important; }
 .si-mist > i { top: calc(256px + 44%); bottom: auto; height: 32%; background: url(../sprites/ui/intro/mist.webp) 0 50% / 1024px 100% repeat-x; opacity: .85;
   animation: si-drift 70s linear infinite; }
 .si-snow-far { z-index: -3; }
-.si-snow-far > i { background: url(../sprites/ui/intro/snow-far.webp) 0 0 / 256px 256px repeat; opacity: .7; animation: si-fall 13s linear infinite; }
+.si-snow-far > i { background: url(../sprites/ui/intro/snow-far.webp) 0 0 / 256px 256px repeat; opacity: .6; animation: si-fall 16s linear infinite; }
 .si-snow-near { z-index: -2; }
-.si-snow-near > i { background: url(../sprites/ui/intro/snow-near.webp) 0 0 / 256px 256px repeat; opacity: .66; animation: si-fall-near 7.5s linear infinite; }
+.si-snow-near > i { background: url(../sprites/ui/intro/snow-near.webp) 0 0 / 256px 256px repeat; opacity: .5; animation: si-fall-near 10s linear infinite; }
 @keyframes si-fall { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-64px, 256px, 0); } }
 @keyframes si-fall-near { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-128px, 256px, 0); } }
 @keyframes si-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(1024px, 0, 0); } }
