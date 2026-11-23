@@ -2853,7 +2853,7 @@ const INTRO_FIGURES = true;
 // [file, x, y, width, height, z, depth] on that canvas; figure: one of the separate figures (the scene is painted
 // without them); the tree, near the camera, comes blurred and runs far ahead
 const INTRO_LAYERS = [
-  ['01-distant-sky-mountains', 0, 0, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
+  ['01-distant-sky-mountains', 0, -170, 2172, 724, 0, -8], ['02-scene', 0, 0, 2172, 724, 10, 0],
   ['03-seal', -48, 109, 643, 538, 20, 0.5], ['04-mill', 413.7, 135.1, 562, 470.2, 20, 0.5],
   ['05-sister-ama', 1800, 214, 370, 509.6, 30, 1, 'figure'],
   ['11-wolf', 1400, 200, 195, 200.44, 33, 1.5, 'figure'], ['12-hidden-goblin', 1450, 345, 285, 306.2, 36, 2, 'figure'],
