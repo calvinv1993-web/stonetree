@@ -21,19 +21,20 @@ const STORY_SCRIPT = {
   stops: [
     // the seal, whole and then broken: one place, one camera (the opening block its frame), the picture fading from one
     // state to the other as the words change; the whole ring kept above the words
-    { title: 'The Seal', at: [189.94, 362], frame: [0, 0, 1008.62, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+    { title: 'The Seal', at: [189.94, 362], frame: [0, 0, 1603.43, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
       text: 'Long ago, something beneath the northern mountains bent wolves and goblins to its will. The people of the north sealed the stairway. The stone closed the passage; the ring held its influence below.' },
-    { title: 'The Broken Seal', at: [189.94, 362], frame: [0, 0, 1008.62, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
+    { title: 'The Broken Seal', at: [189.94, 362], frame: [0, 0, 1603.43, 724], keep: [27.15, 226.25, 307.7, 294.12], below: 200, snow: false, mist: false,
       text: 'For years, the river washed earth from beneath the seal. During the winter flood, its support gave way. The ring fractured and the heavy stone shifted. When the water fell, the stairway lay open.' },
     // (the mill at the opening's right end: its package camera x 2979 of a 1479 px wide view, centred at 3718.5 of its pixels)
-    { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1008.62, 724], snow: true, mist: true,
+    { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
-    { title: 'The Last Crossing', at: [1097, 362], snow: true, mist: true,
+    // (the refugees on the road at the opening's right end: its package camera x 5358, centred at 6097.5 of its pixels)
+    { title: 'The Last Crossing', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor. Just before the bridge, a watchman raised his lantern once. A wounded man by the road lifted his twice. Two guards came across to help him.' },
-    { title: 'The False Signal', at: [1444, 362], snow: true, mist: true,
+    { title: 'The False Signal', at: [2197.43, 362], snow: true, mist: true,
       text: 'After the guards brought the man inside, the lantern above the gate went up again. From the ditch came the same reply. Two lifts. This time, the light fell on a goblin’s hand. A wolf waited behind him. You ran. Halfway across the bridge, your legs gave way.' },
     // (her temple room fills the screen, held at its top: Ama and the window above the words)
-    { title: 'Sister Ama', at: [1968.26, 0], frame: [1764.52, 0, 407.48, 724], snow: false, mist: false },
+    { title: 'Sister Ama', at: [2721.69, 0], frame: [2517.95, 0, 407.48, 724], snow: false, mist: false },
   ],
   ama: {
     ask: '“You’re awake. The watch brought you in last night. I’m Sister Ama. What should I call you?”',

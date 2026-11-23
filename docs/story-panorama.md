@@ -117,20 +117,24 @@ camera; the pictures of the next state are decoded first, then fade in (`fromSto
 Every stop but the last is a card (a dot each in the progress row). `snow` and `mist` say what weather is drawn in front
 at that stop; between stops it fades from one to the other.
 
-## The opening: the seal and the mill, one joined block
+## The opening: the seal, the mill and the refugees, one joined block
 
-`sprites/ui/story/opening/` holds the owner's package (sortia-opening, parts 1 and 2), its PNGs unchanged: one world of
-4458 x 3200 of its pixels, placed at 724 / 3200 = 0.22625 world units a pixel against the world's left edge (x 0 to
-1008.62). Three tiles meet edge to edge, see-through only in their sky: `02-zegel-links` (the seal, 0 to 269.01),
-`04-overgang` (the way between, to 739.61) and `06-molen-rechts` (the mill, to 1008.62). Behind them one shared
-`01-gedeelde-achtergrond` (its package place -64, -64, 4586 x 1228 of its pixels), with one drift for the whole block
-(`drift.between: [0, 2]`): none at the seal or the mill, at most 7.24 x 5.43 world units half way. The seal broken is two
-patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
+`sprites/ui/story/opening/` holds the owner's packages (sortia-opening and sortia-oakvale-aanvulling, both in two
+parts), their PNGs unchanged: one world of 7087 x 3200 of their pixels, placed at 724 / 3200 = 0.22625 world units a
+pixel against the world's left edge (x 0 to 1603.43). Five tiles meet edge to edge, see-through only in their sky:
+`02-zegel-links` (the seal), `04-overgang` (the way between), `09-molen-midden` (the mill), `10-overgang-molen-vluchtelingen`
+(the road on) and `11-vluchtelingen-rechts` (the refugees, Oakvale beyond). Behind them four sky tiles (`12` to `15`), one
+continuous sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift
+(`drift.between: [0, 2, 3]`): none at the seal, the mill or the refugees, at most 7.24 x 5.43 world units between them.
+The seal broken is two patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
 
 Stops: The Seal and The Broken Seal share one camera (`at` x 189.94, the package focus; `keep` the ring; `below` 200 with
-the dark fill `seal-foot`); The Hollow Host centres on the mill (x 841.32: the package camera x 2979 plus half its view).
-All three are framed by the block, so no view shows past it. The scenes after it (the crossing, the false signal, Ama)
-are as they were; the join from the mill to them isn't made yet.
+the dark fill `seal-foot`); The Hollow Host centres on the mill (x 841.32: the package camera x 2979 plus half its view);
+The Last Crossing on the refugees (x 1379.56: the package camera x 5358 plus half its view). All are framed by the block.
+
+The story after it (the bridge and the traveler, The False Signal, Ama's room) is as it was, moved right by 753.43
+world units so its part from the bridge on starts where the block ends; the world is 2925.43 wide. The join from the
+refugees to it isn't made yet (a hard edge at x 1603.43).
 
 ## A scene of its own: Sister Ama's room
 

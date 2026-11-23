@@ -132,16 +132,18 @@ let URL;
     // the sky behind the seal: as placed at its stop, drifting at most 7.24 x 5.43 world units anywhere on the way (none
     // with reduced motion)
     const sky = await page.evaluate(() => {
-      const p = Intro.panorama, el = document.querySelector('[data-id="opening-sky"]'), shift = () => { const t = getComputedStyle(el).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
+      const p = Intro.panorama, el = document.querySelector('[data-id="opening-sky-a"]'), shift = (e = el) => { const t = getComputedStyle(e).translate.split(' '); return [parseFloat(t[0]) || 0, parseFloat(t[1]) || 0]; };
+      const tiles = ['a', 'b', 'c', 'd'].map(k => document.querySelector(`[data-id="opening-sky-${k}"]`));
+      let apart = 0; // (the four sky tiles, wherever two show at once, shifted alike: their joins stay closed)
       const home = p.camera, at = shift();
       let most = [0, 0];
-      for (let x = p.stop(0).x; x <= p.stop(p.count - 1).x; x += 4) { p.place(p.atX(x)); const [dx, dy] = shift(), k = new DOMMatrix(getComputedStyle(el.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; }
-      p.place(p.stop(2)); const atMill = shift();
+      for (let x = p.stop(0).x; x <= p.stop(p.count - 1).x; x += 4) { p.place(p.atX(x)); const shown = tiles.filter(e => e.style.display !== 'none').map(e => shift(e)); for (const s of shown) apart = Math.max(apart, Math.abs(s[0] - shown[0][0]), Math.abs(s[1] - shown[0][1])); const [dx, dy] = shift(tiles.find(e => e.style.display !== 'none')), k = new DOMMatrix(getComputedStyle(el.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; }
+      p.place(p.stop(2)); const atMill = shift(tiles[1]); p.place(p.stop(3)); const atRefugees = shift(tiles[3]);
       p.place(home);
-      return { at, most, atMill };
+      return { at, most, atMill, atRefugees, apart };
     });
-    check(sky.at.every(v => Math.abs(v) < 0.01) && (rm === 'reduce' ? sky.most.every(v => v === 0) : sky.most[0] <= 7.25 && sky.most[0] > 2 && sky.most[1] <= 5.44) && sky.atMill.every(v => Math.abs(v) < 0.01),
-      `${label}: the opening's sky sits as placed at the seal and at the mill, drifting at most 7.24 x 5.43 between (${sky.most.map(v => v.toFixed(2))})`);
+    check(sky.at.every(v => Math.abs(v) < 0.01) && (rm === 'reduce' ? sky.most.every(v => v === 0) : sky.most[0] <= 7.25 && sky.most[0] > 2 && sky.most[1] <= 5.44) && sky.atMill.every(v => Math.abs(v) < 0.01) && sky.atRefugees.every(v => Math.abs(v) < 0.01) && sky.apart < 0.01,
+      `${label}: the opening's sky sits as placed at the seal, the mill and the refugees, drifting at most 7.24 x 5.43 between (${sky.most.map(v => v.toFixed(2))})`);
     await page.click('#siNext');
     const during = [];
     for (let i = 0; i < 6; i++) { await page.waitForTimeout(120); during.push(await look()); }

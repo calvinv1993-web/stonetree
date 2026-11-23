@@ -20,11 +20,29 @@ const StoryPanorama = (() => {
   const grow = (r, m) => ({ x: r.x - m, y: r.y - m, w: r.w + 2 * m, h: r.h + 2 * m });
   // the parts of a plane that are opaque: cover true (all of it), [x, y, w, h] or a list of those; a plane that drifts
   // (drift) counts only what stays covered wherever it drifts to
+  // (the gap check moves them by the plane's drift for the camera it looks with)
   const coverRects = p => {
     if (!p.cover) return [];
-    const list = p.cover === true ? [[p.x, p.y, p.w, p.h]] : Array.isArray(p.cover[0]) ? p.cover : [p.cover], dx = p.drift ? p.drift.x || 0 : 0, dy = p.drift ? p.drift.y || 0 : 0;
-    return list.map(([x, y, w, h]) => ({ x: x + dx, y: y + dy, w: w - 2 * dx, h: h - 2 * dy })).filter(r => r.w > 0 && r.h > 0);
+    const list = p.cover === true ? [[p.x, p.y, p.w, p.h]] : Array.isArray(p.cover[0]) ? p.cover : [p.cover];
+    return list.map(([x, y, w, h]) => ({ x, y, w, h, drift: p.drift })).filter(r => r.w > 0 && r.h > 0);
   };
+  // A plane's own drift (drift in the manifest) for the camera at cam, the stops at cams: [x, y] world units
+  function driftAt(d, cams, cam, m, colW, s0) {
+    if (!d || !cam) return [0, 0];
+    if (d.between) { // (one drift shared by a block of scenes: none at each of its stops, most half way between two)
+      const at = d.between.map(i => cams[clamp(i, 0, cams.length - 1)]);
+      for (let i = 0; i + 1 < at.length; i++) {
+        const a = at[i], b = at[i + 1], t = b.x - a.x > 1 ? (cam.x - a.x) / (b.x - a.x) : -1;
+        if (t > 0 && t < 1) { const e = Math.sin(Math.PI * t); return [(d.x || 0) * e, (d.y || 0) * e]; }
+      }
+      return [0, 0];
+    }
+    const home = cams[clamp(d.stop, 0, cams.length - 1)], others = cams.filter(c => c !== home).map(c => Math.abs(c.x - home.x)).filter(v => v > 1);
+    const reach = d.reach || (others.length ? Math.min(...others) : colW / s0), ease = u => Math.sin(clamp(u, -1, 1) * Math.PI / 2);
+    return [(d.x || 0) * ease((cam.x - home.x) / reach), (d.y || 0) * ease((cam.y - home.y) / (d.reach || m.view / 2))];
+  }
+  // a cover rect where its plane has drifted to, for the camera at cam
+  const drifted = (r, cams, cam, m, colW, s0) => { if (!r.drift) return r; const [dx, dy] = driftAt(r.drift, cams, cam, m, colW, s0); return { x: r.x + dx, y: r.y + dy, w: r.w, h: r.h }; };
   const inRect = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
   // a picture's address: a path under sprites/ gets its own version (sprites/versions.js), as every picture in the game
   const pictureUrl = src => {
@@ -174,7 +192,7 @@ const StoryPanorama = (() => {
         let bare = 0;
         for (let gy = 0; gy <= N; gy++) for (let gx = 0; gx <= N; gx++) {
           const sx = (gx / N - 0.5) * colW, sy = (gy / N - 0.5) * colH, s = s0 * cam.zoom * extra;
-          const covered = covers.some(c => { const dc = depthCam(m, cams, c.factor, cam); return inRect(c.r, dc.x + sx / s, dc.y + sy / s); });
+          const covered = covers.some(c => { const dc = depthCam(m, cams, c.factor, cam); return inRect(drifted(c.r, cams, cam, m, colW, s0), dc.x + sx / s, dc.y + sy / s); });
           if (!covered) bare++;
         }
         if (bare) out.push({ cam, extra, bare: bare / ((N + 1) * (N + 1)) });
@@ -285,18 +303,7 @@ const StoryPanorama = (() => {
     // a plane's own small drift (drift: { x, y, stop, reach }): at its stop none; as the camera moves away it shifts,
     // smoothly, never more than x and y world units (as a view through a window, far behind its frame); not with
     // reduced motion
-    function drift(d) {
-      if (still() || !cam) return [0, 0];
-      if (d.between) { // (one drift shared by a block of scenes: none at either end stop, most half way)
-        const [a, b] = d.between.map(i => cams[clamp(i, 0, cams.length - 1)]), t = b.x - a.x > 1 ? (cam.x - a.x) / (b.x - a.x) : -1;
-        if (t <= 0 || t >= 1) return [0, 0];
-        const e = Math.sin(Math.PI * t);
-        return [(d.x || 0) * e, (d.y || 0) * e];
-      }
-      const home = cams[clamp(d.stop, 0, cams.length - 1)], others = cams.filter(c => c !== home).map(c => Math.abs(c.x - home.x)).filter(v => v > 1);
-      const reach = d.reach || (others.length ? Math.min(...others) : colW / s0), ease = u => Math.sin(clamp(u, -1, 1) * Math.PI / 2);
-      return [(d.x || 0) * ease((cam.x - home.x) / reach), (d.y || 0) * ease((cam.y - home.y) / (d.reach || m.view / 2))];
-    }
+    const drift = d => (still() ? [0, 0] : driftAt(d, cams, cam, m, colW, s0));
     // the camera drawn: each depth moved (and zoomed) by one transform
     function render() {
       if (!cam) return;
@@ -418,7 +425,7 @@ const StoryPanorama = (() => {
       const N = 32;
       for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
         const sx = (gx + 0.5) * colW / N, sy = (gy + 0.5) * colH / N, s = s0 * cam.zoom * extra;
-        const ok = covers.some(({ L, r }) => { const c = depthCam(m, cams, L.factor, cam); return inRect(r, c.x + (sx - colW / 2) / s, c.y + (sy - colH / 2) / s); });
+        const ok = covers.some(({ L, r }) => { const c = depthCam(m, cams, L.factor, cam); return inRect(still() ? r : drifted(r, cams, cam, m, colW, s0), c.x + (sx - colW / 2) / s, c.y + (sy - colH / 2) / s); });
         if (!ok) g.fillRect(gx * colW / N, gy * colH / N, colW / N, colH / N);
       }
       if (!pathGaps) pathGaps = gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom, band: opts.band && opts.band() });
