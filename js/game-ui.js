@@ -2895,7 +2895,9 @@ const Intro = (() => {
     $('siForm').hidden = k !== 'name';
     $('siFoot').hidden = k === 'name';
     $('siSkip').hidden = k !== 'card';
-    $('siDots').hidden = $('siBack').hidden = k !== 'card';
+    // (Sister Ama's first words still let you go back to the story; once you go on past them, you stay with her)
+    $('siDots').hidden = k !== 'card' && at !== NAME;
+    $('siBack').hidden = k !== 'card' && at !== NAME;
     $('siBack').disabled = at === 0;
     $('siNextLabel').textContent = at === steps() - 1 ? 'Choose Your Path' : 'Continue';
     [...$('siDots').children].forEach((d, i) => { if (i === at && k === 'card') d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current'); });
@@ -2947,8 +2949,8 @@ const Intro = (() => {
       auto = requestAnimationFrame(frame);
     }, $('sortiaIntro').classList.contains('si-opening') ? OPENING_MS : AUTO_WAIT);
   }
-  // (a card to the one beside it: only among the cards, and on to Sister Ama from the last)
-  const turn = d => { if (at < NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
+  // (a card to the one beside it: only among the cards, on to Sister Ama from the last, and back from her first words)
+  const turn = d => { if (at <= NAME && at + d >= 0 && at + d <= NAME) go(at + d); else go(at); };
   function close() {
     stopAuto(); opening(false);
     const done = opts && opts.onDone; opts = null;
@@ -2997,7 +2999,7 @@ const Intro = (() => {
     // most OVERSCROLL); let go far or fast enough and it lands on the next stop or the one before, else it glides back.
     // Up and down scroll.
     box.addEventListener('touchstart', e => {
-      drag = at < NAME && e.touches.length === 1 && !e.target.closest('input, button, select, summary')
+      drag = at <= NAME && e.touches.length === 1 && !e.target.closest('input, button, select, summary')
         ? { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t: performance.now(), base: 0, on: false } : null;
     }, { passive: true });
     box.addEventListener('touchmove', e => {
@@ -3024,7 +3026,7 @@ const Intro = (() => {
     addEventListener('keydown', e => {
       if (box.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'D' && e.shiftKey && !e.target.closest('input, textarea')) { pano.dev(!pano.devOn); e.preventDefault(); return; } // (the development view)
-      if (at >= NAME) return;
+      if (at > NAME) return;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { turn(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); e.stopPropagation(); }
     }, true);
   }

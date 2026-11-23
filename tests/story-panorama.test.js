@@ -137,6 +137,30 @@ let URL;
     await context.close();
   }
 
+  // at Sister Ama's first words the story is still there to go back to (the back arrow, a swipe); once you go on, not
+  {
+    const { context, page } = await openStory(browser, SCREENS[0][1], '');
+    const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
+    await page.click('#siSkip'); await settled();
+    check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && !siBack.hidden && !siBack.disabled), 'Sister Ama\'s first words: the back arrow is there');
+    await page.click('#siBack'); await settled();
+    check(await page.evaluate(() => siTitle.textContent) === 'The False Signal', 'back from Sister Ama: the last card');
+    await page.click('#siNext'); await settled();
+    await page.evaluate(async () => {
+      const box = sortiaIntro, target = box.querySelector('.si-copy');
+      const t = (type, x) => box.dispatchEvent(new TouchEvent(type, { bubbles: true, touches: type === 'touchend' ? [] : [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })], changedTouches: [new Touch({ identifier: 1, target, clientX: x, clientY: 300 })] }));
+      t('touchstart', 100); t('touchmove', 120); t('touchmove', 200); t('touchmove', 260); t('touchend', 260);
+    });
+    await page.waitForTimeout(150); await settled();
+    check(await page.evaluate(() => siTitle.textContent) === 'The False Signal', 'a swipe back from Sister Ama: the last card');
+    await page.click('#siNext'); await settled();
+    await page.click('#siNext'); await settled();
+    check(await page.evaluate(() => siTitle.textContent === 'Sister Ama' && siBack.hidden), 'once on past her first words: no way back');
+    await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(300);
+    check(await page.evaluate(() => /Run to the gate|goblin was holding/.test(siCopy.textContent)), 'and the arrow key doesn\'t take you back either');
+    await context.close();
+  }
+
   // the story still ends in Choose Your Path
   {
     const { context, page } = await openStory(browser, SCREENS[0][1], '&pickpath&mobile');
