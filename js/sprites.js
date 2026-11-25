@@ -1941,14 +1941,89 @@ const Sprites = (() => {
     line(g, '#8a7f70', 1.6, ...gl, ...ga); line(g, '#8a7f70', 1.6, ...ga, ...gr);
     for (let k = 1; k < 5; k++) for (const [a, b] of [[gl, ga], [gr, ga]]) { const x = a[0] + (b[0] - a[0]) * k / 5, y = a[1] + (b[1] - a[1]) * k / 5; ellipse(g, '#9a8e7c', x, y - 1.2, 1.1, 1.1); }
   } };
+  // The porch before the cathedral's portal, 5 x 1 tiles: a pier with a tall pinnacle at each end, and between them a
+  // deep porch under a steep lead roof, its front a tall pointed arch in three carved orders with a tympanum (the sun of
+  // the Dawn), and over the arch a steep gable of tracery with a round window, crockets up its edges and a gilded finial.
+  BIG.porch = { w: 5, h: 1, rise: 150, slices: 3, draw(g) {
+    const st = WALL_STYLES.wall_gothic, rnd = makeRng(4244), V = 30, mid = 80, half = 32, zs = 22, rise = 46, ZE = 70, ZA = 134;
+    const pz = (u, off = 0) => zs + (rise + off * 1.1) * Math.sqrt(Math.max(0, 1 - Math.abs(u - mid) / (half + off)));
+    const arc = (v, from, to, off = 0) => { const pts = []; for (let i = 0; i <= 32; i++) { const u = from + ((to - from) * i) / 32; pts.push(...P(u, v, pz(u, off))); } return pts; };
+    const pier = u0 => { // a pier with a niche, set-offs and a tall pinnacle with crockets
+      prism(g, u0 + 4, 4, u0 + 28, V + 2, 0, 74, GOTHIC);
+      prism(g, u0 + 2, V - 2, u0 + 30, V + 2, 0, 8, GOTHIC);
+      prism(g, u0 + 6, 6, u0 + 26, V, 74, 84, GOTHIC);
+      taper(g, u0 + 6, 6, u0 + 26, V, 84, 150, 9.6, GOTHIC);
+      for (let z = 92; z < 146; z += 9) { const k = (z - 84) / 66 * 9.6, [x, y] = P(u0 + 26 - k, V - k, z); ellipse(g, '#8a7f70', x, y, 1.2, 1); }
+      const [fx, fy] = P(u0 + 16, (6 + V) / 2, 154); ellipse(g, '#a3977f', fx, fy, 2, 2);
+      poly(g, 'rgba(12,9,6,0.7)', [...P(u0 + 11, V + 2, 30), ...P(u0 + 11, V + 2, 52), ...P(u0 + 16, V + 2, 60), ...P(u0 + 21, V + 2, 52), ...P(u0 + 21, V + 2, 30)]); // a niche
+    };
+    pier(0);
+    // the roof: two steep planes of lead from its ridge, the lit west one and the east one in shade, in courses
+    poly(g, '#5c616c', [...P(34, 0, ZE), ...P(mid, 0, ZA), ...P(mid, V, ZA), ...P(34, V, ZE)]);
+    poly(g, '#3c4048', [...P(mid, 0, ZA), ...P(126, 0, ZE), ...P(126, V, ZE), ...P(mid, V, ZA)]);
+    for (let k = 1; k < 6; k++) { const f = k / 6; line(g, 'rgba(20,22,28,0.45)', 0.8, ...P(34 + (mid - 34) * f, 0, ZE + (ZA - ZE) * f), ...P(34 + (mid - 34) * f, V, ZE + (ZA - ZE) * f)); }
+    // its east side, in shade
+    poly(g, GOTHIC.east, [...P(126, 0, 0), ...P(126, V, 0), ...P(126, V, ZE), ...P(126, 0, ZE)]);
+    // the front: the gable's face of dark stone, with the arch cut through it
+    g.save();
+    g.beginPath();
+    g.moveTo(...P(34, V, 0)); g.lineTo(...P(mid - half, V, 0));
+    const front = arc(V, mid - half, mid + half); for (let i = 0; i < front.length; i += 2) g.lineTo(front[i], front[i + 1]);
+    g.lineTo(...P(mid + half, V, 0)); g.lineTo(...P(126, V, 0)); g.lineTo(...P(126, V, ZE)); g.lineTo(...P(mid, V, ZA)); g.lineTo(...P(34, V, ZE));
+    g.closePath(); g.clip();
+    g.transform(1, 0, 1, 1, 32, 62); // (texture: x along the face, y down from one floor up)
+    for (let j = -4; j <= 1; j++) for (let k = 0; k < 5; k++) { g.save(); g.translate(k * TILE, j * TILE); st.south(g, rnd); g.restore(); }
+    g.restore();
+    poly(g, '#2a241e', [...arc(V - 8, mid - half, mid + half), ...arc(V, mid + half, mid - half)]);           // the arch's underside
+    poly(g, '#3a332b', [...P(mid - half, V - 8, 0), ...P(mid - half, V, 0), ...P(mid - half, V, zs), ...P(mid - half, V - 8, zs)]); // its west jamb
+    // the tympanum over the way in, the sun of the Dawn in gold on it
+    const lintel = 40, span = half * (1 - ((lintel - zs) / rise) ** 2);
+    poly(g, '#6a6052', [...P(mid - span, V - 1, lintel), ...arc(V - 1, mid - span, mid + span), ...P(mid + span, V - 1, lintel)]);
+    line(g, '#9a8e7c', 1.2, ...P(mid - span - 1, V - 0.5, lintel), ...P(mid + span + 1, V - 0.5, lintel));
+    const [sx, sy] = P(mid, V - 1, lintel + 13);
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, i % 2 ? '#c8901c' : '#f2c94c', 1.4, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7.5, sy + Math.sin(a) * 7.5); }
+    ellipse(g, '#b8841a', sx, sy, 4.2, 4.2); ellipse(g, '#ffd860', sx - 0.5, sy - 0.5, 3, 3);
+    // three orders of mouldings round the arch, little carved figures on the middle one
+    for (const [off, c, w] of [[2.5, '#8a7f70', 2.2], [5.5, '#3c352d', 1.8], [8.5, '#958a7a', 2.2]]) line(g, c, w, ...arc(V + 0.5, mid - half - off, mid + half + off, off));
+    for (let i = 1; i < 12; i++) { const u = mid - half - 5 + ((2 * half + 10) * i) / 12, [x, y] = P(u, V + 0.6, pz(u, 5.5)); ellipse(g, '#a89c8a', x, y, 1.1, 1.5); }
+    // the gable's edges with crockets, its round window of tracery, the finial
+    const gl = P(34, V + 1, ZE), ga = P(mid, V + 1, ZA), gr = P(126, V + 1, ZE);
+    line(g, '#958a7a', 2.2, ...gl, ...ga); line(g, '#958a7a', 2.2, ...ga, ...gr);
+    for (let k = 1; k < 7; k++) for (const [a, b] of [[gl, ga], [gr, ga]]) { const x = a[0] + (b[0] - a[0]) * k / 7, y = a[1] + (b[1] - a[1]) * k / 7; ellipse(g, '#a89c8a', x, y - 1.6, 1.5, 1.4); }
+    const [rx, ry] = P(mid, V + 0.5, 100);
+    ellipse(g, '#2a1c10', rx, ry, 10, 10); ellipse(g, '#d89a48', rx, ry, 8.4, 8.4);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; line(g, '#2a1c10', 1, rx, ry, rx + Math.cos(a) * 8.4, ry + Math.sin(a) * 8.4); ellipse(g, '#f2cc80', rx + Math.cos(a + 0.39) * 5.6, ry + Math.sin(a + 0.39) * 5.6, 1.5, 1.5); }
+    ellipse(g, '#2a1c10', rx, ry, 2.6, 2.6); ellipse(g, '#f7dc9a', rx, ry, 1.8, 1.8);
+    line3(g, '#c8901e', 1.8, mid, V, ZA, mid, V, ZA + 10);
+    const [tx, ty] = P(mid, V, ZA + 14);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; line(g, '#f2c94c', 1.2, tx + Math.cos(a) * 2.6, ty + Math.sin(a) * 2.6, tx + Math.cos(a) * 5.4, ty + Math.sin(a) * 5.4); }
+    ellipse(g, '#c8901c', tx, ty, 2.8, 2.8); ellipse(g, '#ffd860', tx - 0.4, ty - 0.4, 2, 2);
+    pier(128);
+  } };
+  // A buttress against the cathedral's side, 1 tile: a pier in set-offs leaning on the wall beside it (west of it for
+  // buttress_e, east for buttress_w), a gabled cap at each set-off, a pinnacle with crockets on top.
+  const buttress = east => ({ w: 1, h: 1, rise: 110, slices: 3, draw(g) {
+    const u0 = east ? 0 : 14, u1 = east ? 18 : 32;
+    shadow(g, 64 + 18, 64 + 24, 12, 8);
+    prism(g, u0, 6, u1, 26, 0, 30, GOTHIC);
+    const i0 = east ? u0 : u0 + 3, i1 = east ? u1 - 3 : u1;
+    prism(g, i0, 8, i1, 24, 30, 58, GOTHIC);
+    const j0 = east ? u0 : u0 + 6, j1 = east ? u1 - 6 : u1;
+    prism(g, j0, 10, j1, 22, 58, 80, GOTHIC);
+    taper(g, j0, 10, j1, 22, 80, 118, (j1 - j0) / 2 - 0.6, GOTHIC);
+    for (let z = 86; z < 114; z += 8) { const k = (z - 80) / 38 * ((j1 - j0) / 2 - 0.6), [x, y] = P(j1 - k, 22 - k, z); ellipse(g, '#8a7f70', x, y, 1, 0.9); }
+    const c = (u0 + u1) / 2; poly(g, 'rgba(12,9,6,0.55)', [...P(c - 3, 26, 8), ...P(c - 3, 26, 20), ...P(c, 26, 24), ...P(c + 3, 26, 20), ...P(c + 3, 26, 8)]); // a narrow niche
+  } });
+  BIG.buttress_e = buttress(true);
+  BIG.buttress_w = buttress(false);
   // A spire over one of the cathedral's towers, 5 x 4 tiles: a parapet of tracery round the top of the tower, a slim
   // pinnacle on each corner, and from inside it the spire, eight-sided, dark stone in courses with crockets up its edges,
   // little gabled openings at its foot, rising high over the town to the golden sun of the Dawn at its tip.
   BIG.spire = { w: 5, h: 4, rise: 190, draw(g) {
-    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 210, Rb = 50;
+    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 300, Rb = 44;
     const tone = k => { const a = [46, 41, 36], b = [128, 118, 104]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
     const parapet = (u0, v0, u1, v1) => prism(g, u0, v0, u1, v1, 0, zb, GOTHIC);
-    const pinnacle = (u, v) => { prism(g, u - 5, v - 5, u + 5, v + 5, 0, 22, GOTHIC); taper(g, u - 5, v - 5, u + 5, v + 5, 22, 52, 4.6, GOTHIC); const [x, y] = P(u, v, 55); ellipse(g, '#a3977f', x, y, 1.6, 1.6); };
+    const pinnacle = (u, v) => { prism(g, u - 6, v - 6, u + 6, v + 6, 0, 30, GOTHIC); taper(g, u - 6, v - 6, u + 6, v + 6, 30, 84, 5.6, GOTHIC); const [x, y] = P(u, v, 88); ellipse(g, '#a3977f', x, y, 1.8, 1.8); for (let z = 40; z < 80; z += 10) { const [cx, cy] = P(u + 6 - (z - 30) * 0.1, v + 6 - (z - 30) * 0.1, z); ellipse(g, '#8a7f70', cx, cy, 1, 0.9); } };
     parapet(0, 0, W, 4); parapet(0, 0, 4, H);                                                        // its back edges
     pinnacle(6, 6); pinnacle(W - 6, 6); pinnacle(6, H - 6);
     // the spire: its eight faces, the far ones first, each in its own light (from the north-west)
@@ -1958,9 +2033,13 @@ const Sprites = (() => {
       const light = Math.max(0, Math.min(1, 0.5 - 0.42 * nu - 0.22 * nv));
       poly(g, tone(light), [...P(...pt(k, zb)), ...P(...pt(k + 1, zb)), ...P(cu, cv, zt)]);
       for (let z = zb + 18; z < zt - 12; z += 17) line(g, tone(light * 0.6), 0.8, ...P(...pt(k, z)), ...P(...pt(k + 1, z)));   // its courses
-      if (nu + nv > 0.2) for (let z = zb + 30; z < zt - 30; z += 30) { // little windows of tracery up the near faces
-        const m0 = pt(k, z), m1 = pt(k + 1, z), mu = (m0[0] + m1[0]) / 2, mv = (m0[1] + m1[1]) / 2, [x, y] = P(mu, mv, z + 5);
-        poly(g, 'rgba(10,8,6,0.75)', [x - 2.2, y + 4, x + 2.2, y + 4, x + 2.2, y - 1, x, y - 4, x - 2.2, y - 1]);
+      if (nu + nv > -0.3) for (let z = zb + 26; z < zt - 40; z += 24) { // its openwork: rows of pointed openings of tracery, the sky through them
+        const rad = Rb * (1 - (z - zb) / (zt - zb)), m0 = pt(k, z), m1 = pt(k + 1, z), n = rad > 22 ? 2 : 1;
+        for (let j = 0; j < n; j++) {
+          const f = (j + 1) / (n + 1), mu = m0[0] + (m1[0] - m0[0]) * f, mv = m0[1] + (m1[1] - m0[1]) * f, [x, y] = P(mu, mv, z + 4), w = Math.max(1.2, rad / 16), h = w * 3.2;
+          poly(g, 'rgba(10,8,6,0.8)', [x - w, y + h * 0.5, x + w, y + h * 0.5, x + w, y - h * 0.2, x, y - h * 0.7, x - w, y - h * 0.2]);
+          ellipse(g, 'rgba(10,8,6,0.8)', x, y - h - 1.2, w * 0.7, w * 0.7);                                 // a little round of tracery over it
+        }
       }
     }
     for (let k = 0; k < 8; k++) { // crockets up its edges: little knobs of carved leaves
@@ -2107,6 +2186,9 @@ const Sprites = (() => {
     temple_lantern_nw: ['temple_lantern', 0, 0], temple_lantern_ne: ['temple_lantern', 1, 0], temple_lantern_sw: ['temple_lantern', 0, 1], temple_lantern_se: ['temple_lantern', 1, 1],
     arch_w: ['arch', 0, 0], arch_m: ['arch', 1, 0], arch_e: ['arch', 2, 0],
     portal_w: ['portal', 0, 0], portal_m: ['portal', 1, 0], portal_e: ['portal', 2, 0],
+    porch_0: ['porch', 0, 0], porch_1: ['porch', 1, 0], porch_2: ['porch', 2, 0], porch_3: ['porch', 3, 0], porch_4: ['porch', 4, 0],
+    buttress_e: ['buttress_e', 0, 0], buttress_w: ['buttress_w', 0, 0],
+    ...Object.fromEntries([1, 2].flatMap(s => [...[0, 1, 2, 3, 4].map(c => [`porch_${c}_${s}`, ['porch', c, 0, s]]), [`buttress_e_${s}`, ['buttress_e', 0, 0, s]], [`buttress_w_${s}`, ['buttress_w', 0, 0, s]]])),
     ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3].map(r => [`spire_${c}${r}`, ['spire', c, r]]))),
     bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],
     bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
@@ -2115,8 +2197,11 @@ const Sprites = (() => {
   // (upright: it stands straight up, as statues' figures do, not leaning: see the clip below; rise: how far above its tiles a
   // big thing reaches, 64 unless it says more; its own PNG, sprites/custom.js, if it has one:
   // the whole thing on one picture, w * 32 + rise wide and h * 32 + rise high, its north-west tile's corner at rise, rise)
+  // (a big thing that rises past the floors above it, beside a taller building, is drawn in slices, one per floor:
+  // slice 0 on its own floor shows its foot, slice s, a floor higher, what rises past each floor in turn, the last all
+  // that's above; so the building's upper floors, drawn later, don't hide it. PARTS: [name, col, row, slice])
   function bigPart(id, frame) {
-    const [name, col, row] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name);
+    const [name, col, row, slice = 0] = PARTS[id], b = BIG[name], R = b.rise || 64, own = customImage(name), last = (b.slices || 1) - 1;
     const at = (f, fn) => { f.save(); f.translate(R - 64, R - 64); fn(f); f.restore(); }; // (its drawing has the corner at 64, 64, as P() has)
     const fine = !own && b.fine && b.fine(), K = Sprites.CREATURE_RES; // (drawn from a fine picture of its own: kept as fine)
     const whole = own || (fine
@@ -2138,7 +2223,8 @@ const Sprites = (() => {
       if (!upright) for (const [x, y] of [[0, 0], [32, 0], [R + 32, R], [R + 32, R + 32], [R, R + 32], [0, 32]]) g.lineTo(x, y); // this tile, and the strip rising up-left from it
       else g.rect(box[0], box[1], w, h); // (upright: the south row's tiles draw everything straight above them, the westmost also what leans out west; the others their own tile)
       g.clip();
-      g.drawImage(whole, -col * TILE, -row * TILE, b.w * TILE + R, b.h * TILE + R);
+      if (last) { g.beginPath(); g.rect(0, slice === last ? 0 : R, R + TILE, slice === 0 ? TILE + R : (slice === last ? R + TILE : TILE)); g.clip(); } // (its slice of the floors)
+      g.drawImage(whole, -col * TILE + slice * TILE, -row * TILE + slice * TILE, b.w * TILE + R, b.h * TILE + R);
     }, Math.round(w * k), Math.round(h * k));
   }
 

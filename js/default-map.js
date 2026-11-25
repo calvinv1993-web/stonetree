@@ -2336,7 +2336,9 @@ function buildTown(m, S, runs, river) {
     const mt = T.mount, pcx = t.door[0];
     for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0 + 1; x <= t.x1 - 1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
-    for (const x of [pcx - 2, pcx + 2]) put(x, T.mount.y1 - 1, Z, 'pillar'); // pillars either side of the top of the steps
+    for (let k = 0; k < 5; k++) { const pt = m.get(pcx - 2 + k, T.mount.y1 - 1, Z); pt.items = [`porch_${k}`]; } // the porch before the portal, its piers either side of the top of the steps
+    const slices = (x, y, id) => { for (const k of [1, 2]) m.set(x, y, Z + k, { ground: null, items: [`${id}_${k}`] }); }; // (a tall thing's upper slices, over it)
+    for (let k = 0; k < 5; k++) slices(pcx - 2 + k, T.mount.y1 - 1, `porch_${k}`);
     for (const x of [t.x0 + 1, t.x1 - 1]) put(x, T.mount.y1 - 1, Z, 'lamppost'); // lamps at the terrace's ends
     sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
     // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace
@@ -2345,6 +2347,8 @@ function buildTown(m, S, runs, river) {
       if (inB(t, x, y)) continue;
       if ([[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([ox, oy]) => inB(t, x + ox, y + oy))) pave(x, y);
     }
+    // buttresses along the nave's sides, their flying arches up to its walls (on the path round it, which goes round them)
+    for (const y of [ny0 + 1, ny1]) { put(n0 - 1, y, Z, 'buttress_w'); put(n1 + 1, y, Z, 'buttress_e'); slices(n0 - 1, y, 'buttress_w'); slices(n1 + 1, y, 'buttress_e'); }
     // the statue of the founder, three tiles square, on the mount's east shoulder beside the temple, facing the town
     { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {

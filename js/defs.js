@@ -241,6 +241,32 @@ const THINGS = {
   portal_m:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   portal_e:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   pier_gothic: { name: 'carved pier', cat: 'Town', block: true, tall: true }, // a belfry's corner, holding up its spire
+  // The porch before the cathedral's portal, 5 x 1 (BIG.porch): a pinnacled pier at each end, and between them a tall
+  // pointed arch under a steep gable of tracery; you walk through its middle three tiles
+  porch_0:     { name: 'the porch\'s pier', cat: 'Town', block: true, tall: true },
+  porch_1:     { name: 'the great porch', cat: 'Walls', wall: 'thin' },
+  porch_2:     { name: 'the great porch', cat: 'Walls', wall: 'thin' },
+  porch_3:     { name: 'the great porch', cat: 'Walls', wall: 'thin' },
+  porch_4:     { name: 'the porch\'s pier', cat: 'Town', block: true, tall: true },
+  // A buttress against the cathedral's side (BIG.buttress_e / _w, 1 x 1): a stepped pier with a pinnacle, a flying
+  // arch from it up to the wall (east: the wall lies west of it; west: east of it)
+  buttress_e:  { name: 'buttress', cat: 'Town', block: true, tall: true },
+  buttress_w:  { name: 'buttress', cat: 'Town', block: true, tall: true },
+  // (their slices a floor and two floors up, over them: what rises past the cathedral's upper floors, see Sprites' bigPart)
+  porch_0_1: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_1_1: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_2_1: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_3_1: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_4_1: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_0_2: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_1_2: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_2_2: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_3_2: { name: 'the great porch', cat: 'Town', tall: true },
+  porch_4_2: { name: 'the great porch', cat: 'Town', tall: true },
+  buttress_e_1: { name: 'buttress', cat: 'Town', tall: true },
+  buttress_w_1: { name: 'buttress', cat: 'Town', tall: true },
+  buttress_e_2: { name: 'buttress', cat: 'Town', tall: true },
+  buttress_w_2: { name: 'buttress', cat: 'Town', tall: true },
   bell_nw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_ne:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_sw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
