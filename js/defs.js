@@ -64,6 +64,7 @@ const THINGS = {
   sewer_water: { name: 'sewer water', cat: 'Ground', ground: true, block: true },  // the channel between them
   crypt:       { name: 'worn grave slabs', cat: 'Ground', ground: true },          // the floor of a crypt
   pit:         { name: 'deep shaft', cat: 'Ground', ground: true, block: true },   // a drop into the dark, through rock
+  ceiling:     { name: 'ceiling', cat: 'Ground', ground: true, block: true },      // a vault over a room under a roof: drawn as nothing, nobody stands on it; it hides what is above when you're inside, and (not a roof) keeps no night of its own
   swamp:       { name: 'swamp', cat: 'Ground', ground: true },
   temple_paving: { name: 'temple limestone paving', cat: 'Ground', ground: true },
   paving:      { name: 'paving stones', cat: 'Ground', ground: true },

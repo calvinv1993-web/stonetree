@@ -2571,6 +2571,7 @@ const Sprites = (() => {
       row(21, 10, 0, TILE);
     },
     // Marble: big pale slabs, two to a tile, with soft grey veins and bevelled edges.
+    ceiling() {}, // (a vault seen from above: nothing; the roof over it shows)
     // The cathedral's floor: squares of pale sandstone and grey stone in turn, quiet, each bevelled, the pale ones faintly veined.
     marble_check(g, r) {
       for (const [x, y, dark] of [[0, 0, 0], [16, 0, 1], [0, 16, 1], [16, 16, 0]]) {

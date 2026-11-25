@@ -2284,13 +2284,13 @@ function buildTown(m, S, runs, river) {
         const bells = side === 'east';
         if (z === top && bells) { m.set(x, y, z, { ground: 'temple_paving', items: corner ? ['pier_gothic'] : [] }); continue; } // the belfry: open, on four corner piers
         if (z === base && !edge) { m.set(x, y, z, { ground: 'marble', items: [] }); continue; } // (its room on the temple's floor)
-        if (!bells && !edge) { m.set(x, y, z, z === base + 1 ? { ground: 'roof_lead', items: [] } : null); continue; } // (the west tower is hollow above its chapel's ceiling: no floors nobody can reach)
+        if (!bells && !edge) { m.set(x, y, z, z === base + 1 ? { ground: 'ceiling', items: [] } : null); continue; } // (the west tower is hollow above its chapel's ceiling: no floors nobody can reach)
         const window = edge && !corner && z > base && ((y === y1 && x === ((x0 + x1) >> 1)) || (x === x1 && y === ((y0 + y1 + 1) >> 1)));
         m.set(x, y, z, { ground: bells || edge ? 'temple_paving' : null, items: edge ? (window ? ['wall_gothic', 'window_gothic'] : ['wall_gothic_tower']) : [] }); // (shafts and blind arches up its faces)
       }
       m.get(ddx, ddy, base).items = ['door'];
       // the spire over it: its tiles carry the spire, standing on a roof of lead
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, top + 1, { ground: 'roof_lead', items: [`spire_${x - x0}${y - y0}`] });
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, top + 1, { ground: 'ceiling', items: [`spire_${x - x0}${y - y0}`] }); // (a ceiling under it, not a roof: the spire's crown is its own, and a roof would keep the night over it)
     }
     BT.stairs.forEach(([x, y], k) => { put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
     const [sx, sy] = BT.stairs[BT.stairs.length - 1];
@@ -2338,7 +2338,7 @@ function buildTown(m, S, runs, river) {
     // its floor: pale marble and dark slate in turn, through the nave and the hall
     eachOf(t, (x, y) => { const ft = m.get(x, y, Z); if (ft && ft.ground === 'marble' && !(x >= TW.west.at[0] && x <= TW.west.at[2] && y >= TW.west.at[1]) && !(x >= TW.east.at[0] && x <= TW.east.at[2] && y >= TW.east.at[1])) ft.ground = 'marble_check'; });
     // a ceiling over the nave and the hall (hidden from outside under their roofs): inside, what is above hides as in any building
-    eachOf(t, (x, y) => { const up = m.get(x, y, Z + 1); if (up && !up.items.length && up.ground === 'wood') up.ground = 'roof_lead'; });
+    eachOf(t, (x, y) => { const up = m.get(x, y, Z + 1); if (up && !up.items.length && up.ground === 'wood') up.ground = 'ceiling'; }); // (a ceiling: it hides what's above when you're inside, as a roof would, but keeps no night of its own)
     // the roof over the hall behind the portal, between the towers: dark lead, a roof of its own (the nave's stands up apart)
     for (let y = TW.west.at[1]; y <= t.y1; y++) for (let x = TW.west.at[2] + 1; x < TW.east.at[0]; x++) { const r = m.get(x, y, Z + t.floors); if (r && r.ground === t.roof) r.ground = 'roof_lead'; }
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
