@@ -2325,7 +2325,7 @@ function buildTown(m, S, runs, river) {
     for (let y = ny0 + 3; y < t.y1; y++) put(cx, y, Z, 'carpet_rug'); // and a red runner down the middle, from the portal to it
     put(cx, ny0 + 1, Z, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar (they light it)
-    for (const x of [cx - 3, cx + 3]) put(x, ny0 + 1, Z, 'plant'); // (a plant in each nook between saint and candles, never a pocket of floor)
+    put(cx - 3, ny0 + 1, Z, 'lectern'); put(cx + 3, ny0 + 1, Z, 'votive_rack'); // the great book on its lectern, a rack of candles lit for the dead (in the nooks: never a pocket of floor)
     for (const x of [n0 + 1, n1 - 1]) put(x, ny0 + 2, Z, 'candelabra'); // (and candles between the saints and the piers)
     for (const x of [n0 + 1, n1 - 1]) { put(x, ny0 + 1, Z, 'saint'); put(x, ny1, Z, 'pier_gothic'); } // saints by the altar; piers of the nave's dark stone
     for (const y of [ny0 + 2, ny1]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // pews either side of the runner

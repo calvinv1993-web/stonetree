@@ -57,7 +57,7 @@ const THINGS = {
   sand:        { name: 'sand', cat: 'Ground', ground: true },
   cobble:      { name: 'cobblestone', cat: 'Ground', ground: true },
   marble:      { name: 'marble floor', cat: 'Ground', ground: true },
-  marble_check:{ name: 'chequered stone floor', cat: 'Ground', ground: true }, // the cathedral's: pale marble and dark slate in turn (a protection zone, as marble is)
+  marble_check:{ name: 'stone floor', cat: 'Ground', ground: true }, // the cathedral's: pale marble and dark slate in turn (a protection zone, as marble is)
   wood:        { name: 'wooden floor', cat: 'Ground', ground: true },
   cave:        { name: 'cave floor', cat: 'Ground', ground: true },
   sewer:       { name: 'damp flagstones', cat: 'Ground', ground: true },             // the walkways of a sewer
@@ -327,6 +327,8 @@ const THINGS = {
   pew:         { name: 'pew', cat: 'Furniture', block: true, low: true },
   candelabra:  { name: 'candle stand', cat: 'Furniture', block: true, tall: true, light: 3 }, // an iron stand of tall candles (the cathedral's)
   holy_font:   { name: 'font of blessed water', cat: 'Furniture', block: true, low: true },   // a stone basin on a carved foot
+  lectern:     { name: 'lectern', cat: 'Furniture', block: true, low: true },                 // a carved stand with the great book open on it
+  votive_rack: { name: 'rack of candles', cat: 'Furniture', block: true, low: true, light: 2 }, // little candles lit for the dead, in rows on an iron rack
   // light through the cathedral's stained glass, lying on its floor in colour (you walk over it)
   stained_light_0: { name: 'coloured light', cat: 'Decoration', low: true },
   stained_light_1: { name: 'coloured light', cat: 'Decoration', low: true },
