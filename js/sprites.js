@@ -795,11 +795,12 @@ const Sprites = (() => {
   const STONE = { top: '#ece4ce', south: '#cfc6b0', east: '#a89e88', edge: '#fff8e4' };
   // Coloured light on the floor through a pointed window: three panes side by side, a pointed head, soft edges.
   function stainedLight(g, colours) {
+    poly(g, 'rgba(255,236,190,0.16)', [...P(2, 31, 0), ...P(30, 31, 0), ...P(31, 8, 0), ...P(18, 0, 0), ...P(5, 8, 0)]);
     colours.forEach((c, k) => {
-      const u0 = 7 + k * 6.5, u1 = u0 + 5.5, um = (u0 + u1) / 2;
-      poly(g, c, [...P(u0, 26, 0), ...P(u1, 26, 0), ...P(u1 + 3, 10, 0), ...P(um + 3, 4, 0), ...P(u0 + 3, 10, 0)]);
+      const u0 = 4 + k * 8.4, u1 = u0 + 7.4, um = (u0 + u1) / 2, strong = c.replace(/[\d.]+\)$/, '0.5)');
+      poly(g, strong, [...P(u0, 30, 0), ...P(u1, 30, 0), ...P(u1 + 3, 10, 0), ...P(um + 3, 3, 0), ...P(u0 + 3, 10, 0)]);
+      for (const z of [14, 22]) line(g, 'rgba(40,24,10,0.25)', 0.8, ...P(u0 + 1, z, 0), ...P(u1 + 1, z, 0)); // the lead's shadow across it
     });
-    poly(g, 'rgba(255,240,200,0.10)', [...P(5, 27, 0), ...P(27, 27, 0), ...P(30, 9, 0), ...P(19, 2, 0), ...P(8, 9, 0)]);
   }
   const GOTHIC = { top: '#857a6c', south: '#625a4f', east: '#463f37', edge: '#a3978554' }; // the cathedral's dark sandstone
   // The cathedral's window glass in face coordinates (x along, y up): two pointed lancets and a round of tracery over
@@ -2570,6 +2571,16 @@ const Sprites = (() => {
       row(21, 10, 0, TILE);
     },
     // Marble: big pale slabs, two to a tile, with soft grey veins and bevelled edges.
+    // The cathedral's floor: squares of pale marble and dark slate in turn, each bevelled, the marble faintly veined.
+    marble_check(g, r) {
+      for (const [x, y, dark] of [[0, 0, 0], [16, 0, 1], [0, 16, 1], [16, 16, 0]]) {
+        const v = dark ? 84 + ((r() * 10) | 0) : 212 + ((r() * 12) | 0), c = d => `rgb(${v + d},${v + d - 5},${v + d - (dark ? 12 : 14)})`;
+        rect(g, c(0), x, y, 16, 16);
+        rect(g, c(dark ? 18 : 14), x, y, 16, 1); rect(g, c(dark ? 18 : 14), x, y, 1, 16);
+        rect(g, c(dark ? -26 : -46), x, y + 15, 16, 1); rect(g, c(dark ? -26 : -46), x + 15, y, 1, 16);
+        if (!dark && r() < 0.6) { const vx = x + 3 + r() * 9; line(g, 'rgba(140,134,124,0.5)', 1, vx, y + 2, vx + (r() - 0.5) * 8, y + 13); }
+      }
+    },
     marble(g, r) {
       for (const [x, y] of [[0, 0], [16, 0], [0, 16], [16, 16]]) {
         const v = 214 + ((r() * 14) | 0);
@@ -3176,20 +3187,19 @@ const Sprites = (() => {
     },
     // An iron candle stand: a foot of three claws, a straight shaft, a ring of five tall wax candles burning, wax run
     // down them; it stands upright, as poles do.
-    candelabra(g, r, frame) {
-      floorShadow(g, 8, 2);
+    candelabra(g, r, frame) { // (in the world's slant, as furniture stands: its ring of candles round the shaft, the far ones first)
+      floorShadow(g, 9, 3);
       const iron = { top: '#4a4640', south: '#2e2b27', east: '#201e1b', edge: '#6a655d' }, wax = { top: '#fff6e0', south: '#efe2c2', east: '#cdbf9e', edge: '#ffffff' };
-      prism(g, 11, 11, 21, 21, 0, 3, iron);
-      upright(3, () => {
-        prism(g, 15, 15, 17, 17, 3, 38, iron);
-        prism(g, 8, 15, 24, 17, 36, 38, iron);
-        for (const u of [8, 12, 16, 20, 24]) {
-          const top = u === 16 ? 52 : u === 12 || u === 20 ? 49 : 46;
-          prism(g, u - 1.2, 14.8, u + 1.2, 17.2, 38, top, wax);
-          const [fx, fy] = P(u, 16, top + 3 + (frame % 2) * 0.6);
-          ellipse(g, 'rgba(255,190,80,0.35)', fx, fy, 3.4, 4.4); ellipse(g, '#ffb040', fx, fy, 1.3, 2.6); ellipse(g, '#fff4c0', fx, fy + 0.6, 0.6, 1.2);
-        }
-      }, 1);
+      prism(g, 10, 10, 22, 22, 0, 3, iron);                                                   // its foot
+      prism(g, 15, 15, 17, 17, 3, 36, iron);                                                  // its shaft
+      const ring = [...Array(6).keys()].map(k => { const a = (k / 6) * Math.PI * 2 + 0.3; return [16 + Math.cos(a) * 7, 16 + Math.sin(a) * 7]; }).sort((p, q) => (p[0] + p[1]) - (q[0] + q[1]));
+      const flame = (u, v, z) => { const [fx, fy] = P(u, v, z + 3 + (frame % 2) * 0.6); ellipse(g, 'rgba(255,190,80,0.32)', fx, fy, 3.2, 4.2); ellipse(g, '#ffb040', fx, fy, 1.2, 2.4); ellipse(g, '#fff4c0', fx, fy + 0.6, 0.6, 1.1); };
+      const candle = (u, v, top) => { prism(g, u - 1.2, v - 1.2, u + 1.2, v + 1.2, 37, top, wax); flame(u, v, top); };
+      const back = ring.filter(([u, v]) => u + v < 32), front = ring.filter(([u, v]) => u + v >= 32);
+      for (const [u, v] of back) candle(u, v, 46);
+      prism(g, 8, 8, 24, 24, 35, 37, iron);                                                   // the ring the candles stand in (a dish)
+      candle(16, 16, 52);                                                                     // the tall one in the middle
+      for (const [u, v] of front) candle(u, v, 46);
     },
     // A font of blessed water: a stone basin on a carved foot, the water in it catching the light.
     holy_font(g) {

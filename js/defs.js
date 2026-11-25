@@ -57,6 +57,7 @@ const THINGS = {
   sand:        { name: 'sand', cat: 'Ground', ground: true },
   cobble:      { name: 'cobblestone', cat: 'Ground', ground: true },
   marble:      { name: 'marble floor', cat: 'Ground', ground: true },
+  marble_check:{ name: 'chequered stone floor', cat: 'Ground', ground: true }, // the cathedral's: pale marble and dark slate in turn (a protection zone, as marble is)
   wood:        { name: 'wooden floor', cat: 'Ground', ground: true },
   cave:        { name: 'cave floor', cat: 'Ground', ground: true },
   sewer:       { name: 'damp flagstones', cat: 'Ground', ground: true },             // the walkways of a sewer

@@ -2324,17 +2324,20 @@ function buildTown(m, S, runs, river) {
     for (let y = ny0 + 1; y <= ny0 + 2; y++) for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug'); // a rug under the altar
     for (let y = ny0 + 3; y < t.y1; y++) put(cx, y, Z, 'carpet_rug'); // and a red runner down the middle, from the portal to it
     put(cx, ny0 + 1, Z, 'altar');
-    for (const x of [cx - 2, cx + 2]) put(x, ny0 + 1, Z, 'torch');
-    for (const x of [cx - 3, cx + 3]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar
-    for (const x of [n0 + 1, n1 - 1]) { put(x, ny0 + 1, Z, 'saint'); put(x, ny0 + 2, Z, 'pillar'); put(x, ny1, Z, 'pillar'); } // saints by the altar; piers down the nave
+    for (const x of [cx - 2, cx + 2]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar (they light it)
+    for (const x of [cx - 3, cx + 3]) put(x, ny0 + 1, Z, 'plant'); // (a plant in each nook between saint and candles, never a pocket of floor)
+    for (const x of [n0 + 1, n1 - 1]) put(x, ny0 + 2, Z, 'candelabra'); // (and candles between the saints and the piers)
+    for (const x of [n0 + 1, n1 - 1]) { put(x, ny0 + 1, Z, 'saint'); put(x, ny1, Z, 'pier_gothic'); } // saints by the altar; piers of the nave's dark stone
     for (const y of [ny0 + 2, ny1]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // pews either side of the runner
     for (const y of [ny0 + 2]) { put(n0, y, Z, 'wall_torch'); put(n1, y, Z, 'wall_torch'); }
     for (const x of [cx - 3, cx + 3]) put(x, ny0, Z, 'banner'); // the Dawn's banners on the wall behind the altar
     // the hall behind the portal: piers at its corners, a font of blessed water, coloured light from the great window
     const [hx0, hx1] = [TW.west.at[2] + 1, TW.east.at[0] - 1];
-    put(hx0, TW.west.at[1], Z, 'pillar'); put(hx1, TW.west.at[1], Z, 'pillar');
+    put(hx0, TW.west.at[1], Z, 'pier_gothic'); put(hx1, TW.west.at[1], Z, 'pier_gothic');
     put(hx0, t.y1 - 2, Z, 'holy_font'); // (beside the west tower's door, not in front of it)
-    for (const [x, y, k] of [[cx - 1, t.y1 - 2, 0], [cx + 1, t.y1 - 2, 1], [cx - 1, ny1, 2], [cx + 1, ny1, 0]]) put(x, y, Z, `stained_light_${k}`);
+    for (const [x, y, k] of [[cx - 1, t.y1 - 2, 0], [cx + 1, t.y1 - 2, 1], [cx - 1, ny1, 1], [cx + 1, ny1, 2]]) put(x, y, Z, `stained_light_${k}`);
+    // its floor: pale marble and dark slate in turn, through the nave and the hall
+    eachOf(t, (x, y) => { const ft = m.get(x, y, Z); if (ft && ft.ground === 'marble' && !(x >= TW.west.at[0] && x <= TW.west.at[2] && y >= TW.west.at[1]) && !(x >= TW.east.at[0] && x <= TW.east.at[2] && y >= TW.east.at[1])) ft.ground = 'marble_check'; });
     // a ceiling over the nave and the hall (hidden from outside under their roofs): inside, what is above hides as in any building
     eachOf(t, (x, y) => { const up = m.get(x, y, Z + 1); if (up && !up.items.length && up.ground === 'wood') up.ground = 'roof_lead'; });
     // the roof over the hall behind the portal, between the towers: dark lead, a roof of its own (the nave's stands up apart)

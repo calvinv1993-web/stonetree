@@ -37,7 +37,7 @@ class GameMap {
   // Temples and depots (marble floors), and protection zones: no fighting, and no entry for players with a skull.
   isProtected(x, y, z) {
     const t = this.get(x, y, z);
-    return !!t && (t.ground === 'marble' || this.zoneAt(x, y, z) === 2);
+    return !!t && (t.ground === 'marble' || t.ground === 'marble_check' || this.zoneAt(x, y, z) === 2);
   }
   // Monsters keep out of these and leave you be in them: protection zones, and shelters
   // (shops, inns, halls), which are no protection zones: players with a skull may go in.
