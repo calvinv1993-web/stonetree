@@ -324,6 +324,12 @@ const THINGS = {
   founder_22: { name: 'the statue of the founder', cat: 'Town', block: true, tall: true },
   saint:       { name: 'statue of a saint', cat: 'Town', block: true, tall: true },
   pew:         { name: 'pew', cat: 'Furniture', block: true, low: true },
+  candelabra:  { name: 'candle stand', cat: 'Furniture', block: true, tall: true, light: 3 }, // an iron stand of tall candles (the cathedral's)
+  holy_font:   { name: 'font of blessed water', cat: 'Furniture', block: true, low: true },   // a stone basin on a carved foot
+  // light through the cathedral's stained glass, lying on its floor in colour (you walk over it)
+  stained_light_0: { name: 'coloured light', cat: 'Decoration', low: true },
+  stained_light_1: { name: 'coloured light', cat: 'Decoration', low: true },
+  stained_light_2: { name: 'coloured light', cat: 'Decoration', low: true },
   temple_lantern_nw: { name: 'the temple\'s lantern', cat: 'Town', block: true, tall: true },
   temple_lantern_ne: { name: 'the temple\'s lantern', cat: 'Town', block: true, tall: true },
   temple_lantern_sw: { name: 'the temple\'s lantern', cat: 'Town', block: true, tall: true },

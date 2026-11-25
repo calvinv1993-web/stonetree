@@ -793,6 +793,14 @@ const Sprites = (() => {
     : (u, out, h) => [32 + u - h, 64 + out - h]);
   const IRON = { top: '#5e5a54', south: '#3a3632', east: '#24221f', edge: '#7a756e' };
   const STONE = { top: '#ece4ce', south: '#cfc6b0', east: '#a89e88', edge: '#fff8e4' };
+  // Coloured light on the floor through a pointed window: three panes side by side, a pointed head, soft edges.
+  function stainedLight(g, colours) {
+    colours.forEach((c, k) => {
+      const u0 = 7 + k * 6.5, u1 = u0 + 5.5, um = (u0 + u1) / 2;
+      poly(g, c, [...P(u0, 26, 0), ...P(u1, 26, 0), ...P(u1 + 3, 10, 0), ...P(um + 3, 4, 0), ...P(u0 + 3, 10, 0)]);
+    });
+    poly(g, 'rgba(255,240,200,0.10)', [...P(5, 27, 0), ...P(27, 27, 0), ...P(30, 9, 0), ...P(19, 2, 0), ...P(8, 9, 0)]);
+  }
   const GOTHIC = { top: '#857a6c', south: '#625a4f', east: '#463f37', edge: '#a3978554' }; // the cathedral's dark sandstone
   // The cathedral's window glass in face coordinates (x along, y up): two pointed lancets and a round of tracery over
   // them, warm amber panes lit from within, held in lead.
@@ -1598,7 +1606,7 @@ const Sprites = (() => {
   const RAISED = new Set(['eggs', 'smith_hearth', 'waterwheel', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
-    'stall', 'saint', 'pew', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
+    'stall', 'saint', 'pew', 'candelabra', 'holy_font', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_hole', 'powder_kegs', 'millstone', 'brazier', 'sandbags',
     'sarcophagus', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
@@ -3166,6 +3174,35 @@ const Sprites = (() => {
       const [px, py] = P(16, 17, 16);              // the figure stands on it
       standFigure(g, stoneFigure('saint', MARBLE_SAINT), px, py);
     },
+    // An iron candle stand: a foot of three claws, a straight shaft, a ring of five tall wax candles burning, wax run
+    // down them; it stands upright, as poles do.
+    candelabra(g, r, frame) {
+      floorShadow(g, 8, 2);
+      const iron = { top: '#4a4640', south: '#2e2b27', east: '#201e1b', edge: '#6a655d' }, wax = { top: '#fff6e0', south: '#efe2c2', east: '#cdbf9e', edge: '#ffffff' };
+      prism(g, 11, 11, 21, 21, 0, 3, iron);
+      upright(3, () => {
+        prism(g, 15, 15, 17, 17, 3, 38, iron);
+        prism(g, 8, 15, 24, 17, 36, 38, iron);
+        for (const u of [8, 12, 16, 20, 24]) {
+          const top = u === 16 ? 52 : u === 12 || u === 20 ? 49 : 46;
+          prism(g, u - 1.2, 14.8, u + 1.2, 17.2, 38, top, wax);
+          const [fx, fy] = P(u, 16, top + 3 + (frame % 2) * 0.6);
+          ellipse(g, 'rgba(255,190,80,0.35)', fx, fy, 3.4, 4.4); ellipse(g, '#ffb040', fx, fy, 1.3, 2.6); ellipse(g, '#fff4c0', fx, fy + 0.6, 0.6, 1.2);
+        }
+      }, 1);
+    },
+    // A font of blessed water: a stone basin on a carved foot, the water in it catching the light.
+    holy_font(g) {
+      floorShadow(g, 11, 3);
+      prism(g, 9, 9, 23, 23, 0, 3, GOTHIC);
+      prism(g, 12, 12, 20, 20, 3, 12, GOTHIC);
+      prism(g, 6, 6, 26, 26, 12, 18, { top: '#9a8e7c', south: '#6e6558', east: '#4e473e', edge: '#b4a894' });
+      const [wx, wy] = P(16, 16, 18); ellipse(g, '#3c6ea8', wx, wy, 8, 8); ellipse(g, '#7ab0e0', wx - 1.6, wy - 1.6, 3.4, 2.4);
+    },
+    // Light through the stained glass, lying on the floor: the shape of a pointed window, in soft colour.
+    stained_light_0: g => stainedLight(g, ['rgba(90,140,255,0.28)', 'rgba(255,200,90,0.26)', 'rgba(200,60,70,0.24)']),
+    stained_light_1: g => stainedLight(g, ['rgba(200,60,70,0.26)', 'rgba(90,140,255,0.24)', 'rgba(255,200,90,0.28)']),
+    stained_light_2: g => stainedLight(g, ['rgba(255,200,90,0.28)', 'rgba(150,80,200,0.22)', 'rgba(90,140,255,0.26)']),
     // A temple pew: dark polished wood, its ends carved and capped, a seat and a high back (it faces the altar, north:
     // you see its back), a gilded rail along the top.
     pew(g) {
