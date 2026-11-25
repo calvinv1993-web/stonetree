@@ -1,8 +1,10 @@
 <!doctype html>
-<!-- A picture trial on its own, apart from the game (the owner's sortia-bastion-twee-rijen-proef: one scene of 1829 x 3200
-     in two strips of 1829 x 1800, the lower at y 1400, the 400 px they share pixel-identical). Both strips get one and the
-     same transform: they're two parts of one picture, never parallax layers. Opened from the gate: three taps on the
-     SORTIA logo. Nothing here changes the story or its pictures. -->
+<!-- A picture trial on its own, apart from the game (the owner's sortia-bastion-brugfix-parallax: one scene of 1829 x 3200,
+     the bridge mended, in two depths). The far depth (sky, moon, far forest: 1957 x 1728 at -64, -64) moves as one
+     picture, at most 32 x 24 of its pixels against the main depth; the main depth (Bastion, the wolf, the villagers, the
+     near tree, the bridge and the ground) is two strips of 1829 x 1800, the lower at y 1400, both always with one and the
+     same transform: two parts of one picture, never layers of their own. Opened from the gate: three taps on the SORTIA
+     logo. Nothing here changes the story or its pictures. -->
 <html lang="nl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#09131c">
@@ -13,11 +15,12 @@
 @font-face { font-family: 'Literata'; font-weight: 400; font-display: swap; src: url(css/fonts/literata-latin-400-normal.woff2) format('woff2'); }
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; background: #09131c; color: #ecd0a0; font: 14px system-ui, sans-serif; }
-#view { position: fixed; inset: 0; overflow: hidden; -webkit-overflow-scrolling: touch; }
-#view.native { overflow: auto; }
+#view { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
+#view.native { overflow: auto; touch-action: auto; -webkit-overflow-scrolling: touch; }
 #size { position: relative; }
-#scene { position: absolute; left: 0; top: 0; width: 1829px; height: 3200px; transform-origin: 0 0; }
-#scene img { position: absolute; left: 0; width: 1829px; height: 1800px; max-width: none; display: block; }
+#scene { position: absolute; left: 0; top: 0; width: 1829px; height: 3200px; transform-origin: 0 0; overflow: hidden; }
+#far { position: absolute; left: -64px; top: -64px; width: 1957px; height: 1728px; max-width: none; will-change: transform; }
+#main img { position: absolute; left: 0; width: 1829px; height: 1800px; max-width: none; display: block; }
 #top { top: 0; }
 #bottom { top: 1400px; }
 .line { display: none; position: absolute; left: 0; width: 1829px; height: 6px; background: #ffd45b; z-index: 2; }
@@ -25,7 +28,7 @@ html, body { margin: 0; width: 100%; height: 100%; background: #09131c; color: #
 #start { top: 1397px; }
 #end { top: 1797px; }
 nav { position: fixed; z-index: 4; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-button { background: #101c28df; border: 1px solid #aa9270; color: #f4e0b7; border-radius: 7px; padding: 9px 11px; font: inherit; }
+button { background: #101c28e8; border: 1px solid #aa9270; color: #f4e0b7; border-radius: 7px; padding: 9px 10px; font: inherit; }
 button[aria-pressed="true"] { background: #77572e; }
 #back { margin-right: auto; }
 #copy { display: none; position: fixed; z-index: 3; left: 0; right: 0; bottom: 0; padding: 0 max(22px, env(safe-area-inset-left)) max(26px, calc(env(safe-area-inset-bottom) + 15px));
@@ -33,47 +36,74 @@ button[aria-pressed="true"] { background: #77572e; }
 #copy::before { content: ''; display: block; height: 70px; }
 #copy h1 { font: 600 clamp(24px, 6.6vw, 34px) / 1.15 'Cinzel', Georgia, serif; color: #e3c48c; margin: 0 0 12px; }
 #copy p { font: 400 clamp(16px, 4.1vw, 19px) / 1.55 'Literata', Georgia, serif; color: #efe6d8; margin: 0; max-width: 34em; }
-#status { position: fixed; z-index: 4; bottom: max(9px, env(safe-area-inset-bottom)); left: 12px; background: #08121bcc; padding: 5px 8px; font-size: 11px; color: #c8d4e1; pointer-events: none; }
+#status { position: fixed; z-index: 4; bottom: max(9px, env(safe-area-inset-bottom)); left: 12px; right: 12px; background: #08121bcc; padding: 5px 8px; font-size: 11px; color: #c8d4e1; pointer-events: none; width: fit-content; }
 .text-on #status { display: none; }
 </style></head>
 <body>
 <div id="view"><div id="size"><div id="scene">
-  <img id="top" alt="Bovenste strook" decoding="async">
-  <img id="bottom" alt="Onderste strook" decoding="async">
+  <img id="far" alt="Verre achtergrond" decoding="async">
+  <div id="main"><img id="top" alt="Hoofdlaag, bovenste strook" decoding="async"><img id="bottom" alt="Hoofdlaag, onderste strook" decoding="async"></div>
   <div class="line" id="start"></div><div class="line" id="end"></div>
 </div></div></div>
 <nav>
   <button id="back" type="button">&larr; Terug</button>
+  <button id="parallax" type="button" aria-pressed="true">Parallax</button>
+  <button id="demo" type="button" aria-pressed="false">Demo</button>
   <button id="seam" type="button" aria-pressed="false">Overlap</button>
-  <button id="pixels" type="button" aria-pressed="false">100% pixels</button>
-  <button id="text" type="button" aria-pressed="false">Met tekst</button>
+  <button id="pixels" type="button" aria-pressed="false">100%</button>
+  <button id="text" type="button" aria-pressed="false">Tekst</button>
 </nav>
 <section id="copy"><h1>Bastion Holds the Crossing</h1>
   <p>At the narrow crossing, a shield-bearer turns to face the wolves. He holds the bridge while the villagers pass behind him. You follow them into the trees.</p></section>
 <div id="status"></div>
 <script>
 'use strict';
-// each strip by its own version (sprites/versions.js), so a new picture is fetched and an unchanged one isn't
+// each picture by its own version (sprites/versions.js), so a new one is fetched and an unchanged one isn't
 const pic = f => { const k = `ui/proef/bastion/${f}`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[k]; return `sprites/${k}${h ? `?h=${h}` : ''}`; };
-const $ = id => document.getElementById(id), view = $('view'), scene = $('scene'), size = $('size');
-$('top').src = pic('01-boven-1800.png');
-$('bottom').src = pic('02-onder-1800.png');
-let native = false;
-// fill the screen (cover, as the story does), or one picture pixel to one screen pixel (scroll to look around)
-function fit() {
-  const w = view.clientWidth, h = view.clientHeight, d = devicePixelRatio || 1, s = native ? 1 / d : Math.max(w / 1829, h / 3200);
-  const sw = 1829 * s, sh = 3200 * s;
-  scene.style.transform = `scale(${s})`;
-  size.style.width = `${Math.max(w, sw)}px`; size.style.height = `${Math.max(h, sh)}px`;
-  scene.style.left = native ? `${Math.max(0, (w - sw) / 2)}px` : `${(w - sw) / 2}px`;
-  scene.style.top = native ? `${Math.max(0, (h - sh) / 2)}px` : `${(h - sh) / 2}px`;
-  $('status').textContent = `1829 × 3200 · 2 stroken · ${(s * d).toFixed(3)} schermpixel per beeldpixel · DPR ${d}`;
+const $ = id => document.getElementById(id), view = $('view'), scene = $('scene'), size = $('size'), far = $('far');
+far.src = pic('01-ver-bos-en-lucht.png');
+$('top').src = pic('02-hoofdlaag-boven.png');
+$('bottom').src = pic('03-hoofdlaag-onder.png');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+let enabled = !reduced.matches, native = false, auto = false, frame = 0, off = [0, 0];
+$('parallax').setAttribute('aria-pressed', String(enabled));
+// the far depth's own shift against the main depth, in the scene's pixels: never past 32 x 24 (its margin is 64)
+function offset(x = 0, y = 0) {
+  off = enabled ? [Math.max(-32, Math.min(32, x)), Math.max(-24, Math.min(24, y))] : [0, 0];
+  far.style.transform = `translate(${off[0].toFixed(2)}px, ${off[1].toFixed(2)}px)`;
+  status();
 }
+// fill the screen (cover, as the story does), or one picture pixel to one screen pixel (scroll to look around)
+let scale = 1;
+function fit() {
+  const w = view.clientWidth, h = view.clientHeight, d = devicePixelRatio || 1;
+  scale = native ? 1 / d : Math.max(w / 1829, h / 3200);
+  const sw = 1829 * scale, sh = 3200 * scale;
+  scene.style.transform = `scale(${scale})`;
+  size.style.width = `${Math.max(w, sw)}px`; size.style.height = `${Math.max(h, sh)}px`;
+  scene.style.left = `${native ? Math.max(0, (w - sw) / 2) : (w - sw) / 2}px`;
+  scene.style.top = `${native ? Math.max(0, (h - sh) / 2) : (h - sh) / 2}px`;
+  status();
+}
+function status() { $('status').textContent = `2 dieptelagen · ${(scale * (devicePixelRatio || 1)).toFixed(3)} schermpixel per beeldpixel · achtergrond ${off[0].toFixed(0)}, ${off[1].toFixed(0)}`; }
+function demo(t) { if (!auto || document.hidden) return; offset(Math.sin(t / 1700) * 32, Math.cos(t / 2100) * 24); frame = requestAnimationFrame(demo); }
 const toggle = (id, fn) => { $(id).onclick = e => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on)); fn(on); }; };
+toggle('parallax', on => { enabled = on; offset(); });
+toggle('demo', on => { auto = on && !reduced.matches; $('demo').setAttribute('aria-pressed', String(auto)); cancelAnimationFrame(frame); if (auto) frame = requestAnimationFrame(demo); else offset(); });
 toggle('seam', on => scene.classList.toggle('show', on));
 toggle('pixels', on => { native = on; view.classList.toggle('native', on); fit(); if (on) view.scrollTo((size.clientWidth - view.clientWidth) / 2, (size.clientHeight - view.clientHeight) / 2); else view.scrollTo(0, 0); });
 toggle('text', on => { $('copy').style.display = on ? 'block' : 'none'; document.body.classList.toggle('text-on', on); });
 $('back').onclick = () => { location.href = 'index.html'; };
+// a finger (or the mouse) on the picture moves the far depth: from the middle of the screen to an edge is its whole way;
+// letting go, it goes back to rest (not with reduced motion, nor at 100%, where a finger scrolls)
+let held = false;
+const lean = e => { const r = view.getBoundingClientRect(); offset(((e.clientX - r.left) / r.width - 0.5) * 64, ((e.clientY - r.top) / r.height - 0.5) * 48); };
+view.addEventListener('pointerdown', e => { if (auto || native || reduced.matches || e.target.closest('nav')) return; held = true; lean(e); });
+view.addEventListener('pointermove', e => { if (auto || native || reduced.matches) return; if (held || e.pointerType === 'mouse') lean(e); });
+const rest = () => { held = false; if (!auto) offset(); };
+view.addEventListener('pointerup', rest); view.addEventListener('pointercancel', rest); view.addEventListener('pointerleave', rest);
+document.addEventListener('visibilitychange', () => { cancelAnimationFrame(frame); if (auto && !document.hidden) frame = requestAnimationFrame(demo); });
+reduced.addEventListener('change', () => { if (reduced.matches) { enabled = false; auto = false; cancelAnimationFrame(frame); offset(); $('parallax').setAttribute('aria-pressed', 'false'); $('demo').setAttribute('aria-pressed', 'false'); } });
 new ResizeObserver(fit).observe(view);
 addEventListener('resize', fit);
 fit();
