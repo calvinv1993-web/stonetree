@@ -1,0 +1,81 @@
+<!doctype html>
+<!-- A picture trial on its own, apart from the game (the owner's sortia-bastion-twee-rijen-proef: one scene of 1829 x 3200
+     in two strips of 1829 x 1800, the lower at y 1400, the 400 px they share pixel-identical). Both strips get one and the
+     same transform: they're two parts of one picture, never parallax layers. Opened from the gate: three taps on the
+     SORTIA logo. Nothing here changes the story or its pictures. -->
+<html lang="nl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09131c">
+<title>SORTIA proef: Bastion</title>
+<script src="sprites/versions.js"></script>
+<style>
+@font-face { font-family: 'Cinzel'; font-weight: 600; font-display: swap; src: url(css/fonts/cinzel-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Literata'; font-weight: 400; font-display: swap; src: url(css/fonts/literata-latin-400-normal.woff2) format('woff2'); }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; background: #09131c; color: #ecd0a0; font: 14px system-ui, sans-serif; }
+#view { position: fixed; inset: 0; overflow: hidden; -webkit-overflow-scrolling: touch; }
+#view.native { overflow: auto; }
+#size { position: relative; }
+#scene { position: absolute; left: 0; top: 0; width: 1829px; height: 3200px; transform-origin: 0 0; }
+#scene img { position: absolute; left: 0; width: 1829px; height: 1800px; max-width: none; display: block; }
+#top { top: 0; }
+#bottom { top: 1400px; }
+.line { display: none; position: absolute; left: 0; width: 1829px; height: 6px; background: #ffd45b; z-index: 2; }
+.show .line { display: block; }
+#start { top: 1397px; }
+#end { top: 1797px; }
+nav { position: fixed; z-index: 4; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+button { background: #101c28df; border: 1px solid #aa9270; color: #f4e0b7; border-radius: 7px; padding: 9px 11px; font: inherit; }
+button[aria-pressed="true"] { background: #77572e; }
+#back { margin-right: auto; }
+#copy { display: none; position: fixed; z-index: 3; left: 0; right: 0; bottom: 0; padding: 0 max(22px, env(safe-area-inset-left)) max(26px, calc(env(safe-area-inset-bottom) + 15px));
+  background: linear-gradient(transparent, #0b1219ee 30%, #0b1219); pointer-events: none; }
+#copy::before { content: ''; display: block; height: 70px; }
+#copy h1 { font: 600 clamp(24px, 6.6vw, 34px) / 1.15 'Cinzel', Georgia, serif; color: #e3c48c; margin: 0 0 12px; }
+#copy p { font: 400 clamp(16px, 4.1vw, 19px) / 1.55 'Literata', Georgia, serif; color: #efe6d8; margin: 0; max-width: 34em; }
+#status { position: fixed; z-index: 4; bottom: max(9px, env(safe-area-inset-bottom)); left: 12px; background: #08121bcc; padding: 5px 8px; font-size: 11px; color: #c8d4e1; pointer-events: none; }
+.text-on #status { display: none; }
+</style></head>
+<body>
+<div id="view"><div id="size"><div id="scene">
+  <img id="top" alt="Bovenste strook" decoding="async">
+  <img id="bottom" alt="Onderste strook" decoding="async">
+  <div class="line" id="start"></div><div class="line" id="end"></div>
+</div></div></div>
+<nav>
+  <button id="back" type="button">&larr; Terug</button>
+  <button id="seam" type="button" aria-pressed="false">Overlap</button>
+  <button id="pixels" type="button" aria-pressed="false">100% pixels</button>
+  <button id="text" type="button" aria-pressed="false">Met tekst</button>
+</nav>
+<section id="copy"><h1>Bastion Holds the Crossing</h1>
+  <p>At the narrow crossing, a shield-bearer turns to face the wolves. He holds the bridge while the villagers pass behind him. You follow them into the trees.</p></section>
+<div id="status"></div>
+<script>
+'use strict';
+// each strip by its own version (sprites/versions.js), so a new picture is fetched and an unchanged one isn't
+const pic = f => { const k = `ui/proef/bastion/${f}`, h = typeof SPRITE_HASHES !== 'undefined' && SPRITE_HASHES[k]; return `sprites/${k}${h ? `?h=${h}` : ''}`; };
+const $ = id => document.getElementById(id), view = $('view'), scene = $('scene'), size = $('size');
+$('top').src = pic('01-boven-1800.png');
+$('bottom').src = pic('02-onder-1800.png');
+let native = false;
+// fill the screen (cover, as the story does), or one picture pixel to one screen pixel (scroll to look around)
+function fit() {
+  const w = view.clientWidth, h = view.clientHeight, d = devicePixelRatio || 1, s = native ? 1 / d : Math.max(w / 1829, h / 3200);
+  const sw = 1829 * s, sh = 3200 * s;
+  scene.style.transform = `scale(${s})`;
+  size.style.width = `${Math.max(w, sw)}px`; size.style.height = `${Math.max(h, sh)}px`;
+  scene.style.left = native ? `${Math.max(0, (w - sw) / 2)}px` : `${(w - sw) / 2}px`;
+  scene.style.top = native ? `${Math.max(0, (h - sh) / 2)}px` : `${(h - sh) / 2}px`;
+  $('status').textContent = `1829 × 3200 · 2 stroken · ${(s * d).toFixed(3)} schermpixel per beeldpixel · DPR ${d}`;
+}
+const toggle = (id, fn) => { $(id).onclick = e => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on)); fn(on); }; };
+toggle('seam', on => scene.classList.toggle('show', on));
+toggle('pixels', on => { native = on; view.classList.toggle('native', on); fit(); if (on) view.scrollTo((size.clientWidth - view.clientWidth) / 2, (size.clientHeight - view.clientHeight) / 2); else view.scrollTo(0, 0); });
+toggle('text', on => { $('copy').style.display = on ? 'block' : 'none'; document.body.classList.toggle('text-on', on); });
+$('back').onclick = () => { location.href = 'index.html'; };
+new ResizeObserver(fit).observe(view);
+addEventListener('resize', fit);
+fit();
+</script>
+</body></html>

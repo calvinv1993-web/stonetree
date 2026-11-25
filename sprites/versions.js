@@ -475,6 +475,8 @@ const SPRITE_HASHES = {
   "ui/parchment/ornament.webp":"f7a6a6d205",
   "ui/parchment/paper-torn.webp":"08569066a0",
   "ui/parchment/story-panel.webp":"74737d9d9b",
+  "ui/proef/bastion/01-boven-1800.png":"ac5bf414ca",
+  "ui/proef/bastion/02-onder-1800.png":"57b5e228a9",
   "ui/sortia/banner.webp":"8973b97712",
   "ui/sortia/bastion-crest.webp":"ad835296fa",
   "ui/sortia/bastion-emblem.png":"7d9dd0fb69",

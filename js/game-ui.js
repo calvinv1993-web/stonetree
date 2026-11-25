@@ -3446,6 +3446,10 @@ const Gate = (() => {
     const el = box();
     if (!el) return;
     el.querySelector('.sg-logo').src = hashed('ui/loading/logo.png');
+    // (three quick taps on the logo, while loading or on the account page: the owner's picture trial, a page of its own:
+    // proef-bastion.html)
+    { let taps = [];
+      for (const logo of el.querySelectorAll('.sg-logo, .sga-mark')) logo.addEventListener('pointerup', () => { const t = performance.now(); taps = [...taps.filter(x => t - x < 1200), t]; if (taps.length >= 3) location.href = 'proef-bastion.html'; }); }
     $('sgSwitch').onclick = () => {
       if (busy) return;
       setTab(tab === 'create' ? 'login' : 'create');
