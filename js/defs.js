@@ -99,6 +99,7 @@ const THINGS = {
   wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_temple: { name: 'carved stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_gothic: { name: 'dark carved stone', cat: 'Walls', block: true, wall: 'thin' }, // the cathedral's: weathered dark sandstone
+  wall_gothic_tower: { name: 'dark carved stone', cat: 'Walls', block: true, wall: 'thin' }, // its towers': the same, with shafts running up it and blind pointed arches
   wall_rampart:{ name: 'town wall', cat: 'Walls', block: true, wall: 'thin' }, // the town wall's towers and gatehouses: its own sandstone
   wall_sandstone: { name: 'sandstone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_secret: { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin', sprite: 'wall_stone' },
@@ -241,6 +242,23 @@ const THINGS = {
   portal_m:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   portal_e:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   pier_gothic: { name: 'carved pier', cat: 'Town', block: true, tall: true }, // a belfry's corner, holding up its spire
+  // The heart of the cathedral's front, between its towers over the portal, 5 x 1 on the floor above the portal
+  // (BIG.west_front): the great window of tracery and the steep gable over it, in slices up to two floors more
+  west_front_0: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin' },
+  west_front_1: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin' },
+  west_front_2: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin', light: 4 }, // (its glass glows at night)
+  west_front_3: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin' },
+  west_front_4: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin' },
+  west_front_0_1: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_1_1: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_2_1: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_3_1: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_4_1: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_0_2: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_1_2: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_2_2: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_3_2: { name: 'the great gable', cat: 'Town', tall: true },
+  west_front_4_2: { name: 'the great gable', cat: 'Town', tall: true },
   // The porch before the cathedral's portal, 5 x 1 (BIG.porch): a pinnacled pier at each end, and between them a tall
   // pointed arch under a steep gable of tracery; you walk through its middle three tiles
   porch_0:     { name: 'the porch\'s pier', cat: 'Town', block: true, tall: true },

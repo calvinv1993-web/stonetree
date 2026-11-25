@@ -2286,7 +2286,7 @@ function buildTown(m, S, runs, river) {
         if (z === base && !edge) { m.set(x, y, z, { ground: 'marble', items: [] }); continue; } // (its room on the temple's floor)
         if (!bells && !edge) { m.set(x, y, z, null); continue; } // (the west tower is hollow above its chapel: no floors nobody can reach)
         const window = edge && !corner && z > base && ((y === y1 && x === ((x0 + x1) >> 1)) || (x === x1 && y === ((y0 + y1 + 1) >> 1)));
-        m.set(x, y, z, { ground: bells || edge ? 'temple_paving' : null, items: edge ? (window ? ['wall_gothic', 'window_gothic'] : ['wall_gothic']) : [] });
+        m.set(x, y, z, { ground: bells || edge ? 'temple_paving' : null, items: edge ? (window ? ['wall_gothic', 'window_gothic'] : ['wall_gothic_tower']) : [] }); // (shafts and blind arches up its faces)
       }
       m.get(ddx, ddy, base).items = ['door'];
       // the spire over it: its tiles carry the spire, standing on a roof of lead
@@ -2339,6 +2339,13 @@ function buildTown(m, S, runs, river) {
     for (let k = 0; k < 5; k++) { const pt = m.get(pcx - 2 + k, T.mount.y1 - 1, Z); pt.items = [`porch_${k}`]; } // the porch before the portal, its piers either side of the top of the steps
     const slices = (x, y, id) => { for (const k of [1, 2]) m.set(x, y, Z + k, { ground: null, items: [`${id}_${k}`] }); }; // (a tall thing's upper slices, over it)
     for (let k = 0; k < 5; k++) slices(pcx - 2 + k, T.mount.y1 - 1, `porch_${k}`);
+    // the great window over the portal, between the towers, and its gable (on the floor above, in place of that wall)
+    for (let k = 0; k < 5; k++) {
+      const x = pcx - 2 + k, front = m.get(x, t.y1, Z + 1);
+      if (front) front.items = [`west_front_${k}`];
+      const roof = m.get(x, t.y1, Z + 2); if (roof) roof.items = [`west_front_${k}_1`]; else m.set(x, t.y1, Z + 2, { ground: null, items: [`west_front_${k}_1`] });
+      m.set(x, t.y1, Z + 3, { ground: null, items: [`west_front_${k}_2`] });
+    }
     for (const x of [t.x0 + 1, t.x1 - 1]) put(x, T.mount.y1 - 1, Z, 'lamppost'); // lamps at the terrace's ends
     sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
     // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace
