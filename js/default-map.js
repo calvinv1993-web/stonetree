@@ -2335,7 +2335,6 @@ function buildTown(m, S, runs, river) {
     const [hx0, hx1] = [TW.west.at[2] + 1, TW.east.at[0] - 1];
     put(hx0, TW.west.at[1], Z, 'pier_gothic'); put(hx1, TW.west.at[1], Z, 'pier_gothic');
     put(hx0, t.y1 - 2, Z, 'holy_font'); // (beside the west tower's door, not in front of it)
-    for (const [x, y, k] of [[cx - 1, t.y1 - 2, 0], [cx + 1, t.y1 - 2, 1], [cx - 1, ny1, 1], [cx + 1, ny1, 2]]) put(x, y, Z, `stained_light_${k}`);
     // its floor: pale marble and dark slate in turn, through the nave and the hall
     eachOf(t, (x, y) => { const ft = m.get(x, y, Z); if (ft && ft.ground === 'marble' && !(x >= TW.west.at[0] && x <= TW.west.at[2] && y >= TW.west.at[1]) && !(x >= TW.east.at[0] && x <= TW.east.at[2] && y >= TW.east.at[1])) ft.ground = 'marble_check'; });
     // a ceiling over the nave and the hall (hidden from outside under their roofs): inside, what is above hides as in any building

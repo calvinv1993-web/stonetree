@@ -3191,16 +3191,16 @@ const Sprites = (() => {
       floorShadow(g, 11, 3);
       const iron = { top: '#4a4640', south: '#2e2b27', east: '#201e1b', edge: '#6a655d' }, wax = { top: '#fff6e0', south: '#efe2c2', east: '#cdbf9e', edge: '#ffffff' };
       prism(g, 8, 8, 24, 24, 0, 3, iron);                                                     // its foot
-      prism(g, 14.8, 14.8, 17.2, 17.2, 3, 40, iron);                                          // its shaft
-      prism(g, 13.5, 13.5, 18.5, 18.5, 18, 21, iron);                                         // a knop half way up
-      const ring = [...Array(6).keys()].map(k => { const a = (k / 6) * Math.PI * 2 + 0.3; return [16 + Math.cos(a) * 9.5, 16 + Math.sin(a) * 9.5]; }).sort((p, q) => (p[0] + p[1]) - (q[0] + q[1]));
-      const flame = (u, v, z) => { const [fx, fy] = P(u, v, z + 4 + (frame % 2) * 0.8); ellipse(g, 'rgba(255,190,80,0.35)', fx, fy, 4.6, 5.8); ellipse(g, '#ff9c30', fx, fy, 1.9, 3.6); ellipse(g, '#ffe08a', fx, fy + 0.6, 1.1, 2.2); ellipse(g, '#fffbe8', fx, fy + 1.2, 0.5, 0.9); };
-      const candle = (u, v, top) => { prism(g, u - 1.7, v - 1.7, u + 1.7, v + 1.7, 42, top, wax); flame(u, v, top); };
+      prism(g, 14.8, 14.8, 17.2, 17.2, 3, 34, iron);                                          // its shaft
+      prism(g, 13.5, 13.5, 18.5, 18.5, 16, 19, iron);                                         // a knop half way up
+      const ring = [...Array(5).keys()].map(k => { const a = (k / 5) * Math.PI * 2 + 0.3; return [16 + Math.cos(a) * 7.5, 16 + Math.sin(a) * 7.5]; }).sort((p, q) => (p[0] + p[1]) - (q[0] + q[1]));
+      const flame = (u, v, z) => { const [fx, fy] = P(u, v, z + 3.4 + (frame % 2) * 0.6); ellipse(g, 'rgba(255,190,80,0.28)', fx, fy, 3.4, 4.4); ellipse(g, '#ff9c30', fx, fy, 1.5, 2.9); ellipse(g, '#ffe08a', fx, fy + 0.5, 0.9, 1.7); };
+      const candle = (u, v, top) => { prism(g, u - 1.4, v - 1.4, u + 1.4, v + 1.4, 36, top, wax); flame(u, v, top); };
       const back = ring.filter(([u, v]) => u + v < 32), front = ring.filter(([u, v]) => u + v >= 32);
-      for (const [u, v] of back) candle(u, v, 54);
-      prism(g, 5, 5, 27, 27, 40, 42, iron);                                                   // the dish the candles stand in
-      candle(16, 16, 62);                                                                     // the tall one in the middle
-      for (const [u, v] of front) candle(u, v, 54);
+      for (const [u, v] of back) candle(u, v, 45);
+      prism(g, 7, 7, 25, 25, 34, 36, iron);                                                   // the dish the candles stand in
+      candle(16, 16, 51);                                                                     // the tall one in the middle
+      for (const [u, v] of front) candle(u, v, 45);
     },
     // A lectern: a carved oak stand, its slanted top towards the nave, the great book open on it, a red ribbon hanging.
     lectern(g) {
