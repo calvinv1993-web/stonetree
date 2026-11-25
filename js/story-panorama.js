@@ -208,7 +208,7 @@ const StoryPanorama = (() => {
     const m = manifest, depths = DEPTHS.filter(d => m.layers && m.layers[d]);
     let colW = 0, colH = 0, s0 = 1, dpr = 1, cams = [], cam = null, extra = 1, glideReq = 0, devOn = false, canvas = null, hud = null;
     let zoomReq = 0, zoomTimer = 0;
-    let state = 0; // the stop the story is at: planes with fromStop / untilStop show only around it
+    let state = 0, lookX = 0, lookY = 0; // the current stop and its bounded pointer parallax
     let lz = 1; // the zoom the planes are laid out at: at rest the camera's own, so no depth is scaled by a transform
     const still = () => (opts.still ? opts.still() : matchMedia('(prefers-reduced-motion: reduce)').matches);
     const layers = depths.map((depth, i) => {
@@ -231,6 +231,7 @@ const StoryPanorama = (() => {
         // a fill: no picture, only a colour or gradient (fill, css) where the view may reach past a scene's picture
         if (def.kind === 'fill') { box.style.background = def.fill; el.append(box); return { def, el: box, id: box.dataset.id, solid: true }; }
         if (Number.isFinite(def.fromStop) || Number.isFinite(def.untilStop)) box.classList.add('sp-state');
+        if (def.instant) box.style.transition = 'none'; // a separate scene changes only while the story's veil is black
         const img = document.createElement('img');
         img.alt = ''; img.draggable = false; img.decoding = 'async';
         box.append(img);
@@ -320,7 +321,10 @@ const StoryPanorama = (() => {
           if (p.glow) continue;
           const on = hit({ x: p.def.x - 8, y: p.def.y - 8, w: p.def.w + 16, h: p.def.h + 16 }, near);
           if (on !== p.shown) { p.shown = on; p.el.style.display = on ? '' : 'none'; }
-          if (p.def.drift && on) { const [dx, dy] = drift(p.def.drift); p.el.style.translate = `${dx * s0 * lz}px ${dy * s0 * lz}px`; }
+          if ((p.def.drift || p.def.look) && on) {
+            const [dx, dy] = drift(p.def.drift), l = p.def.look, active = l && l.stop === state && !still();
+            p.el.style.translate = `${(dx + (active ? lookX * l.x : 0)) * s0 * lz}px ${(dy + (active ? lookY * l.y : 0)) * s0 * lz}px`;
+          }
         }
       }
       host.style.setProperty('--si-x', cam.x.toFixed(1));
@@ -328,6 +332,13 @@ const StoryPanorama = (() => {
       if (devOn) drawDev();
     }
     function place(c) { cam = c; cancelAnimationFrame(glideReq); render(); if (!zoomReq) settle(); }
+    function look(x = 0, y = 0) {
+      const active = !still() && layers.some(L => L.planes.some(p => p.def.look && p.def.look.stop === state));
+      const nx = active ? clamp(x, -1, 1) : 0, ny = active ? clamp(y, -1, 1) : 0;
+      if (nx === lookX && ny === lookY) return;
+      lookX = nx; lookY = ny; render();
+    }
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => look());
     // a glide from where the camera is to c in ms, slowing as it lands; resolves true when there, false if another move
     // took over
     let glideId = 0;
@@ -473,6 +484,7 @@ const StoryPanorama = (() => {
       // (landed: the camera is at stop i, still; a plane marked after shows only then, and stays while the story is on)
       state(i, landed) {
         state = i;
+        look();
         for (const L of layers) for (const p of L.planes) {
           const d = p.def;
           if (!(Number.isFinite(d.fromStop) || Number.isFinite(d.untilStop))) continue;
@@ -482,7 +494,7 @@ const StoryPanorama = (() => {
       },
       // the pictures let go (once the story is over): fetched again if it's shown again
       release() { for (const L of layers) for (const p of L.planes) if (p.img) { p.img.onload = p.img.onerror = null; p.img.removeAttribute('src'); p.ready = null; } },
-      place, glide, halt, prepare, openingZoom, dev,
+      place, glide, halt, prepare, openingZoom, dev, look,
       get devOn() { return devOn; },
       gaps: () => gaps(m, stops, colW, colH, { overscroll: opts.overscroll, opening: opts.openingZoom, band: opts.band && opts.band() }),
       // the planes (ids) a stop shows, in every depth

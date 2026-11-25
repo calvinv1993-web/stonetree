@@ -39,13 +39,13 @@ const STORY_MANIFEST = {
     // the refugees (and so none at The Last Crossing and The False Signal, at the refugees' place), most half way between
     background: { factor: 1, planes: [
       { id: 'opening-sky-a', src: 'ui/story/opening/12-achtergrond-a.png', x: -14.48, y: -14.48, w: 442.77, h: 277.84, z: 1,
-        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
+        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 4] } },
       { id: 'opening-sky-b', src: 'ui/story/opening/13-achtergrond-b.png', x: 428.29, y: -14.48, w: 435.53, h: 277.84, z: 1,
-        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
+        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 4] } },
       { id: 'opening-sky-c', src: 'ui/story/opening/14-achtergrond-c.png', x: 863.82, y: -14.48, w: 470.6, h: 277.84, z: 1,
-        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
+        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 4] } },
       { id: 'opening-sky-d', src: 'ui/story/opening/15-achtergrond-d.png', x: 1334.42, y: -14.48, w: 283.49, h: 277.84, z: 1,
-        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 3] } },
+        cover: true, drift: { x: 7.24, y: 5.43, between: [0, 2, 4] } },
     ] },
     main: { factor: 1, planes: [
       // the opening: the seal (whole, then broken: the story's first two stops), the mill (The Hollow Host) and the
@@ -65,12 +65,23 @@ const STORY_MANIFEST = {
       // man by the road, the two guards crossing the bridge to him (over the walking refugees, which it hides) and, far off
       // behind the battlements, the watchman with his lantern raised; both in the main depth, fading in together at The
       // Last Crossing, the camera still at the refugees' place (The Road to Oakvale before it), and out again going back
-      { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 4 },
-      { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 4 },
+      { id: 'opening-rescue', src: 'ui/story/opening/01-reddingsmoment.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 4, fromStop: 5 },
+      { id: 'opening-watchman', src: 'ui/story/opening/02-wachter.png', x: 1495.06, y: 129.87, w: 10.86, h: 9.73, z: 5, fromStop: 5 },
       // the false signal at the same place (the owner's sortia-false-signal-aanvulling, its PNG unchanged): the goblin with
       // the lantern raised and the wolf behind him, where the rescue was; over the rescue, which stays shown beneath it (so
       // the walking refugees never show through), fading in as The False Signal's words come, the camera still
-      { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 5 },
+      { id: 'opening-false-signal', src: 'ui/story/opening/01-vals-signaal.png', x: 1160.66, y: 181.0, w: 442.77, h: 339.38, z: 6, fromStop: 6 },
+      // Bastion v2: its own opaque scene at stop 3, covering the road only while that night is told. Original PNGs,
+      // 724 / 3200 world units per pixel. Two fixed main strips; forest and tree have bounded pointer parallax.
+      // All four planes are composited above the existing landscape; the cut changes them instantly while black.
+      { id: 'bastion-forest', src: 'ui/proef/bastion/01-ver-bos.png', x: 1129.893125, y: -14.48, w: 442.77125, h: 390.96,
+        z: 10, cover: true, fromStop: 3, untilStop: 3, instant: true, look: { x: 7.24, y: 5.43, stop: 3 } },
+      { id: 'bastion-tree', src: 'ui/proef/bastion/02-nabije-boom.png', x: 1100.933125, y: -14.48, w: 263.355, h: 206.7925,
+        z: 11, fromStop: 3, untilStop: 3, instant: true, look: { x: 2.715, y: 1.81, stop: 3 } },
+      { id: 'bastion-top', src: 'ui/proef/bastion/03-hoofd-boven.png', x: 1144.373125, y: 0, w: 413.81125, h: 407.25,
+        z: 12, cover: [1144.373125, 339.375, 413.81125, 67.875], fromStop: 3, untilStop: 3, instant: true },
+      { id: 'bastion-bottom', src: 'ui/proef/bastion/04-hoofd-onder.png', x: 1144.373125, y: 316.75, w: 413.81125, h: 407.25,
+        z: 13, cover: [1144.373125, 339.375, 413.81125, 384.625], fromStop: 3, untilStop: 3, instant: true },
       // (under the whole world, the seal's dark foot carried on: on screens where the ring sits above the words only with
       // the view a little lower than the picture, and on the way from there; there the words' shade covers it)
       { id: 'seal-foot', kind: 'fill', x: -60, y: 723, w: 2130.91, h: 200, z: -1, cover: true, fill: 'linear-gradient(#111a23, #0b1219 70%)' },
@@ -80,7 +91,7 @@ const STORY_MANIFEST = {
       // window (its package place: x 1251, y -60, 600 x 1320 in the scene's pixels), drifting at most 24 x 16 of the
       // scene's pixels (5.43 x 3.62 world units) as the camera leaves Ama's stop
       { id: 'ama-window-view', src: 'ui/story/ama/01-raamuitzicht.png', x: 1886.47, y: -13.58, w: 135.75, h: 298.65, z: 1,
-        cover: true, drift: { x: 5.43, y: 3.62, stop: 6 } },
+        cover: true, drift: { x: 5.43, y: 3.62, stop: 7 } },
       { id: 'ama-temple', src: 'ui/story/ama/02-ama-tempel.png', x: 1603.43, y: 0, w: 407.48, h: 724, z: 2,
         cover: [[1603.43, 0, 343, 724], [1946.43, 246.61, 64.48, 477.39], [1946.43, 0, 64.48, 27.83]] },
     ] },
