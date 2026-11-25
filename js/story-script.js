@@ -30,10 +30,13 @@ const STORY_SCRIPT = {
     // (the mill at the opening's right end: its package camera x 2979 of a 1479 px wide view, centred at 3718.5 of its pixels)
     { title: 'The Hollow Host', at: [841.32, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'Three nights later, a miller saw goblins and wolves coming down the road together. He’d seen them fight over the same prey. When he barred the bridge, two goblins stayed at the gate while the rest took the wolves upstream. As more villages fell, people fled south.' },
+    // First night on the road: a separate scene, entered and left through black, on the same world position as the road.
+    { title: 'Bastion Holds the Crossing', cut: true, at: [1379.56, 362], frame: [1144.373125, 0, 413.81125, 724], snow: true, mist: false,
+      text: 'Your village fell before dusk. You escaped with a family from the mill, but wolves followed you into the forest. At a narrow bridge, a Bastion turned back to hold them off. You crossed behind his shield and followed the others south.' },
     // (the refugees on the road at the opening's right end, walking to Oakvale: its package camera x 5358, centred at 6097.5
     // of its pixels)
     { title: 'The Road to Oakvale', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
-      text: 'You followed the survivors to Oakvale. Its gate still opened to refugees, and ships waited in the harbor.' },
+      text: 'By the time you reached Oakvale, you had walked through two nights with scarcely any sleep. Its gate still opened to refugees, and ships waited in the harbor. You joined the line at the bridge.' },
     // (the same place, the camera still: the rescue fading in over the walking refugees)
     { title: 'The Last Crossing', at: [1379.56, 362], frame: [0, 0, 1603.43, 724], snow: true, mist: true,
       text: 'Above the gate, a watchman raised his lantern once. A wounded man beside the road lifted his twice. Two guards crossed the bridge to help him.' },

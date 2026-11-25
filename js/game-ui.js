@@ -2861,7 +2861,7 @@ const Intro = (() => {
   // 550 and 750 ms)
   const cutAt = i => !!pick().script.stops[Math.min(i, NAME)].cut, CUT_OUT = 550 + 200, CUT_IN = 750; // (out, then a moment all black)
   // the last stop the camera may glide to from the start, the stop before the first cut (autoplay goes on from it by one)
-  const glideEnd = () => { const k = pick().script.stops.findIndex((st, i) => i > 0 && st.cut); return k > 0 ? k - 1 : NAME; };
+  const glideEnd = start => { const k = pick().script.stops.findIndex((st, i) => i > start && st.cut); return k > start ? k - 1 : NAME; };
   // the weather in front as the camera moves: each stop's snow and mist (shown or not), faded between stops by where the
   // camera is across; the snow and mist tiles drift with the camera, each at its own share of it (data-f), within one
   // tile of their pattern (data-tile), so they never run out
@@ -2869,6 +2869,9 @@ const Intro = (() => {
     const stops = pick().script.stops, xs = stops.map((_, i) => pano.stop(i).x), box = $('sortiaIntro'), px = cam.x * scale;
     const level = key => {
       const order = xs.map((x, i) => i).sort((a, b) => xs[a] - xs[b]), v = i => (stops[i][key] === false ? 0 : 1);
+      // Different times at the same place may ask for different weather.
+      const here = Math.min(at, NAME), focus = pano.stop(here);
+      if (Math.abs(cam.x - focus.x) < 0.5 && Math.abs(cam.y - focus.y) < 0.5) return v(here);
       if (cam.x <= xs[order[0]]) return v(order[0]);
       for (let k = 0; k + 1 < order.length; k++) {
         const a = order[k], b = order[k + 1];
@@ -2917,7 +2920,7 @@ const Intro = (() => {
   }
   // to a step: its stop's pictures fetched and decoded first (a moment at most), then the camera glides there (if it's
   // another), and the words change as it lands; the stops beside it are fetched while it rests
-  function go(i) {
+  function go(i, resume = false) {
     if (i < 0) return;
     stopAuto(); opening(false);
     if (i >= steps()) { close(true); return; }
@@ -2927,10 +2930,14 @@ const Intro = (() => {
     pano.halt();
     box.classList.remove('si-cut', 'si-waking');
     if (from === to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) { words(true); return; }
-    const land = () => { if (turn !== landing) return; box.classList.remove('moving'); pano.state(to, true); words(true); pano.prepare(to, 0); };
+    const land = () => {
+      if (turn !== landing) return;
+      box.classList.remove('moving'); pano.state(to, true); words(true); pano.prepare(to, 0);
+      if (resume) autoplay();
+    };
     // (another state of the same place, as the seal whole and broken: the camera stays, its picture fades to the other
     // (decoded first) while the words change)
-    if (from !== to && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) {
+    if (from !== to && !(cutAt(from) || cutAt(to)) && cam && Math.abs(cam.x - target.x) < 0.5 && Math.abs(cam.y - target.y) < 0.5 && Math.abs(cam.zoom - target.zoom) < 1e-3) {
       box.classList.add('moving');
       pano.prepare(to).then(() => { if (turn !== landing) return; pano.state(to); setTimeout(land, still() ? 0 : 320); });
       return;
@@ -2943,12 +2950,21 @@ const Intro = (() => {
       pano.prepare(to).then(() => {
         if (turn !== landing) return;
         box.classList.add('si-cut');
-        setTimeout(() => {
+        // Start the veil's CSS transition now, before timing its fully black hold.
+        const veil = box.querySelector('.si-veil');
+        getComputedStyle(veil).opacity;
+        const afterVeil = (opacity, delay, done) => setTimeout(function check() {
+          if (turn !== landing) return;
+          if (Math.abs(+getComputedStyle(veil).opacity - opacity) > 0.01) { setTimeout(check, 40); return; }
+          done();
+        }, delay);
+        afterVeil(1, CUT_OUT, () => {
           if (turn !== landing) return;
           pano.place(target); pano.state(to, true); words(false);
           box.classList.add('si-waking'); box.classList.remove('si-cut');
-          setTimeout(() => { box.classList.remove('si-waking'); land(); }, CUT_IN);
-        }, CUT_OUT);
+          getComputedStyle(veil).opacity;
+          afterVeil(0, CUT_IN, () => { box.classList.remove('si-waking'); land(); });
+        });
       });
       return;
     }
@@ -2965,12 +2981,15 @@ const Intro = (() => {
   function stopAuto() { clearTimeout(autoWait); cancelAnimationFrame(auto); auto = 0; }
   function autoplay() {
     stopAuto();
-    if (!moving()) return;
+    if (!moving() || at >= NAME) return;
+    const start = at;
+    // Carry automatic playback across separate scenes as well; a manual action still cancels it.
+    if (cutAt(start) || cutAt(start + 1)) { autoWait = setTimeout(() => go(start + 1, true), AUTO_WAIT); return; }
     autoWait = setTimeout(() => {
-      const t0 = performance.now(), end = glideEnd(), span = AUTO_MS * end / NAME;
+      const t0 = performance.now(), end = glideEnd(start), span = AUTO_MS * (end - start) / NAME;
       let fetched = -1;
       const frame = now => {
-        const k = Math.min(1, (now - t0) / span), u = along(k) * end;
+        const k = Math.min(1, (now - t0) / span), u = start + along(k) * (end - start);
         pano.place(pano.along(u));
         if (Math.floor(u) !== fetched) { fetched = Math.floor(u); pano.prepare(Math.min(NAME, fetched + 1), 0); }
         const scene = Math.min(end, Math.round(u));
@@ -2982,7 +3001,7 @@ const Intro = (() => {
           setTimeout(() => { if (auto || at === NAME) { words(false); box.classList.remove('moving'); } }, 180);
         }
         auto = k < 1 ? requestAnimationFrame(frame) : 0;
-        if (!auto && end < NAME) autoWait = setTimeout(() => go(end + 1), AUTO_WAIT); // (on through black, after a moment)
+        if (!auto && end < NAME) autoWait = setTimeout(() => go(end + 1, true), AUTO_WAIT); // (on through black, after a moment)
       };
       auto = requestAnimationFrame(frame);
     }, $('sortiaIntro').classList.contains('si-opening') ? OPENING_MS : AUTO_WAIT);
@@ -3037,6 +3056,13 @@ const Intro = (() => {
     $('siSkip').onclick = () => go(NAME);
     $('siBack').onclick = () => turn(-1);
     $('siNext').onclick = () => go(at + 1);
+    // A scene's own depth shift never moves its camera, characters or bridge, and never competes with a story swipe.
+    box.addEventListener('pointermove', e => {
+      if (box.classList.contains('moving') || (drag && drag.on) || e.target.closest('input, button')) { pano.look(); return; }
+      const r = box.querySelector('.si-col').getBoundingClientRect();
+      pano.look((e.clientX - r.left) / r.width * 2 - 1, (e.clientY - r.top) / r.height * 2 - 1);
+    });
+    for (const event of ['pointerleave', 'pointerup', 'pointercancel']) box.addEventListener(event, () => pano.look());
     // your name: checked as the game always has (nameProblem), what's wrong said by the field; the field stays to fix
     input.addEventListener('input', () => { $('siHint').textContent = ''; input.setAttribute('aria-invalid', 'false'); });
     input.addEventListener('keydown', e => e.stopPropagation()); // (the game's keys don't fire while you type)

@@ -131,7 +131,7 @@ pixel against the world's left edge (x 0 to 1603.43). Five tiles meet edge to ed
 `02-zegel-links` (the seal), `04-overgang` (the way between), `09-molen-midden` (the mill), `10-overgang-molen-vluchtelingen`
 (the road on) and `11-vluchtelingen-rechts` (the refugees, Oakvale beyond). Behind them, in a depth of their own (`background`, factor 1:
 the main camera's pace and scale, as the package asks), the far mountains: four sky tiles (`12` to `15`), one continuous
-sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift (`drift.between: [0, 2, 3]`):
+sky at its package place -64, -64, 7215 x 1228 of its pixels, all four with one shared drift (`drift.between: [0, 2, 4]`):
 none at the seal, the mill or the refugees (and so none at The Last Crossing and The False Signal, at the refugees' place too), at most 7.24 x 5.43
 world units between them. Everything else of the landscape, the state patches included, is the main depth.
 The seal broken is two patches (`03-zegel-breuk-links`, `05-overgang-breuk`) fading in together from the second stop on.
@@ -192,3 +192,23 @@ run `node tests/sprite-versions.js` after adding or changing them.
 4. Open `index.html?story&storydev`, go through every stop: no red cells, "gaps on the way: none", every plane in view
    at or below 1.05x on the phone you care about.
 5. Run `node tests/story-panorama.test.js`, then `node tests/onboarding.test.js`.
+
+## Bastion at the first night crossing
+
+The stop after The Hollow Host is **Bastion Holds the Crossing**, before The Road to Oakvale. It introduces the player as
+a refugee and shows a Bastion protecting the escape. The road explains the sleepless journey before the collapse at Oakvale.
+
+The four original `ui/proef/bastion/` PNGs are reused unchanged at 724/3200 world units per source pixel. The local
+scene's origin is [1144.373125, 0]; its frame is 413.81125 by 724. It temporarily covers the road at stop 3 and is
+absent at all other stops. No painted seam to the neighbouring pictures exists: entering and leaving uses `cut`, even
+when two stops share a camera. This is a change of time/place through black, not an approved continuous painted join.
+
+The forest, framing tree and fixed terrain/figures are three independently placed depths within the main composite,
+drawn above the existing landscape. The fixed depth is still two 1829 by 1800 strips at local y=0 and 1400. No
+new image, recompression, blur or separate motion of the bridge/characters is introduced.
+
+Optional plane fields: `instant: true` disables state-opacity transitions for pictures exchanged under the black veil.
+`look: {x, y, stop}` gives maximum pointer parallax in world units at that stop only. `panorama.look(nx, ny)` accepts
+normalised coordinates bounded to [-1,1]; letting go, leaving, changing stops and reduced motion reset it. The forest
+uses 7.24 by 5.43 units (32 by 24 source pixels), the tree 2.715 by 1.81 (12 by 8); both fixed main strips use zero.
+Horizontal story swipes and cut transitions take priority. No idle animation loop is added.

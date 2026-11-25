@@ -21,7 +21,7 @@ const shots = process.argv[2];
 const phone = (width, height) => ({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 const SCREENS = [['320', phone(320, 568)], ['375', phone(375, 667)], ['390', phone(390, 844)], ['430', phone(430, 932)],
   ['tablet', phone(820, 1180)], ['desktop', { viewport: { width: 1440, height: 900 } }]];
-const CARDS = ['The Seal', 'The Broken Seal', 'The Hollow Host', 'The Road to Oakvale', 'The Last Crossing', 'The False Signal'];
+const CARDS = ['The Seal', 'The Broken Seal', 'The Hollow Host', 'Bastion Holds the Crossing', 'The Road to Oakvale', 'The Last Crossing', 'The False Signal'];
 let failed = 0, passed = 0;
 const check = (ok, what) => { if (ok) passed++; else { failed++; console.log(`  FAIL ${what}`); } };
 
@@ -52,10 +52,19 @@ const fits = page => page.evaluate(() => {
       for (const problem of await fits(page)) check(false, `${name} ${label}: ${problem}`);
       if (shots) await page.screenshot({ path: path.join(shots, `${name}-${label}.png`) });
     };
+    // Record the loading stage as it happens; a fast load may finish before goto() returns.
+    await page.addInitScript(() => {
+      window.gateLoadingSeen = false;
+      new MutationObserver(() => {
+        const gate = document.getElementById('sortiaGate'), load = document.getElementById('sgLoad');
+        const auth = document.getElementById('sgAuth');
+        if (gate && load && auth && !gate.hidden && !load.hidden && auth.hidden) gateLoadingSeen = true;
+      }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+    });
     await page.goto(`${url}/index.html?story&pickpath${device.isMobile ? '&mobile' : ''}`);
     // the gate: a moment of loading under the logo, then the way in; an account made (what's wrong said under the form)
     await page.waitForSelector('#sortiaGate:not([hidden])', { timeout: 30000 });
-    check(await page.evaluate(() => !sgLoad.hidden && sgAuth.hidden), `${name}: the gate loads first`);
+    check(await page.evaluate(() => gateLoadingSeen), `${name}: the gate loads first`);
     await page.waitForSelector('#sgAuth:not([hidden])', { timeout: 15000 });
     await page.waitForTimeout(600);
     check(await page.evaluate(() => Gate.tab() === 'create' && !sgConfirmRow.hidden && !!document.querySelector('label[for=sgName]') && !!document.querySelector('label[for=sgPass]')),

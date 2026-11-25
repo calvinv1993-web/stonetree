@@ -139,7 +139,7 @@ let URL;
       const home = p.camera, at = shift();
       let most = [0, 0];
       for (let x = p.stop(0).x; x <= p.stop(p.count - 1).x; x += 4) { p.place(p.atX(x)); const shown = tiles.filter(e => e.style.display !== 'none').map(e => shift(e)); for (const s of shown) apart = Math.max(apart, Math.abs(s[0] - shown[0][0]), Math.abs(s[1] - shown[0][1])); const [dx, dy] = shift(tiles.find(e => e.style.display !== 'none')), k = new DOMMatrix(getComputedStyle(el.parentElement).transform).a / p.scale; most = [Math.max(most[0], Math.abs(dx) * k), Math.max(most[1], Math.abs(dy) * k)]; }
-      p.place(p.stop(2)); const atMill = shift(tiles[1]); p.place(p.stop(3)); const atRefugees = shift(tiles[3]);
+      p.place(p.stop(2)); const atMill = shift(tiles[1]); p.place(p.stop(4)); const atRefugees = shift(tiles[3]);
       p.place(home);
       return { at, most, atMill, atRefugees, apart };
     });
@@ -169,6 +169,41 @@ let URL;
     await context.close();
   }
 
+  // Bastion's night scene: original two-strip art and bounded depth motion, absent from the neighbouring scenes.
+  for (const [name, device] of SCREENS) for (const rm of ['no-preference', 'reduce']) {
+    if (rm === 'reduce' && name !== 'iPhone 13 Pro Max') continue;
+    const { context, page, errors } = await openStory(browser, device, '', { reducedMotion: rm });
+    const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
+    await page.evaluate(() => Intro.go(2)); await settled();
+    check(await page.evaluate(() => [...document.querySelectorAll('[data-id^="bastion-"]')].every(e => +getComputedStyle(e).opacity === 0)), `${name}: no Bastion at the mill`);
+    await page.click('#siNext'); await settled();
+    await page.waitForFunction(() => Intro.panorama.planes().filter(p => p.id.startsWith('bastion-')).every(p => p.loaded));
+    const before = await page.evaluate(() => {
+      const p = Intro.panorama, a = document.querySelector('[data-id="bastion-top"]').getBoundingClientRect();
+      const b = document.querySelector('[data-id="bastion-bottom"]').getBoundingClientRect();
+      return { title: siTitle.textContent, planes: p.planes().filter(p => p.id.startsWith('bastion-')), left: a.left,
+        top: a.top, bandOffset: (b.top - a.top) / p.scale };
+    });
+    check(before.title === 'Bastion Holds the Crossing' && before.planes.length === 4 && before.planes.every(p => p.loaded && p.magnification <= 1.05), `${name}: Bastion's four original pictures loaded, not stretched`);
+    check(Math.abs(before.bandOffset - 316.75) < 0.6, `${name}: Bastion's two strips keep their overlap`);
+    const shift = await page.evaluate(() => {
+      const p = Intro.panorama; p.look(100, -100);
+      const forest = getComputedStyle(document.querySelector('[data-id="bastion-forest"]')).translate.split(' ').map(parseFloat);
+      const tree = getComputedStyle(document.querySelector('[data-id="bastion-tree"]')).translate.split(' ').map(parseFloat);
+      const r = document.querySelector('[data-id="bastion-top"]').getBoundingClientRect();
+      return { forest: forest.map(x => (x || 0) / p.scale), tree: tree.map(x => (x || 0) / p.scale), left: r.left, top: r.top };
+    });
+    check(Math.abs(shift.left - before.left) < 0.01 && Math.abs(shift.top - before.top) < 0.01, `${name}: depth motion leaves Bastion and the bridge fixed`);
+    check(rm === 'reduce' ? [...shift.forest, ...shift.tree].every(x => x === 0) : Math.abs(shift.forest[0] - 7.24) < 0.02 && Math.abs(shift.forest[1] + 5.43) < 0.02 && Math.abs(shift.tree[0] - 2.715) < 0.02,
+      `${name}: forest and tree bounded; reduced motion stays still`);
+    await page.click('#siNext'); await settled();
+    check(await page.evaluate(() => siTitle.textContent === 'The Road to Oakvale' && [...document.querySelectorAll('[data-id^="bastion-"]')].every(e => +getComputedStyle(e).opacity === 0)), `${name}: on to the road, no night pictures left`);
+    await page.click('#siBack'); await settled();
+    check(await page.evaluate(() => siTitle.textContent === 'Bastion Holds the Crossing'), `${name}: back reaches Bastion again`);
+    check(errors.length === 0, `${name}: Bastion has no browser errors (${errors})`);
+    await context.close();
+  }
+
   // The Road to Oakvale: the refugees' place as the camera arrives, the refugees walking, no rescue; then The Last
   // Crossing (the camera still): the rescue fading in over it, the wounded man, the guards, the watchman; going back,
   // gone again; at once with reduced motion
@@ -177,8 +212,8 @@ let URL;
     const label = `The Last Crossing${rm === 'reduce' ? ' (reduced motion)' : ''}`;
     const op = () => page.evaluate(() => ['opening-rescue', 'opening-watchman'].map(id => +getComputedStyle(document.querySelector(`[data-id="${id}"]`)).opacity));
     const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
-    await page.evaluate(() => Intro.go(2)); await settled(); await page.waitForTimeout(300);
-    check((await op()).every(v => v === 0), `${label}: at the mill, no rescue yet`);
+    await page.evaluate(() => Intro.go(3)); await settled(); await page.waitForTimeout(300);
+    check((await op()).every(v => v === 0), `${label}: at Bastion, no rescue yet`);
     await page.click('#siNext');
     const during = [];
     for (let i = 0; i < 4; i++) { await page.waitForTimeout(120); during.push({ op: await op(), moving: await page.evaluate(() => sortiaIntro.classList.contains('moving')) }); }
@@ -228,7 +263,7 @@ let URL;
       const world = (id, ref) => (el(id).getBoundingClientRect().left - el(ref).getBoundingClientRect().left) / p.scale;
       const back = [...document.querySelectorAll('.sp-background [data-id]')].map(e => e.dataset.id).sort();
       const over = ['opening-rescue', 'opening-watchman', 'opening-false-signal'];
-      const xs = [p.stop(2).x, (p.stop(2).x + p.stop(3).x) / 2, p.stop(3).x - 60, p.stop(3).x, p.stop(3).x + 40], rel = [], sky = [];
+      const xs = [p.stop(2).x, (p.stop(2).x + p.stop(4).x) / 2, p.stop(4).x - 60, p.stop(4).x, p.stop(4).x + 40], rel = [], sky = [];
       for (const x of xs) { p.place(p.atX(x)); if (over.every(id => el(id).style.display !== 'none')) rel.push(over.map(id => world(id, 'opening-refugees'))); sky.push(world('opening-sky-d', 'opening-refugees')); } // (where they're drawn: near the refugees)
       p.place(p.stop(0));
       return { back, depths: over.map(depth), rel, sky };
@@ -250,22 +285,32 @@ let URL;
     const { context, page, errors } = await openStory(browser, SCREENS[0][1], '', { reducedMotion: rm });
     const label = `to Sister Ama${rm === 'reduce' ? ' (reduced motion)' : ''}`;
     const settled = () => page.waitForFunction(() => !sortiaIntro.classList.contains('moving'), null, { timeout: 8000 });
-    await page.evaluate(() => Intro.go(5)); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
-    const [fsX, amaX] = await page.evaluate(() => [Intro.panorama.stop(5).x, Intro.panorama.stop(6).x]);
+    await page.evaluate(() => Intro.go(6)); await settled(); await page.waitForTimeout(rm === 'reduce' ? 50 : 1000);
+    const [fsX, amaX] = await page.evaluate(() => [Intro.panorama.stop(6).x, Intro.panorama.stop(7).x]);
+    // Observe the camera change itself: polling can miss a short black hold on a busy browser.
+    await page.evaluate(() => {
+      window.cutChanges = []; let x = Intro.panorama.camera.x;
+      new MutationObserver(() => {
+        const next = Intro.panorama.camera.x;
+        if (Math.abs(next - x) < 0.5) return;
+        x = next; cutChanges.push({ x, veil: +getComputedStyle(document.querySelector('.si-veil')).opacity });
+      }).observe(document.querySelector('.sp-main'), { attributes: true, attributeFilter: ['style'] });
+    });
     const watch = async () => {
       const seen = [];
-      for (let i = 0; i < 60; i++) {
+      const deadline = Date.now() + 8000;
+      for (let i = 0; Date.now() < deadline; i++) {
         seen.push(await page.evaluate(() => ({ x: Intro.panorama.camera.x, veil: +getComputedStyle(document.querySelector('.si-veil')).opacity, moving: sortiaIntro.classList.contains('moving'), title: siTitle.textContent })));
         if (i > 2 && !seen[i].moving) break;
         await page.waitForTimeout(rm === 'reduce' ? 10 : 40);
       }
-      return seen;
+      return { seen, changes: await page.evaluate(() => cutChanges.splice(0)) };
     };
-    const judge = (seen, a, b, to, what) => {
+    const judge = ({ seen, changes }, a, b, to, what) => {
       const onlyTwo = seen.every(v => Math.abs(v.x - a) < 0.5 || Math.abs(v.x - b) < 0.5), first = seen.findIndex(v => Math.abs(v.x - b) < 0.5), end = seen[seen.length - 1];
       check(onlyTwo, `${label}: ${what}: the camera is never between the two places (${[...new Set(seen.map(v => v.x.toFixed(0)))]})`);
       if (rm === 'reduce') check(seen.every(v => v.veil < 0.01) && first === 0, `${label}: ${what}: at once, no black`);
-      else check(first > 0 && seen[first].veil > 0.9 && seen[first - 1].veil > 0.97 && seen.slice(0, first).some(v => v.veil > 0.05 && v.veil < 0.95) && seen.slice(first).some(v => v.veil > 0.05 && v.veil < 0.95),
+      else check(changes.some(v => Math.abs(v.x - b) < 0.5 && v.veil >= 0.98) && seen.some(v => v.veil > 0.05 && v.veil < 0.95),
         `${label}: ${what}: fades to black, changes while black, fades in (${seen.map(v => v.veil.toFixed(2)).join(' ')})`);
       check(end.veil < 0.01 && end.title === to && Math.abs(end.x - b) < 0.5, `${label}: ${what}: landed at ${to}, nothing dark left (${end.veil})`);
     };
