@@ -3448,8 +3448,10 @@ const Gate = (() => {
     el.querySelector('.sg-logo').src = hashed('ui/loading/logo.png');
     // (three quick taps on the logo, while loading or on the account page: the owner's picture trial, a page of its own:
     // proef-bastion.html)
+    // (its address carries its pictures' versions: a phone that kept the page before fetches it again when they change)
+    const trialVersion = () => typeof SPRITE_HASHES === 'undefined' ? Date.now() : Object.keys(SPRITE_HASHES).filter(k => k.startsWith('ui/proef/')).map(k => SPRITE_HASHES[k]).join('').slice(0, 40);
     { let taps = [];
-      for (const logo of el.querySelectorAll('.sg-logo, .sga-mark')) logo.addEventListener('pointerup', () => { const t = performance.now(); taps = [...taps.filter(x => t - x < 1200), t]; if (taps.length >= 3) location.href = 'proef-bastion.html'; }); }
+      for (const logo of el.querySelectorAll('.sg-logo, .sga-mark')) logo.addEventListener('pointerup', () => { const t = performance.now(); taps = [...taps.filter(x => t - x < 1200), t]; if (taps.length >= 3) location.href = `proef-bastion.html?v=${trialVersion()}`; }); }
     $('sgSwitch').onclick = () => {
       if (busy) return;
       setTab(tab === 'create' ? 'login' : 'create');
