@@ -373,11 +373,32 @@ const Sprites = (() => {
     rect(g, shade ? '#686154' : '#817867', 0, 11, TILE, 1);
     g.restore();
   }
+  // The cathedral's stone: dark, weathered sandstone in courses of ashlar (warm grey, blackened by the years), soot
+  // run down from the ledges, a lighter block here and there; along the top a band of blind tracery, little pointed arches.
+  function gothicStone(g, r, shade) {
+    const d = shade ? 24 : 0, tone = v => `rgb(${v - d + 9},${v - d + 3},${v - d - 7})`;
+    rect(g, tone(46), 0, 0, TILE, TILE);                                                       // the joints
+    for (let y = 4, row = 0; y < TILE; y += 7, row++) {
+      for (let x = row % 2 ? -6 : 0; x < TILE;) {
+        const w = 9 + ((r() * 7) | 0), v = 70 + ((r() * 20) | 0);
+        rect(g, tone(v), x + 0.5, y + 0.5, w - 1, 6);
+        rect(g, tone(v + 16), x + 0.5, y + 0.5, w - 1, 1);                                     // its upper edge, lit
+        rect(g, tone(v - 14), x + 0.5, y + 5.5, w - 1, 1);                                     // its lower edge, in shade
+        if (r() < 0.12) rect(g, 'rgba(210,198,176,0.12)', x + 1, y + 1, w - 2, 4);             // a weathered block, paler
+        x += w;
+      }
+    }
+    for (let i = 0; i < 4; i++) rect(g, 'rgba(12,9,6,0.24)', (r() * TILE) | 0, 4 + ((r() * 8) | 0), 1 + ((r() * 2) | 0), 8 + ((r() * 18) | 0)); // soot
+    rect(g, tone(58), 0, 0, TILE, 4);                                                          // the band of blind tracery
+    for (let x = 0; x < TILE; x += 8) { rect(g, tone(36), x + 1.5, 1.4, 5, 2.6); rect(g, tone(36), x + 3, 0.6, 2, 1); rect(g, tone(84), x, 0, 1, 4); }
+    rect(g, tone(90), 0, 0, TILE, 0.8); rect(g, tone(30), 0, 3.6, TILE, 0.6);
+  }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
   const WALL_STYLES = {
     wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
     wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
     wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
+    wall_gothic: { south: (g, r) => gothicStone(g, r, 0), east: (g, r) => gothicStone(g, r, 1), top: (g, r) => capStone(g, r, 92) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
   // The town wall's towers: the wall's sandstone strip (sprites/custom.js rampart_face) where it has loaded, round doors too
@@ -759,6 +780,23 @@ const Sprites = (() => {
     : (u, out, h) => [32 + u - h, 64 + out - h]);
   const IRON = { top: '#5e5a54', south: '#3a3632', east: '#24221f', edge: '#7a756e' };
   const STONE = { top: '#ece4ce', south: '#cfc6b0', east: '#a89e88', edge: '#fff8e4' };
+  const GOTHIC = { top: '#857a6c', south: '#625a4f', east: '#463f37', edge: '#a3978554' }; // the cathedral's dark sandstone
+  // The cathedral's window glass in face coordinates (x along, y up): two pointed lancets and a round of tracery over
+  // them, warm amber panes lit from within, held in lead.
+  function lancets(f) {
+    const lancet = (x0, x1, zb, zs, zt) => { const xm = (x0 + x1) / 2; f.beginPath(); f.moveTo(x0, zb); f.lineTo(x0, zs); f.quadraticCurveTo(x0, zs + (zt - zs) * 0.75, xm, zt); f.quadraticCurveTo(x1, zs + (zt - zs) * 0.75, x1, zs); f.lineTo(x1, zb); f.closePath(); };
+    for (const [x0, x1] of [[7.5, 15], [17, 24.5]]) {
+      f.fillStyle = '#2a1c10'; lancet(x0 - 0.7, x1 + 0.7, 5.6, 19, 25.6); f.fill();               // the lead round it
+      f.save(); lancet(x0, x1, 6.2, 19, 24.8); f.clip();
+      f.fillStyle = '#c98a3a'; f.fillRect(x0, 6, x1 - x0, 20);                                       // amber glass
+      for (let z = 7; z < 25; z += 3.4) for (let x = x0; x < x1; x += 2.5) { f.fillStyle = (x * 7 + z * 3) % 5 < 2 ? '#f2cc80' : (x + z) % 4 < 1 ? '#a8632e' : '#e3ad5c'; f.fillRect(x + 0.35, z + 0.35, 1.9, 2.8); } // its panes
+      f.fillStyle = 'rgba(255,240,200,0.35)'; f.fillRect(x0 + 0.6, 6.5, 1.1, 16);                    // light on the glass
+      f.restore();
+    }
+    f.fillStyle = '#2a1c10'; f.beginPath(); f.arc(16, 26.4, 3.2, 0, Math.PI * 2); f.fill();         // the round of tracery over them
+    f.fillStyle = '#f0c46e'; f.beginPath(); f.arc(16, 26.4, 2.5, 0, Math.PI * 2); f.fill();
+    f.fillStyle = '#2a1c10'; f.fillRect(15.6, 24, 0.8, 4.8); f.fillRect(13.6, 26, 4.8, 0.8);
+  }
   // A block against the wall from u0 to u1 along it, out0 to out1 in front of it, h0 to h1 high: the faces you see.
   // (On a south wall its front faces south and its end east; on an east wall its front faces east and its end south.)
   function wallBox(g, shape, u0, u1, o0, o1, h0, h1, c) {
@@ -883,7 +921,8 @@ const Sprites = (() => {
     roof_shingle: { color: [130, 88, 54], course: 4, joint: 5 },
     roof_green: { color: [74, 130, 100], course: 4, joint: 8 }, // copper gone green
     roof_marble: { color: [250, 242, 226], course: 4, joint: 8, gild: [232, 181, 74] }, // white marble slabs, gilded ridges and eaves (the temple)
-    roof_flat: { color: [216, 190, 138], flat: true },          // a flat roof with a low wall around it
+    roof_flat: { color: [216, 190, 138], flat: true },
+    roof_lead: { color: [72, 76, 86], course: 5, joint: 6 },   // the cathedral's: dark lead and slate          // a flat roof with a low wall around it
   };
   const SLOPE_LIGHT = [1.14, 0.7, 1, 0.84]; // facing north, south, west, east: lit from the north-west
   function roofTile(g, r, shape, st) {
@@ -1852,6 +1891,98 @@ const Sprites = (() => {
     for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, '#d8a830', 1.5, sx + Math.cos(a) * 4, sy + Math.sin(a) * 4, sx + Math.cos(a) * 7.5, sy + Math.sin(a) * 7.5); }
     ellipse(g, '#d8a830', sx, sy, 4.2, 4.2); ellipse(g, '#f8dc70', sx - 0.6, sy - 0.6, 3, 3);
   } };
+  // The cathedral's great portal: three tiles of its dark stone wall with a tall pointed arch cut through them, deep: three
+  // orders of carved mouldings round it, a tympanum over the doorway with the sun of the Dawn in gold, slim buttresses
+  // either side and a gable of open tracery rising over the arch. You walk straight through under the tympanum.
+  BIG.portal = { w: 3, h: 1, noInk: true, draw(g) {
+    const FZ = FLOOR_Z, v0 = W0, v1 = TILE, mid = 48, half = 24, zs = 13, rise = 27, lintel = 28;
+    const pz = (u, off = 0) => zs + (rise + off * 1.1) * Math.sqrt(Math.max(0, 1 - Math.abs(u - mid) / (half + off)));
+    const arc = (v, from, to, off = 0) => { const pts = []; for (let i = 0; i <= 32; i++) { const u = from + ((to - from) * i) / 32; pts.push(...P(u, v, pz(u, off))); } return pts; };
+    const a0 = mid - half, a1 = mid + half, st = WALL_STYLES.wall_gothic, rnd = makeRng(4243);
+    poly(g, '#2c2620', [...arc(v0, a0, a1), ...arc(v1, a1, a0)]);                                  // the arch's underside
+    poly(g, '#3a332b', [...P(a0, v0, 0), ...P(a0, v1, 0), ...P(a0, v1, zs), ...P(a0, v0, zs)]);    // the west jamb's inner face
+    // the front (south) face, the wall's own dark stone, with the arch cut out of it
+    g.save();
+    g.beginPath();
+    g.moveTo(...P(0, v1, 0)); g.lineTo(...P(a0, v1, 0));
+    const front = arc(v1, a0, a1); for (let i = 0; i < front.length; i += 2) g.lineTo(front[i], front[i + 1]);
+    g.lineTo(...P(a1, v1, 0)); g.lineTo(...P(96, v1, 0)); g.lineTo(...P(96, v1, FZ)); g.lineTo(...P(0, v1, FZ));
+    g.closePath(); g.clip();
+    g.setTransform(1, 0, 1, 1, 32, 64);
+    for (let k = 0; k < 3; k++) { g.save(); g.translate(k * TILE, 0); st.south(g, rnd); g.restore(); }
+    g.restore();
+    g.save(); // the east end's face
+    g.beginPath(); for (const [v, z] of [[v0, 0], [v1, 0], [v1, FZ], [v0, FZ]]) g.lineTo(...P(96, v, z)); g.closePath(); g.clip();
+    g.setTransform(0, 1, 1, 1, 128, 32); st.east(g, rnd);
+    g.restore();
+    g.save(); // the wall's cap along the top
+    g.beginPath(); for (const [u, v] of [[0, v0], [96, v0], [96, v1], [0, v1]]) g.lineTo(...P(u, v, FZ)); g.closePath(); g.clip();
+    g.translate(32, 32); for (let k = 0; k < 3; k++) { g.save(); g.translate(k * TILE, 0); st.top(g, rnd); g.restore(); }
+    g.restore();
+    // the tympanum over the doorway: a slab of paler stone filling the arch above the lintel, the sun of the Dawn on it
+    const span = half * (1 - ((lintel - zs) / rise) ** 2), t0 = mid - span, t1 = mid + span;
+    poly(g, '#6a6052', [...P(t0, v1 - 1.5, lintel), ...arc(v1 - 1.5, t0, t1), ...P(t1, v1 - 1.5, lintel)]);
+    line(g, '#9a8e7c', 1.2, ...P(t0 - 1, v1 - 1, lintel), ...P(t1 + 1, v1 - 1, lintel));                 // the lintel's edge, lit
+    line(g, '#2a241e', 1, ...P(t0 - 1, v1 - 1, lintel - 1.2), ...P(t1 + 1, v1 - 1, lintel - 1.2));
+    const [sx, sy] = P(mid, v1 - 1.5, lintel + 7);
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, i % 2 ? '#c8901c' : '#f2c94c', 1.3, sx + Math.cos(a) * 3.4, sy + Math.sin(a) * 3.4, sx + Math.cos(a) * 6.4, sy + Math.sin(a) * 6.4); }
+    ellipse(g, '#b8841a', sx, sy, 3.6, 3.6); ellipse(g, '#ffd860', sx - 0.5, sy - 0.5, 2.6, 2.6);
+    for (const k of [-1, 1]) { const [fx, fy] = P(mid + k * 9, v1 - 1.5, lintel + 1); poly(g, '#4a4238', [fx - 1.6, fy, fx + 1.6, fy, fx + 1.2, fy - 6, fx, fy - 7.4, fx - 1.2, fy - 6]); } // two carved figures kneeling to it
+    // three orders of mouldings round the arch, light and shade in turn, little carved figures on the middle one
+    for (const [off, c, w] of [[2.5, '#7e7466', 2], [5, '#3c352d', 1.6], [7.5, '#8a7f70', 2]]) line(g, c, w, ...arc(v1 + 0.5, a0 - off, a1 + off, off));
+    for (let i = 1; i < 10; i++) { const u = a0 - 5 + ((a1 - a0 + 10) * i) / 10, [x, y] = P(u, v1 + 0.6, pz(u, 5)); ellipse(g, '#a09482', x, y, 1, 1.4); }
+    // slim buttresses either side, each with a little pinnacle
+    for (const u of [a0 - 14, a1 + 10]) {
+      prism(g, u, v1 - 1, u + 4, v1 + 2, 0, FZ - 14, GOTHIC);
+      taper(g, u, v1 - 1, u + 4, v1 + 2, FZ - 14, FZ - 1, 1.8, GOTHIC);
+    }
+    // the gable of open tracery over the arch, crockets along its edges, a little round window in it
+    const gz = pz(mid, 7.5) - 9, gl = P(a0 - 6, v1 + 1, gz - 12), ga = P(mid, v1 + 1, FZ - 0.5), gr = P(a1 + 6, v1 + 1, gz - 12);
+    line(g, '#8a7f70', 1.6, ...gl, ...ga); line(g, '#8a7f70', 1.6, ...ga, ...gr);
+    for (let k = 1; k < 5; k++) for (const [a, b] of [[gl, ga], [gr, ga]]) { const x = a[0] + (b[0] - a[0]) * k / 5, y = a[1] + (b[1] - a[1]) * k / 5; ellipse(g, '#9a8e7c', x, y - 1.2, 1.1, 1.1); }
+  } };
+  // A spire over one of the cathedral's towers, 5 x 4 tiles: a parapet of tracery round the top of the tower, a slim
+  // pinnacle on each corner, and from inside it the spire, eight-sided, dark stone in courses with crockets up its edges,
+  // little gabled openings at its foot, rising high over the town to the golden sun of the Dawn at its tip.
+  BIG.spire = { w: 5, h: 4, rise: 190, draw(g) {
+    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 210, Rb = 50;
+    const tone = k => { const a = [46, 41, 36], b = [128, 118, 104]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
+    const parapet = (u0, v0, u1, v1) => prism(g, u0, v0, u1, v1, 0, zb, GOTHIC);
+    const pinnacle = (u, v) => { prism(g, u - 5, v - 5, u + 5, v + 5, 0, 22, GOTHIC); taper(g, u - 5, v - 5, u + 5, v + 5, 22, 52, 4.6, GOTHIC); const [x, y] = P(u, v, 55); ellipse(g, '#a3977f', x, y, 1.6, 1.6); };
+    parapet(0, 0, W, 4); parapet(0, 0, 4, H);                                                        // its back edges
+    pinnacle(6, 6); pinnacle(W - 6, 6); pinnacle(6, H - 6);
+    // the spire: its eight faces, the far ones first, each in its own light (from the north-west)
+    const pt = (k, z) => { const a = (k / 8) * Math.PI * 2 + Math.PI / 8, rad = Rb * (1 - (z - zb) / (zt - zb)); return [cu + Math.cos(a) * rad, cv + Math.sin(a) * rad, z]; };
+    const faces = [...Array(8).keys()].map(k => { const a = ((k + 0.5) / 8) * Math.PI * 2 + Math.PI / 8; return { k, nu: Math.cos(a), nv: Math.sin(a) }; }).sort((p, q) => (p.nu + p.nv) - (q.nu + q.nv));
+    for (const { k, nu, nv } of faces) {
+      const light = Math.max(0, Math.min(1, 0.5 - 0.42 * nu - 0.22 * nv));
+      poly(g, tone(light), [...P(...pt(k, zb)), ...P(...pt(k + 1, zb)), ...P(cu, cv, zt)]);
+      for (let z = zb + 18; z < zt - 12; z += 17) line(g, tone(light * 0.6), 0.8, ...P(...pt(k, z)), ...P(...pt(k + 1, z)));   // its courses
+      if (nu + nv > 0.2) for (let z = zb + 30; z < zt - 30; z += 30) { // little windows of tracery up the near faces
+        const m0 = pt(k, z), m1 = pt(k + 1, z), mu = (m0[0] + m1[0]) / 2, mv = (m0[1] + m1[1]) / 2, [x, y] = P(mu, mv, z + 5);
+        poly(g, 'rgba(10,8,6,0.75)', [x - 2.2, y + 4, x + 2.2, y + 4, x + 2.2, y - 1, x, y - 4, x - 2.2, y - 1]);
+      }
+    }
+    for (let k = 0; k < 8; k++) { // crockets up its edges: little knobs of carved leaves
+      if (Math.cos((k / 8) * Math.PI * 2 + Math.PI / 8) + Math.sin((k / 8) * Math.PI * 2 + Math.PI / 8) < -0.6) continue;
+      line(g, tone(0.75), 1, ...P(...pt(k, zb)), ...P(cu, cv, zt));
+      for (let z = zb + 14; z < zt - 8; z += 13) { const [x, y] = P(...pt(k, z)); ellipse(g, tone(0.82), x - 0.6, y, 1.4, 1.1); }
+    }
+    // the gabled openings at its foot, on its near faces
+    for (const [u, v] of [[cu, cv + Rb * 0.92], [cu + Rb * 0.92, cv], [cu + Rb * 0.65, cv + Rb * 0.65]]) {
+      prism(g, u - 6, v - 3, u + 6, v + 3, zb, zb + 18, GOTHIC);
+      const [x, y] = P(u, v + 3, zb + 4); poly(g, '#140f0b', [x - 3, y, x + 3, y, x + 3, y - 7, x, y - 10, x - 3, y - 7]);
+      const a = P(u - 7, v + 3, zb + 18), b = P(u, v + 3, zb + 28), c = P(u + 7, v + 3, zb + 18); poly(g, tone(0.55), [...a, ...b, ...c]);
+    }
+    // the golden sun of the Dawn on a rod at its tip
+    line3(g, '#c8901e', 2, cu, cv, zt - 2, cu, cv, zt + 12);
+    const [sx, sy] = P(cu, cv, zt + 18);
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, l = i % 2 ? 8 : 11; poly(g, i % 2 ? '#e8b54a' : '#f2c94c', [sx + Math.cos(a - 0.15) * 4.4, sy + Math.sin(a - 0.15) * 4.4, sx + Math.cos(a) * l, sy + Math.sin(a) * l, sx + Math.cos(a + 0.15) * 4.4, sy + Math.sin(a + 0.15) * 4.4]); }
+    ellipse(g, '#a8741a', sx, sy, 5, 5); ellipse(g, '#ffd860', sx, sy, 4.2, 4.2); ellipse(g, '#fff4c0', sx - 1, sy - 1, 1.8, 1.8);
+    // the parapet's near edges and the near pinnacle, in front of it all
+    parapet(0, H - 4, W, H); parapet(W - 4, 0, W, H);
+    pinnacle(W - 6, H - 6);
+  } };
   // A window of stained glass in face coordinates (x along the face, y up it): an arch w wide, from zb to the
   // top of its arch; inside, a sun low in the middle, its rays, and panes round it, all held in lead.
   const SKY = ['#2f5fb8', '#c8323c', '#3e8ef7', '#6a3ab0', '#2f5fb8'];
@@ -1975,6 +2106,8 @@ const Sprites = (() => {
     big_tent_00: ['big_tent', 0, 0], big_tent_10: ['big_tent', 1, 0], big_tent_01: ['big_tent', 0, 1], big_tent_11: ['big_tent', 1, 1],
     temple_lantern_nw: ['temple_lantern', 0, 0], temple_lantern_ne: ['temple_lantern', 1, 0], temple_lantern_sw: ['temple_lantern', 0, 1], temple_lantern_se: ['temple_lantern', 1, 1],
     arch_w: ['arch', 0, 0], arch_m: ['arch', 1, 0], arch_e: ['arch', 2, 0],
+    portal_w: ['portal', 0, 0], portal_m: ['portal', 1, 0], portal_e: ['portal', 2, 0],
+    ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3].map(r => [`spire_${c}${r}`, ['spire', c, r]]))),
     bell_nw: ['bell', 0, 0], bell_ne: ['bell', 1, 0], bell_sw: ['bell', 0, 1], bell_se: ['bell', 1, 1],
     bed_head: ['bed', 0, 0], bed_foot: ['bed', 0, 1],
     fountain_nw: ['fountain', 0, 0], fountain_ne: ['fountain', 1, 0], fountain_sw: ['fountain', 0, 1], fountain_se: ['fountain', 1, 1],
@@ -2358,6 +2491,7 @@ const Sprites = (() => {
     roof_green: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_green),
     roof_marble: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_marble),
     roof_flat: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_flat),
+    roof_lead: (g, r, frame, shape) => roofTile(g, r, shape, ROOF_STYLES.roof_lead),
     water(g, r, frame) {
       rect(g, '#2d63b5', 0, 0, TILE, TILE);
       for (let i = 0; i < 9; i++) {
@@ -2374,6 +2508,7 @@ const Sprites = (() => {
     wall_stone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_stone'),
     wall_wood: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_wood'),
     wall_temple: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_temple'),
+    wall_gothic: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_gothic'),
     wall_rampart: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_rampart'),
     wall_sandstone: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_sandstone'),
     wall_block(g, r) {
@@ -3773,6 +3908,22 @@ const Sprites = (() => {
       onWallPlane(g, shape, -D, () => { g.transform(1, 0, 0, -1, 0, 32); sunWindow(g, 10, 12, 10, 22); });
       wallBox(g, shape, 7, 25, 0, 2.5, 6.6, 8.2, STONE);                                         // the sill, sticking out
     },
+    // A belfry's corner pier: a cluster of shafts of dark stone from a moulded base up to the spire above it.
+    pier_gothic(g) {
+      floorShadow(g, 12, 3);
+      prism(g, 5, 5, 27, 27, 0, 5, GOTHIC);
+      prism(g, 8, 8, 24, 24, 5, FLOOR_Z, GOTHIC);
+      for (const [u, v] of [[6, 14], [14, 6]]) prism(g, u, v, u + 4, v + 4, 5, FLOOR_Z, { ...GOTHIC, south: '#6e6558' });
+      for (const [u, v] of [[22, 14], [14, 22]]) prism(g, u, v, u + 4, v + 4, 5, FLOOR_Z, GOTHIC);
+    },
+    // The cathedral's window: two tall pointed lancets of leaded glass, lit warm from within, under a little round of
+    // tracery, set deep in the dark stone; a stone mullion between them, a sill standing out below.
+    window_gothic: (g, r, frame, shape) => {
+      wallPoly(g, shape, 0, 'rgba(8,6,4,0.55)', [5.5, 4.5, 26.5, 4.5, 26.5, 20, 16, 31, 5.5, 20]);            // the deep recess
+      onWallPlane(g, shape, -1.5, () => { g.transform(1, 0, 0, -1, 0, 32); lancets(g); });
+      wallBox(g, shape, 15.2, 16.8, 0, 1, 6, 24.5, GOTHIC);                                                   // the mullion
+      wallBox(g, shape, 4.5, 27.5, 0, 2.5, 3.6, 5.4, GOTHIC);                                                 // the sill
+    },
     // A torch in an iron ring on a bracket out from the wall, soot on the wall above it.
     wall_torch: (g, r, frame, shape) => wallTorch(g, shape, frame, true),
     wall_torch_out: (g, r, frame, shape) => wallTorch(g, shape, frame, false),
@@ -4108,7 +4259,7 @@ const Sprites = (() => {
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded
   for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) if (!DRAW[id]) DRAW[id] = DRAW.pillar;
-  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, bookshelf: 2 };
+  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, wall_gothic: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
   const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_armour_front', sign_magic: 'sign_magic_front', sign_food: 'sign_food_front', sign_tools: 'sign_tools_front', sign_inn: 'sign_inn_front', sign_depot: 'sign_depot_front', sign_temple: 'sign_temple_front', sign_school: 'sign_school_front', ladder: 'ladder_front', door: 'door_open_front', door_closed: 'door_closed_front', door_sealed: 'door_closed_front', ramp: 'ramp_front', cave_ladder: 'ladder_front', sewer_ladder: 'ladder_front', lantern: 'lantern_side', window: 'window_front' };

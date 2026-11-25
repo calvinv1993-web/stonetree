@@ -93,10 +93,12 @@ const THINGS = {
   roof_green:  { name: 'copper roof', cat: 'Roofs', ground: true, roof: true },
   roof_marble: { name: 'marble roof', cat: 'Roofs', ground: true, roof: true },
   roof_flat:   { name: 'flat roof', cat: 'Roofs', ground: true, roof: true },
+  roof_lead:   { name: 'lead roof', cat: 'Roofs', ground: true, roof: true }, // the cathedral's: dark grey lead and slate
 
   wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_temple: { name: 'carved stone wall', cat: 'Walls', block: true, wall: 'thin' },
+  wall_gothic: { name: 'dark carved stone', cat: 'Walls', block: true, wall: 'thin' }, // the cathedral's: weathered dark sandstone
   wall_rampart:{ name: 'town wall', cat: 'Walls', block: true, wall: 'thin' }, // the town wall's towers and gatehouses: its own sandstone
   wall_sandstone: { name: 'sandstone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_secret: { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin', sprite: 'wall_stone' },
@@ -134,6 +136,7 @@ const THINGS = {
 
   window:      { name: 'window', cat: 'Wall decor', onWall: true },
   window_stained: { name: 'stained-glass window', cat: 'Wall decor', onWall: true },
+  window_gothic: { name: 'tall pointed window', cat: 'Wall decor', onWall: true, light: 2 }, // the cathedral's: lancets of leaded glass, lit from within (they glow at night)
   wall_torch:  { name: 'wall torch', cat: 'Wall decor', onWall: true, light: 3, fireSwap: 'wall_torch_out' },
   wall_torch_out: { name: 'unlit wall torch', cat: 'Wall decor', onWall: true, fireSwap: 'wall_torch' },
   painting:    { name: 'painting', cat: 'Wall decor', onWall: true },
@@ -233,6 +236,11 @@ const THINGS = {
   arch_w:      { name: 'archway', cat: 'Walls', wall: 'thin' },
   arch_m:      { name: 'archway', cat: 'Walls', wall: 'thin' },
   arch_e:      { name: 'archway', cat: 'Walls', wall: 'thin' },
+  // The cathedral's great portal: as the archway, but pointed, deep, its arch carved, the sun of the Dawn above it (BIG.portal)
+  portal_w:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
+  portal_m:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
+  portal_e:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
+  pier_gothic: { name: 'carved pier', cat: 'Town', block: true, tall: true }, // a belfry's corner, holding up its spire
   bell_nw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_ne:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
   bell_sw:     { name: 'the bell of Oakvale', cat: 'Town', block: true, low: true, bell: true },
@@ -284,6 +292,11 @@ const THINGS = {
   scarecrow:   { name: 'scarecrow', cat: 'Town', block: true, low: true, tall: true },
   dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true, trainer: true },
   pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
+  // A cathedral tower's spire over its belfry, 5 x 4 tiles: each tile shows its part of the one spire (BIG.spire)
+  spire_00: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_10: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_20: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_30: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_40: { name: 'spire', cat: 'Town', block: true, tall: true },
+  spire_01: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_11: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_21: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_31: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_41: { name: 'spire', cat: 'Town', block: true, tall: true },
+  spire_02: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_12: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_22: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_32: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_42: { name: 'spire', cat: 'Town', block: true, tall: true },
+  spire_03: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_13: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_23: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_33: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_43: { name: 'spire', cat: 'Town', block: true, tall: true },
   pillar_amethyst: { name: 'amethyst pillar', cat: 'Town', block: true, tall: true },
   pillar_emerald: { name: 'emerald pillar', cat: 'Town', block: true, tall: true },
   pillar_royalblue: { name: 'royal blue pillar', cat: 'Town', block: true, tall: true },

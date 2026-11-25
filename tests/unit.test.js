@@ -434,7 +434,8 @@ test('Oakvale: every shopkeeper, teacher and keeper stands inside their own buil
   for (const [id, where] of Object.entries(home)) {
     const n = state.npcs.find(o => o.npcId === id), b = B.find(o => o.id === where);
     assert(n && b, `${id} and ${where}`);
-    assert(n.x > b.x0 && n.x < b.x1 && n.y > b.y0 && n.y < b.y1, `${id} stands inside ${b.name} (at ${n.x},${n.y})`);
+    const inside = [[b.x0, b.y0, b.x1, b.y1], ...(b.wings || [])].some(([x0, y0, x1, y1]) => n.x > x0 && n.x < x1 && n.y > y0 && n.y < y1); // (in its main block or a wing)
+    assert(inside, `${id} stands inside ${b.name} (at ${n.x},${n.y})`);
   }
 });
 
@@ -853,12 +854,12 @@ test('a kill task you just took: the guide points to where those monsters live, 
   assert(t && t !== bram && state.map.spawns.some(s => s.type === 'wolf' && s.x === t.x && s.y === t.y), 'the arrow points at the wolves');
 });
 
-test('the temple has a wide open archway, three tiles across, and no door: you walk straight in', () => {
+test('the temple has a great open portal, three tiles across, and no door: you walk straight in', () => {
   const game = quietGame();
   const { ctx, state } = game;
   const map = state.map, p = state.player;
-  const [dx, dy] = [137, 106];
-  assert.deepStrictEqual([-1, 0, 1].map(k => map.get(dx + k, dy, 9).items.join()), ['arch_w', 'arch_m', 'arch_e']);
+  const [dx, dy] = state.OAKVALE.buildings.find(b => b.id === 'temple').door;
+  assert.deepStrictEqual([-1, 0, 1].map(k => map.get(dx + k, dy, 9).items.join()), ['portal_w', 'portal_m', 'portal_e']);
   assert(![-2, -1, 0, 1, 2].some(k => map.get(dx + k, dy, 9).items.some(id => id.startsWith('door'))), 'no door');
   for (const k of [-1, 0, 1]) assert(map.isWalkable(dx + k, dy, 9), 'every tile of it walkable');
   ctx.teleport({ x: dx + 1, y: dy + 2, z: 9 });
@@ -1537,8 +1538,8 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   }
   // III: the farewell
   levelTo(10); assert.strictEqual(arrow(), 'ama', 'Sister Ama wants to say goodbye'); assert.strictEqual(mark('ama'), 'offer');
-  talk('ama', 'farewell', 'yes'); on(null, { x: 145, y: 103, z: 13 });
-  assert.strictEqual(arrow(), '145,102,13', 'to the bell'); state.now += 60000; ctx.ringBell();
+  talk('ama', 'farewell', 'yes'); { const [bx, by] = state.OAKVALE.belltower.bell; on(null, { x: bx - 1, y: by + 1, z: 13 }); }
+  assert.strictEqual(arrow(), `${state.OAKVALE.belltower.bell.join()},13`, 'to the bell'); state.now += 60000; ctx.ringBell();
   for (const id of ['corwin', 'pip', 'gate_north']) { assert.strictEqual(arrow(), id, `farewell to ${id}`); talk(id, 'farewell'); }
   assert.strictEqual(arrow(), 'ama'); talk('ama', 'farewell'); assert.strictEqual(state.questState('bell_6'), 'done');
   assert.strictEqual(arrow(), 'oak_oracle', 'and at level 10, to the oracle');

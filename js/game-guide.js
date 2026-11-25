@@ -21,6 +21,10 @@
 const WALL_STEPS = typeof OAKVALE !== 'undefined' ? OAKVALE.ramparts.stairs[0] : [0, 0];
 // Farmer Ned's grate, outside his barn door (the sewers' rats are right under it)
 const NED_GRATE = typeof OAKVALE !== 'undefined' ? OAKVALE.grates[2] : [0, 0];
+// The way up to the bell, from the top down (the guide points at the first on your floor): the bell, the stairs of the
+// temple's east tower floor by floor, its door
+const BELL_ROUTE = typeof OAKVALE === 'undefined' ? [] : [{ at: [...OAKVALE.belltower.bell, 9 + OAKVALE.towers.floors] },
+  ...OAKVALE.belltower.stairs.map(([x, y], k) => ({ at: [x, y, 9 + k] })).reverse(), { at: [...OAKVALE.towers.east.door, 9] }];
 function onWall() { return player.z > map.surfaceZ && player.z <= map.surfaceZ + 2 && player.y <= OAKVALE.ramparts.y0 + 3; } // (or a corner tower's lookout)
 const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, as the story needs them (The Last Town, then The Recruit): the world; walking, talking; stairs and
@@ -219,10 +223,10 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
-    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the bell tower east of the temple and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
-    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the tower east of the temple, then say farewell.',
+    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the temple\'s east tower and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the temple\'s east tower, then say farewell.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
-    target: [{ quest: 'bell_6' }, { news: ['ama'] }, { at: [145, 102, 13] }, { at: [145, 101, 12] }, { at: [147, 101, 11] }, { at: [145, 101, 10] }, { at: [147, 101, 9] }, { at: [145, 101, 8] }],
+    target: [{ quest: 'bell_6' }, { news: ['ama'] }, ...BELL_ROUTE],
     done: () => questState('bell_6') === 'done',
     minLevel: 10, // (till then: hunt at the gates)
   },
