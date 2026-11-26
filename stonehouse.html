@@ -1,0 +1,115 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree · Stonehouse reference build</title><style>*{box-sizing:border-box}body{margin:0;background:#111915;color:#e5dbc2;font:14px system-ui}header{padding:13px;background:#273329;display:flex;justify-content:space-between;gap:12px}header small{color:#b7baa3}canvas{display:block;width:min(100vw,720px);height:auto;margin:10px auto;image-rendering:pixelated;touch-action:none;border:2px solid #566251}p{max-width:720px;margin:12px auto;padding:0 12px;line-height:1.5}button{background:#455945;border:1px solid #92977a;border-radius:5px;color:#fff;padding:10px 18px}nav{text-align:center}</style></head><body><header><strong>STONETREE · STONEHOUSE</strong><small>2.5D · reference reconstruction</small></header><canvas id="scene" width="640" height="576"></canvas><nav><button id="reset">Reset</button></nav><p id="message">Tap a doorway to open it, then tap a floor tile to walk through. The walls are raised objects with their own side faces and collision.</p><script>
+'use strict';
+const c=document.getElementById('scene'),g=c.getContext('2d'),message=document.getElementById('message');g.imageSmoothingEnabled=false;
+const T=32,W=20,H=18,player={x:10,y:17},doors=[{x:10,y:15,open:false},{x:6,y:12,open:false},{x:6,y:7,open:false},{x:6,y:3,open:false},{x:7,y:12,open:false},{x:7,y:8,open:false}],items=[],solid=new Set(),floors=new Map();
+const key=(x,y)=>x+','+y,rand=(x,y,s=0)=>{let n=Math.imul(x+79,73856093)^Math.imul(y+113,19349663)^Math.imul(s+17,83492791);return(n^(n>>>13))>>>0};
+const fill=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),w,h)};
+const add=(kind,x,y,blocking=true)=>{items.push({kind,x,y});if(blocking)solid.add(key(x,y))};
+function floorRect(l,t,r,b,type){for(let y=t;y<=b;y++)for(let x=l;x<=r;x++)floors.set(key(x,y),type)}
+floorRect(1,1,5,4,'wood');floorRect(1,6,5,9,'wood');floorRect(1,11,5,14,'wood');floorRect(8,9,17,14,'wood');
+floorRect(7,1,7,14,'wood');floorRect(7,8,7,8,'wood');floorRect(7,15,19,15,'stone');floorRect(9,16,12,17,'stone');
+function wallLine(x1,y1,x2,y2){const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1);let x=x1,y=y1;while(true){if(!solid.has(key(x,y)))add('wall',x,y);if(x===x2&&y===y2)break;x+=dx;y+=dy}}
+wallLine(0,0,8,0);wallLine(8,0,8,7);wallLine(0,0,0,15);wallLine(6,0,6,15);wallLine(0,5,6,5);wallLine(0,10,6,10);wallLine(0,15,7,15);
+wallLine(7,8,18,8);wallLine(7,12,7,15);wallLine(18,8,18,15);wallLine(7,15,18,15);
+for(const d of doors){solid.delete(key(d.x,d.y));for(let i=items.length-1;i>=0;i--)if(items[i].kind==='wall'&&items[i].x===d.x&&items[i].y===d.y)items.splice(i,1);add('door',d.x,d.y,false)}
+// Deliberate connected entrance at south and inner corridor. Walls never disappear on entry.
+for(const [kind,x,y] of [['bed',2,2],['bed',2,7],['bed',2,12],['desk',4,2],['books',4,3],['chest',9,9],['chest',10,9],['chest',11,9],['barrel',15,13],['barrel',16,13],['barrel',17,13],['fire',14,11],['pot',12,12],['table',3,13],['crate',1,16],['crate',2,16],['water',8,16]])if(!solid.has(key(x,y))&&!doors.some(d=>d.x===x&&d.y===y))add(kind,x,y,['bed','desk','table','barrel','chest','crate'].includes(kind));
+function ground(x,y){let a=x*T,b=y*T,t=floors.get(key(x,y));if(t==='wood'){fill(a,b,32,32,'#775837');for(let j=0;j<4;j++){const yy=b+j*8;fill(a,yy,32,7,(j+x)%3?'#c8a46b':'#d4b77d');fill(a,yy,32,2,'#e5c68f');fill(a,yy+7,32,1,'#76563b');fill(a+((x+j)%2?14:25),yy+2,1,5,'#8d714e');if(rand(x,y,j)%4===0)fill(a+5,yy+4,6,1,'#ad8856')}return}
+if(t==='stone'){fill(a,b,32,32,'#676d6b');fill(a+1,b+1,30,29,'#a4a8a4');fill(a+2,b+2,28,3,'#c7c9c2');fill(a,b+29,32,3,'#5c625f');fill(a+15,b+4,2,12,'#777e7a');fill(a,b+16,32,2,'#717873');return}
+fill(a,b,32,32,rand(x,y)%4?'#49783e':'#568249');for(let j=0;j<15;j++){const n=rand(x,y,j);fill(a+2+n%28,b+2+(n>>>8)%28,1+n%3,1+n%2,['#2e6034','#77a456','#a3a66b','#386f3a'][n%4])}
+}
+// Original Stonetree masonry tiles: separate north/south facades, east/west
+// profiles and connected corner caps. All pieces share one 32px anchor grid.
+const masonry=(x,y,w,h,seed)=>{
+ fill(x,y,w,h,'#7c847e');
+ for(let j=0;j<Math.ceil(h/9);j++){
+   const yy=y+j*9,off=(j%2)*11;
+   fill(x,yy,w,2,'#424c46');
+   for(let k=-1;k<4;k++){
+     const xx=x+off+k*21;
+     if(xx>x&&xx<x+w)fill(xx,yy+2,2,7,'#535e55');
+   }
+   for(let k=0;k<4;k++){
+     const n=rand(seed+j,k,seed),px=x+3+n%Math.max(1,w-6),py=yy+3+(n>>>7)%4;
+     fill(px,py,Math.min(4,x+w-px),1,(n&1)?'#b2b9ae':'#606c62');
+   }
+ }
+};
+function wall(o){
+ const x=o.x*T,y=o.y*T,near=(dx,dy)=>items.some(v=>(v.kind==='wall'||v.kind==='door')&&v.x===o.x+dx&&v.y===o.y+dy);
+ const N=near(0,-1),S=near(0,1),E=near(1,0),W=near(-1,0);
+ const vertical=(N||S)&&!(E||W);
+ const top=y-16;
+ // Shadows under masonry, behind the cap.
+ fill(x+3,y+25,30,7,'#2b342f');
+ if(vertical){
+   // A continuous narrow visible edge and a long, deep east-facing side.
+   fill(x+3,top,14,45,'#a8afa3');
+   fill(x+4,top+2,12,5,'#d1d2c3');
+   fill(x+16,top+3,15,42,'#424d45');
+   masonry(x+17,top+10,12,31,o.x*31+o.y);
+   fill(x+16,top+7,2,36,'#293a32');
+   fill(x+29,top+6,2,38,'#28352e');
+   if(!N){fill(x+2,top,29,7,'#bfc5b7');fill(x+3,top+1,26,2,'#e1e0ce')}
+   if(!S)fill(x+2,y+27,29,4,'#333e37');
+ }else{
+   // Front walls show the broad stone facade and horizontal coping.
+   fill(x,top+3,32,42,'#4d5750');
+   masonry(x+1,top+12,30,30,o.x*31+o.y);
+   fill(x,top,32,10,'#aab2a6');
+   fill(x+1,top,30,3,'#deded0');
+   fill(x+2,top+5,28,2,'#c4cabc');
+   fill(x,top+9,32,3,'#46534a');
+   if(!W)fill(x,top+1,3,42,'#c1c5b7');
+   if(!E)fill(x+29,top+1,3,42,'#39483f');
+ }
+ // Join top stones through elbows; never leave disconnected corners.
+ if((N||S)&&(E||W)){
+   fill(x+1,top,30,10,'#b2b9ac');
+   fill(x+2,top+1,27,3,'#d9dbcc');
+   fill(x+2,top+8,29,3,'#5b675d');
+   fill(x+25,top+10,6,31,'#4b5a50');
+ }
+}
+function drawItem(o){const a=o.x*T,b=o.y*T;switch(o.kind){
+case 'wall':wall(o);return;
+case 'door':{
+ const d=doors.find(v=>v.x===o.x&&v.y===o.y);
+ const vertical=items.some(v=>v.kind==='wall'&&v.x===o.x&&Math.abs(v.y-o.y)===1);
+ const x=a,y=b-16;
+ fill(x,y+4,32,42,'#455148');
+ fill(x+1,y,30,9,'#b5bbaf');fill(x+2,y+1,28,3,'#e0ddc9');
+ fill(x+1,y+9,5,34,'#8b9689');fill(x+26,y+9,5,34,'#626f63');
+ fill(x+6,y+9,20,34,'#2a2924');
+ if(d.open){
+   fill(x+6,y+10,5,32,'#8c5835');fill(x+7,y+11,3,28,'#c68c50');
+   fill(x+12,y+13,12,27,'#333c34');
+ }else{
+   fill(x+7,y+10,18,32,'#85502e');
+   fill(x+9,y+12,14,28,'#b77d45');
+   fill(x+11,y+14,10,12,'#d19b5b');
+   fill(x+11,y+29,10,9,'#8a5733');
+   fill(x+21,y+26,3,3,'#f0d28d');
+ }
+ if(vertical){fill(x+1,y+3,6,9,'#d0d0c1');fill(x+26,y+3,5,9,'#646f65')}
+ return;
+}
+case 'bed':fill(a+4,b+1,24,31,'#5e412c');fill(a+6,b+3,20,27,'#b18b53');fill(a+7,b+4,18,8,'#e5e4d5');fill(a+7,b+13,18,15,'#5b7390');fill(a+7,b+13,18,3,'#9eafc1');return;
+case 'barrel':fill(a+5,b+7,22,25,'#493729');fill(a+7,b+5,18,25,'#ad7546');fill(a+7,b+8,18,4,'#d4b082');fill(a+7,b+21,18,3,'#5a4434');fill(a+12,b+7,2,20,'#775035');return;
+case 'chest':fill(a+2,b+10,28,20,'#603b25');fill(a+3,b+6,26,13,'#a96a34');fill(a+3,b+6,26,3,'#e5b46c');fill(a+6,b+19,20,3,'#e0ac59');fill(a+14,b+17,4,7,'#f0d080');return;
+case 'fire':fill(a+9,b+16,18,13,'#684d31');fill(a+13,b+4,10,18,'#f2a728');fill(a+15,b+10,7,12,'#f5df63');fill(a+17,b+1,4,12,'#e95b24');return;
+case 'pot':fill(a+6,b+11,20,19,'#51483c');fill(a+9,b+9,14,6,'#a89e8b');fill(a+10,b+12,12,14,'#635449');return;
+case 'desk':fill(a+1,b+11,30,16,'#6b452b');fill(a+2,b+8,28,8,'#c89b61');fill(a+5,b+4,14,5,'#d6c7a0');return;
+case 'books':fill(a+2,b+9,28,21,'#614832');fill(a+6,b+10,4,17,'#8b573e');fill(a+12,b+8,4,19,'#d0ac6a');fill(a+18,b+12,5,15,'#53745a');return;
+case 'table':fill(a+3,b+12,26,18,'#63472e');fill(a+1,b+7,30,12,'#ba8750');fill(a+3,b+7,26,3,'#e0ac6b');return;
+case 'crate':fill(a+2,b+5,28,25,'#775034');fill(a+4,b+7,24,21,'#b7834a');fill(a+5,b+7,22,3,'#d5a36b');fill(a+6,b+12,20,3,'#795333');return;
+case 'water':fill(a+4,b+9,24,20,'#6e4333');fill(a+6,b+7,20,18,'#347a91');fill(a+9,b+9,15,9,'#53a3bc');return;
+}}
+function hero(){const a=player.x*T,b=player.y*T;fill(a+9,b+3,14,11,'#e2bd8b');fill(a+8,b,16,5,'#5c4931');fill(a+6,b+14,20,12,'#487b43');fill(a+10,b+14,12,10,'#a0b16a');fill(a+9,b+26,6,6,'#574a36');fill(a+19,b+26,6,6,'#574a36')}
+function render(){g.clearRect(0,0,c.width,c.height);for(let y=0;y<H;y++)for(let x=0;x<W;x++)ground(x,y);const actors=items.map(o=>({...o,order:o.y*100+o.x}));actors.push({kind:'hero',x:player.x,y:player.y,order:player.y*100+player.x+0.5});actors.sort((a,b)=>a.order-b.order);for(const o of actors)o.kind==='hero'?hero():drawItem(o);fill(0,0,640,24,'#16251dcc');g.font='bold 13px monospace';g.fillStyle='#f0e7d1';g.fillText('STONEHOUSE · OBJECT LAYERS · NO ROOF',12,17)}
+function blocked(x,y){return x<0||y<0||x>=W||y>=H||solid.has(key(x,y))||doors.some(d=>d.x===x&&d.y===y&&!d.open)}
+function route(tx,ty){if(blocked(tx,ty))return null;const q=[[player.x,player.y]],seen=new Set([key(player.x,player.y)]),parent=new Map();for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===tx&&y===ty){let k=key(x,y),path=[];while(parent.has(k)){path.unshift(k.split(',').map(Number));k=parent.get(k)}return path}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let xx=x+dx,yy=y+dy,k=key(xx,yy);if(!seen.has(k)&&!blocked(xx,yy)){seen.add(k);parent.set(k,key(x,y));q.push([xx,yy])}}}return null}
+let timer=null;function walk(path){clearTimeout(timer);let i=0;const step=()=>{if(i>=path.length)return;if(blocked(...path[i]))return;[player.x,player.y]=path[i++];render();timer=setTimeout(step,90)};step()}
+c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*640/r.width/T),y=Math.floor((e.clientY-r.top)*576/r.height/T);const d=doors.find(d=>d.x===x&&d.y===y)||doors.find(d=>d.x===x&&d.y===y+1&&solid.has(key(x,y)));if(d){if(Math.abs(player.x-d.x)+Math.abs(player.y-d.y)>3){const near=[[d.x,d.y+1],[d.x,d.y-1],[d.x+1,d.y],[d.x-1,d.y]].map(([xx,yy])=>route(xx,yy)).filter(Boolean).sort((a,b)=>a.length-b.length)[0];if(near){walk(near);message.textContent='Walk to the door, then tap again.'}else message.textContent='No route to this door.';return}if(d.open&&player.x===d.x&&player.y===d.y){message.textContent='Cannot close an occupied doorway.';return}clearTimeout(timer);d.open=!d.open;message.textContent=d.open?'Door opened. Walk through on the same map.':'Door closed.';render();return}const p=route(x,y);if(!p){message.textContent='That tile is blocked.';return}message.textContent='Walking.';walk(p)});
+document.getElementById('reset').onclick=()=>{clearTimeout(timer);player.x=10;player.y=17;doors.forEach(d=>d.open=false);render()};render();
+</script></body></html>
