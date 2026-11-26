@@ -17,7 +17,7 @@ const WORLD_SIZE = { width: 256, height: 256, depth: 16, surfaceZ: 8 };
 
 // Named places, for the in-game maps and the editor's "Go to". [name, x, y, z]
 const KESTREL_PREVIEW = typeof WORLD_PREVIEW !== 'undefined' && WORLD_PREVIEW === 'kestrel'; // (the new world's preview: see js/world-kestrel.js)
-const MAP_TOWNS = KESTREL_PREVIEW ? [['Bellhaven', 125, 104, 9]] : [['Oakvale', 137, 103, 9]];
+const MAP_TOWNS = KESTREL_PREVIEW ? [['Bellhaven', 125, 104, 9]] : [['Oakvale', 137, 103, 8]];
 const MAP_SIGHTS = KESTREL_PREVIEW ? [] : [
   ['North Peaks', 100, 57, 9], ['Mirror Lake', 128, 57, 8], ['Willow River', 121, 76, 8], ['Wolf Woods', 60, 84, 8],
   ['Frog Marsh', 56, 128, 8], ["Fisher's Rest", 48, 174, 8], ['Bone Rocks', 76, 198, 9], ['Sunny Fields', 130, 160, 8],
@@ -124,8 +124,7 @@ const ISLE_DESIGN = {
 // compass lies in the very middle; the high street runs from the north gate across it to the south gate, the cross
 // street from the west gate to the east gate. A canal comes in under the north wall and runs down the west side of
 // the square and out under the south wall. Round the square:
-//   - north-east, on its mount: the Temple of the Dawn, a cathedral with two towers (where new characters wake; the
-//     bell hangs in its east tower);
+//   - north-east: the Temple of the Dawn, a simple church with its bell tower beside it (where new characters wake);
 //   - north-west: the Sleepy Boar (the inn, green roof), and the cottages below it;
 //   - east: the shops, Pip's Provisions and Moonpetal Magic; south-east: the smithy, the armourer, the graveyard;
 //   - south: the academy (yellow roof; the oracle upstairs) and the depot across the high street from it;
@@ -159,23 +158,16 @@ const OAKVALE = {
   ramparts: { x0: 99, y0: 94, x1: 153, y1: 148, thick: 3,
     gates: [[125, 94, 127, 96], [125, 146, 127, 148], [99, 120, 101, 122], [151, 120, 153, 122]],
     stairs: [[130, 96]], exits: [null, null, null, null] }, // (exits: the side each corner tower opens on to the outside, NW NE SW SE; null: none)
-  start: { x: 137, y: 103 }, // in the temple on the mount, in the nave before the altar (one floor up)
-  // The temple's two towers, either side of its great portal (its front faces the square), four floors above the
-  // temple's own and their spires above that: west: [x0, y0, x1, y1], door (from the hall behind the portal); east: the
-  // same, and the bell's: stairs: up from each floor, from the temple's; shaft: the column of open hatches the bell rope
-  // runs down; bell: the north-west tile of the great bell (2x2) at the top; rules: a sign on the ringers' wall [x, y, text].
-  towers: { floors: 4, west: { at: [130, 104, 134, 107], door: [134, 106] }, east: { at: [140, 104, 144, 107], door: [140, 106] } },
-  belltower: { stairs: [[141, 105], [143, 105], [141, 105], [143, 105]], shaft: [143, 106], bell: [141, 105],
-    rules: [142, 104, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
+  start: { x: 137, y: 103 }, // in the church, before the altar
+  // The bell tower beside the church (a building, see buildings): stairs: up from each floor, from the ground; shaft:
+  // the column of open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2) at the top;
+  // rules: a sign on the ringers' wall [x, y, text].
+  belltower: { stairs: [[147, 104], [145, 104], [147, 104], [145, 104]], shaft: [147, 102], bell: [145, 102],
+    rules: [146, 101, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle, and past the wall, to wherever the Host is listening.' },
-  // The temple mount: a knoll of rock north of the square, its top one floor up, with the temple on it, a terrace
-  // in front and the bell tower on its east shoulder; a broad flight of stone steps runs down from the terrace to the
-  // square. outline: its foot, roughened a little (see the mount below); keep: what must stand on it (the temple with
-  // its path round it, the terrace, the bell tower and the way to it); clear: never on it; x0..y1: the box it lies in (y1: the steps' row).
-  mount: { x0: 128, y0: 99, x1: 149, y1: 109, steps: [136, 137, 138],
-    outline: [[128.6, 103.4], [129.8, 100.9], [132.4, 100.2], [136.8, 99.9], [141.4, 100.4], [143.6, 99.6], [149.6, 99.4],
-      [150, 102.5], [149.6, 106.4], [146.4, 106.6], [143.9, 107.4], [142.9, 110], [131.9, 110], [129.9, 109.3], [128.5, 106.6]],
-    keep: [[129, 99, 145, 108], [128, 102, 131, 107], [134, 109, 140, 109], [143, 99, 149, 106]], clear: [] }, // (a rim round the temple's towers)
+  // The churchyard: the ground the church and its tower stand on, north of the square (kept clear of everything
+  // else); a paved way from the church door down to the square
+  mount: { x0: 128, y0: 99, x1: 149, y1: 109, steps: [136, 137, 138], flat: true },
   streets: [
     { line: [[126, 89], [126, 151]], width: 3, ground: 'cobble' },              // the high street: north gate, the square, south gate
     { line: [[94, 121], [158, 121]], width: 3, ground: 'cobble' },              // across: west gate, the square, east gate
@@ -190,9 +182,10 @@ const OAKVALE = {
   // the square: an octagon round the compass in the middle of town, and the way down from the temple's steps to it
   square: [[122, 115, 130, 127], [120, 117, 132, 125], [121, 116, 131, 126], [136, 110, 138, 119]], // (the last: the temple walk, straight down from its steps to the cross street)
   buildings: [
-    // the temple: a cathedral of pale stone, one wide hall: its front (the towers either side of the hall behind its portal)
-    // and, behind it, the nave across its whole width with the altar; two floors high (the towers rise on, see towers)
-    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 130, y0: 100, x1: 144, y1: 107, level: 1, floors: 2, door: [137, 107], arch: 'portal', floor: 'marble', wall: 'wall_gothic', roof: 'roof_slate', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple. The bell hangs in its east tower.' },
+    // the church: one hall of pale stone under a slate roof, its door to the square, the altar at the far end; its bell
+    // tower beside it
+    { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 132, y0: 100, x1: 142, y1: 107, door: [137, 107], arch: true, floor: 'marble', wall: 'wall_temple', roof: 'roof_slate', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple.' },
+    { id: 'belltower', name: 'The Bell Tower', kind: 'belltower', x0: 144, y0: 100, x1: 148, y1: 105, door: [146, 105], floors: 4, floor: 'paving', wall: 'wall_temple', roof: 'roof_slate', signId: 'sign_temple', sign: 'The Bell Tower of Oakvale, the highest tower in town. Its bell has rung over the isle since the founders\' day.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [124, 135], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [140, 135], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
@@ -281,15 +274,15 @@ const OAKVALE = {
   ],
   // The townsfolk: [type, x, y, z]; each stands on the nearest free tile to that spot.
   people: [
-    ['ama', 136, 102, 9], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
+    ['ama', 136, 102, 8], ['corwin', 135, 137, 8], ['oak_oracle', 135, 136, 9], ['postmaster', 121, 136, 8], ['pip', 141, 115, 8],
     ['oak_smith', 136, 126, 8], ['oak_armourer', 143, 126, 8], ['oak_mage', 106, 125, 8], ['oak_baker', 113, 126, 8], ['oak_innkeeper', 106, 102, 8], ['oak_landlady', 111, 103, 8], ['oak_fisher', 115, 110, 8], ['oak_quartermaster', 146, 115, 8], ['oak_farmer', 108, 132, 8], ['oak_keeper', 134, 210, 8], ['oak_hermit', 194, 48, 9],
     ['gate_north', 125, 98, 8], ['gate_east', 148, 121, 8], ['gate_south', 126, 143, 8], ['gate_west', 104, 121, 8], // (each on the street, just inside its gate)
     ['oak_townsman', 123, 117, 8], ['oak_townswoman', 129, 125, 8], ['oak_child', 129, 118, 8], ['oak_cat', 114, 122, 8], ['oak_old_man', 140, 132, 8],
-    ['oak_gunner', 139, 105, 9], ['oak_refugee', 122, 130, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her tent and wagon)
+    ['oak_gunner', 140, 105, 8], ['oak_refugee', 122, 130, 8], // (a gunner of the north wall, hurt, in the temple; a refugee by her tent and wagon)
   ],
   notice: [133, 113, 'BY ORDER OF THE WATCH. Lights out at the second bell. Two loaves to a house. Nobody past the gates alone after dark. Recruits: Master Corwin, at the academy. Rats in the cellars again: ask Farmer Ned.'],
-  founder: [146, 101], // the statue of the founder (3 x 3 tiles, its north-west corner), on the mount's east shoulder, beside the temple
-  firstSteps: [141, 112, 'Welcome to Oakvale Isle! Up the steps behind you is the temple; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
+  founder: [128, 102], // the statue of the founder (3 x 3 tiles, its north-west corner), in the churchyard west of the church
+  firstSteps: [141, 112, 'Welcome to Oakvale Isle! Up the way behind you is the church; down the walk is the square, with the compass in the middle of town. The shops are east of the square, the academy (yellow roof) and the depot south of it, the inn north-west. Four gates lead out. Beyond the walls: rats first, then the wolves of the woods. Look at things: many have a story.'],
 };
 
 // The sewers under Oakvale, one floor down: brick tunnels under the main streets, each with a channel of
@@ -318,7 +311,7 @@ const SEWERS = {
   channels: [[104, 130, 147, 130], [132, 108, 132, 129], [126, 131, 126, 144]],
   bridges: [[112, 130], [120, 130], [138, 130], [145, 130], [132, 128], [132, 129], [132, 117], [126, 131], [126, 132], [126, 139]],
   rooms: [
-    { x0: 133, y0: 101, x1: 149, y1: 106, ground: 'paving', wall: 'wall_sewer' }, // the bell cellar, under the temple and its towers
+    { x0: 133, y0: 101, x1: 149, y1: 106, ground: 'paving', wall: 'wall_sewer' }, // the bell cellar, under the church and its tower
     { x0: 103, y0: 121, x1: 108, y1: 126, ground: 'paving', wall: 'wall_sewer' }, // an old storeroom, under the river
   ],
   caves: [{ cx: 146, cy: 139.5, rx: 5.6, ry: 4.6 }],
@@ -332,7 +325,7 @@ const SEWERS = {
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[148, 140], [146, 142]], // two: a pair a level 4 can take on with care
-  shaft: [143, 106, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the training yard.'],
+  shaft: [147, 102, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the training yard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -1345,11 +1338,11 @@ function createDefaultMap() {
     const golems = [[x0 + 3, y0 + 3], [x0 + 6, y0 + 2], [x0 + 6, y0 + 3], [x0 + 6, y0 + 4], [x0 + 9, y0 + 3], [x0 + 10, y0 + 3], [x0 + 9, y0 + 4], [x0 + 10, y0 + 4]];
     for (const [x, y] of golems) m.spawns.push({ type: 'practice_golem', x, y, z });
     m.get(PRACTICE_ROOM.exit.x, PRACTICE_ROOM.exit.y, z).items.push('teleport');
-    m.setMeta(PRACTICE_ROOM.exit.x, PRACTICE_ROOM.exit.y, z, { to: { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 } });
+    m.setMeta(PRACTICE_ROOM.exit.x, PRACTICE_ROOM.exit.y, z, { to: { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S } });
   }
 
   // ---- where you start: in the temple ------------------------------------------------------------
-  m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S + 1 }; // in the temple on the mount
+  m.start = { x: OAKVALE.start.x, y: OAKVALE.start.y, z: S }; // in the church
   m.mainStart = { ...m.start };
   // (the whole world is the starter island for now: every bit of land, its strands and islets too, is on it)
   m.isle = { x0: 0, y0: 0, x1: WORLD_SIZE.width - 1, y1: WORLD_SIZE.height - 1 };
@@ -2173,7 +2166,7 @@ function buildTown(m, S, runs, river) {
     const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit; } return hit; };
   // The temple mount: rock walls on the surface, and on top (one floor up) grass, with the odd crag on its edge. Its foot follows the outline, roughened by a tile or so (a fixed smooth noise, without lone tiles sticking
   // out or bites taken in); what it must carry is always on it, and in front of the steps its face runs straight.
-  {
+  if (!T.mount.flat) {
     const t = T.mount, inR = (r, x, y) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3];
     const kept = (x, y) => t.keep.some(r => inR(r, x, y));
     const flat = (x, y) => (y > t.y1 && x >= t.steps[0] - 4 && x <= t.steps[2] + 4) || t.clear.some(r => inR(r, x, y));
@@ -2239,7 +2232,7 @@ function buildTown(m, S, runs, river) {
         // windows on straight stretches of wall, every third tile, not next to the door
         const straight = (isWall(b, x - 1, y) && isWall(b, x + 1, y)) || (isWall(b, x, y - 1) && isWall(b, x, y + 1));
         const along = isWall(b, x - 1, y) && isWall(b, x + 1, y) ? x : y;
-        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) { if (b.wall === 'wall_gothic') put(x, y, z, 'window_gothic'); else if (b.wall !== 'wall_temple') put(x, y, z, 'window'); } // (the old temple's walls stayed bare; the cathedral's have tall pointed windows)
+        if (straight && along % 3 === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) { if (b.wall === 'wall_gothic') put(x, y, z, 'window_gothic'); else if (b.wall === 'wall_temple') { if (b.kind === 'temple') put(x, y, z, 'window_stained'); } else put(x, y, z, 'window'); } // (the old temple's walls stayed bare; the cathedral's have tall pointed windows)
       });
     }
     const [dx, dy] = b.door;
@@ -2269,48 +2262,26 @@ function buildTown(m, S, runs, river) {
   };
   for (const b of T.buildings) building(b);
 
-  // ---- the temple's towers, either side of its portal: the highest in town ---------------------------------------
-  // Each rises four floors over the temple's own, walled all round (pointed windows on its faces), and its spire above
-  // that. The west tower holds a chapel at the bottom. The east tower is the bell tower: the ringers' room at the bottom,
-  // stairs up from floor to floor, and at the top (floor 13) the bell, open to the sky between its corner piers under the
-  // spire. Its rope runs down a shaft of open hatches, one column through every floor (see T.belltower.shaft): from a
-  // wheel beside the bell down to the ringers' room, and on down the mount as a shaft (see SEWERS, DEEP_SEWERS).
+  // ---- the bell tower beside the church: the highest tower in town --------------------------------------------
+  // The ringers' room at the bottom, stairs up from floor to floor, and at the top (floor 12) the bell, open to the sky
+  // between pillars on its corners under its slate roof. Its rope runs down a shaft of open hatches, one column through
+  // every floor (see T.belltower.shaft): from a wheel beside the bell down to the ringers' room, and on down to the
+  // sewers (see SEWERS, DEEP_SEWERS).
   {
-    const TW = T.towers, BT = T.belltower, base = S + 1, top = base + TW.floors, [hx, hy] = BT.shaft;
-    for (const side of ['west', 'east']) {
-      const { at: [x0, y0, x1, y1], door: [ddx, ddy] } = TW[side];
-      for (let z = base; z <= top; z++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-        const edge = x === x0 || x === x1 || y === y0 || y === y1, corner = (x === x0 || x === x1) && (y === y0 || y === y1);
-        const bells = side === 'east';
-        if (z === top && bells) { // the belfry: walled to the north and west, an open arcade south and east, a pier on its corner
-          const walled = (y === y0 || x === x0) && edge, arcade = !walled && edge && !(x === x1 && y === y1);
-          m.set(x, y, z, { ground: 'temple_paving', items: walled ? (corner ? ['wall_gothic_tower'] : ['wall_gothic_tower', 'window_gothic']) : x === x1 && y === y1 ? ['pier_gothic'] : arcade ? [y === y1 ? 'belfry_arch_s' : 'belfry_arch_e'] : [] });
-          continue;
-        }
-        if (z === base && !edge) { m.set(x, y, z, { ground: 'marble', items: [] }); continue; } // (its room on the temple's floor)
-        if (!bells && !edge) { m.set(x, y, z, z === base + 1 ? { ground: 'ceiling', items: [] } : null); continue; } // (the west tower is hollow above its chapel's ceiling: no floors nobody can reach)
-        const window = edge && !corner && z > base && ((y === y1 && x === ((x0 + x1) >> 1)) || (x === x1 && y === ((y0 + y1 + 1) >> 1)));
-        m.set(x, y, z, { ground: bells || edge ? 'temple_paving' : null, items: edge ? (window ? ['wall_gothic', 'window_gothic'] : ['wall_gothic_tower']) : [] }); // (shafts and blind arches up its faces)
-      }
-      m.get(ddx, ddy, base).items = ['door'];
-      // the spire over it: its tiles carry the spire, standing on a roof of lead
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m.set(x, y, top + 1, { ground: 'roof_slate', items: [] }); // its roof: slate, standing up as the town's roofs do (render.js RAISED_ROOFS)
+    const bt = T.buildings.find(b => b.id === 'belltower'), BT = T.belltower, base = S, top = base + bt.floors - 1, [hx, hy] = BT.shaft;
+    for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) { // the belfry: open, on four corner pillars
+      const edge = x === bt.x0 || x === bt.x1 || y === bt.y0 || y === bt.y1, corner = (x === bt.x0 || x === bt.x1) && (y === bt.y0 || y === bt.y1);
+      m.set(x, y, top, { ground: 'paving', items: corner ? ['pillar'] : [] }); void edge;
     }
-    BT.stairs.forEach(([x, y], k) => { put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
-    const [sx, sy] = BT.stairs[BT.stairs.length - 1];
-    m.get(sx, sy, top).items = ['stairs_down'];
+    BT.stairs.forEach(([x, y], k) => { if (base + k + 1 > top) return; put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });
     const ropes = [[top, 'shaft_rope_top', 'The bell rope runs from a wheel beside the bell down through an open hatch in the floor.']];
     for (let z = top - 1; z > base; z--) ropes.push([z, 'shaft_rope', 'The bell rope runs down the tower through an open hatch in every floor.']);
     ropes.push([base, 'shaft_rope', 'The bell rope comes down through the ceiling to its woollen grip, over an open hatch. The bell is rung from the top of the tower.']);
-    for (const [z, id, look] of ropes) { m.set(hx, hy, z, { ground: null, items: [id] }); m.setMeta(hx, hy, z, { look }); } // an open hatch: no floor
-    for (let z = S; z < base; z++) m.set(hx, hy, z, { ground: 'pit', items: [] }); // the shaft on down through the rock of the mount
+    for (const [z, id, look] of ropes) { m.set(hx, hy, z, { ground: z === base ? 'pit' : null, items: [id] }); m.setMeta(hx, hy, z, { look }); } // an open hatch: no floor (on the ground, the shaft on down to the sewers)
     const [bx, by] = BT.bell;
     for (const [id, ox, oy] of [['bell_nw', 0, 0], ['bell_ne', 1, 0], ['bell_sw', 0, 1], ['bell_se', 1, 1]]) { put(bx + ox, by + oy, top, id); m.setMeta(bx + ox, by + oy, top, { look: BT.look }); }
     const [rx, ry, rules] = BT.rules;
     m.get(rx, ry, base).items.push('sign_wall'); m.setMeta(rx, ry, base, { text: rules });
-    // the west tower's chapel: a saint in its corner, a little altar with candles beside it, a pew before them
-    const [wx0, wy0, wx1, wy1] = TW.west.at;
-    put(wx0 + 1, wy0 + 1, base, 'saint'); put(wx0 + 2, wy0 + 1, base, 'altar'); put(wx1 - 1, wy0 + 1, base, 'candelabra'); put(wx0 + 1, wy1 - 1, base, 'pew');
   }
   // Shelves or racks along the inside of the north wall; flower boxes under the windows of homes and the inn.
   for (const b of T.buildings) {
@@ -2322,47 +2293,35 @@ function buildTown(m, S, runs, river) {
   const longBed = (x, y, z) => { put(x, y, z, 'bed_head'); put(x, y + 1, z, 'bed_foot'); };
   const inside = (b, x, y, id, z = S) => { if (free(x, y, z) && !(x === b.door[0] && Math.abs(y - b.door[1]) <= 1) && !(y === b.door[1] && Math.abs(x - b.door[0]) <= 1)) put(x, y, z, id); };
 
-  // ---- the temple on the mount: the nave with the altar on a rug, rows of piers, saints, pews; the hall behind the portal
+  // ---- the church: the altar at the far end, a red runner from the door to it, pews either side, saints, candles ----
   {
-    const t = B.temple, cx = T.start.x, Z = S + 1, TW = T.towers, [n0, ny0, n1, ny1] = [t.x0, t.y0, t.x1, TW.west.at[1] - 1]; // (the nave: the whole width, north of the towers)
-    for (let y = ny0 + 1; y <= ny0 + 2; y++) for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug'); // a rug under the altar
-    for (let y = ny0 + 3; y < t.y1; y++) put(cx, y, Z, 'carpet_rug'); // and a red runner down the middle, from the portal to it
-    put(cx, ny0 + 1, Z, 'altar');
-    // (kept quiet: the altar between two candle stands, a saint either side, the Dawn's banners behind; pews down the runner)
-    for (const x of [cx - 3, cx + 3]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar (they light it)
-    for (const x of [n0 + 1, n1 - 1]) put(x, ny0 + 1, Z, 'saint'); // saints in the corners by the altar
-    for (const x of [cx - 4, cx - 3, cx - 2, cx + 2, cx + 3, cx + 4]) put(x, ny0 + 2, Z, 'pew'); // a row of pews either side of the runner (an aisle behind them, from wall to wall)
-    for (const x of [cx - 3, cx + 3]) put(x, ny0, Z, 'banner'); // the Dawn's banners on the wall behind the altar
-    // the hall behind the portal: piers at its corners, a font of blessed water, coloured light from the great window
-    const [hx0, hx1] = [TW.west.at[2] + 1, TW.east.at[0] - 1];
-    put(hx0, t.y1 - 2, Z, 'holy_font'); // (beside the west tower's door, not in front of it)
-    // its floor: pale marble and dark slate in turn, through the nave and the hall
-    eachOf(t, (x, y) => { const ft = m.get(x, y, Z); if (ft && ft.ground === 'marble' && !(x >= TW.west.at[0] && x <= TW.west.at[2] && y >= TW.west.at[1]) && !(x >= TW.east.at[0] && x <= TW.east.at[2] && y >= TW.east.at[1])) ft.ground = 'marble_check'; });
-    // a ceiling over the nave and the hall (hidden from outside under their roofs): inside, what is above hides as in any building
-    eachOf(t, (x, y) => { const up = m.get(x, y, Z + 1); if (up && !up.items.length && up.ground === 'wood') up.ground = 'ceiling'; }); // (a ceiling: it hides what's above when you're inside, as a roof would, but keeps no night of its own)
-    // the hall's roof between the towers: the same slate, a roof of its own standing up (the nave's, across the whole width, apart)
-    for (let y = TW.west.at[1]; y <= t.y1; y++) for (let x = TW.west.at[2] + 1; x < TW.east.at[0]; x++) { const r = m.get(x, y, Z + t.floors); if (r && r.ground === t.roof) r.ground = 'roof_slate_b'; }
+    const t = B.temple, cx = T.start.x, Z = S;
+    for (let y = t.y0 + 1; y <= t.y0 + 2; y++) for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug'); // a rug under the altar
+    for (let y = t.y0 + 3; y < t.y1; y++) put(cx, y, Z, 'carpet_rug'); // and a red runner down the middle, from the door to it
+    put(cx, t.y0 + 1, Z, 'altar');
+    for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, Z, 'candelabra'); // candle stands either side of the altar
+    for (const x of [t.x0 + 1, t.x1 - 1]) put(x, t.y0 + 1, Z, 'saint'); // saints in the corners
+    for (const y of [t.y0 + 3, t.y0 + 5]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // two rows of pews either side of the runner
+    for (const x of [cx - 3, cx + 3]) put(x, t.y0, Z, 'banner'); // the Dawn's banners on the wall behind the altar
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
-    // the terrace in front: paving, pillars, lamps and flowers, with the steps down to the square
-    const mt = T.mount, pcx = t.door[0];
-    for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0 + 1; x <= t.x1 - 1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
-    for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
-    for (const x of [pcx - 2, pcx + 2]) put(x, T.mount.y1 - 1, Z, 'pier_gothic'); // piers either side of the top of the steps
-    for (const x of [t.x0 + 1, t.x1 - 1]) put(x, T.mount.y1 - 1, Z, 'lamppost'); // lamps at the terrace's ends
-    sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, beside the foot of the steps
-    // a garden round the temple: a path of the terrace's own paving all the way round it, joining the terrace
+    // a paved way from the door down to the square, lamps along it; a path round the church and to the tower's door
+    const mt = T.mount;
+    for (let y = t.y1 + 1; y <= mt.y1; y++) for (const x of mt.steps) m.setGround(x, y, Z, 'temple_paving');
+    for (const x of [mt.steps[0] - 1, mt.steps[2] + 1]) put(x, t.y1 + 2, Z, 'lamppost');
+    sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, at the end of the way
     const pave = (x, y) => { const tt = m.get(x, y, Z); if (tt && (tt.ground === 'grass' || tt.ground === 'gravel' || tt.ground === 'paving')) { tt.ground = 'temple_paving'; tt.items = tt.items.filter(id => !THINGS[id].block && id !== 'flowers' && id !== 'grass_tuft'); } };
-    for (let y = mt.y0; y <= mt.y1; y++) for (let x = mt.x0; x <= mt.x1; x++) {
-      if (inB(t, x, y)) continue;
-      if ([[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([ox, oy]) => inB(t, x + ox, y + oy))) pave(x, y);
+    const bt = B.belltower;
+    for (let y = t.y0 - 1; y <= t.y1 + 1; y++) for (let x = t.x0 - 1; x <= bt.x1 + 1; x++) {
+      if (inB(t, x, y) || inB(bt, x, y)) continue;
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ox, oy]) => inB(t, x + ox, y + oy) || inB(bt, x + ox, y + oy))) pave(x, y);
     }
-    // the statue of the founder, three tiles square, on the mount's east shoulder beside the temple, facing the town
+    // the statue of the founder, three tiles square, in the churchyard west of the church, facing the town
     { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         const ft = m.get(fx + c, fy + r, Z); ft.ground = 'grass'; ft.items = [`founder_${c}${r}`];
         m.setMeta(fx + c, fy + r, Z, { look: 'The founder of Oakvale in white marble, a cloak on her shoulders, one hand on a sword\'s hilt and the other holding a golden sun high. The plinth reads: "She brought us through the long winter." $founder' });
       } }
-    for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers and bushes round the edge of the mount
+    for (let x = mt.x0; x <= mt.x1; x++) for (let y = mt.y0; y <= mt.y1; y++) { // flowers in the churchyard's grass
       const tt = m.get(x, y, Z);
       if (tt && tt.ground === 'grass' && !tt.items.length && hash(x, y) < 0.35) put(x, y, Z, hash(x + 3, y) < 0.5 ? 'flowers' : 'grass_tuft');
     }

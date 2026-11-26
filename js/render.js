@@ -32,8 +32,7 @@ const RAISED_ROOFS = [
   [142, 116, 9], [147, 116, 9], [106, 126, 9],   // Pip's Provisions, the Watch House, Moonpetal Magic
   [122, 138, 9], [114, 141, 9], [120, 155, 9],   // the depot, the water mill, the cottage south of the wall
   [110, 132, 10], [109, 103, 10],                // the hay barn, the Sleepy Boar
-  [136, 137, 10], [137, 102, 11], [137, 105, 11], // the academy, the temple's nave and the hall behind its portal
-  [132, 105, 14], [142, 105, 14],                // the temple's two towers
+  [136, 137, 10], [137, 103, 9], [146, 102, 12], // the academy, the church, its bell tower
 ];
 function raisedRoofs(map) {
   if (map.raised && map.raised.version === map.version) return map.raised;

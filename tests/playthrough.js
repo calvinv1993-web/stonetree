@@ -398,7 +398,7 @@ try {
   step('the Gravewaker, in the founder\'s tomb', () => { shop(10); hunt('gravewaker', 1, TOMB, 'the founder\'s tomb'); equipBest(); });
   step('to level 10', () => levelUp(10, 'goblin', GOBLINS));
   step('Farewell', () => {
-    talkFor('bell_6', 'active', 'ama', 'farewell', 'yes'); useFor('bell_6', 141, 105, 13, 'the bell');
+    talkFor('bell_6', 'active', 'ama', 'farewell', 'yes'); useFor('bell_6', 145, 102, 11, 'the bell');
     talk('corwin', 'farewell'); talk('pip', 'farewell'); talk('gate_north', 'farewell'); talkFor('bell_6', 'done', 'ama', 'farewell');
   });
   step('the oracle', () => { const o = npc('oak_oracle'); talk('oak_oracle', 'destiny'); if (Math.max(Math.abs(p.x - o.x), Math.abs(p.y - o.y)) > 2 || p.z !== o.z) problem('did not reach the oracle'); });

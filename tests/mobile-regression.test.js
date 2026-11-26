@@ -23,9 +23,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright');
   check('1-2 a walk to a tile finds its way round what blocks, and gets there', await E(g => player.x === g.x && player.y === g.y, goal), JSON.stringify(goal));
   check('2  no walking through a wall', await E(() => { for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) { const t = map.get(player.x + dx, player.y + dy, player.z); if (t && t.items.some(id => THINGS[id].block && THINGS[id].wall)) return !isFree(player.x + dx, player.y + dy, player.z); } return true; }));
   // 3: floors: walk onto the nearest stair or ladder down from the start, and land one floor lower
-  const stair = await E(() => { const s = map.start; for (let r = 1; r < 30; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = s.x + dx, y = s.y + dy; if (map.floorChange(x, y, s.z) < 0) return { x, y, z: s.z }; } return null; });
-  await E(() => teleport(map.start));
-  await E(s => Actions.walkTo(s.x, s.y), stair); await p.waitForTimeout(6000);
+  const stair = await E(() => { const s = map.start; for (const z of [s.z, s.z + 1]) for (let r = 1; r < 30; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = s.x + dx, y = s.y + dy; if (map.floorChange(x, y, z) < 0 && !map.get(x, y, z).items.some(i => THINGS[i].useToClimb)) return { x, y, z }; } return null; }); // (a way down you walk onto, not a grate, which is used: near the start, or a floor up: the bell tower's stairs)
+  await E(s => { const free = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([a, b]) => [s.x + a, s.y + b]).find(([x, y]) => map.isWalkable(x, y, s.z) && !map.floorChange(x, y, s.z)); teleport({ x: free[0], y: free[1], z: s.z }); }, stair);
+  await E(s => Actions.walkTo(s.x, s.y), stair); await p.waitForTimeout(10000); // (the nearest way down: a grate on the square, a walk from the church)
   check('3  walking onto a way down takes you one floor down', await E(s => player.z === s.z - 1, stair), JSON.stringify(stair) + ' ' + await E(() => `${player.x},${player.y},${player.z}`));
   // 6: talk to an NPC through the smart button
   await E(() => teleport(map.start)); await p.waitForTimeout(300);

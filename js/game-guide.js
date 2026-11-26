@@ -22,9 +22,10 @@ const WALL_STEPS = typeof OAKVALE !== 'undefined' ? OAKVALE.ramparts.stairs[0] :
 // Farmer Ned's grate, outside his barn door (the sewers' rats are right under it)
 const NED_GRATE = typeof OAKVALE !== 'undefined' ? OAKVALE.grates[2] : [0, 0];
 // The way up to the bell, from the top down (the guide points at the first on your floor): the bell, the stairs of the
-// temple's east tower floor by floor, its door
-const BELL_ROUTE = typeof OAKVALE === 'undefined' ? [] : [{ at: [...OAKVALE.belltower.bell, 9 + OAKVALE.towers.floors] },
-  ...OAKVALE.belltower.stairs.map(([x, y], k) => ({ at: [x, y, 9 + k] })).reverse(), { at: [...OAKVALE.towers.east.door, 9] }];
+// bell tower floor by floor, its door
+const BELL_TOWER = typeof OAKVALE === 'undefined' ? null : OAKVALE.buildings.find(b => b.id === 'belltower');
+const BELL_ROUTE = !BELL_TOWER ? [] : [{ at: [...OAKVALE.belltower.bell, 8 + BELL_TOWER.floors - 1] },
+  ...OAKVALE.belltower.stairs.slice(0, BELL_TOWER.floors - 1).map(([x, y], k) => ({ at: [x, y, 8 + k] })).reverse(), { at: [...BELL_TOWER.door, 8] }];
 function onWall() { return player.z > map.surfaceZ && player.z <= map.surfaceZ + 2 && player.y <= OAKVALE.ramparts.y0 + 3; } // (or a corner tower's lookout)
 const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestrelGuide() : [
   // ---- the basics, as the story needs them (The Last Town, then The Recruit): the world; walking, talking; stairs and
@@ -223,8 +224,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
-    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the temple\'s east tower and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
-    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the temple\'s east tower, then say farewell.',
+    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the bell tower beside the church and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the tower beside the church, then say farewell.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, ...BELL_ROUTE],
     done: () => questState('bell_6') === 'done',
