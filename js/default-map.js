@@ -2233,7 +2233,7 @@ function buildTown(m, S, runs, river) {
         // windows on straight stretches of wall, every third tile, not next to the door
         const straight = (isWall(b, x - 1, y) && isWall(b, x + 1, y)) || (isWall(b, x, y - 1) && isWall(b, x, y + 1));
         const along = isWall(b, x - 1, y) && isWall(b, x + 1, y) ? x : y;
-        if (straight && along % (b.wall === 'wall_white' ? 2 : 3) === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) { if (b.wall === 'wall_white') { if (b.kind !== 'belltower') put(x, y, z, 'window_arched'); } else if (b.wall === 'wall_gothic') put(x, y, z, 'window_gothic'); else if (b.wall === 'wall_temple') { if (b.kind === 'temple') put(x, y, z, 'window_stained'); } else put(x, y, z, 'window'); } // (the old temple's walls stayed bare; the cathedral's have tall pointed windows)
+        if (straight && along % (b.wall === 'wall_white' ? 1 : 3) === 0 && Math.abs(x - b.door[0]) + Math.abs(y - b.door[1]) > 1) { if (b.wall === 'wall_white') { if (b.kind !== 'belltower') put(x, y, z, 'window_arched'); } else if (b.wall === 'wall_gothic') put(x, y, z, 'window_gothic'); else if (b.wall === 'wall_temple') { if (b.kind === 'temple') put(x, y, z, 'window_stained'); } else put(x, y, z, 'window'); } // (the old temple's walls stayed bare; the cathedral's have tall pointed windows)
       });
     }
     const [dx, dy] = b.door;
@@ -2272,6 +2272,9 @@ function buildTown(m, S, runs, river) {
     const cx = (bt.x0 + bt.x1) >> 1, cy = (bt.y0 + bt.y1) >> 1;
     m.set(cx, bt.y0, base, { ground: bt.floor, items: [] }); // the way on into the church
     for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) m.set(x, y, top + 1, { ground: 'ceiling', items: [`tower_cap_${x - bt.x0}${y - bt.y0}`] }); // its cap (on a ceiling, as a spire)
+    for (let z = base + 1; z <= top; z++) for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) { // (above the church's eaves the tower is plain: no bays, no plinth)
+      const t = m.get(x, y, z); if (t) t.items = t.items.map(id => id === 'wall_white' ? 'wall_white_plain' : id);
+    }
     for (let z = base + 1; z <= top; z++) { // a window in the middle of each face the town sees: south and east
       const look = z === top ? 'tower_clock' : z === top - 1 ? 'window_louvre' : 'window_arched';
       put(cx, bt.y1, z, look); put(bt.x1, cy, z, look);

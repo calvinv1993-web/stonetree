@@ -413,14 +413,23 @@ const Sprites = (() => {
   }
   // The church's walls: smooth plaster, limewashed white, the faint mottle of old wash coats; the face turned east in
   // shade, a touch cooler.
-  function whitePlaster(g, r, shade) {
+  // (bays: the church's ground floor, a pilaster standing proud at each tile's edge with a little grey capital, and a
+  // plinth of dark grey along the foot)
+  function whitePlaster(g, r, shade, bays = true) {
     rect(g, shade ? '#cfcdc6' : '#f0eee8', 0, 0, TILE, TILE);
     for (let i = 0; i < 7; i++) rect(g, shade ? 'rgba(120,116,104,0.08)' : 'rgba(150,144,130,0.07)', (r() * 28) | 0, (r() * 28) | 0, 3 + ((r() * 6) | 0), 2 + ((r() * 4) | 0));
     for (let i = 0; i < 3; i++) rect(g, 'rgba(255,255,255,0.35)', (r() * 30) | 0, (r() * 30) | 0, 2, 1);
+    if (!bays) return;
+    rect(g, shade ? '#e0ded8' : '#fbfaf6', 0, 2, 3, 26);                         // the pilaster, lit
+    rect(g, shade ? 'rgba(60,56,48,0.28)' : 'rgba(60,56,48,0.2)', 3, 2, 0.8, 26); // its shadow
+    rect(g, shade ? '#8e9090' : '#a4a6a6', 0, 4, 4, 1.6);                         // its capital
+    rect(g, shade ? '#55585a' : '#6c7072', 0, 28, TILE, 4);                       // the plinth
+    rect(g, shade ? '#6c7072' : '#8a8e90', 0, 28, TILE, 0.8);
   }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
   const WALL_STYLES = {
     wall_white: { south: (g, r) => whitePlaster(g, r, 0), east: (g, r) => whitePlaster(g, r, 1), top: '#e2e0da' },
+    wall_white_plain: { south: (g, r) => whitePlaster(g, r, 0, false), east: (g, r) => whitePlaster(g, r, 1, false), top: '#e2e0da' },
     wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
     wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
     wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
@@ -2782,6 +2791,7 @@ const Sprites = (() => {
     wall_wood: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_wood'),
     wall_temple: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_temple'),
     wall_white: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_white'),
+    wall_white_plain: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_white_plain'),
     wall_gothic: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_gothic'),
     wall_gothic_tower: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_gothic_tower'),
     wall_rampart: (g, r, frame, shape) => styledWall(g, r, shape, 'wall_rampart'),
@@ -4240,18 +4250,18 @@ const Sprites = (() => {
     // The church's window: tall, under a round head, small leaded panes of grey-green glass set a little into the white
     // wall, a stone sill below; at night a little warm light behind it.
     window_arched: (g, r, frame, shape) => {
-      wallPoly(g, shape, 0.2, '#fbfaf6', [...roundHead(9.5, 22.5, 5, 22, 1.4)]);                           // the white reveal round it
-      wallPoly(g, shape, 0, 'rgba(70,66,58,0.35)', roundHead(9.5, 22.5, 5, 22));                          // the recess's shadow
+      wallPoly(g, shape, 0.2, '#fbfaf6', roundHead(10.5, 22.5, 6, 21.5, 1.3));                             // the white reveal round it
+      wallPoly(g, shape, 0, 'rgba(70,66,58,0.35)', roundHead(10.5, 22.5, 6, 21.5));                        // the recess's shadow
       onWallPlane(g, shape, -1.2, () => {
         g.transform(1, 0, 0, -1, 0, 32);
-        archPath(g, 11, 21, 6, 20); g.fillStyle = '#2c3438'; g.fill();                                      // the glass
-        g.save(); archPath(g, 11, 21, 6, 20); g.clip();
-        g.fillStyle = 'rgba(150,176,180,0.35)'; g.fillRect(11, 6, 4, 22);                                    // the sky in it
-        g.fillStyle = '#9aa0a0'; for (let h = 9; h < 28; h += 3.2) g.fillRect(11, h, 10, 0.6);               // the leading
-        for (const u of [13.5, 16, 18.5]) g.fillRect(u - 0.3, 6, 0.6, 22);
+        archPath(g, 11.8, 21.2, 7, 21.5); g.fillStyle = '#2c3438'; g.fill();                                // the glass
+        g.save(); archPath(g, 11.8, 21.2, 7, 21.5); g.clip();
+        g.fillStyle = 'rgba(150,176,180,0.35)'; g.fillRect(11.8, 7, 4, 22);                                  // the sky in it
+        g.fillStyle = '#9aa0a0'; for (let h = 9.5; h < 27; h += 2.6) g.fillRect(11.8, h, 9.4, 0.55);        // the leading
+        for (const u of [14.2, 16.5, 18.8]) g.fillRect(u - 0.28, 7, 0.55, 21);
         g.restore();
       });
-      wallBox(g, shape, 8.5, 23.5, 0, 2, 3.8, 5.2, STONE);                                                    // the sill
+      wallBox(g, shape, 9.5, 23.5, 0, 2, 4.8, 6.2, STONE);                                                    // the sill
     },
     // High in a tower, where its bell hangs: a round-headed opening shut with slanting slats.
     window_louvre: (g, r, frame, shape) => {
@@ -4635,7 +4645,7 @@ const Sprites = (() => {
   // Ground tiles get 4 variants each; these get a few as well.
   // the owner's coloured pillars: drawn as the plain pillar until their own pictures have loaded
   for (const id of ['pillar_amethyst', 'pillar_emerald', 'pillar_royalblue', 'pillar_terracotta']) if (!DRAW[id]) DRAW[id] = DRAW.pillar;
-  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, wall_white: 2, wall_gothic: 2, wall_gothic_tower: 2, bookshelf: 2 };
+  const VARIANTS = { apple_crate: 2, shelf: 3, window_box: 3, pier: 3, crag: 4, pebbles: 3, shells: 2, leaves: 3, grass_tuft: 3, driftwood: 2, wreck: 2, flagpole: 3, eggs: 2, fallen_pillar: 2, ice_spike: 2, tallgrass: 3, log: 2, rubble: 2, crystal: 2, stalagmite: 3, lilypad: 2, dry_bush: 2, puddle: 2, stall: 3, basket: 3, planter: 3, hedge: 2, tree: 3, pine: 2, snow_pine: 2, jungle_tree: 3, palm: 2, bush: 2, flowers: 3, reeds: 2, mushrooms: 2, wall_cave: 3, cliff: 4, wall_stone: 2, wall_block: 2, wall_wood: 2, wall_temple: 2, wall_white: 2, wall_white_plain: 2, wall_gothic: 2, wall_gothic_tower: 2, bookshelf: 2 };
   const spriteOf = id => THINGS[id].sprite || id;
   // Things drawn from the owner's pictures painted straight on (sprites/custom.js), laid onto their faces: what each is drawn from
   const OWN_FRONTS = { arch_gate: 'gate_arch_front', portcullis: 'portcullis_front', wall_banner: 'wall_banner_front', sign_weapons: 'sign_weapons_front', sign_armour: 'sign_armour_front', sign_magic: 'sign_magic_front', sign_food: 'sign_food_front', sign_tools: 'sign_tools_front', sign_inn: 'sign_inn_front', sign_depot: 'sign_depot_front', sign_temple: 'sign_temple_front', sign_school: 'sign_school_front', ladder: 'ladder_front', door: 'door_open_front', door_closed: 'door_closed_front', door_sealed: 'door_closed_front', ramp: 'ramp_front', cave_ladder: 'ladder_front', sewer_ladder: 'ladder_front', lantern: 'lantern_side', window: 'window_front' };

@@ -102,7 +102,8 @@ const THINGS = {
   wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_temple: { name: 'carved stone wall', cat: 'Walls', block: true, wall: 'thin' },
-  wall_white:  { name: 'whitewashed wall', cat: 'Walls', block: true, wall: 'thin' }, // the church's: plaster, limewashed white
+  wall_white:  { name: 'whitewashed wall', cat: 'Walls', block: true, wall: 'thin' }, // the church's: plaster, limewashed white, in bays
+  wall_white_plain: { name: 'whitewashed wall', cat: 'Walls', block: true, wall: 'thin' }, // the same, plain: the tower's upper floors
   wall_gothic: { name: 'dark carved stone', cat: 'Walls', block: true, wall: 'thin' }, // the cathedral's: weathered dark sandstone
   wall_gothic_tower: { name: 'dark carved stone', cat: 'Walls', block: true, wall: 'thin' }, // its towers': the same, with shafts running up it and blind pointed arches
   wall_rampart:{ name: 'town wall', cat: 'Walls', block: true, wall: 'thin' }, // the town wall's towers and gatehouses: its own sandstone
