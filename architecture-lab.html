@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Stonetree · Rookgaard Temple Study</title><style>*{box-sizing:border-box}body{margin:0;background:#151c19;color:#e9ddc1;font:14px system-ui}header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#202b25}header strong{font-size:17px}header span{font-size:11px;color:#b9af92}canvas{display:block;width:min(100vw,720px);height:auto;margin:12px auto;border:2px solid #3b4c3d;image-rendering:pixelated;touch-action:none}nav{display:flex;gap:8px;justify-content:center;padding:6px 12px;flex-wrap:wrap}button{background:#35473a;color:#eee2c7;border:1px solid #8d9679;border-radius:6px;padding:12px;font-weight:700}button[aria-pressed=true]{background:#866342}p{max-width:660px;margin:12px auto;padding:0 16px;color:#c6c3b4;line-height:1.5}</style></head><body><header><strong>STONETREE / ROOKGAARD TEMPLE</strong><span>7.6 reference study · original assets</span></header><canvas id="scene" width="480" height="480"></canvas><nav><button data-floor="0" aria-pressed="true">Outside</button><button data-floor="1">Ground floor</button></nav><p id="status">Tap tiles to walk. Use the door and stairs to switch floors. Single-floor temple study. Tap the doorway to enter or leave; tap the priest inside.</p><script>
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+const T=32,W=15,H=15,room={l:3,r:11,t:3,b:11,door:7},player={x:7,y:12},state={floor:0},tiles={};
+const colors={mortar:'#514b3e',stone:'#a79c82',stoneLight:'#d5c7a3',stoneDark:'#756e60',roof:'#a95438',roofLight:'#d78a55',roofDark:'#653d32',wood:'#815331',woodLight:'#d0a068'};
+const svg=(content)=>'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">'+content+'</svg>';
+const R=(x,y,w,h,c)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c+'"/>';
+const make=(id,content)=>{let im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg(content));tiles[id]=im};
+make('grass',R(0,0,32,32,'#426445')+R(2,3,5,3,'#51764c')+R(22,20,4,3,'#628054')+R(14,8,2,5,'#72905b')+R(5,25,7,2,'#36543a'));
+make('stone',R(0,0,32,32,'#716f5b')+R(1,1,30,30,'#b1a990')+R(2,2,27,4,'#c8c0a5')+R(3,26,24,3,'#908b74')+R(14,10,7,2,'#9d9a82')+R(4,17,5,1,'#d1c9ad'));
+make('plank',R(0,0,32,32,'#5e402d')+[0,8,16,24].map((y,i)=>R(0,y+1,32,7,i%2?'#916b46':'#a47b50')+R(0,y+1,32,2,'#c69c65')+R((i%2)*15+6,y+5,2,1,'#60472f')).join(''));
+make('wall',R(0,0,32,32,'#514c42')+[0,10,20].map((y,i)=>R(1,y+1,30,9,i%2?'#aaa18b':'#8f8b7a')+R(1,y+1,30,2,'#c6bda4')+R((i%2)*14+14,y+3,2,6,'#635e53')).join('')+R(0,0,3,32,'#d3c6a9')+R(29,0,3,32,'#69665b'));
+make('wallTop',R(0,0,32,32,'#61584b')+R(0,0,32,7,'#d2c6a9')+R(2,8,28,22,'#98917f')+R(2,8,28,3,'#bfb39a')+R(15,12,2,16,'#625c50')+R(2,27,28,4,'#6e675a'));
+make('roof',R(0,0,32,32,'#613b31')+[0,8,16,24].map((y,i)=>R(0,y+1,32,7,i%2?'#a75d3f':'#ba6b45')+R(1,y+1,30,2,'#e09b62')+R((i%2)*14+8,y+3,2,5,'#714334')+R(0,y+7,32,1,'#58392e')).join(''));
+make('roofRidge',R(0,0,32,32,'#5d3d30')+R(0,3,32,8,'#d28d5c')+R(0,3,32,3,'#eab07b')+R(0,11,32,5,'#704433')+R(0,17,32,15,'#a75d40'));
+make('door',R(0,0,32,32,'#a79d87')+R(3,0,26,32,'#514435')+R(6,2,20,30,'#916038')+R(8,4,16,26,'#b77c49')+R(21,17,3,3,'#ebcb7d')+R(0,0,5,32,'#d1c3a4')+R(27,0,5,32,'#6d6659'));
+make('stairs',R(0,0,32,32,'#614832')+[0,1,2,3,4].map(i=>R(2,2+i*6,28,5,i%2?'#9f754c':'#bd9360')+R(2,2+i*6,28,2,'#e1b77a')).join(''));
+make('rug',R(0,0,32,32,'#8b4d3c')+R(3,3,26,26,'#d2a36d')+R(5,5,22,22,'#9e5a42')+R(10,10,12,12,'#c08051'));
+make('table',R(4,8,24,19,'#4c3227')+R(2,5,28,17,'#805034')+R(4,5,24,4,'#c4945c')+R(7,12,18,2,'#a8794d')+R(5,23,4,8,'#513827')+R(23,23,4,8,'#513827'));
+make('bed',R(3,2,26,30,'#4c3228')+R(5,4,22,26,'#986344')+R(7,6,18,8,'#e1d7bb')+R(7,15,18,12,'#665d88')+R(7,15,18,3,'#a09ab7'));
+make('priest',R(9,2,14,7,'#d9d1b8')+R(12,7,9,8,'#e0b887')+R(8,15,17,15,'#e5e1d0')+R(12,15,8,15,'#aeb8a5')+R(10,29,5,3,'#655e54')+R(21,29,5,3,'#655e54')+R(18,11,2,2,'#4a443c'));
+make('pillar',R(10,1,12,31,'#615d55')+R(6,0,20,7,'#d5c8aa')+R(8,7,16,21,'#9c9684')+R(11,7,4,20,'#c9bca0')+R(6,27,20,5,'#716a5b'));
+make('altar',R(2,11,28,20,'#595348')+R(1,7,30,9,'#d5c5a1')+R(3,8,26,3,'#f0dfb4')+R(7,0,4,8,'#f1e3bb')+R(21,0,4,8,'#f1e3bb')+R(7,0,4,2,'#f9cd6b')+R(21,0,4,2,'#f9cd6b'));
+make('hero',R(12,3,9,8,'#dfba84')+R(10,0,13,5,'#496438')+R(7,12,18,14,'#50733c')+R(11,14,10,11,'#8b9d56')+R(9,26,6,6,'#493e31')+R(19,26,6,6,'#493e31')+R(4,14,4,12,'#d9b280')+R(26,14,4,12,'#d9b280')+R(19,6,2,2,'#342f2b'));
+function tile(id,c,r){let im=tiles[id];if(im.complete&&im.naturalWidth)ctx.drawImage(im,c*T,r*T,T,T)}
+function blocked(x,y){if(x<0||y<0||x>=W||y>=H)return true;if(state.floor===0)return x>=room.l&&x<=room.r&&y>=room.t&&y<=room.b&&!(x===room.door&&y===room.b+1);return x<=room.l||x>=room.r||y<=room.t||y>=room.b}
+function base(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)tile(state.floor===0?'grass':'stone',x,y);if(state.floor===0){for(let y=0;y<H;y++)for(let x=6;x<=8;x++)if(y>room.b)tile('stone',x,y);for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x<3||x>11){if((x+y)%7===0){ctx.fillStyle='#294a32';ctx.fillRect(x*T+7,y*T+5,18,19);ctx.fillStyle='#71935a';ctx.fillRect(x*T+9,y*T+5,13,8)}}}else{for(let y=room.t+1;y<room.b;y++)for(let x=room.l+1;x<room.r;x++)tile('plank',x,y)}}
+function building(){
+ if(state.floor===0){
+  // Wall face is below the roof and the entrance remains readable.
+  for(let y=room.t+1;y<=room.b;y++)for(let x=room.l;x<=room.r;x++)tile('wall',x,y);
+  for(let y=room.t-1;y<room.b-1;y++)for(let x=room.l;x<=room.r;x++)tile(y===room.t-1?'roofRidge':'roof',x,y);
+  for(let x=room.l;x<=room.r;x++)tile('wallTop',x,room.b);
+  tile('door',room.door,room.b);
+  ctx.fillStyle='#47382b';ctx.fillRect(room.door*T,room.b*T+30,T,5);
+  return;
+ }
+ // Walls share grid coordinates and corners. The roof is absent on both interiors.
+ for(let x=room.l;x<=room.r;x++)tile('wallTop',x,room.t);
+ for(let y=room.t+1;y<=room.b;y++){tile('wall',room.l,y);tile('wall',room.r,y)}
+ for(let x=room.l;x<=room.r;x++)if(x!==room.door||state.floor===2)tile('wall',x,room.b);
+ if(state.floor===1){tile('pillar',4,5);tile('pillar',10,5);tile('pillar',4,9);tile('pillar',10,9);tile('altar',7,4);tile('priest',7,6);tile('rug',7,9);tile('door',room.door,room.b)}
+ else{tile('bed',5,5);tile('rug',7,8);tile('stairs',10,4);tile('table',9,8)}
+}
+function draw(){ctx.clearRect(0,0,480,480);base();building();tile('hero',player.x,player.y);ctx.fillStyle='#18241de8';ctx.fillRect(0,0,480,26);ctx.fillStyle='#eee1be';ctx.font='bold 13px monospace';ctx.fillText(['TEMPLE EXTERIOR · STUDY','TEMPLE INTERIOR · STUDY','UNUSED'][state.floor],12,18)}
+function setFloor(n){state.floor=Math.min(1,n);player.x=7;player.y=n===0?12:9;document.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.floor)===n));draw()}
+document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setFloor(Number(b.dataset.floor))));
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*480/r.width/T),y=Math.floor((e.clientY-r.top)*480/r.height/T);if(state.floor===0&&x===7&&y===11){setFloor(1);return}if(state.floor===1&&x===7&&y===6){document.getElementById('status').textContent='Cipfried: Welcome, adventurer. (Original placeholder dialogue.)';return}if(state.floor===1&&x===7&&y===11){setFloor(0);return}if(state.floor===1&&[[4,5],[10,5],[4,9],[10,9],[7,4],[7,6]].some(([a,b])=>x===a&&y===b)){document.getElementById('status').textContent='That tile is occupied.';return}if(!blocked(x,y)){player.x=x;player.y=y;draw()}else document.getElementById('status').textContent='Solid wall: that tile is not walkable.'});
+Promise.all(Object.values(tiles).map(i=>i.decode().catch(()=>{}))).then(draw);draw();
+</script></body></html>
