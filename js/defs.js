@@ -95,7 +95,8 @@ const THINGS = {
   roof_green:  { name: 'copper roof', cat: 'Roofs', ground: true, roof: true },
   roof_marble: { name: 'marble roof', cat: 'Roofs', ground: true, roof: true },
   roof_flat:   { name: 'flat roof', cat: 'Roofs', ground: true, roof: true },
-  roof_lead:   { name: 'lead roof', cat: 'Roofs', ground: true, roof: true }, // the cathedral's: dark grey lead and slate
+  roof_lead:   { name: 'lead roof', cat: 'Roofs', ground: true, roof: true },
+  roof_slate_b:{ name: 'slate roof', cat: 'Roofs', ground: true, roof: true, sprite: 'roof_slate' }, // the same slate, a roof of its own beside another (the cathedral's hall, apart from its nave) // the cathedral's: dark grey lead and slate
 
   wall_stone:  { name: 'stone wall', cat: 'Walls', block: true, wall: 'thin' },
   wall_wood:   { name: 'wooden wall', cat: 'Walls', block: true, wall: 'thin' },

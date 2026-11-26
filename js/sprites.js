@@ -376,11 +376,11 @@ const Sprites = (() => {
   // The cathedral's stone: dark, weathered sandstone in courses of ashlar (warm grey, blackened by the years), soot
   // run down from the ledges, a lighter block here and there; along the top a band of blind tracery, little pointed arches.
   function gothicStone(g, r, shade) {
-    const d = shade ? 24 : 0, tone = v => `rgb(${v - d + 9},${v - d + 3},${v - d - 7})`;
-    rect(g, tone(46), 0, 0, TILE, TILE);                                                       // the joints
+    const d = shade ? 34 : 0, tone = v => `rgb(${v - d + 12},${v - d + 4},${v - d - 12})`;
+    rect(g, tone(128), 0, 0, TILE, TILE);                                                      // the joints
     for (let y = 4, row = 0; y < TILE; y += 7, row++) {
       for (let x = row % 2 ? -6 : 0; x < TILE;) {
-        const w = 9 + ((r() * 7) | 0), v = 70 + ((r() * 20) | 0);
+        const w = 9 + ((r() * 7) | 0), v = 168 + ((r() * 16) | 0);
         rect(g, tone(v), x + 0.5, y + 0.5, w - 1, 6);
         rect(g, tone(v + 16), x + 0.5, y + 0.5, w - 1, 1);                                     // its upper edge, lit
         rect(g, tone(v - 14), x + 0.5, y + 5.5, w - 1, 1);                                     // its lower edge, in shade
@@ -388,27 +388,27 @@ const Sprites = (() => {
         x += w;
       }
     }
-    for (let i = 0; i < 4; i++) rect(g, 'rgba(12,9,6,0.24)', (r() * TILE) | 0, 4 + ((r() * 8) | 0), 1 + ((r() * 2) | 0), 8 + ((r() * 18) | 0)); // soot
-    rect(g, tone(84), 0, 0, TILE, 4);                                                          // a string course along its top, a shade lighter
-    rect(g, tone(100), 0, 0, TILE, 0.8); rect(g, tone(62), 0, 3.4, TILE, 0.6);                // (lit above, a soft shadow under it: a ledge, not a gap)
+    for (let i = 0; i < 2; i++) rect(g, 'rgba(60,50,36,0.10)', (r() * TILE) | 0, 4 + ((r() * 8) | 0), 1 + ((r() * 2) | 0), 8 + ((r() * 18) | 0)); // weathering
+    rect(g, tone(190), 0, 0, TILE, 4);                                                         // a string course along its top, a shade lighter
+    rect(g, tone(206), 0, 0, TILE, 0.8); rect(g, tone(150), 0, 3.4, TILE, 0.6);                // (lit above, a soft shadow under it: a ledge, not a gap)
   }
   // The top of the cathedral's walls, seen between one floor's wall and the next: a string course of the same stone, a
   // shade lighter, its long blocks barely jointed, so a floor's line reads as a ledge in the wall and not as a gap.
   function gothicCap(g, r) {
-    rect(g, '#7c7264', 0, 0, TILE, TILE);
-    for (let x = (r() * 12) | 0; x < TILE; x += 14 + ((r() * 6) | 0)) rect(g, 'rgba(40,34,28,0.25)', x, 0, 1, TILE);
-    for (let i = 0; i < 3; i++) rect(g, 'rgba(140,130,114,0.35)', (r() * 28) | 0, (r() * 28) | 0, 3, 1);
+    rect(g, '#cfc3ab', 0, 0, TILE, TILE);
+    for (let x = (r() * 12) | 0; x < TILE; x += 14 + ((r() * 6) | 0)) rect(g, 'rgba(90,78,60,0.25)', x, 0, 1, TILE);
+    for (let i = 0; i < 3; i++) rect(g, 'rgba(255,248,230,0.35)', (r() * 28) | 0, (r() * 28) | 0, 3, 1);
   }
   // The cathedral's towers: the same stone, with slender shafts running up the face at its edges and a pair of blind
   // pointed arches between them, so the towers rise in vertical lines.
   function gothicTower(g, r, shade) {
     gothicStone(g, r, shade);
-    const d = shade ? 24 : 0, tone = v => `rgb(${v - d + 9},${v - d + 3},${v - d - 7})`;
-    for (const x of [0, 30]) { rect(g, tone(92), x, 4, 2, TILE - 4); rect(g, tone(40), x + 2, 4, 0.8, TILE - 4); } // the shafts, lit, their shadows
-    rect(g, tone(84), 15.4, 6, 1.4, TILE - 6); rect(g, tone(40), 16.8, 6, 0.6, TILE - 6);                       // the shaft between the arches
+    const d = shade ? 34 : 0, tone = v => `rgb(${v - d + 12},${v - d + 4},${v - d - 12})`;
+    for (const x of [0, 30]) { rect(g, tone(196), x, 4, 2, TILE - 4); rect(g, tone(138), x + 2, 4, 0.8, TILE - 4); } // the shafts, lit, their shadows
+    rect(g, tone(190), 15.4, 6, 1.4, TILE - 6); rect(g, tone(138), 16.8, 6, 0.6, TILE - 6);                       // the shaft between the arches
     for (const x0 of [4, 18]) { // a blind lancet each side: a recess with a pointed head
-      g.fillStyle = 'rgba(10,8,6,0.38)'; g.beginPath(); g.moveTo(x0, TILE); g.lineTo(x0, 14); g.quadraticCurveTo(x0, 8, x0 + 5, 6); g.quadraticCurveTo(x0 + 10, 8, x0 + 10, 14); g.lineTo(x0 + 10, TILE); g.closePath(); g.fill();
-      g.strokeStyle = tone(98); g.lineWidth = 0.8; g.beginPath(); g.moveTo(x0, TILE); g.lineTo(x0, 14); g.quadraticCurveTo(x0, 8, x0 + 5, 6); g.stroke();
+      g.fillStyle = 'rgba(60,48,32,0.22)'; g.beginPath(); g.moveTo(x0, TILE); g.lineTo(x0, 14); g.quadraticCurveTo(x0, 8, x0 + 5, 6); g.quadraticCurveTo(x0 + 10, 8, x0 + 10, 14); g.lineTo(x0 + 10, TILE); g.closePath(); g.fill();
+      g.strokeStyle = tone(200); g.lineWidth = 0.8; g.beginPath(); g.moveTo(x0, TILE); g.lineTo(x0, 14); g.quadraticCurveTo(x0, 8, x0 + 5, 6); g.stroke();
     }
   }
   // Face textures per wall material. Doors borrow the material of the wall they're in.
@@ -820,7 +820,7 @@ const Sprites = (() => {
       for (const z of [14, 22]) line(g, 'rgba(40,24,10,0.25)', 0.8, ...P(u0 + 1, z, 0), ...P(u1 + 1, z, 0)); // the lead's shadow across it
     });
   }
-  const GOTHIC = { top: '#857a6c', south: '#625a4f', east: '#463f37', edge: '#a3978554' }; // the cathedral's dark sandstone
+  const GOTHIC = { top: '#ddd2bc', south: '#bfb39b', east: '#968a74', edge: '#f2ead8' }; // the cathedral's pale stone, as the town's
   // The cathedral's window glass in face coordinates (x along, y up): two pointed lancets and a round of tracery over
   // them, warm amber panes lit from within, held in lead.
   function lancets(f) {
