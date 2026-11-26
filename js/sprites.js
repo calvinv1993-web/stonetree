@@ -2145,52 +2145,29 @@ const Sprites = (() => {
   // A spire over one of the cathedral's towers, 5 x 4 tiles: a parapet of tracery round the top of the tower, a slim
   // pinnacle on each corner, and from inside it the spire, eight-sided, dark stone in courses with crockets up its edges,
   // little gabled openings at its foot, rising high over the town to the golden sun of the Dawn at its tip.
-  BIG.spire = { w: 5, h: 4, rise: 190, draw(g) {
-    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 190, Rb = 38;
-    const tone = k => { const a = [38, 34, 30], b = [104, 96, 84]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
+  BIG.spire = { w: 5, h: 4, rise: 190, draw(g) { // (kept plain: a parapet, four corner pinnacles, the spire, its sun)
+    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 8, zt = 186, Rb = 36;
+    const tone = k => { const a = [40, 36, 32], b = [110, 102, 90]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
     const parapet = (u0, v0, u1, v1) => prism(g, u0, v0, u1, v1, 0, zb, GOTHIC);
-    const pinnacle = (u, v) => { prism(g, u - 6, v - 6, u + 6, v + 6, 0, 30, GOTHIC); taper(g, u - 6, v - 6, u + 6, v + 6, 30, 84, 5.6, GOTHIC); const [x, y] = P(u, v, 88); ellipse(g, '#a3977f', x, y, 1.8, 1.8); for (let z = 40; z < 80; z += 10) { const [cx, cy] = P(u + 6 - (z - 30) * 0.1, v + 6 - (z - 30) * 0.1, z); ellipse(g, '#8a7f70', cx, cy, 1, 0.9); } };
-    poly(g, '#3e3832', [...P(0, 0, zb), ...P(W, 0, zb), ...P(W, H, zb), ...P(0, H, zb)]);          // the stone crown it stands on
-    for (let u = 16; u < W; u += 16) line(g, 'rgba(30,26,22,0.35)', 0.8, ...P(u, 0, zb), ...P(u, H, zb));
-    parapet(0, 0, W, 4); parapet(0, 0, 4, H);                                                        // its back edges
-    pinnacle(6, 6); pinnacle(W - 6, 6); pinnacle(6, H - 6); pinnacle(cu, 6); pinnacle(6, cv);
-    // the spire: its eight faces, the far ones first, each in its own light (from the north-west)
+    const pinnacle = (u, v) => { prism(g, u - 5, v - 5, u + 5, v + 5, 0, 20, GOTHIC); taper(g, u - 5, v - 5, u + 5, v + 5, 20, 56, 4.6, GOTHIC); };
+    poly(g, '#3e3832', [...P(0, 0, zb), ...P(W, 0, zb), ...P(W, H, zb), ...P(0, H, zb)]);          // the tower's top
+    parapet(0, 0, W, 4); parapet(0, 0, 4, H);                                                        // its parapet's back edges
+    pinnacle(6, 6); pinnacle(W - 6, 6); pinnacle(6, H - 6);
+    // the spire: eight faces, the far ones first, each in its own light (from the north-west), a few courses on them
     const pt = (k, z) => { const a = (k / 8) * Math.PI * 2 + Math.PI / 8, rad = Rb * (1 - (z - zb) / (zt - zb)); return [cu + Math.cos(a) * rad, cv + Math.sin(a) * rad, z]; };
     const faces = [...Array(8).keys()].map(k => { const a = ((k + 0.5) / 8) * Math.PI * 2 + Math.PI / 8; return { k, nu: Math.cos(a), nv: Math.sin(a) }; }).sort((p, q) => (p.nu + p.nv) - (q.nu + q.nv));
     for (const { k, nu, nv } of faces) {
       const light = Math.max(0, Math.min(1, 0.5 - 0.42 * nu - 0.22 * nv));
       poly(g, tone(light), [...P(...pt(k, zb)), ...P(...pt(k + 1, zb)), ...P(cu, cv, zt)]);
-      for (let z = zb + 18; z < zt - 12; z += 17) line(g, tone(light * 0.6), 0.8, ...P(...pt(k, z)), ...P(...pt(k + 1, z)));   // its courses
-      if (nu + nv > 0.1) for (let z = zb + 30; z < zt - 50; z += 30) { // its openwork: rows of pointed openings of tracery, the sky through them
-        const rad = Rb * (1 - (z - zb) / (zt - zb)), m0 = pt(k, z), m1 = pt(k + 1, z), n = rad > 22 ? 2 : 1;
-        for (let j = 0; j < n; j++) {
-          const f = (j + 1) / (n + 1), mu = m0[0] + (m1[0] - m0[0]) * f, mv = m0[1] + (m1[1] - m0[1]) * f, [x, y] = P(mu, mv, z + 4), w = Math.max(1.2, rad / 16), h = w * 3.2;
-          poly(g, 'rgba(10,8,6,0.8)', [x - w, y + h * 0.5, x + w, y + h * 0.5, x + w, y - h * 0.2, x, y - h * 0.7, x - w, y - h * 0.2]);
-          ellipse(g, 'rgba(10,8,6,0.8)', x, y - h - 1.2, w * 0.7, w * 0.7);                                 // a little round of tracery over it
-        }
-      }
-    }
-    for (let k = 0; k < 8; k++) { // crockets up its edges: little knobs of carved leaves
-      if (Math.cos((k / 8) * Math.PI * 2 + Math.PI / 8) + Math.sin((k / 8) * Math.PI * 2 + Math.PI / 8) < -0.6) continue;
-      line(g, tone(0.75), 1, ...P(...pt(k, zb)), ...P(cu, cv, zt));
-      for (let z = zb + 14; z < zt - 8; z += 13) { const [x, y] = P(...pt(k, z)); ellipse(g, tone(0.82), x - 0.6, y, 1.4, 1.1); }
-    }
-    // the gabled openings at its foot, on its near faces
-    for (const [u, v] of [[cu, cv + Rb * 0.92], [cu + Rb * 0.92, cv], [cu + Rb * 0.65, cv + Rb * 0.65]]) {
-      prism(g, u - 6, v - 3, u + 6, v + 3, zb, zb + 18, GOTHIC);
-      const [x, y] = P(u, v + 3, zb + 4); poly(g, '#140f0b', [x - 3, y, x + 3, y, x + 3, y - 7, x, y - 10, x - 3, y - 7]);
-      const a = P(u - 7, v + 3, zb + 18), b = P(u, v + 3, zb + 28), c = P(u + 7, v + 3, zb + 18); poly(g, tone(0.55), [...a, ...b, ...c]);
+      for (let z = zb + 30; z < zt - 20; z += 30) line(g, tone(light * 0.7), 0.8, ...P(...pt(k, z)), ...P(...pt(k + 1, z)));
     }
     // the golden sun of the Dawn on a rod at its tip
     line3(g, '#c8901e', 2, cu, cv, zt - 2, cu, cv, zt + 12);
     const [sx, sy] = P(cu, cv, zt + 18);
     for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, l = i % 2 ? 8 : 11; poly(g, i % 2 ? '#e8b54a' : '#f2c94c', [sx + Math.cos(a - 0.15) * 4.4, sy + Math.sin(a - 0.15) * 4.4, sx + Math.cos(a) * l, sy + Math.sin(a) * l, sx + Math.cos(a + 0.15) * 4.4, sy + Math.sin(a + 0.15) * 4.4]); }
     ellipse(g, '#a8741a', sx, sy, 5, 5); ellipse(g, '#ffd860', sx, sy, 4.2, 4.2); ellipse(g, '#fff4c0', sx - 1, sy - 1, 1.8, 1.8);
-    // the parapet's near edges and the near pinnacle, in front of it all
-    parapet(0, H - 4, W, H); parapet(W - 4, 0, W, H);
-    for (let u = 8; u < W; u += 16) { const a = P(u, H, zb), b = P(u + 8, H, zb + 9), c = P(u + 16, H, zb); poly(g, '#6e6558', [...a, ...b, ...c]); line(g, '#958a7a', 1, ...a, ...b); } // a row of little gables of tracery along the front
-    for (let v = 8; v < H; v += 16) { const a = P(W, v, zb), b = P(W, v + 8, zb + 9), c = P(W, v + 16, zb); poly(g, '#4e473e', [...a, ...b, ...c]); }
-    pinnacle(W - 6, H - 6); pinnacle(cu, H - 6); pinnacle(W - 6, cv);
+    parapet(0, H - 4, W, H); parapet(W - 4, 0, W, H);                                                // the parapet's near edges
+    pinnacle(W - 6, H - 6);
   } };
   // A window of stained glass in face coordinates (x along the face, y up it): an arch w wide, from zb to the
   // top of its arch; inside, a sun low in the middle, its rays, and panes round it, all held in lead.
