@@ -389,9 +389,15 @@ const Sprites = (() => {
       }
     }
     for (let i = 0; i < 4; i++) rect(g, 'rgba(12,9,6,0.24)', (r() * TILE) | 0, 4 + ((r() * 8) | 0), 1 + ((r() * 2) | 0), 8 + ((r() * 18) | 0)); // soot
-    rect(g, tone(58), 0, 0, TILE, 4);                                                          // the band of blind tracery
-    for (let x = 0; x < TILE; x += 8) { rect(g, tone(36), x + 1.5, 1.4, 5, 2.6); rect(g, tone(36), x + 3, 0.6, 2, 1); rect(g, tone(84), x, 0, 1, 4); }
-    rect(g, tone(90), 0, 0, TILE, 0.8); rect(g, tone(30), 0, 3.6, TILE, 0.6);
+    rect(g, tone(84), 0, 0, TILE, 4);                                                          // a string course along its top, a shade lighter
+    rect(g, tone(100), 0, 0, TILE, 0.8); rect(g, tone(62), 0, 3.4, TILE, 0.6);                // (lit above, a soft shadow under it: a ledge, not a gap)
+  }
+  // The top of the cathedral's walls, seen between one floor's wall and the next: a string course of the same stone, a
+  // shade lighter, its long blocks barely jointed, so a floor's line reads as a ledge in the wall and not as a gap.
+  function gothicCap(g, r) {
+    rect(g, '#7c7264', 0, 0, TILE, TILE);
+    for (let x = (r() * 12) | 0; x < TILE; x += 14 + ((r() * 6) | 0)) rect(g, 'rgba(40,34,28,0.25)', x, 0, 1, TILE);
+    for (let i = 0; i < 3; i++) rect(g, 'rgba(140,130,114,0.35)', (r() * 28) | 0, (r() * 28) | 0, 3, 1);
   }
   // The cathedral's towers: the same stone, with slender shafts running up the face at its edges and a pair of blind
   // pointed arches between them, so the towers rise in vertical lines.
@@ -410,8 +416,8 @@ const Sprites = (() => {
     wall_stone: { south: (g, r) => stoneBlocks(g, r, 118, '#3a3a3e'), east: (g, r) => stoneBlocks(g, r, 84, '#28282c'), top: (g, r) => capStone(g, r, 158) },
     wall_wood: { south: (g, r) => timber(g, r, 0), east: (g, r) => timber(g, r, 30), top: (g, r) => capWood(g, r) },
     wall_temple: { south: (g, r) => templeStone(g, r, 0), east: (g, r) => templeStone(g, r, 34), top: (g, r) => capStone(g, r, 186) },
-    wall_gothic: { south: (g, r) => gothicStone(g, r, 0), east: (g, r) => gothicStone(g, r, 1), top: (g, r) => capStone(g, r, 92) },
-    wall_gothic_tower: { south: (g, r) => gothicTower(g, r, 0), east: (g, r) => gothicTower(g, r, 1), top: (g, r) => capStone(g, r, 92) },
+    wall_gothic: { south: (g, r) => gothicStone(g, r, 0), east: (g, r) => gothicStone(g, r, 1), top: (g, r) => gothicCap(g, r) },
+    wall_gothic_tower: { south: (g, r) => gothicTower(g, r, 0), east: (g, r) => gothicTower(g, r, 1), top: (g, r) => gothicCap(g, r) },
     wall_sandstone: { south: (g, r) => sandBricks(g, r, 0), east: (g, r) => sandBricks(g, r, 40), top: '#e0c48a' },
   };
   // The town wall's towers: the wall's sandstone strip (sprites/custom.js rampart_face) where it has loaded, round doors too
@@ -1958,9 +1964,12 @@ const Sprites = (() => {
     poly(g, '#6a6052', [...P(t0, v1 - 1.5, lintel), ...arc(v1 - 1.5, t0, t1), ...P(t1, v1 - 1.5, lintel)]);
     line(g, '#9a8e7c', 1.2, ...P(t0 - 1, v1 - 1, lintel), ...P(t1 + 1, v1 - 1, lintel));                 // the lintel's edge, lit
     line(g, '#2a241e', 1, ...P(t0 - 1, v1 - 1, lintel - 1.2), ...P(t1 + 1, v1 - 1, lintel - 1.2));
-    const [sx, sy] = P(mid, v1 - 1.5, lintel + 7);
-    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, i % 2 ? '#c8901c' : '#f2c94c', 1.3, sx + Math.cos(a) * 3.4, sy + Math.sin(a) * 3.4, sx + Math.cos(a) * 6.4, sy + Math.sin(a) * 6.4); }
-    ellipse(g, '#b8841a', sx, sy, 3.6, 3.6); ellipse(g, '#ffd860', sx - 0.5, sy - 0.5, 2.6, 2.6);
+    onFace(g, v1 - 1.5, f => { // the sun of the Dawn on it, in the wall's plane
+      const cz = lintel + 8;
+      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; f.strokeStyle = i % 2 ? '#c8901c' : '#f2c94c'; f.lineWidth = 1.3; f.beginPath(); f.moveTo(mid + Math.cos(a) * 3.6, cz + Math.sin(a) * 3.6); f.lineTo(mid + Math.cos(a) * 7, cz + Math.sin(a) * 7); f.stroke(); }
+      f.fillStyle = '#b8841a'; f.beginPath(); f.arc(mid, cz, 3.8, 0, Math.PI * 2); f.fill();
+      f.fillStyle = '#ffd860'; f.beginPath(); f.arc(mid - 0.4, cz + 0.4, 2.7, 0, Math.PI * 2); f.fill();
+    });
     for (const k of [-1, 1]) { const [fx, fy] = P(mid + k * 9, v1 - 1.5, lintel + 1); poly(g, '#4a4238', [fx - 1.6, fy, fx + 1.6, fy, fx + 1.2, fy - 6, fx, fy - 7.4, fx - 1.2, fy - 6]); } // two carved figures kneeling to it
     // three orders of mouldings round the arch, light and shade in turn, little carved figures on the middle one
     for (const [off, c, w] of [[2.5, '#7e7466', 2], [5, '#3c352d', 1.6], [7.5, '#8a7f70', 2]]) line(g, c, w, ...arc(v1 + 0.5, a0 - off, a1 + off, off));
@@ -2085,10 +2094,18 @@ const Sprites = (() => {
       poly(g, '#c98a3a', [...P(u0, V - 1, zb + 1), ...P(u0, V - 1, 52), ...P(um, V - 1, 60), ...P(u1, V - 1, 52), ...P(u1, V - 1, zb + 1)]);
       for (let z = zb + 3; z < 50; z += 5) for (let u = u0; u < u1 - 1; u += 3) { const [x, y] = P(u + 0.4, V - 1, z + 4); rect(g, (u * 7 + z * 3) % 5 < 2 ? '#f2cc80' : '#e3ad5c', x, y, 2.2, 2.6); }
     }
-    const [rx, ry] = P(mid, V - 1, 82), RR = 21; // the great round of tracery
-    ellipse(g, '#2a1c10', rx, ry, RR + 2, RR + 2); ellipse(g, '#d89a48', rx, ry, RR, RR);
-    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, '#2a1c10', 1.2, rx + Math.cos(a) * 5, ry + Math.sin(a) * 5, rx + Math.cos(a) * RR, ry + Math.sin(a) * RR); ellipse(g, '#f7dc9a', rx + Math.cos(a + 0.26) * 14, ry + Math.sin(a + 0.26) * 14, 2.6, 2.6); }
-    ellipse(g, '#2a1c10', rx, ry, 5.5, 5.5); ellipse(g, '#ffd860', rx, ry, 4, 4);
+    onFace(g, V - 1, f => { // the great round of tracery, lying in the wall's own plane (u along it, z up it)
+      const RR = 22, disc = (r, c) => { f.fillStyle = c; f.beginPath(); f.arc(mid, 82, r, 0, Math.PI * 2); f.fill(); };
+      disc(RR + 2, '#2a1c10'); disc(RR, '#d89a48');
+      f.strokeStyle = '#2a1c10'; f.lineWidth = 1.4;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2, b = a + Math.PI / 12;
+        f.beginPath(); f.moveTo(mid + Math.cos(a) * 5, 82 + Math.sin(a) * 5); f.lineTo(mid + Math.cos(a) * RR, 82 + Math.sin(a) * RR); f.stroke();
+        f.fillStyle = '#f7dc9a'; f.beginPath(); f.arc(mid + Math.cos(b) * 14.5, 82 + Math.sin(b) * 14.5, 3, 0, Math.PI * 2); f.fill();
+      }
+      f.beginPath(); f.arc(mid, 82, 9, 0, Math.PI * 2); f.stroke();
+      disc(5.5, '#2a1c10'); disc(4, '#ffd860');
+    });
     for (let k = 1; k < 6; k++) line(g, '#5a5248', 2, ...P(mid - half + k * lw, V - 0.6, zb), ...P(mid - half + k * lw, V - 0.6, 56)); // the mullions
     line(g, '#5a5248', 2, ...P(mid - half, V - 0.6, 58), ...P(mid + half, V - 0.6, 58));
     g.restore();
@@ -2336,6 +2353,10 @@ const Sprites = (() => {
     }, 1);
   }
   // Draw on a block's south face: fn(g) in face coordinates, u along the face, z up it.
+  // As onSouth, but relative to the transform already set (inside a big thing's drawing, which is moved and scaled).
+  function onFace(g, v, fn) {
+    g.save(); g.transform(1, 0, -LEAN * HEIGHT, -HEIGHT, 64, 64 + v); fn(g); g.restore();
+  }
   function onSouth(g, v, fn) {
     g.save();
     if (UP) g.setTransform(1, 0, 0, -HEIGHT * UP.k, 64 - UP.z0 * HEIGHT * LEAN, 64 + v - UP.z0 * HEIGHT * (1 - UP.k)); // (standing upright)
