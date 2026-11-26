@@ -2271,12 +2271,13 @@ function buildTown(m, S, runs, river) {
     const bt = T.buildings.find(b => b.id === 'belltower'), BT = T.belltower, base = S, top = base + bt.floors - 1, [hx, hy] = BT.shaft;
     const cx = (bt.x0 + bt.x1) >> 1, cy = (bt.y0 + bt.y1) >> 1;
     m.set(cx, bt.y0, base, { ground: bt.floor, items: [] }); // the way on into the church
+    m.get(...bt.door, base).items.push('door_pediment'); // a little gable over its door
     for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) m.set(x, y, top + 1, { ground: 'ceiling', items: [`tower_cap_${x - bt.x0}${y - bt.y0}`] }); // its cap (on a ceiling, as a spire)
     for (let z = base + 1; z <= top; z++) for (let y = bt.y0; y <= bt.y1; y++) for (let x = bt.x0; x <= bt.x1; x++) { // (above the church's eaves the tower is plain: no bays, no plinth)
       const t = m.get(x, y, z); if (t) t.items = t.items.map(id => id === 'wall_white' ? 'wall_white_plain' : id);
     }
     for (let z = base + 1; z <= top; z++) { // a window in the middle of each face the town sees: south and east
-      const look = z === top ? 'tower_clock' : z === top - 1 ? 'window_louvre' : 'window_arched';
+      const look = z === top ? 'tower_clock' : z === top - 1 ? 'window_louvre' : 'window_rect';
       put(cx, bt.y1, z, look); put(bt.x1, cy, z, look);
     }
     BT.stairs.forEach(([x, y], k) => { if (base + k + 1 > top) return; put(x, y, base + k, 'stairs_up'); put(x, y, base + k + 1, 'stairs_down'); });

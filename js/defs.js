@@ -146,6 +146,8 @@ const THINGS = {
   window_arched: { name: 'round-headed window', cat: 'Wall decor', onWall: true }, // the church's: tall, leaded, under a round arch
   window_louvre: { name: 'louvred window', cat: 'Wall decor', onWall: true },      // where a tower's bell hangs: slats to let its voice out
   tower_clock: { name: 'tower clock', cat: 'Wall decor', onWall: true },
+  window_rect: { name: 'window', cat: 'Wall decor', onWall: true },
+  door_pediment: { name: 'pediment', cat: 'Wall decor', onWall: true }, // a little gable over a church's door
   window_gothic: { name: 'tall pointed window', cat: 'Wall decor', onWall: true, light: 2 }, // the cathedral's: lancets of leaded glass, lit from within (they glow at night)
   wall_torch:  { name: 'wall torch', cat: 'Wall decor', onWall: true, light: 3, fireSwap: 'wall_torch_out' },
   wall_torch_out: { name: 'unlit wall torch', cat: 'Wall decor', onWall: true, fireSwap: 'wall_torch' },

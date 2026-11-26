@@ -4265,14 +4265,39 @@ const Sprites = (() => {
     },
     // High in a tower, where its bell hangs: a round-headed opening shut with slanting slats.
     window_louvre: (g, r, frame, shape) => {
-      wallPoly(g, shape, 0.2, '#fbfaf6', roundHead(10.5, 21.5, 7, 22, 1.4));
-      wallPoly(g, shape, 0, 'rgba(70,66,58,0.35)', roundHead(10.5, 21.5, 7, 22));
+      wallPoly(g, shape, 0.2, '#fbfaf6', roundHead(12.5, 19.5, 2, 24, 1.3));                               // tall and narrow
+      wallPoly(g, shape, 0, 'rgba(70,66,58,0.35)', roundHead(12.5, 19.5, 2, 24));
       onWallPlane(g, shape, -1.2, () => {
         g.transform(1, 0, 0, -1, 0, 32);
-        archPath(g, 12, 20, 8, 20); g.fillStyle = '#24282a'; g.fill();
-        g.save(); archPath(g, 12, 20, 8, 20); g.clip();
-        for (let h = 9; h < 27; h += 2.6) { g.fillStyle = '#6a6e6c'; g.fillRect(12, h, 8, 1.2); g.fillStyle = '#8e9290'; g.fillRect(12, h + 1.2, 8, 0.4); }
+        archPath(g, 13.6, 18.4, 3, 24); g.fillStyle = '#24282a'; g.fill();
+        g.save(); archPath(g, 13.6, 18.4, 3, 24); g.clip();
+        for (let h = 4; h < 28; h += 2.2) { g.fillStyle = '#6a6e6c'; g.fillRect(13.6, h, 4.8, 1); g.fillStyle = '#8e9290'; g.fillRect(13.6, h + 1, 4.8, 0.35); }
         g.restore();
+      });
+      wallBox(g, shape, 12, 20, 0, 1.6, 0.8, 2, STONE);                                                       // its sill
+    },
+    // A plain upright window, oblong, in a white surround: over a church tower's door.
+    window_rect: (g, r, frame, shape) => {
+      wallPoly(g, shape, 0.2, '#fbfaf6', [10.8, 8.8, 21.2, 8.8, 21.2, 23.2, 10.8, 23.2]);                 // the surround
+      wallPoly(g, shape, 0, 'rgba(70,66,58,0.35)', [12, 10, 20, 10, 20, 22, 12, 22]);
+      onWallPlane(g, shape, -1.2, () => {
+        g.transform(1, 0, 0, -1, 0, 32);
+        g.fillStyle = '#2c3438'; g.fillRect(12.8, 10.8, 6.4, 10.4);                                         // the glass
+        g.fillStyle = 'rgba(150,176,180,0.35)'; g.fillRect(12.8, 10.8, 2.6, 10.4);
+        g.fillStyle = '#9aa0a0'; for (const h of [14.2, 17.6]) g.fillRect(12.8, h, 6.4, 0.55); g.fillRect(15.7, 10.8, 0.55, 10.4);
+      });
+      wallBox(g, shape, 10.5, 21.5, 0, 1.8, 7.6, 8.8, STONE);                                                 // the sill
+    },
+    // Over a church's door: a little gable of white plaster standing out from the wall, a grey moulding round it and a
+    // diamond in its middle.
+    door_pediment: (g, r, frame, shape) => {
+      wallPoly(g, shape, 0, 'rgba(60,56,48,0.3)', [6.5, 23, 25.5, 23, 16, 31.6]);                           // its shadow
+      wallPoly(g, shape, 1.6, '#f4f2ec', [7, 24, 25, 24, 16, 31.8]);                                          // the gable
+      wallBox(g, shape, 6.5, 25.5, 0, 2, 23.2, 24.4, STONE);                                                  // its sill
+      onWallPlane(g, shape, 1.6, () => {
+        g.transform(1, 0, 0, -1, 0, 32);
+        g.strokeStyle = '#9a9c9c'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(7, 24); g.lineTo(16, 31.8); g.lineTo(25, 24); g.stroke();
+        g.fillStyle = '#7c8082'; g.beginPath(); g.moveTo(16, 25.4); g.lineTo(17.4, 27.2); g.lineTo(16, 29); g.lineTo(14.6, 27.2); g.closePath(); g.fill();
       });
     },
     // A tower clock: a round black face in a gilded ring, gold strokes for the hours, gold hands, under the eaves.
