@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Stonetree Object Engine</title><style>
+*{box-sizing:border-box}body{margin:0;background:#171d19;color:#e4dcc6;font:14px system-ui}header{padding:12px 16px;background:#273229;font-weight:bold}canvas{display:block;width:min(100vw,640px);height:auto;image-rendering:pixelated;touch-action:none;margin:12px auto;border:2px solid #566550}p{max-width:640px;margin:12px auto;padding:0 12px}button{background:#445746;border:1px solid #9a987d;color:#fff;padding:12px;border-radius:5px}nav{text-align:center}
+</style></head><body><header>STONETREE / TEMPLE ART PASS 2</header><canvas width="512" height="512" id="view"></canvas><nav><button id="reset">Reset position</button></nav><p id="message">Tap a free tile to walk. The stone walls are objects above ground tiles. Enter through the south doorway; the roof hides while inside.</p>
+<script>
+'use strict';
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),T=32,N=16,room={l:3,t:3,r:12,b:12,door:7},hero={x:7,y:14},message=document.getElementById('message');
+ctx.imageSmoothingEnabled=false;
+const ground=Array.from({length:N},(_,y)=>Array.from({length:N},(_,x)=>({type:(x>=4&&x<=11&&y>=4&&y<=11)?'stone':'grass'})));
+const objects=[],actors=[{id:'player',x:hero.x,y:hero.y}];
+function add(id,x,y,layer,blocks=true,extra={}){objects.push({id,x,y,layer,blocks,...extra})}
+for(let x=room.l;x<=room.r;x++){add('wallTop',x,room.t,20);if(x!==room.door)add('wallSouth',x,room.b,20)}
+for(let y=room.t+1;y<room.b;y++){add('wallSide',room.l,y,20);add('wallSide',room.r,y,20)}
+add('door',room.door,room.b,21,false);add('altar',7,5,22);add('column',5,7,22);add('column',10,7,22);add('priest',7,7,30);
+for(let x=room.l;x<=room.r;x++)for(let y=room.t;y<=room.b;y++)add('roof',x,y,50,false,{roof:true});
+const P={grass:'#466449',grass2:'#527451',stone:'#9a9884',mortar:'#494d48',wall:'#a5a08e',highlight:'#d4c7a8',shadow:'#625f55',roof:'#ad6246',roofDark:'#754534',wood:'#815b3b'};
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function tile(x,y){const a=x*T,b=y*T;rect(a,b,T,T,ground[y][x].type==='grass'?((x*17+y*31)%5?'#466449':'#50704c'):'#a7a18c');if(ground[y][x].type==='stone'){rect(a+1,b+1,30,2,'#c4bba0');rect(a+4,b+26,25,2,'#888574');rect(a+14,b+9,2,5,'#888473')}else{rect(a+4+(x*7)%15,b+7+(y*11)%13,3,2,'#789263')}}
+function sprite(o){const x=o.x*T,y=o.y*T;switch(o.id){
+case 'wallTop':rect(x,y-16,32,48,P.mortar);rect(x+2,y-14,28,42,P.wall);rect(x,y-16,32,7,P.highlight);rect(x+13,y+3,2,21,P.shadow);rect(x+1,y+24,30,5,P.shadow);break;
+case 'wallSide':rect(x,y-17,32,49,P.mortar);rect(x+2,y-15,28,44,P.wall);rect(x+2,y-15,4,44,P.highlight);rect(x+4,y+9,25,3,P.shadow);rect(x+14,y+12,2,16,P.shadow);break;
+case 'wallSouth':rect(x,y-20,32,52,P.mortar);rect(x+2,y-18,28,46,P.wall);rect(x+2,y-18,28,4,P.highlight);rect(x+15,y+5,2,22,P.shadow);rect(x,y+26,32,6,P.shadow);break;
+case 'door':rect(x,y-20,32,52,P.mortar);rect(x+3,y-18,26,48,P.highlight);rect(x+7,y-12,18,44,'#4d3a2c');rect(x+9,y-10,14,39,P.wood);rect(x+20,y+8,3,3,'#e5ca83');break;
+case 'altar':rect(x+2,y+7,28,23,P.shadow);rect(x+1,y+2,30,12,P.highlight);rect(x+3,y+3,26,3,'#f1dfb9');rect(x+7,y-7,5,10,'#d3b47a');rect(x+20,y-7,5,10,'#d3b47a');break;
+case 'column':rect(x+10,y-22,12,52,P.shadow);rect(x+12,y-21,7,45,P.wall);rect(x+6,y-23,20,8,P.highlight);rect(x+5,y+22,22,8,P.highlight);break;
+case 'priest':rect(x+9,y-20,14,11,'#e1bb8b');rect(x+7,y-23,18,5,'#e0d9bb');rect(x+6,y-8,20,29,'#ded8c5');rect(x+13,y-7,6,24,'#aeb5a6');rect(x+10,y+21,5,8,'#564a3d');rect(x+20,y+21,5,8,'#564a3d');break;
+case 'roof':rect(x,y-22,32,43,(o.y%2)?P.roof:P.roofDark);for(let k=0;k<4;k++){rect(x,y-22+k*11,32,3,'#d78e62');rect(x+((o.x+k)%2)*15+8,y-17+k*11,2,7,P.roofDark)}break;
+}}
+
+/* Art pass 2: deterministic pixel texture, stone courses, roof eaves and props.
+   The object map, collision and movement stay independent of this art layer. */
+const px=(x,y,w,h,c)=>rect(Math.round(x),Math.round(y),w,h,c);
+const seed=(x,y,n=0)=>{let z=Math.imul(x+117,374761393)^Math.imul(y+53,668265263)^Math.imul(n+11,1442695041);z=Math.imul(z^(z>>>13),1274126177);return (z^(z>>>16))>>>0};
+const oldTile=tile;
+function tile(x,y){
+ const a=x*T,b=y*T,stone=ground[y][x].type==='stone';
+ px(a,b,32,32,stone?'#8e8b7b':(seed(x,y)%3===0?'#486d42':'#41643f'));
+ if(stone){
+  px(a,b,32,2,'#686b61');px(a+1,b+2,30,28,'#a39d89');
+  px(a+2,b+3,27,2,'#c6bda4');px(a+3,b+28,27,2,'#706e60');
+  px(a+16,b+3,2,13,'#747367');px(a+1,b+16,31,2,'#6f7065');
+  px(a+8,b+20,8,2,'#bbb39b');px(a+24,b+22,3,3,'#797766');
+ }else{
+  for(let i=0;i<9;i++){const k=seed(x,y,i),u=a+2+k%27,v=b+2+(k>>>8)%27;px(u,v,2+(k%3),1+(k%2),['#537b49','#729153','#365a3a','#5e8450'][k%4])}
+  if(seed(x,y)%9===0){px(a+12,b+14,3,3,'#d7c36f');px(a+10,b+13,2,2,'#e2d68b');px(a+14,b+12,2,2,'#e2d68b')}
+ }
+}
+const oldSprite=sprite;
+function sprite(o){
+ const x=o.x*T,y=o.y*T,id=o.id;
+ if(id==='wallTop'||id==='wallSide'||id==='wallSouth'){
+  const side=id==='wallSide',south=id==='wallSouth',top=y-(south?20:16);
+  px(x,top,32,32+(y-top),'#514f49');
+  px(x+2,top+2,28,32+(y-top)-6,'#a19b89');
+  for(let j=0;j<4;j++){
+   const yy=top+3+j*10;
+   px(x+2,yy,28,2,'#cfc3a8');
+   px(x+2,yy+8,28,2,'#615f56');
+   const off=(j%2)*14;
+   px(x+off+14,yy+2,2,6,'#716e62');
+   if((seed(o.x,o.y,j)%3)===0)px(x+4+seed(o.x,o.y,j)%18,yy+4,5,2,'#898675');
+  }
+  px(x+2,top+2,3,34,'#d1c7ad');px(x+28,top+2,3,34,'#6a675d');
+  if(id==='wallTop'){px(x-1,top-4,34,7,'#777467');px(x-1,top-4,34,3,'#e0d3b4')}
+  if(south){px(x, y+26,32,6,'#514d44');px(x,y+25,32,3,'#c3b89e')}
+  return;
+ }
+ if(id==='roof'){
+  const yy=y-22;
+  px(x,yy,32,43,'#744331');
+  for(let j=0;j<4;j++){
+   const by=yy+j*11;
+   px(x,by,32,10,(o.x+j)%2?'#a75d3e':'#b96b46');
+   px(x,by,32,3,'#d68b5a');
+   px(x+((o.x+j)%2)*15+7,by+3,2,7,'#714331');
+   px(x+4,by+6,7,2,'#c47a4c');
+   px(x,by+9,32,2,'#633b30');
+  }
+  if(o.y===room.b){px(x,y+18,32,6,'#654739');px(x,y+18,32,2,'#d2a16d')}
+  return;
+ }
+ if(id==='altar'){
+  px(x+1,y+10,30,21,'#4d493f');px(x+4,y+12,24,17,'#b8ad93');
+  px(x-2,y+4,36,10,'#686459');px(x,y+3,32,7,'#d5c7aa');px(x+3,y+4,26,2,'#f0e3c3');
+  px(x+8,y-8,4,12,'#e5dbb3');px(x+21,y-8,4,12,'#e5dbb3');
+  px(x+8,y-10,4,4,'#e7b857');px(x+21,y-10,4,4,'#e7b857');
+  px(x+13,y+14,6,10,'#817356');px(x+11,y+17,10,3,'#817356');return;
+ }
+ if(id==='column'){
+  px(x+8,y-25,16,52,'#5c5950');px(x+10,y-23,12,47,'#aaa18d');
+  px(x+11,y-23,3,45,'#d9cdb1');px(x+19,y-23,3,45,'#736e60');
+  px(x+4,y-27,24,8,'#c2b69c');px(x+5,y-27,22,3,'#e4d6b6');
+  px(x+5,y+21,22,9,'#827b6b');px(x+5,y+21,22,3,'#d2c5a9');return;
+ }
+ if(id==='door'){
+  px(x,y-20,32,52,'#524b40');px(x+2,y-20,28,5,'#dfd0ad');
+  px(x+3,y-15,5,47,'#bdb099');px(x+25,y-15,5,47,'#777062');
+  px(x+8,y-14,17,45,'#49352a');px(x+10,y-12,13,42,'#91613d');
+  px(x+12,y-9,9,35,'#b37d4a');px(x+20,y+8,3,3,'#e6cb83');return;
+ }
+ if(id==='priest'){
+  px(x+9,y-24,14,7,'#e1d9bb');px(x+12,y-20,9,12,'#e2ba8d');
+  px(x+18,y-15,2,2,'#51473e');px(x+6,y-8,20,29,'#e1ddd1');
+  px(x+8,y-7,4,27,'#faf0d9');px(x+14,y-6,5,25,'#a9b6a7');
+  px(x+10,y+20,5,9,'#5b5042');px(x+20,y+20,5,9,'#5b5042');return;
+ }
+ oldSprite(o);
+}
+
+function interior(){return hero.x>room.l&&hero.x<room.r&&hero.y>room.t&&hero.y<room.b}
+function paint(){ctx.clearRect(0,0,512,512);for(let y=0;y<N;y++)for(let x=0;x<N;x++)tile(x,y);
+const hideRoof=interior();
+const scene=objects.filter(o=>!o.roof||!hideRoof).concat([{id:'hero',x:hero.x,y:hero.y,layer:30,blocks:false}]).sort((a,b)=>a.layer-b.layer||a.y-b.y||a.x-b.x);
+for(const o of scene){if(o.id==='hero'){const x=o.x*T,y=o.y*T;rect(x+10,y+2,12,10,'#d7af7f');rect(x+8,y,16,4,'#574632');rect(x+7,y+12,18,14,'#587a4d');rect(x+10,y+26,5,6,'#554332');rect(x+19,y+26,5,6,'#554332')}else sprite(o)}
+rect(0,0,512,25,'#17221dcc');ctx.fillStyle='#eee2c9';ctx.font='bold 12px monospace';ctx.fillText(hideRoof?'INTERIOR · ROOF HIDDEN':'EXTERIOR · ROOF SHOWN',10,17)}
+function blocked(x,y){return x<0||y<0||x>=N||y>=N||objects.some(o=>o.x===x&&o.y===y&&o.blocks)}
+function path(tx,ty){if(blocked(tx,ty))return null;const queue=[[hero.x,hero.y]],visited=new Set([hero.x+','+hero.y]),parents=new Map();for(let i=0;i<queue.length;i++){const [x,y]=queue[i];if(x===tx&&y===ty){const steps=[];let k=x+','+y;while(parents.has(k)){const [a,b]=k.split(',').map(Number);steps.unshift([a,b]);k=parents.get(k)}return steps}for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=a+','+b;if(!visited.has(k)&&!blocked(a,b)){visited.add(k);parents.set(k,x+','+y);queue.push([a,b])}}}return null}
+let animation=0;function move(steps){clearTimeout(animation);let i=0;function next(){if(i>=steps.length)return;[hero.x,hero.y]=steps[i++];paint();animation=setTimeout(next,95)}next()}
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*512/r.width/T),y=Math.floor((e.clientY-r.top)*512/r.height/T);if(x===7&&y===7){message.textContent='Cipfried: Welcome to the temple. (Original placeholder dialogue.)';return}const steps=path(x,y);if(!steps){message.textContent='Blocked: a wall or object occupies that tile.';return}message.textContent='Walking on ground tiles beneath the objects.';move(steps)});
+document.getElementById('reset').onclick=()=>{clearTimeout(animation);hero.x=7;hero.y=14;paint()};paint();
+</script></body></html>
