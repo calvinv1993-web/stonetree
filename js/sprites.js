@@ -2121,6 +2121,27 @@ const Sprites = (() => {
     for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; line(g, i % 2 ? '#c8901c' : '#f2c94c', 1.4, sx + Math.cos(a) * 3.4, sy + Math.sin(a) * 3.4, sx + Math.cos(a) * 7, sy + Math.sin(a) * 7); }
     ellipse(g, '#b8841a', sx, sy, 3.6, 3.6); ellipse(g, '#ffd860', sx - 0.5, sy - 0.5, 2.6, 2.6);
   } };
+  // The pitched roof over the hall behind the great gable, 5 x 4 tiles on the floor above the hall: two slopes of dark
+  // slate rising from the hall's sides to a ridge over its middle, exactly the gable's own slope (its eaves at the
+  // gable's feet, its ridge at its peak), running back from the gable to the nave; courses of slate along the eaves, a
+  // roll of lead on the ridge. The west slope is lit, the east one in shade.
+  BIG.hall_roof = { w: 5, h: 4, rise: 150, draw(g) {
+    const W = 160, mid = 80, top = 100, v0 = 0, v1 = 4 * TILE; // (top: the gable's peak over its feet, as BIG.west_front)
+    poly(g, '#5a6070', [...P(0, v0, 0), ...P(mid, v0, top), ...P(mid, v1, top), ...P(0, v1, 0)]);     // the west slope, lit
+    poly(g, '#454a57', [...P(mid, v0, top), ...P(W, v0, 0), ...P(W, v1, 0), ...P(mid, v1, top)]);     // the east slope, in shade
+    for (let k = 1; k < 12; k++) { const f = k / 12; // the courses of slate, along the eaves, each with its lit lower edge
+      line(g, 'rgba(18,20,26,0.6)', 1, ...P(W - mid * f, v0, top * f), ...P(W - mid * f, v1, top * f));
+      line(g, 'rgba(120,128,146,0.35)', 0.6, ...P(W - mid * f + 1.2, v0, top * f - 1.5), ...P(W - mid * f + 1.2, v1, top * f - 1.5));
+      line(g, 'rgba(18,20,26,0.45)', 0.7, ...P(mid * f, v0, top * f), ...P(mid * f, v1, top * f));
+    }
+    for (let k = 0; k < 12; k++) for (let v = (k % 2) * 4 + 2; v < v1; v += 8) { // the joints between the slates, staggered course by course
+      const f0 = k / 12, f1 = (k + 1) / 12;
+      line(g, 'rgba(18,20,26,0.4)', 0.6, ...P(W - mid * f0, v, top * f0), ...P(W - mid * f1, v, top * f1));
+    }
+    line(g, '#6a7080', 2.2, ...P(mid, v0, top), ...P(mid, v1, top));                                  // the ridge's roll of lead
+    line(g, '#8a90a0', 0.8, ...P(mid - 0.6, v0, top + 0.6), ...P(mid - 0.6, v1, top + 0.6));
+    line(g, '#2a2d34', 1.2, ...P(0, v0, 0), ...P(0, v1, 0)); line(g, '#2a2d34', 1.2, ...P(W, v0, 0), ...P(W, v1, 0)); // the eaves
+  } };
   // A spire over one of the cathedral's towers, 5 x 4 tiles: a parapet of tracery round the top of the tower, a slim
   // pinnacle on each corner, and from inside it the spire, eight-sided, dark stone in courses with crockets up its edges,
   // little gabled openings at its foot, rising high over the town to the golden sun of the Dawn at its tip.
@@ -2297,6 +2318,7 @@ const Sprites = (() => {
     portal_w: ['portal', 0, 0], portal_m: ['portal', 1, 0], portal_e: ['portal', 2, 0],
     porch_0: ['porch', 0, 0], porch_1: ['porch', 1, 0], porch_2: ['porch', 2, 0], porch_3: ['porch', 3, 0], porch_4: ['porch', 4, 0],
     buttress_e: ['buttress_e', 0, 0], buttress_w: ['buttress_w', 0, 0],
+    ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3].map(r => [`hall_roof_${c}${r}`, ['hall_roof', c, r]]))),
     ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [[`west_front_${c}`, ['west_front', c, 0]], [`west_front_${c}_1`, ['west_front', c, 0, 1]], [`west_front_${c}_2`, ['west_front', c, 0, 2]]])),
     ...Object.fromEntries([1, 2].flatMap(s => [...[0, 1, 2, 3, 4].map(c => [`porch_${c}_${s}`, ['porch', c, 0, s]]), [`buttress_e_${s}`, ['buttress_e', 0, 0, s]], [`buttress_w_${s}`, ['buttress_w', 0, 0, s]]])),
     ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3].map(r => [`spire_${c}${r}`, ['spire', c, r]]))),

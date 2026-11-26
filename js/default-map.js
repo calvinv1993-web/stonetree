@@ -2341,7 +2341,13 @@ function buildTown(m, S, runs, river) {
     // a ceiling over the nave and the hall (hidden from outside under their roofs): inside, what is above hides as in any building
     eachOf(t, (x, y) => { const up = m.get(x, y, Z + 1); if (up && !up.items.length && up.ground === 'wood') up.ground = 'ceiling'; }); // (a ceiling: it hides what's above when you're inside, as a roof would, but keeps no night of its own)
     // the roof over the hall behind the portal, between the towers: dark lead, a roof of its own (the nave's stands up apart)
-    for (let y = TW.west.at[1]; y <= t.y1; y++) for (let x = TW.west.at[2] + 1; x < TW.east.at[0]; x++) { const r = m.get(x, y, Z + t.floors); if (r && r.ground === t.roof) r.ground = 'roof_lead'; }
+    // (the hall's roof: a pitched roof behind the great gable, its slopes the gable's own, running back to the nave: a big
+    // thing on the hall's ceiling, BIG.hall_roof, 5 x 4)
+    for (let y = TW.west.at[1]; y <= t.y1; y++) for (let x = TW.west.at[2] + 1; x < TW.east.at[0]; x++) {
+      const r = m.get(x, y, Z + t.floors); if (!r) continue;
+      if (r.ground === t.roof) r.ground = 'ceiling';
+      r.items.unshift(`hall_roof_${x - TW.west.at[2] - 1}${y - TW.west.at[1]}`); // (before the gable's slices on the front row: behind them)
+    }
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // the terrace in front: paving, pillars, lamps and flowers, with the steps down to the square
     const mt = T.mount, pcx = t.door[0];
