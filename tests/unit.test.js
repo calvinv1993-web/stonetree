@@ -1539,7 +1539,7 @@ test('the whole road from level 1 to 10: the guide\'s arrow, the marks over head
   // III: the farewell
   levelTo(10); assert.strictEqual(arrow(), 'ama', 'Sister Ama wants to say goodbye'); assert.strictEqual(mark('ama'), 'offer');
   const bellZ = 8 + state.OAKVALE.buildings.find(b => b.id === 'belltower').floors - 1;
-  talk('ama', 'farewell', 'yes'); { const [bx, by] = state.OAKVALE.belltower.bell; on(null, { x: bx + 2, y: by + 1, z: bellZ }); }
+  talk('ama', 'farewell', 'yes'); { const [bx, by] = state.OAKVALE.belltower.bell; on(null, { x: bx - 1, y: by, z: bellZ }); }
   assert.strictEqual(arrow(), `${state.OAKVALE.belltower.bell.join()},${bellZ}`, 'to the bell'); state.now += 60000; ctx.ringBell();
   for (const id of ['corwin', 'pip', 'gate_north']) { assert.strictEqual(arrow(), id, `farewell to ${id}`); talk(id, 'farewell'); }
   assert.strictEqual(arrow(), 'ama'); talk('ama', 'farewell'); assert.strictEqual(state.questState('bell_6'), 'done');
