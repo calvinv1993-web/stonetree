@@ -224,8 +224,8 @@ const GUIDE = typeof KESTREL_PREVIEW !== 'undefined' && KESTREL_PREVIEW ? kestre
     done: () => ['gate_west', 'gate_south', 'gate_east', 'gate_north'].every(id => questState(id) === 'done') || questState('bell_6') !== 'none',
   },
   {
-    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the church tower and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
-    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the church tower, then say farewell.',
+    text: 'Level 10! Before the oracle names you, Sister Ama has one last thing for you: climb the bell tower beside the church and ring the bell yourself, then say farewell to Corwin, Pip and Captain Osric, and come back to her.',
+    touch: 'Level 10! Sister Ama has one last thing: ring the bell in the tower beside the church, then say farewell.',
     // (the bell: the stairs up on each floor of the tower, then the bell at the top)
     target: [{ quest: 'bell_6' }, { news: ['ama'] }, ...BELL_ROUTE],
     done: () => questState('bell_6') === 'done',
