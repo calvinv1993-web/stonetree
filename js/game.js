@@ -553,7 +553,9 @@ function creatureKey(c) {
 // the town wall's walkway, the towers and the houses round it stay).
 // Open ground of a floor above that only falls over you as it's drawn (it lies a tile down-right: the top of a wall
 // you stand just north of, a mountain's top behind you) hides nothing: the floors stay, and you (and who's beside
-// you) show through as a silhouette (coveredBy). Only a roof drawn over you lifts, to see behind the house.
+// you) show through as a silhouette (coveredBy). Only a roof drawn over you lifts, to see behind the house; and what
+// stands two floors or more above you and falls over you (a tower's upper floors, a spire, a taller house's roof, a high
+// hilltop) hides, from there up, so you're never lost behind something tall.
 const OPENING = id => id === 'window' || id === 'window_stained' || id.startsWith('door');
 let coveredBy = false; // (this frame: open ground of a floor above drawn over you; see draw)
 let peekLift = null; // (this frame: the box of the building you look into at its window or door; see Render's lift)
@@ -574,10 +576,18 @@ function seenTop(x, y, z) {
     // (on the foot of steps or a mountain path its own top is right over you: no roof, look past it)
     if (right && through) { coveredBy = true; continue; }
     if (right && !(d === 1 && THINGS[right.ground] && THINGS[right.ground].change === -1)) return up - 1;
+    // (two floors up or more, what stands just beside that spot rises over you too, a tall thing's picture reaching up-left:
+    // a bell, a spire, a tower's wall; anything standing there hides those floors as well)
+    if (!drawn && d >= 2) for (const [a, b] of [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [2, 2]]) {
+      const n = map.get(x + d + a, y + d + b, up);
+      if (n && n.items.length) return up - 1;
+    }
     if (drawn) {
-      // (a one-storey house's roof drawn over you lifts, to see behind the house; the roof of a taller one, two
-      // floors up, stays on with its storey under it: you show through as a silhouette)
-      if (d === 1 && ((THINGS[drawn.ground] && THINGS[drawn.ground].roof) || drawn.items.some(id => THINGS[id].roof))) return up - 1;
+      // (a one-storey house's roof drawn over you lifts, to see behind the house; a taller one's storey right over you
+      // stays, you showing through it as a silhouette, but its roof and all above lift)
+      const roof = (THINGS[drawn.ground] && THINGS[drawn.ground].roof) || drawn.items.some(id => THINGS[id].roof);
+      if (d === 1 && roof) return up - 1;
+      if (d >= 2) return up - 1; // (something tall over you, two floors up or more, a high roof too: hidden from there up)
       coveredBy = true;
     }
   }

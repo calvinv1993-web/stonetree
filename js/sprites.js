@@ -793,6 +793,18 @@ const Sprites = (() => {
     : (u, out, h) => [32 + u - h, 64 + out - h]);
   const IRON = { top: '#5e5a54', south: '#3a3632', east: '#24221f', edge: '#7a756e' };
   const STONE = { top: '#ece4ce', south: '#cfc6b0', east: '#a89e88', edge: '#fff8e4' };
+  // One bay of the belfry's arcade, along the tile's south edge (or its east edge, east): parapet, jambs, a pointed arch.
+  function belfryArch(g, east) {
+    const at = (a, z, k = 0) => (east ? P(28 + k, a, z) : P(a, 28 + k, z)); // (a along the edge, k out from it)
+    const box = (a0, a1, z0, z1) => (east ? prism(g, 26, a0, 32, a1, z0, z1, GOTHIC) : prism(g, a0, 26, a1, 32, z0, z1, GOTHIC));
+    box(0, 32, 0, 9);                                                             // the parapet
+    box(0, 3, 9, FLOOR_Z); box(29, 32, 9, FLOOR_Z);                               // the jambs at the bay's ends
+    const arch = []; for (let i = 0; i <= 16; i++) { const a = 3 + (26 * i) / 16, h = 34 + 16 * Math.sqrt(Math.max(0, 1 - Math.abs(a - 16) / 13)); arch.push([a, h]); }
+    const band = [...arch.flatMap(([a, h]) => at(a, h, 4)), ...arch.slice().reverse().flatMap(([a]) => at(a, FLOOR_Z, 4))];
+    poly(g, east ? GOTHIC.east : GOTHIC.south, band);                              // the spandrel over the arch
+    for (let i = 0; i < arch.length - 1; i++) line(g, '#8a7f70', 1.2, ...at(arch[i][0], arch[i][1], 4), ...at(arch[i + 1][0], arch[i + 1][1], 4)); // its moulding
+    line(g, '#a3977f', 1, ...at(0, 9, 4), ...at(32, 9, 4));                        // the parapet's coping, lit
+  }
   // Coloured light on the floor through a pointed window: three panes side by side, a pointed head, soft edges.
   function stainedLight(g, colours) {
     poly(g, 'rgba(255,236,190,0.26)', [...P(2, 31, 0), ...P(30, 31, 0), ...P(31, 8, 0), ...P(18, 0, 0), ...P(5, 8, 0)]);
@@ -1607,7 +1619,7 @@ const Sprites = (() => {
   const RAISED = new Set(['eggs', 'smith_hearth', 'waterwheel', 'ladder', 'stairs_up', 'stairs_down', 'lever', 'lever_on', 'crystal', 'ice_spike', 'stalagmite', 'sword_grave', 'crops',
     'pillar', 'altar', 'table', 'counter', 'crate', 'chest', 'bed', 'bookshelf', 'depot', 'barrel', 'sack', 'basket', 'plant', 'haystack', 'well', 'chair', 'chair_east',
     'chair_west', 'chair_north', 'bench',
-    'stall', 'saint', 'pew', 'candelabra', 'holy_font', 'lectern', 'votive_rack', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
+    'stall', 'saint', 'pew', 'candelabra', 'holy_font', 'lectern', 'votive_rack', 'belfry_arch_s', 'belfry_arch_e', 'lamppost', 'lamppost_off', 'signpost', 'noticeboard', 'planter', 'apple_crate', 'anvil', 'statue', 'gravestone', 'dummy',
     'scarecrow',
     'woodpile', 'fountain', 'fountain_rim', 'wagon', 'fish_rack', 'sewer_ladder', 'cave_ladder', 'chimney', 'crypt_gate', 'shaft_rope_top', 'shaft_rope', 'shaft_hole', 'powder_kegs', 'millstone', 'brazier', 'sandbags',
     'sarcophagus', 'obelisk', 'torch', 'torch_out', 'throne', 'tent', 'hedge', 'totem', 'flagpole', 'bars',
@@ -2580,7 +2592,7 @@ const Sprites = (() => {
     // The cathedral's floor: squares of pale sandstone and grey stone in turn, quiet, each bevelled, the pale ones faintly veined.
     marble_check(g, r) {
       for (const [x, y, dark] of [[0, 0, 0], [16, 0, 1], [0, 16, 1], [16, 16, 0]]) {
-        const v = dark ? 146 + ((r() * 8) | 0) : 198 + ((r() * 10) | 0), c = d => dark ? `rgb(${v + d},${v + d - 4},${v + d - 10})` : `rgb(${v + d + 6},${v + d - 4},${v + d - 26})`;
+        const v = dark ? 172 + ((r() * 6) | 0) : 196 + ((r() * 6) | 0), c = d => dark ? `rgb(${v + d},${v + d - 4},${v + d - 10})` : `rgb(${v + d + 6},${v + d - 4},${v + d - 26})`;
         rect(g, c(0), x, y, 16, 16);
         rect(g, c(12), x, y, 16, 1); rect(g, c(12), x, y, 1, 16);
         rect(g, c(-32), x, y + 15, 16, 1); rect(g, c(-32), x + 15, y, 1, 16);
@@ -4146,6 +4158,10 @@ const Sprites = (() => {
       onWallPlane(g, shape, -D, () => { g.transform(1, 0, 0, -1, 0, 32); sunWindow(g, 10, 12, 10, 22); });
       wallBox(g, shape, 7, 25, 0, 2.5, 6.6, 8.2, STONE);                                         // the sill, sticking out
     },
+    // The belfry's open arcade: a low parapet of the dark stone along the edge, and over it a pointed arch, its jambs at
+    // the tile's ends reaching up to the spire's crown, open between.
+    belfry_arch_s: g => belfryArch(g, false),
+    belfry_arch_e: g => belfryArch(g, true),
     // A belfry's corner pier: a cluster of shafts of dark stone from a moulded base up to the spire above it.
     pier_gothic(g) {
       floorShadow(g, 12, 3);

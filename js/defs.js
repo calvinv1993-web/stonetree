@@ -244,6 +244,8 @@ const THINGS = {
   portal_m:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   portal_e:    { name: 'the great portal', cat: 'Walls', wall: 'thin' },
   pier_gothic: { name: 'carved pier', cat: 'Town', block: true, tall: true }, // a belfry's corner, holding up its spire
+  belfry_arch_s: { name: 'open arch', cat: 'Town', tall: true }, // the belfry's open arcade along its south side (a low parapet, a pointed arch)
+  belfry_arch_e: { name: 'open arch', cat: 'Town', tall: true }, // ...and along its east side
   // The heart of the cathedral's front, between its towers over the portal, 5 x 1 on the floor above the portal
   // (BIG.west_front): the great window of tracery and the steep gable over it, in slices up to two floors more
   west_front_0: { name: 'the great window', cat: 'Walls', block: true, wall: 'thin' },

@@ -165,7 +165,7 @@ const OAKVALE = {
   // same, and the bell's: stairs: up from each floor, from the temple's; shaft: the column of open hatches the bell rope
   // runs down; bell: the north-west tile of the great bell (2x2) at the top; rules: a sign on the ringers' wall [x, y, text].
   towers: { floors: 4, west: { at: [130, 104, 134, 107], door: [134, 106] }, east: { at: [140, 104, 144, 107], door: [140, 106] } },
-  belltower: { stairs: [[142, 106], [143, 106], [142, 106], [143, 106]], shaft: [143, 105], bell: [141, 105],
+  belltower: { stairs: [[141, 105], [143, 105], [141, 105], [143, 105]], shaft: [143, 106], bell: [141, 105],
     rules: [142, 104, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle, and past the wall, to wherever the Host is listening.' },
   // The temple mount: a knoll of rock north of the square, its top one floor up, with the temple on it, a terrace
@@ -332,7 +332,7 @@ const SEWERS = {
   ],
   rats: [[107, 132], [114, 128], [121, 131], [128, 129], [136, 132], [145, 128], [131, 116], [134, 123], [125, 136], [128, 143], [106, 123], [137, 103]],
   bigRats: [[148, 140], [146, 142]], // two: a pair a level 4 can take on with care
-  shaft: [143, 105, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the training yard.'],
+  shaft: [143, 106, 'The bell shaft: an old hatch over a drop into the dark, far too deep to climb. Whatever fell down it lies deeper still - and the rats have dug their own way down, under the training yard.'],
   down: [147, 139], // a trapdoor in the rats' nest, down to the old drains
 };
 
@@ -2282,7 +2282,11 @@ function buildTown(m, S, runs, river) {
       for (let z = base; z <= top; z++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
         const edge = x === x0 || x === x1 || y === y0 || y === y1, corner = (x === x0 || x === x1) && (y === y0 || y === y1);
         const bells = side === 'east';
-        if (z === top && bells) { m.set(x, y, z, { ground: 'temple_paving', items: corner ? ['pier_gothic'] : [] }); continue; } // the belfry: open, on four corner piers
+        if (z === top && bells) { // the belfry: walled to the north and west, an open arcade south and east, a pier on its corner
+          const walled = (y === y0 || x === x0) && edge, arcade = !walled && edge && !(x === x1 && y === y1);
+          m.set(x, y, z, { ground: 'temple_paving', items: walled ? (corner ? ['wall_gothic_tower'] : ['wall_gothic_tower', 'window_gothic']) : x === x1 && y === y1 ? ['pier_gothic'] : arcade ? [y === y1 ? 'belfry_arch_s' : 'belfry_arch_e'] : [] });
+          continue;
+        }
         if (z === base && !edge) { m.set(x, y, z, { ground: 'marble', items: [] }); continue; } // (its room on the temple's floor)
         if (!bells && !edge) { m.set(x, y, z, z === base + 1 ? { ground: 'ceiling', items: [] } : null); continue; } // (the west tower is hollow above its chapel's ceiling: no floors nobody can reach)
         const window = edge && !corner && z > base && ((y === y1 && x === ((x0 + x1) >> 1)) || (x === x1 && y === ((y0 + y1 + 1) >> 1)));
@@ -2324,16 +2328,13 @@ function buildTown(m, S, runs, river) {
     for (let y = ny0 + 1; y <= ny0 + 2; y++) for (let x = cx - 1; x <= cx + 1; x++) put(x, y, Z, 'carpet_rug'); // a rug under the altar
     for (let y = ny0 + 3; y < t.y1; y++) put(cx, y, Z, 'carpet_rug'); // and a red runner down the middle, from the portal to it
     put(cx, ny0 + 1, Z, 'altar');
-    for (const x of [cx - 2, cx + 2]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar (they light it)
-    put(cx - 3, ny0 + 1, Z, 'lectern'); put(cx + 3, ny0 + 1, Z, 'votive_rack'); // the great book on its lectern, a rack of candles lit for the dead (in the nooks: never a pocket of floor)
-    for (const x of [n0 + 1, n1 - 1]) put(x, ny0 + 2, Z, 'candelabra'); // (and candles between the saints and the piers)
-    for (const x of [n0 + 1, n1 - 1]) { put(x, ny0 + 1, Z, 'saint'); put(x, ny1, Z, 'pier_gothic'); } // saints by the altar; piers of the nave's dark stone
-    for (const y of [ny0 + 2, ny1]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // pews either side of the runner
-    for (const y of [ny0 + 2]) { put(n0, y, Z, 'wall_torch'); put(n1, y, Z, 'wall_torch'); }
+    // (kept quiet: the altar between two candle stands, a saint either side, the Dawn's banners behind; pews down the runner)
+    for (const x of [cx - 3, cx + 3]) put(x, ny0 + 1, Z, 'candelabra'); // candle stands either side of the altar (they light it)
+    for (const x of [n0 + 1, n1 - 1]) put(x, ny0 + 1, Z, 'saint'); // saints in the corners by the altar
+    for (const y of [ny0 + 2, ny1]) for (const x of [cx - 2, cx + 2]) put(x, y, Z, 'pew'); // a pew either side of the runner, two rows (room to walk round them)
     for (const x of [cx - 3, cx + 3]) put(x, ny0, Z, 'banner'); // the Dawn's banners on the wall behind the altar
     // the hall behind the portal: piers at its corners, a font of blessed water, coloured light from the great window
     const [hx0, hx1] = [TW.west.at[2] + 1, TW.east.at[0] - 1];
-    put(hx0, TW.west.at[1], Z, 'pier_gothic'); put(hx1, TW.west.at[1], Z, 'pier_gothic');
     put(hx0, t.y1 - 2, Z, 'holy_font'); // (beside the west tower's door, not in front of it)
     // its floor: pale marble and dark slate in turn, through the nave and the hall
     eachOf(t, (x, y) => { const ft = m.get(x, y, Z); if (ft && ft.ground === 'marble' && !(x >= TW.west.at[0] && x <= TW.west.at[2] && y >= TW.west.at[1]) && !(x >= TW.east.at[0] && x <= TW.east.at[2] && y >= TW.east.at[1])) ft.ground = 'marble_check'; });
@@ -2346,9 +2347,8 @@ function buildTown(m, S, runs, river) {
     const mt = T.mount, pcx = t.door[0];
     for (let y = t.y1 + 1; y < mt.y1; y++) for (let x = t.x0 + 1; x <= t.x1 - 1; x++) m.set(x, y, Z, { ground: 'temple_paving', items: [] });
     for (const x of mt.steps) m.setGround(x, mt.y1 - 1, Z, 'temple_paving');
-    for (let k = 0; k < 5; k++) { const pt = m.get(pcx - 2 + k, T.mount.y1 - 1, Z); pt.items = [`porch_${k}`]; } // the porch before the portal, its piers either side of the top of the steps
     const slices = (x, y, id) => { for (const k of [1, 2]) m.set(x, y, Z + k, { ground: null, items: [`${id}_${k}`] }); }; // (a tall thing's upper slices, over it)
-    for (let k = 0; k < 5; k++) slices(pcx - 2 + k, T.mount.y1 - 1, `porch_${k}`);
+    for (const x of [pcx - 2, pcx + 2]) put(x, T.mount.y1 - 1, Z, 'pier_gothic'); // piers either side of the top of the steps (the portal itself is in the front wall)
     // the great window over the portal, between the towers, and its gable (on the floor above, in place of that wall)
     for (let k = 0; k < 5; k++) {
       const x = pcx - 2 + k, front = m.get(x, t.y1, Z + 1);
@@ -2365,7 +2365,7 @@ function buildTown(m, S, runs, river) {
       if ([[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([ox, oy]) => inB(t, x + ox, y + oy))) pave(x, y);
     }
     // buttresses along the nave's sides, their flying arches up to its walls (on the path round it, which goes round them)
-    for (const y of [ny0 + 1, ny1]) { put(n0 - 1, y, Z, 'buttress_w'); put(n1 + 1, y, Z, 'buttress_e'); slices(n0 - 1, y, 'buttress_w'); slices(n1 + 1, y, 'buttress_e'); }
+    for (const y of [ny0 + 1, ny1]) { put(n0 - 1, y, Z, 'buttress_w'); put(n1 + 1, y, Z, 'buttress_e'); for (const k of [1, 2]) { m.set(n0 - 1, y, Z + k, { ground: null, items: [`buttress_w_${k}`] }); m.set(n1 + 1, y, Z + k, { ground: null, items: [`buttress_e_${k}`] }); } }
     // the statue of the founder, three tiles square, on the mount's east shoulder beside the temple, facing the town
     { const [fx, fy] = T.founder;
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
