@@ -4304,15 +4304,16 @@ const Sprites = (() => {
     tower_clock: (g, r, frame, shape) => {
       onWallPlane(g, shape, 0.6, () => {
         g.transform(1, 0, 0, -1, 0, 32);
-        const cx = 16, cy = 17;
-        g.fillStyle = 'rgba(60,56,48,0.35)'; g.beginPath(); g.arc(cx - 0.8, cy - 0.8, 9, 0, Math.PI * 2); g.fill();    // its shadow on the wall
-        g.fillStyle = '#c8a040'; g.beginPath(); g.arc(cx, cy, 8.6, 0, Math.PI * 2); g.fill();                         // the gilded ring
-        g.fillStyle = '#1c1c20'; g.beginPath(); g.arc(cx, cy, 7.4, 0, Math.PI * 2); g.fill();                         // the face
+        const cx = 16, cy = 16;
+        g.fillStyle = 'rgba(60,56,48,0.35)'; g.beginPath(); g.arc(cx - 0.8, cy - 0.8, 14, 0, Math.PI * 2); g.fill();    // its shadow on the wall
+        g.fillStyle = '#c8a040'; g.beginPath(); g.arc(cx, cy, 13.4, 0, Math.PI * 2); g.fill();                        // the gilded ring
+        g.fillStyle = '#1c1c20'; g.beginPath(); g.arc(cx, cy, 11.8, 0, Math.PI * 2); g.fill();                        // the face
         g.fillStyle = '#e0c060';
-        for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6, d = k % 3 ? 6.2 : 5.6; g.fillRect(cx + Math.cos(a) * d - 0.5, cy + Math.sin(a) * d - 0.5, 1, 1); }
+        for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6, d = k % 3 ? 10 : 9.2, w = k % 3 ? 1.2 : 1.8; g.fillRect(cx + Math.cos(a) * d - w / 2, cy + Math.sin(a) * d - w / 2, w, w); }
         g.strokeStyle = '#f0d070'; g.lineCap = 'round';
-        g.lineWidth = 1.2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + 3.4, cy + 1.6); g.stroke();                 // the hour hand
-        g.lineWidth = 0.8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx - 0.6, cy + 5.6); g.stroke();                 // the minute hand
+        g.lineWidth = 1.8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + 5.4, cy + 2.6); g.stroke();                 // the hour hand
+        g.lineWidth = 1.2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx - 1, cy + 9); g.stroke();                     // the minute hand
+        g.fillStyle = '#f0d070'; g.beginPath(); g.arc(cx, cy, 1.2, 0, Math.PI * 2); g.fill();
       });
     },
     // The belfry's open arcade: a low parapet of the dark stone along the edge, and over it a pointed arch, its jambs at
