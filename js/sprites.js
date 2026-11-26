@@ -2096,11 +2096,11 @@ const Sprites = (() => {
   // pinnacle on each corner, and from inside it the spire, eight-sided, dark stone in courses with crockets up its edges,
   // little gabled openings at its foot, rising high over the town to the golden sun of the Dawn at its tip.
   BIG.spire = { w: 5, h: 4, rise: 190, draw(g) {
-    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 205, Rb = 50;
-    const tone = k => { const a = [46, 41, 36], b = [128, 118, 104]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
+    const W = 160, H = 128, cu = W / 2, cv = H / 2, zb = 9, zt = 190, Rb = 38;
+    const tone = k => { const a = [38, 34, 30], b = [104, 96, 84]; return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; };
     const parapet = (u0, v0, u1, v1) => prism(g, u0, v0, u1, v1, 0, zb, GOTHIC);
     const pinnacle = (u, v) => { prism(g, u - 6, v - 6, u + 6, v + 6, 0, 30, GOTHIC); taper(g, u - 6, v - 6, u + 6, v + 6, 30, 84, 5.6, GOTHIC); const [x, y] = P(u, v, 88); ellipse(g, '#a3977f', x, y, 1.8, 1.8); for (let z = 40; z < 80; z += 10) { const [cx, cy] = P(u + 6 - (z - 30) * 0.1, v + 6 - (z - 30) * 0.1, z); ellipse(g, '#8a7f70', cx, cy, 1, 0.9); } };
-    poly(g, '#5a5248', [...P(0, 0, zb), ...P(W, 0, zb), ...P(W, H, zb), ...P(0, H, zb)]);          // the stone crown it stands on
+    poly(g, '#3e3832', [...P(0, 0, zb), ...P(W, 0, zb), ...P(W, H, zb), ...P(0, H, zb)]);          // the stone crown it stands on
     for (let u = 16; u < W; u += 16) line(g, 'rgba(30,26,22,0.35)', 0.8, ...P(u, 0, zb), ...P(u, H, zb));
     parapet(0, 0, W, 4); parapet(0, 0, 4, H);                                                        // its back edges
     pinnacle(6, 6); pinnacle(W - 6, 6); pinnacle(6, H - 6); pinnacle(cu, 6); pinnacle(6, cv);
@@ -2111,7 +2111,7 @@ const Sprites = (() => {
       const light = Math.max(0, Math.min(1, 0.5 - 0.42 * nu - 0.22 * nv));
       poly(g, tone(light), [...P(...pt(k, zb)), ...P(...pt(k + 1, zb)), ...P(cu, cv, zt)]);
       for (let z = zb + 18; z < zt - 12; z += 17) line(g, tone(light * 0.6), 0.8, ...P(...pt(k, z)), ...P(...pt(k + 1, z)));   // its courses
-      if (nu + nv > -0.3) for (let z = zb + 26; z < zt - 40; z += 24) { // its openwork: rows of pointed openings of tracery, the sky through them
+      if (nu + nv > 0.1) for (let z = zb + 30; z < zt - 50; z += 30) { // its openwork: rows of pointed openings of tracery, the sky through them
         const rad = Rb * (1 - (z - zb) / (zt - zb)), m0 = pt(k, z), m1 = pt(k + 1, z), n = rad > 22 ? 2 : 1;
         for (let j = 0; j < n; j++) {
           const f = (j + 1) / (n + 1), mu = m0[0] + (m1[0] - m0[0]) * f, mv = m0[1] + (m1[1] - m0[1]) * f, [x, y] = P(mu, mv, z + 4), w = Math.max(1.2, rad / 16), h = w * 3.2;
@@ -2571,7 +2571,12 @@ const Sprites = (() => {
       row(21, 10, 0, TILE);
     },
     // Marble: big pale slabs, two to a tile, with soft grey veins and bevelled edges.
-    ceiling() {}, // (a vault seen from above: nothing; the roof over it shows)
+    // A ceiling seen from above (from a tower beside it): sheets of dark lead in courses, as a flat roof would look.
+    ceiling(g, r) {
+      rect(g, '#4a4e58', 0, 0, TILE, TILE);
+      for (let y = 0; y < TILE; y += 8) { rect(g, '#5a5f6a', 0, y, TILE, 1); rect(g, '#363940', 0, y + 7, TILE, 1); }
+      for (let x = (r() * 8) | 0; x < TILE; x += 11) rect(g, '#3c4048', x, 0, 1, TILE);
+    },
     // The cathedral's floor: squares of pale sandstone and grey stone in turn, quiet, each bevelled, the pale ones faintly veined.
     marble_check(g, r) {
       for (const [x, y, dark] of [[0, 0, 0], [16, 0, 1], [0, 16, 1], [16, 16, 0]]) {
