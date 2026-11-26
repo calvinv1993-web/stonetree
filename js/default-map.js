@@ -163,7 +163,7 @@ const OAKVALE = {
   // ground; shaft: the column of open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2)
   // at the top; rules: a sign on the ringers' wall [x, y, text].
   belltower: { stairs: [[136, 107], [138, 107], [136, 107]], shaft: [136, 108], bell: [137, 107],
-    rules: [138, 106, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
+    rules: [138, 105, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle, and past the wall, to wherever the Host is listening.' },
   // The churchyard: the ground the church and its tower stand on, north of the square (kept clear of everything
   // else); a paved way from the church door down to the square

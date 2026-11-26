@@ -363,7 +363,7 @@ const THINGS = {
   dummy:       { name: 'training dummy', cat: 'Town', block: true, low: true, tall: true, trainer: true },
   pillar:      { name: 'pillar', cat: 'Town', block: true, tall: true },
   // The church tower's cap, 5 x 5 tiles over its top: each tile shows its part of the one cap (BIG.tower_cap)
-  ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3, 4].map(r => [`tower_cap_${c}${r}`, { name: 'tower roof', cat: 'Town', block: true, tall: true }]))),
+  ...Object.fromEntries([0, 1, 2, 3, 4].flatMap(c => [0, 1, 2, 3, 4].map(r => [`tower_cap_${c}${r}`, { name: 'tower roof', cat: 'Town', block: true, tall: true, reach: 7 }]))),
   // A cathedral tower's spire over its belfry, 5 x 4 tiles: each tile shows its part of the one spire (BIG.spire)
   spire_00: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_10: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_20: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_30: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_40: { name: 'spire', cat: 'Town', block: true, tall: true },
   spire_01: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_11: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_21: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_31: { name: 'spire', cat: 'Town', block: true, tall: true }, spire_41: { name: 'spire', cat: 'Town', block: true, tall: true },

@@ -32,7 +32,7 @@ const RAISED_ROOFS = [
   [142, 116, 9], [147, 116, 9], [106, 126, 9],   // Pip's Provisions, the Watch House, Moonpetal Magic
   [122, 138, 9], [114, 141, 9], [120, 155, 9],   // the depot, the water mill, the cottage south of the wall
   [110, 132, 10], [109, 103, 10],                // the hay barn, the Sleepy Boar
-  [136, 137, 10], [137, 103, 9, 134, 100, 141, 108], // the academy, the church (its tower rising through its south end)
+  [136, 137, 10], [137, 103, 9, 134, 100, 141, 108, 104], // the academy, the church (its tower rising through its south end)
 ];
 function raisedRoofs(map) {
   if (map.raised && map.raised.version === map.version) return map.raised;
@@ -51,13 +51,32 @@ function raisedRoofs(map) {
     }
     const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]);
     const r = { id, z, x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
-    if (bounds.length === 4) [r.x0, r.y0, r.x1, r.y1] = bounds; // (a roof with something rising through it: its own bounds given)
+    r.drawY = r.y1;
+    if (bounds.length >= 4) [r.x0, r.y0, r.x1, r.y1, r.drawY = r.y1] = bounds; // (a roof with something rising through it: its own bounds given, and the row
+    // after which it's drawn: before what rises through it, so that stands over it)
     else if (cells.length !== (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1)) continue; // (otherwise only a rectangle stands up)
+    r.holes = []; // (tiles in its bounds that aren't its roof: what rises through it)
+    const own = new Set(cells.map(([x, y]) => `${x},${y}`));
+    for (let y = r.y0; y <= r.y1; y++) for (let x = r.x0; x <= r.x1; x++) if (!own.has(`${x},${y}`) && map.get(x, y, z)) r.holes.push([x, y]);
     list.push(r);
     for (const [x, y] of cells) tiles.set((z * map.height + y) * map.width + x, r);
   }
   map.raised = { version: map.version, list, tiles };
   return map.raised;
+}
+// How many tiles past the view's right and bottom edges things on floor z can still reach into it (THINGS reach), worked
+// out once per map (what reaches so far is built, not dropped: it doesn't come and go)
+function floorReach(map, z) {
+  if (!map.reach) {
+    const most = {};
+    for (let k = 0; k < map.depth; k++) {
+      let r = 0;
+      for (const t of map.floors[k] || []) if (t) for (const id of t.items) { const d = THINGS[id]; if (d && d.reach > r) r = d.reach; }
+      most[k] = r;
+    }
+    map.reach = { most };
+  }
+  return map.reach.most[z] || 0;
 }
 // The raised roof over tile (x, y, z), if any
 const raisedAt = (map, x, y, z) => (x < 0 || y < 0 || x >= map.width || y >= map.height ? null : raisedRoofs(map).tiles.get((z * map.height + y) * map.width + x) || null);
@@ -351,9 +370,11 @@ const Render = {
       }
       const shift = (z - v.z) * TILE;
       const ox = Math.round(v.w / 2 - v.cx - shift), oy = Math.round(v.h / 2 - v.cy - shift);
-      // Visible tile range on this floor, with a margin for tall things and walking creatures.
-      const x0 = Math.max(0, Math.floor(-ox / TILE) - 1), x1 = Math.min(map.width - 1, Math.floor((v.w - ox) / TILE) + 2);
-      const y0 = Math.max(0, Math.floor(-oy / TILE) - 1), y1 = Math.min(map.height - 1, Math.floor((v.h - oy) / TILE) + 2);
+      // Visible tile range on this floor, with a margin for tall things and walking creatures (wider on a floor where
+      // something reaches further up-left than that: a tower's cap, see THINGS reach)
+      const reach = Math.max(2, floorReach(map, z));
+      const x0 = Math.max(0, Math.floor(-ox / TILE) - 1), x1 = Math.min(map.width - 1, Math.floor((v.w - ox) / TILE) + reach);
+      const y0 = Math.max(0, Math.floor(-oy / TILE) - 1), y1 = Math.min(map.height - 1, Math.floor((v.h - oy) / TILE) + reach);
       const floor = map.floors[z], beyond = v.beyond ? v.beyond(z) : null;
       const tileAt = (x, y) => (x >= 0 && y >= 0 && x < map.width && y < map.height ? floor[y * map.width + x] : null);
       const rawGroundAt = (x, y) => (x >= 0 && y >= 0 && x < map.width && y < map.height ? (floor[y * map.width + x] || {}).ground || null : beyond);
@@ -987,11 +1008,17 @@ const Render = {
       const raise = r => {
         const w = r.x1 - r.x0 + 1, h = r.y1 - r.y0 + 1, img = Sprites.raisedRoof(r.id, w, h);
         g.imageSmoothingEnabled = true;
+        if (r.holes.length) { // (not over the floor of what rises through it: that stays open, its walls drawn after)
+          g.save(); g.beginPath(); g.rect(ox + r.x0 * TILE - img.mx, oy + r.y0 * TILE - img.my, img.w, img.h);
+          for (const [hx, hy] of r.holes) g.rect(ox + hx * TILE, oy + hy * TILE, TILE, TILE);
+          g.clip('evenodd');
+        }
         g.drawImage(img, ox + r.x0 * TILE - img.mx, oy + r.y0 * TILE - img.my, img.w, img.h);
+        if (r.holes.length) g.restore();
         g.imageSmoothingEnabled = false;
         for (let ty = r.y0; ty <= r.y1; ty++) for (let tx = r.x0; tx <= r.x1; tx++) {
           const t = tileAt(tx, ty);
-          if (!t) continue;
+          if (!t || raisedAt(map, tx, ty, r.z) !== r) continue; // (only what stands on the roof itself, not what rises through it)
           const up = Math.round(Sprites.raisedRoofHeight(w, h, (tx - r.x0 + 0.5) * TILE, (ty - r.y0 + 0.75) * TILE));
           for (const id of t.items) {
             const img2 = Sprites.thing(id, tx, ty, v.time), iw = Sprites.w(img2), ih = Sprites.h(img2);
@@ -1120,7 +1147,7 @@ const Render = {
           }
           g.globalAlpha = 1;
         }
-        if (x === x1 && raised.length) for (const r of raised) if (r.y1 === y || (y === y1 && r.y1 > y1)) raise(r);
+        if (x === x1 && raised.length) for (const r of raised) if (Math.min(Math.max(r.drawY, y0), y1) === y) raise(r);
       }
       if (lifted) g.restore();
     }
