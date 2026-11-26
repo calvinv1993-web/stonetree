@@ -324,6 +324,7 @@ test('in Oakvale, no two buildings, gardens, yards or the temple mount overlap, 
   for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
     const [a, ax0, ay0, ax1, ay1] = rects[i], [b, bx0, by0, bx1, by1] = rects[j];
     if (a === b) continue; // the wings of one building
+    if (T.buildings.some(x => (x.id === a && x.within === b) || (x.id === b && x.within === a))) continue; // (a tower built into its church)
     if (ax0 <= bx1 && bx0 <= ax1 && ay0 <= by1 && by0 <= ay1) clash.push(`${a} / ${b}`);
   }
   // the mount's rock itself (not its box), with a tile of room round it

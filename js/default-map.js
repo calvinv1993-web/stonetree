@@ -162,8 +162,8 @@ const OAKVALE = {
   // The church's tower, in the middle of its front (a building, see buildings): stairs: up from each floor, from the
   // ground; shaft: the column of open hatches the bell rope runs down; bell: the north-west tile of the great bell (2x2)
   // at the top; rules: a sign on the ringers' wall [x, y, text].
-  belltower: { stairs: [[136, 110], [138, 110], [136, 110]], shaft: [136, 112], bell: [137, 111],
-    rules: [138, 110, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
+  belltower: { stairs: [[136, 107], [138, 107], [136, 107]], shaft: [136, 108], bell: [137, 107],
+    rules: [138, 106, 'THE BELL OF OAKVALE. Rung at dawn, for the dead, and for every fighter who leaves for the front. Since the founders\' day it has never been silent for longer than a night - and it will not be, while one of us is left to pull the rope.'],
     look: 'The bell of Oakvale, cast from the bronze of the first settlers\' ship. Its voice carries over the whole isle, and past the wall, to wherever the Host is listening.' },
   // The churchyard: the ground the church and its tower stand on, north of the square (kept clear of everything
   // else); a paved way from the church door down to the square
@@ -186,7 +186,7 @@ const OAKVALE = {
     // the altar at the far end; its
     // tower stands in the middle of its front, and its door, in the tower's foot, is the church's way in
     { id: 'temple', name: 'Temple of the Dawn', kind: 'temple', x0: 133, y0: 99, x1: 141, y1: 108, door: [137, 108], arch: true, floor: 'marble', wall: 'wall_white', roof: 'roof_church' },
-    { id: 'belltower', name: 'The Church Tower', kind: 'belltower', x0: 135, y0: 109, x1: 139, y1: 113, door: [137, 113], floors: 4, floor: 'paving', wall: 'wall_white', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple. The bell hangs at the top of its tower.' },
+    { id: 'belltower', name: 'The Church Tower', kind: 'belltower', x0: 135, y0: 105, x1: 139, y1: 109, door: [137, 109], within: 'temple', floors: 4, floor: 'paving', wall: 'wall_white', signId: 'sign_temple', sign: 'Temple of the Dawn. You wake here when you first come to Oakvale Isle, and again whenever you die. Nobody can fight inside a temple. The bell hangs at the top of its tower.' },
     { id: 'depot', name: 'Depot and Post', kind: 'depot', x0: 119, y0: 133, x1: 124, y1: 143, door: [124, 135], floor: 'marble', wall: 'wall_stone', roof: 'roof', signId: 'sign_depot', sign: 'Depot and post. Put things in a locker to keep them safe: your locker is yours for good.' },
     { id: 'academy', name: 'Oakvale Academy', kind: 'academy', x0: 131, y0: 133, x1: 140, y1: 140, door: [140, 135], floors: 2, floor: 'tiles', wall: 'wall_stone', roof: 'roof_slate', signId: 'sign_school', sign: 'Oakvale Academy. Master Corwin trains the recruits. Upstairs, the oracle names your path to the front, at level 10.' },
     { id: 'magic', name: 'Moonpetal Magic', kind: 'shop', x0: 104, y0: 123, x1: 108, y1: 128, door: [108, 125], floor: 'wood', wall: 'wall_wood', roof: 'roof_shingle', signId: 'sign_magic', shelves: 'shelf', sign: 'Moonpetal Magic: runes, wands and potions. Say hi to the shopkeeper, then ask to trade.' },
@@ -2308,14 +2308,13 @@ function buildTown(m, S, runs, river) {
     put(cx, t.y0 + 1, Z, 'altar');
     for (const x of [cx - 2, cx + 2]) put(x, t.y0 + 1, Z, 'candelabra'); // candle stands either side of the altar
     for (const x of [t.x0 + 1, t.x1 - 1]) put(x, t.y0 + 1, Z, 'saint'); // saints in the corners
-    for (const y of [t.y0 + 3, t.y0 + 5, t.y0 + 7]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // three rows of pews either side of the runner
+    for (const y of [t.y0 + 3, t.y0 + 5]) for (const x of [cx - 3, cx - 2, cx + 2, cx + 3]) put(x, y, Z, 'pew'); // two rows of pews either side of the runner
     for (const x of [cx - 3, cx + 3]) put(x, t.y0, Z, 'banner'); // the Dawn's banners on the wall behind the altar
     m.temples.push({ home: 'oakvale', town: 'Oakvale', npc: null, x: T.start.x, y: T.start.y, z: Z });
     // a paved way from the door down to the square, lamps along it; a path round the church and to the tower's door
     const mt = T.mount;
     for (let y = t.y1 + 1; y <= mt.y1; y++) for (const x of mt.steps) m.setGround(x, y, Z, 'temple_paving');
     const bt = B.belltower;
-    for (const x of [bt.x0 - 1, bt.x1 + 1]) put(x, bt.y1 - 1, Z, 'lamppost'); // either side of the tower
     sign(T.firstSteps[0], T.firstSteps[1], S, 'signpost', T.firstSteps[2]); // on the square, at the end of the way
     const pave = (x, y) => { const tt = m.get(x, y, Z); if (tt && (tt.ground === 'grass' || tt.ground === 'gravel' || tt.ground === 'paving')) { tt.ground = 'temple_paving'; tt.items = tt.items.filter(id => !THINGS[id].block && id !== 'flowers' && id !== 'grass_tuft'); } };
     for (let y = t.y0 - 1; y <= Math.max(t.y1, bt.y1) + 1; y++) for (let x = Math.min(t.x0, bt.x0) - 1; x <= Math.max(t.x1, bt.x1) + 1; x++) {

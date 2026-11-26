@@ -32,12 +32,12 @@ const RAISED_ROOFS = [
   [142, 116, 9], [147, 116, 9], [106, 126, 9],   // Pip's Provisions, the Watch House, Moonpetal Magic
   [122, 138, 9], [114, 141, 9], [120, 155, 9],   // the depot, the water mill, the cottage south of the wall
   [110, 132, 10], [109, 103, 10],                // the hay barn, the Sleepy Boar
-  [136, 137, 10], [137, 103, 9], // the academy, the church
+  [136, 137, 10], [137, 103, 9, 134, 100, 141, 108], // the academy, the church (its tower rising through its south end)
 ];
 function raisedRoofs(map) {
   if (map.raised && map.raised.version === map.version) return map.raised;
   const list = [], tiles = new Map();
-  for (const [sx, sy, z] of RAISED_ROOFS) {
+  for (const [sx, sy, z, ...bounds] of RAISED_ROOFS) {
     const t = map.get(sx, sy, z), id = t && t.ground;
     if (!id || !THINGS[id] || !THINGS[id].roof) continue;
     const cells = [], seen = new Set([`${sx},${sy}`]), todo = [[sx, sy]];
@@ -51,7 +51,8 @@ function raisedRoofs(map) {
     }
     const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]);
     const r = { id, z, x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
-    if (cells.length !== (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1)) continue; // (only a rectangle stands up, for now)
+    if (bounds.length === 4) [r.x0, r.y0, r.x1, r.y1] = bounds; // (a roof with something rising through it: its own bounds given)
+    else if (cells.length !== (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1)) continue; // (otherwise only a rectangle stands up)
     list.push(r);
     for (const [x, y] of cells) tiles.set((z * map.height + y) * map.width + x, r);
   }
