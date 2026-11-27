@@ -30,8 +30,9 @@ For each part:
 - **memory**: the pictures kept, in MB of pixels (4 bytes a pixel): ground chunks, sprites (`Sprites.cacheStats`)
   and the view's canvases; and the script heap where the browser tells it (Chrome only, not Safari).
 
-It plays a character of its own (saved under its own key and removed afterwards), keeps it alive, and keeps the
-sharpness it started with (the automatic step down for a slow phone is paused while it runs). Your own character is
+It plays a character of its own (saved under its own key and removed afterwards), keeps it alive, and draws at the
+sharpness of the quality chosen: the automatic step down a slow moment made earlier is set aside for the test (noted as
+`sharpDropBefore`) and paused while it runs, so every run of a quality draws the same pixels. Your own character is
 saved first and comes back afterwards.
 
 ## On the iPhone, as an app on the home screen (PWA)
