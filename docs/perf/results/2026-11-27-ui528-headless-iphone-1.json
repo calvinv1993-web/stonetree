@@ -1,0 +1,360 @@
+{
+ "version": 1,
+ "page": "ui528",
+ "at": "2026-11-27T07:42:41.082Z",
+ "id": "mwyobwl6",
+ "device": {
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+  "standalone": false,
+  "dpr": 3,
+  "screen": "390x844",
+  "window": "390x844",
+  "canvas": "1280x2048",
+  "view": "10x16",
+  "sharp": 4,
+  "quality": "high",
+  "fpsSetting": 60,
+  "cores": 4,
+  "deviceMemory": 16,
+  "chunksKept": 64
+ },
+ "summary": {
+  "fps": 33.6,
+  "workP50": 2.5,
+  "workP95": 22.8,
+  "stalls": 70,
+  "chunksMade": 68,
+  "chunkMs": 477.7,
+  "chunkMaxMs": 302.6,
+  "picturesMB": 452.4,
+  "startMB": 2.7
+ },
+ "legs": [
+  {
+   "name": "square-day",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30,
+   "frames": 180,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.5,
+    "max": 33.5
+   },
+   "workMs": {
+    "p50": 2,
+    "p95": 4.5,
+    "p99": 7,
+    "max": 11.6
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 125,
+    "gaveUp": false,
+    "chunks": 0,
+    "chunkMs": 27.5
+   },
+   "chunks": {
+    "made": 14,
+    "ms": 100.2,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 68,
+    "chunkMB": 61.8,
+    "sprites": 1963,
+    "spriteMB": 341.4,
+    "viewMB": 10.2,
+    "picturesMB": 413.3,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "church-inside",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30.8,
+   "frames": 185,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 50
+   },
+   "workMs": {
+    "p50": 1.6,
+    "p95": 2.7,
+    "p99": 6.4,
+    "max": 6.5
+   },
+   "stalls": 1,
+   "arrival": {
+    "readyMs": 183,
+    "gaveUp": false,
+    "chunks": 1,
+    "chunkMs": 56.2
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 70,
+    "chunkMB": 63.8,
+    "sprites": 2036,
+    "spriteMB": 347.8,
+    "viewMB": 10.2,
+    "picturesMB": 421.8,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "tower-top",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 27.8,
+   "frames": 167,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 116.7,
+    "max": 150
+   },
+   "workMs": {
+    "p50": 13.6,
+    "p95": 22.8,
+    "p99": 67.9,
+    "max": 71.9
+   },
+   "stalls": 7,
+   "arrival": {
+    "readyMs": 15105,
+    "gaveUp": true,
+    "chunks": 11,
+    "chunkMs": 95.4
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 74,
+    "chunkMB": 64.2,
+    "sprites": 2067,
+    "spriteMB": 353.1,
+    "viewMB": 10.2,
+    "picturesMB": 427.5,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "walk-street-day",
+   "hour": 12,
+   "seconds": 16,
+   "fps": 48.9,
+   "frames": 785,
+   "intervalMs": {
+    "p50": 16.7,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 99.9
+   },
+   "workMs": {
+    "p50": 1.9,
+    "p95": 20.9,
+    "p99": 27,
+    "max": 38.6
+   },
+   "stalls": 5,
+   "arrival": {
+    "readyMs": 15149,
+    "gaveUp": true,
+    "chunks": 7,
+    "chunkMs": 69
+   },
+   "chunks": {
+    "made": 7,
+    "ms": 12,
+    "live": 5
+   },
+   "memory": {
+    "chunks": 84,
+    "chunkMB": 63.8,
+    "sprites": 2102,
+    "spriteMB": 362.2,
+    "viewMB": 10.2,
+    "picturesMB": 436.1,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "outside-east",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30.3,
+   "frames": 182,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 33.4
+   },
+   "workMs": {
+    "p50": 1.4,
+    "p95": 2.1,
+    "p99": 3,
+    "max": 3.3
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 472,
+    "gaveUp": false,
+    "chunks": 12,
+    "chunkMs": 103
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 89,
+    "chunkMB": 63.4,
+    "sprites": 2146,
+    "spriteMB": 365.7,
+    "viewMB": 10.2,
+    "picturesMB": 439.2,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "sewer",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 37.3,
+   "frames": 224,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 50,
+    "max": 83.2
+   },
+   "workMs": {
+    "p50": 3.4,
+    "p95": 5.8,
+    "p99": 7.6,
+    "max": 16.1
+   },
+   "stalls": 4,
+   "arrival": {
+    "readyMs": 15175,
+    "gaveUp": true,
+    "chunks": 15,
+    "chunkMs": 14
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 96,
+    "chunkMB": 63.2,
+    "sprites": 2285,
+    "spriteMB": 378.2,
+    "viewMB": 10.2,
+    "picturesMB": 451.6,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "square-night",
+   "hour": 23,
+   "seconds": 6,
+   "fps": 30,
+   "frames": 181,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 50,
+    "max": 50
+   },
+   "workMs": {
+    "p50": 2.5,
+    "p95": 3.7,
+    "p99": 4.5,
+    "max": 5.4
+   },
+   "stalls": 2,
+   "arrival": {
+    "readyMs": 108,
+    "gaveUp": false,
+    "chunks": 0,
+    "chunkMs": 0
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 96,
+    "chunkMB": 63.2,
+    "sprites": 2285,
+    "spriteMB": 378.2,
+    "viewMB": 10.2,
+    "picturesMB": 451.6,
+    "heapMB": 29.8
+   }
+  },
+  {
+   "name": "walk-street-night",
+   "hour": 23,
+   "seconds": 17.2,
+   "fps": 33.4,
+   "frames": 575,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 50,
+    "p99": 50.1,
+    "max": 83.3
+   },
+   "workMs": {
+    "p50": 3.1,
+    "p95": 22.3,
+    "p99": 32.8,
+    "max": 37.6
+   },
+   "stalls": 51,
+   "arrival": {
+    "readyMs": 141,
+    "gaveUp": false,
+    "chunks": 0,
+    "chunkMs": 0
+   },
+   "chunks": {
+    "made": 1,
+    "ms": 0.4,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 97,
+    "chunkMB": 63.5,
+    "sprites": 2287,
+    "spriteMB": 378.7,
+    "viewMB": 10.2,
+    "picturesMB": 452.4,
+    "heapMB": 29.8
+   }
+  }
+ ],
+ "runner": {
+  "tool": "tests/bench.js",
+  "cpuSlowdown": 1,
+  "emulated": "iPhone 390x844 @3x",
+  "headless": true
+ }
+}

@@ -1627,13 +1627,13 @@ function frame(t) {
   if (t - lastFrameAt < (calm(t) ? Math.max(FRAME_INTERVAL, 1000 / 30) : FRAME_INTERVAL) - 2) return;
   const dt = t - lastFrameAt, started = performance.now(), live0 = Render.stats.live, made0 = Render.stats.finished, z0 = player && player.z;
   lastFrameAt = t;
-  if (calmNow) keepUp.from = 0; // (30 a second on purpose while calm: not a phone that can't keep up, so not measured)
+  if (calmNow || (typeof Bench !== 'undefined' && Bench.running)) keepUp.from = 0; // (30 a second on purpose while calm: not a phone that can't keep up, so not measured; nor during the performance test, which keeps the sharpness it started with)
   else checkKeepingUp(t);
   try {
     if (online()) {
       now = Net.clock();
     } else {
-      now = t;
+      now = t + (typeof Bench !== 'undefined' ? Bench.shift : 0); // (the performance test sets the hour it measures at: bench.js)
       if (!paused) updateWorld();
     }
     handleEvents();
@@ -1658,6 +1658,7 @@ function frame(t) {
   } catch (err) {
     reportError(err);
   }
+  if (typeof Bench !== 'undefined' && Bench.running) Bench.frame(t, dt, performance.now() - started);
   if (speedMeter.on) {
     const work = performance.now() - started;
     meterFrame(t, dt, work, { x: player.x, y: player.y, z: player.z, live: Render.stats.live - live0, made: Render.stats.finished - made0, floor: player.z !== z0, work });
@@ -1772,6 +1773,7 @@ function startOffline() {
   player = newPlayer('Adventurer');
   players.push(player);
   npcs = map.npcs.map(spawnNpc); // so the start position search avoids them
+  if (typeof Bench !== 'undefined' && Bench.wanted()) return Bench.start(); // (the performance test: a character of its own, see bench.js)
   if (navigator.webdriver && !/[?&](story|gate)\b/.test(location.search)) return enterOffline();
   Gate.load().then(() => {
     const session = stored(SESSION_KEY), account = session === TEST_SESSION ? testAccount() : offlineAccount();

@@ -8730,6 +8730,7 @@ const Sprites = (() => {
     DOLLS: DOLLS_ON,
     VERSION: SPRITE_VERSION, // ('?v=uiNNN': the version of the page)
     versionOf, // (a picture's own version, for pictures loaded by others too: action-slots.js)
+    cacheStats: () => { let bytes = 0; for (const c of new Set(cache.values())) bytes += (c.width || 0) * (c.height || 0) * 4; return { count: cache.size, bytes }; }, // (how many pictures are kept, and their pixels' memory: bench.js)
     // An item's picture for the page (bag slots, shops, corpses, dragging; never the map): the painted action
     // pictures where there's one, so a potion looks the same in the backpack as on its action button
     itemURL(id) {

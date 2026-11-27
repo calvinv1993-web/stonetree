@@ -2722,6 +2722,7 @@ function initUI() {
   $('outfitBtn').addEventListener('click', () => { if (!paused && $('outfit').hidden) openOutfit(); }); // not while making a character
   $('soundBtn').addEventListener('click', () => { Sound.toggle(); updateSoundButtons(); });
   $('speedBtn').addEventListener('click', () => setSpeedMeter(!speedMeter.on));
+  $('benchBtn').addEventListener('click', () => Bench.ask()); // (the performance test: bench.js)
   // the quality: high, medium or low (see setQuality)
   const qualityLabel = () => { $('qualityBtn').textContent = `Quality: ${quality}`; };
   qualityLabel();

@@ -121,7 +121,7 @@ const Render = {
   quality: new Set(), // parts left out by the quality chosen (Menu, Game: see setQuality in game.js)
   skip: part => Render.off.has(part) || Render.quality.has(part),
   noLive: false, // (the ground not drawn live while it's being made behind the loading screen: see Preload in game.js)
-  stats: { live: 0, finished: 0 }, // (how often a chunk in view wasn't ready: for measuring)
+  stats: { live: 0, finished: 0, chunksMade: 0, chunkMs: 0, chunkMaxMs: 0 }, // (how often a chunk in view wasn't ready, and how many chunks were made and the time it took: for measuring, see bench.js)
   later: new Map(), // chunks in view that weren't made in their frame
   chores: [], // small jobs for the quiet time between frames: making pictures before they're needed
   shoreTiles: new Map(), // the borders drawn over the ripples by a shore, per tile, kept (see world)
@@ -201,6 +201,7 @@ const Render = {
       if (performance.now() > Render.budget) { if (!ahead && !Render.later.has(key)) Render.later.set(key, () => chunk(cx, cy, true)); return null; } // (made between frames)
       const cg = c.canvas.getContext('2d');
       if (!ahead) Render.stats.finished++;
+      const making = performance.now(); // (measured: see stats)
       while (c.made < PARTS && (!ahead || performance.now() < Render.budget)) {
         const px = tx0 + (c.made % (C / PART)) * PART, py = ty0 + Math.floor(c.made / (C / PART)) * PART;
         const [bx, by, bw, bh] = c.box;
@@ -208,6 +209,7 @@ const Render = {
           pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
         c.made++;
       }
+      { const ms = performance.now() - making; Render.stats.chunkMs += ms; if (ms > Render.stats.chunkMaxMs) Render.stats.chunkMaxMs = ms; if (c.made >= PARTS) Render.stats.chunksMade++; }
       if (ahead && c.made >= PARTS && !c.warm && !c.empty && performance.now() < Render.budget) { // and the pictures of what stands there (trees, bushes, things), ready too
         c.warm = true;
         for (let y = ty0; y < ty0 + C; y++) for (let x = tx0; x < tx0 + C; x++) {
