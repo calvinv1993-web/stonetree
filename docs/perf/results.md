@@ -9,7 +9,7 @@ The rendering plan, in order (agreed with the owner):
 |---|---|---|
 | 0 | baseline measurement (this file) | done: computer and iPhone (quality low) |
 | 1 | baked ambient occlusion in the ground chunks | done on the branch; iPhone runs to add |
-| 2 | contact shadows (figures, things on the ground) | - |
+| 2 | contact shadows (figures, things on the ground) | on the branch; waiting for approval |
 | 3 | colour grading | - |
 | 4 | optimising the existing light engine | - |
 | 5 | atmospheric lighting indoors | - |
@@ -129,3 +129,39 @@ iPhone at quality low: to add (three runs after it's live, compared with the ui5
   kept 585 kB (one byte a tile, only floors seen: at most 1 MB for all 16), 51 shade pictures of 16 kB (at most 256
   masks exist: 4 MB). The masks are kept with the map and put right tile by tile through `map.dirty`, never thrown away
   whole except for a new map or a change of more than 400 tiles at once.
+
+## Phase 2: contact shadows (2026-11-27, on the branch, not live)
+
+What was there (the inventory):
+
+| what | its shadow before | phase 2 |
+|---|---|---|
+| players (sheet) | a generic oval baked into every frame (`groundShadow`, 10 px half width), slanted with the figure | taken out of the frames; a contact shadow drawn under the feet each frame |
+| the player's strike | the same oval baked in | taken out; the same contact shadow at its feet |
+| NPCs and monsters from a sheet | a soft shadow painted into each sheet by its artist | kept as painted; the contact shadow adds the dark core where the feet touch |
+| Clang grown up (clang_3) | an extra baked oval | taken out (the contact shadow replaces it) |
+| code-drawn creatures | their own `shadow()` in their drawing | unchanged (not from a sheet: no contact shadow added, so none doubled) |
+| statues, pillars, altar, depot (fill their tile) | `dropShadow`: their foot's shape, soft and wide plus tight, baked in the ground chunks | unchanged: already a true contact shadow of their own shape |
+| furniture on legs: tables, chairs, benches, stalls, pews | `dropShadow` of the legs only (the floor between them stayed lit) | the floor between the legs shaded too (a third layer, wide and soft, made once), baked in the chunks |
+| counters, crates, barrels, chests, bookshelves | `dropShadow` of their foot (solid to the floor) | unchanged |
+| trees | crown shadow beside the trunk + their own picture's foot | unchanged (no double) |
+| rocks, bushes, ferns | `dropShadow` | unchanged |
+| walls | cast shadow outdoors, ambient occlusion indoors (phase 1) | unchanged |
+
+How: a figure's feet are read once from its own picture when it's made (`feetOf`: the lowest solid rows, their
+middle and width), stored on the picture. The renderer draws `Sprites.contactShadow(width)` there before the figure:
+one kept picture per whole-pixel width (at most 48, about 1 kB each), made with gradients once, never a filter, flat
+on the ground (not slanted, not lifted), a tight dark core under the feet and a softer spread a little to the
+south-east. So it follows the figure as it walks, on any floor and through floor changes, with nothing worked out a
+frame. The legged furniture's extra layer is made once per picture (`dropShadow(img, legged)`, a WeakMap like the
+others) and baked into the ground chunks like every other thing's shadow, so map edits and moved furniture redraw it
+through `map.dirty` (phase 1's fix).
+
+Screenshots (`phase2/`, the same spots, hours and settings, the world paused): temple, temple feet close up, smithy
+feet close up, square with NPCs, inn with furniture, woods, the square at night, the tower's belfry, the temple on a
+phone at quality low.
+
+Computer (headless as an iPhone), three runs before (`phase2-before-*`, ui534) and after (`phase2-*`): nothing worse
+past the limits. Work p50 2.5 -> 2.5 ms, p95 25.6 -> 24.2 ms, chunks 514 -> 517 ms, pictures 454 -> 453 MB.
+
+iPhone at quality low: three runs to add once it's live, against ui534.
