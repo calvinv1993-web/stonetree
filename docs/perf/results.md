@@ -165,3 +165,20 @@ Computer (headless as an iPhone), three runs before (`phase2-before-*`, ui534) a
 past the limits. Work p50 2.5 -> 2.5 ms, p95 25.6 -> 24.2 ms, chunks 514 -> 517 ms, pictures 454 -> 453 MB.
 
 iPhone at quality low: three runs to add once it's live, against ui534.
+
+### Phase 2 checked before going live (ui535)
+
+- **Steady while walking and striking**: a figure's contact shadow now sits at its stand's feet point and takes the
+  width of its standing picture of the same direction, so it doesn't jump or swell from step to step (it had: 3 px
+  sideways and 8.5 to 19 px wide across the walk). Measured over every frame of every direction: the player's shadow
+  stays at x 48, y 61; per direction one width (9 sideways, 12.5 front and back); a walking NPC the same; the strike
+  (12 pictures) sits exactly where the walking figure's is, the same width.
+- **No double darkening**: 38 of the 55 sheets have a shadow painted in under the feet (as opaque as 0.18 to 0.78).
+  Their contact shadow is now made lighter by as much (`feetOf` reads how opaque it is, `contactShadow(w, painted)` in
+  quarter steps), so the floor under their feet comes out no darker than under the player (on a mid-tone floor: before
+  the fix down to 35-47 of 255 where painted and contact met, now 85 at the darkest, the player 100). The player
+  (nothing painted) keeps the full strength that was approved.
+- **Floor changes**: up the church tower's stairs, floors 8 to 11: the contact shadow under the feet on each floor
+  (it belongs to the figure, drawn on its floor, nothing kept per floor).
+- **The editor test** expected the start floor one up (the old temple mount): it now asks for the start's own floor,
+  wherever it stands. 11 of 11 pass; nothing in the game changed for it.

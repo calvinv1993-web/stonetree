@@ -1193,7 +1193,7 @@ const Render = {
           // stands up off it). Code-drawn creatures draw their own.
           const feet = o.slant && o.img.feet;
           if (feet && !Render.skip('contact')) {
-            const sh = Sprites.contactShadow(feet.w), fx = px + feet.x, fy = py + feet.y - 0.5;
+            const sh = Sprites.contactShadow(feet.w, feet.painted), fx = px + feet.x, fy = py + feet.y - 0.5;
             g.drawImage(sh, fx - sh.cw / 2, fy - sh.ch / 2, sh.cw, sh.ch);
           }
           if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant

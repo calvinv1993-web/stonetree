@@ -7602,7 +7602,20 @@ const Sprites = (() => {
     if (base < 0) return null;
     let x0 = w, x1 = -1;
     for (let y = Math.max(0, base - 3 * R); y <= base; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; }
-    return { x: (x0 + x1 + 1) / 2 / R, y: (base + 1) / R, w: Math.max(4, (x1 - x0 + 1) / R) };
+    // (and how dark a shadow painted into its sheet already makes the floor under the feet: the most opaque pixel just
+    // below them, where the figure isn't; its contact shadow is made that much lighter, so together they come out as
+    // dark as a contact shadow alone, never darker: see contactShadow)
+    let painted = 0;
+    for (let y = base + 1; y < Math.min(h, base + 3 * R); y++) for (let x = x0; x <= x1; x++) painted = Math.max(painted, d[(y * w + x) * 4 + 3] / 255);
+    return { x: (x0 + x1 + 1) / 2 / R, y: (base + 1) / R, w: Math.max(4, (x1 - x0 + 1) / R), painted: painted < 0.18 ? 0 : painted }; // (under 0.18: the soft edge of the feet themselves, not a shadow)
+  }
+  // A figure's feet kept steady as it walks or strikes (its contact shadow must not jump or swell from step to step):
+  // across its feet's middle at its stand's x (the feet point all of its pictures share), on the ground line and as wide
+  // as its standing picture of the same direction says (stand: that picture; none: this is it)
+  function steadyFeet(c, R, x, stand) {
+    if (stand && stand.feet) return { ...stand.feet, x };
+    const f = feetOf(c, R);
+    return f && { ...f, x };
   }
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {
@@ -7629,7 +7642,7 @@ const Sprites = (() => {
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
       g.filter = 'none';
       g.setTransform(1, 0, 0, 1, 0, 0);
-      g.canvas.feet = feetOf(g.canvas, R);
+      g.canvas.feet = steadyFeet(g.canvas, R, fx, frame ? npcFromSheet(id, dir, 0) : null);
     }, 2 * TILE * R);
   }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
@@ -7680,7 +7693,8 @@ const Sprites = (() => {
       if (dir === 3) { g.translate(2 * fx * R, 0); g.scale(-1, 1); } // (facing west: the side row turned round its feet)
       g.drawImage(cell, ox, oy, CW * R, CH * R);
       g.setTransform(1, 0, 0, 1, 0, 0);
-      g.canvas.feet = { x: fx, y: fy, w: 11 }; // (its feet where the walking figure's are: the weapon swinging out isn't on the ground)
+      const stand = playerFromSheet(key, dir, 0).feet; // (its feet where the standing figure's are: the weapon swinging out isn't on the ground)
+      g.canvas.feet = stand ? { ...stand, x: fx } : { x: fx, y: fy, w: 12 };
     }, 4 * TILE * R, 2 * TILE * R);
     c.rx = TILE;
     return c;
@@ -7700,7 +7714,7 @@ const Sprites = (() => {
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
       else g.drawImage(cell, ox, oy, CW * R, CH * R);
-      g.canvas.feet = feetOf(g.canvas, R);
+      g.canvas.feet = steadyFeet(g.canvas, R, TILE + 16, col ? playerFromSheet(key, dir, 0) : null);
     }, 2 * TILE * R);
   }
 
@@ -9187,19 +9201,23 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       }, TILE * 2);
     },
-    // A figure's contact shadow, w world pixels across its feet (whole pixels: one picture per width, kept, at most 48):
+    // A figure's contact shadow, w world pixels across its feet (whole pixels: one picture per width and strength, kept, at most 225):
     // a flat oval on the ground, darkest in a tight core right where the feet stand and fading out softly, a little
     // longer towards the south-east, away from the light. Drawn under a figure each frame, one picture (Render: the
     // creatures in world), made once with gradients, no filter.
-    contactShadow(w) {
+    // (painted: how opaque a shadow painted into the figure's sheet already is under its feet, 0 to 1; this one is made
+    // lighter by as much, so the two together come out as dark as this one alone, never darker: the floor isn't darkened
+    // twice. In quarter steps, so at most 5 pictures a width.)
+    contactShadow(w, painted = 0) {
+      const CORE = 0.5, k = Math.round(4 * Math.max(0, Math.min(1, (1 - (1 - CORE) / Math.max(0.01, 1 - Math.min(0.99, painted || 0))) / CORE))) / 4;
       const W = Math.max(4, Math.min(48, Math.round(w))), R = 2, rx = W * 0.62 + 2, ry = Math.max(2.2, W * 0.2), pad = 3;
       const cw = Math.ceil((rx + pad) * 2 + 2), ch = Math.ceil((ry + pad) * 2 + 2);
-      const c = cached(`contact:${W}`, g => {
+      const c = cached(`contact:${W}:${k}`, g => {
         g.canvas.res = R; g.scale(R, R);
         const oval = (cx, cy, sx, sy, stops) => {
           g.save(); g.translate(cx, cy); g.scale(sx / sy, 1);
           const gr = g.createRadialGradient(0, 0, 0, 0, 0, sy);
-          for (const [at, a] of stops) gr.addColorStop(at, `rgba(22,15,9,${a})`);
+          for (const [at, a] of stops) gr.addColorStop(at, `rgba(22,15,9,${a * k})`);
           g.fillStyle = gr; g.beginPath(); g.arc(0, 0, sy, 0, Math.PI * 2); g.fill(); g.restore();
         };
         oval(cw / 2 + 0.9, ch / 2 + 0.5, rx + 0.8, ry + 0.8, [[0, 0.42], [0.55, 0.24], [1, 0]]);  // (the soft spread, a little towards the south-east)

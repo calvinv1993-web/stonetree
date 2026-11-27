@@ -66,10 +66,12 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
   await page.goto(URL_);
   await page.waitForTimeout(1500);
   START = await page.evaluate(() => createDefaultMap().start);
+  // the status line's name for a floor: 'Floor 8 (surface)', 'Floor 9 (+1)', 'Floor 7 (-1)'
+  const floorLabel = z => new RegExp(`Floor ${z} \\(${z === 8 ? 'surface' : (z > 8 ? '\\+' : '-') + Math.abs(z - 8)}\\)`);
 
-  await test('the editor opens on the built-in world, on the start floor (the temple, one up), and shows it', async () => {
+  await test('the editor opens on the built-in world, on the start floor (the temple\'s, wherever it stands), and shows it', async () => {
     const s = await status(page);
-    assert.match(s, /Floor 9 \(\+1\)/);
+    assert.match(s, floorLabel(START.z));
     assert.match(s, /256×256, 16 floors/);
     assert.ok((await canvasLook(page)).colours > 8, 'the canvas looks blank');
     await shoot(page, 'editor-surface.png');
@@ -95,7 +97,7 @@ const shoot = async (page, name) => { if (shots) await page.screenshot({ path: p
     assert.ok((await canvasLook(page)).colours > 8);
     await shoot(page, 'editor-peaks.png');
     await page.selectOption('#goTo', { label: 'Oakvale' });
-    assert.match(await status(page), /Floor 9 \(\+1\)/);
+    assert.match(await status(page), floorLabel(START.z)); // (back to the town, on its start floor)
   });
 
   await test('the mouse wheel zooms in and out', async () => {
