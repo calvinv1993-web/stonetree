@@ -59,9 +59,12 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
     const tryDraw = (what, f) => { try { f(); } catch (e) { errors.push(`${what}: ${e.message}`); } };
     for (const id of Object.keys(THINGS)) for (const shape of ['0000', '1000', '0100', '1100', '1111', '0110', '1001']) tryDraw(`thing ${id} ${shape}`, () => Sprites.thing(id, 0, 0, 0, shape));
     // and none comes out blank (a thing drawn in the wrong frame shows nothing at all: the powder kegs once did); the tops
-    // of steps and ramps, and a fountain's rim (drawn by the fountain), are meant to be bare
+    // of steps and ramps, and a fountain's rim (drawn by the fountain), are meant to be bare; so are the great gable's
+    // outer slices two floors up (the gable is steep: nothing of it reaches that high at its corners), and the stained
+    // glass's light on the floor, which is in no place in the world any more (taken out of the cathedral)
+    const BARE = ['ramp_top', 'steps_top', 'fountain_rim', 'west_front_0_2', 'west_front_4_2', 'stained_light_0', 'stained_light_1', 'stained_light_2'];
     for (const id of Object.keys(THINGS)) {
-      if (['ramp_top', 'steps_top', 'fountain_rim'].includes(id)) continue;
+      if (BARE.includes(id)) continue;
       tryDraw(`thing ${id} blank`, () => {
         const c = Sprites.thing(id, 0, 0, 0, '0000');
         if (!c || !c.getContext) return;
@@ -100,7 +103,8 @@ const WORDS = ['hi', 'quest', 'yes', 'no', 'trade', 'bye', 'destiny', 'mission',
   }
   await page.fill('#createName', 'Soak');
   await page.click('#createStart');
-  await page.click('#outfitDone');
+  // (the outfit window comes after the story now, for a new character; this test's character goes straight in)
+  await page.click('#outfitDone', { timeout: 3000 }).catch(() => {});
   await page.waitForFunction(() => Preload.ready, null, { timeout: 30000 }); // (the loading screen gone: the world ready)
   await page.evaluate(() => { window.__slowest = 0; }); // (frames behind the loading screen don't count: that's what it's for)
 

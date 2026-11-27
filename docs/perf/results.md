@@ -243,13 +243,8 @@ Brightness stays where it was (no general dark filter); the shadows cool down ev
 Screenshots (`phase3/`, before left, after right): temple, square, woods, sewer, the high street at night and at
 dusk, on a computer and on a phone at quality low (`*-phone-low.jpg`).
 
-**Sprites to adjust later, on their own** (not graded here, as figures and things keep their colour):
-
-- grass tufts, ferns, bushes and the round tree crowns: as saturated as the grass was (the woods' 0.72 is mostly them)
-- the temple's white walls and marble: close to pure white in daylight, they flatten at noon
-- the red rugs and the altar cloth: the most saturated red in town
-- flower boxes and market awnings: fine in town, loud next to the graded ground
-- the sewer's slime green: the one warm-green thing underground
+**Sprites to repaint later, on their own**: the list, with each picture's numbers and what to aim for, is kept in
+[../sprites-to-repaint.md](../sprites-to-repaint.md).
 
 Measured at **quality low** (the baseline that counts; `tests/bench.js --quality low`, new),
 headless as an iPhone,

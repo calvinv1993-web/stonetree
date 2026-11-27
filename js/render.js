@@ -5,6 +5,9 @@
 
 // Trees and grass that sway in the wind.
 const SWAYING = new Set(['tree', 'pine', 'palm', 'snow_pine', 'jungle_tree', 'dead_tree', 'ancient_tree', 'tallgrass', 'reeds', 'fern', 'flowers', 'bush']);
+// What grows (its pictures take the ground's colour grading too, once: see Render.gradeOnce), so trees, bushes and
+// grass keep the same relation to the grass they stand in as before the grading
+const GROWING = new Set([...SWAYING, 'cactus', 'crops', 'mushrooms', 'stump', 'log', 'dry_bush', 'lilypad', 'leaves', 'grass_tuft']);
 const LIQUID = new Set(['water', 'sewer_water', 'lava']); // grounds a wall can stand in
 const EDGE_NEIGHBOURS = [[1, 0, -1], [2, 1, 0], [4, 0, 1], [8, -1, 0], [16, 1, -1], [32, 1, 1], [64, -1, 1], [128, -1, -1]]; // see Sprites.edge
 const EAVE_NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]; // n e s w ne se sw nw (see Sprites.roofEave)
@@ -146,24 +149,45 @@ const Render = {
   // warmer (a warm white in 'darken': only the blue of what's brighter is held back). Where the chunk has no ground (an
   // upper floor's holes) it stays clear. Each kind of place adds its own mood on top (Fx: MOOD).
   GRADE: { desat: 0.12, shadow: 'rgb(24,30,46)', shadowA: 0.45, light: 'rgb(255,248,234)', lightA: 0.4 },
-  gradeFills(g, x, y, w, h) {
+  gradeFills(g, x, y, w, h, k = 1) { // (k: how much of it; a plant takes half, see gradeOnce)
     const G = Render.GRADE;
-    g.globalCompositeOperation = 'saturation'; g.globalAlpha = G.desat; g.fillStyle = '#808080'; g.fillRect(x, y, w, h);
-    g.globalCompositeOperation = 'lighten'; g.globalAlpha = G.shadowA; g.fillStyle = G.shadow; g.fillRect(x, y, w, h);
-    g.globalCompositeOperation = 'darken'; g.globalAlpha = G.lightA; g.fillStyle = G.light; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'saturation'; g.globalAlpha = G.desat * k; g.fillStyle = '#808080'; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'lighten'; g.globalAlpha = G.shadowA * k; g.fillStyle = G.shadow; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'darken'; g.globalAlpha = G.lightA * k; g.fillStyle = G.light; g.fillRect(x, y, w, h);
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
   },
-  gradeChunk(cv) {
+  gradeChunk(cv, much = 1) {
     const w = cv.width, h = cv.height, keep = Render.gradeKeep || (Render.gradeKeep = document.createElement('canvas'));
     if (keep.width < w || keep.height < h) { keep.width = Math.max(keep.width, w); keep.height = Math.max(keep.height, h); }
     const k = keep.getContext('2d'), g = cv.getContext('2d');
     k.clearRect(0, 0, w, h); k.drawImage(cv, 0, 0); // (its shape, to cut the grading back to it)
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-    Render.gradeFills(g, 0, 0, w, h);
+    Render.gradeFills(g, 0, 0, w, h, much);
     g.globalCompositeOperation = 'destination-in'; g.drawImage(keep, 0, 0, w, h, 0, 0, w, h);
     g.restore();
   },
   gradeRect(g, x, y, w, h) { g.save(); Render.gradeFills(g, x, y, w, h); g.restore(); },
+  // A picture of what grows graded as the ground is, at half strength (its leaves are darker than the grass, and the
+  // cooler shade lifts dark greens most: at full strength a tree came out duller than the grass round it), once, in place (a kept picture of a plant is drawn only over the
+  // ground, never into it: the ground's chunks are graded on their own, so nothing is graded twice); and a graded copy
+  // of a picture also drawn into the ground (the grass's blades: in the chunks round a mountain top's rim, and over
+  // things' feet each frame), kept beside it.
+  graded: new WeakSet(),
+  gradeOnce(img) {
+    if (!img || !img.getContext || Render.graded.has(img)) return img;
+    Render.graded.add(img); Render.gradeChunk(img, 0.5);
+    return img;
+  },
+  gradedCopies: new WeakMap(),
+  gradedCopy(img) {
+    let c = Render.gradedCopies.get(img);
+    if (!c) {
+      c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      c.getContext('2d').drawImage(img, 0, 0); Render.gradeChunk(c);
+      Render.gradedCopies.set(img, c);
+    }
+    return c;
+  },
   // ---- the ground, kept in chunks --------------------------------------------------------------------------------
   // The ground of a floor (its textures, shores, borders, lips and rugs) doesn't change from frame to frame, but
   // drawing it is hundreds of pictures a frame. So it's drawn once per chunk of CHUNK x CHUNK tiles, into a picture
@@ -1077,7 +1101,8 @@ const Render = {
         STANDING.set(n, { sig, val });
         return val;
       };
-      const fringe = !Render.skip('fringe') && Sprites.grassFringe && Sprites.grassFringe(); // (the blades over things' feet: drawn each frame)
+      let fringe = !Render.skip('fringe') && Sprites.grassFringe && Sprites.grassFringe(); // (the blades over things' feet: drawn each frame)
+      if (fringe && !Render.skip('grade')) fringe = { ...fringe, img: Render.gradedCopy(fringe.img) }; // (graded as the grass under it)
       // Stairs are pictures wider than their tile: a wall beside them that is drawn after them (east, or south-west) would cut a
       // piece out, so they wait until that wall is drawn (late, by the wall's tile)
       const late = new Map();
@@ -1182,6 +1207,7 @@ const Render = {
               shape = fenceAt(x - 1, y) + fenceAt(x, y - 1) + fenceAt(x, y + 1) + fenceAt(x + 1, y);
             }
             const img = Sprites.thing(id, x, y, v.time, shape, material), iw = Sprites.w(img), ih = Sprites.h(img), lift = iw - TILE, rise = ih - TILE; // tall things rise up-left
+            if (GROWING.has(id) && !Render.skip('grade')) Render.gradeOnce(img); // (a plant graded as the ground it grows in)
             if (id === 'stairs_up' || id === 'stairs_down') {
               const wait = isWall(x - 1, y + 1) ? (y + 1) * map.width + x - 1 : isWall(x + 1, y) ? y * map.width + x + 1 : -1;
               const draw = (dx, dy) => { g.imageSmoothingEnabled = img.res > 1; g.drawImage(img, dx, dy, iw, ih); g.imageSmoothingEnabled = false; };
