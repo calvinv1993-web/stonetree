@@ -432,6 +432,7 @@ function renderMenu() {
     })),
     row(['60 frames a second', h('small', {}, FRAME_INTERVAL < 20 ? 'On: the smoothest' : 'Off: 30, a cooler phone and a longer battery')], toggle(FRAME_INTERVAL < 20), () => { setFrameRate(FRAME_INTERVAL < 20 ? 30 : 60); const b = $('fpsBtn'); if (b) b.textContent = `${Math.round(1000 / FRAME_INTERVAL)} fps`; renderMenu(); }),
     row(['Speed meter', h('small', {}, speedMeter.on ? 'On: frames a second and stalls, top left' : 'Off: for finding out where the game stalls')], toggle(speedMeter.on), () => { setSpeedMeter(!speedMeter.on); renderMenu(); }),
+    ...(!Net.online ? [row(['Performance test', h('small', {}, 'Two minutes on a fixed route, to measure and compare')], h('span', {}, '›'), () => Bench.ask())] : []), // (bench.js: playing alone only)
     row('Chat', h('span', {}, '›'), () => { closeSheet(); setChat(true, true); }),
     h('div', { className: 'menu-head' }, 'Auto-heal'),
     h('div', { className: 'menu-sub' }, h('span', {}, 'Drink a potion by itself ', h('small', {}, 'below this much health or mana, from your backpack'))),
