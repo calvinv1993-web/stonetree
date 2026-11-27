@@ -8,7 +8,7 @@ The rendering plan, in order (agreed with the owner):
 | phase | what | state |
 |---|---|---|
 | 0 | baseline measurement (this file) | done: computer and iPhone (quality low) |
-| 1 | baked ambient occlusion in the ground chunks | waiting for approval |
+| 1 | baked ambient occlusion in the ground chunks | done on the branch; iPhone runs to add |
 | 2 | contact shadows (figures, things on the ground) | - |
 | 3 | colour grading | - |
 | 4 | optimising the existing light engine | - |
@@ -96,3 +96,25 @@ stays at sharpness 2 whatever the quality says. So the quality setting no longer
 parts left out (sky, weather, ripples, grass blades).
 
 A true quality-high baseline needs `sharpDrop` back at 0 first (a change, not made yet).
+
+## Phase 1: baked ambient occlusion (2026-11-27)
+
+What: indoors (a floor above the tile), the floor darkens softly where it meets a building's walls, deepest in the
+corners: the light from the north-west, so a north or west wall shades more than a south or east one; shades combine
+by multiplying, never adding, so a corner never goes black (at most 50 %). `Sprites.ambientShadow(mask)` is one
+picture per mask of the 8 walls round a tile (64 x 64, made once), drawn into the ground chunks with the cast shadows
+(render.js, the ground's pass): nothing a frame. The masks themselves are worked out 8 x 8 tiles at a time as first
+needed and kept per floor (`Render.aoMask`), so ground drawn live (moving water) only looks them up, and a changed tile
+(map.dirty) updates only the masks round it. Thin walls only: rock and brickwork keep their own cast shadow (no double
+shadows). Each tile looks only at its own neighbours and is drawn on its own tile: no seam at chunk edges. On every
+quality, low included (`Render.skip('ao')` is only for the speed meter's test).
+
+Screenshots, the same spots, hour and settings before and after: `phase1/` (temple, temple wall close up, temple on a
+phone at quality low, academy, inn).
+
+Computer (headless as an iPhone, sharpness 4), three runs each, before (`phase1-before-*`) and after (`phase1-*`) on
+the same machine the same hour: nothing worse past the limits. Work p50 2.1 -> 2.2 ms, work p95 21.5 -> 23 ms (noise
+range), chunk time 473 -> 417 ms, pictures 451.6 -> 451.9 MB (the masks: one 64 x 64 picture each, about 30 in use,
+0.5 MB; the per-floor mask arrays 64 KB a floor).
+
+iPhone at quality low: to add (three runs after it's live, compared with the ui530 baseline).

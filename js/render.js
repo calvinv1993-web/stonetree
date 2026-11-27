@@ -78,6 +78,14 @@ function floorReach(map, z) {
   }
   return map.reach.most[z] || 0;
 }
+// The ambient occlusion mask of one tile (see Render.aoMask): the thin walls round it, 0 if none or not indoors
+const aoWall = (map, x, y, z) => { const t = map.get(x, y, z); if (!t || !t.items.length) return 0; for (const id of t.items) { const d = THINGS[id]; if (d && d.wall === 'thin' && !d.roof) return 1; } return 0; };
+function aoMaskAt(map, x, y, z) {
+  const t = map.get(x, y, z), over = map.floors[z + 1];
+  if (!t || !t.ground || !over || !over[y * map.width + x] || THINGS[t.ground].roof || THINGS[t.ground].block || aoWall(map, x, y, z)) return 0;
+  const w = (dx, dy) => aoWall(map, x + dx, y + dy, z);
+  return w(0, -1) | (w(-1, 0) << 1) | (w(0, 1) << 2) | (w(1, 0) << 3) | (w(-1, -1) << 4) | (w(1, -1) << 5) | (w(-1, 1) << 6) | (w(1, 1) << 7);
+}
 // The raised roof over tile (x, y, z), if any
 const raisedAt = (map, x, y, z) => (x < 0 || y < 0 || x >= map.width || y >= map.height ? null : raisedRoofs(map).tiles.get((z * map.height + y) * map.width + x) || null);
 
@@ -100,6 +108,39 @@ const Render = {
     draw();
     g.restore();
   },
+  // The ambient occlusion indoors (see the ground's pass): for tile (x, y) of floor z, which walls round it shade it (a
+  // mask for Sprites.ambientShadow, 0 for none). Indoors: a floor above the tile. Only thin walls, a building's (a block
+  // of rock or brickwork casts its own shadow, and two would darken twice). Worked out once per floor and version of
+  // the map, so no frame works it out again.
+  // (worked out a block of 8 x 8 tiles at a time, as they're first needed: never the whole floor in one frame)
+  aoMask(map, x, y, z) {
+    if (x < 0 || y < 0 || x >= map.width || y >= map.height) return 0;
+    const keep = map.aoMasks || (map.aoMasks = {});
+    let k = keep[z];
+    if (!k || k.version !== map.version) {
+      if (!map.floors[z] || !map.floors[z + 1]) { keep[z] = { version: map.version, masks: null }; return 0; }
+      k = keep[z] = { version: map.version, masks: new Uint8Array(map.width * map.height), done: new Uint8Array(Math.ceil(map.width / 8) * Math.ceil(map.height / 8)) };
+    }
+    if (!k.masks) return 0;
+    const cols = Math.ceil(map.width / 8), b = (y >> 3) * cols + (x >> 3);
+    if (!k.done[b]) {
+      k.done[b] = 1;
+      const bx = (x >> 3) << 3, by = (y >> 3) << 3;
+      for (let ty = by; ty < Math.min(by + 8, map.height); ty++) for (let tx = bx; tx < Math.min(bx + 8, map.width); tx++) k.masks[ty * map.width + tx] = aoMaskAt(map, tx, ty, z);
+    }
+    return k.masks[y * map.width + x];
+  },
+  // A tile changed (its things: a door, a wall): the masks round it worked out again (see ground: map.dirty)
+  aoChanged(map, x, y, z) {
+    for (const dz of [z, z - 1]) { // (a floor above a tile makes it indoors: the floor below too)
+      const k = map.aoMasks && map.aoMasks[dz];
+      if (!k || !k.masks) continue;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const tx = x + dx, ty = y + dy;
+        if (tx >= 0 && ty >= 0 && tx < map.width && ty < map.height && k.done[(ty >> 3) * Math.ceil(map.width / 8) + (tx >> 3)]) k.masks[ty * map.width + tx] = aoMaskAt(map, tx, ty, dz);
+      }
+    }
+  },
   // ---- the ground, kept in chunks --------------------------------------------------------------------------------
   // The ground of a floor (its textures, shores, borders, lips and rugs) doesn't change from frame to frame, but
   // drawing it is hundreds of pictures a frame. So it's drawn once per chunk of CHUNK x CHUNK tiles, into a picture
@@ -119,7 +160,7 @@ const Render = {
   spare: [], // pictures of chunks let go of, to use again
   off: new Set(), // parts left out, to measure what they cost on a phone (the speed meter's test: see game.js)
   quality: new Set(), // parts left out by the quality chosen (Menu, Game: see setQuality in game.js)
-  skip: part => Render.off.has(part) || Render.quality.has(part),
+  skip: part => Render.off.has(part) || Render.quality.has(part), // (parts: floors, sky, water, wind, fx, names, fringe, ao)
   noLive: false, // (the ground not drawn live while it's being made behind the loading screen: see Preload in game.js)
   stats: { live: 0, finished: 0, chunksMade: 0, chunkMs: 0, chunkMaxMs: 0 }, // (how often a chunk in view wasn't ready, and how many chunks were made and the time it took: for measuring, see bench.js)
   later: new Map(), // chunks in view that weren't made in their frame
@@ -137,8 +178,8 @@ const Render = {
     const C = Render.CHUNK, R = Render.CHUNK_RES, keep = Render.chunks;
     if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; }
     if (map.dirty && map.dirty.length) { // forget the chunks round what changed
-      if (map.dirty.length > 400) for (const k of [...keep.keys()]) Render.forget(k);
-      else for (const [x, y, dz] of map.dirty) for (const [dx, dy] of NEAR_CORNERS) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`);
+      if (map.dirty.length > 400) { map.aoMasks = null; for (const k of [...keep.keys()]) Render.forget(k); }
+      else for (const [x, y, dz] of map.dirty) { Render.aoChanged(map, x, y, dz); for (const [dx, dy] of NEAR_CORNERS) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`); }
       map.dirty.length = 0;
     }
     const snow = v.roofSnow > 0.05 ? Math.min(5, Math.ceil(v.roofSnow * 5)) : 0, MOVING = ['lava', 'sewer_water'];
@@ -741,6 +782,16 @@ const Render = {
           if (!t || !t.ground || casts(x, y) || THINGS[t.ground].roof) continue;
           const mask = (casts(x, y - 1) ? 1 : 0) | (casts(x - 1, y) ? 2 : 0) | (casts(x - 1, y - 1) ? 4 : 0);
           if (mask) g.drawImage(Sprites.castShadow(mask), ox + x * TILE, oy + y * TILE);
+        }
+        // Indoors (a floor or a roof over the tile), the ambient shade where the floor meets the walls round it, deepest
+        // in the corners (Sprites.ambientShadow): kept with the ground in its chunks like the shadows above. Each tile looks
+        // only at its own neighbours and is drawn on its own tile, so it runs on across chunks without a seam. (Outdoors
+        // the walls' own shadows do this.)
+        // (its masks worked out once per floor and version of the map, Render.aoMask: ground drawn live every frame,
+        // moving water, only looks them up)
+        if (!Render.skip('ao') && map.floors[z + 1]) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const mask = Render.aoMask(map, x, y, z);
+          if (mask) g.drawImage(Sprites.ambientShadow(mask), ox + x * TILE, oy + y * TILE, TILE, TILE);
         }
 
         // Trees' crowns cast a soft round shadow on the ground beside their trunk, down and to the right (the light from the

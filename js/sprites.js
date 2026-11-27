@@ -4681,6 +4681,7 @@ const Sprites = (() => {
   // How many pixels a world pixel a ground's own PNG has, for an atlas `tiles` tiles across (1 for none, or a coarse one).
   const ownRes = (id, tiles) => { const im = customImage(id); return im ? Math.max(1, Math.floor(im.naturalWidth / (tiles * TILE))) : 1; };
   const SHADOW_LEN = 18, SHADOW_DARK = 0.42; // how far cast shadows reach (world pixels) and how dark they are at their darkest
+  const AO_LEN = 14, AO_NEAR = 0.45, AO_FAR = 0.22, AO_MOST = 0.5; // ambient occlusion indoors: how far it reaches (world pixels), how dark by a north or west wall, by a south or east one, and at most
   const DROPS_SHADOW = new Set(['tree', 'pine', 'bush', 'lamppost', 'lamppost_off', 'stall', 'well', 'bench', 'signpost', 'noticeboard', 'gravestone', 'apple_crate', 'planter', 'woodpile', 'haystack', 'chest', 'anvil', 'bookshelf', 'sack', 'dummy', 'rock', 'fern', 'mushrooms', 'cannonballs', 'sarcophagus', 'dead_tree', 'rubble', 'driftwood', 'chair_east', 'chair_west', 'depot', 'pew', 'saint', 'statue', 'pillar', 'plant', 'altar', 'barrel', 'crate', 'table', 'chair', 'counter']); // (furniture and statues on a floor)
   const FILLS_TILE = new Set(['statue', 'saint', 'pillar', 'depot', 'altar', 'well', 'obelisk', 'sarcophagus', 'skull_pile', 'bone_crest']);
   const SEAMLESS = {
@@ -9138,6 +9139,37 @@ const Sprites = (() => {
         }
         g.putImageData(img, 0, 0);
       });
+    },
+    // Ambient occlusion on a floor indoors: the soft dark where it meets the walls round it, deepest in the corners
+    // (mask: the walls round the tile, 1 north, 2 west, 4 south, 8 east, 16 north-west, 32 north-east, 64 south-west,
+    // 128 south-east). Light from the north-west, as everywhere: the foot of a wall to the north or west shades more than
+    // one to the south or east; a corner where two walls meet comes out deeper by itself (their shades together), and a
+    // lone corner (a pillar's, a doorway's) adds a little round shade. Warm and soft, never a black line; made once per
+    // mask, kept with the ground in its chunks (render.js), so it costs nothing a frame.
+    ambientShadow(mask) {
+      return cached(`ao:${mask}`, g => {
+        const R = 2, N = TILE * R, img = g.createImageData(N, N), d = img.data, L = AO_LEN * R;
+        g.canvas.res = R;
+        const side = (dist, k) => (dist < L ? k * (1 - dist / L) ** 2 : 0);
+        const has = b => (mask & b) === b;
+        for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+          const x = px + 0.5, y = py + 0.5, shades = [];
+          if (has(1)) shades.push(side(y, AO_NEAR)); // (the walls the light comes past: north and west)
+          if (has(2)) shades.push(side(x, AO_NEAR));
+          if (has(4)) shades.push(side(N - y, AO_FAR)); // (the walls it falls on: south and east)
+          if (has(8)) shades.push(side(N - x, AO_FAR));
+          const corner = (b, cx, cy, sides, k) => { if (has(b) && !(mask & sides)) shades.push(side(Math.hypot(x - cx, y - cy), k)); };
+          corner(16, 0, 0, 1 | 2, AO_NEAR); corner(32, N, 0, 1 | 8, (AO_NEAR + AO_FAR) / 2);
+          corner(64, 0, N, 4 | 2, (AO_NEAR + AO_FAR) / 2); corner(128, N, N, 4 | 8, AO_FAR);
+          let lit = 1;
+          for (const s of shades) lit *= 1 - s; // (together, not added: two shades never go black)
+          const a = Math.min(AO_MOST, 1 - lit);
+          if (a <= 0.004) continue;
+          const i = (py * N + px) * 4;
+          d[i] = 38; d[i + 1] = 26; d[i + 2] = 16; d[i + 3] = 255 * a; // (a warm dark, as the cast shadows: darker, not greyer)
+        }
+        g.putImageData(img, 0, 0);
+      }, TILE * 2);
     },
     // The shadow a piece of furniture or a statue casts on the floor: the shape of its foot in a soft warm dark, drawn a
     // few pixels south-east of it, under it (only things that stand on the floor: see dropsShadow)
