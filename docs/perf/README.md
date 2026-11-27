@@ -71,4 +71,4 @@ On a shared machine one run's work can differ from the next by a quarter (three 
 
 ## Results
 
-[results.md](results.md) keeps the measurements after each phase. The JSON of every run is in `results/`.
+[results.md](results.md) keeps the measurements after each phase. The JSON of every run is in `results/`. [investigation-phase0.md](investigation-phase0.md): the three problems the baseline showed (sprite memory, 15 s loading screens, the tower top), measured.
