@@ -251,4 +251,21 @@ dusk, on a computer and on a phone at quality low (`*-phone-low.jpg`).
 - flower boxes and market awnings: fine in town, loud next to the graded ground
 - the sewer's slime green: the one warm-green thing underground
 
-PERF_PLACEHOLDER
+Measured at **quality low** (the baseline that counts; `tests/bench.js --quality low`, new),
+headless as an iPhone,
+three runs of phase 2 (`phase3-before-headless-low-*`, ui535) and three of phase 3 (`phase3-headless-low-*`):
+**nothing worse past the limits**.
+
+| | phase 2 | phase 3 |
+|---|---|---|
+| fps (whole route) | 41.4 | 41.1 |
+| work p50 / p95 | 2.1 / 7.4 ms | 2.1 / 8.1 ms |
+| walking, day / night fps | 59.2 / 59.5 | 59.1 / 59.7 |
+| stalls (whole route) | 2 | 4 |
+| ground chunks made | 481 ms | 490 ms |
+| pictures | 199.5 MB | 199.5 MB |
+
+The grading costs a little when a chunk is made (+2 %, about 0.1 ms a chunk) and nothing a frame; the 2 more stalls are
+within one run's spread (1 to 5 on either side). The per-frame version this replaced: fps 32 -> 26, stalls 138 -> 491.
+Against the iPhone's own baseline (ui530, low): to be measured on the phone once it's live; the headless numbers can't
+be compared with the phone's.

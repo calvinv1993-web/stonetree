@@ -1,0 +1,362 @@
+{
+ "version": 1,
+ "page": "ui535",
+ "at": "2026-11-27T13:08:34.232Z",
+ "id": "mwyzyzw8",
+ "device": {
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+  "standalone": false,
+  "dpr": 3,
+  "screen": "390x844",
+  "window": "390x844",
+  "canvas": "640x1024",
+  "view": "10x16",
+  "sharp": 2,
+  "sharpDrop": 0,
+  "sharpDropBefore": 0,
+  "quality": "low",
+  "fpsSetting": 60,
+  "cores": 4,
+  "deviceMemory": 16,
+  "chunksKept": 64
+ },
+ "summary": {
+  "fps": 44.8,
+  "workP50": 2.1,
+  "workP95": 7.4,
+  "stalls": 2,
+  "chunksMade": 68,
+  "chunkMs": 481.2,
+  "chunkMaxMs": 116.3,
+  "picturesMB": 199.5,
+  "startMB": 2.7
+ },
+ "legs": [
+  {
+   "name": "square-day",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30,
+   "frames": 180,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 33.4
+   },
+   "workMs": {
+    "p50": 1.7,
+    "p95": 6.8,
+    "p99": 9.8,
+    "max": 11.6
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 114,
+    "gaveUp": false,
+    "chunks": 1,
+    "chunkMs": 32.9
+   },
+   "chunks": {
+    "made": 13,
+    "ms": 113.2,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 68,
+    "chunkMB": 61.8,
+    "sprites": 1955,
+    "spriteMB": 118.8,
+    "viewMB": 2.7,
+    "picturesMB": 183.3,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "church-inside",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30.8,
+   "frames": 185,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.5,
+    "max": 33.5
+   },
+   "workMs": {
+    "p50": 1.9,
+    "p95": 3.1,
+    "p99": 8.8,
+    "max": 9.7
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 162,
+    "gaveUp": false,
+    "chunks": 2,
+    "chunkMs": 56.2
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 70,
+    "chunkMB": 63.8,
+    "sprites": 2028,
+    "spriteMB": 120.9,
+    "viewMB": 2.7,
+    "picturesMB": 187.3,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "tower-top",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 30,
+   "frames": 180,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 33.4
+   },
+   "workMs": {
+    "p50": 2.3,
+    "p95": 3.6,
+    "p99": 7.1,
+    "max": 9.6
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 249,
+    "gaveUp": false,
+    "chunks": 11,
+    "chunkMs": 41.9
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 74,
+    "chunkMB": 64.2,
+    "sprites": 2060,
+    "spriteMB": 124.1,
+    "viewMB": 2.7,
+    "picturesMB": 191,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "walk-street-day",
+   "hour": 12,
+   "seconds": 15.8,
+   "fps": 59.1,
+   "frames": 934,
+   "intervalMs": {
+    "p50": 16.7,
+    "p95": 16.7,
+    "p99": 33.3,
+    "max": 50.1
+   },
+   "workMs": {
+    "p50": 1.5,
+    "p95": 2.5,
+    "p99": 8.3,
+    "max": 13.2
+   },
+   "stalls": 2,
+   "arrival": {
+    "readyMs": 518,
+    "gaveUp": false,
+    "chunks": 7,
+    "chunkMs": 116.3
+   },
+   "chunks": {
+    "made": 7,
+    "ms": 10.4,
+    "live": 4
+   },
+   "memory": {
+    "chunks": 84,
+    "chunkMB": 63.8,
+    "sprites": 2094,
+    "spriteMB": 125.8,
+    "viewMB": 2.7,
+    "picturesMB": 192.2,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "outside-east",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 59.8,
+   "frames": 359,
+   "intervalMs": {
+    "p50": 16.7,
+    "p95": 16.8,
+    "p99": 16.8,
+    "max": 33.3
+   },
+   "workMs": {
+    "p50": 0.9,
+    "p95": 1.4,
+    "p99": 2.5,
+    "max": 2.8
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 238,
+    "gaveUp": false,
+    "chunks": 12,
+    "chunkMs": 92
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 89,
+    "chunkMB": 63.4,
+    "sprites": 2143,
+    "spriteMB": 127.1,
+    "viewMB": 2.7,
+    "picturesMB": 193.2,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "sewer",
+   "hour": 12,
+   "seconds": 6,
+   "fps": 59.5,
+   "frames": 357,
+   "intervalMs": {
+    "p50": 16.7,
+    "p95": 16.8,
+    "p99": 16.8,
+    "max": 33.3
+   },
+   "workMs": {
+    "p50": 4.4,
+    "p95": 7.4,
+    "p99": 11.9,
+    "max": 13.4
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 365,
+    "gaveUp": false,
+    "chunks": 15,
+    "chunkMs": 18.3
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 96,
+    "chunkMB": 63.2,
+    "sprites": 2282,
+    "spriteMB": 133.6,
+    "viewMB": 2.7,
+    "picturesMB": 199.5,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "square-night",
+   "hour": 23,
+   "seconds": 6,
+   "fps": 30,
+   "frames": 180,
+   "intervalMs": {
+    "p50": 33.3,
+    "p95": 33.4,
+    "p99": 33.4,
+    "max": 33.5
+   },
+   "workMs": {
+    "p50": 2.6,
+    "p95": 4,
+    "p99": 5.3,
+    "max": 10.3
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 100,
+    "gaveUp": false,
+    "chunks": 0,
+    "chunkMs": 0
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 96,
+    "chunkMB": 63.2,
+    "sprites": 2282,
+    "spriteMB": 133.6,
+    "viewMB": 2.7,
+    "picturesMB": 199.5,
+    "heapMB": 24.8
+   }
+  },
+  {
+   "name": "walk-street-night",
+   "hour": 23,
+   "seconds": 15.9,
+   "fps": 59.4,
+   "frames": 946,
+   "intervalMs": {
+    "p50": 16.7,
+    "p95": 16.8,
+    "p99": 33.2,
+    "max": 33.4
+   },
+   "workMs": {
+    "p50": 2.1,
+    "p95": 3.2,
+    "p99": 4.7,
+    "max": 13.1
+   },
+   "stalls": 0,
+   "arrival": {
+    "readyMs": 100,
+    "gaveUp": false,
+    "chunks": 0,
+    "chunkMs": 0
+   },
+   "chunks": {
+    "made": 0,
+    "ms": 0,
+    "live": 0
+   },
+   "memory": {
+    "chunks": 96,
+    "chunkMB": 63.2,
+    "sprites": 2282,
+    "spriteMB": 133.6,
+    "viewMB": 2.7,
+    "picturesMB": 199.5,
+    "heapMB": 24.8
+   }
+  }
+ ],
+ "runner": {
+  "tool": "tests/bench.js",
+  "cpuSlowdown": 1,
+  "emulated": "iPhone 390x844 @3x",
+  "headless": true
+ }
+}

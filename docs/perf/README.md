@@ -59,7 +59,7 @@ node tests/bench-compare.js <baseline runs...> -- <new runs...>
 ```
 
 `tests/bench.js` runs the same test in headless Chromium as an iPhone shows the game (390 x 844 points, 3 pixels a
-point, touch). Options: `--runs 3`, `--cpu 4` (the processor four times slower), `--desktop`. It has no graphics
+point, touch). Options: `--runs 3`, `--cpu 4` (the processor four times slower), `--desktop`, `--quality low` (the quality to play at; without it, high). It has no graphics
 card (software drawing), so its numbers are this computer's own: compare only runs made the same way, on the same
 machine. It's no substitute for the iPhone, but it catches more work per frame, more memory and slower chunks.
 
