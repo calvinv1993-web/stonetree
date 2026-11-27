@@ -102,7 +102,13 @@ class GameMap {
   }
   addItem(x, y, z, id) {
     const t = this.ensure(x, y, z);
-    if (t && t.items[t.items.length - 1] !== id) t.items.push(id);
+    if (t && t.items[t.items.length - 1] !== id) { t.items.push(id); this.changed(x, y, z); }
+  }
+  // A tile's things changed in place (an editor's brush or eraser): the renderer's kept ground and shades round it
+  // are made again (see Render.ground)
+  changed(x, y, z) {
+    this.version = GameMap.edits = GameMap.edits + 1;
+    if (this.dirty) this.dirty.push([x, y, z]);
   }
 
   isWalkable(x, y, z) {

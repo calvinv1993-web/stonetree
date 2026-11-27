@@ -110,18 +110,16 @@ const Render = {
   },
   // The ambient occlusion indoors (see the ground's pass): for tile (x, y) of floor z, which walls round it shade it (a
   // mask for Sprites.ambientShadow, 0 for none). Indoors: a floor above the tile. Only thin walls, a building's (a block
-  // of rock or brickwork casts its own shadow, and two would darken twice). Worked out once per floor and version of
-  // the map, so no frame works it out again.
+  // of rock or brickwork casts its own shadow, and two would darken twice). Worked out once and kept, so no frame works
+  // it out again.
   // (worked out a block of 8 x 8 tiles at a time, as they're first needed: never the whole floor in one frame)
   aoMask(map, x, y, z) {
     if (x < 0 || y < 0 || x >= map.width || y >= map.height) return 0;
+    // (kept with the map: a tile changed is put right through map.dirty, aoChanged below, so nothing else ever throws
+    // them away; at most one byte a tile per floor seen, 64 KB a floor, and one bit-block per 8 x 8 tiles)
     const keep = map.aoMasks || (map.aoMasks = {});
     let k = keep[z];
-    if (!k || k.version !== map.version) {
-      if (!map.floors[z] || !map.floors[z + 1]) { keep[z] = { version: map.version, masks: null }; return 0; }
-      k = keep[z] = { version: map.version, masks: new Uint8Array(map.width * map.height), done: new Uint8Array(Math.ceil(map.width / 8) * Math.ceil(map.height / 8)) };
-    }
-    if (!k.masks) return 0;
+    if (!k) k = keep[z] = { masks: new Uint8Array(map.width * map.height), done: new Uint8Array(Math.ceil(map.width / 8) * Math.ceil(map.height / 8)) };
     const cols = Math.ceil(map.width / 8), b = (y >> 3) * cols + (x >> 3);
     if (!k.done[b]) {
       k.done[b] = 1;
@@ -134,7 +132,7 @@ const Render = {
   aoChanged(map, x, y, z) {
     for (const dz of [z, z - 1]) { // (a floor above a tile makes it indoors: the floor below too)
       const k = map.aoMasks && map.aoMasks[dz];
-      if (!k || !k.masks) continue;
+      if (!k) continue;
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         const tx = x + dx, ty = y + dy;
         if (tx >= 0 && ty >= 0 && tx < map.width && ty < map.height && k.done[(ty >> 3) * Math.ceil(map.width / 8) + (tx >> 3)]) k.masks[ty * map.width + tx] = aoMaskAt(map, tx, ty, dz);
@@ -176,7 +174,7 @@ const Render = {
   },
   ground(g, map, z, v, ox, oy, gx0, gx1, gy0, gy1, x0, x1, y0, y1, shoreFrame, pass, beyond, prepare) {
     const C = Render.CHUNK, R = Render.CHUNK_RES, keep = Render.chunks;
-    if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; }
+    if (keep.map !== map) { for (const k of [...keep.keys()]) Render.forget(k); keep.map = map; map.dirty = []; map.aoMasks = null; }
     if (map.dirty && map.dirty.length) { // forget the chunks round what changed
       if (map.dirty.length > 400) { map.aoMasks = null; for (const k of [...keep.keys()]) Render.forget(k); }
       else for (const [x, y, dz] of map.dirty) { Render.aoChanged(map, x, y, dz); for (const [dx, dy] of NEAR_CORNERS) Render.forget(`${dz}:${Math.floor((x + dx) / C)}:${Math.floor((y + dy) / C)}`); }
@@ -787,9 +785,9 @@ const Render = {
         // in the corners (Sprites.ambientShadow): kept with the ground in its chunks like the shadows above. Each tile looks
         // only at its own neighbours and is drawn on its own tile, so it runs on across chunks without a seam. (Outdoors
         // the walls' own shadows do this.)
-        // (its masks worked out once per floor and version of the map, Render.aoMask: ground drawn live every frame,
-        // moving water, only looks them up)
-        if (!Render.skip('ao') && map.floors[z + 1]) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        // (its masks worked out once and kept, Render.aoMask: ground drawn live every frame, moving water, only looks
+        // them up)
+        if (!Render.skip('ao') && z + 1 < map.depth) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
           const mask = Render.aoMask(map, x, y, z);
           if (mask) g.drawImage(Sprites.ambientShadow(mask), ox + x * TILE, oy + y * TILE, TILE, TILE);
         }

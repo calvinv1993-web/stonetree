@@ -312,7 +312,7 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', fitE
     const t = map.get(x, y, z);
     if (!t) return;
     touch(x, y, z);
-    if (t.items.length) t.items.pop();
+    if (t.items.length) { t.items.pop(); map.changed(x, y, z); }
     else map.set(x, y, z, null);
     if (!(map.get(x, y, z) || { items: [] }).items.some(id => THINGS[id].meta)) map.setMeta(x, y, z, null);
   }

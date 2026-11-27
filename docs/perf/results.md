@@ -118,3 +118,14 @@ range), chunk time 473 -> 417 ms, pictures 451.6 -> 451.9 MB (the masks: one 64 
 0.5 MB; the per-floor mask arrays 64 KB a floor).
 
 iPhone at quality low: to add (three runs after it's live, compared with the ui530 baseline).
+
+### Phase 1 checked before the iPhone runs (ui534)
+
+- **The map editor**: a wall painted or erased with its brush now shades and unshades the floor beside it at once
+  (measured in the real editor: the floor east of a painted wall 214.5 -> 186 brightness, erased back to 214.5; ui533
+  stayed at 214.5, and so did its cast shadows). The editor's brush (`map.addItem`) and eraser changed a tile's things
+  without telling the renderer; both now call `map.changed`, which marks the tile for the kept ground and its shades.
+- **Bounded while exploring**: the whole isle explored at quality low (166 jumps over floors 4 to 12): the shade masks
+  kept 585 kB (one byte a tile, only floors seen: at most 1 MB for all 16), 51 shade pictures of 16 kB (at most 256
+  masks exist: 4 MB). The masks are kept with the map and put right tile by tile through `map.dirty`, never thrown away
+  whole except for a new map or a change of more than 400 tiles at once.
