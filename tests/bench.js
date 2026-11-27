@@ -5,7 +5,8 @@
 // numbers come from the test in the game itself (Menu, Game: Performance test): see docs/perf/README.md.
 // One run varies (on a shared computer the work can differ by a quarter from one run to the next): --runs 3 makes three,
 // written as out-1.json, out-2.json, out-3.json, for tests/bench-compare.js to take their median.
-//   node tests/bench.js [out.json] [--runs 3] [--cpu 4] [--desktop]
+// --quality low plays at that quality (as chosen in Settings; without it, the browser's own choice: high).
+//   node tests/bench.js [out.json] [--runs 3] [--cpu 4] [--desktop] [--quality low]
 const path = require('path');
 const fs = require('fs');
 const { serve } = require('./serve');
@@ -19,6 +20,7 @@ try {
 const args = process.argv.slice(2);
 const option = name => { const i = args.indexOf(name); return i < 0 ? undefined : args.splice(i, name === '--desktop' ? 1 : 2)[1] ?? true; };
 const cpu = +(option('--cpu') || 1), desktop = !!option('--desktop'), runs = Math.max(1, +(option('--runs') || 1));
+const quality = option('--quality');
 const out = args[0];
 
 async function once(out) {
@@ -26,6 +28,7 @@ async function once(out) {
   const page = await browser.newPage(desktop
     ? { viewport: { width: 1300, height: 950 } }
     : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+  if (quality) await page.addInitScript(q => { try { localStorage.setItem('tilequest.quality', q); } catch (e) { /* none */ } }, quality);
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   if (cpu > 1) {

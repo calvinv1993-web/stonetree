@@ -183,3 +183,72 @@ iPhone at quality low: three runs to add once it's live, against ui534.
   (it belongs to the figure, drawn on its floor, nothing kept per floor).
 - **The editor test** expected the start floor one up (the old temple mount): it now asks for the start's own floor,
   wherever it stands. 11 of 11 pass; nothing in the game changed for it.
+
+## Phase 3: colour grading (2026-11-27, on the branch, not live)
+
+What the picture was (measured on the same spots, hours and settings: `cgstats`, the view's pixels; saturation 0 to 1,
+temperature red minus blue):
+
+| spot | brightness | saturation | shadows' temperature | lights' temperature |
+|---|---|---|---|---|
+| temple (12:00) | 0.540 | 0.432 | +0.215 | +0.122 |
+| square (12:00) | 0.363 | 0.440 | +0.135 | +0.210 |
+| woods (12:00) | 0.334 | **0.718** | +0.129 | +0.274 |
+| sewer | 0.058 | 0.453 | -0.013 | +0.056 |
+| high street, night (23:00) | 0.224 | 0.330 | -0.019 | +0.146 |
+| high street, dusk (19:00) | 0.379 | 0.617 | +0.226 | +0.298 |
+
+So: the grass far too saturated (the woods most), shadows as warm as the light everywhere (nothing told them apart),
+the dusk a strong orange, and on quality low the whole sky layer was off, so low had no dawn, dusk or weather tint at
+all.
+
+The palette (one for the whole world, then a mood per kind of place):
+
+- **The ground** a little less saturated (12 %), its shadows a touch cooler (towards a dark blue-grey, `rgb(24,30,46)`)
+  and its lights a touch warmer (towards `rgb(255,248,234)`): `Render.GRADE`. Figures, items and effects aren't
+  graded, so they keep their full colour and stand out more against the ground (readability on a phone).
+- **A mood per place**, a thin tint over the view in the existing `#sky` layer, fading in and out over 2 s as you walk
+  (`MOOD` in `fx.js`, the kind of place from `readClimate`):
+  - temple (a roofed marble floor): warm stone, `rgb(255,210,160)` at 5 %
+  - forest (more than 18 trees round you): deeper green, `rgb(24,64,44)` at 7 %
+  - underground: cool blue, `rgb(24,44,86)` at 10 %
+  - town and the wild: none (natural)
+- **Night**: a cool blue `rgb(30,42,92)` up to 7 % over the darkness (mysterious, lights still warm); **dawn and dusk**
+  gentler (dusk 0.12 instead of the strong orange).
+- **The sky layer on every quality**: low and medium now get its tint, mood and edge (only the clouds stay off there).
+
+How, and why not per frame: the first version graded the whole view every frame with three canvas composite fills
+(saturation, lighten, darken). Measured: 1.8 + 0.7 + 0.7 ms a frame on the phone's canvas (6 + 2.3 + 2.3 ms at
+1280 x 2048), and on the route fps 32 -> 26 and stalls 138 -> 491 (9 measures worse). So the same three fills are now
+made **once per ground chunk**, as it is made (`Render.gradeChunk`: the chunk copied aside, the fills over it, its
+transparency put back), and kept with it: nothing per frame, no extra canvas but one shared scratch the size of a chunk.
+A chunk not yet made, drawn live for a frame, gets the same fills over its square (`gradeRect`), so nothing pops when
+it's finished. The mood is one CSS colour on an element that was already there, its fade a CSS transition.
+
+Phases 1 and 2 are kept: their shadows are baked in the chunks before the grading, so they take the cooler shade too.
+
+After (the same spots):
+
+| spot | brightness | saturation | shadows' temperature | lights' temperature |
+|---|---|---|---|---|
+| temple | 0.555 | 0.373 | +0.189 | +0.129 |
+| square | 0.364 | 0.389 | +0.114 | +0.194 |
+| woods | 0.325 | 0.617 | +0.094 | +0.229 |
+| sewer | 0.066 | 0.465 | -0.034 | +0.022 |
+| high street, night | 0.220 | 0.282 | -0.041 | +0.103 |
+| high street, dusk | 0.379 | 0.506 | +0.149 | +0.234 |
+
+Brightness stays where it was (no general dark filter); the shadows cool down everywhere more than the lights do.
+
+Screenshots (`phase3/`, before left, after right): temple, square, woods, sewer, the high street at night and at
+dusk, on a computer and on a phone at quality low (`*-phone-low.jpg`).
+
+**Sprites to adjust later, on their own** (not graded here, as figures and things keep their colour):
+
+- grass tufts, ferns, bushes and the round tree crowns: as saturated as the grass was (the woods' 0.72 is mostly them)
+- the temple's white walls and marble: close to pure white in daylight, they flatten at noon
+- the red rugs and the altar cloth: the most saturated red in town
+- flower boxes and market awnings: fine in town, loud next to the graded ground
+- the sewer's slime green: the one warm-green thing underground
+
+PERF_PLACEHOLDER
