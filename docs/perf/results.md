@@ -138,7 +138,7 @@ What was there (the inventory):
 |---|---|---|
 | players (sheet) | a generic oval baked into every frame (`groundShadow`, 10 px half width), slanted with the figure | taken out of the frames; a contact shadow drawn under the feet each frame |
 | the player's strike | the same oval baked in | taken out; the same contact shadow at its feet |
-| NPCs and monsters from a sheet | a soft shadow painted into each sheet by its artist | kept as painted; the contact shadow adds the dark core where the feet touch |
+| NPCs and monsters from a sheet | a soft shadow painted into each sheet by its artist | taken out of the picture as it's made (the PNG unchanged); the contact shadow alone |
 | Clang grown up (clang_3) | an extra baked oval | taken out (the contact shadow replaces it) |
 | code-drawn creatures | their own `shadow()` in their drawing | unchanged (not from a sheet: no contact shadow added, so none doubled) |
 | statues, pillars, altar, depot (fill their tile) | `dropShadow`: their foot's shape, soft and wide plus tight, baked in the ground chunks | unchanged: already a true contact shadow of their own shape |
@@ -173,11 +173,12 @@ iPhone at quality low: three runs to add once it's live, against ui534.
   sideways and 8.5 to 19 px wide across the walk). Measured over every frame of every direction: the player's shadow
   stays at x 48, y 61; per direction one width (9 sideways, 12.5 front and back); a walking NPC the same; the strike
   (12 pictures) sits exactly where the walking figure's is, the same width.
-- **No double darkening**: 38 of the 55 sheets have a shadow painted in under the feet (as opaque as 0.18 to 0.78).
-  Their contact shadow is now made lighter by as much (`feetOf` reads how opaque it is, `contactShadow(w, painted)` in
-  quarter steps), so the floor under their feet comes out no darker than under the player (on a mid-tone floor: before
-  the fix down to 35-47 of 255 where painted and contact met, now 85 at the darkest, the player 100). The player
-  (nothing painted) keeps the full strength that was approved.
+- **No double darkening; the painted shadows out (the owner's choice)**: 38 of the 55 sheets have a shadow painted in
+  round the feet. It is now taken out of each figure's picture as it's made (`stripPaintedShadow`: the faint pixels
+  round the feet that touch no solid pixel of the figure; the PNG files stay byte for byte as they are), so every
+  figure stands on the one contact shadow the game draws, the same for all, at the strength that was approved.
+  Checked on all 55 figures (a gallery on a mid-tone floor): nothing of a figure lost, the see-through shade and the
+  slimes included.
 - **Floor changes**: up the church tower's stairs, floors 8 to 11: the contact shadow under the feet on each floor
   (it belongs to the figure, drawn on its floor, nothing kept per floor).
 - **The editor test** expected the start floor one up (the old temple mount): it now asks for the start's own floor,

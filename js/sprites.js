@@ -7609,6 +7609,25 @@ const Sprites = (() => {
     for (let y = base + 1; y < Math.min(h, base + 3 * R); y++) for (let x = x0; x <= x1; x++) painted = Math.max(painted, d[(y * w + x) * 4 + 3] / 255);
     return { x: (x0 + x1 + 1) / 2 / R, y: (base + 1) / R, w: Math.max(4, (x1 - x0 + 1) / R), painted: painted < 0.18 ? 0 : painted }; // (under 0.18: the soft edge of the feet themselves, not a shadow)
   }
+  // The shadow painted into a sheet round a figure's feet, taken out of its picture as it's made (the PNG itself stays
+  // as it is): every figure stands on the one contact shadow the game draws under it (Render), the same for all. Out
+  // go the faint pixels (not solid) round the feet that touch no solid pixel of the figure: below its lowest solid row,
+  // and beside and between its feet in the rows just above it. The figure's own soft outline stays (it touches it).
+  function stripPaintedShadow(c, R) {
+    const w = c.width, h = c.height, g = c.getContext('2d'), img = g.getImageData(0, 0, w, h), d = img.data, SOLID = 200;
+    let base = -1;
+    for (let y = h - 1; y >= 0 && base < 0; y--) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > SOLID) { base = y; break; }
+    if (base < 0) return;
+    const solid = (x, y) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > SOLID;
+    const near = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (solid(x + dx, y + dy)) return true; return false; };
+    let changed = false;
+    for (let y = Math.max(0, base - 6 * R); y < h; y++) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4, a = d[i + 3];
+      if (!a || a > SOLID || (y <= base && near(x, y))) continue;
+      d[i + 3] = 0; changed = true;
+    }
+    if (changed) g.putImageData(img, 0, 0);
+  }
   // A figure's feet kept steady as it walks or strikes (its contact shadow must not jump or swell from step to step):
   // across its feet's middle at its stand's x (the feet point all of its pictures share), on the ground line and as wide
   // as its standing picture of the same direction says (stand: that picture; none: this is it)
@@ -7642,6 +7661,7 @@ const Sprites = (() => {
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
       g.filter = 'none';
       g.setTransform(1, 0, 0, 1, 0, 0);
+      stripPaintedShadow(g.canvas, R);
       g.canvas.feet = steadyFeet(g.canvas, R, fx, frame ? npcFromSheet(id, dir, 0) : null);
     }, 2 * TILE * R);
   }
