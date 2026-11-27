@@ -264,3 +264,44 @@ The grading costs a little when a chunk is made (+2 %, about 0.1 ms a chunk) and
 within one run's spread (1 to 5 on either side). The per-frame version this replaced: fps 32 -> 26, stalls 138 -> 491.
 Against the iPhone's own baseline (ui530, low): to be measured on the phone once it's live; the headless numbers can't
 be compared with the phone's.
+
+### Phase 3 checked after going live (ui536, then ui537)
+
+Pictures in `phase3/checks/` (phase 2 left, now right).
+
+- **Ground, plants, buildings and things kept together.** Measured: the ground's pixels (the ones that change when the
+  grading is turned off) against everything standing on it (the ones that don't).
+  - Phase 3 as it went live as ui536 graded only the ground. In the woods that pulled the grass away from the trees:
+    the trees' saturation gap to the grass went from +0.07 to +0.21.
+  - So **what grows now takes the grading too**, once, in its own kept picture, at half strength. At full strength the
+    cooler shade lifts dark leaves most, and a tree came out duller than the grass. The grass's blades over feet get
+    one graded copy (`GROWING`, `Render.gradeOnce`, `Render.gradedCopy`).
+  - Plants against the grass now: in the woods +0.088 before, +0.091 now; on the square +0.10 before, +0.16 now
+    (flower boxes and bushes); in the woods at night +0.04 before, +0.10 now.
+  - Brightness between the ground and what stands on it is unchanged everywhere (within 0.013).
+  - Buildings and furniture come closer to the ground than before: in the temple, -0.51 before, -0.38 now.
+- **Transitions.** Walking tile by tile from the square into the woods, along the woods' edge and into the temple, each
+  border changes the mood once, easing over 2 s. There is no flicker back and forth. The graded ground has no seams:
+  a chunk drawn live for a frame gets the same grading.
+- **The night.** On a phone at low, the view's brightness at night is the same or brighter:
+  - street +0 %, square -2 %, woods +13 %, temple +6 %
+  - the darkest tenth is lifted a little everywhere (the cooler shade lifts the blacks)
+  On a computer, the middle of the view is 3 % darker (street, square, woods) and the temple 1 % lighter.
+- **Only the playing field.** The sky layer lies exactly over the view (desktop 926 x 679 over the view's 928 x 681;
+  phone the same). None of the interface's elements lies under it: 111 checked on a computer, 25 on a phone. The HUD
+  pictures before and after are the same.
+- **Phases 1 and 2 kept.** Turning each off changes the picture, so they still draw.
+  - AO, the pixels it shades: temple about 28,600, temple at night 17,900.
+  - Contact shadows: at every spot (temple 3,100, square 1,200, woods 240, sewer).
+  - In close-up both look as they did (`temple-ao-contact-zoom.jpg`).
+- **Performance at low**, three more headless runs with the plants graded (`phase3b-headless-low-*`), against ui536's:
+  nothing worse past the limits.
+  - fps 41.1 -> 41.4
+  - work p50 2.1 -> 1.6 ms (this computer's spread)
+  - chunks 490 -> 454 ms
+  - pictures 199.5 MB, the same: the plants are graded in their own pictures, no copies
+- **The browser soak test** now fits the welcome:
+  - the outfit window is optional (it comes after the story now)
+  - it no longer counts as blank the things meant to be bare: the great gable's top corners, and the stained glass's
+    light, which is in no place any more
+  - 60 s, 284 random actions, slowest frame 35 ms: passed
