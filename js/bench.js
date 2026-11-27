@@ -63,7 +63,7 @@ const Bench = (() => {
     userAgent: navigator.userAgent,
     standalone: !!((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone),
     dpr: window.devicePixelRatio || 1, screen: `${screen.width}x${screen.height}`, window: `${innerWidth}x${innerHeight}`,
-    canvas: `${canvas.width}x${canvas.height}`, view: `${VIEW_W}x${VIEW_H}`, sharp: Sprites.CREATURE_RES, quality, fpsSetting: Math.round(1000 / FRAME_INTERVAL),
+    canvas: `${canvas.width}x${canvas.height}`, view: `${VIEW_W}x${VIEW_H}`, sharp: Sprites.CREATURE_RES, sharpDrop, quality, fpsSetting: Math.round(1000 / FRAME_INTERVAL),
     cores: navigator.hardwareConcurrency || null, deviceMemory: navigator.deviceMemory || null, chunksKept: Render.CHUNKS_KEPT,
   });
 

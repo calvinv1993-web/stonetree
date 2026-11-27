@@ -44,6 +44,10 @@ const QUALITY = { high: [], medium: ['sky', 'fx'], low: ['sky', 'fx', 'water', '
 let quality = (() => { try { const q = localStorage.getItem('tilequest.quality'); return QUALITY[q] ? q : 'high'; } catch (e) { return 'high'; } })();
 function setQuality(q) {
   quality = QUALITY[q] ? q : 'high';
+  // (a quality chosen starts from the screen's own sharpness again: the steps down for a phone that couldn't keep up
+  // were kept for good, so a phone once slow stayed coarse whatever was chosen; it steps down again only if it must)
+  sharpDrop = 0;
+  try { localStorage.removeItem('tilequest.sharpDrop60'); } catch (e) { /* not remembered */ }
   Render.quality.clear();
   for (const part of QUALITY[quality]) Render.quality.add(part);
 try { localStorage.removeItem('tilequest.zoom'); } catch (e) { /* (the camera's setting, gone: always close-up now) */ }
