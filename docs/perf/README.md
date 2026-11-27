@@ -63,7 +63,7 @@ card (software drawing), so its numbers are this computer's own: compare only ru
 machine. It's no substitute for the iPhone, but it catches more work per frame, more memory and slower chunks.
 
 `tests/bench-compare.js` takes the median of each side's runs and marks a measure worse only past both a share and an
-amount (work p50 +10 % and +0.3 ms, work p95 +15 % and +1.5 ms, fps -5 % and -2, pictures +10 % and +10 MB, chunk time
+amount (work p50 +10 % and more than +1 ms (an iPhone's clock gives whole milliseconds), work p95 +15 % and +2 ms, fps -5 % and -2 on the walks only (standing still the game picks 30 or 60 itself), pictures +10 % and +10 MB, chunk time
 +15 % and +40 ms, stalls +50 % and +5); it ends with code 1 if anything is worse.
 
 On a shared machine one run's work can differ from the next by a quarter (three runs of the same code: work p50
