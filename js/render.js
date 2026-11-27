@@ -824,7 +824,7 @@ const Render = {
             let shape;
             if (THINGS[id].wall === 'thin') shape = [wallAt(x - 1, y), wallAt(x, y - 1), wallAt(x, y + 1), wallAt(x + 1, y)].map(w => (w ? '1' : '0')).join('');
             const img = Sprites.thing(id, x, y, 0, shape), iw = Sprites.w(img), ih = Sprites.h(img);
-            g.drawImage(Sprites.dropShadow(img), ox + x * TILE - (iw - TILE), oy + y * TILE - (ih - TILE), iw + 8, ih + 8);
+            g.drawImage(Sprites.dropShadow(img, Sprites.LEGGED.has(id)), ox + x * TILE - (iw - TILE), oy + y * TILE - (ih - TILE), iw + 8, ih + 8);
           }
         }
 
@@ -1188,6 +1188,14 @@ const Render = {
           const iw = Sprites.w(o.img), ih = Sprites.h(o.img), liftX = iw - TILE - (o.img.rx || 0) + (o.lift || 0), liftY = ih - TILE + (o.lift || 0);
           if (o.alpha !== undefined) g.globalAlpha = o.alpha;
           const px = Math.round(ox + (o.vx ?? o.x) * TILE - liftX), py = Math.round(oy + (o.vy ?? o.y) * TILE - liftY);
+          // a figure from a sheet stands on its contact shadow: flat on the ground under its feet (where its picture says
+          // they are, Sprites: feetOf), one kept picture per width; not slanted, not lifted (it's on the floor, the figure
+          // stands up off it). Code-drawn creatures draw their own.
+          const feet = o.slant && o.img.feet;
+          if (feet && !Render.skip('contact')) {
+            const sh = Sprites.contactShadow(feet.w), fx = px + feet.x, fy = py + feet.y - 0.5;
+            g.drawImage(sh, fx - sh.cw / 2, fy - sh.ch / 2, sh.cw, sh.ch);
+          }
           if (o.slant) Render.slanted(g, o.img, px, py, () => { // creatures: round, with depth, standing in the slant
             g.drawImage(Render.CREATURE_DEPTH ? Render.roundOf(o.img) : o.img, px, py, iw, ih);
             if (o.flash > 0) { g.globalAlpha = o.flash; g.drawImage(Sprites.silhouette(o.img), px, py, iw, ih); }

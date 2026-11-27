@@ -28,7 +28,7 @@
 const Sprites = (() => {
   const cache = new Map();
   const urls = new Map();
-  const silhouettes = new WeakMap(), dropShadows = new WeakMap();
+  const silhouettes = new WeakMap(), dropShadows = new WeakMap(), leggedShadows = new WeakMap();
   const SHADOW_PAD = 8; // (how far a shadow picture reaches past its thing, right and down)
 
   function cached(key, draw, size = TILE, height = size) {
@@ -7584,13 +7584,26 @@ const Sprites = (() => {
   // figure is as painted (world pixels: its name and bar go up as much as it grows)]. Grown Clang, and the island's
   // bosses: as big as fits the picture (half its width 23 world pixels at most, its height 59)
   const BIG_SHEETS = {
-    clang_3: [1.5, 8, null, 11, 35],
+    clang_3: [1.5, 8, null, 0, 35], // (its shadow: the contact shadow under every figure from a sheet, see feetOf)
     greyfang: [1.5, 8, null, 0, 28], old_snapper: [1.5, 8, null, 0, 17], brineshell: [1.5, 8, null, 0, 17],
     thornmother: [1.5, 8, null, 0, 23], brood_queen: [1.5, 8, null, 0, 29], cistern_slime: [1.5, 8, null, 0, 25],
     gnash: [1.5, 8, null, 0, 37], goblin_hoardkeeper: [1.5, 8, null, 0, 31], watchman_shade: [1.5, 8, null, 0, 37],
     gravewaker: [1.44, 8, null, 0, 41],
     king_mogg: [1.5, 8, null, 0, 37], watch_captain: [1.5, 8, null, 0, 37], saltjaw: [1.5, 8, null, 0, 17], one_eye_patch: [1.35, 8, null, 0, 35], old_weaver: [1.6, 8, null, 0, 31],
   };
+  // Where a figure drawn from a sheet stands (its picture c, R pixels a world pixel): the middle of its feet, the line
+  // they stand on and how wide they are, in world pixels on its picture, read once from its own pixels when the picture
+  // is made (the lowest rows that are solid, not a shadow painted in: those are faint). So its contact shadow (Render:
+  // Sprites.contactShadow) sits right under the feet it has, as wide as they are, a beast's paws or a child's shoes.
+  function feetOf(c, R) {
+    const w = c.width, h = c.height, d = c.getContext('2d').getImageData(0, 0, w, h).data;
+    let base = -1;
+    for (let y = h - 1; y >= 0 && base < 0; y--) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 200) { base = y; break; }
+    if (base < 0) return null;
+    let x0 = w, x1 = -1;
+    for (let y = Math.max(0, base - 3 * R); y <= base; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; }
+    return { x: (x0 + x1 + 1) / 2 / R, y: (base + 1) / R, w: Math.max(4, (x1 - x0 + 1) / R) };
+  }
   // A soft shadow on the ground round (x, y), rx wide each way, darkest right under the feet
   function groundShadow(g, x, y, rx) {
     g.save(); g.translate(x, y); g.scale(1, 0.32);
@@ -7615,6 +7628,8 @@ const Sprites = (() => {
       if (dir === 3) { g.translate(ox + CW * k * R, oy); g.scale(-1, 1); g.drawImage(img, sx, sy, CW * S, CH * S, 0, 0, CW * k * R, CH * k * R); }
       else g.drawImage(img, sx, sy, CW * S, CH * S, ox, oy, CW * k * R, CH * k * R);
       g.filter = 'none';
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.canvas.feet = feetOf(g.canvas, R);
     }, 2 * TILE * R);
   }
   const ownSheet = c => !!c && ((c.type === 'player' && Sprites.PLAYER_SHEET && customImage('player_sheet')) || (c.type === 'npc' && !(NPCS[c.npcId] && LOW_SHEETS.includes(NPCS[c.npcId].creature)) && customImage(`sheet_${c.npcId}`))
@@ -7661,10 +7676,11 @@ const Sprites = (() => {
       const cell = document.createElement('canvas'); cell.width = CW * S; cell.height = CH * S;
       recolourCell(cell.getContext('2d'), id, key, sx, sy, 'player_sheet');
       const fx = 2 * TILE + 16, fy = TILE + 29, ox = (fx - ATTACK.feet[0]) * R, oy = (fy - ATTACK.feet[1]) * R;
-      groundShadow(g, fx * R, fy * R, 10 * R);
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(2 * fx * R, 0); g.scale(-1, 1); } // (facing west: the side row turned round its feet)
       g.drawImage(cell, ox, oy, CW * R, CH * R);
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.canvas.feet = { x: fx, y: fy, w: 11 }; // (its feet where the walking figure's are: the weapon swinging out isn't on the ground)
     }, 4 * TILE * R, 2 * TILE * R);
     c.rx = TILE;
     return c;
@@ -7680,11 +7696,11 @@ const Sprites = (() => {
       if (look.feather || look.cloak) sheetCosmetics(cell, look, dir, S);
       // into a picture two tiles square, its tile bottom right, the feet where a creature's stand (16, 29 on the tile)
       const ox = (TILE + 16 - SHEET.feet[0]) * R, oy = (TILE + 29 - SHEET.feet[1]) * R;
-      // a soft shadow on the ground under the feet (the people's sheets have one painted in; the players' have none)
-      groundShadow(g, (TILE + 16) * R, (TILE + 29) * R, 10 * R);
+      // (no shadow painted in: a figure's contact shadow is drawn on the ground under it, from its feet: see feetOf)
       g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
       if (dir === 3) { g.translate(ox + CW * R, oy); g.scale(-1, 1); g.drawImage(cell, 0, 0, CW * R, CH * R); }
       else g.drawImage(cell, ox, oy, CW * R, CH * R);
+      g.canvas.feet = feetOf(g.canvas, R);
     }, 2 * TILE * R);
   }
 
@@ -9171,12 +9187,34 @@ const Sprites = (() => {
         g.putImageData(img, 0, 0);
       }, TILE * 2);
     },
+    // A figure's contact shadow, w world pixels across its feet (whole pixels: one picture per width, kept, at most 48):
+    // a flat oval on the ground, darkest in a tight core right where the feet stand and fading out softly, a little
+    // longer towards the south-east, away from the light. Drawn under a figure each frame, one picture (Render: the
+    // creatures in world), made once with gradients, no filter.
+    contactShadow(w) {
+      const W = Math.max(4, Math.min(48, Math.round(w))), R = 2, rx = W * 0.62 + 2, ry = Math.max(2.2, W * 0.2), pad = 3;
+      const cw = Math.ceil((rx + pad) * 2 + 2), ch = Math.ceil((ry + pad) * 2 + 2);
+      const c = cached(`contact:${W}`, g => {
+        g.canvas.res = R; g.scale(R, R);
+        const oval = (cx, cy, sx, sy, stops) => {
+          g.save(); g.translate(cx, cy); g.scale(sx / sy, 1);
+          const gr = g.createRadialGradient(0, 0, 0, 0, 0, sy);
+          for (const [at, a] of stops) gr.addColorStop(at, `rgba(22,15,9,${a})`);
+          g.fillStyle = gr; g.beginPath(); g.arc(0, 0, sy, 0, Math.PI * 2); g.fill(); g.restore();
+        };
+        oval(cw / 2 + 0.9, ch / 2 + 0.5, rx + 0.8, ry + 0.8, [[0, 0.42], [0.55, 0.24], [1, 0]]);  // (the soft spread, a little towards the south-east)
+        oval(cw / 2, ch / 2 - 0.2, W * 0.45, Math.max(1.4, ry * 0.55), [[0, 0.62], [0.65, 0.3], [1, 0]]); // (the core, right under the feet)
+      }, cw * R, ch * R);
+      c.cw = cw; c.ch = ch;
+      return c;
+    },
     // The shadow a piece of furniture or a statue casts on the floor: the shape of its foot in a soft warm dark, drawn a
     // few pixels south-east of it, under it (only things that stand on the floor: see dropsShadow)
     // (one picture for both: the soft wide one 5, 7 pixels south-east, the tight dark one 1.5, 2 where it stands; it is
     // SHADOW_PAD world pixels bigger than the thing, right and down, and drawn at the thing's top-left corner)
-    dropShadow(img) {
-      let sh = dropShadows.get(img);
+    dropShadow(img, legged = false) {
+      const store = legged ? leggedShadows : dropShadows;
+      let sh = store.get(img);
       if (!sh) {
         const k = img.res || 1, T = TILE * k, pad = SHADOW_PAD * k;
         sh = document.createElement('canvas'); sh.width = img.width + pad; sh.height = img.height + pad; sh.res = img.res;
@@ -9192,10 +9230,14 @@ const Sprites = (() => {
         };
         layer(3, 4, 2.2, 'rgba(46,32,18,0.3)');   // (soft and wide, light: indoor light comes from more than one side)
         layer(1, 1.5, 0.9, 'rgba(30,20,10,0.45)'); // (where it touches the floor, a little darker, still soft)
-        dropShadows.set(img, sh);
+        // (a thing on legs - a table, a chair, a bench, a stall - shades the floor between its legs too, where its top
+        // keeps the light off: its foot spread wide and soft, filling the gaps; a filter while it's made, once, not a frame)
+        if (legged) layer(0.5, 1, 3.2, 'rgba(30,20,10,0.42)');
+        store.set(img, sh);
       }
       return sh;
     },
+    LEGGED: new Set(['table', 'chair', 'chair_east', 'chair_west', 'bench', 'stall', 'pew']), // (furniture standing on legs: see dropShadow)
     dropsShadow: id => { const d = THINGS[id]; return DROPS_SHADOW.has(id) || (d.wall === 'thin' && !d.roof) || FILLS_TILE.has(id) || !!PARTS[spriteOf(id)]; },
     castsShadow: id => { const d = THINGS[id]; return d.wall === 'block' && !d.roof && !d.change; }, // (only what fills its tile to the edge, a block: the rest has a shadow of its own shape, see dropsShadow)
     hasOwnKerb: () => ['n', 'e', 's', 'w'].every(d => customImage(`edge_kerb_${d}`)),
