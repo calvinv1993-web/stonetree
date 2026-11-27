@@ -84,3 +84,15 @@ What it says, set against the computer's run:
 - One run alone varies: the stalls 3 to 6, the night square 2 to 5 ms, fps standing 29 to 43 (the game's own choice).
   So three runs and their median, and `tests/bench-compare.js` counts a change as worse only past both a share and
   an amount (more than 1 ms of work: the phone's clock gives whole milliseconds).
+
+### iPhone at quality high: drawn as coarse as at low (a finding)
+
+A run at quality high (`results/2026-11-27-ui530-iphone-high-sharp2-1.json`) came out at the same canvas
+(704 x 1024) and sharpness (2) as quality low, and so measured the same. The reason: on a phone the sharpness is
+`p - sharpDrop - (quality)`, where `p` is 4 on this phone and `sharpDrop` is the automatic step down for a phone that
+can't keep up (`checkKeepingUp` in `game.js`). It is **kept for good** in the browser (`tilequest.sharpDrop60`) and
+nothing ever takes it back: once a few slow seconds (a loading moment, a hot phone) stepped it down twice, the phone
+stays at sharpness 2 whatever the quality says. So the quality setting no longer changes the sharpness here, only the
+parts left out (sky, weather, ripples, grass blades).
+
+A true quality-high baseline needs `sharpDrop` back at 0 first (a change, not made yet).
