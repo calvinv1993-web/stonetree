@@ -51,7 +51,12 @@ const Fx = (() => {
     const hot = share('sand') + share('sandstone') + share('ash') + share('lava') + share('jungle'), cold = share('snow') + share('ice');
     const kind = cold > 0.25 && cold > hot ? 'frost' : share('ash') + share('lava') > 0.25 ? 'volcano' : share('sand') + share('sandstone') > 0.25 ? 'desert'
       : share('swamp') > 0.2 ? 'swamp' : share('jungle') > 0.25 ? 'jungle' : 'green';
-    return { kind, hot, water: share('water'), flowers, waters, grass, underground: z < map.surfaceZ, town: nearTown() };
+    // (and what kind of place it is for the colour grading, see grade: a temple's hall, the woods, a town, outdoors)
+    let trees = 0;
+    for (let y = player.y - 6; y <= player.y + 6; y++) for (let x = player.x - 8; x <= player.x + 8; x++) { const t = tileAt(x, y, z); if (t && t.items.some(id => id === 'tree' || id === 'pine')) trees++; }
+    const here = tileAt(player.x, player.y, z), roofed = !!tileAt(player.x, player.y, z + 1);
+    const place = z < map.surfaceZ ? 'underground' : roofed && here && (here.ground === 'marble' || here.ground === 'marble_check') ? 'temple' : trees > 18 ? 'forest' : nearTown() ? 'town' : 'wild';
+    return { kind, hot, water: share('water'), flowers, waters, grass, underground: z < map.surfaceZ, town: nearTown(), place };
   }
   const nearTown = () => typeof MAP_TOWNS !== 'undefined' && MAP_TOWNS.some(([, x, y, z]) => z === map.surfaceZ && Math.abs(x - player.x) < 26 && Math.abs(y - player.y) < 22);
 
@@ -553,6 +558,19 @@ const Fx = (() => {
     g.globalAlpha = 1;
   }
 
+  // ---- colour grading: the mood of each kind of place --------------------------------------------------------
+  // The palette itself (calmer colours, cooler shadows, warmer light) is baked into the ground as it's kept in chunks
+  // (Render.gradeChunk): nothing a frame. On top, each kind of place has a faint tint of its own, laid over the view by
+  // the page's sky layer (see overlay: a fill the browser lays over for next to nothing, easing from one place to the
+  // next with a CSS transition): [r, g, b, strength].
+  const MOOD = {
+    temple: [255, 210, 160, 0.05],    // warm stone, calm
+    forest: [24, 64, 44, 0.07],       // deeper, organic greens
+    underground: [24, 44, 86, 0.1],   // cool and threatening
+    town: null, wild: null,           // natural, as it is
+  };
+  const NIGHT_MOOD = [30, 42, 92, 0.07]; // (night outdoors: a touch of blue, mysterious; its light is the light layer's)
+
   // Light and dark, in canvas pixels: the night, holes of light, and coloured glows on top.
   const LIGHT_COLORS = {
     temple_lantern_se: '255,214,140', torch: '255,170,80', wall_torch: '255,170,80', campfire: '255,150,60', brazier: '255,150,60', smith_hearth: '255,140,50', lamppost: '255,210,130', crystal: '120,210,255', obelisk: '120,220,255',
@@ -774,10 +792,12 @@ const Fx = (() => {
     sky.edge = document.createElement('div'); sky.edge.className = 'sky-fill'; sky.el.append(sky.edge);
     return sky.el;
   }
-  function overlay(screen) {
+  function overlay(screen, lite = false) { // (lite: the quality leaves out the sky's drifting parts; its tint and edge stay)
     const W = viewPxW(), H = viewPxH(), w = weather(), h = worldMinutes() / 60, el = skyLayer();
     if (el) {
-      const off = typeof Render !== 'undefined' && Render.skip('sky');
+      // (the tint of dawn, dusk, season and weather and the soft edge are on every quality: a fill and a gradient, laid
+      // over by the browser for next to nothing; only the drifting clouds go at medium and low)
+      const off = typeof Render !== 'undefined' && Render.off.has('sky'), noClouds = typeof Render !== 'undefined' && Render.skip('sky');
       el.hidden = off;
       if (!off) {
         const view = document.getElementById('view');
@@ -788,7 +808,7 @@ const Fx = (() => {
         }
         const k = sky.k;
         // clouds drifting over the land (the sky is the same for everyone: it follows the clock)
-        const clouds = !climate.underground && daylight() > 0.5;
+        const clouds = !noClouds && !climate.underground && daylight() > 0.5;
         // (each written only when it changes: a cloud's size and look hardly ever do, and it moves a whole pixel only
         // now and then; writing the same again each frame still made the browser work the page's look out again)
         sky.clouds.forEach((c, i) => {
@@ -808,15 +828,20 @@ const Fx = (() => {
         // one tint: dawn and dusk, the season, the weather (blended into a single colour)
         const tints = [];
         if (!climate.underground) {
-          if (h >= 5 && h < 8) tints.push([255, 150, 110, 0.15 * (1 - Math.abs(h - 6.4) / 1.6)]);
-          else if (h >= 18 && h < 21.2) tints.push([255, 110, 40, 0.2 * (1 - Math.abs(h - 19.6) / 1.6)]);
+          // (dawn and dusk a soft warmth, not a sepia veil: gentler than they were, now that every quality shows them)
+          if (h >= 5 && h < 8) tints.push([255, 160, 120, 0.1 * (1 - Math.abs(h - 6.4) / 1.6)]);
+          else if (h >= 18 && h < 21.2) tints.push([255, 130, 60, 0.12 * (1 - Math.abs(h - 19.6) / 1.6)]);
           const sea = season();
           if (sea === 'autumn') tints.push([255, 160, 70, 0.05]);
           if (sea === 'winter') tints.push([170, 200, 255, 0.06]);
           if (w && w.kind === 'rain') tints.push([24, 34, 56, 0.26 * w.strength]);
           if (w && w.kind === 'sand') tints.push([210, 170, 100, 0.22 * w.strength]);
           if (w && w.kind === 'snow' && w.strength > 0.8) tints.push([230, 240, 255, 0.16]);
+          const night = Math.max(0, Math.min(1, (1 - daylight()) / 0.75));
+          if (night > 0.01) tints.push([...NIGHT_MOOD.slice(0, 3), NIGHT_MOOD[3] * night]);
         }
+        const mood = MOOD[climate.place];
+        if (mood) tints.push(mood);
         let a = 0, rgb = [0, 0, 0];
         for (const [r0, g0, b0, a0] of tints.filter(t => t[3] > 0)) { // (painted one over another, as before)
           const na = a0 + a * (1 - a0);
@@ -839,6 +864,7 @@ const Fx = (() => {
         }
       }
     }
+    if (lite) return; // (as before at medium and low: no blowing dust, lightning or banners drawn here)
     if (!climate.underground) {
       if (w && w.kind === 'sand') {
         for (let i = 0; i < 4; i++) { // bands of dust blowing through

@@ -369,7 +369,7 @@ body.game:not(.touch-ui) .panel h2 { display: flex; flex-wrap: wrap; align-items
 #sky { position: absolute; pointer-events: none; overflow: hidden; z-index: 1; }
 #sky[hidden] { display: none; }
 #sky .sky-cloud { position: absolute; left: 0; top: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,20,0.1), rgba(0,0,20,0)); will-change: transform; }
-#sky .sky-fill { position: absolute; inset: 0; }
+#sky .sky-fill { position: absolute; inset: 0; transition: background-color 2s linear; } /* (a place's mood eases in: fx.js MOOD) */
 .guide-card .guide-now { color: var(--accent, #ffd84a); margin-top: 4px; }
 .guide-card button { margin-top: 6px; }
 /* the stats of what you wear (game-ui.js GEAR_STATS): a line each, its name left and its value right */

@@ -139,6 +139,31 @@ const Render = {
       }
     }
   },
+  // ---- the colour grading of the ground (phase 3: docs/perf/results.md) -----------------------------------------
+  // The world's palette, baked into the ground once as a chunk is kept (gradeChunk), never a frame: the colours a little
+  // calmer (a grey in 'saturation'), the deepest shadows a touch cooler (a cool dark in 'lighten': only what is darker
+  // than it takes some of its blue, so shadows lean blue-grey and never crush to black) and the brightest light a touch
+  // warmer (a warm white in 'darken': only the blue of what's brighter is held back). Where the chunk has no ground (an
+  // upper floor's holes) it stays clear. Each kind of place adds its own mood on top (Fx: MOOD).
+  GRADE: { desat: 0.12, shadow: 'rgb(24,30,46)', shadowA: 0.45, light: 'rgb(255,248,234)', lightA: 0.4 },
+  gradeFills(g, x, y, w, h) {
+    const G = Render.GRADE;
+    g.globalCompositeOperation = 'saturation'; g.globalAlpha = G.desat; g.fillStyle = '#808080'; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'lighten'; g.globalAlpha = G.shadowA; g.fillStyle = G.shadow; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'darken'; g.globalAlpha = G.lightA; g.fillStyle = G.light; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+  },
+  gradeChunk(cv) {
+    const w = cv.width, h = cv.height, keep = Render.gradeKeep || (Render.gradeKeep = document.createElement('canvas'));
+    if (keep.width < w || keep.height < h) { keep.width = Math.max(keep.width, w); keep.height = Math.max(keep.height, h); }
+    const k = keep.getContext('2d'), g = cv.getContext('2d');
+    k.clearRect(0, 0, w, h); k.drawImage(cv, 0, 0); // (its shape, to cut the grading back to it)
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    Render.gradeFills(g, 0, 0, w, h);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(keep, 0, 0, w, h, 0, 0, w, h);
+    g.restore();
+  },
+  gradeRect(g, x, y, w, h) { g.save(); Render.gradeFills(g, x, y, w, h); g.restore(); },
   // ---- the ground, kept in chunks --------------------------------------------------------------------------------
   // The ground of a floor (its textures, shores, borders, lips and rugs) doesn't change from frame to frame, but
   // drawing it is hundreds of pictures a frame. So it's drawn once per chunk of CHUNK x CHUNK tiles, into a picture
@@ -237,6 +262,7 @@ const Render = {
         keep.set(key, c);
       }
       if (c.made >= PARTS) return c; // (empty, or moving ground: nothing to make)
+      const wasMade = c.made;
       if (performance.now() > Render.budget) { if (!ahead && !Render.later.has(key)) Render.later.set(key, () => chunk(cx, cy, true)); return null; } // (made between frames)
       const cg = c.canvas.getContext('2d');
       if (!ahead) Render.stats.finished++;
@@ -248,6 +274,7 @@ const Render = {
           pass(cg, -tx0 * TILE, -ty0 * TILE, px, px + PART - 1, py, py + PART - 1, px, px + PART - 1, py, py + PART - 1, 0);
         c.made++;
       }
+      if (c.made >= PARTS && wasMade < PARTS && !Render.skip('grade')) Render.gradeChunk(c.canvas); // (its colours graded once, as it's finished)
       { const ms = performance.now() - making; Render.stats.chunkMs += ms; if (ms > Render.stats.chunkMaxMs) Render.stats.chunkMaxMs = ms; if (c.made >= PARTS) Render.stats.chunksMade++; }
       if (ahead && c.made >= PARTS && !c.warm && !c.empty && performance.now() < Render.budget) { // and the pictures of what stands there (trees, bushes, things), ready too
         c.warm = true;
@@ -281,6 +308,9 @@ const Render = {
       const ax0 = Math.max(gx0, tx0), ax1 = Math.min(gx1, tx0 + C - 1), ay0 = Math.max(gy0, ty0), ay1 = Math.min(gy1, ty0 + C - 1);
       g.save(); g.beginPath(); g.rect(ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE); g.clip();
       pass(g, ox, oy, ax0, ax1, ay0, ay1, Math.max(x0, ax0), Math.min(x1, ax1), Math.max(y0, ay0), Math.min(y1, ay1), shoreFrame);
+      // (a chunk to be kept, not made yet: graded here as it will be when it's kept, so nothing changes the moment it
+      // is; moving ground, never kept, isn't graded at all, the same every frame)
+      if (c && c.canvas && !Render.skip('grade')) Render.gradeRect(g, ox + tx0 * TILE, oy + ty0 * TILE, C * TILE, C * TILE);
       g.restore();
     }
     // With time to spare (this frame's, and the quiet time between frames: see idle), make the chunks round the view on

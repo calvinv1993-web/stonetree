@@ -708,7 +708,7 @@ function draw() {
   const screen = (tx, ty) => [(ox + tx * TILE) * SCALE, (oy + ty * TILE) * SCALE];
   const darkness = z < map.surfaceZ ? 0.92 : Math.max((1 - daylight()) * 0.8, 0.35 * siegeLook); // (the Host brings a darkness with it)
   Fx.light(view, screen, pv, darkness, z < map.surfaceZ);
-  if (!Render.skip('sky')) Fx.overlay(screen);
+  if (!Render.off.has('sky')) Fx.overlay(screen, Render.skip('sky')); // (at medium and low only its tint and edge: see Fx.overlay)
   // Who just hit you: 1 right after the hit, fading to 0.
   const struck = new Map();
   for (const fx of effects) if (fx.kind === 'attacker' && forViewer(fx, player) && now < fx.start + fx.dur) struck.set(fx.cid, 1 - (now - fx.start) / fx.dur);
